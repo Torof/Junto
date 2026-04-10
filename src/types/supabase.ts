@@ -225,6 +225,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "participations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "participations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -429,6 +436,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wall_messages_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wall_messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -446,6 +460,94 @@ export type Database = {
       }
     }
     Views: {
+      activities_with_coords: {
+        Row: {
+          created_at: string | null
+          creator_id: string | null
+          deleted_at: string | null
+          description: string | null
+          duration: string | null
+          id: string | null
+          invite_token: string | null
+          lat: number | null
+          level: string | null
+          lng: number | null
+          max_participants: number | null
+          meeting_lat: number | null
+          meeting_lng: number | null
+          sport_id: string | null
+          starts_at: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string | null
+          invite_token?: string | null
+          lat?: never
+          level?: string | null
+          lng?: never
+          max_participants?: number | null
+          meeting_lat?: never
+          meeting_lng?: never
+          sport_id?: string | null
+          starts_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string | null
+          invite_token?: string | null
+          lat?: never
+          level?: string | null
+          lng?: never
+          max_participants?: number | null
+          meeting_lat?: never
+          meeting_lng?: never
+          sport_id?: string | null
+          starts_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null

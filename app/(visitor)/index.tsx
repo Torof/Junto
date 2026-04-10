@@ -5,7 +5,6 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { JuntoMapView, type ActivityPin } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
-import { parsePoint } from '@/utils/geo';
 
 export default function VisitorMapScreen() {
   const { t } = useTranslation();
@@ -14,12 +13,12 @@ export default function VisitorMapScreen() {
   const { data: activities } = useNearbyActivities();
 
   const pins: ActivityPin[] = (activities ?? [])
-    .map((a) => {
-      const coord = parsePoint(a.location_start);
-      if (!coord) return null;
-      return { id: a.id, title: a.title, coordinate: coord };
-    })
-    .filter((p): p is ActivityPin => p !== null);
+    .filter((a) => a.lng != null && a.lat != null)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      coordinate: [a.lng, a.lat] as [number, number],
+    }));
 
   return (
     <View style={styles.container}>
