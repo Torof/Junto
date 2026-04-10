@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Android
+*.jks
+*.keystore
+*.p12
+*.key
+google-services.json
+
+# iOS
+*.mobileprovision
+*.p8
+
+# Supabase
+service-role-key*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+*.apk
+*.aab
+*.ipa

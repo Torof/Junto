@@ -1,0 +1,11 @@
+{
+  "tabs": {
+    "carte": "Map",
+    "mesActivites": "My activities",
+    "messagerie": "Messages",
+    "profil": "Profile"
+  },
+  "app": {
+    "name": "Junto"
+  }
+}
