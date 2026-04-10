@@ -25,6 +25,12 @@
       },
       "edgeToEdgeEnabled": true
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/dea60861-73c9-476f-a824-59bf9cd5b340"
+    },
     "plugins": [
       "expo-router",
       "expo-web-browser",
