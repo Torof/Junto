@@ -1,4 +1,4 @@
--- Migration 00001: sports + users tables
+-- Migration 00001: users + sports tables
 -- Following SECURITY.md: ENABLE RLS + FORCE RLS immediately after CREATE TABLE
 -- All policies written before any data insertion
 
@@ -42,39 +42,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION generate_random_name() FROM anon, authenticated;
 
 -- ============================================================================
--- TABLE: sports (reference data)
--- ============================================================================
-CREATE TABLE sports (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  key TEXT UNIQUE NOT NULL,
-  icon TEXT NOT NULL,
-  category TEXT NOT NULL,
-  display_order INTEGER NOT NULL
-);
-
-ALTER TABLE sports ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sports FORCE ROW LEVEL SECURITY;
-
--- SELECT: everyone including anon
-CREATE POLICY "sports_select_all"
-  ON sports FOR SELECT
-  USING (true);
-
--- INSERT/UPDATE/DELETE: admin only
-CREATE POLICY "sports_insert_admin"
-  ON sports FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
-
-CREATE POLICY "sports_update_admin"
-  ON sports FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
-
-CREATE POLICY "sports_delete_admin"
-  ON sports FOR DELETE
-  USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
-
--- ============================================================================
--- TABLE: users
+-- TABLE: users (created BEFORE sports — sports admin policies reference users)
 -- ============================================================================
 CREATE TABLE users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -110,7 +78,6 @@ CREATE POLICY "users_select_own"
   USING (auth.uid() = id);
 
 -- INSERT: no client policy — trigger only
--- (no CREATE POLICY for INSERT = blocked for all client roles)
 
 -- UPDATE: own row only (whitelist trigger enforces allowed columns)
 CREATE POLICY "users_update_own"
@@ -120,7 +87,6 @@ CREATE POLICY "users_update_own"
   WITH CHECK (auth.uid() = id);
 
 -- DELETE: no client policy — Edge Function only
--- (no CREATE POLICY for DELETE = blocked for all client roles)
 
 -- ============================================================================
 -- VIEW: public_profiles (column-level access control)
@@ -155,7 +121,6 @@ BEGIN
 END;
 $$;
 
--- Internal trigger function: REVOKE from client roles
 REVOKE EXECUTE ON FUNCTION handle_new_user() FROM anon, authenticated;
 
 CREATE TRIGGER on_auth_user_created
@@ -179,7 +144,6 @@ BEGIN
   END IF;
 
   -- WHITELIST: force ALL non-allowed columns to their old values
-  -- Any new column added to the table is automatically protected
   NEW.id := OLD.id;
   NEW.email := OLD.email;
   NEW.created_at := OLD.created_at;
@@ -196,20 +160,75 @@ BEGIN
   NEW.push_token := OLD.push_token;
 
   -- Allowed columns: display_name, avatar_url, bio, sports, levels_per_sport
-  -- (NOT listed above = client can modify them)
 
-  -- Auto-update updated_at
   NEW.updated_at := now();
   RETURN NEW;
 END;
 $$;
 
--- Internal trigger function: REVOKE from client roles
 REVOKE EXECUTE ON FUNCTION handle_user_update() FROM anon, authenticated;
 
 CREATE TRIGGER on_user_update
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION handle_user_update();
+
+-- ============================================================================
+-- HTML strip trigger for users (bio, display_name)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION strip_html_users()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.display_name IS NOT NULL THEN
+    NEW.display_name := regexp_replace(NEW.display_name, '<[^>]*>', '', 'g');
+  END IF;
+  IF NEW.bio IS NOT NULL THEN
+    NEW.bio := regexp_replace(NEW.bio, '<[^>]*>', '', 'g');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION strip_html_users() FROM anon, authenticated;
+
+CREATE TRIGGER users_strip_html
+  BEFORE INSERT OR UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION strip_html_users();
+
+-- ============================================================================
+-- TABLE: sports (created AFTER users — admin policies reference users table)
+-- ============================================================================
+CREATE TABLE sports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key TEXT UNIQUE NOT NULL,
+  icon TEXT NOT NULL,
+  category TEXT NOT NULL,
+  display_order INTEGER NOT NULL
+);
+
+ALTER TABLE sports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sports FORCE ROW LEVEL SECURITY;
+
+-- SELECT: everyone including anon
+CREATE POLICY "sports_select_all"
+  ON sports FOR SELECT
+  USING (true);
+
+-- INSERT/UPDATE/DELETE: admin only
+CREATE POLICY "sports_insert_admin"
+  ON sports FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+
+CREATE POLICY "sports_update_admin"
+  ON sports FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
+
+CREATE POLICY "sports_delete_admin"
+  ON sports FOR DELETE
+  USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND is_admin = true));
 
 -- ============================================================================
 -- SPORTS REFERENCE DATA (not seed data — required for app to function)

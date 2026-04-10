@@ -26,7 +26,7 @@ CREATE POLICY "notifications_select_own"
 -- INSERT: no client policy — functions only
 -- DELETE: no client policy
 
--- UPDATE: own notifications, read_at only (accepted for MVP — user can only corrupt own data)
+-- UPDATE: own notifications, read_at only (accepted for MVP)
 CREATE POLICY "notifications_update_own"
   ON notifications FOR UPDATE
   TO authenticated
@@ -67,29 +67,3 @@ CREATE POLICY "blocked_users_delete_own"
   ON blocked_users FOR DELETE
   TO authenticated
   USING (blocker_id = auth.uid());
-
--- ============================================================================
--- HTML strip trigger for users (bio, display_name)
--- ============================================================================
-CREATE OR REPLACE FUNCTION strip_html_users()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF NEW.display_name IS NOT NULL THEN
-    NEW.display_name := regexp_replace(NEW.display_name, '<[^>]*>', '', 'g');
-  END IF;
-  IF NEW.bio IS NOT NULL THEN
-    NEW.bio := regexp_replace(NEW.bio, '<[^>]*>', '', 'g');
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-REVOKE EXECUTE ON FUNCTION strip_html_users() FROM anon, authenticated;
-
-CREATE TRIGGER users_strip_html
-  BEFORE INSERT OR UPDATE ON users
-  FOR EACH ROW EXECUTE FUNCTION strip_html_users();
