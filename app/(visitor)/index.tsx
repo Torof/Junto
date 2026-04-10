@@ -2,15 +2,28 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
-import { JuntoMapView } from '@/components/map-view';
+import { JuntoMapView, type ActivityPin } from '@/components/map-view';
+import { useInitialLocation } from '@/hooks/use-initial-location';
+import { useNearbyActivities } from '@/hooks/use-nearby-activities';
+import { parsePoint } from '@/utils/geo';
 
 export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { center } = useInitialLocation();
+  const { data: activities } = useNearbyActivities();
+
+  const pins: ActivityPin[] = (activities ?? [])
+    .map((a) => {
+      const coord = parsePoint(a.location_start);
+      if (!coord) return null;
+      return { id: a.id, title: a.title, coordinate: coord };
+    })
+    .filter((p): p is ActivityPin => p !== null);
 
   return (
     <View style={styles.container}>
-      <JuntoMapView />
+      <JuntoMapView center={center} pins={pins} />
 
       <View style={styles.overlay}>
         <Text style={styles.title}>{t('app.name')}</Text>

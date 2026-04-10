@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
-
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 if (!MAPBOX_TOKEN) {
@@ -8,21 +7,25 @@ if (!MAPBOX_TOKEN) {
 }
 
 Mapbox.setAccessToken(MAPBOX_TOKEN);
-// Disable telemetry per SECURITY.md — privacy compliance
 Mapbox.setTelemetryEnabled(false);
 
 const OUTDOORS_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
-
-// Default center: Briançon, France (founding use case)
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
+
+export interface ActivityPin {
+  id: string;
+  title: string;
+  coordinate: [number, number];
+}
 
 interface MapViewProps {
   center?: [number, number];
   zoom?: number;
+  pins?: ActivityPin[];
 }
 
-export function JuntoMapView({ center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM }: MapViewProps) {
+export function JuntoMapView({ center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, pins = [] }: MapViewProps) {
   return (
     <Mapbox.MapView
       style={styles.map}
@@ -38,6 +41,17 @@ export function JuntoMapView({ center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM }: M
           zoomLevel: zoom,
         }}
       />
+
+      {pins.map((pin) => (
+        <Mapbox.PointAnnotation
+          key={pin.id}
+          id={pin.id}
+          coordinate={pin.coordinate}
+          title={pin.title}
+        >
+          <Mapbox.Callout title={pin.title} />
+        </Mapbox.PointAnnotation>
+      ))}
     </Mapbox.MapView>
   );
 }
