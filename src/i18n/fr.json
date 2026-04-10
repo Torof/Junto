@@ -7,5 +7,31 @@
   },
   "app": {
     "name": "Junto"
+  },
+  "visitor": {
+    "explore": "Trouve des partenaires sportifs près de toi"
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "email": "Email",
+    "password": "Mot de passe",
+    "login": "Se connecter",
+    "register": "Créer mon compte",
+    "hasAccount": "Déjà un compte ? Se connecter",
+    "noAccount": "Pas de compte ? En créer un",
+    "checkEmail": "Vérifie ton email",
+    "confirmationSent": "Un lien de confirmation a été envoyé à ton adresse email.",
+    "error": "Erreur",
+    "unknownError": "Une erreur est survenue"
+  },
+  "onboarding": {
+    "welcome": "Bienvenue !",
+    "completeProfile": "Encore quelques infos pour commencer",
+    "dateOfBirth": "Date de naissance",
+    "selectDate": "Sélectionner une date",
+    "acceptTos": "J'accepte les conditions d'utilisation et la politique de confidentialité",
+    "continue": "Continuer",
+    "error": "Erreur"
   }
 }

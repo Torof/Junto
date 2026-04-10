@@ -23,15 +23,24 @@ function RootNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loading}>
+        <StatusBar style="light" />
         <ActivityIndicator size="large" color={colors.cta} />
       </View>
+    );
+  }
+
+  if (isAuthenticated) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <Redirect href="/(auth)/carte" />
+      </>
     );
   }
 
   return (
     <>
       <StatusBar style="light" />
-      {isAuthenticated ? <Redirect href="/(auth)/carte" /> : <Redirect href="/(visitor)" />}
       <Slot />
     </>
   );

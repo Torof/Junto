@@ -478,7 +478,12 @@ export type Database = {
       }
     }
     Functions: {
+      accept_tos: { Args: never; Returns: undefined }
       generate_random_name: { Args: never; Returns: string }
+      set_date_of_birth: {
+        Args: { p_date_of_birth: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

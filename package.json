@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"app/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-community/netinfo": "11.4.1",
     "@supabase/supabase-js": "^2.103.0",
     "@tanstack/react-query": "^5.97.0",
