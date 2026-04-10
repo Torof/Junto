@@ -1,5 +1,6 @@
 import '@/i18n';
-import { Redirect, Slot } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,25 +17,33 @@ const queryClient = new QueryClient({
   },
 });
 
-function RootNavigator() {
+function AuthGate() {
   useNetworkAwareness();
   const { isLoading, isAuthenticated } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/carte');
+    } else if (!isAuthenticated && inAuthGroup) {
+      router.replace('/(visitor)');
+    }
+
+    setIsReady(true);
+  }, [isLoading, isAuthenticated, segments, router]);
+
+  if (isLoading || !isReady) {
     return (
       <View style={styles.loading}>
         <StatusBar style="light" />
         <ActivityIndicator size="large" color={colors.cta} />
       </View>
-    );
-  }
-
-  if (isAuthenticated) {
-    return (
-      <>
-        <StatusBar style="light" />
-        <Redirect href="/(auth)/carte" />
-      </>
     );
   }
 
@@ -49,7 +58,7 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RootNavigator />
+      <AuthGate />
     </QueryClientProvider>
   );
 }
