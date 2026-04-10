@@ -34,7 +34,8 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
-      "expo-localization"
+      "expo-localization",
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},
