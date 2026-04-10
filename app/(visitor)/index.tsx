@@ -2,19 +2,24 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { JuntoMapView } from '@/components/map-view';
 
-export default function MapScreen() {
+export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('app.name')}</Text>
-      <Text style={styles.subtitle}>{t('visitor.explore')}</Text>
+      <JuntoMapView />
 
-      <Pressable style={styles.loginButton} onPress={() => router.push('/(visitor)/login')}>
-        <Text style={styles.loginText}>{t('auth.signIn')}</Text>
-      </Pressable>
+      <View style={styles.overlay}>
+        <Text style={styles.title}>{t('app.name')}</Text>
+        <Text style={styles.subtitle}>{t('visitor.explore')}</Text>
+
+        <Pressable style={styles.loginButton} onPress={() => router.push('/(visitor)/login')}>
+          <Text style={styles.loginText}>{t('auth.signIn')}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -22,20 +27,29 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background + 'E6',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    paddingBottom: spacing.xl + 16,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSizes.xxl,
+    fontSize: fontSizes.xl,
     fontWeight: 'bold',
   },
   subtitle: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xl,
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   loginButton: {
     backgroundColor: colors.cta,

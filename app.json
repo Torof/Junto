@@ -36,7 +36,8 @@
       "expo-web-browser",
       "expo-localization",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "@rnmapbox/maps"
     ],
     "extra": {
       "router": {},
