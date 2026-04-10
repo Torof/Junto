@@ -40,3 +40,4 @@ Thumbs.db
 *.apk
 *.aab
 *.ipa
+supabase/.temp/
