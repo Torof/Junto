@@ -1,4 +1,4 @@
--- Migration 00004: wall_messages + private_messages tables
+-- Migration 00006: wall_messages + private_messages tables
 
 -- ============================================================================
 -- TABLE: wall_messages
@@ -16,7 +16,7 @@ CREATE TABLE wall_messages (
 ALTER TABLE wall_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wall_messages FORCE ROW LEVEL SECURITY;
 
--- SELECT: accepted participants only, blocked filtered on message author (user_id)
+-- SELECT: accepted participants only, blocked filtered on message author
 CREATE POLICY "wall_messages_select"
   ON wall_messages FOR SELECT
   TO authenticated
@@ -33,11 +33,8 @@ CREATE POLICY "wall_messages_select"
     AND deleted_at IS NULL
   );
 
--- INSERT: no client policy — via send_wall_message function only
--- UPDATE: no client policy — via edit_wall_message function only
--- DELETE: no client policy — soft delete only via function
+-- INSERT/UPDATE/DELETE: no client policy — via functions only
 
--- HTML strip trigger for wall messages
 CREATE OR REPLACE FUNCTION strip_html_wall_messages()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -89,11 +86,8 @@ CREATE POLICY "private_messages_select"
     )
   );
 
--- INSERT: no client policy — via send_private_message function only
--- UPDATE: no client policy — via edit_private_message function only
--- DELETE: no client policy — soft delete only via function
+-- INSERT/UPDATE/DELETE: no client policy — via functions only
 
--- HTML strip trigger for private messages
 CREATE OR REPLACE FUNCTION strip_html_private_messages()
 RETURNS TRIGGER
 LANGUAGE plpgsql

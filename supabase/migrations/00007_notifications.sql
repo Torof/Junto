@@ -1,4 +1,4 @@
--- Migration 00006: notifications table
+-- Migration 00007: notifications table
 
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -20,12 +20,11 @@ CREATE POLICY "notifications_select_own"
   TO authenticated
   USING (auth.uid() = user_id);
 
--- INSERT: no client policy — functions only
--- DELETE: no client policy
-
--- UPDATE: own notifications, read_at only (accepted for MVP)
+-- UPDATE: own notifications (read_at)
 CREATE POLICY "notifications_update_own"
   ON notifications FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- INSERT/DELETE: no client policy — via functions only

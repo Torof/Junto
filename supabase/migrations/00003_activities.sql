@@ -1,8 +1,6 @@
--- Migration 00002: activities table + lock trigger
+-- Migration 00003: activities table + triggers
+-- NOTE: SELECT RLS policy deferred to migration 00005 (requires participations table)
 
--- ============================================================================
--- TABLE: activities
--- ============================================================================
 CREATE TABLE activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -24,38 +22,10 @@ CREATE TABLE activities (
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- Spatial index for geo queries
 CREATE INDEX activities_location_start_idx ON activities USING GIST (location_start);
 
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities FORCE ROW LEVEL SECURITY;
-
--- SELECT (discovery): published/in_progress, creator not suspended, not blocked by viewer
-CREATE POLICY "activities_select_discovery"
-  ON activities FOR SELECT
-  USING (
-    -- Discovery: visible activities
-    (
-      status IN ('published', 'in_progress')
-      AND deleted_at IS NULL
-      AND NOT EXISTS (
-        SELECT 1 FROM users WHERE id = activities.creator_id AND suspended_at IS NOT NULL
-      )
-      AND creator_id NOT IN (
-        SELECT blocked_id FROM blocked_users WHERE blocker_id = auth.uid()
-      )
-    )
-    -- OR: own activities (any status, for "Mes activités" tab)
-    OR creator_id = auth.uid()
-    -- OR: activities where user is a participant (for history)
-    OR EXISTS (
-      SELECT 1 FROM participations
-      WHERE activity_id = activities.id AND user_id = auth.uid()
-    )
-  );
-
--- INSERT: no client policy — via create_activity function only
--- (no CREATE POLICY for INSERT = blocked for all client roles)
 
 -- UPDATE: creator only (lock trigger protects privileged + locked fields)
 CREATE POLICY "activities_update_creator"
@@ -64,8 +34,9 @@ CREATE POLICY "activities_update_creator"
   USING (auth.uid() = creator_id)
   WITH CHECK (auth.uid() = creator_id);
 
+-- INSERT: no client policy — via create_activity function only
 -- DELETE: no client policy — cancel only, CASCADE on user deletion
--- (no CREATE POLICY for DELETE = blocked for all client roles)
+-- SELECT: deferred to migration 00005
 
 -- ============================================================================
 -- TRIGGER: handle_activity_update — whitelist protection + auto updated_at
@@ -77,19 +48,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  -- Bypass for authorized server-side functions (cancel, status transition, regenerate token)
   IF current_setting('junto.bypass_lock', true) = 'true' THEN
     NEW.updated_at := now();
     RETURN NEW;
   END IF;
 
-  -- UNCONDITIONAL: columns never modifiable by client
   NEW.creator_id := OLD.creator_id;
   NEW.status := OLD.status;
   NEW.invite_token := OLD.invite_token;
   NEW.created_at := OLD.created_at;
 
-  -- CONDITIONAL: locked when non-creator participants exist
+  -- Conditional lock deferred: participations table referenced at runtime only
+  -- Safe because no data exists at migration time
   IF (SELECT count(*) FROM participations
       WHERE activity_id = NEW.id AND status = 'accepted' AND user_id != OLD.creator_id) > 0
   THEN
@@ -101,13 +71,11 @@ BEGIN
     NEW.visibility := OLD.visibility;
   END IF;
 
-  -- Auto-update updated_at
   NEW.updated_at := now();
   RETURN NEW;
 END;
 $$;
 
--- Internal trigger function: REVOKE from client roles
 REVOKE EXECUTE ON FUNCTION handle_activity_update() FROM anon, authenticated;
 
 CREATE TRIGGER on_activity_update
@@ -115,7 +83,7 @@ CREATE TRIGGER on_activity_update
   FOR EACH ROW EXECUTE FUNCTION handle_activity_update();
 
 -- ============================================================================
--- HTML STRIP TRIGGER — sanitize text inputs
+-- HTML STRIP TRIGGER
 -- ============================================================================
 CREATE OR REPLACE FUNCTION strip_html_tags()
 RETURNS TRIGGER
@@ -124,7 +92,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  -- Strip HTML tags from text fields using regex
   IF NEW.title IS NOT NULL THEN
     NEW.title := regexp_replace(NEW.title, '<[^>]*>', '', 'g');
   END IF;
