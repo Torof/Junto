@@ -41,6 +41,7 @@ export function ActivityDetail({
     try {
       await participationService.join(activity.id);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
@@ -54,6 +55,7 @@ export function ActivityDetail({
     try {
       await participationService.leave(activity.id);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));

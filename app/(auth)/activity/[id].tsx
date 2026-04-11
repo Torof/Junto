@@ -20,6 +20,7 @@ export default function AuthActivityScreen() {
     queryKey: ['participation', id],
     queryFn: () => participationService.getMyStatus(id ?? ''),
     enabled: !!id,
+    staleTime: 0,
   });
 
   const { data: user } = useQuery({
