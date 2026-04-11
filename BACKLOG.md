@@ -118,6 +118,8 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Annulation d'une activité par le créateur (status → cancelled depuis published ou in_progress uniquement, notification à tous les participants acceptés)
 - [ ] Mes activités — liste des activités rejointes (contenu réel du tab)
 - [ ] Ajout `notification_preferences` au modèle user
+- [ ] Ajout `left_at TIMESTAMPTZ` sur participations (capture le moment du retrait — nécessaire pour le calcul futur de pénalité < 12h, donnée irrecuperable si non capturée maintenant)
+- [ ] Édition d'une activité par le créateur (mêmes composants que la création, respecte le verrouillage DB, notification envoyée à tous les participants acceptés pour tout champ modifié) — **DEFERRED from Sprint 3**
 
 **Livrable :** Flow complet créer → demander → accepter → chatter. (Sprint le plus lourd — prévoir plus de temps)
 
@@ -175,6 +177,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 **Objectif :** L'app est prête pour un premier lancement public.
 
 - [ ] Système d'avis / réputation (bidirectionnel : participants ↔ créateur, déclenché par notification quand activité → completed, table reviews avec UNIQUE(reviewer_id, reviewed_user_id, activity_id) + CHECK(reviewer != reviewed) + CHECK(rating 1-5), enforcement DB : reviewer et reviewed doivent être participants acceptés de la même activité)
+- [ ] Badges automatiques de progression (table user_badges — Nouveau membre 0-4, Confirmé 10+, Expérimenté 30+, Vétéran 75+ sorties complétées. Badges sport après 20 sorties dans un sport. Pure DB count, pas de subjectivité.)
 - [ ] Table reports + UI signalement d'un utilisateur, d'une activité ou d'un message (wall + privé)
 - [ ] Écran admin modération (liste des reports, review du contenu signalé, actions : dismiss ou suspendre — étend l'admin Sprint 6)
 - [ ] Modération : suspension d'utilisateur (utilisant suspended_at)
@@ -208,6 +211,12 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - Certificate pinning (protection MITM avancée)
 - GPS spoofing detection
 - CAPTCHA à l'inscription (protection anti-bot à grande échelle)
+- Flux Jour J complet (partage position temps réel, confirmation géolocalisée de présence, alerte no-show, rayon de géofence configurable — voir DAY_OF_ACTIVITY.md)
+- Score de présence (ratio présences/inscriptions, pénalité annulation < 12h, confirmation créateur post-activité — dépend du flux Jour J)
+- Badges de réputation communautaire (attribués par les co-participants, seuils positifs 5+, négatifs 15+, fenêtre 48h post-activité — voir REPUTATION_BADGES.md)
+- Vote d'annulation de groupe (2/3 pour annuler sans malus — voir ACTIVITY_MANAGEMENT.md)
+- Liste d'attente automatique quand activité complète
+- `confirmed_present` BOOLEAN sur participations (confirmation créateur post-activité — nécessaire pour score de présence)
 
 ### Features V3
 - Élargissement aux activités non sportives (théâtre, cinéma, jeux)
