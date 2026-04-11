@@ -11,26 +11,36 @@ interface ActivityPinProps {
 export function ActivityPin({ activity }: ActivityPinProps) {
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const isFull = remaining === 0;
-  const pinColor = isFull ? colors.error : colors.success;
+  const borderColor = isFull ? colors.error : colors.success;
 
   return (
-    <View style={[styles.container, { backgroundColor: pinColor }]}>
-      <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+    <View style={[styles.ring, { borderColor }]}>
+      <View style={styles.inner}>
+        <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: 40,
-    height: 40,
+  ring: {
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.background,
+    backgroundColor: 'transparent',
+  },
+  inner: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.textPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
-    fontSize: 20,
+    fontSize: 18,
   },
 });
