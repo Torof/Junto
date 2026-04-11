@@ -1,7 +1,6 @@
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 import { activityService } from '@/services/activity-service';
 import { ActivityDetail } from '@/components/activity-detail';
@@ -9,7 +8,6 @@ import { ActivityDetail } from '@/components/activity-detail';
 export default function VisitorActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { t } = useTranslation();
 
   const { data: activity, isLoading } = useQuery({
     queryKey: ['activity', id],
@@ -28,8 +26,10 @@ export default function VisitorActivityScreen() {
   return (
     <ActivityDetail
       activity={activity}
-      onJoin={() => router.push('/(visitor)/login')}
-      joinLabel={t('activity.join')}
+      participation={null}
+      isCreator={false}
+      isAuthenticated={false}
+      onJoinRedirect={() => router.push('/(visitor)/login')}
     />
   );
 }

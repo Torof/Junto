@@ -1,21 +1,97 @@
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, Alert } from 'react-native';
+import { useState } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { getSportIcon } from '@/constants/sport-icons';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
-  onJoin?: () => void;
-  joinLabel: string;
+  participation: Participation | null;
+  isCreator: boolean;
+  isAuthenticated: boolean;
+  onJoinRedirect?: () => void;
 }
 
-export function ActivityDetail({ activity, onJoin, joinLabel }: ActivityDetailProps) {
+export function ActivityDetail({
+  activity,
+  participation,
+  isCreator,
+  isAuthenticated,
+  onJoinRedirect,
+}: ActivityDetailProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
+
+  const handleJoin = async () => {
+    if (!isAuthenticated) {
+      onJoinRedirect?.();
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await participationService.join(activity.id);
+      await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['activities'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    setIsLoading(true);
+    try {
+      await participationService.leave(activity.id);
+      await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['activities'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    Alert.alert(t('activity.cancelConfirmTitle'), t('activity.cancelConfirmMessage'), [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('activity.yes'),
+        style: 'destructive',
+        onPress: async () => {
+          setIsLoading(true);
+          try {
+            await participationService.cancel(activity.id);
+            await queryClient.invalidateQueries({ queryKey: ['activities'] });
+          } catch (err) {
+            Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const showJoinButton = !isCreator && !participation && remaining > 0 && activity.status !== 'cancelled';
+  const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status);
+  const showCancelButton = isCreator && ['published', 'in_progress'].includes(activity.status);
+  const isPending = participation?.status === 'pending';
+  const isAccepted = participation?.status === 'accepted';
+
+  const joinLabel = activity.visibility === 'approval' || activity.visibility === 'private_link_approval'
+    ? t('activity.requestJoin')
+    : t('activity.join');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -23,10 +99,23 @@ export function ActivityDetail({ activity, onJoin, joinLabel }: ActivityDetailPr
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
           <Text style={styles.statusText}>{t(`activity.status.${timeStatus}`)}</Text>
         </View>
+        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
       </View>
 
       <Text style={styles.title}>{activity.title}</Text>
+
+      {isPending && (
+        <View style={styles.pendingBanner}>
+          <Text style={styles.pendingText}>{t('activity.pendingRequest')}</Text>
+        </View>
+      )}
+
+      {isAccepted && !isCreator && (
+        <View style={styles.acceptedBanner}>
+          <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
+        </View>
+      )}
 
       <View style={styles.infoGrid}>
         <View style={styles.infoRow}>
@@ -47,28 +136,50 @@ export function ActivityDetail({ activity, onJoin, joinLabel }: ActivityDetailPr
         </View>
       </View>
 
-      {activity.description && (
+      {activity.description ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
           <Text style={styles.description}>{activity.description}</Text>
         </View>
-      )}
+      ) : null}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('activity.creator')}</Text>
         <View style={styles.creator}>
           <View style={styles.creatorAvatar}>
-            <Text style={styles.creatorInitial}>
-              {activity.creator_name.charAt(0).toUpperCase()}
-            </Text>
+            <Text style={styles.creatorInitial}>{activity.creator_name.charAt(0).toUpperCase()}</Text>
           </View>
           <Text style={styles.creatorName}>{activity.creator_name}</Text>
         </View>
       </View>
 
-      {onJoin && remaining > 0 && (
-        <Pressable style={styles.joinButton} onPress={onJoin}>
-          <Text style={styles.joinText}>{joinLabel}</Text>
+      {showJoinButton && (
+        <Pressable
+          style={[styles.joinButton, isLoading && styles.buttonDisabled]}
+          onPress={handleJoin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
+        </Pressable>
+      )}
+
+      {showLeaveButton && (
+        <Pressable
+          style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
+          onPress={handleLeave}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+        </Pressable>
+      )}
+
+      {showCancelButton && (
+        <Pressable
+          style={[styles.cancelButton, isLoading && styles.buttonDisabled]}
+          onPress={handleCancel}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.cancel')}</Text>
         </Pressable>
       )}
     </ScrollView>
@@ -76,107 +187,32 @@ export function ActivityDetail({ activity, onJoin, joinLabel }: ActivityDetailPr
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xl + 32,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-  },
-  statusText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-  },
-  sport: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    textTransform: 'capitalize',
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xl,
-    fontWeight: 'bold',
-    marginBottom: spacing.lg,
-  },
-  infoGrid: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  infoLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-  },
-  infoValue: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
-  },
-  section: {
-    marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    marginBottom: spacing.sm,
-    textTransform: 'uppercase',
-  },
-  description: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    lineHeight: 22,
-  },
-  creator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  creatorAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
-  creatorInitial: {
-    color: colors.cta,
-    fontSize: fontSizes.md,
-    fontWeight: 'bold',
-  },
-  creatorName: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-  },
-  joinButton: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  joinText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md, gap: spacing.sm },
+  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
+  statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  sportIcon: { fontSize: 20 },
+  sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.md },
+  pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
+  acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
+  infoGrid: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  section: { marginBottom: spacing.lg },
+  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.sm, textTransform: 'uppercase' },
+  description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+  creator: { flexDirection: 'row', alignItems: 'center' },
+  creatorAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
+  creatorInitial: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },
+  creatorName: { color: colors.textPrimary, fontSize: fontSizes.md },
+  joinButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
+  cancelButton: { backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  buttonDisabled: { opacity: 0.4 },
+  buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
 });

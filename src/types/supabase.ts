@@ -199,6 +199,7 @@ export type Database = {
           activity_id: string
           created_at: string
           id: string
+          left_at: string | null
           status: string
           user_id: string
         }
@@ -206,6 +207,7 @@ export type Database = {
           activity_id: string
           created_at?: string
           id?: string
+          left_at?: string | null
           status?: string
           user_id: string
         }
@@ -213,6 +215,7 @@ export type Database = {
           activity_id?: string
           created_at?: string
           id?: string
+          left_at?: string | null
           status?: string
           user_id?: string
         }
@@ -606,7 +609,12 @@ export type Database = {
       }
     }
     Functions: {
+      accept_participation: {
+        Args: { p_participation_id: string }
+        Returns: undefined
+      }
       accept_tos: { Args: never; Returns: undefined }
+      cancel_activity: { Args: { p_activity_id: string }; Returns: undefined }
       create_activity: {
         Args: {
           p_description: string
@@ -625,6 +633,16 @@ export type Database = {
         Returns: string
       }
       generate_random_name: { Args: never; Returns: string }
+      join_activity: { Args: { p_activity_id: string }; Returns: string }
+      leave_activity: { Args: { p_activity_id: string }; Returns: undefined }
+      refuse_participation: {
+        Args: { p_participation_id: string }
+        Returns: undefined
+      }
+      remove_participant: {
+        Args: { p_participation_id: string }
+        Returns: undefined
+      }
       set_date_of_birth: {
         Args: { p_date_of_birth: string }
         Returns: undefined
