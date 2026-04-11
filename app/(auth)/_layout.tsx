@@ -1,31 +1,18 @@
-import { Tabs } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import { Stack } from 'expo-router';
 import { colors } from '@/constants/theme';
 
 export default function AuthLayout() {
-  const { t } = useTranslation();
-
   return (
-    <Tabs
+    <Stack
       screenOptions={{
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.surface,
-        },
-        tabBarActiveTintColor: colors.cta,
-        tabBarInactiveTintColor: colors.textSecondary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
+        headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.textPrimary,
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen name="carte" options={{ title: t('tabs.carte') }} />
-      <Tabs.Screen name="mes-activites" options={{ title: t('tabs.mesActivites') }} />
-      <Tabs.Screen name="messagerie" options={{ title: t('tabs.messagerie') }} />
-      <Tabs.Screen name="profil" options={{ title: t('tabs.profil') }} />
-      <Tabs.Screen name="create" options={{ href: null }} />
-      <Tabs.Screen name="activity" options={{ href: null }} />
-    </Tabs>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="create" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="activity" options={{ headerShown: false }} />
+    </Stack>
   );
 }

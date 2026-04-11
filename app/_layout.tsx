@@ -30,7 +30,7 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/carte');
+      router.replace('/(auth)/(tabs)/carte');
     } else if (!isAuthenticated && inAuthGroup) {
       router.replace('/(visitor)');
     }

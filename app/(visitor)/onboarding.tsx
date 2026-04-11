@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
       const { error: tosError } = await supabase.rpc('accept_tos');
       if (tosError) throw tosError;
 
-      router.replace('/(auth)/carte');
+      router.replace('/(auth)/(tabs)/carte');
     } catch (err) {
       Alert.alert(t('onboarding.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {

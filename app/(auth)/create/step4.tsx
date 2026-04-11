@@ -36,7 +36,7 @@ export default function CreateStep4() {
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       resetForm();
-      router.replace('/(auth)/carte');
+      router.replace('/(auth)/(tabs)/carte');
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {
