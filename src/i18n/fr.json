@@ -80,6 +80,9 @@
     "resetFilters": "Réinitialiser",
     "apply": "Appliquer"
   },
+  "myActivities": {
+    "empty": "Tu n'as pas encore créé d'activité"
+  },
   "create": {
     "step": "Étape {{current}}/{{total}}",
     "step1Title": "Quel sport ?",

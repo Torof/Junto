@@ -36,6 +36,22 @@ export const activityService = {
     return (data ?? []) as NearbyActivity[];
   },
 
+  getMyCreated: async (): Promise<NearbyActivity[]> => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('activities_with_coords')
+      .select(
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+      )
+      .eq('creator_id', userId)
+      .is('deleted_at', null)
+      .order('starts_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as NearbyActivity[];
+  },
+
   create: async (form: ActivityFormData): Promise<string> => {
     const durationStr = `${form.duration_hours} hours ${form.duration_minutes} minutes`;
 
