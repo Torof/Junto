@@ -89,6 +89,9 @@
     "resetFilters": "Réinitialiser",
     "apply": "Appliquer"
   },
+  "profil": {
+    "logout": "Se déconnecter"
+  },
   "participants": {
     "pending": "Demandes en attente ({{count}})",
     "accepted": "Participants ({{count}})",
