@@ -232,6 +232,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "participations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "participations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -443,6 +450,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wall_messages_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wall_messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -476,6 +490,55 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          participant_count: number | null
+          sport_category: string | null
+          sport_icon: string | null
+          sport_id: string | null
+          sport_key: string | null
+          starts_at: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      my_activities: {
+        Row: {
+          created_at: string | null
+          creator_avatar: string | null
+          creator_id: string | null
+          creator_name: string | null
+          deleted_at: string | null
+          description: string | null
+          duration: string | null
+          id: string | null
+          lat: number | null
+          level: string | null
+          lng: number | null
+          max_participants: number | null
           participant_count: number | null
           sport_category: string | null
           sport_icon: string | null
@@ -566,6 +629,7 @@ export type Database = {
         Args: { p_date_of_birth: string }
         Returns: undefined
       }
+      transition_activity_status: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

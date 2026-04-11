@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   useNetworkAwareness();
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, needsOnboarding } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
@@ -28,15 +28,18 @@ function AuthGate() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = segments[0] === '(visitor)' && (segments as string[])[1] === 'onboarding';
 
-    if (isAuthenticated && !inAuthGroup) {
+    if (isAuthenticated && needsOnboarding && !inOnboarding) {
+      router.replace('/(visitor)/onboarding');
+    } else if (isAuthenticated && !needsOnboarding && !inAuthGroup) {
       router.replace('/(auth)/(tabs)/carte');
     } else if (!isAuthenticated && inAuthGroup) {
       router.replace('/(visitor)');
     }
 
     setIsReady(true);
-  }, [isLoading, isAuthenticated, segments, router]);
+  }, [isLoading, isAuthenticated, needsOnboarding, segments, router]);
 
   if (isLoading || !isReady) {
     return (
