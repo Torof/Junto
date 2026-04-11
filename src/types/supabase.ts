@@ -463,7 +463,9 @@ export type Database = {
       activities_with_coords: {
         Row: {
           created_at: string | null
+          creator_avatar: string | null
           creator_id: string | null
+          creator_name: string | null
           deleted_at: string | null
           description: string | null
           duration: string | null
@@ -474,52 +476,16 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          participant_count: number | null
+          sport_category: string | null
+          sport_icon: string | null
           sport_id: string | null
+          sport_key: string | null
           starts_at: string | null
           status: string | null
           title: string | null
           updated_at: string | null
           visibility: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          creator_id?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          duration?: string | null
-          id?: string | null
-          lat?: never
-          level?: string | null
-          lng?: never
-          max_participants?: number | null
-          meeting_lat?: never
-          meeting_lng?: never
-          sport_id?: string | null
-          starts_at?: string | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-          visibility?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          creator_id?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          duration?: string | null
-          id?: string | null
-          lat?: never
-          level?: string | null
-          lng?: never
-          max_participants?: number | null
-          meeting_lat?: never
-          meeting_lng?: never
-          sport_id?: string | null
-          starts_at?: string | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-          visibility?: string | null
         }
         Relationships: [
           {

@@ -1,23 +1,36 @@
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { JuntoMapView, type ActivityPin } from '@/components/map-view';
+import { useRouter } from 'expo-router';
+import { JuntoMapView } from '@/components/map-view';
+import { ActivityPopup } from '@/components/activity-popup';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
+import { type NearbyActivity } from '@/services/activity-service';
 
 export default function CarteScreen() {
+  const router = useRouter();
   const { center } = useInitialLocation();
   const { data: activities } = useNearbyActivities();
-
-  const pins: ActivityPin[] = (activities ?? [])
-    .filter((a) => a.lng != null && a.lat != null)
-    .map((a) => ({
-      id: a.id,
-      title: a.title,
-      coordinate: [a.lng, a.lat] as [number, number],
-    }));
+  const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
 
   return (
     <View style={styles.container}>
-      <JuntoMapView center={center} pins={pins} />
+      <JuntoMapView
+        center={center}
+        activities={activities ?? []}
+        onActivityPress={setSelectedActivity}
+      />
+
+      {selectedActivity && (
+        <ActivityPopup
+          activity={selectedActivity}
+          onViewDetail={() => {
+            router.push(`/(auth)/activity/${selectedActivity.id}`);
+            setSelectedActivity(null);
+          }}
+          onClose={() => setSelectedActivity(null)}
+        />
+      )}
     </View>
   );
 }

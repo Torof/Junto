@@ -17,6 +17,7 @@
     "@rnmapbox/maps": "^10.3.0",
     "@supabase/supabase-js": "^2.103.0",
     "@tanstack/react-query": "^5.97.0",
+    "dayjs": "^1.11.20",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",

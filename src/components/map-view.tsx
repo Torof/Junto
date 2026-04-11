@@ -1,5 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
+import { type NearbyActivity } from '@/services/activity-service';
+import { ActivityPin } from './activity-pin';
+
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 if (!MAPBOX_TOKEN) {
@@ -13,19 +16,19 @@ const OUTDOORS_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
 
-export interface ActivityPin {
-  id: string;
-  title: string;
-  coordinate: [number, number];
-}
-
 interface MapViewProps {
   center?: [number, number];
   zoom?: number;
-  pins?: ActivityPin[];
+  activities?: NearbyActivity[];
+  onActivityPress?: (activity: NearbyActivity) => void;
 }
 
-export function JuntoMapView({ center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, pins = [] }: MapViewProps) {
+export function JuntoMapView({
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+  activities = [],
+  onActivityPress,
+}: MapViewProps) {
   return (
     <Mapbox.MapView
       style={styles.map}
@@ -42,15 +45,16 @@ export function JuntoMapView({ center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, pin
         }}
       />
 
-      {pins.map((pin) => (
-        <Mapbox.PointAnnotation
-          key={pin.id}
-          id={pin.id}
-          coordinate={pin.coordinate}
-          title={pin.title}
+      {activities.map((activity) => (
+        <Mapbox.MarkerView
+          key={activity.id}
+          id={activity.id}
+          coordinate={[activity.lng, activity.lat]}
         >
-          <Mapbox.Callout title={pin.title} />
-        </Mapbox.PointAnnotation>
+          <Pressable onPress={() => onActivityPress?.(activity)}>
+            <ActivityPin activity={activity} />
+          </Pressable>
+        </Mapbox.MarkerView>
       ))}
     </Mapbox.MapView>
   );

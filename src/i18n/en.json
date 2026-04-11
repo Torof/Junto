@@ -33,5 +33,42 @@
     "acceptTos": "I accept the terms of service and privacy policy",
     "continue": "Continue",
     "error": "Error"
+  },
+  "activity": {
+    "level": "Level",
+    "places": "{{remaining}}/{{max}} places",
+    "viewDetail": "View activity",
+    "join": "Join",
+    "description": "Description",
+    "duration": "Duration",
+    "creator": "Organized by",
+    "status": {
+      "inProgress": "In progress",
+      "soon": "Soon",
+      "upcoming": "Upcoming"
+    }
+  },
+  "sports": {
+    "hiking": "Hiking",
+    "climbing": "Climbing",
+    "ski-touring": "Ski touring",
+    "trail-running": "Trail running",
+    "mountaineering": "Mountaineering",
+    "cycling": "Cycling",
+    "mountain-biking": "Mountain biking",
+    "kayaking": "Kayaking",
+    "surfing": "Surfing",
+    "sailing": "Sailing",
+    "paragliding": "Paragliding",
+    "skiing": "Skiing",
+    "snowboarding": "Snowboarding",
+    "running": "Running",
+    "swimming": "Swimming"
+  },
+  "map": {
+    "list": "List",
+    "map": "Map",
+    "noActivities": "No activities nearby",
+    "filters": "Filters"
   }
 }
