@@ -7,6 +7,7 @@ import { ActivityList } from '@/components/activity-list';
 import { ViewToggle } from '@/components/view-toggle';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
+import { CreateButton } from '@/components/create-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
@@ -24,6 +25,7 @@ export default function CarteScreen() {
 
   return (
     <View style={styles.container}>
+      <CreateButton />
       <FilterButton onPress={() => setShowFilters(true)} />
       <ViewToggle />
 

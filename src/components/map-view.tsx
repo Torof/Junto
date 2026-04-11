@@ -21,6 +21,7 @@ interface MapViewProps {
   zoom?: number;
   activities?: NearbyActivity[];
   onActivityPress?: (activity: NearbyActivity) => void;
+  onMapPress?: (lng: number, lat: number) => void;
 }
 
 export function JuntoMapView({
@@ -28,6 +29,7 @@ export function JuntoMapView({
   zoom = DEFAULT_ZOOM,
   activities = [],
   onActivityPress,
+  onMapPress,
 }: MapViewProps) {
   return (
     <Mapbox.MapView
@@ -37,6 +39,14 @@ export function JuntoMapView({
       attributionEnabled={false}
       compassEnabled
       scaleBarEnabled={false}
+      onPress={(feature) => {
+        if (onMapPress && feature.geometry.type === 'Point') {
+          const [lng, lat] = feature.geometry.coordinates;
+          if (typeof lng === 'number' && typeof lat === 'number') {
+            onMapPress(lng, lat);
+          }
+        }
+      }}
     >
       <Mapbox.Camera
         defaultSettings={{

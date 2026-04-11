@@ -544,6 +544,22 @@ export type Database = {
     }
     Functions: {
       accept_tos: { Args: never; Returns: undefined }
+      create_activity: {
+        Args: {
+          p_description: string
+          p_duration: string
+          p_level: string
+          p_location_meeting: unknown
+          p_location_start: unknown
+          p_max_participants: number
+          p_route: unknown
+          p_sport_id: string
+          p_starts_at: string
+          p_title: string
+          p_visibility: string
+        }
+        Returns: string
+      }
       generate_random_name: { Args: never; Returns: string }
       set_date_of_birth: {
         Args: { p_date_of_birth: string }

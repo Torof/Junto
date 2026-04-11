@@ -79,5 +79,39 @@
     "sportLabel": "Sport",
     "resetFilters": "Reset",
     "apply": "Apply"
+  },
+  "create": {
+    "step": "Step {{current}}/{{total}}",
+    "step1Title": "What sport?",
+    "step3Title": "Visibility",
+    "step4Title": "Summary",
+    "sport": "Sport",
+    "title": "Title",
+    "titlePlaceholder": "e.g. Lake hike",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe your activity...",
+    "level": "Level",
+    "maxParticipants": "Max participants",
+    "next": "Next",
+    "tapStart": "Tap the map for the start point",
+    "tapMeeting": "Tap the map for the meeting point",
+    "startPoint": "Start",
+    "meetingPoint": "Meeting",
+    "setStart": "Start point",
+    "setMeeting": "Meeting point",
+    "dateTime": "Date and time",
+    "selectDateTime": "Select",
+    "duration": "Duration",
+    "publish": "Publish",
+    "visibility": {
+      "public": "Public",
+      "publicDesc": "Visible on the map, direct access",
+      "approval": "On approval",
+      "approvalDesc": "Visible on the map, request required",
+      "private_link": "Private link",
+      "private_linkDesc": "Hidden from map, access via link",
+      "private_link_approval": "Private + approval",
+      "private_link_approvalDesc": "Hidden, link + approval required"
+    }
   }
 }

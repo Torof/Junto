@@ -79,5 +79,39 @@
     "sportLabel": "Sport",
     "resetFilters": "Réinitialiser",
     "apply": "Appliquer"
+  },
+  "create": {
+    "step": "Étape {{current}}/{{total}}",
+    "step1Title": "Quel sport ?",
+    "step3Title": "Visibilité",
+    "step4Title": "Récapitulatif",
+    "sport": "Sport",
+    "title": "Titre",
+    "titlePlaceholder": "Ex: Randonnée au lac",
+    "description": "Description",
+    "descriptionPlaceholder": "Décris ton activité...",
+    "level": "Niveau",
+    "maxParticipants": "Participants max",
+    "next": "Suivant",
+    "tapStart": "Touche la carte pour le point de départ",
+    "tapMeeting": "Touche la carte pour le point de RDV",
+    "startPoint": "Départ",
+    "meetingPoint": "RDV",
+    "setStart": "Point de départ",
+    "setMeeting": "Point de RDV",
+    "dateTime": "Date et heure",
+    "selectDateTime": "Sélectionner",
+    "duration": "Durée",
+    "publish": "Publier",
+    "visibility": {
+      "public": "Public",
+      "publicDesc": "Visible sur la carte, accès direct",
+      "approval": "Sur acceptation",
+      "approvalDesc": "Visible sur la carte, demande requise",
+      "private_link": "Privé par lien",
+      "private_linkDesc": "Invisible sur la carte, accès par lien",
+      "private_link_approval": "Privé + validation",
+      "private_link_approvalDesc": "Invisible, lien + validation requise"
+    }
   }
 }
