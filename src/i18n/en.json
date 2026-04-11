@@ -93,7 +93,18 @@
     "apply": "Apply"
   },
   "profil": {
-    "logout": "Log out"
+    "logout": "Log out",
+    "notificationPrefs": "Notification preferences",
+    "notifType": {
+      "join_request": "New join request",
+      "participant_joined": "New participant",
+      "request_accepted": "Request accepted",
+      "request_refused": "Request refused",
+      "participant_removed": "Removed from activity",
+      "participant_left": "Participant left",
+      "activity_cancelled": "Activity cancelled",
+      "activity_updated": "Activity updated"
+    }
   },
   "participants": {
     "pending": "Pending requests ({{count}})",

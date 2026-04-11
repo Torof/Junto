@@ -93,7 +93,18 @@
     "apply": "Appliquer"
   },
   "profil": {
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "notificationPrefs": "Préférences de notifications",
+    "notifType": {
+      "join_request": "Nouvelle demande de participation",
+      "participant_joined": "Nouveau participant",
+      "request_accepted": "Demande acceptée",
+      "request_refused": "Demande refusée",
+      "participant_removed": "Retiré d'une activité",
+      "participant_left": "Participant parti",
+      "activity_cancelled": "Activité annulée",
+      "activity_updated": "Activité modifiée"
+    }
   },
   "participants": {
     "pending": "Demandes en attente ({{count}})",
