@@ -107,7 +107,8 @@
     "emptyCreated": "Tu n'as pas encore créé d'activité",
     "emptyJoined": "Tu n'as rejoint aucune activité",
     "emptyUpcoming": "Aucune activité à venir",
-    "emptyFinished": "Aucune activité terminée"
+    "emptyFinished": "Aucune activité terminée",
+    "noResults": "Aucun résultat avec ces filtres"
   },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"
