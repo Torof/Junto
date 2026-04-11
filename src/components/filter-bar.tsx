@@ -1,16 +1,14 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { colors, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
 
 export function FilterButton({ onPress }: { onPress: () => void }) {
-  const { t } = useTranslation();
   const { filters } = useMapStore();
   const hasActiveFilter = filters.sportKey !== null || filters.dateRange !== 'all';
 
   return (
     <Pressable style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{t('map.filters')}</Text>
+      <Text style={styles.icon}>⚙</Text>
       {hasActiveFilter && <View style={styles.badge} />}
     </Pressable>
   );
@@ -23,24 +21,24 @@ const styles = StyleSheet.create({
     left: spacing.md,
     backgroundColor: colors.background,
     borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    zIndex: 10,
-    flexDirection: 'row',
+    width: 40,
+    height: 40,
     alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
     borderWidth: 1,
     borderColor: colors.surface,
   },
-  buttonText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
+  icon: {
+    fontSize: 18,
   },
   badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.cta,
-    marginLeft: spacing.xs,
   },
 });
