@@ -3,6 +3,7 @@
     "carte": "Carte",
     "mesActivites": "Mes activités",
     "messagerie": "Messagerie",
+    "notifications": "Notifications",
     "profil": "Profil"
   },
   "app": {
@@ -106,6 +107,10 @@
     "emptyJoined": "Tu n'as rejoint aucune activité",
     "emptyUpcoming": "Aucune activité à venir",
     "emptyFinished": "Aucune activité terminée"
+  },
+  "notifications": {
+    "empty": "Aucune notification",
+    "markAllRead": "Tout marquer comme lu"
   },
   "toast": {
     "activityCreated": "Activité publiée !",

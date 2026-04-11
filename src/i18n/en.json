@@ -3,6 +3,7 @@
     "carte": "Map",
     "mesActivites": "My activities",
     "messagerie": "Messages",
+    "notifications": "Notifications",
     "profil": "Profile"
   },
   "app": {
@@ -106,6 +107,10 @@
     "emptyJoined": "You haven't joined any activity",
     "emptyUpcoming": "No upcoming activities",
     "emptyFinished": "No finished activities"
+  },
+  "notifications": {
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read"
   },
   "toast": {
     "activityCreated": "Activity published!",
