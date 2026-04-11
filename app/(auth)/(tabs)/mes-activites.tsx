@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +18,9 @@ export default function MesActivitesScreen() {
   const router = useRouter();
   const [mainTab, setMainTab] = useState<MainTab>('created');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
-  const [sportFilter, setSportFilter] = useState<string | null>(null);
+  const [sportFilters, setSportFilters] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: created, isLoading: loadingCreated, error: errorCreated } = useQuery({
     queryKey: ['activities', 'my-created'],
@@ -58,7 +59,7 @@ export default function MesActivitesScreen() {
       if (timeFilter === 'finished' && isUpcoming) return false;
 
       // Sport filter
-      if (sportFilter && a.sport_key !== sportFilter) return false;
+      if (sportFilters.length > 0 && !sportFilters.includes(a.sport_key)) return false;
 
       // Date range filter
       if (dateRange === 'today' && !dayjs(a.starts_at).isSame(now, 'day')) return false;
@@ -66,19 +67,19 @@ export default function MesActivitesScreen() {
 
       return true;
     });
-  }, [activities, timeFilter, sportFilter, dateRange]);
+  }, [activities, timeFilter, sportFilters, dateRange]);
 
   const emptyMessage = () => {
     if (mainTab === 'created' && (!created || created.length === 0)) return t('myActivities.emptyCreated');
     if (mainTab === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
-    if (sportFilter || dateRange !== 'all') return t('myActivities.noResults');
+    if (sportFilters.length > 0 || dateRange !== 'all') return t('myActivities.noResults');
     return timeFilter === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
   };
 
-  const hasActiveFilters = sportFilter !== null || dateRange !== 'all';
+  const hasActiveFilters = sportFilters.length > 0 || dateRange !== 'all';
 
   const resetFilters = () => {
-    setSportFilter(null);
+    setSportFilters([]);
     setDateRange('all');
   };
 
@@ -120,40 +121,69 @@ export default function MesActivitesScreen() {
             {t('myActivities.finished')}
           </Text>
         </Pressable>
+        <View style={styles.timeTabSpacer} />
+        <Pressable
+          style={[styles.filterToggle, hasActiveFilters && styles.filterToggleActive]}
+          onPress={() => setShowFilters(true)}
+        >
+          <Text style={styles.filterIcon}>{hasActiveFilters ? '⚙ ●' : '⚙'}</Text>
+        </Pressable>
       </View>
 
-      <View style={styles.filterSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-          {(['all', 'today', 'week'] as const).map((option) => (
-            <Pressable
-              key={option}
-              style={[styles.chip, dateRange === option && styles.chipActive]}
-              onPress={() => setDateRange(option)}
-            >
-              <Text style={[styles.chipText, dateRange === option && styles.chipTextActive]}>
-                {t(`map.date.${option}`)}
-              </Text>
+      <Modal visible={showFilters} animationType="slide" transparent>
+        <Pressable style={styles.backdrop} onPress={() => setShowFilters(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.handle} />
+
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t('myActivities.filters')}</Text>
+              {hasActiveFilters && (
+                <Pressable onPress={resetFilters}>
+                  <Text style={styles.resetText}>{t('map.resetFilters')}</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <Text style={styles.filterLabel}>{t('map.dateLabel')}</Text>
+            <View style={styles.chipRow}>
+              {(['all', 'today', 'week'] as const).map((option) => (
+                <Pressable
+                  key={option}
+                  style={[styles.chip, dateRange === option && styles.chipActive]}
+                  onPress={() => setDateRange(option)}
+                >
+                  <Text style={[styles.chipText, dateRange === option && styles.chipTextActive]}>
+                    {t(`map.date.${option}`)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.filterLabel}>{t('map.sportLabel')}</Text>
+            <ScrollView style={styles.sportList} showsVerticalScrollIndicator={false}>
+              <View style={styles.chipRow}>
+                {(sports ?? []).map((sport) => (
+                  <Pressable
+                    key={sport.id}
+                    style={[styles.chip, sportFilters.includes(sport.key) && styles.chipActive]}
+                    onPress={() => setSportFilters((prev) =>
+                      prev.includes(sport.key) ? prev.filter((k) => k !== sport.key) : [...prev, sport.key]
+                    )}
+                  >
+                    <Text style={[styles.chipText, sportFilters.includes(sport.key) && styles.chipTextActive]}>
+                      {t(`sports.${sport.key}`, sport.key)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Pressable style={styles.applyButton} onPress={() => setShowFilters(false)}>
+              <Text style={styles.applyText}>{t('map.apply')}</Text>
             </Pressable>
-          ))}
-          <View style={styles.divider} />
-          {(sports ?? []).map((sport) => (
-            <Pressable
-              key={sport.id}
-              style={[styles.chip, sportFilter === sport.key && styles.chipActive]}
-              onPress={() => setSportFilter(sportFilter === sport.key ? null : sport.key)}
-            >
-              <Text style={[styles.chipText, sportFilter === sport.key && styles.chipTextActive]}>
-                {t(`sports.${sport.key}`, sport.key)}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-        {hasActiveFilters && (
-          <Pressable onPress={resetFilters} style={styles.resetButton}>
-            <Text style={styles.resetText}>{t('map.resetFilters')}</Text>
           </Pressable>
-        )}
-      </View>
+        </Pressable>
+      </Modal>
 
       {isLoading ? (
         <View style={styles.center}>
@@ -232,47 +262,105 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: 'bold',
   },
-  filterSection: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
+  timeTabSpacer: {
+    flex: 1,
   },
-  filterRow: {
-    paddingHorizontal: spacing.md,
-    gap: spacing.xs,
+  filterToggle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterToggleActive: {
+    backgroundColor: colors.cta + '30',
+  },
+  filterIcon: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl + 16,
+    maxHeight: '70%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.textSecondary,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
+    opacity: 0.4,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  sheetTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.lg,
+    fontWeight: 'bold',
+  },
+  filterLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   chip: {
     backgroundColor: colors.surface,
     borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   chipActive: {
     backgroundColor: colors.cta,
   },
   chipText: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs,
+    fontSize: fontSizes.sm,
   },
   chipTextActive: {
     color: colors.textPrimary,
     fontWeight: 'bold',
   },
-  divider: {
-    width: 1,
-    height: 16,
-    backgroundColor: colors.textSecondary,
-    opacity: 0.3,
-    marginHorizontal: spacing.xs,
-  },
-  resetButton: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    alignSelf: 'flex-end',
+  sportList: {
+    maxHeight: 200,
   },
   resetText: {
     color: colors.cta,
-    fontSize: fontSizes.xs,
+    fontSize: fontSizes.sm,
+  },
+  applyButton: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    marginTop: spacing.lg,
+  },
+  applyText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: 'bold',
   },
   list: {
     padding: spacing.md,

@@ -108,7 +108,8 @@
     "emptyJoined": "You haven't joined any activity",
     "emptyUpcoming": "No upcoming activities",
     "emptyFinished": "No finished activities",
-    "noResults": "No results with these filters"
+    "noResults": "No results with these filters",
+    "filters": "Filters"
   },
   "invite": {
     "invalid": "This invite link is not valid"
