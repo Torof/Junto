@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
-import dayjs from 'dayjs';
-import { colors, fontSizes, spacing } from '@/constants/theme';
-import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { colors, radius } from '@/constants/theme';
+import { getRemainingPlaces } from '@/utils/activity-status';
+import { getSportIcon } from '@/constants/sport-icons';
 import { type NearbyActivity } from '@/services/activity-service';
 
 interface ActivityPinProps {
@@ -9,47 +9,28 @@ interface ActivityPinProps {
 }
 
 export function ActivityPin({ activity }: ActivityPinProps) {
-  const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
-  const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
-  const time = dayjs(activity.starts_at).format('HH:mm');
+  const isFull = remaining === 0;
+  const pinColor = isFull ? colors.error : colors.success;
 
   return (
-    <View style={[styles.container, { borderColor: statusColor }]}>
-      <View style={[styles.dot, { backgroundColor: statusColor }]} />
-      <Text style={styles.time} numberOfLines={1}>
-        {time}
-      </Text>
-      <Text style={styles.places} numberOfLines={1}>
-        {remaining}/{activity.max_participants}
-      </Text>
+    <View style={[styles.container, { backgroundColor: pinColor }]}>
+      <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    borderWidth: 2,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
     alignItems: 'center',
-    minWidth: 48,
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.background,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 2,
-  },
-  time: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-  },
-  places: {
-    color: colors.textSecondary,
-    fontSize: 10,
+  icon: {
+    fontSize: 20,
   },
 });
