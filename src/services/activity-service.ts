@@ -89,13 +89,11 @@ export const activityService = {
   },
 
   getInviteToken: async (activityId: string): Promise<string | null> => {
-    const { data, error } = await supabase
-      .from('activities')
-      .select('invite_token')
-      .eq('id', activityId)
-      .single();
-    if (error) throw error;
-    return (data as { invite_token: string } | null)?.invite_token ?? null;
+    const { data, error } = await supabase.rpc('get_own_invite_token' as 'join_activity', {
+      p_activity_id: activityId,
+    } as unknown as { p_activity_id: string });
+    if (error) return null;
+    return data as unknown as string | null;
   },
 
   getById: async (id: string): Promise<NearbyActivity | null> => {
