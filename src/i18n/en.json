@@ -98,7 +98,24 @@
     "removeConfirm": "Remove this participant?"
   },
   "myActivities": {
-    "empty": "You haven't created any activity yet"
+    "created": "Created",
+    "joined": "Joined",
+    "upcoming": "Upcoming",
+    "finished": "Finished",
+    "emptyCreated": "You haven't created any activity yet",
+    "emptyJoined": "You haven't joined any activity",
+    "emptyUpcoming": "No upcoming activities",
+    "emptyFinished": "No finished activities"
+  },
+  "toast": {
+    "activityCreated": "Activity published!",
+    "joinedActivity": "You joined the activity",
+    "requestSent": "Request sent",
+    "leftActivity": "You left the activity",
+    "activityCancelled": "Activity cancelled",
+    "participantAccepted": "Participant accepted",
+    "participantRefused": "Request refused",
+    "participantRemoved": "Participant removed"
   },
   "create": {
     "step": "Step {{current}}/{{total}}",

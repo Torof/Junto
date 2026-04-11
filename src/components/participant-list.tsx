@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
 
@@ -34,6 +35,10 @@ export function ParticipantList({ activityId, isCreator }: ParticipantListProps)
 
       await queryClient.refetchQueries({ queryKey: ['participants', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      const toastKey = action === 'accept' ? 'toast.participantAccepted'
+        : action === 'refuse' ? 'toast.participantRefused'
+        : 'toast.participantRemoved';
+      Burnt.toast({ title: t(toastKey), preset: action === 'accept' ? 'done' : undefined });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -55,6 +55,7 @@ export default function VisitorMapScreen() {
 
       {!selectedActivity && viewMode === 'map' && (
         <View style={styles.overlay}>
+          <Image source={require('../../assets/Junto_logo.png')} style={styles.logo} />
           <Text style={styles.title}>{t('app.name')}</Text>
           <Text style={styles.subtitle}>{t('visitor.explore')}</Text>
 
@@ -83,6 +84,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     paddingBottom: spacing.xl + 16,
     alignItems: 'center',
+  },
+  logo: {
+    width: 64,
+    height: 64,
+    marginBottom: spacing.sm,
   },
   title: {
     color: colors.textPrimary,

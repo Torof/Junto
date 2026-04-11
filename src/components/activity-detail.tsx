@@ -3,6 +3,7 @@ import { useState } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
@@ -44,6 +45,8 @@ export function ActivityDetail({
       await queryClient.refetchQueries({ queryKey: ['participation', activity.id] });
       await queryClient.refetchQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      const isApproval = activity.visibility === 'approval' || activity.visibility === 'private_link_approval';
+      Burnt.toast({ title: t(isApproval ? 'toast.requestSent' : 'toast.joinedActivity'), preset: 'done' });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {
@@ -58,6 +61,7 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      Burnt.toast({ title: t('toast.leftActivity') });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {
@@ -76,6 +80,7 @@ export function ActivityDetail({
           try {
             await participationService.cancel(activity.id);
             await queryClient.invalidateQueries({ queryKey: ['activities'] });
+            Burnt.toast({ title: t('toast.activityCancelled') });
           } catch (err) {
             Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
           } finally {

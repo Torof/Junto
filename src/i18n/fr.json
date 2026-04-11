@@ -98,7 +98,24 @@
     "removeConfirm": "Retirer ce participant ?"
   },
   "myActivities": {
-    "empty": "Tu n'as pas encore créé d'activité"
+    "created": "Créées",
+    "joined": "Rejointes",
+    "upcoming": "À venir",
+    "finished": "Terminées",
+    "emptyCreated": "Tu n'as pas encore créé d'activité",
+    "emptyJoined": "Tu n'as rejoint aucune activité",
+    "emptyUpcoming": "Aucune activité à venir",
+    "emptyFinished": "Aucune activité terminée"
+  },
+  "toast": {
+    "activityCreated": "Activité publiée !",
+    "joinedActivity": "Tu as rejoint l'activité",
+    "requestSent": "Demande envoyée",
+    "leftActivity": "Tu as quitté l'activité",
+    "activityCancelled": "Activité annulée",
+    "participantAccepted": "Participant accepté",
+    "participantRefused": "Demande refusée",
+    "participantRemoved": "Participant retiré"
   },
   "create": {
     "step": "Étape {{current}}/{{total}}",

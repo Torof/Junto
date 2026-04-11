@@ -99,6 +99,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 ## Sprint 4 — Rejoindre une activité
 **Objectif :** La mécanique core BlaBlaCar fonctionne — demande, acceptation, mur.
 
+- [ ] Toast system — feedback visuel immédiat pour les actions utilisateur (bibliothèque `burnt` : toasts natifs iOS/Android, léger, compatible Expo). Toasts sur : création d'activité, rejoindre/quitter, accepter/refuser participant, annulation. Complète les notifications persistantes — le toast confirme l'action locale, la notification informe les autres utilisateurs.
 - [ ] Bouton "Rejoindre" (public — accès direct)
 - [ ] Bouton "Demander à rejoindre" (sur acceptation)
 - [ ] Fonction Postgres join_activity (concurrent join protection avec FOR UPDATE, vérifie status IN ('published','in_progress'), vérifie user != creator, vérifie user not blocked by creator — voir SECURITY.md "Chaîne d'autorisation")
@@ -116,7 +117,9 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Quitter une activité (Postgres function — vérifie participation status = accepted OU pending, interdit si removed, vérifie activity status IN published/in_progress. Direct DELETE bloqué par RLS. Place libérée si accepted, demande annulée si pending, accès mur révoqué)
 - [ ] Retirer un participant accepté (côté créateur — vérifie que le participant n'est pas le créateur, status → removed, notification envoyée, accès mur révoqué, removal est final : un participant removed ne peut pas être re-accepté pour la même activité)
 - [ ] Annulation d'une activité par le créateur (status → cancelled depuis published ou in_progress uniquement, notification à tous les participants acceptés)
-- [ ] Mes activités — liste des activités rejointes (contenu réel du tab)
+- [ ] Mes activités — liste des activités rejointes (vue `my_joined_activities` : activités où user a une participation accepted et n'est pas créateur)
+- [ ] Mes activités — onglets À venir / Terminées (filtre sur starts_at vs now, couvre créées ET rejointes)
+- [ ] Mes activités — filtres par sport et par date (recherche/filtre dans la liste)
 - [ ] Ajout `notification_preferences` au modèle user
 - [ ] Ajout `left_at TIMESTAMPTZ` sur participations (capture le moment du retrait — nécessaire pour le calcul futur de pénalité < 12h, donnée irrecuperable si non capturée maintenant)
 - [ ] Édition d'une activité par le créateur (mêmes composants que la création, respecte le verrouillage DB, notification envoyée à tous les participants acceptés pour tout champ modifié) — **DEFERRED from Sprint 3**

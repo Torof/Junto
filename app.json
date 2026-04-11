@@ -4,12 +4,12 @@
     "slug": "junto",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Junto_logo.png",
     "userInterfaceStyle": "dark",
     "scheme": "junto",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Junto_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0D1B2A"
     },
@@ -20,7 +20,7 @@
     "android": {
       "package": "com.junto.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Junto_logo.png",
         "backgroundColor": "#0D1B2A"
       },
       "edgeToEdgeEnabled": true

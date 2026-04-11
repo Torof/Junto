@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useCreateStore } from '@/store/create-store';
 import { activityService } from '@/services/activity-service';
@@ -36,6 +37,7 @@ export default function CreateStep4() {
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       resetForm();
+      Burnt.toast({ title: t('toast.activityCreated'), preset: 'done' });
       router.replace('/(auth)/(tabs)/carte');
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
