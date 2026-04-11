@@ -108,6 +108,13 @@
     "emptyUpcoming": "Aucune activité à venir",
     "emptyFinished": "Aucune activité terminée"
   },
+  "wall": {
+    "title": "Mur de l'événement",
+    "empty": "Aucun message pour le moment",
+    "placeholder": "Écrire un message...",
+    "rateLimited": "Attends 1 minute entre chaque message",
+    "deletedUser": "Utilisateur supprimé"
+  },
   "notifications": {
     "empty": "Aucune notification",
     "markAllRead": "Tout marquer comme lu"

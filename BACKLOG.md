@@ -112,7 +112,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Notification participant : accepté / refusé
 - [ ] Accès au mur après acceptation
 - [ ] Mur d'événement (wall_messages, cursor pagination, Supabase Realtime)
-- [ ] Fonction Postgres message creation (rate limiting : 5/10s)
+- [ ] Fonction Postgres message creation (rate limiting : 1/minute — mur = coordination, pas chat)
 - [ ] Activités privées par lien (UUID v4, mécanisme technique — gate Premium appliquée en Sprint 6)
 - [ ] Quitter une activité (Postgres function — vérifie participation status = accepted OU pending, interdit si removed, vérifie activity status IN published/in_progress. Direct DELETE bloqué par RLS. Place libérée si accepted, demande annulée si pending, accès mur révoqué)
 - [ ] Retirer un participant accepté (côté créateur — vérifie que le participant n'est pas le créateur, status → removed, notification envoyée, accès mur révoqué, removal est final : un participant removed ne peut pas être re-accepté pour la même activité)

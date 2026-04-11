@@ -108,6 +108,13 @@
     "emptyUpcoming": "No upcoming activities",
     "emptyFinished": "No finished activities"
   },
+  "wall": {
+    "title": "Event wall",
+    "empty": "No messages yet",
+    "placeholder": "Write a message...",
+    "rateLimited": "Wait 1 minute between messages",
+    "deletedUser": "Deleted user"
+  },
   "notifications": {
     "empty": "No notifications",
     "markAllRead": "Mark all as read"

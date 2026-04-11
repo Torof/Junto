@@ -197,7 +197,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - `auth.uid()` est authentifié + non suspendu
 - Activity status IN ('published', 'in_progress') — pas de messages sur activité terminée/annulée
 - User est participant accepté de l'activité
-- Rate limit : 5 messages / 10 secondes / activité
+- Rate limit : 1 message / minute / activité (mur = coordination, pas chat)
 - Advisory lock si nécessaire
 
 **`send_private_message` :**

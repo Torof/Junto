@@ -10,6 +10,7 @@ import { participationService, type Participation } from '@/services/participati
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
 import { ParticipantList } from './participant-list';
+import { ActivityWall } from './activity-wall';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -163,6 +164,13 @@ export function ActivityDetail({
       </View>
 
       <ParticipantList activityId={activity.id} isCreator={isCreator} />
+
+      {(isCreator || isAccepted) && (
+        <ActivityWall
+          activityId={activity.id}
+          isActive={['published', 'in_progress'].includes(activity.status)}
+        />
+      )}
 
       {showJoinButton && (
         <Pressable
