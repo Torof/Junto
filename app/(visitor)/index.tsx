@@ -5,8 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { JuntoMapView } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
+import { ActivityList } from '@/components/activity-list';
+import { ViewToggle } from '@/components/view-toggle';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
+import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 
 export default function VisitorMapScreen() {
@@ -14,28 +17,37 @@ export default function VisitorMapScreen() {
   const router = useRouter();
   const { center } = useInitialLocation();
   const { data: activities } = useNearbyActivities();
+  const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
 
   return (
     <View style={styles.container}>
-      <JuntoMapView
-        center={center}
-        activities={activities ?? []}
-        onActivityPress={setSelectedActivity}
-      />
+      <ViewToggle />
 
-      {selectedActivity && (
-        <ActivityPopup
-          activity={selectedActivity}
-          onViewDetail={() => {
-            router.push(`/(visitor)/activity/${selectedActivity.id}`);
-            setSelectedActivity(null);
-          }}
-          onClose={() => setSelectedActivity(null)}
-        />
+      {viewMode === 'map' ? (
+        <>
+          <JuntoMapView
+            center={center}
+            activities={activities ?? []}
+            onActivityPress={setSelectedActivity}
+          />
+
+          {selectedActivity && (
+            <ActivityPopup
+              activity={selectedActivity}
+              onViewDetail={() => {
+                router.push(`/(visitor)/activity/${selectedActivity.id}`);
+                setSelectedActivity(null);
+              }}
+              onClose={() => setSelectedActivity(null)}
+            />
+          )}
+        </>
+      ) : (
+        <ActivityList activities={activities ?? []} routePrefix="/(visitor)" />
       )}
 
-      {!selectedActivity && (
+      {!selectedActivity && viewMode === 'map' && (
         <View style={styles.overlay}>
           <Text style={styles.title}>{t('app.name')}</Text>
           <Text style={styles.subtitle}>{t('visitor.explore')}</Text>
