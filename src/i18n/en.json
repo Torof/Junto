@@ -52,6 +52,7 @@
     "cancelConfirmMessage": "All participants will be notified. This cannot be undone.",
     "yes": "Yes, cancel",
     "no": "No",
+    "edit": "Edit activity",
     "shareLink": "Share invite link",
     "status": {
       "inProgress": "In progress",
@@ -111,6 +112,11 @@
     "noResults": "No results with these filters",
     "filters": "Filters"
   },
+  "edit": {
+    "title": "Edit activity",
+    "save": "Save",
+    "lockedHint": "Locked — participants have joined"
+  },
   "invite": {
     "invalid": "This invite link is not valid"
   },
@@ -133,7 +139,8 @@
     "activityCancelled": "Activity cancelled",
     "participantAccepted": "Participant accepted",
     "participantRefused": "Request refused",
-    "participantRemoved": "Participant removed"
+    "participantRemoved": "Participant removed",
+    "activityUpdated": "Activity updated!"
   },
   "create": {
     "step": "Step {{current}}/{{total}}",

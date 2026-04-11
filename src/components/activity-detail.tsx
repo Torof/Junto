@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Pressable, StyleSheet, Alert, Share } from 'react-native';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -28,6 +29,7 @@ export function ActivityDetail({
   onJoinRedirect,
 }: ActivityDetailProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -215,6 +217,12 @@ export function ActivityDetail({
         </Pressable>
       )}
 
+      {isCreator && ['published', 'in_progress'].includes(activity.status) && (
+        <Pressable style={styles.editButton} onPress={() => router.push(`/(auth)/edit/${activity.id}`)}>
+          <Text style={styles.editText}>{t('activity.edit')}</Text>
+        </Pressable>
+      )}
+
       {isCreator && (
         <Pressable style={styles.shareButton} onPress={handleShare}>
           <Text style={styles.shareText}>{t('activity.shareLink')}</Text>
@@ -253,6 +261,8 @@ const styles = StyleSheet.create({
   cancelButton: { backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  editButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  editText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   shareButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.cta },
   shareText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
 });

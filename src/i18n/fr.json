@@ -52,6 +52,7 @@
     "cancelConfirmMessage": "Tous les participants seront notifiés. Cette action est irréversible.",
     "yes": "Oui, annuler",
     "no": "Non",
+    "edit": "Modifier l'activité",
     "shareLink": "Partager le lien d'invitation",
     "status": {
       "inProgress": "En cours",
@@ -111,6 +112,11 @@
     "noResults": "Aucun résultat avec ces filtres",
     "filters": "Filtres"
   },
+  "edit": {
+    "title": "Modifier l'activité",
+    "save": "Enregistrer",
+    "lockedHint": "Verrouillé — des participants ont rejoint"
+  },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"
   },
@@ -133,7 +139,8 @@
     "activityCancelled": "Activité annulée",
     "participantAccepted": "Participant accepté",
     "participantRefused": "Demande refusée",
-    "participantRemoved": "Participant retiré"
+    "participantRemoved": "Participant retiré",
+    "activityUpdated": "Activité modifiée !"
   },
   "create": {
     "step": "Étape {{current}}/{{total}}",

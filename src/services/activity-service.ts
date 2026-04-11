@@ -109,4 +109,34 @@ export const activityService = {
     if (error) throw error;
     return data as NearbyActivity | null;
   },
+
+  update: async (activityId: string, fields: {
+    title?: string;
+    description?: string;
+    level?: string;
+    max_participants?: number;
+    start_lng?: number;
+    start_lat?: number;
+    meeting_lng?: number;
+    meeting_lat?: number;
+    starts_at?: string;
+    duration?: string;
+    visibility?: string;
+  }): Promise<void> => {
+    const { error } = await supabase.rpc('update_activity' as 'join_activity', {
+      p_activity_id: activityId,
+      p_title: fields.title ?? null,
+      p_description: fields.description ?? null,
+      p_level: fields.level ?? null,
+      p_max_participants: fields.max_participants ?? null,
+      p_start_lng: fields.start_lng ?? null,
+      p_start_lat: fields.start_lat ?? null,
+      p_meeting_lng: fields.meeting_lng ?? null,
+      p_meeting_lat: fields.meeting_lat ?? null,
+      p_starts_at: fields.starts_at ?? null,
+      p_duration: fields.duration ?? null,
+      p_visibility: fields.visibility ?? null,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
 };
