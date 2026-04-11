@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
 import { geolocationService } from '@/services/geolocation-service';
 
 // Default center: Briançon, France
@@ -9,10 +10,27 @@ export function useInitialLocation() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    geolocationService.getInitialCenter().then((coords) => {
-      setCenter(coords);
+    (async () => {
+      try {
+        // Try device GPS first
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          setCenter([location.coords.longitude, location.coords.latitude]);
+          setIsLoading(false);
+          return;
+        }
+      } catch {
+        // GPS failed — fall through to IP
+      }
+
+      // Fallback: IP geolocation
+      const ipCenter = await geolocationService.getInitialCenter();
+      setCenter(ipCenter);
       setIsLoading(false);
-    });
+    })();
   }, []);
 
   return { center, isLoading };

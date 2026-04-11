@@ -69,6 +69,11 @@
     "list": "Liste",
     "map": "Carte",
     "noActivities": "Aucune activité à proximité",
-    "filters": "Filtres"
+    "filters": "Filtres",
+    "date": {
+      "all": "Toutes",
+      "today": "Aujourd'hui",
+      "week": "Cette semaine"
+    }
   }
 }

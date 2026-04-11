@@ -7,8 +7,10 @@ import { JuntoMapView } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
 import { ActivityList } from '@/components/activity-list';
 import { ViewToggle } from '@/components/view-toggle';
+import { FilterBar } from '@/components/filter-bar';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
+import { useFilteredActivities } from '@/hooks/use-filtered-activities';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 
@@ -17,18 +19,20 @@ export default function VisitorMapScreen() {
   const router = useRouter();
   const { center } = useInitialLocation();
   const { data: activities } = useNearbyActivities();
+  const filtered = useFilteredActivities(activities ?? []);
   const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
 
   return (
     <View style={styles.container}>
       <ViewToggle />
+      <FilterBar />
 
       {viewMode === 'map' ? (
         <>
           <JuntoMapView
             center={center}
-            activities={activities ?? []}
+            activities={filtered}
             onActivityPress={setSelectedActivity}
           />
 
@@ -44,7 +48,7 @@ export default function VisitorMapScreen() {
           )}
         </>
       ) : (
-        <ActivityList activities={activities ?? []} routePrefix="/(visitor)" />
+        <ActivityList activities={filtered} routePrefix="/(visitor)" />
       )}
 
       {!selectedActivity && viewMode === 'map' && (

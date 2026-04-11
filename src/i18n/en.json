@@ -69,6 +69,11 @@
     "list": "List",
     "map": "Map",
     "noActivities": "No activities nearby",
-    "filters": "Filters"
+    "filters": "Filters",
+    "date": {
+      "all": "All",
+      "today": "Today",
+      "week": "This week"
+    }
   }
 }
