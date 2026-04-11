@@ -18,6 +18,7 @@ export default function AuthLayout() {
       <Stack.Screen name="activity/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="invite/[token]" options={{ headerShown: false }} />
       <Stack.Screen name="edit/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/[id]" options={{ title: '' }} />
     </Stack>
   );
 }

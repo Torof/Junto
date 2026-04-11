@@ -1,5 +1,19 @@
 import { supabase } from './supabase';
 
+export interface PublicProfile {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  sports: string[];
+  created_at: string;
+}
+
+export interface UserStats {
+  total_activities: number;
+  completed_activities: number;
+  sports_count: number;
+}
+
 export const userService = {
   getOwnProfile: async () => {
     const { data, error } = await supabase
@@ -10,14 +24,25 @@ export const userService = {
     return data;
   },
 
-  getPublicProfile: async (userId: string) => {
+  getPublicProfile: async (userId: string): Promise<PublicProfile | null> => {
     const { data, error } = await supabase
       .from('public_profiles')
-      .select('id, display_name, avatar_url, bio, sports, levels_per_sport, created_at')
+      .select('id, display_name, avatar_url, sports, created_at')
       .eq('id', userId)
       .single();
-    if (error) throw error;
-    return data;
+    if (error) return null;
+    return data as PublicProfile;
+  },
+
+  getPublicStats: async (userId: string): Promise<UserStats> => {
+    const { data, error } = await supabase.rpc('get_user_public_stats' as 'join_activity', {
+      p_user_id: userId,
+    } as unknown as { p_activity_id: string });
+    if (error) return { total_activities: 0, completed_activities: 0, sports_count: 0 };
+    const rows = data as unknown as UserStats[];
+    return Array.isArray(rows) && rows.length > 0
+      ? rows[0] ?? { total_activities: 0, completed_activities: 0, sports_count: 0 }
+      : { total_activities: 0, completed_activities: 0, sports_count: 0 };
   },
 
   updateProfile: async (updates: {
@@ -35,5 +60,29 @@ export const userService = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  blockUser: async (blockedId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('blocked_users')
+      .insert({ blocked_id: blockedId, blocker_id: (await supabase.auth.getUser()).data.user?.id ?? '' });
+    if (error) throw error;
+  },
+
+  unblockUser: async (blockedId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('blocked_users')
+      .delete()
+      .eq('blocked_id', blockedId);
+    if (error) throw error;
+  },
+
+  isBlocked: async (userId: string): Promise<boolean> => {
+    const { count, error } = await supabase
+      .from('blocked_users')
+      .select('id', { count: 'exact', head: true })
+      .eq('blocked_id', userId);
+    if (error) return false;
+    return (count ?? 0) > 0;
   },
 };

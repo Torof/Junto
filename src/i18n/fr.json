@@ -138,6 +138,16 @@
     "noResults": "Aucun résultat avec ces filtres",
     "filters": "Filtres"
   },
+  "publicProfile": {
+    "sendMessage": "Envoyer un message",
+    "messageSoon": "Messagerie bientôt disponible",
+    "block": "Bloquer cet utilisateur",
+    "unblock": "Débloquer cet utilisateur",
+    "blockConfirmTitle": "Bloquer cet utilisateur ?",
+    "blockConfirmMessage": "Vous ne verrez plus ses activités ni ses messages.",
+    "blocked": "Utilisateur bloqué",
+    "unblocked": "Utilisateur débloqué"
+  },
   "drawer": {
     "account": "Compte",
     "email": "Email",

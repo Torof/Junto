@@ -138,6 +138,16 @@
     "noResults": "No results with these filters",
     "filters": "Filters"
   },
+  "publicProfile": {
+    "sendMessage": "Send message",
+    "messageSoon": "Messaging coming soon",
+    "block": "Block this user",
+    "unblock": "Unblock this user",
+    "blockConfirmTitle": "Block this user?",
+    "blockConfirmMessage": "You won't see their activities or messages anymore.",
+    "blocked": "User blocked",
+    "unblocked": "User unblocked"
+  },
   "drawer": {
     "account": "Account",
     "email": "Email",

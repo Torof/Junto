@@ -170,12 +170,12 @@ export function ActivityDetail({
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('activity.creator')}</Text>
-        <View style={styles.creator}>
+        <Pressable style={styles.creator} onPress={() => router.push(`/(auth)/profile/${activity.creator_id}`)}>
           <View style={styles.creatorAvatar}>
             <Text style={styles.creatorInitial}>{activity.creator_name.charAt(0).toUpperCase()}</Text>
           </View>
           <Text style={styles.creatorName}>{activity.creator_name}</Text>
-        </View>
+        </Pressable>
       </View>
 
       <ParticipantList activityId={activity.id} isCreator={isCreator} />

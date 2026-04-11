@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -15,6 +16,7 @@ interface ActivityWallProps {
 
 export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -86,12 +88,18 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
           renderItem={({ item }) => (
             <View style={styles.messageCard}>
               <View style={styles.messageHeader}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {(item.display_name ?? '?').charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
+                <Pressable
+                  style={styles.authorLink}
+                  onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
+                  disabled={!item.user_id}
+                >
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {(item.display_name ?? '?').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
+                </Pressable>
                 <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
               </View>
               <Text style={styles.messageContent}>{item.content}</Text>
@@ -175,6 +183,11 @@ const styles = StyleSheet.create({
     color: colors.cta,
     fontSize: fontSizes.xs,
     fontWeight: 'bold',
+  },
+  authorLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   authorName: {
     color: colors.textPrimary,

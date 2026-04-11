@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -13,6 +14,7 @@ interface ParticipantListProps {
 
 export function ParticipantList({ activityId, isCreator }: ParticipantListProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -55,10 +57,12 @@ export function ParticipantList({ activityId, isCreator }: ParticipantListProps)
           <Text style={styles.sectionTitle}>{t('participants.pending', { count: pending.length })}</Text>
           {pending.map((p) => (
             <View key={p.participation_id} style={styles.card}>
-              <View style={styles.avatar}>
-                <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <Text style={styles.name}>{p.display_name}</Text>
+              <Pressable style={styles.profileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+                <View style={styles.avatar}>
+                  <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.name}>{p.display_name}</Text>
+              </Pressable>
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
@@ -85,10 +89,12 @@ export function ParticipantList({ activityId, isCreator }: ParticipantListProps)
           <Text style={styles.sectionTitle}>{t('participants.accepted', { count: accepted.length })}</Text>
           {accepted.map((p) => (
             <View key={p.participation_id} style={styles.card}>
-              <View style={styles.avatar}>
-                <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <Text style={styles.name}>{p.display_name}</Text>
+              <Pressable style={styles.profileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+                <View style={styles.avatar}>
+                  <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.name}>{p.display_name}</Text>
+              </Pressable>
               {isCreator && (
                 <Pressable
                   style={[styles.removeBtn, loadingId === p.participation_id && styles.disabled]}
@@ -115,6 +121,7 @@ const styles = StyleSheet.create({
   container: { marginTop: spacing.md },
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.md },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
+  profileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
   initial: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
   name: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
