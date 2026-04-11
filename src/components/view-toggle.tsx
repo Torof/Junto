@@ -15,7 +15,7 @@ export function ViewToggle() {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    top: 56,
+    bottom: spacing.xl + 32,
     right: spacing.md,
     backgroundColor: colors.background,
     borderRadius: radius.full,

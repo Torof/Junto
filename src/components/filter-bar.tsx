@@ -17,8 +17,8 @@ export function FilterButton({ onPress }: { onPress: () => void }) {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    top: 56,
-    left: spacing.md,
+    bottom: spacing.xl + 80,
+    right: spacing.md,
     backgroundColor: colors.background,
     borderRadius: radius.full,
     width: 40,
