@@ -681,7 +681,7 @@ WITH CHECK (auth.uid()::text = (storage.foldername(name))[1]);
 | avatar | Oui | Oui | Oui |
 | bio | Oui | Oui | Oui |
 | sports & niveaux | Oui | Oui | Oui |
-| historique activités | Non | Titres + ville | Détail complet |
+| stats activités | Non | Agrégées (count, sports) | Détail complet via "Mes activités" |
 | email | Non | Non | Oui |
 | téléphone | Non | Non | Oui |
 | date_of_birth | Non | Non | Oui |

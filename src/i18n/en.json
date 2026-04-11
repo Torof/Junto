@@ -94,6 +94,21 @@
   },
   "profil": {
     "logout": "Log out",
+    "edit": "Edit profile",
+    "save": "Save",
+    "cancelEdit": "Cancel",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "noBio": "No bio yet",
+    "sportsLevels": "Sports & levels",
+    "levelPerSport": "Level per sport",
+    "noSports": "No sports selected",
+    "nameTooShort": "Name must be at least 2 characters",
+    "displayName": "Display name",
+    "memberSince": "Member since {{date}}",
+    "activities": "Activities",
+    "completed": "Completed",
+    "sportsCount": "Sports",
     "notificationPrefs": "Notification preferences",
     "notifType": {
       "join_request": "New join request",
@@ -123,6 +138,13 @@
     "noResults": "No results with these filters",
     "filters": "Filters"
   },
+  "drawer": {
+    "account": "Account",
+    "email": "Email",
+    "pseudo": "Display name",
+    "subscription": "Subscription",
+    "preferences": "Preferences"
+  },
   "edit": {
     "title": "Edit activity",
     "save": "Save",
@@ -151,7 +173,8 @@
     "participantAccepted": "Participant accepted",
     "participantRefused": "Request refused",
     "participantRemoved": "Participant removed",
-    "activityUpdated": "Activity updated!"
+    "activityUpdated": "Activity updated!",
+    "profileUpdated": "Profile updated!"
   },
   "create": {
     "step": "Step {{current}}/{{total}}",

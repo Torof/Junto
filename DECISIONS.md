@@ -75,3 +75,11 @@ Log des décisions techniques non évidentes. Ce fichier capture le "pourquoi" d
 **Décision :** Les fichiers GPX sont parsés côté client. Seules les coordonnées extraites sont envoyées au serveur et stockées en géométrie PostGIS dans la table activities. Le fichier GPX brut n'est pas conservé.
 **Pourquoi :** Stocker les fichiers GPX dans un bucket nécessiterait des storage policies cross-table complexes (GPX → activity → participations pour déterminer qui peut lire). En parsant côté client et en stockant les coordonnées, l'accès est contrôlé par le RLS standard de la table activities. Élimine aussi le risque de servir un fichier XML malveillant stocké.
 **Alternative considérée :** Bucket GPX privé avec policies — rejeté pour la complexité et le risque de sécurité.
+
+---
+
+## 2026-04-11 — Pas d'historique d'activités visible sur le profil public
+
+**Décision :** Le profil public affiche uniquement des stats agrégées (nombre d'activités complétées, sports pratiqués, membre depuis). L'historique détaillé des activités (lieux, dates, co-participants) reste privé dans l'onglet "Mes activités" de l'utilisateur.
+**Pourquoi :** Exposer l'historique d'activités permet de tracer les habitudes de déplacement d'un utilisateur (lieux fréquentés, jours, horaires). Pour une app qui met en contact des inconnus en plein air, c'est un risque de sécurité personnelle. Les stats agrégées donnent les signaux de confiance (expérience, régularité) sans exposer les patterns de localisation. Le système de réputation/badges (Sprint 8) complètera ces signaux.
+**Alternative considérée :** Historique avec précision réduite (sans lieux exacts) — rejeté car même les titres d'activités et dates peuvent révéler des patterns.

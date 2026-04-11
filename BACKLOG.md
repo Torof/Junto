@@ -132,7 +132,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 
 - [ ] Édition du profil (display_name, bio, sports, niveaux)
 - [ ] Page profil public (selon matrice de visibilité SECURITY.md)
-- [ ] Historique des activités (créées + rejointes, précision réduite pour le public)
+- [ ] Stats agrégées sur le profil public (nombre d'activités complétées, sports pratiqués, membre depuis — pas d'historique détaillé visible par les autres, protection vie privée)
 - [ ] Consultation du profil d'un autre utilisateur + noms/avatars tappables → profil public partout dans l'app (popup, page événement, mur, gestion demandes)
 - [ ] Bloquer un utilisateur (UI sur le profil — utilise la table blocked_users existante)
 - [ ] Bouton "Envoyer un message" sur le profil d'un autre utilisateur (navigue vers placeholder/coming soon, fonctionnel en Sprint 7)
