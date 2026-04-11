@@ -40,8 +40,8 @@ export function ActivityDetail({
     setIsLoading(true);
     try {
       await participationService.join(activity.id);
-      await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
-      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      await queryClient.refetchQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.refetchQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
@@ -85,7 +85,8 @@ export function ActivityDetail({
     ]);
   };
 
-  const showJoinButton = !isCreator && !participation && remaining > 0 && activity.status !== 'cancelled';
+  const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
+  const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && activity.status !== 'cancelled';
   const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status);
   const showCancelButton = isCreator && ['published', 'in_progress'].includes(activity.status);
   const isPending = participation?.status === 'pending';
