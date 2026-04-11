@@ -52,6 +52,7 @@
     "cancelConfirmMessage": "Tous les participants seront notifiés. Cette action est irréversible.",
     "yes": "Oui, annuler",
     "no": "Non",
+    "shareLink": "Partager le lien d'invitation",
     "status": {
       "inProgress": "En cours",
       "soon": "Bientôt",
@@ -107,6 +108,9 @@
     "emptyJoined": "Tu n'as rejoint aucune activité",
     "emptyUpcoming": "Aucune activité à venir",
     "emptyFinished": "Aucune activité terminée"
+  },
+  "invite": {
+    "invalid": "Ce lien d'invitation n'est pas valide"
   },
   "wall": {
     "title": "Mur de l'événement",

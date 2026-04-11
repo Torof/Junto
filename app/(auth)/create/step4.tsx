@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,7 @@ export default function CreateStep4() {
 
     setIsLoading(true);
     try {
-      await activityService.create({
+      const activityId = await activityService.create({
         sport_id: form.sport_id,
         title: form.title,
         description: form.description || undefined,
@@ -36,8 +36,22 @@ export default function CreateStep4() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      const isPrivate = form.visibility === 'private_link' || form.visibility === 'private_link_approval';
+      const title = form.title;
       resetForm();
       Burnt.toast({ title: t('toast.activityCreated'), preset: 'done' });
+
+      if (isPrivate) {
+        const token = await activityService.getInviteToken(activityId);
+        if (token) {
+          try {
+            await Share.share({ message: `${title} — junto://invite/${token}` });
+          } catch {
+            // User cancelled share
+          }
+        }
+      }
+
       router.replace('/(auth)/(tabs)/carte');
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));

@@ -16,6 +16,7 @@ export default function AuthLayout() {
       <Stack.Screen name="create/step3" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="create/step4" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="activity/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="invite/[token]" options={{ headerShown: false }} />
     </Stack>
   );
 }

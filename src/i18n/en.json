@@ -52,6 +52,7 @@
     "cancelConfirmMessage": "All participants will be notified. This cannot be undone.",
     "yes": "Yes, cancel",
     "no": "No",
+    "shareLink": "Share invite link",
     "status": {
       "inProgress": "In progress",
       "soon": "Soon",
@@ -107,6 +108,9 @@
     "emptyJoined": "You haven't joined any activity",
     "emptyUpcoming": "No upcoming activities",
     "emptyFinished": "No finished activities"
+  },
+  "invite": {
+    "invalid": "This invite link is not valid"
   },
   "wall": {
     "title": "Event wall",

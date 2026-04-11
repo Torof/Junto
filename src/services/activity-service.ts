@@ -79,6 +79,25 @@ export const activityService = {
     return data as string;
   },
 
+  getByInviteToken: async (token: string): Promise<NearbyActivity | null> => {
+    const { data, error } = await supabase.rpc('get_activity_by_invite_token' as 'join_activity', {
+      p_token: token,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+    const rows = data as unknown as NearbyActivity[];
+    return Array.isArray(rows) && rows.length > 0 ? rows[0] ?? null : null;
+  },
+
+  getInviteToken: async (activityId: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from('activities')
+      .select('invite_token')
+      .eq('id', activityId)
+      .single();
+    if (error) throw error;
+    return (data as { invite_token: string } | null)?.invite_token ?? null;
+  },
+
   getById: async (id: string): Promise<NearbyActivity | null> => {
     const { data, error } = await supabase
       .from('activities_with_coords')

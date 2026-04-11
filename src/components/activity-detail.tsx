@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, Alert, Share } from 'react-native';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
-import { type NearbyActivity } from '@/services/activity-service';
+import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -90,6 +90,19 @@ export function ActivityDetail({
         },
       },
     ]);
+  };
+
+  const handleShare = async () => {
+    try {
+      const token = await activityService.getInviteToken(activity.id);
+      if (!token) return;
+      const link = `junto://invite/${token}`;
+      await Share.share({
+        message: `${activity.title} — ${link}`,
+      });
+    } catch {
+      // User cancelled share — do nothing
+    }
   };
 
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
@@ -201,6 +214,12 @@ export function ActivityDetail({
           <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.cancel')}</Text>
         </Pressable>
       )}
+
+      {isCreator && (
+        <Pressable style={styles.shareButton} onPress={handleShare}>
+          <Text style={styles.shareText}>{t('activity.shareLink')}</Text>
+        </Pressable>
+      )}
     </ScrollView>
   );
 }
@@ -234,4 +253,6 @@ const styles = StyleSheet.create({
   cancelButton: { backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  shareButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.cta },
+  shareText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
 });
