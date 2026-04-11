@@ -20,7 +20,7 @@ export default function TabsLayout() {
         headerTintColor: colors.textPrimary,
       }}
     >
-      <Tabs.Screen name="carte" options={{ title: t('tabs.carte') }} />
+      <Tabs.Screen name="carte" options={{ title: t('tabs.carte'), headerShown: false }} />
       <Tabs.Screen name="mes-activites" options={{ title: t('tabs.mesActivites') }} />
       <Tabs.Screen name="messagerie" options={{ title: t('tabs.messagerie') }} />
       <Tabs.Screen name="profil" options={{ title: t('tabs.profil') }} />
