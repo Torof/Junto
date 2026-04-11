@@ -20,7 +20,7 @@ CREATE OR REPLACE FUNCTION create_activity(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id UUID;
@@ -90,9 +90,9 @@ BEGIN
   ) VALUES (
     v_user_id, p_sport_id, p_title, p_description, p_level,
     p_max_participants,
-    ST_SetSRID(ST_MakePoint(p_start_lng, p_start_lat), 4326)::public.geography,
+    ST_SetSRID(ST_MakePoint(p_start_lng, p_start_lat), 4326)::geography,
     CASE WHEN p_meeting_lng IS NOT NULL AND p_meeting_lat IS NOT NULL
-      THEN ST_SetSRID(ST_MakePoint(p_meeting_lng, p_meeting_lat), 4326)::public.geography
+      THEN ST_SetSRID(ST_MakePoint(p_meeting_lng, p_meeting_lat), 4326)::geography
       ELSE NULL END,
     p_starts_at, p_duration::interval, p_visibility, 'published', now(), now()
   ) RETURNING id INTO v_activity_id;
