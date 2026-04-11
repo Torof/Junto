@@ -1,98 +1,46 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
-import { supabase } from '@/services/supabase';
 
-const DATE_OPTIONS = ['all', 'today', 'week'] as const;
-
-export function FilterBar() {
+export function FilterButton({ onPress }: { onPress: () => void }) {
   const { t } = useTranslation();
-  const { filters, setSportFilter, setDateFilter } = useMapStore();
-
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { filters } = useMapStore();
+  const hasActiveFilter = filters.sportKey !== null || filters.dateRange !== 'all';
 
   return (
-    <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
-        {/* Date filters */}
-        {DATE_OPTIONS.map((option) => (
-          <Pressable
-            key={option}
-            style={[styles.chip, filters.dateRange === option && styles.chipActive]}
-            onPress={() => setDateFilter(option)}
-          >
-            <Text style={[styles.chipText, filters.dateRange === option && styles.chipTextActive]}>
-              {t(`map.date.${option}`)}
-            </Text>
-          </Pressable>
-        ))}
-
-        <View style={styles.separator} />
-
-        {/* Sport filters */}
-        {(sports ?? []).map((sport) => (
-          <Pressable
-            key={sport.id}
-            style={[styles.chip, filters.sportKey === sport.key && styles.chipActive]}
-            onPress={() => setSportFilter(filters.sportKey === sport.key ? null : sport.key)}
-          >
-            <Text
-              style={[styles.chipText, filters.sportKey === sport.key && styles.chipTextActive]}
-            >
-              {t(`sports.${sport.key}`, sport.key)}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+    <Pressable style={styles.button} onPress={onPress}>
+      <Text style={styles.buttonText}>{t('map.filters')}</Text>
+      {hasActiveFilter && <View style={styles.badge} />}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  button: {
     position: 'absolute',
-    top: 96,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  scroll: {
-    paddingHorizontal: spacing.md,
-  },
-  chip: {
-    backgroundColor: colors.background + 'CC',
+    top: 56,
+    left: spacing.md,
+    backgroundColor: colors.background,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    marginRight: spacing.sm,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.surface,
   },
-  chipActive: {
-    backgroundColor: colors.cta,
-  },
-  chipText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-  },
-  chipTextActive: {
+  buttonText: {
     color: colors.textPrimary,
+    fontSize: fontSizes.sm,
     fontWeight: 'bold',
   },
-  separator: {
-    width: 1,
-    backgroundColor: colors.textSecondary,
-    marginHorizontal: spacing.sm,
-    opacity: 0.3,
+  badge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.cta,
+    marginLeft: spacing.xs,
   },
 });

@@ -74,6 +74,10 @@
       "all": "Toutes",
       "today": "Aujourd'hui",
       "week": "Cette semaine"
-    }
+    },
+    "dateLabel": "Quand",
+    "sportLabel": "Sport",
+    "resetFilters": "Réinitialiser",
+    "apply": "Appliquer"
   }
 }

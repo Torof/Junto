@@ -1,35 +1,53 @@
-import { Pressable, Text, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { colors, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
 
 export function ViewToggle() {
-  const { t } = useTranslation();
-  const { viewMode, toggleViewMode } = useMapStore();
+  const { viewMode, setViewMode } = useMapStore();
 
   return (
-    <Pressable style={styles.button} onPress={toggleViewMode}>
-      <Text style={styles.text}>
-        {viewMode === 'map' ? t('map.list') : t('map.map')}
-      </Text>
-    </Pressable>
+    <View style={styles.container}>
+      <Pressable
+        style={[styles.segment, viewMode === 'map' && styles.segmentActive]}
+        onPress={() => setViewMode('map')}
+      >
+        <Text style={[styles.icon, viewMode === 'map' && styles.iconActive]}>🗺</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.segment, viewMode === 'list' && styles.segmentActive]}
+        onPress={() => setViewMode('list')}
+      >
+        <Text style={[styles.icon, viewMode === 'list' && styles.iconActive]}>☰</Text>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  container: {
     position: 'absolute',
     top: 56,
     right: spacing.md,
-    backgroundColor: colors.background + 'E6',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    backgroundColor: colors.background,
     borderRadius: radius.full,
     zIndex: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.surface,
   },
-  text: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
+  segment: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  segmentActive: {
+    backgroundColor: colors.cta,
+  },
+  icon: {
+    fontSize: 16,
+    opacity: 0.5,
+  },
+  iconActive: {
+    opacity: 1,
   },
 });

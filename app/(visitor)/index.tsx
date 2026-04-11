@@ -7,7 +7,8 @@ import { JuntoMapView } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
 import { ActivityList } from '@/components/activity-list';
 import { ViewToggle } from '@/components/view-toggle';
-import { FilterBar } from '@/components/filter-bar';
+import { FilterButton } from '@/components/filter-bar';
+import { FilterSheet } from '@/components/filter-sheet';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
@@ -22,11 +23,12 @@ export default function VisitorMapScreen() {
   const filtered = useFilteredActivities(activities ?? []);
   const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   return (
     <View style={styles.container}>
+      <FilterButton onPress={() => setShowFilters(true)} />
       <ViewToggle />
-      <FilterBar />
 
       {viewMode === 'map' ? (
         <>
@@ -61,6 +63,8 @@ export default function VisitorMapScreen() {
           </Pressable>
         </View>
       )}
+
+      <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
     </View>
   );
 }
