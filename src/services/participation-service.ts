@@ -1,5 +1,16 @@
 import { supabase } from './supabase';
 
+export interface ParticipantInfo {
+  participation_id: string;
+  activity_id: string;
+  user_id: string;
+  status: string;
+  created_at: string;
+  left_at: string | null;
+  display_name: string;
+  avatar_url: string | null;
+}
+
 export interface Participation {
   id: string;
   activity_id: string;
@@ -67,27 +78,13 @@ export const participationService = {
     return data;
   },
 
-  getForActivity: async (activityId: string): Promise<(Participation & { display_name: string; avatar_url: string | null })[]> => {
+  getForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
     const { data, error } = await supabase
-      .from('participations')
-      .select('id, activity_id, user_id, status, created_at, left_at')
+      .from('activity_participants' as 'participations')
+      .select('participation_id, activity_id, user_id, status, created_at, left_at, display_name, avatar_url')
       .eq('activity_id', activityId)
       .order('created_at');
     if (error) throw error;
-
-    // Enrich with user info from public_profiles
-    const userIds = (data ?? []).map((p) => p.user_id);
-    const { data: profiles } = await supabase
-      .from('public_profiles')
-      .select('id, display_name, avatar_url')
-      .in('id', userIds);
-
-    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-
-    return (data ?? []).map((p) => ({
-      ...p,
-      display_name: profileMap.get(p.user_id)?.display_name ?? 'Unknown',
-      avatar_url: profileMap.get(p.user_id)?.avatar_url ?? null,
-    }));
+    return (data ?? []) as unknown as ParticipantInfo[];
   },
 };

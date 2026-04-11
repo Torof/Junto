@@ -8,6 +8,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
+import { ParticipantList } from './participant-list';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -155,6 +156,8 @@ export function ActivityDetail({
           <Text style={styles.creatorName}>{activity.creator_name}</Text>
         </View>
       </View>
+
+      <ParticipantList activityId={activity.id} isCreator={isCreator} />
 
       {showJoinButton && (
         <Pressable

@@ -89,6 +89,11 @@
     "resetFilters": "Reset",
     "apply": "Apply"
   },
+  "participants": {
+    "pending": "Pending requests ({{count}})",
+    "accepted": "Participants ({{count}})",
+    "removeConfirm": "Remove this participant?"
+  },
   "myActivities": {
     "empty": "You haven't created any activity yet"
   },
