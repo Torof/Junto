@@ -547,16 +547,17 @@ export type Database = {
       create_activity: {
         Args: {
           p_description: string
-          p_duration: string
+          p_duration?: string
           p_level: string
-          p_location_meeting: unknown
-          p_location_start: unknown
           p_max_participants: number
-          p_route: unknown
+          p_meeting_lat?: number
+          p_meeting_lng?: number
           p_sport_id: string
-          p_starts_at: string
+          p_start_lat: number
+          p_start_lng: number
+          p_starts_at?: string
           p_title: string
-          p_visibility: string
+          p_visibility?: string
         }
         Returns: string
       }

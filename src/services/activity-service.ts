@@ -37,11 +37,7 @@ export const activityService = {
   },
 
   create: async (form: ActivityFormData): Promise<string> => {
-    const durationInterval = `${form.duration_hours} hours ${form.duration_minutes} minutes`;
-    const locationStart = `SRID=4326;POINT(${form.location_start.lng} ${form.location_start.lat})`;
-    const locationMeeting = form.location_meeting
-      ? `SRID=4326;POINT(${form.location_meeting.lng} ${form.location_meeting.lat})`
-      : null;
+    const durationStr = `${form.duration_hours} hours ${form.duration_minutes} minutes`;
 
     const { data, error } = await supabase.rpc('create_activity', {
       p_sport_id: form.sport_id,
@@ -49,11 +45,12 @@ export const activityService = {
       p_description: form.description ?? '',
       p_level: form.level,
       p_max_participants: form.max_participants,
-      p_location_start: locationStart,
-      p_location_meeting: locationMeeting,
-      p_route: null,
+      p_start_lng: form.location_start.lng,
+      p_start_lat: form.location_start.lat,
+      p_meeting_lng: form.location_meeting?.lng,
+      p_meeting_lat: form.location_meeting?.lat,
       p_starts_at: form.starts_at.toISOString(),
-      p_duration: durationInterval,
+      p_duration: durationStr,
       p_visibility: form.visibility,
     });
     if (error) throw error;
