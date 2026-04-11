@@ -468,7 +468,6 @@ export type Database = {
           description: string | null
           duration: string | null
           id: string | null
-          invite_token: string | null
           lat: number | null
           level: string | null
           lng: number | null
@@ -489,7 +488,6 @@ export type Database = {
           description?: string | null
           duration?: string | null
           id?: string | null
-          invite_token?: string | null
           lat?: never
           level?: string | null
           lng?: never
@@ -510,7 +508,6 @@ export type Database = {
           description?: string | null
           duration?: string | null
           id?: string | null
-          invite_token?: string | null
           lat?: never
           level?: string | null
           lng?: never
