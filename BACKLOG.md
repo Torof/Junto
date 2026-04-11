@@ -89,7 +89,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Fonction Postgres de création d'activité (vérifie phone_verified = true, rate limiting : 4/mois free, 2/jour tous tiers, tier check pour visibility private_link, auto-insert créateur comme participant accepté — voir SECURITY.md "Chaîne d'autorisation")
 - [ ] Transitions automatiques de statut des activités (pg_cron ou Edge Function : published → in_progress quand starts_at atteint, in_progress → completed quand starts_at + duration atteint → déclenche notification review, published → expired quand starts_at + 2h passé sans participants)
 - [ ] Verrouillage des champs critiques après premier participant (hors créateur — Postgres trigger côté DB, pas service layer : bloque UPDATE sur lieu/date/niveau/places/visibilité si participants existent)
-- [ ] Édition d'une activité par le créateur (mêmes composants que la création, respecte le verrouillage DB, notification envoyée à tous les participants acceptés pour tout champ modifié)
+- [ ] Édition d'une activité par le créateur (mêmes composants que la création, respecte le verrouillage DB, notification envoyée à tous les participants acceptés pour tout champ modifié) — **DEFERRED from Sprint 3, build when join mechanics exist (Sprint 4) so field locking can be tested with real participants**
 - [ ] Mes activités — liste des activités créées (contenu réel du tab, remplace le placeholder Sprint 1)
 
 **Livrable :** Création et publication d'une activité complète.
