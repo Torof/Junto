@@ -104,7 +104,6 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Bouton "Demander à rejoindre" (sur acceptation)
 - [ ] Fonction Postgres join_activity (concurrent join protection avec FOR UPDATE, vérifie status IN ('published','in_progress'), vérifie user != creator, vérifie user not blocked by creator — voir SECURITY.md "Chaîne d'autorisation")
 - [ ] Rate limiting sur les demandes (max 10/heure)
-- [ ] Notifications push (Expo Push Notifications, contenu respectant la vie privée, gestion push receipts : clear push_token sur DeviceNotRegistered)
 - [ ] Notifications persistantes (table notifications, read/unread) + écran inbox notifications + tap-to-navigate vers l'écran concerné + bell icon dans le header bar (global, toutes les screens) avec badge unread count
 - [ ] Notification créateur : nouvelle demande
 - [ ] Interface gestion des demandes (côté créateur)
@@ -179,6 +178,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 ## Sprint 8 — Polish & Launch prep
 **Objectif :** L'app est prête pour un premier lancement public.
 
+- [ ] Notifications push (Expo Push Notifications, contenu respectant la vie privée, gestion push receipts : clear push_token sur DeviceNotRegistered) — **DEFERRED from Sprint 4**
 - [ ] Système d'avis / réputation (bidirectionnel : participants ↔ créateur, déclenché par notification quand activité → completed, table reviews avec UNIQUE(reviewer_id, reviewed_user_id, activity_id) + CHECK(reviewer != reviewed) + CHECK(rating 1-5), enforcement DB : reviewer et reviewed doivent être participants acceptés de la même activité)
 - [ ] Badges automatiques de progression (table user_badges — Nouveau membre 0-4, Confirmé 10+, Expérimenté 30+, Vétéran 75+ sorties complétées. Badges sport après 20 sorties dans un sport. Pure DB count, pas de subjectivité.)
 - [ ] Table reports + UI signalement d'un utilisateur, d'une activité ou d'un message (wall + privé)
