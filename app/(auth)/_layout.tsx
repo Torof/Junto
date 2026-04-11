@@ -24,6 +24,8 @@ export default function AuthLayout() {
       <Tabs.Screen name="mes-activites" options={{ title: t('tabs.mesActivites') }} />
       <Tabs.Screen name="messagerie" options={{ title: t('tabs.messagerie') }} />
       <Tabs.Screen name="profil" options={{ title: t('tabs.profil') }} />
+      <Tabs.Screen name="create" options={{ href: null }} />
+      <Tabs.Screen name="activity" options={{ href: null }} />
     </Tabs>
   );
 }
