@@ -11,8 +11,11 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="create" options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="activity" options={{ headerShown: false }} />
+      <Stack.Screen name="create/step1" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="create/step2" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="create/step3" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="create/step4" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="activity/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }
