@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
@@ -17,7 +18,7 @@ import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const [showReport, setShowReport] = useState(false);
   const queryClient = useQueryClient();
@@ -101,7 +102,7 @@ export default function PublicProfileScreen() {
           </Text>
         )}
         <Text style={styles.memberSince}>
-          {t('profil.memberSince', { date: dayjs(profile.created_at).format('MMM YYYY') })}
+          {t('profil.memberSince', { date: dayjs(profile.created_at).locale(i18n.language).format('MMM YYYY') })}
         </Text>
       </View>
 
