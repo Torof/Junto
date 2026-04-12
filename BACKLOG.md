@@ -179,8 +179,10 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 **Objectif :** L'app est prête pour un premier lancement public.
 
 - [ ] Notifications push (Expo Push Notifications, contenu respectant la vie privée, gestion push receipts : clear push_token sur DeviceNotRegistered) — **DEFERRED from Sprint 4**
-- [ ] Système d'avis / réputation (bidirectionnel : participants ↔ créateur, déclenché par notification quand activité → completed, table reviews avec UNIQUE(reviewer_id, reviewed_user_id, activity_id) + CHECK(reviewer != reviewed) + CHECK(rating 1-5), enforcement DB : reviewer et reviewed doivent être participants acceptés de la même activité)
-- [ ] Badges automatiques de progression (table user_badges — Nouveau membre 0-4, Confirmé 10+, Expérimenté 30+, Vétéran 75+ sorties complétées. Badges sport après 20 sorties dans un sport. Pure DB count, pas de subjectivité.)
+- [ ] Score de fiabilité — `confirmed_present` sur participations (confirmation créateur post-activité), ratio présences/inscriptions, pénalité annulation < 12h, no-show tracking. Affiché sur profil (emoji 🟢🟡🔴 ou pourcentage). Transitions automatiques de statut nécessaires pour déclencher le flow de confirmation.
+- [ ] Badges de réputation — attribués par les co-participants post-activité (bon leader, fun, ponctuel, agressif...). Seuils positifs 5+, négatifs 15+. Fenêtre 48h post-activité. Table `reputation_votes` avec UNIQUE(voter_id, voted_id, activity_id, badge_key). Affichés sur profil public.
+- [ ] Badges trophées — automatiques, basés sur des compteurs DB. Nouveau membre (0-4), Confirmé (10+), Expérimenté (30+), Vétéran (75+ activités complétées). Badges sport après 20 sorties dans un sport spécifique (ex: "Grand Grimpeur"). Table `user_trophies`, calcul pur DB.
+- [ ] Transitions automatiques de statut des activités (pg_cron ou Edge Function : published → in_progress quand starts_at atteint, in_progress → completed quand starts_at + duration atteint, published → expired quand starts_at + 2h passé sans participants) — nécessaire pour déclencher score de fiabilité + badges
 - [ ] Table reports + UI signalement d'un utilisateur, d'une activité ou d'un message (wall + privé)
 - [ ] Écran admin modération (liste des reports, review du contenu signalé, actions : dismiss ou suspendre — étend l'admin Sprint 6)
 - [ ] Modération : suspension d'utilisateur (utilisant suspended_at)
