@@ -12,6 +12,7 @@ export interface UserStats {
   total_activities: number;
   completed_activities: number;
   sports_count: number;
+  reliability_score: number | null;
 }
 
 export const userService = {
@@ -38,11 +39,11 @@ export const userService = {
     const { data, error } = await supabase.rpc('get_user_public_stats' as 'join_activity', {
       p_user_id: userId,
     } as unknown as { p_activity_id: string });
-    if (error) return { total_activities: 0, completed_activities: 0, sports_count: 0 };
+    if (error) return { total_activities: 0, completed_activities: 0, sports_count: 0, reliability_score: null };
     const rows = data as unknown as UserStats[];
     return Array.isArray(rows) && rows.length > 0
-      ? rows[0] ?? { total_activities: 0, completed_activities: 0, sports_count: 0 }
-      : { total_activities: 0, completed_activities: 0, sports_count: 0 };
+      ? rows[0] ?? { total_activities: 0, completed_activities: 0, sports_count: 0, reliability_score: null }
+      : { total_activities: 0, completed_activities: 0, sports_count: 0, reliability_score: null };
   },
 
   updateProfile: async (updates: {

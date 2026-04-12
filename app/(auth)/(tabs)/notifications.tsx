@@ -19,6 +19,7 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   participant_left: '👋',
   activity_cancelled: '🚨',
   activity_updated: '📝',
+  confirm_presence: '📋',
 };
 
 export default function NotificationsScreen() {
@@ -38,7 +39,9 @@ export default function NotificationsScreen() {
       await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
     }
 
-    if (notification.data?.conversation_id) {
+    if (notification.type === 'confirm_presence' && notification.data?.activity_id) {
+      router.push(`/(auth)/confirm-presence/${notification.data.activity_id}`);
+    } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.activity_id) {
       router.push(`/(auth)/activity/${notification.data.activity_id}`);

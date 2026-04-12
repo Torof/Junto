@@ -7,6 +7,7 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { activityService } from '@/services/activity-service';
+import { reliabilityService } from '@/services/reliability-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
@@ -25,9 +26,9 @@ export default function ProfilScreen() {
       if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, avatar_url, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, avatar_url, reliability_score, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
     retry: 2,
   });
@@ -81,6 +82,11 @@ export default function ProfilScreen() {
           </Pressable>
           <Text style={styles.name}>{user?.display_name ?? '...'}</Text>
           <Text style={styles.tier}>{user?.tier ?? 'free'}</Text>
+          {user?.reliability_score != null && (
+            <Text style={styles.reliability}>
+              {reliabilityService.getReliabilityEmoji(user.reliability_score)} {reliabilityService.getReliabilityLabel(user.reliability_score)}
+            </Text>
+          )}
           {user?.created_at && (
             <Text style={styles.memberSince}>
               {t('profil.memberSince', { date: dayjs(user.created_at).format('MMM YYYY') })}
@@ -137,6 +143,7 @@ const styles = StyleSheet.create({
   uploading: { opacity: 0.5 },
   name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
   tier: { color: colors.cta, fontSize: fontSizes.xs, marginTop: spacing.sm, textTransform: 'uppercase' },
+  reliability: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: spacing.xs },
   memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
   statsRow: {
     flexDirection: 'row', justifyContent: 'space-around',

@@ -174,6 +174,12 @@
     "save": "Enregistrer",
     "lockedHint": "Verrouillé — des participants ont rejoint"
   },
+  "presence": {
+    "title": "Qui était présent ?",
+    "subtitle": "Sélectionne les participants qui étaient présents à l'activité",
+    "confirm": "Confirmer les présences",
+    "confirmed": "Présences confirmées !"
+  },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"
   },

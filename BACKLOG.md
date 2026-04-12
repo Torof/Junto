@@ -223,6 +223,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - Liste d'attente automatique quand activité complète
 - Alertes personnalisées (sport, localisation + rayon, niveau — notification quand une activité correspondante est créée)
 - `confirmed_present` BOOLEAN sur participations (confirmation créateur post-activité — nécessaire pour score de présence)
+- Vérification de présence par QR code (créateur affiche un QR, participants scannent — preuve physique de présence sans dépendance matérielle NFC)
 
 ### Features V3
 - Élargissement aux activités non sportives (théâtre, cinéma, jeux)
