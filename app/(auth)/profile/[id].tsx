@@ -7,8 +7,10 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
 import { reliabilityService } from '@/services/reliability-service';
+import { badgeService } from '@/services/badge-service';
 import { conversationService } from '@/services/conversation-service';
 import { UserAvatar } from '@/components/user-avatar';
+import { BadgeDisplay } from '@/components/badge-display';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
@@ -40,6 +42,18 @@ export default function PublicProfileScreen() {
     queryKey: ['is-blocked', id],
     queryFn: () => userService.isBlocked(id ?? ''),
     enabled: !!id && !isOwnProfile,
+  });
+
+  const { data: reputation } = useQuery({
+    queryKey: ['reputation', id],
+    queryFn: () => badgeService.getUserReputation(id ?? ''),
+    enabled: !!id,
+  });
+
+  const { data: trophies } = useQuery({
+    queryKey: ['trophies', id],
+    queryFn: () => badgeService.getUserTrophies(id ?? ''),
+    enabled: !!id,
   });
 
   const handleBlock = () => {
@@ -103,6 +117,9 @@ export default function PublicProfileScreen() {
           <Text style={styles.statLabel}>{t('profil.sportsCount')}</Text>
         </View>
       </View>
+
+      {/* Badges */}
+      <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
 
       {/* Sports */}
       {sports.length > 0 && (

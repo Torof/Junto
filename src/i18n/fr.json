@@ -174,6 +174,21 @@
     "save": "Enregistrer",
     "lockedHint": "Verrouillé — des participants ont rejoint"
   },
+  "badges": {
+    "newcomer": "Nouveau membre",
+    "confirmed": "Membre confirmé",
+    "experienced": "Membre expérimenté",
+    "veteran": "Vétéran",
+    "trustworthy": "De confiance",
+    "level_accurate": "Niveau conforme",
+    "great_leader": "Super leader",
+    "good_vibes": "Bonne ambiance",
+    "punctual": "Ponctuel",
+    "level_overestimated": "Niveau surestimé",
+    "difficult_attitude": "Attitude difficile",
+    "unreliable_field": "Peu fiable",
+    "aggressive": "Agressif"
+  },
   "presence": {
     "title": "Qui était présent ?",
     "subtitle": "Sélectionne les participants qui étaient présents à l'activité",
