@@ -9,14 +9,17 @@ import { userService } from '@/services/user-service';
 import { reliabilityService } from '@/services/reliability-service';
 import { badgeService } from '@/services/badge-service';
 import { conversationService } from '@/services/conversation-service';
+import { useState } from 'react';
 import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
+import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const router = useRouter();
+  const [showReport, setShowReport] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -158,8 +161,19 @@ export default function PublicProfileScreen() {
               <Text style={styles.blockText}>{t('publicProfile.block')}</Text>
             </Pressable>
           )}
+
+          <Pressable style={styles.reportButton} onPress={() => setShowReport(true)}>
+            <Text style={styles.reportText}>{t('report.reportUser')}</Text>
+          </Pressable>
         </View>
       )}
+
+      <ReportModal
+        visible={showReport}
+        targetType="user"
+        targetId={id ?? ''}
+        onClose={() => setShowReport(false)}
+      />
     </ScrollView>
   );
 }
@@ -202,4 +216,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm, alignItems: 'center',
   },
   unblockText: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  reportButton: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
+  reportText: { color: colors.textSecondary, fontSize: fontSizes.xs },
 });

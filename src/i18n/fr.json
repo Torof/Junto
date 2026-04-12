@@ -167,6 +167,16 @@
     "blocked": "Utilisateur bloqué",
     "unblocked": "Utilisateur débloqué"
   },
+  "report": {
+    "title": "Signaler",
+    "subtitle": "Décris le problème. Ton signalement sera examiné par notre équipe.",
+    "placeholder": "Explique ce qui s'est passé (10 caractères min)...",
+    "tooShort": "Le signalement doit faire au moins 10 caractères",
+    "submit": "Envoyer le signalement",
+    "submitted": "Signalement envoyé",
+    "reportUser": "Signaler cet utilisateur",
+    "reportActivity": "Signaler cette activité"
+  },
   "drawer": {
     "account": "Compte",
     "email": "Email",

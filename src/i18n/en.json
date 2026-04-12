@@ -167,6 +167,16 @@
     "blocked": "User blocked",
     "unblocked": "User unblocked"
   },
+  "report": {
+    "title": "Report",
+    "subtitle": "Describe the issue. Your report will be reviewed by our team.",
+    "placeholder": "Explain what happened (10 characters min)...",
+    "tooShort": "Report must be at least 10 characters",
+    "submit": "Send report",
+    "submitted": "Report sent",
+    "reportUser": "Report this user",
+    "reportActivity": "Report this activity"
+  },
   "drawer": {
     "account": "Account",
     "email": "Email",

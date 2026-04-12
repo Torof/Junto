@@ -12,6 +12,7 @@ import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/uti
 import { getSportIcon } from '@/constants/sport-icons';
 import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
+import { ReportModal } from './report-modal';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -33,6 +34,7 @@ export function ActivityDetail({
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
@@ -222,6 +224,19 @@ export function ActivityDetail({
         </Pressable>
       )}
 
+      {!isCreator && isAuthenticated && (
+        <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
+          <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
+        </Pressable>
+      )}
+
+      <ReportModal
+        visible={showReport}
+        targetType="activity"
+        targetId={activity.id}
+        onClose={() => setShowReport(false)}
+      />
+
       {/* Creator actions bottom sheet */}
       <Modal visible={showMenu} animationType="slide" transparent>
         <Pressable style={styles.menuBackdrop} onPress={() => setShowMenu(false)}>
@@ -283,6 +298,8 @@ const styles = StyleSheet.create({
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
+  reportLinkText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   menuBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
