@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="1024" height="1024">
+  <defs>
+    <clipPath id="clip-left">
+      <rect x="0" y="0" width="200" height="123"/>
+    </clipPath>
+    <clipPath id="clip-right">
+      <rect x="0" y="77" width="200" height="123"/>
+    </clipPath>
+  </defs>
+
+  <!-- Dark navy circle background -->
+  <circle cx="100" cy="100" r="92" fill="#293b5c"/>
+
+  <!-- Scale the logo 1.25x from center -->
+  <g transform="translate(100,100) scale(1.65) translate(-100,-100)">
+    <!-- Left shape: vertical bar + semicircle curving left (clipped) -->
+    <line x1="100" y1="58" x2="100" y2="90" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <path
+      d="M 100 70 A 30 30 0 0 0 88 127"
+      fill="none"
+      stroke="white"
+      stroke-width="8"
+      stroke-linecap="round"
+      clip-path="url(#clip-left)"
+    />
+
+    <!-- Right shape: semicircle curving right (clipped) + vertical bar -->
+    <path
+      d="M 112 73 A 30 30 0 0 1 100 130"
+      fill="none"
+      stroke="white"
+      stroke-width="8"
+      stroke-linecap="round"
+      clip-path="url(#clip-right)"
+    />
+    <line x1="100" y1="110" x2="100" y2="142" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>
