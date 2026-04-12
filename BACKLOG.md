@@ -143,22 +143,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 
 ---
 
-## Sprint 6 — Modèle économique
-**Objectif :** Les tiers Free / Premium / Pro sont fonctionnels.
-
-- [ ] Intégration Stripe (abonnements via Supabase Edge Function + webhook signature verification + idempotency : stocker les event IDs traités, ignorer les doublons) + ajout `stripe_customer_id` et `subscription_status` (active/past_due/cancelled) au modèle user
-- [ ] Tier Premium — création illimitée, activités privées par lien (gate sur le mode de visibilité), badge "Vérifié" sur profil/pins/popups
-- [ ] Flow demande compte Pro (soumission documents — bucket `pro-documents` avec policy admin-only read)
-- [ ] Validation manuelle Pro (écrans admin dans l'app, gatés par `is_admin`)
-- [ ] Badge Pro "Guide Professionnel Vérifié" sur profil, pins et pop-ups (distinct du badge Premium)
-- [ ] Vitrine Pro — liens externes, certifications
-- [ ] Mise en avant sur la carte (Premium)
-
-**Livrable :** Monétisation fonctionnelle.
-
----
-
-## Sprint 7 — Messagerie privée
+## Sprint 6 — Messagerie privée
 **Objectif :** Les utilisateurs peuvent se contacter en privé.
 
 - [ ] Table `conversations` (migration — id, user_1, user_2, last_message_at, created_at, UNIQUE ordered pair, CHECK user_1 != user_2) pour listing efficace + rate limiting création de conversations (max 10 nouvelles par heure)
@@ -172,6 +157,21 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - [ ] Édition / suppression de messages via fonctions Postgres (edited_at, deleted_at — couvre wall_messages ET private_messages. Pas de client UPDATE/DELETE direct — empêche tampering user_id/activity_id. Vérifie auteur + activity status)
 
 **Livrable :** Messagerie privée fonctionnelle.
+
+---
+
+## Sprint 7 — Modèle économique
+**Objectif :** Les tiers Free / Premium / Pro sont fonctionnels.
+
+- [ ] Intégration Stripe (abonnements via Supabase Edge Function + webhook signature verification + idempotency : stocker les event IDs traités, ignorer les doublons) + ajout `stripe_customer_id` et `subscription_status` (active/past_due/cancelled) au modèle user
+- [ ] Tier Premium — création illimitée, activités privées par lien (gate sur le mode de visibilité), badge "Vérifié" sur profil/pins/popups
+- [ ] Flow demande compte Pro (soumission documents — bucket `pro-documents` avec policy admin-only read)
+- [ ] Validation manuelle Pro (écrans admin dans l'app, gatés par `is_admin`)
+- [ ] Badge Pro "Guide Professionnel Vérifié" sur profil, pins et pop-ups (distinct du badge Premium)
+- [ ] Vitrine Pro — liens externes, certifications
+- [ ] Mise en avant sur la carte (Premium)
+
+**Livrable :** Monétisation fonctionnelle.
 
 ---
 
