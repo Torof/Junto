@@ -140,6 +140,13 @@
     "noResults": "Aucun résultat avec ces filtres",
     "filters": "Filtres"
   },
+  "messagerie": {
+    "empty": "Aucune conversation",
+    "noMessages": "Aucun message — commencez la conversation !",
+    "placeholder": "Écrire un message...",
+    "rateLimited": "Attends 1 minute entre chaque message",
+    "edited": "modifié"
+  },
   "publicProfile": {
     "sendMessage": "Envoyer un message",
     "messageSoon": "Messagerie bientôt disponible",

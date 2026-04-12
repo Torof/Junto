@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontSizes } from '@/constants/theme';
 import { notificationService } from '@/services/notification-service';
+import { conversationService } from '@/services/conversation-service';
+import { useMessageStore } from '@/store/message-store';
 
 function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
   return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>{icon}</Text>;
@@ -25,6 +27,27 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
           <Text style={styles.badgeText}>{count! > 99 ? '99+' : count}</Text>
         </View>
       )}
+    </View>
+  );
+}
+
+function MessageTabIcon({ focused }: { focused: boolean }) {
+  const { lastSeenAt } = useMessageStore();
+
+  const { data: conversations } = useQuery({
+    queryKey: ['conversations-badge'],
+    queryFn: () => conversationService.getAll(),
+    refetchInterval: 30000,
+  });
+
+  const hasUnread = (conversations ?? []).some(
+    (c) => c.last_message_at && (!lastSeenAt || c.last_message_at > lastSeenAt)
+  );
+
+  return (
+    <View style={styles.bellContainer}>
+      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>💬</Text>
+      {hasUnread && <View style={styles.dot} />}
     </View>
   );
 }
@@ -78,7 +101,7 @@ export default function TabsLayout() {
         name="messagerie"
         options={{
           title: t('tabs.messagerie'),
-          tabBarIcon: ({ focused }) => <TabIcon icon="💬" focused={focused} />,
+          tabBarIcon: ({ focused }) => <MessageTabIcon focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -115,5 +138,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: fontSizes.xs - 2,
     fontWeight: 'bold',
+  },
+  dot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.error,
   },
 });

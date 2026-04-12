@@ -6,7 +6,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
-  data: { activity_id?: string } | null;
+  data: { activity_id?: string; conversation_id?: string } | null;
   read_at: string | null;
   created_at: string;
 }

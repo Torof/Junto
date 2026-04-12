@@ -140,6 +140,13 @@
     "noResults": "No results with these filters",
     "filters": "Filters"
   },
+  "messagerie": {
+    "empty": "No conversations",
+    "noMessages": "No messages yet — start the conversation!",
+    "placeholder": "Write a message...",
+    "rateLimited": "Wait 1 minute between messages",
+    "edited": "edited"
+  },
   "publicProfile": {
     "sendMessage": "Send message",
     "messageSoon": "Messaging coming soon",

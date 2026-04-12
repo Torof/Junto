@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
+import { conversationService } from '@/services/conversation-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { supabase } from '@/services/supabase';
 
@@ -114,7 +115,14 @@ export default function PublicProfileScreen() {
       {/* Actions (not on own profile) */}
       {!isOwnProfile && (
         <View style={styles.actions}>
-          <Pressable style={styles.messageButton} onPress={() => Burnt.toast({ title: t('publicProfile.messageSoon') })}>
+          <Pressable style={styles.messageButton} onPress={async () => {
+            try {
+              const conversationId = await conversationService.createOrGet(id ?? '');
+              router.push(`/(auth)/conversation/${conversationId}`);
+            } catch {
+              Alert.alert(t('auth.error'), t('auth.unknownError'));
+            }
+          }}>
             <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
           </Pressable>
 
