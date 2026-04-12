@@ -90,7 +90,8 @@
     "dateLabel": "Quand",
     "sportLabel": "Sport",
     "resetFilters": "Réinitialiser",
-    "apply": "Appliquer"
+    "apply": "Appliquer",
+    "searchArea": "Rechercher dans cette zone"
   },
   "profil": {
     "logout": "Se déconnecter",

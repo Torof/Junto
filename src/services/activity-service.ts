@@ -24,14 +24,24 @@ export interface NearbyActivity {
 }
 
 export const activityService = {
-  getNearby: async (): Promise<NearbyActivity[]> => {
-    const { data, error } = await supabase
+  getNearby: async (bounds?: { swLng: number; swLat: number; neLng: number; neLat: number }): Promise<NearbyActivity[]> => {
+    let query = supabase
       .from('activities_with_coords')
       .select(
         'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .in('status', ['published', 'in_progress'])
       .is('deleted_at', null);
+
+    if (bounds) {
+      query = query
+        .gte('lng', bounds.swLng)
+        .lte('lng', bounds.neLng)
+        .gte('lat', bounds.swLat)
+        .lte('lat', bounds.neLat);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as NearbyActivity[];
   },

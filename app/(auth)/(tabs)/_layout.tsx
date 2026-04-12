@@ -43,11 +43,9 @@ export default function TabsLayout() {
           paddingBottom: insets.bottom,
           paddingTop: 4,
         },
+        tabBarShowLabel: false,
         tabBarActiveTintColor: colors.cta,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 10,
-        },
         headerStyle: {
           backgroundColor: colors.background,
         },
@@ -59,7 +57,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.carte'),
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon icon="🗺" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="🌍" focused={focused} />,
         }}
       />
       <Tabs.Screen

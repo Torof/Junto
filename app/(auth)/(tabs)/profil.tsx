@@ -15,12 +15,15 @@ export default function ProfilScreen() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, tier, sports, created_at')
+        .select('display_name, email, tier, sports, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; tier: string; sports: string[]; created_at: string } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
+    retry: 2,
   });
 
   const { data: createdActivities } = useQuery({

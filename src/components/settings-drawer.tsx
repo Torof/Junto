@@ -35,12 +35,15 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, notification_preferences')
+        .select('display_name, email, tier, sports, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; notification_preferences: NotificationPreferences } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; created_at: string; notification_preferences: NotificationPreferences } | null;
     },
+    retry: 2,
   });
 
   const prefs = user?.notification_preferences ?? {};

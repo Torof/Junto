@@ -19,12 +19,22 @@ const OUTDOORS_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
 
+export interface MapBounds {
+  swLng: number;
+  swLat: number;
+  neLng: number;
+  neLat: number;
+  centerLng: number;
+  centerLat: number;
+}
+
 interface MapViewProps {
   center?: [number, number];
   zoom?: number;
   activities?: NearbyActivity[];
   onActivityPress?: (activity: NearbyActivity) => void;
   onMapPress?: (lng: number, lat: number) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -35,6 +45,7 @@ export function JuntoMapView({
   activities = [],
   onActivityPress,
   onMapPress,
+  onBoundsChange,
 }: MapViewProps) {
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
@@ -68,8 +79,18 @@ export function JuntoMapView({
     setCurrentZoom(state.properties.zoom);
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
-    setBounds([sw[0] ?? -180, sw[1] ?? -90, ne[0] ?? 180, ne[1] ?? 90]);
-  }, []);
+    const swLng = sw[0] ?? -180;
+    const swLat = sw[1] ?? -90;
+    const neLng = ne[0] ?? 180;
+    const neLat = ne[1] ?? 90;
+    setBounds([swLng, swLat, neLng, neLat]);
+    const center = state.properties.center;
+    onBoundsChange?.({
+      swLng, swLat, neLng, neLat,
+      centerLng: center[0] ?? 0,
+      centerLat: center[1] ?? 0,
+    });
+  }, [onBoundsChange]);
 
   return (
     <Mapbox.MapView

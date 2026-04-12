@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, Alert, Share } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
@@ -32,6 +32,7 @@ export function ActivityDetail({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
@@ -128,7 +129,14 @@ export function ActivityDetail({
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
       </View>
 
-      <Text style={styles.title}>{activity.title}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{activity.title}</Text>
+        {isCreator && (
+          <Pressable style={styles.moreButton} onPress={() => setShowMenu(true)}>
+            <Text style={styles.moreText}>⋯</Text>
+          </Pressable>
+        )}
+      </View>
 
       {isPending && (
         <View style={styles.pendingBanner}>
@@ -207,27 +215,30 @@ export function ActivityDetail({
         </Pressable>
       )}
 
-      {showCancelButton && (
-        <Pressable
-          style={[styles.cancelButton, isLoading && styles.buttonDisabled]}
-          onPress={handleCancel}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.cancel')}</Text>
+      {/* Creator actions bottom sheet */}
+      <Modal visible={showMenu} animationType="slide" transparent>
+        <Pressable style={styles.menuBackdrop} onPress={() => setShowMenu(false)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            <View style={styles.menuHandle} />
+            {['published', 'in_progress'].includes(activity.status) && (
+              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); router.push(`/(auth)/edit/${activity.id}`); }}>
+                <Text style={styles.menuIcon}>✏️</Text>
+                <Text style={styles.menuText}>{t('activity.edit')}</Text>
+              </Pressable>
+            )}
+            <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleShare(); }}>
+              <Text style={styles.menuIcon}>🔗</Text>
+              <Text style={styles.menuText}>{t('activity.shareLink')}</Text>
+            </Pressable>
+            {showCancelButton && (
+              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleCancel(); }}>
+                <Text style={styles.menuIcon}>✕</Text>
+                <Text style={styles.menuTextDanger}>{t('activity.cancel')}</Text>
+              </Pressable>
+            )}
+          </Pressable>
         </Pressable>
-      )}
-
-      {isCreator && ['published', 'in_progress'].includes(activity.status) && (
-        <Pressable style={styles.editButton} onPress={() => router.push(`/(auth)/edit/${activity.id}`)}>
-          <Text style={styles.editText}>{t('activity.edit')}</Text>
-        </Pressable>
-      )}
-
-      {isCreator && (
-        <Pressable style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareText}>{t('activity.shareLink')}</Text>
-        </Pressable>
-      )}
+      </Modal>
     </ScrollView>
   );
 }
@@ -235,12 +246,15 @@ export function ActivityDetail({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md, gap: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
   statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
+  moreButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  moreText: { fontSize: 20, color: colors.textSecondary, fontWeight: 'bold' },
   pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
@@ -258,11 +272,13 @@ const styles = StyleSheet.create({
   creatorName: { color: colors.textPrimary, fontSize: fontSizes.md },
   joinButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
-  cancelButton: { backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
-  editButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  editText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  shareButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.cta },
-  shareText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  menuBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
+  menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, gap: spacing.md },
+  menuIcon: { fontSize: 18, width: 28, textAlign: 'center' },
+  menuText: { color: colors.textPrimary, fontSize: fontSizes.md },
+  menuTextDanger: { color: colors.error, fontSize: fontSizes.md },
 });
