@@ -2,9 +2,10 @@ import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
+import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useCreateStore } from '@/store/create-store';
+import { SportDropdown } from '@/components/sport-dropdown';
 import { LEVELS } from '@/types/activity-form';
 
 export default function CreateStep1() {
@@ -24,6 +25,7 @@ export default function CreateStep1() {
     },
   });
 
+  const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
   const isValid = form.sport_id && form.title.length >= 3 && form.level && form.max_participants >= 2;
 
   return (
@@ -32,19 +34,14 @@ export default function CreateStep1() {
       <Text style={styles.title}>{t('create.step1Title')}</Text>
 
       <Text style={styles.label}>{t('create.sport')}</Text>
-      <View style={styles.chipRow}>
-        {(sports ?? []).map((sport) => (
-          <Pressable
-            key={sport.id}
-            style={[styles.chip, form.sport_id === sport.id && styles.chipActive]}
-            onPress={() => updateForm({ sport_id: sport.id })}
-          >
-            <Text style={[styles.chipText, form.sport_id === sport.id && styles.chipTextActive]}>
-              {t(`sports.${sport.key}`, sport.key)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <SportDropdown
+        selected={selectedSportKey}
+        onSelect={(key) => {
+          const sport = sports?.find((s) => s.key === key);
+          if (sport) updateForm({ sport_id: sport.id });
+        }}
+        label={t('create.sport')}
+      />
 
       <Text style={styles.label}>{t('create.title')}</Text>
       <TextInput

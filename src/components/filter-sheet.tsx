@@ -1,9 +1,8 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
-import { supabase } from '@/services/supabase';
+import { SportDropdown } from './sport-dropdown';
 
 const DATE_OPTIONS = ['all', 'today', 'week'] as const;
 
@@ -15,18 +14,6 @@ interface FilterSheetProps {
 export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   const { t } = useTranslation();
   const { filters, toggleSportFilter, setDateFilter, resetFilters } = useMapStore();
-
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -57,21 +44,12 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
           </View>
 
           <Text style={styles.sectionTitle}>{t('map.sportLabel')}</Text>
-          <ScrollView style={styles.sportList} showsVerticalScrollIndicator={false}>
-            <View style={styles.chipRow}>
-              {(sports ?? []).map((sport) => (
-                <Pressable
-                  key={sport.id}
-                  style={[styles.chip, filters.sportKeys.includes(sport.key) && styles.chipActive]}
-                  onPress={() => toggleSportFilter(sport.key)}
-                >
-                  <Text style={[styles.chipText, filters.sportKeys.includes(sport.key) && styles.chipTextActive]}>
-                    {t(`sports.${sport.key}`, sport.key)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
+          <SportDropdown
+            selected={filters.sportKeys}
+            onSelect={toggleSportFilter}
+            multiSelect
+            label={t('map.sportLabel')}
+          />
 
           <Pressable style={styles.applyButton} onPress={onClose}>
             <Text style={styles.applyText}>{t('map.apply')}</Text>
@@ -149,9 +127,6 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: colors.textPrimary,
     fontWeight: 'bold',
-  },
-  sportList: {
-    maxHeight: 200,
   },
   applyButton: {
     backgroundColor: colors.cta,

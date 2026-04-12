@@ -80,7 +80,29 @@
     "skiing": "Skiing",
     "snowboarding": "Snowboarding",
     "running": "Running",
-    "swimming": "Swimming"
+    "swimming": "Swimming",
+    "football": "Football",
+    "tennis": "Tennis",
+    "volleyball": "Volleyball",
+    "badminton": "Badminton",
+    "canyoning": "Canyoning",
+    "diving": "Diving",
+    "stand-up-paddle": "Stand-up Paddle",
+    "rafting": "Rafting",
+    "ice-climbing": "Ice climbing",
+    "cross-country-ski": "Cross-country skiing",
+    "skateboarding": "Skateboarding",
+    "skydiving": "Skydiving",
+    "triathlon": "Triathlon",
+    "crossfit": "CrossFit",
+    "rock-fishing": "Rock fishing",
+    "horseback-riding": "Horseback riding",
+    "via-ferrata": "Via ferrata",
+    "slacklining": "Slacklining"
+  },
+  "sportDropdown": {
+    "select": "Choose a sport",
+    "selected": "sports"
   },
   "map": {
     "list": "List",

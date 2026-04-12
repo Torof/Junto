@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from '@/components/activity-card';
-import { supabase } from '@/services/supabase';
+import { SportDropdown } from '@/components/sport-dropdown';
 
 type MainTab = 'created' | 'joined';
 type TimeFilter = 'upcoming' | 'finished';
@@ -30,18 +30,6 @@ export default function MesActivitesScreen() {
   const { data: joined, isLoading: loadingJoined, error: errorJoined } = useQuery({
     queryKey: ['activities', 'my-joined'],
     queryFn: () => activityService.getMyJoined(),
-  });
-
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
   });
 
   const activities = mainTab === 'created' ? created : joined;
@@ -160,23 +148,14 @@ export default function MesActivitesScreen() {
             </View>
 
             <Text style={styles.filterLabel}>{t('map.sportLabel')}</Text>
-            <ScrollView style={styles.sportList} showsVerticalScrollIndicator={false}>
-              <View style={styles.chipRow}>
-                {(sports ?? []).map((sport) => (
-                  <Pressable
-                    key={sport.id}
-                    style={[styles.chip, sportFilters.includes(sport.key) && styles.chipActive]}
-                    onPress={() => setSportFilters((prev) =>
-                      prev.includes(sport.key) ? prev.filter((k) => k !== sport.key) : [...prev, sport.key]
-                    )}
-                  >
-                    <Text style={[styles.chipText, sportFilters.includes(sport.key) && styles.chipTextActive]}>
-                      {t(`sports.${sport.key}`, sport.key)}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
+            <SportDropdown
+              selected={sportFilters}
+              onSelect={(key) => setSportFilters((prev) =>
+                prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+              )}
+              multiSelect
+              label={t('map.sportLabel')}
+            />
 
             <Pressable style={styles.applyButton} onPress={() => setShowFilters(false)}>
               <Text style={styles.applyText}>{t('map.apply')}</Text>
@@ -342,9 +321,6 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: colors.textPrimary,
     fontWeight: 'bold',
-  },
-  sportList: {
-    maxHeight: 200,
   },
   resetText: {
     color: colors.cta,
