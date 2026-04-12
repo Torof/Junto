@@ -1,7 +1,10 @@
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
+import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityPin } from './activity-pin';
+import { ClusterPin } from './cluster-pin';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -24,6 +27,8 @@ interface MapViewProps {
   onMapPress?: (lng: number, lat: number) => void;
 }
 
+type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
+
 export function JuntoMapView({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
@@ -31,6 +36,41 @@ export function JuntoMapView({
   onActivityPress,
   onMapPress,
 }: MapViewProps) {
+  const [currentZoom, setCurrentZoom] = useState(zoom);
+  const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
+  const cameraRef = useRef<Mapbox.Camera>(null);
+
+  const activityMap = useMemo(
+    () => new Map(activities.map((a) => [a.id, a])),
+    [activities],
+  );
+
+  const cluster = useMemo(() => {
+    const sc = new Supercluster<{ id: string }>({
+      radius: 60,
+      maxZoom: 16,
+    });
+    const points: ActivityPoint[] = activities.map((a) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
+      properties: { id: a.id },
+    }));
+    sc.load(points);
+    return sc;
+  }, [activities]);
+
+  const clusters = useMemo(
+    () => cluster.getClusters(bounds, Math.floor(currentZoom)),
+    [cluster, bounds, currentZoom],
+  );
+
+  const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
+    setCurrentZoom(state.properties.zoom);
+    const sw = state.properties.bounds.sw;
+    const ne = state.properties.bounds.ne;
+    setBounds([sw[0] ?? -180, sw[1] ?? -90, ne[0] ?? 180, ne[1] ?? 90]);
+  }, []);
+
   return (
     <Mapbox.MapView
       style={styles.map}
@@ -39,6 +79,7 @@ export function JuntoMapView({
       attributionEnabled={false}
       compassEnabled
       scaleBarEnabled={false}
+      onCameraChanged={handleCameraChanged}
       onPress={(feature) => {
         if (onMapPress && feature.geometry.type === 'Point') {
           const [lng, lat] = feature.geometry.coordinates;
@@ -49,23 +90,57 @@ export function JuntoMapView({
       }}
     >
       <Mapbox.Camera
+        ref={cameraRef}
         defaultSettings={{
           centerCoordinate: center,
           zoomLevel: zoom,
         }}
       />
 
-      {activities.map((activity) => (
-        <Mapbox.MarkerView
-          key={activity.id}
-          id={activity.id}
-          coordinate={[activity.lng, activity.lat]}
-        >
-          <Pressable onPress={() => onActivityPress?.(activity)}>
-            <ActivityPin activity={activity} />
-          </Pressable>
-        </Mapbox.MarkerView>
-      ))}
+      {clusters.map((feature) => {
+        const lng = feature.geometry.coordinates[0] ?? 0;
+        const lat = feature.geometry.coordinates[1] ?? 0;
+        const props = feature.properties;
+
+        if ('cluster' in props && props.cluster) {
+          const clusterId = (props.cluster_id ?? 0) as number;
+          const count = (props.point_count ?? 0) as number;
+
+          return (
+            <Mapbox.MarkerView
+              key={`cluster-${clusterId}`}
+              id={`cluster-${clusterId}`}
+              coordinate={[lng, lat]}
+            >
+              <Pressable onPress={() => {
+                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId), 16);
+                cameraRef.current?.setCamera({
+                  centerCoordinate: [lng, lat],
+                  zoomLevel: expansionZoom,
+                  animationDuration: 300,
+                });
+              }}>
+                <ClusterPin count={count} />
+              </Pressable>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        const activity = activityMap.get((props as { id: string }).id);
+        if (!activity) return null;
+
+        return (
+          <Mapbox.MarkerView
+            key={activity.id}
+            id={activity.id}
+            coordinate={[lng, lat]}
+          >
+            <Pressable onPress={() => onActivityPress?.(activity)}>
+              <ActivityPin activity={activity} />
+            </Pressable>
+          </Mapbox.MarkerView>
+        );
+      })}
     </Mapbox.MapView>
   );
 }
