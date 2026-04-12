@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useNetworkAwareness } from '@/hooks/use-network';
 import { supabase } from '@/services/supabase';
+import { useMessageStore } from '@/store/message-store';
 import { colors } from '@/constants/theme';
 
 const queryClient = new QueryClient({
@@ -25,6 +26,11 @@ function AuthGate() {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   const transitionRan = useRef(false);
+  const { loadReadState } = useMessageStore();
+
+  useEffect(() => {
+    loadReadState();
+  }, [loadReadState]);
 
   useEffect(() => {
     if (isLoading) return;

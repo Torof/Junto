@@ -86,9 +86,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
   return (
     <Modal visible={visible} animationType="none" transparent>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.drawer} onPress={() => {}}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={styles.backdrop}>
+        <Pressable style={styles.backdropTouch} onPress={onClose} />
+        <View style={styles.drawer}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
             {/* Close */}
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeText}>✕</Text>
@@ -161,8 +162,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Text style={styles.logoutText}>{t('profil.logout')}</Text>
             </Pressable>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -172,13 +173,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+  },
+  backdropTouch: {
+    width: '20%',
   },
   drawer: {
+    flex: 1,
     width: '80%',
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl + 16,
+    paddingBottom: spacing.xl,
+  },
+  scrollContent: {
     paddingBottom: spacing.xl,
   },
   closeButton: {

@@ -38,12 +38,12 @@ export default function AuthActivityScreen() {
     staleTime: 0,
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser-auth'],
     queryFn: async () => (await supabase.auth.getUser()).data.user,
   });
 
-  if (activityLoading || participationLoading || !activity) {
+  if (activityLoading || participationLoading || userLoading || !activity) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.cta} />

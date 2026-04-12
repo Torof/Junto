@@ -7,6 +7,7 @@ import { colors, fontSizes } from '@/constants/theme';
 import { notificationService } from '@/services/notification-service';
 import { conversationService } from '@/services/conversation-service';
 import { useMessageStore } from '@/store/message-store';
+import { supabase } from '@/services/supabase';
 
 function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
   return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>{icon}</Text>;
@@ -32,7 +33,12 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
 }
 
 function MessageTabIcon({ focused }: { focused: boolean }) {
-  const { lastSeenAt } = useMessageStore();
+  const { isConversationUnread } = useMessageStore();
+
+  const { data: currentUserId } = useQuery({
+    queryKey: ['currentUser-id'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
+  });
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations-badge'],
@@ -41,7 +47,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
   });
 
   const hasUnread = (conversations ?? []).some(
-    (c) => c.last_message_at && (!lastSeenAt || c.last_message_at > lastSeenAt)
+    (c) => isConversationUnread(c.id, c.last_message_at, c.last_message_sender_id, currentUserId)
   );
 
   return (

@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { messageService, type PrivateMessage } from '@/services/message-service';
+import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 
 export default function ConversationScreen() {
@@ -21,6 +22,12 @@ export default function ConversationScreen() {
   const [isEditMode, setIsEditMode] = useState(false);
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
+  const { markConversationRead } = useMessageStore();
+
+  // Mark conversation as read when opened
+  useEffect(() => {
+    if (id) markConversationRead(id);
+  }, [id, markConversationRead]);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser-id'],

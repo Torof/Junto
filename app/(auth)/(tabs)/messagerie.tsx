@@ -17,7 +17,7 @@ export default function MessagerieScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
 
-  const { markSeen } = useMessageStore();
+  const { isConversationUnread } = useMessageStore();
 
   const { data: currentUserId } = useQuery({
     queryKey: ['currentUser-id'],
@@ -26,11 +26,7 @@ export default function MessagerieScreen() {
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
-    queryFn: async () => {
-      const result = await conversationService.getAll();
-      markSeen();
-      return result;
-    },
+    queryFn: () => conversationService.getAll(),
   });
 
   if (isLoading) {
@@ -54,7 +50,7 @@ export default function MessagerieScreen() {
       data={conversations}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => {
-        const isUnread = item.last_message_sender_id != null && item.last_message_sender_id !== currentUserId;
+        const isUnread = isConversationUnread(item.id, item.last_message_at, item.last_message_sender_id, currentUserId);
         return (
         <Pressable
           style={styles.card}
