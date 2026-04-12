@@ -104,6 +104,7 @@
     "sportsLevels": "Sports et niveaux",
     "levelPerSport": "Niveau par sport",
     "noSports": "Aucun sport sélectionné",
+    "avatarError": "Impossible de mettre à jour la photo",
     "nameTooShort": "Le nom doit faire au moins 2 caractères",
     "displayName": "Nom d'affichage",
     "memberSince": "Membre depuis {{date}}",
@@ -185,7 +186,8 @@
     "participantRefused": "Demande refusée",
     "participantRemoved": "Participant retiré",
     "activityUpdated": "Activité modifiée !",
-    "profileUpdated": "Profil mis à jour !"
+    "profileUpdated": "Profil mis à jour !",
+    "avatarUpdated": "Photo de profil mise à jour !"
   },
   "create": {
     "step": "Étape {{current}}/{{total}}",

@@ -104,6 +104,7 @@
     "sportsLevels": "Sports & levels",
     "levelPerSport": "Level per sport",
     "noSports": "No sports selected",
+    "avatarError": "Unable to update photo",
     "nameTooShort": "Name must be at least 2 characters",
     "displayName": "Display name",
     "memberSince": "Member since {{date}}",
@@ -185,7 +186,8 @@
     "participantRefused": "Request refused",
     "participantRemoved": "Participant removed",
     "activityUpdated": "Activity updated!",
-    "profileUpdated": "Profile updated!"
+    "profileUpdated": "Profile updated!",
+    "avatarUpdated": "Profile photo updated!"
   },
   "create": {
     "step": "Step {{current}}/{{total}}",

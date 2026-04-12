@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
+import { UserAvatar } from '@/components/user-avatar';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
@@ -73,9 +74,7 @@ export default function PublicProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.profile}>
-        <View style={styles.avatar}>
-          <Text style={styles.initial}>{profile.display_name.charAt(0).toUpperCase()}</Text>
-        </View>
+        <UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} size={80} />
         <Text style={styles.name}>{profile.display_name}</Text>
         <Text style={styles.memberSince}>
           {t('profil.memberSince', { date: dayjs(profile.created_at).format('MMM YYYY') })}
@@ -140,12 +139,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   profile: { alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.xl },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: colors.surface,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md,
-  },
-  initial: { color: colors.cta, fontSize: fontSizes.xxl, fontWeight: 'bold' },
-  name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
+  name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
   memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
   statsRow: {
     flexDirection: 'row', justifyContent: 'space-around',

@@ -1,16 +1,22 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { activityService } from '@/services/activity-service';
+import { UserAvatar } from '@/components/user-avatar';
 import { SettingsDrawer } from '@/components/settings-drawer';
+// Lazy import — native module not available until dev build
+const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.pickAndUploadAvatar());
 
 export default function ProfilScreen() {
   const { t } = useTranslation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -19,9 +25,9 @@ export default function ProfilScreen() {
       if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, avatar_url, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
     retry: 2,
   });
@@ -44,6 +50,22 @@ export default function ProfilScreen() {
   const totalCount = (createdActivities?.length ?? 0) + (joinedActivities?.length ?? 0);
   const sports = user?.sports ?? [];
 
+  const handleAvatarPress = async () => {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const url = await pickAndUploadAvatar();
+      if (url) {
+        await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        Burnt.toast({ title: t('toast.avatarUpdated'), preset: 'done' });
+      }
+    } catch {
+      Alert.alert(t('auth.error'), t('profil.avatarError'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -54,9 +76,9 @@ export default function ProfilScreen() {
 
         {/* Avatar + Name */}
         <View style={styles.profile}>
-          <View style={styles.avatar}>
-            <Text style={styles.initial}>{user?.display_name?.charAt(0)?.toUpperCase() ?? '?'}</Text>
-          </View>
+          <Pressable onPress={handleAvatarPress} disabled={uploading} style={uploading && styles.uploading}>
+            <UserAvatar name={user?.display_name ?? '?'} avatarUrl={user?.avatar_url} size={80} />
+          </Pressable>
           <Text style={styles.name}>{user?.display_name ?? '...'}</Text>
           <Text style={styles.tier}>{user?.tier ?? 'free'}</Text>
           {user?.created_at && (
@@ -112,12 +134,8 @@ const styles = StyleSheet.create({
   },
   burgerIcon: { fontSize: 24, color: colors.textPrimary },
   profile: { alignItems: 'center', marginBottom: spacing.xl },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: colors.surface,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md,
-  },
-  initial: { color: colors.cta, fontSize: fontSizes.xxl, fontWeight: 'bold' },
-  name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
+  uploading: { opacity: 0.5 },
+  name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
   tier: { color: colors.cta, fontSize: fontSizes.xs, marginTop: spacing.sm, textTransform: 'uppercase' },
   memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
   statsRow: {
