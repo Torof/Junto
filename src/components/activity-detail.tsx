@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import { activityService, type NearbyActivity } from '@/services/activity-servic
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
+import { JuntoMapView, type MapPin } from './map-view';
 import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
@@ -35,6 +36,7 @@ export function ActivityDetail({
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showFullMap, setShowFullMap] = useState(false);
 
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
@@ -185,6 +187,56 @@ export function ActivityDetail({
         </View>
       ) : null}
 
+      {(isCreator || isAccepted) && (() => {
+        const mapPins: MapPin[] = [
+          { id: 'start', coordinate: [activity.lng, activity.lat], color: '#22c55e' },
+          ...(activity.meeting_lng && activity.meeting_lat
+            ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6' }]
+            : []),
+          ...(activity.end_lng && activity.end_lat
+            ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444' }]
+            : []),
+        ];
+        const allLngs = mapPins.map((p) => p.coordinate[0]);
+        const allLats = mapPins.map((p) => p.coordinate[1]);
+        const centerLng = (Math.min(...allLngs) + Math.max(...allLngs)) / 2;
+        const centerLat = (Math.min(...allLats) + Math.max(...allLats)) / 2;
+        const spread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
+        const mapZoom = spread > 0.1 ? 10 : spread > 0.01 ? 12 : 14;
+        const mapRouteLine = activity.end_lng && activity.end_lat
+          ? [[activity.lng, activity.lat], [activity.end_lng, activity.end_lat]] as [number, number][]
+          : undefined;
+
+        return (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
+            <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
+              <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+              <View style={styles.mapTapOverlay} pointerEvents="box-only" />
+            </Pressable>
+
+            <Modal visible={showFullMap} animationType="slide">
+              <View style={styles.fullMapContainer}>
+                <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+                <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
+                  <Text style={styles.closeMapText}>✕</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.navigateButton}
+                  onPress={() => {
+                    const navLat = activity.meeting_lat ?? activity.lat;
+                    const navLng = activity.meeting_lng ?? activity.lng;
+                    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
+                  }}
+                >
+                  <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
+                </Pressable>
+              </View>
+            </Modal>
+          </View>
+        );
+      })()}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('activity.creator')}</Text>
         <Pressable style={styles.creator} onPress={() => router.push(`/(auth)/profile/${activity.creator_id}`)}>
@@ -290,6 +342,13 @@ const styles = StyleSheet.create({
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.sm, textTransform: 'uppercase' },
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+  mapContainer: { height: 200, borderRadius: radius.md, overflow: 'hidden' },
+  mapTapOverlay: { ...StyleSheet.absoluteFillObject },
+  fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  closeMapButton: { position: 'absolute', top: 50, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
+  navigateButton: { position: 'absolute', bottom: 40, alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
+  navigateText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   creator: { flexDirection: 'row', alignItems: 'center' },
   creatorAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
   creatorInitial: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },

@@ -42,6 +42,8 @@
     "join": "Rejoindre",
     "description": "Description",
     "duration": "Durée",
+    "location": "Localisation",
+    "navigate": "Y aller",
     "creator": "Organisé par",
     "requestJoin": "Demander à rejoindre",
     "leave": "Quitter l'activité",

@@ -15,6 +15,10 @@ export interface NearbyActivity {
   creator_id: string;
   lng: number;
   lat: number;
+  meeting_lng: number | null;
+  meeting_lat: number | null;
+  end_lng: number | null;
+  end_lat: number | null;
   creator_name: string;
   creator_avatar: string | null;
   sport_key: string;
@@ -28,7 +32,7 @@ export const activityService = {
     let query = supabase
       .from('activities_with_coords')
       .select(
-        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .in('status', ['published', 'in_progress'])
       .is('deleted_at', null);
@@ -43,29 +47,29 @@ export const activityService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data ?? []) as NearbyActivity[];
+    return (data ?? []) as unknown as NearbyActivity[];
   },
 
   getMyCreated: async (): Promise<NearbyActivity[]> => {
     const { data, error } = await supabase
       .from('my_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .order('starts_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as NearbyActivity[];
+    return (data ?? []) as unknown as NearbyActivity[];
   },
 
   getMyJoined: async (): Promise<NearbyActivity[]> => {
     const { data, error } = await supabase
       .from('my_joined_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .order('starts_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as NearbyActivity[];
+    return (data ?? []) as unknown as NearbyActivity[];
   },
 
   create: async (form: ActivityFormData): Promise<string> => {
@@ -112,12 +116,12 @@ export const activityService = {
     const { data, error } = await supabase
       .from('activities_with_coords')
       .select(
-        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .eq('id', id)
       .single();
     if (error) throw error;
-    return data as NearbyActivity | null;
+    return data as unknown as NearbyActivity | null;
   },
 
   update: async (activityId: string, fields: {
