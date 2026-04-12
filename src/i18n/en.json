@@ -189,6 +189,15 @@
     "unreliable_field": "Unreliable",
     "aggressive": "Aggressive"
   },
+  "rate": {
+    "title": "Rate your co-participants",
+    "subtitle": "Select badges for each participant. This is optional.",
+    "positive": "Positive",
+    "negative": "Negative",
+    "submit": "Submit",
+    "skip": "Skip",
+    "submitted": "Ratings submitted!"
+  },
   "presence": {
     "title": "Who was present?",
     "subtitle": "Select the participants who attended the activity",

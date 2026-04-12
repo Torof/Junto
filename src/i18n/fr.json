@@ -189,6 +189,15 @@
     "unreliable_field": "Peu fiable",
     "aggressive": "Agressif"
   },
+  "rate": {
+    "title": "Évalue tes co-participants",
+    "subtitle": "Sélectionne les badges pour chaque participant. C'est optionnel.",
+    "positive": "Positif",
+    "negative": "Négatif",
+    "submit": "Envoyer",
+    "skip": "Passer",
+    "submitted": "Évaluations envoyées !"
+  },
   "presence": {
     "title": "Qui était présent ?",
     "subtitle": "Sélectionne les participants qui étaient présents à l'activité",

@@ -20,6 +20,7 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   activity_cancelled: '🚨',
   activity_updated: '📝',
   confirm_presence: '📋',
+  rate_participants: '⭐',
 };
 
 export default function NotificationsScreen() {
@@ -41,6 +42,8 @@ export default function NotificationsScreen() {
 
     if (notification.type === 'confirm_presence' && notification.data?.activity_id) {
       router.push(`/(auth)/confirm-presence/${notification.data.activity_id}`);
+    } else if (notification.type === 'rate_participants' && notification.data?.activity_id) {
+      router.push(`/(auth)/rate-participants/${notification.data.activity_id}`);
     } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.activity_id) {
