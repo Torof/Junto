@@ -14,7 +14,7 @@ interface SportDropdownProps {
 }
 
 export function SportDropdown({ selected, onSelect, multiSelect = false, label }: SportDropdownProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const { data: sports } = useQuery({
@@ -28,6 +28,11 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
       return data;
     },
   });
+
+  // Sort sports alphabetically by translated name
+  const sortedSports = [...(sports ?? [])].sort((a, b) =>
+    t(`sports.${a.key}`, { defaultValue: a.key }).localeCompare(t(`sports.${b.key}`, { defaultValue: b.key }), i18n.language)
+  );
 
   const selectedArray = Array.isArray(selected) ? selected : selected ? [selected] : [];
   const selectedCount = selectedArray.length;
@@ -57,7 +62,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
             <Text style={styles.title}>{label ?? t('sportDropdown.select')}</Text>
 
             <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-              {(sports ?? []).map((sport) => {
+              {sortedSports.map((sport) => {
                 const isSelected = selectedArray.includes(sport.key);
                 return (
                   <Pressable
