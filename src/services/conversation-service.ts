@@ -9,6 +9,7 @@ export interface Conversation {
   other_user_name: string;
   other_user_avatar: string | null;
   last_message_content: string | null;
+  last_message_sender_id: string | null;
 }
 
 export const conversationService = {
@@ -41,26 +42,28 @@ export const conversationService = {
     const conversationIds = data.map((c) => c.id);
     const { data: lastMessages } = await supabase
       .from('private_messages')
-      .select('conversation_id, content, created_at')
+      .select('conversation_id, content, sender_id, created_at')
       .in('conversation_id' as 'id', conversationIds)
       .is('deleted_at', null)
-      .order('created_at', { ascending: false }) as unknown as { data: { conversation_id: string; content: string; created_at: string }[] | null };
+      .order('created_at', { ascending: false }) as unknown as { data: { conversation_id: string; content: string; sender_id: string; created_at: string }[] | null };
 
-    const lastMessageMap = new Map<string, string>();
+    const lastMessageMap = new Map<string, { content: string; sender_id: string }>();
     for (const msg of lastMessages ?? []) {
       if (!lastMessageMap.has(msg.conversation_id)) {
-        lastMessageMap.set(msg.conversation_id, msg.content);
+        lastMessageMap.set(msg.conversation_id, { content: msg.content, sender_id: msg.sender_id });
       }
     }
 
     return data.map((c) => {
       const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
       const profile = profileMap.get(otherId);
+      const lastMsg = lastMessageMap.get(c.id);
       return {
         ...c,
         other_user_name: profile?.display_name ?? '?',
         other_user_avatar: profile?.avatar_url ?? null,
-        last_message_content: lastMessageMap.get(c.id) ?? null,
+        last_message_content: lastMsg?.content ?? null,
+        last_message_sender_id: lastMsg?.sender_id ?? null,
       };
     });
   },

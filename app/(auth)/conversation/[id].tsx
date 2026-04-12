@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,9 @@ export default function ConversationScreen() {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<PrivateMessage | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
 
@@ -79,6 +82,50 @@ export default function ConversationScreen() {
     }
   };
 
+  const handleLongPress = (msg: PrivateMessage) => {
+    if (msg.sender_id !== currentUser) return;
+    setSelectedMessage(msg);
+  };
+
+  const handleEdit = () => {
+    if (!selectedMessage) return;
+    setEditContent(selectedMessage.content);
+    setIsEditMode(true);
+    setSelectedMessage(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedMessage && !editContent.trim()) return;
+    try {
+      await messageService.edit(selectedMessage!.id, editContent.trim());
+      await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+      Burnt.toast({ title: t('messagerie.messageEdited'), preset: 'done' });
+    } catch {
+      Alert.alert(t('auth.error'), t('auth.unknownError'));
+    }
+    setIsEditMode(false);
+    setEditContent('');
+    setSelectedMessage(null);
+  };
+
+  const handleDelete = () => {
+    if (!selectedMessage) return;
+    const msgId = selectedMessage.id;
+    setSelectedMessage(null);
+    Alert.alert(t('messagerie.deleteConfirm'), '', [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('activity.yes'),
+        style: 'destructive',
+        onPress: async () => {
+          await messageService.deleteMessage(msgId);
+          await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+          Burnt.toast({ title: t('messagerie.messageDeleted') });
+        },
+      },
+    ]);
+  };
+
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
@@ -97,13 +144,16 @@ export default function ConversationScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}>
+            <Pressable
+              style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}
+              onLongPress={() => handleLongPress(item)}
+            >
               <Text style={styles.bubbleText}>{item.content}</Text>
               <View style={styles.bubbleFooter}>
                 <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
                 {item.edited_at && <Text style={styles.editedTag}>{t('messagerie.edited')}</Text>}
               </View>
-            </View>
+            </Pressable>
           )}
           contentContainerStyle={styles.messageList}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
@@ -128,6 +178,40 @@ export default function ConversationScreen() {
           <Text style={styles.sendText}>↑</Text>
         </Pressable>
       </View>
+      {/* Message action sheet */}
+      <Modal visible={selectedMessage !== null && !isEditMode} animationType="slide" transparent>
+        <Pressable style={styles.menuBackdrop} onPress={() => setSelectedMessage(null)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            <View style={styles.menuHandle} />
+            <Pressable style={styles.menuItem} onPress={handleEdit}>
+              <Text style={styles.menuText}>{t('messagerie.editMessage')}</Text>
+            </Pressable>
+            <Pressable style={styles.menuItem} onPress={handleDelete}>
+              <Text style={styles.menuTextDanger}>{t('messagerie.deleteMessage')}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Edit mode */}
+      {isEditMode && (
+        <View style={[styles.editBar, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+          <TextInput
+            style={styles.editInput}
+            value={editContent}
+            onChangeText={setEditContent}
+            autoFocus
+            multiline
+            maxLength={2000}
+          />
+          <Pressable style={styles.sendButton} onPress={handleSaveEdit}>
+            <Text style={styles.sendText}>✓</Text>
+          </Pressable>
+          <Pressable onPress={() => { setIsEditMode(false); setSelectedMessage(null); }}>
+            <Text style={styles.cancelText}>✕</Text>
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -165,4 +249,22 @@ const styles = StyleSheet.create({
   },
   sendDisabled: { opacity: 0.4 },
   sendText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
+  menuBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
+  menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
+  menuItem: { paddingVertical: spacing.md },
+  menuText: { color: colors.textPrimary, fontSize: fontSizes.md },
+  menuTextDanger: { color: colors.error, fontSize: fontSizes.md },
+  editBar: {
+    flexDirection: 'row', alignItems: 'flex-end',
+    padding: spacing.md, gap: spacing.xs,
+    borderTopWidth: 1, borderTopColor: colors.cta,
+    backgroundColor: colors.surface,
+  },
+  editInput: {
+    flex: 1, backgroundColor: colors.background, color: colors.textPrimary,
+    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    fontSize: fontSizes.sm, maxHeight: 100,
+  },
+  cancelText: { color: colors.textSecondary, fontSize: 18, paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
 });

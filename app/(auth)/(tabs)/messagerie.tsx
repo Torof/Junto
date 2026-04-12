@@ -9,6 +9,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { conversationService, type Conversation } from '@/services/conversation-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
+import { supabase } from '@/services/supabase';
 
 dayjs.extend(relativeTime);
 
@@ -17,6 +18,11 @@ export default function MessagerieScreen() {
   const router = useRouter();
 
   const { markSeen } = useMessageStore();
+
+  const { data: currentUserId } = useQuery({
+    queryKey: ['currentUser-id'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
+  });
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
@@ -47,7 +53,9 @@ export default function MessagerieScreen() {
     <FlatList
       data={conversations}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
+      renderItem={({ item }) => {
+        const isUnread = item.last_message_sender_id != null && item.last_message_sender_id !== currentUserId;
+        return (
         <Pressable
           style={styles.card}
           onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
@@ -55,7 +63,7 @@ export default function MessagerieScreen() {
           <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={48} />
           <View style={styles.cardContent}>
             <View style={styles.cardHeader}>
-              <Text style={styles.name} numberOfLines={1}>{item.other_user_name}</Text>
+              <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{item.other_user_name}</Text>
               {item.last_message_at && (
                 <Text style={styles.time}>
                   {dayjs(item.last_message_at).locale(i18n.language).fromNow()}
@@ -63,11 +71,13 @@ export default function MessagerieScreen() {
               )}
             </View>
             {item.last_message_content && (
-              <Text style={styles.preview} numberOfLines={1}>{item.last_message_content}</Text>
+              <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{item.last_message_content}</Text>
             )}
           </View>
+          {isUnread && <View style={styles.unreadDot} />}
         </Pressable>
-      )}
+      );
+      }}
       contentContainerStyle={styles.list}
       style={styles.container}
     />
@@ -88,6 +98,9 @@ const styles = StyleSheet.create({
   cardContent: { flex: 1 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   name: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold', flex: 1 },
+  nameUnread: { color: colors.cta },
   time: { color: colors.textSecondary, fontSize: fontSizes.xs },
   preview: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  previewUnread: { color: colors.textPrimary, fontWeight: 'bold' },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cta, marginLeft: spacing.sm },
 });

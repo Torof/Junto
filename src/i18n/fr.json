@@ -145,7 +145,12 @@
     "noMessages": "Aucun message — commencez la conversation !",
     "placeholder": "Écrire un message...",
     "rateLimited": "Attends 1 minute entre chaque message",
-    "edited": "modifié"
+    "edited": "modifié",
+    "editMessage": "Modifier le message",
+    "deleteMessage": "Supprimer le message",
+    "deleteConfirm": "Supprimer ce message ?",
+    "messageEdited": "Message modifié",
+    "messageDeleted": "Message supprimé"
   },
   "publicProfile": {
     "sendMessage": "Envoyer un message",

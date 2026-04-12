@@ -145,7 +145,12 @@
     "noMessages": "No messages yet — start the conversation!",
     "placeholder": "Write a message...",
     "rateLimited": "Wait 1 minute between messages",
-    "edited": "edited"
+    "edited": "edited",
+    "editMessage": "Edit message",
+    "deleteMessage": "Delete message",
+    "deleteConfirm": "Delete this message?",
+    "messageEdited": "Message edited",
+    "messageDeleted": "Message deleted"
   },
   "publicProfile": {
     "sendMessage": "Send message",
