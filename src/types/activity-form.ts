@@ -18,6 +18,12 @@ export const activityFormSchema = z.object({
       lat: z.number(),
     })
     .optional(),
+  location_end: z
+    .object({
+      lng: z.number(),
+      lat: z.number(),
+    })
+    .optional(),
   starts_at: z.date().refine((d) => d > new Date(), 'Must be in the future'),
   duration_hours: z.number().min(0).max(24),
   duration_minutes: z.number().min(0).max(59),

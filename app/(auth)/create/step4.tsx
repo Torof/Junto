@@ -4,13 +4,14 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useCreateStore } from '@/store/create-store';
 import { activityService } from '@/services/activity-service';
 
 export default function CreateStep4() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { form, resetForm } = useCreateStore();
@@ -29,6 +30,7 @@ export default function CreateStep4() {
         max_participants: form.max_participants,
         location_start: form.location_start,
         location_meeting: form.location_meeting ?? undefined,
+        location_end: form.location_end ?? undefined,
         starts_at: form.starts_at,
         duration_hours: form.duration_hours,
         duration_minutes: form.duration_minutes,
@@ -71,7 +73,7 @@ export default function CreateStep4() {
         <RecapRow label={t('create.maxParticipants')} value={`${form.max_participants}`} />
         <RecapRow
           label={t('create.dateTime')}
-          value={form.starts_at ? dayjs(form.starts_at).format('ddd D MMM · HH:mm') : '-'}
+          value={form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm') : '-'}
         />
         <RecapRow
           label={t('create.duration')}

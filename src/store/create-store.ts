@@ -8,6 +8,7 @@ interface CreateFormState {
   max_participants: number;
   location_start: { lng: number; lat: number } | null;
   location_meeting: { lng: number; lat: number } | null;
+  location_end: { lng: number; lat: number } | null;
   starts_at: Date | null;
   duration_hours: number;
   duration_minutes: number;
@@ -28,6 +29,7 @@ const DEFAULT_FORM: CreateFormState = {
   max_participants: 4,
   location_start: null,
   location_meeting: null,
+  location_end: null,
   starts_at: null,
   duration_hours: 2,
   duration_minutes: 0,

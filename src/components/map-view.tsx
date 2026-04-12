@@ -1,10 +1,11 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityPin } from './activity-pin';
 import { ClusterPin } from './cluster-pin';
+import { MapPinIcon } from './map-pin';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -28,10 +29,18 @@ export interface MapBounds {
   centerLat: number;
 }
 
+export interface MapPin {
+  id: string;
+  coordinate: [number, number];
+  color: string;
+}
+
 interface MapViewProps {
   center?: [number, number];
   zoom?: number;
   activities?: NearbyActivity[];
+  routeLine?: [number, number][];
+  pins?: MapPin[];
   onActivityPress?: (activity: NearbyActivity) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
@@ -43,6 +52,8 @@ export function JuntoMapView({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   activities = [],
+  routeLine,
+  pins = [],
   onActivityPress,
   onMapPress,
   onBoundsChange,
@@ -117,6 +128,33 @@ export function JuntoMapView({
           zoomLevel: zoom,
         }}
       />
+
+      {routeLine && routeLine.length >= 2 && (
+        <Mapbox.ShapeSource
+          id="route-line"
+          shape={{
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: routeLine },
+            properties: {},
+          }}
+        >
+          <Mapbox.LineLayer
+            id="route-line-layer"
+            style={{
+              lineColor: '#FFFFFF',
+              lineWidth: 2,
+              lineDasharray: [4, 3],
+              lineOpacity: 0.7,
+            }}
+          />
+        </Mapbox.ShapeSource>
+      )}
+
+      {pins.map((pin) => (
+        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate}>
+          <MapPinIcon color={pin.color} />
+        </Mapbox.MarkerView>
+      ))}
 
       {clusters.map((feature) => {
         const lng = feature.geometry.coordinates[0] ?? 0;

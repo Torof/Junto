@@ -81,6 +81,8 @@ export const activityService = {
       p_start_lat: form.location_start.lat,
       p_meeting_lng: form.location_meeting?.lng,
       p_meeting_lat: form.location_meeting?.lat,
+      p_end_lng: form.location_end?.lng,
+      p_end_lat: form.location_end?.lat,
       p_starts_at: form.starts_at.toISOString(),
       p_duration: durationStr,
       p_visibility: form.visibility,

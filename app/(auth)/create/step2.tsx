@@ -4,19 +4,20 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 
 export default function CreateStep2() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { form, updateForm } = useCreateStore();
   const { center } = useInitialLocation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | null>('start');
+  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | null>('start');
 
   const handleMapPress = (lng: number, lat: number) => {
     if (placingPin === 'start') {
@@ -25,8 +26,17 @@ export default function CreateStep2() {
     } else if (placingPin === 'meeting') {
       updateForm({ location_meeting: { lng, lat } });
       setPlacingPin(null);
+    } else if (placingPin === 'end') {
+      updateForm({ location_end: { lng, lat } });
+      setPlacingPin(null);
     }
   };
+
+  const pins = [
+    form.location_start && { id: 'start', coordinate: [form.location_start.lng, form.location_start.lat] as [number, number], color: '#22c55e' },
+    form.location_meeting && { id: 'meeting', coordinate: [form.location_meeting.lng, form.location_meeting.lat] as [number, number], color: '#3b82f6' },
+    form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: '#ef4444' },
+  ].filter(Boolean) as { id: string; coordinate: [number, number]; color: string }[];
 
   const isValid = form.location_start && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
 
@@ -37,11 +47,17 @@ export default function CreateStep2() {
           center={form.location_start ? [form.location_start.lng, form.location_start.lat] : center}
           zoom={12}
           onMapPress={handleMapPress}
+          pins={pins}
+          routeLine={
+            form.location_start && form.location_end
+              ? [[form.location_start.lng, form.location_start.lat], [form.location_end.lng, form.location_end.lat]]
+              : undefined
+          }
         />
         {placingPin && (
           <View style={styles.mapOverlay}>
             <Text style={styles.mapHint}>
-              {placingPin === 'start' ? t('create.tapStart') : t('create.tapMeeting')}
+              {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : t('create.tapEnd')}
             </Text>
           </View>
         )}
@@ -67,12 +83,20 @@ export default function CreateStep2() {
               {form.location_meeting ? '✓ ' + t('create.meetingPoint') : t('create.setMeeting')}
             </Text>
           </Pressable>
+          <Pressable
+            style={[styles.pinButton, form.location_end && styles.pinSet]}
+            onPress={() => setPlacingPin('end')}
+          >
+            <Text style={styles.pinText}>
+              {form.location_end ? '✓ ' + t('create.endPoint') : t('create.setEnd')}
+            </Text>
+          </Pressable>
         </View>
 
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
           <Text style={styles.dateValue}>
-            {form.starts_at ? dayjs(form.starts_at).format('ddd D MMM · HH:mm') : t('create.selectDateTime')}
+            {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm') : t('create.selectDateTime')}
           </Text>
         </Pressable>
 
@@ -131,7 +155,7 @@ export default function CreateStep2() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  mapContainer: { height: 250 },
+  mapContainer: { flex: 1 },
   mapOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.md, right: spacing.md, alignItems: 'center' },
   mapHint: { backgroundColor: colors.background + 'E6', color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full },
   controls: { flex: 1, padding: spacing.lg },
