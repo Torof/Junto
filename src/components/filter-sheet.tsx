@@ -14,7 +14,7 @@ interface FilterSheetProps {
 
 export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   const { t } = useTranslation();
-  const { filters, setSportFilter, setDateFilter, resetFilters } = useMapStore();
+  const { filters, toggleSportFilter, setDateFilter, resetFilters } = useMapStore();
 
   const { data: sports } = useQuery({
     queryKey: ['sports'],
@@ -62,10 +62,10 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
               {(sports ?? []).map((sport) => (
                 <Pressable
                   key={sport.id}
-                  style={[styles.chip, filters.sportKey === sport.key && styles.chipActive]}
-                  onPress={() => setSportFilter(filters.sportKey === sport.key ? null : sport.key)}
+                  style={[styles.chip, filters.sportKeys.includes(sport.key) && styles.chipActive]}
+                  onPress={() => toggleSportFilter(sport.key)}
                 >
-                  <Text style={[styles.chipText, filters.sportKey === sport.key && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, filters.sportKeys.includes(sport.key) && styles.chipTextActive]}>
                     {t(`sports.${sport.key}`, sport.key)}
                   </Text>
                 </Pressable>

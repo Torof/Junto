@@ -17,7 +17,29 @@ import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { colors } from '@/constants/theme';
 
-function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+const BUFFER = 0.5; // 50% buffer around viewport
+
+function addBuffer(bounds: MapBounds): QueryBounds {
+  const lngSpan = bounds.neLng - bounds.swLng;
+  const latSpan = bounds.neLat - bounds.swLat;
+  return {
+    swLng: bounds.swLng - lngSpan * BUFFER,
+    swLat: bounds.swLat - latSpan * BUFFER,
+    neLng: bounds.neLng + lngSpan * BUFFER,
+    neLat: bounds.neLat + latSpan * BUFFER,
+  };
+}
+
+function isWithinFetchedBounds(current: MapBounds, fetched: QueryBounds): boolean {
+  return (
+    current.swLng >= fetched.swLng &&
+    current.swLat >= fetched.swLat &&
+    current.neLng <= fetched.neLng &&
+    current.neLat <= fetched.neLat
+  );
+}
+
+function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const dlat = lat2 - lat1;
   const dlng = lng2 - lng1;
   return Math.sqrt(dlat * dlat + dlng * dlng);
@@ -30,33 +52,41 @@ export default function CarteScreen() {
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Bounds-based fetching
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
+  const currentBounds = useRef<MapBounds | null>(null);
   const initialSearchDone = useRef(false);
 
   const { data: activities } = useNearbyActivities(searchBounds);
   const filtered = useFilteredActivities(activities ?? []);
 
+  const doSearch = useCallback((bounds: MapBounds) => {
+    lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
+    setSearchBounds(addBuffer(bounds));
+    setShowSearchButton(false);
+  }, []);
+
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
+    currentBounds.current = bounds;
+
     // First load — auto-search
     if (!initialSearchDone.current) {
       initialSearchDone.current = true;
-      lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
-      setSearchBounds({
-        swLng: bounds.swLng,
-        swLat: bounds.swLat,
-        neLng: bounds.neLng,
-        neLat: bounds.neLat,
-      });
+      doSearch(bounds);
       return;
     }
 
-    // Check if user moved significantly from last search
+    // If viewport extends beyond fetched bounds (zoom out) — auto-refetch silently
+    if (searchBounds && !isWithinFetchedBounds(bounds, searchBounds)) {
+      doSearch(bounds);
+      return;
+    }
+
+    // If user panned significantly — show search button (don't auto-fetch)
     if (lastSearchCenter.current) {
       const viewportWidth = Math.abs(bounds.neLng - bounds.swLng);
-      const dist = getDistance(
+      const dist = panDistance(
         lastSearchCenter.current.lat, lastSearchCenter.current.lng,
         bounds.centerLat, bounds.centerLng,
       );
@@ -64,35 +94,13 @@ export default function CarteScreen() {
         setShowSearchButton(true);
       }
     }
-  }, []);
-
-  const handleSearch = useCallback(() => {
-    if (!lastSearchCenter.current) return;
-    // We need current bounds — we'll get them from the next camera change
-    // For now, trigger a re-search with wider bounds around last known position
-    setShowSearchButton(false);
-  }, []);
-
-  // Better approach: store current bounds and use them on search
-  const currentBounds = useRef<MapBounds | null>(null);
-
-  const handleBoundsChangeWithRef = useCallback((bounds: MapBounds) => {
-    currentBounds.current = bounds;
-    handleBoundsChange(bounds);
-  }, [handleBoundsChange]);
+  }, [searchBounds, doSearch]);
 
   const handleSearchArea = useCallback(() => {
-    const b = currentBounds.current;
-    if (!b) return;
-    lastSearchCenter.current = { lng: b.centerLng, lat: b.centerLat };
-    setSearchBounds({
-      swLng: b.swLng,
-      swLat: b.swLat,
-      neLng: b.neLng,
-      neLat: b.neLat,
-    });
-    setShowSearchButton(false);
-  }, []);
+    if (currentBounds.current) {
+      doSearch(currentBounds.current);
+    }
+  }, [doSearch]);
 
   return (
     <View style={styles.container}>
@@ -111,7 +119,7 @@ export default function CarteScreen() {
               center={center}
               activities={filtered}
               onActivityPress={setSelectedActivity}
-              onBoundsChange={handleBoundsChangeWithRef}
+              onBoundsChange={handleBoundsChange}
             />
 
             {selectedActivity && (

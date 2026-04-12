@@ -219,6 +219,7 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 - Badges de réputation communautaire (attribués par les co-participants, seuils positifs 5+, négatifs 15+, fenêtre 48h post-activité — voir REPUTATION_BADGES.md)
 - Vote d'annulation de groupe (2/3 pour annuler sans malus — voir ACTIVITY_MANAGEMENT.md)
 - Liste d'attente automatique quand activité complète
+- Alertes personnalisées (sport, localisation + rayon, niveau — notification quand une activité correspondante est créée)
 - `confirmed_present` BOOLEAN sur participations (confirmation créateur post-activité — nécessaire pour score de présence)
 
 ### Features V3

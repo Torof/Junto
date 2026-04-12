@@ -9,9 +9,9 @@ export function useFilteredActivities(activities: NearbyActivity[]): NearbyActiv
   return useMemo(() => {
     let filtered = activities;
 
-    // Sport filter
-    if (filters.sportKey) {
-      filtered = filtered.filter((a) => a.sport_key === filters.sportKey);
+    // Sport filter (multi-select)
+    if (filters.sportKeys.length > 0) {
+      filtered = filtered.filter((a) => filters.sportKeys.includes(a.sport_key));
     }
 
     // Date filter
@@ -23,5 +23,5 @@ export function useFilteredActivities(activities: NearbyActivity[]): NearbyActiv
     }
 
     return filtered;
-  }, [activities, filters.sportKey, filters.dateRange]);
+  }, [activities, filters.sportKeys, filters.dateRange]);
 }

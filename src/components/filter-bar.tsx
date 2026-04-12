@@ -4,7 +4,7 @@ import { useMapStore } from '@/store/map-store';
 
 export function FilterButton({ onPress }: { onPress: () => void }) {
   const { filters } = useMapStore();
-  const hasActiveFilter = filters.sportKey !== null || filters.dateRange !== 'all';
+  const hasActiveFilter = filters.sportKeys.length > 0 || filters.dateRange !== 'all';
 
   return (
     <Pressable style={styles.button} onPress={onPress}>
