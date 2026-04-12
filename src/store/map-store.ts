@@ -1,10 +1,14 @@
 import { create } from 'zustand';
 
 type ViewMode = 'map' | 'list';
+type DateFilterMode = 'all' | 'today' | 'week' | 'date' | 'range';
 
 interface MapFilters {
   sportKeys: string[];
-  dateRange: 'today' | 'week' | 'all';
+  dateMode: DateFilterMode;
+  specificDate: string | null;   // ISO date string for 'date' mode
+  rangeFrom: string | null;      // ISO date string for 'range' mode
+  rangeTo: string | null;        // ISO date string for 'range' mode
 }
 
 interface MapStore {
@@ -13,13 +17,18 @@ interface MapStore {
   setViewMode: (mode: ViewMode) => void;
   toggleViewMode: () => void;
   toggleSportFilter: (sportKey: string) => void;
-  setDateFilter: (range: MapFilters['dateRange']) => void;
+  setDateMode: (mode: DateFilterMode) => void;
+  setSpecificDate: (date: string) => void;
+  setDateRange: (from: string, to: string) => void;
   resetFilters: () => void;
 }
 
 const DEFAULT_FILTERS: MapFilters = {
   sportKeys: [],
-  dateRange: 'all',
+  dateMode: 'all',
+  specificDate: null,
+  rangeFrom: null,
+  rangeTo: null,
 };
 
 export const useMapStore = create<MapStore>((set) => ({
@@ -37,7 +46,11 @@ export const useMapStore = create<MapStore>((set) => ({
           : [...state.filters.sportKeys, sportKey],
       },
     })),
-  setDateFilter: (dateRange) =>
-    set((state) => ({ filters: { ...state.filters, dateRange } })),
+  setDateMode: (dateMode) =>
+    set((state) => ({ filters: { ...state.filters, dateMode } })),
+  setSpecificDate: (date) =>
+    set((state) => ({ filters: { ...state.filters, dateMode: 'date', specificDate: date } })),
+  setDateRange: (from, to) =>
+    set((state) => ({ filters: { ...state.filters, dateMode: 'range', rangeFrom: from, rangeTo: to } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));

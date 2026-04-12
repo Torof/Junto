@@ -112,7 +112,9 @@
     "date": {
       "all": "Toutes",
       "today": "Aujourd'hui",
-      "week": "Cette semaine"
+      "week": "Cette semaine",
+      "pickDate": "Choisir un jour",
+      "pickRange": "Période"
     },
     "dateLabel": "Quand",
     "sportLabel": "Sport",
