@@ -58,6 +58,11 @@
       "inProgress": "In progress",
       "soon": "Soon",
       "upcoming": "Upcoming"
+    },
+    "statusBanner": {
+      "completed": "This activity is finished",
+      "cancelled": "This activity was cancelled",
+      "expired": "This activity has expired"
     }
   },
   "sports": {

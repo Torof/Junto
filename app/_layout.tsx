@@ -1,11 +1,12 @@
 import '@/i18n';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useNetworkAwareness } from '@/hooks/use-network';
+import { supabase } from '@/services/supabase';
 import { colors } from '@/constants/theme';
 
 const queryClient = new QueryClient({
@@ -23,6 +24,7 @@ function AuthGate() {
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+  const transitionRan = useRef(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -39,6 +41,12 @@ function AuthGate() {
     }
 
     setIsReady(true);
+
+    // Trigger activity status transitions once per session (no pg_cron available)
+    if (isAuthenticated && !transitionRan.current) {
+      transitionRan.current = true;
+      void supabase.rpc('check_activity_transitions' as 'accept_tos');
+    }
   }, [isLoading, isAuthenticated, needsOnboarding, segments, router]);
 
   if (isLoading || !isReady) {

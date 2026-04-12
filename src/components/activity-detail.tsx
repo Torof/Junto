@@ -109,9 +109,10 @@ export function ActivityDetail({
   };
 
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
-  const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && activity.status !== 'cancelled';
-  const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status);
-  const showCancelButton = isCreator && ['published', 'in_progress'].includes(activity.status);
+  const isActive = ['published', 'in_progress'].includes(activity.status);
+  const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && isActive;
+  const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status) && isActive;
+  const showCancelButton = isCreator && isActive;
   const isPending = participation?.status === 'pending';
   const isAccepted = participation?.status === 'accepted';
 
@@ -138,13 +139,19 @@ export function ActivityDetail({
         )}
       </View>
 
-      {isPending && (
+      {!isActive && (
+        <View style={styles.inactiveBanner}>
+          <Text style={styles.inactiveText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
+        </View>
+      )}
+
+      {isPending && isActive && (
         <View style={styles.pendingBanner}>
           <Text style={styles.pendingText}>{t('activity.pendingRequest')}</Text>
         </View>
       )}
 
-      {isAccepted && !isCreator && (
+      {isAccepted && !isCreator && isActive && (
         <View style={styles.acceptedBanner}>
           <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
         </View>
@@ -255,6 +262,8 @@ const styles = StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   moreButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   moreText: { fontSize: 20, color: colors.textSecondary, fontWeight: 'bold' },
+  inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
