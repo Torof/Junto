@@ -200,6 +200,14 @@
     "blocked": "Utilisateur bloqué",
     "unblocked": "Utilisateur débloqué"
   },
+  "suspended": {
+    "title": "Compte suspendu",
+    "message": "Ton compte a été suspendu suite à un signalement. Si tu penses qu'il s'agit d'une erreur, contacte-nous.",
+    "contact": "Contacter le support",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteSoon": "Fonctionnalité bientôt disponible",
+    "emailSubject": "Contestation de suspension de compte"
+  },
   "admin": {
     "moderation": "Modération",
     "pending": "En attente",

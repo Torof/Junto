@@ -200,6 +200,14 @@
     "blocked": "User blocked",
     "unblocked": "User unblocked"
   },
+  "suspended": {
+    "title": "Account suspended",
+    "message": "Your account has been suspended following a report. If you believe this is a mistake, please contact us.",
+    "contact": "Contact support",
+    "deleteAccount": "Delete my account",
+    "deleteSoon": "Feature coming soon",
+    "emailSubject": "Account suspension appeal"
+  },
   "admin": {
     "moderation": "Moderation",
     "pending": "Pending",

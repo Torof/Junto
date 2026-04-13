@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   useNetworkAwareness();
-  const { isLoading, isAuthenticated, needsOnboarding } = useAuth();
+  const { isLoading, isAuthenticated, needsOnboarding, isSuspended } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
@@ -37,13 +37,16 @@ function AuthGate() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(visitor)' && (segments as string[])[1] === 'onboarding';
+    const inSuspended = segments[0] === '(visitor)' && (segments as string[])[1] === 'suspended';
 
-    if (isAuthenticated && needsOnboarding && !inOnboarding) {
-      router.replace('/(visitor)/onboarding');
-    } else if (isAuthenticated && !needsOnboarding && !inAuthGroup) {
-      router.replace('/(auth)/(tabs)/carte');
-    } else if (!isAuthenticated && inAuthGroup) {
-      router.replace('/(visitor)');
+    if (isAuthenticated && isSuspended) {
+      if (!inSuspended) router.replace('/(visitor)/suspended');
+    } else if (isAuthenticated && needsOnboarding) {
+      if (!inOnboarding) router.replace('/(visitor)/onboarding');
+    } else if (isAuthenticated && !needsOnboarding) {
+      if (!inAuthGroup) router.replace('/(auth)/(tabs)/carte');
+    } else if (!isAuthenticated) {
+      if (inAuthGroup || inSuspended) router.replace('/(visitor)');
     }
 
     setIsReady(true);
