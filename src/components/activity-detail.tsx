@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
@@ -32,6 +33,7 @@ export function ActivityDetail({
 }: ActivityDetailProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -216,13 +218,13 @@ export function ActivityDetail({
             </Pressable>
 
             <Modal visible={showFullMap} animationType="slide">
-              <View style={styles.fullMapContainer}>
+              <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
                 <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
                 <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
                   <Text style={styles.closeMapText}>✕</Text>
                 </Pressable>
                 <Pressable
-                  style={styles.navigateButton}
+                  style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
                   onPress={() => {
                     const navLat = activity.meeting_lat ?? activity.lat;
                     const navLng = activity.meeting_lng ?? activity.lng;
@@ -231,7 +233,7 @@ export function ActivityDetail({
                 >
                   <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
                 </Pressable>
-              </View>
+              </SafeAreaView>
             </Modal>
           </View>
         );
@@ -342,9 +344,9 @@ const styles = StyleSheet.create({
   mapContainer: { height: 200, borderRadius: radius.md, overflow: 'hidden' },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
-  closeMapButton: { position: 'absolute', top: 50, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  closeMapButton: { position: 'absolute', top: 35, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
-  navigateButton: { position: 'absolute', bottom: 40, alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
+  navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
   navigateText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   joinButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
