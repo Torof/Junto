@@ -1,9 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
+import { decode } from 'base64-arraybuffer';
 import { supabase } from '@/services/supabase';
 
 const MAX_SIZE = 400;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -32,13 +33,10 @@ export async function pickAndUploadAvatar(): Promise<string | null> {
     { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
   );
 
-  // 4. Read as blob
-  const response = await fetch(manipulated.uri);
-  const blob = await response.blob();
-
-  if (blob.size > MAX_FILE_SIZE) {
-    throw new Error('File too large');
-  }
+  // 4. Read file as base64 (avoids fetch blob issue on Android)
+  const base64 = await readAsStringAsync(manipulated.uri, {
+    encoding: EncodingType.Base64,
+  });
 
   // 5. Get user ID
   const { data: { user } } = await supabase.auth.getUser();
@@ -49,7 +47,7 @@ export async function pickAndUploadAvatar(): Promise<string | null> {
   // 6. Upload (upsert — overwrites existing)
   const { error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(path, blob, {
+    .upload(path, decode(base64), {
       contentType: 'image/jpeg',
       upsert: true,
     });
