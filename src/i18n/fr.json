@@ -200,6 +200,15 @@
     "blocked": "Utilisateur bloqué",
     "unblocked": "Utilisateur débloqué"
   },
+  "account": {
+    "delete": "Supprimer mon compte",
+    "deleteTitle": "Supprimer ton compte ?",
+    "deleteMessage": "Toutes tes données seront supprimées. Tes activités actives seront annulées et les participants notifiés. Cette action est irréversible.",
+    "deleteConfirm": "Oui, supprimer",
+    "deleteTitle2": "Es-tu vraiment sûr ?",
+    "deleteMessage2": "Dernière chance. Ton compte et toutes tes données seront définitivement supprimés.",
+    "deleteFinal": "Supprimer définitivement"
+  },
   "suspended": {
     "title": "Compte suspendu",
     "message": "Ton compte a été suspendu suite à un signalement. Si tu penses qu'il s'agit d'une erreur, contacte-nous.",

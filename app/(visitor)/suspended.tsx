@@ -1,6 +1,5 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 
@@ -18,8 +17,30 @@ export default function SuspendedScreen() {
   };
 
   const handleDeleteAccount = () => {
-    // TODO: wire to account deletion when built
-    Burnt.toast({ title: t('suspended.deleteSoon') });
+    Alert.alert(t('account.deleteTitle'), t('account.deleteMessage'), [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('account.deleteConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(t('account.deleteTitle2'), t('account.deleteMessage2'), [
+            { text: t('activity.no'), style: 'cancel' },
+            {
+              text: t('account.deleteFinal'),
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await supabase.rpc('delete_own_account' as 'accept_tos');
+                  await supabase.auth.signOut();
+                } catch {
+                  Alert.alert(t('auth.error'), t('auth.unknownError'));
+                }
+              },
+            },
+          ]);
+        },
+      },
+    ]);
   };
 
   return (

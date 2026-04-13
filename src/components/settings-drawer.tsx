@@ -167,6 +167,46 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               </Pressable>
             )}
 
+            {/* Delete account */}
+            <Pressable style={styles.deleteButton} onPress={() => {
+              Alert.alert(
+                t('account.deleteTitle'),
+                t('account.deleteMessage'),
+                [
+                  { text: t('activity.no'), style: 'cancel' },
+                  {
+                    text: t('account.deleteConfirm'),
+                    style: 'destructive',
+                    onPress: () => {
+                      // Second confirmation
+                      Alert.alert(
+                        t('account.deleteTitle2'),
+                        t('account.deleteMessage2'),
+                        [
+                          { text: t('activity.no'), style: 'cancel' },
+                          {
+                            text: t('account.deleteFinal'),
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                await supabase.rpc('delete_own_account' as 'accept_tos');
+                                await supabase.auth.signOut();
+                                onClose();
+                              } catch {
+                                Alert.alert(t('auth.error'), t('auth.unknownError'));
+                              }
+                            },
+                          },
+                        ],
+                      );
+                    },
+                  },
+                ],
+              );
+            }}>
+              <Text style={styles.deleteText}>{t('account.delete')}</Text>
+            </Pressable>
+
             {/* Logout */}
             <Pressable style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>{t('profil.logout')}</Text>
@@ -238,8 +278,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.xs,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
-  logoutButton: {
-    paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xl,
+  deleteButton: {
+    paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.xl,
   },
-  logoutText: { color: colors.error, fontSize: fontSizes.sm },
+  deleteText: { color: colors.error, fontSize: fontSizes.xs },
+  logoutButton: {
+    paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
+  },
+  logoutText: { color: colors.textSecondary, fontSize: fontSizes.sm },
 });
