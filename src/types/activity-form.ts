@@ -8,16 +8,16 @@ export const activityFormSchema = z.object({
   level: z.string().min(1),
   max_participants: z.number().int().min(2).max(50),
   // Step 2
-  location_start: z.object({
-    lng: z.number(),
-    lat: z.number(),
-  }),
-  location_meeting: z
+  location_start: z
     .object({
       lng: z.number(),
       lat: z.number(),
     })
     .optional(),
+  location_meeting: z.object({
+    lng: z.number(),
+    lat: z.number(),
+  }),
   location_end: z
     .object({
       lng: z.number(),

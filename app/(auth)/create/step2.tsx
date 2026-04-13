@@ -17,7 +17,7 @@ export default function CreateStep2() {
   const { center } = useInitialLocation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | null>('start');
+  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | null>('meeting');
 
   const handleMapPress = (lng: number, lat: number) => {
     if (placingPin === 'start') {
@@ -38,21 +38,21 @@ export default function CreateStep2() {
     form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: '#ef4444' },
   ].filter(Boolean) as { id: string; coordinate: [number, number]; color: string }[];
 
-  const isValid = form.location_start && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
+  const isValid = form.location_meeting && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
 
   return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
         <JuntoMapView
-          center={form.location_start ? [form.location_start.lng, form.location_start.lat] : center}
+          center={form.location_meeting ? [form.location_meeting.lng, form.location_meeting.lat] : form.location_start ? [form.location_start.lng, form.location_start.lat] : center}
           zoom={12}
           onMapPress={handleMapPress}
           pins={pins}
-          routeLine={
-            form.location_start && form.location_end
-              ? [[form.location_start.lng, form.location_start.lat], [form.location_end.lng, form.location_end.lat]]
-              : undefined
-          }
+          routeLine={(() => {
+            const start = form.location_start ?? form.location_meeting;
+            if (start && form.location_end) return [[start.lng, start.lat], [form.location_end.lng, form.location_end.lat]] as [number, number][];
+            return undefined;
+          })()}
         />
         {placingPin && (
           <View style={styles.mapOverlay}>
