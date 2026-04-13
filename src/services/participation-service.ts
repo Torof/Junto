@@ -80,9 +80,20 @@ export const participationService = {
 
   getForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
     const { data, error } = await supabase
-      .from('activity_participants' as 'participations')
-      .select('participation_id, activity_id, user_id, status, created_at, left_at, display_name, avatar_url')
+      .from('public_participants' as 'participations')
+      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url')
       .eq('activity_id', activityId)
+      .order('created_at');
+    if (error) throw error;
+    return (data ?? []) as unknown as ParticipantInfo[];
+  },
+
+  getPendingForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
+    const { data, error } = await supabase
+      .from('activity_participants' as 'participations')
+      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url')
+      .eq('activity_id', activityId)
+      .eq('status' as 'user_id', 'pending')
       .order('created_at');
     if (error) throw error;
     return (data ?? []) as unknown as ParticipantInfo[];

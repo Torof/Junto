@@ -10,23 +10,31 @@ import { participationService } from '@/services/participation-service';
 interface ParticipantListProps {
   activityId: string;
   isCreator: boolean;
+  creatorId: string;
+  creatorName: string;
 }
 
-export function ParticipantList({ activityId, isCreator }: ParticipantListProps) {
+export function ParticipantList({ activityId, isCreator, creatorId, creatorName }: ParticipantListProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  const { data: participants } = useQuery({
+  const { data: accepted } = useQuery({
     queryKey: ['participants', activityId],
     queryFn: () => participationService.getForActivity(activityId),
+    staleTime: 0,
+  });
+
+  const { data: pending } = useQuery({
+    queryKey: ['participants-pending', activityId],
+    queryFn: () => participationService.getPendingForActivity(activityId),
     enabled: isCreator,
     staleTime: 0,
   });
 
-  const pending = (participants ?? []).filter((p) => p.status === 'pending');
-  const accepted = (participants ?? []).filter((p) => p.status === 'accepted');
+  // Filter out creator from accepted list (shown separately above)
+  const otherAccepted = (accepted ?? []).filter((p) => p.user_id !== creatorId);
 
   const handleAction = async (participationId: string, action: 'accept' | 'refuse' | 'remove') => {
     setLoadingId(participationId);
@@ -48,20 +56,32 @@ export function ParticipantList({ activityId, isCreator }: ParticipantListProps)
     }
   };
 
-  if (!isCreator) return null;
-
   return (
     <View style={styles.container}>
-      {pending.length > 0 && (
+      <Text style={styles.sectionTitle}>{t('participants.title')}</Text>
+
+      <View style={styles.avatarRow}>
+        {/* Creator — always first */}
+        <Pressable style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${creatorId}`)}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.initial}>{creatorName.charAt(0).toUpperCase()}</Text>
+          </View>
+          <View style={styles.organizerPill}>
+            <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
+          </View>
+        </Pressable>
+
+      {/* Pending requests (creator only) */}
+      {isCreator && (pending ?? []).length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>{t('participants.pending', { count: pending.length })}</Text>
-          {pending.map((p) => (
-            <View key={p.participation_id} style={styles.card}>
-              <Pressable style={styles.profileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
-                <View style={styles.avatar}>
-                  <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
+          <Text style={styles.subTitle}>{t('participants.pending', { count: (pending ?? []).length })}</Text>
+          {(pending ?? []).map((p) => (
+            <View key={p.participation_id} style={styles.pendingCard}>
+              <Pressable style={styles.pendingProfileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+                <View style={styles.pendingAvatar}>
+                  <Text style={styles.pendingInitial}>{p.display_name.charAt(0).toUpperCase()}</Text>
                 </View>
-                <Text style={styles.name}>{p.display_name}</Text>
+                <Text style={styles.pendingName}>{p.display_name}</Text>
               </Pressable>
               <View style={styles.actions}>
                 <Pressable
@@ -84,52 +104,37 @@ export function ParticipantList({ activityId, isCreator }: ParticipantListProps)
         </>
       )}
 
-      {accepted.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>{t('participants.accepted', { count: accepted.length })}</Text>
-          {accepted.map((p) => (
-            <View key={p.participation_id} style={styles.card}>
-              <Pressable style={styles.profileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
-                <View style={styles.avatar}>
-                  <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
-                </View>
-                <Text style={styles.name}>{p.display_name}</Text>
-              </Pressable>
-              {isCreator && (
-                <Pressable
-                  style={[styles.removeBtn, loadingId === p.participation_id && styles.disabled]}
-                  onPress={() => {
-                    Alert.alert(t('participants.removeConfirm'), p.display_name, [
-                      { text: t('activity.no'), style: 'cancel' },
-                      { text: t('activity.yes'), style: 'destructive', onPress: () => handleAction(p.participation_id, 'remove') },
-                    ]);
-                  }}
-                  disabled={loadingId === p.participation_id}
-                >
-                  <Text style={styles.removeBtnText}>✕</Text>
-                </Pressable>
-              )}
+        {/* Accepted participants (excluding creator) */}
+        {otherAccepted.map((p) => (
+          <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
             </View>
-          ))}
-        </>
-      )}
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { marginTop: spacing.md },
-  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.md },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
-  profileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
-  initial: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  name: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
+  avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
+  avatarItem: { alignItems: 'center' },
+  avatarCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  initial: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },
+  organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
+  organizerPillText: { color: '#fff', fontSize: fontSizes.xs - 2, fontWeight: 'bold' },
+  subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
+  pendingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
+  pendingProfileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  pendingAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
+  pendingInitial: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   refuseBtn: { backgroundColor: colors.error, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  removeBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.textSecondary, alignItems: 'center', justifyContent: 'center' },
-  removeBtnText: { color: colors.textSecondary, fontSize: 12 },
   btnText: { color: colors.textPrimary, fontSize: 16, fontWeight: 'bold' },
   disabled: { opacity: 0.4 },
 });

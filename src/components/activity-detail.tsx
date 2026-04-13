@@ -237,17 +237,12 @@ export function ActivityDetail({
         );
       })()}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('activity.creator')}</Text>
-        <Pressable style={styles.creator} onPress={() => router.push(`/(auth)/profile/${activity.creator_id}`)}>
-          <View style={styles.creatorAvatar}>
-            <Text style={styles.creatorInitial}>{activity.creator_name.charAt(0).toUpperCase()}</Text>
-          </View>
-          <Text style={styles.creatorName}>{activity.creator_name}</Text>
-        </Pressable>
-      </View>
-
-      <ParticipantList activityId={activity.id} isCreator={isCreator} />
+      <ParticipantList
+        activityId={activity.id}
+        isCreator={isCreator}
+        creatorId={activity.creator_id}
+        creatorName={activity.creator_name}
+      />
 
       {(isCreator || isAccepted) && (
         <ActivityWall
@@ -349,10 +344,6 @@ const styles = StyleSheet.create({
   closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   navigateButton: { position: 'absolute', bottom: 40, alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
   navigateText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
-  creator: { flexDirection: 'row', alignItems: 'center' },
-  creatorAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
-  creatorInitial: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },
-  creatorName: { color: colors.textPrimary, fontSize: fontSizes.md },
   joinButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },

@@ -155,6 +155,8 @@
     }
   },
   "participants": {
+    "title": "Participants",
+    "organizer": "Organisateur",
     "pending": "Demandes en attente ({{count}})",
     "accepted": "Participants ({{count}})",
     "removeConfirm": "Retirer ce participant ?"
