@@ -288,30 +288,28 @@ export function ActivityDetail({
         onClose={() => setShowReport(false)}
       />
 
-      {/* Creator actions bottom sheet */}
-      <Modal visible={showMenu} animationType="slide" transparent>
-        <Pressable style={styles.menuBackdrop} onPress={() => setShowMenu(false)}>
-          <Pressable style={styles.menuSheet} onPress={() => {}}>
-            <View style={styles.menuHandle} />
-            {['published', 'in_progress'].includes(activity.status) && (
-              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); router.push(`/(auth)/edit/${activity.id}`); }}>
-                <Text style={styles.menuIcon}>✏️</Text>
-                <Text style={styles.menuText}>{t('activity.edit')}</Text>
+      {/* Creator actions tooltip */}
+      {showMenu && (
+        <Modal visible animationType="none" transparent>
+          <Pressable style={styles.tooltipBackdrop} onPress={() => setShowMenu(false)}>
+            <View style={styles.tooltip}>
+              {isActive && (
+                <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); router.push(`/(auth)/edit/${activity.id}`); }}>
+                  <Text style={styles.tooltipIcon}>✏️</Text>
+                </Pressable>
+              )}
+              <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); handleShare(); }}>
+                <Text style={styles.tooltipIcon}>🔗</Text>
               </Pressable>
-            )}
-            <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleShare(); }}>
-              <Text style={styles.menuIcon}>🔗</Text>
-              <Text style={styles.menuText}>{t('activity.shareLink')}</Text>
-            </Pressable>
-            {showCancelButton && (
-              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleCancel(); }}>
-                <Text style={styles.menuIcon}>✕</Text>
-                <Text style={styles.menuTextDanger}>{t('activity.cancel')}</Text>
-              </Pressable>
-            )}
+              {showCancelButton && (
+                <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); handleCancel(); }}>
+                  <Text style={styles.tooltipIconDanger}>✕</Text>
+                </Pressable>
+              )}
+            </View>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      )}
     </ScrollView>
   );
 }
@@ -354,11 +352,15 @@ const styles = StyleSheet.create({
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
   reportLinkText: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  menuBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
-  menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, gap: spacing.md },
-  menuIcon: { fontSize: 18, width: 28, textAlign: 'center' },
-  menuText: { color: colors.textPrimary, fontSize: fontSizes.md },
-  menuTextDanger: { color: colors.error, fontSize: fontSizes.md },
+  tooltipBackdrop: { flex: 1 },
+  tooltip: {
+    position: 'absolute', top: 90, right: spacing.lg,
+    flexDirection: 'row', gap: spacing.sm,
+    backgroundColor: '#ffffff', borderRadius: radius.md,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
+    elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
+  },
+  tooltipItem: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  tooltipIcon: { fontSize: 18 },
+  tooltipIconDanger: { fontSize: 18, color: colors.error, fontWeight: 'bold' },
 });
