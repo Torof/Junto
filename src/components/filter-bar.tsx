@@ -8,7 +8,7 @@ export function FilterButton({ onPress }: { onPress: () => void }) {
 
   return (
     <Pressable style={styles.button} onPress={onPress}>
-      <Text style={styles.icon}>⚙</Text>
+      <Text style={styles.icon}>▼</Text>
       {hasActiveFilter && <View style={styles.badge} />}
     </Pressable>
   );
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.xl + 80,
     right: spacing.md,
-    backgroundColor: colors.background,
+    backgroundColor: '#e5e5e5',
     borderRadius: radius.full,
     width: 40,
     height: 40,

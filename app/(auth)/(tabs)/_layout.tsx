@@ -5,12 +5,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontSizes } from '@/constants/theme';
 import { notificationService } from '@/services/notification-service';
+import { useMapStore } from '@/store/map-store';
 import { conversationService } from '@/services/conversation-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 
 function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>{icon}</Text>;
+  return <Text style={{ fontSize: 22, lineHeight: 28, textAlign: 'center', opacity: focused ? 1 : 0.6 }}>{icon}</Text>;
 }
 
 function NotificationTabIcon({ focused }: { focused: boolean }) {
@@ -22,7 +23,7 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>🔔</Text>
+      <Text style={{ fontSize: 22, lineHeight: 28, opacity: focused ? 1 : 0.6 }}>🔔</Text>
       {(count ?? 0) > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count! > 99 ? '99+' : count}</Text>
@@ -52,7 +53,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>💬</Text>
+      <Text style={{ fontSize: 22, lineHeight: 28, opacity: focused ? 1 : 0.6 }}>💬</Text>
       {hasUnread && <View style={styles.dot} />}
     </View>
   );
@@ -68,9 +69,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.surface,
-          height: 56 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 4,
+          height: 64 + insets.bottom,
+          paddingBottom: insets.bottom + 4,
+          paddingTop: 8,
         },
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.cta,
@@ -87,6 +88,11 @@ export default function TabsLayout() {
           title: t('tabs.carte'),
           headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon icon="🌍" focused={focused} />,
+        }}
+        listeners={{
+          tabPress: () => {
+            useMapStore.getState().setViewMode('map');
+          },
         }}
       />
       <Tabs.Screen

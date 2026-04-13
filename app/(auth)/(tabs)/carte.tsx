@@ -109,10 +109,14 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        <CreateButton />
-        <FilterButton onPress={() => setShowFilters(true)} />
-        <ViewToggle />
-        {viewMode === 'map' && <RecenterButton onPress={() => setFlyToKey((k) => k + 1)} />}
+        {viewMode === 'map' && (
+          <>
+            <CreateButton />
+            <FilterButton onPress={() => setShowFilters(true)} />
+            <ViewToggle />
+            <RecenterButton onPress={() => setFlyToKey((k) => k + 1)} />
+          </>
+        )}
 
         {viewMode === 'map' ? (
           <>
