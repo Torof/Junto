@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,6 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const flatListRef = useRef<FlatList<WallMessageWithProfile>>(null);
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['wall', activityId],
@@ -59,7 +58,6 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
       await wallService.send(activityId, message.trim());
       setMessage('');
       await queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : t('auth.unknownError');
       if (errMsg.includes('Operation not permitted')) {
@@ -81,12 +79,9 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
       ) : !messages || messages.length === 0 ? (
         <Text style={styles.emptyText}>{t('wall.empty')}</Text>
       ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.messageCard}>
+        <View style={styles.messageList}>
+          {messages.map((item) => (
+            <View key={item.id} style={styles.messageCard}>
               <View style={styles.messageHeader}>
                 <Pressable
                   style={styles.authorLink}
@@ -104,10 +99,8 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
               </View>
               <Text style={styles.messageContent}>{item.content}</Text>
             </View>
-          )}
-          style={styles.messageList}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-        />
+          ))}
+        </View>
       )}
 
       {isActive && (
