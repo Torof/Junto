@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { wallService, type WallMessageWithProfile } from '@/services/wall-service';
+import { UserAvatar } from './user-avatar';
 import { supabase } from '@/services/supabase';
 
 interface ActivityWallProps {
@@ -88,11 +89,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                   onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
                   disabled={!item.user_id}
                 >
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {(item.display_name ?? '?').charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
+                  <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
                   <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
                 </Pressable>
                 <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>

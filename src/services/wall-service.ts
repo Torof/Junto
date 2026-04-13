@@ -12,6 +12,7 @@ export interface WallMessage {
 
 export interface WallMessageWithProfile extends WallMessage {
   display_name: string | null;
+  avatar_url: string | null;
 }
 
 export const wallService = {
@@ -31,15 +32,19 @@ export const wallService = {
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from('public_profiles')
-        .select('id, display_name')
+        .select('id, display_name, avatar_url')
         .in('id', userIds);
-      profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.display_name]));
+      profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, { display_name: p.display_name, avatar_url: p.avatar_url }]));
     }
 
-    return (messages ?? []).map((m) => ({
-      ...m,
-      display_name: m.user_id ? profileMap[m.user_id] ?? null : null,
-    }));
+    return (messages ?? []).map((m) => {
+      const profile = m.user_id ? (profileMap[m.user_id] as { display_name: string; avatar_url: string | null } | undefined) : undefined;
+      return {
+        ...m,
+        display_name: profile?.display_name ?? null,
+        avatar_url: profile?.avatar_url ?? null,
+      };
+    });
   },
 
   send: async (activityId: string, content: string): Promise<string> => {

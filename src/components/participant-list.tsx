@@ -6,15 +6,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
+import { UserAvatar } from './user-avatar';
 
 interface ParticipantListProps {
   activityId: string;
   isCreator: boolean;
   creatorId: string;
   creatorName: string;
+  creatorAvatar?: string | null;
 }
 
-export function ParticipantList({ activityId, isCreator, creatorId, creatorName }: ParticipantListProps) {
+export function ParticipantList({ activityId, isCreator, creatorId, creatorName, creatorAvatar }: ParticipantListProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -63,9 +65,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName 
       <View style={styles.avatarRow}>
         {/* Creator — always first */}
         <Pressable style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${creatorId}`)}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.initial}>{creatorName.charAt(0).toUpperCase()}</Text>
-          </View>
+          <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} />
           <View style={styles.organizerPill}>
             <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
           </View>
@@ -78,9 +78,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName 
           {(pending ?? []).map((p) => (
             <View key={p.participation_id} style={styles.pendingCard}>
               <Pressable style={styles.pendingProfileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
-                <View style={styles.pendingAvatar}>
-                  <Text style={styles.pendingInitial}>{p.display_name.charAt(0).toUpperCase()}</Text>
-                </View>
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
                 <Text style={styles.pendingName}>{p.display_name}</Text>
               </Pressable>
               <View style={styles.actions}>
@@ -107,9 +105,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName 
         {/* Accepted participants (excluding creator) */}
         {otherAccepted.map((p) => (
           <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.initial}>{p.display_name.charAt(0).toUpperCase()}</Text>
-            </View>
+            <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
           </Pressable>
         ))}
       </View>
@@ -122,15 +118,11 @@ const styles = StyleSheet.create({
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
-  avatarCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
-  initial: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
   organizerPillText: { color: '#fff', fontSize: fontSizes.xs - 2, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
   pendingProfileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  pendingAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
-  pendingInitial: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
   pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },

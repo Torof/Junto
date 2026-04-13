@@ -242,6 +242,7 @@ export function ActivityDetail({
         isCreator={isCreator}
         creatorId={activity.creator_id}
         creatorName={activity.creator_name}
+        creatorAvatar={activity.creator_avatar}
       />
 
       {(isCreator || isAccepted) && (

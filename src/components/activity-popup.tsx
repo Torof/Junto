@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { UserAvatar } from './user-avatar';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 
 interface ActivityPopupProps {
@@ -42,11 +43,7 @@ export function ActivityPopup({ activity, onViewDetail, onClose }: ActivityPopup
         </View>
 
         <View style={styles.creator}>
-          <View style={styles.creatorAvatar}>
-            <Text style={styles.creatorInitial}>
-              {activity.creator_name.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <UserAvatar name={activity.creator_name} avatarUrl={activity.creator_avatar} size={32} />
           <Text style={styles.creatorName}>{activity.creator_name}</Text>
         </View>
 
@@ -107,21 +104,8 @@ const styles = StyleSheet.create({
   creator: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
     marginBottom: spacing.lg,
-  },
-  creatorAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
-  creatorInitial: {
-    color: colors.cta,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
   },
   creatorName: {
     color: colors.textPrimary,
