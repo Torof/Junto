@@ -113,15 +113,38 @@ export const activityService = {
   },
 
   getById: async (id: string): Promise<NearbyActivity | null> => {
+    // Try public view first (public/approval activities)
     const { data, error } = await supabase
       .from('activities_with_coords')
       .select(
         'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
       )
       .eq('id', id)
-      .single();
+      .maybeSingle();
+    if (data) return data as unknown as NearbyActivity;
+
+    // Fallback: my_activities (creator's own, includes private + all statuses)
+    const { data: myData } = await supabase
+      .from('my_activities' as 'activities_with_coords')
+      .select(
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+      )
+      .eq('id', id)
+      .maybeSingle();
+    if (myData) return myData as unknown as NearbyActivity;
+
+    // Fallback: my_joined_activities
+    const { data: joinedData } = await supabase
+      .from('my_joined_activities' as 'activities_with_coords')
+      .select(
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count',
+      )
+      .eq('id', id)
+      .maybeSingle();
+    if (joinedData) return joinedData as unknown as NearbyActivity;
+
     if (error) throw error;
-    return data as unknown as NearbyActivity | null;
+    return null;
   },
 
   update: async (activityId: string, fields: {

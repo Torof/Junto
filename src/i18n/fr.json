@@ -57,9 +57,12 @@
     "edit": "Modifier l'activité",
     "shareLink": "Partager le lien d'invitation",
     "status": {
-      "inProgress": "En cours",
+      "in_progress": "En cours",
       "soon": "Bientôt",
-      "upcoming": "À venir"
+      "upcoming": "À venir",
+      "completed": "Terminée",
+      "cancelled": "Annulée",
+      "expired": "Expirée"
     },
     "statusBanner": {
       "completed": "Cette activité est terminée",

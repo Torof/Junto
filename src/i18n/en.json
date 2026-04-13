@@ -57,9 +57,12 @@
     "edit": "Edit activity",
     "shareLink": "Share invite link",
     "status": {
-      "inProgress": "In progress",
+      "in_progress": "In progress",
       "soon": "Soon",
-      "upcoming": "Upcoming"
+      "upcoming": "Upcoming",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
     },
     "statusBanner": {
       "completed": "This activity is finished",

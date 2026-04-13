@@ -1,9 +1,12 @@
 import dayjs from 'dayjs';
 import { colors } from '@/constants/theme';
 
-export type ActivityTimeStatus = 'in_progress' | 'soon' | 'upcoming';
+export type ActivityTimeStatus = 'in_progress' | 'soon' | 'upcoming' | 'completed' | 'cancelled' | 'expired';
 
 export function getActivityTimeStatus(startsAt: string, status: string): ActivityTimeStatus {
+  if (status === 'completed') return 'completed';
+  if (status === 'cancelled') return 'cancelled';
+  if (status === 'expired') return 'expired';
   if (status === 'in_progress') return 'in_progress';
 
   const now = dayjs();
@@ -21,7 +24,13 @@ export function getStatusColor(timeStatus: ActivityTimeStatus): string {
     case 'soon':
       return colors.warning;
     case 'upcoming':
-      return colors.cta;
+      return '#3b82f6';
+    case 'completed':
+      return colors.textSecondary;
+    case 'cancelled':
+      return colors.error;
+    case 'expired':
+      return colors.textSecondary;
   }
 }
 

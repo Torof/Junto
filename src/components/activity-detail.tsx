@@ -134,6 +134,11 @@ export function ActivityDetail({
         </View>
         <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+        <View style={styles.visibilityBadge}>
+          <Text style={styles.visibilityText}>
+            {activity.visibility === 'public' ? '🌍' : activity.visibility === 'approval' ? '✋' : '🔒'} {t(`create.visibility.${activity.visibility}`)}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.titleRow}>
@@ -322,6 +327,8 @@ const styles = StyleSheet.create({
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
+  visibilityBadge: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, marginLeft: 'auto' },
+  visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   moreButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
