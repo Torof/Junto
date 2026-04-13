@@ -22,6 +22,8 @@ export default function AuthLayout() {
       <Stack.Screen name="conversation/[id]" options={{ title: '' }} />
       <Stack.Screen name="confirm-presence/[id]" options={{ title: '' }} />
       <Stack.Screen name="admin/moderation" options={{ title: 'Moderation' }} />
+      <Stack.Screen name="legal/terms" options={{ title: '' }} />
+      <Stack.Screen name="legal/privacy" options={{ title: '' }} />
       <Stack.Screen name="rate-participants/[id]" options={{ title: '' }} />
     </Stack>
   );

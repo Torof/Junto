@@ -252,7 +252,12 @@
     "email": "Email",
     "pseudo": "Display name",
     "subscription": "Subscription",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "legal": "Legal"
+  },
+  "legal": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   },
   "edit": {
     "title": "Edit activity",

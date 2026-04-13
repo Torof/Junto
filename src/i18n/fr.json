@@ -252,7 +252,12 @@
     "email": "Email",
     "pseudo": "Pseudo",
     "subscription": "Abonnement",
-    "preferences": "Préférences"
+    "preferences": "Préférences",
+    "legal": "Juridique"
+  },
+  "legal": {
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité"
   },
   "edit": {
     "title": "Modifier l'activité",

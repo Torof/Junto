@@ -167,6 +167,17 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               </Pressable>
             )}
 
+            {/* Legal */}
+            <Text style={styles.sectionTitle}>{t('drawer.legal')}</Text>
+            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/terms'); }}>
+              <Text style={styles.rowLabel}>{t('legal.terms')}</Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
+            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/privacy'); }}>
+              <Text style={styles.rowLabel}>{t('legal.privacy')}</Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
+
             {/* Delete account */}
             <Pressable style={styles.deleteButton} onPress={() => {
               Alert.alert(
