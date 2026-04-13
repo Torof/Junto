@@ -10,7 +10,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from './activity-card';
 import { SportDropdown } from './sport-dropdown';
 
-const DISTANCE_OPTIONS = [5, 10, 25, 50, 100] as const;
+const DISTANCE_OPTIONS = [5, 10, 25, 50, 100, 200] as const;
 
 interface ActivitySearchProps {
   activities: NearbyActivity[];
