@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
@@ -16,7 +17,8 @@ import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
-import { colors } from '@/constants/theme';
+import { useCreateStore } from '@/store/create-store';
+import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 
 const BUFFER = 0.5; // 50% buffer around viewport
 
@@ -48,11 +50,13 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 export default function CarteScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { center } = useInitialLocation();
   const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
+  const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
@@ -71,6 +75,7 @@ export default function CarteScreen() {
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
+    setTappedPoint(null);
 
     // First load — auto-search
     if (!initialSearchDone.current) {
@@ -127,9 +132,42 @@ export default function CarteScreen() {
               activities={filtered}
               userLocation={center}
               flyTo={flyToKey > 0 ? { coordinate: center, key: flyToKey } : null}
-              onActivityPress={setSelectedActivity}
+              onActivityPress={(a) => { setTappedPoint(null); setSelectedActivity(a); }}
+              onMapPress={(lng, lat) => { setSelectedActivity(null); setTappedPoint({ lng, lat }); }}
               onBoundsChange={handleBoundsChange}
             />
+
+            {tappedPoint && !selectedActivity && (
+              <View style={styles.createTooltip}>
+                <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
+                <View style={styles.createTooltipRow}>
+                  <Pressable
+                    style={styles.createTooltipOption}
+                    onPress={() => {
+                      useCreateStore.getState().resetForm();
+                      useCreateStore.getState().updateForm({ location_meeting: tappedPoint });
+                      setTappedPoint(null);
+                      router.push('/(auth)/create/step1');
+                    }}
+                  >
+                    <Text style={styles.createTooltipDot}>🔵</Text>
+                    <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.createTooltipOption}
+                    onPress={() => {
+                      useCreateStore.getState().resetForm();
+                      useCreateStore.getState().updateForm({ location_start: tappedPoint });
+                      setTappedPoint(null);
+                      router.push('/(auth)/create/step1');
+                    }}
+                  >
+                    <Text style={styles.createTooltipDot}>🟢</Text>
+                    <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             {selectedActivity && (
               <ActivityPopup
@@ -156,6 +194,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  createTooltip: {
+    position: 'absolute',
+    bottom: 100,
+    alignSelf: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    gap: spacing.sm,
+  },
+  createTooltipTitle: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: 'bold',
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  createTooltipRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  createTooltipOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  createTooltipDot: {
+    fontSize: 10,
+  },
+  createTooltipOptionText: {
+    color: '#000000',
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
   },
   statusBar: {
     backgroundColor: colors.background,

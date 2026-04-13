@@ -127,7 +127,8 @@
     "sportLabel": "Sport",
     "resetFilters": "Reset",
     "apply": "Apply",
-    "searchArea": "Search this area"
+    "searchArea": "Search this area",
+    "createHere": "Create activity here"
   },
   "profil": {
     "logout": "Log out",
