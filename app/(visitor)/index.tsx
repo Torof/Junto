@@ -98,20 +98,20 @@ export default function VisitorMapScreen() {
           <JuntoMapView
             center={center}
             activities={filtered}
+            selectedActivity={selectedActivity}
+            popupContent={selectedActivity ? (
+              <ActivityPopup
+                activity={selectedActivity}
+                onPress={() => {
+                  router.push(`/(visitor)/activity/${selectedActivity.id}`);
+                  setSelectedActivity(null);
+                }}
+              />
+            ) : undefined}
             onActivityPress={setSelectedActivity}
+            onMapPress={() => setSelectedActivity(null)}
             onBoundsChange={handleBoundsChange}
           />
-
-          {selectedActivity && (
-            <ActivityPopup
-              activity={selectedActivity}
-              onViewDetail={() => {
-                router.push(`/(visitor)/activity/${selectedActivity.id}`);
-                setSelectedActivity(null);
-              }}
-              onClose={() => setSelectedActivity(null)}
-            />
-          )}
         </>
       ) : (
         <ActivitySearch activities={activities ?? []} userLocation={center} routePrefix="/(visitor)" />

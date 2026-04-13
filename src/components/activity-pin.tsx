@@ -39,6 +39,8 @@ const styles = StyleSheet.create({
     height: PIN_SIZE,
     borderRadius: radius.full,
     backgroundColor: colors.textPrimary,
+    borderWidth: 1.5,
+    borderColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },

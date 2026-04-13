@@ -76,6 +76,7 @@ export default function CarteScreen() {
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
     setTappedPoint(null);
+    setSelectedActivity(null);
 
     // First load — auto-search
     if (!initialSearchDone.current) {
@@ -114,7 +115,7 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        {viewMode === 'map' && !selectedActivity && (
+        {viewMode === 'map' && (
           <>
             <CreateButton />
             <FilterButton onPress={() => setShowFilters(true)} />
@@ -131,54 +132,58 @@ export default function CarteScreen() {
               center={center}
               activities={filtered}
               userLocation={center}
+              tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
+              tapMarkerContent={tappedPoint && !selectedActivity ? (
+                <View style={styles.tapMarkerContent}>
+                  <Text style={styles.tapMarkerX}>✕</Text>
+                  <View style={styles.createTooltipInline}>
+                    <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
+                    <View style={styles.createTooltipRow}>
+                      <Pressable
+                        style={styles.createTooltipOption}
+                        onPress={() => {
+                          useCreateStore.getState().resetForm();
+                          useCreateStore.getState().updateForm({ location_meeting: tappedPoint });
+                          setTappedPoint(null);
+                          router.push('/(auth)/create/step1');
+                        }}
+                      >
+                        <Text style={styles.createTooltipDot}>🔵</Text>
+                        <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
+                      </Pressable>
+                      <Pressable
+                        style={styles.createTooltipOption}
+                        onPress={() => {
+                          useCreateStore.getState().resetForm();
+                          useCreateStore.getState().updateForm({ location_start: tappedPoint });
+                          setTappedPoint(null);
+                          router.push('/(auth)/create/step1');
+                        }}
+                      >
+                        <Text style={styles.createTooltipDot}>🟢</Text>
+                        <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              ) : undefined}
               flyTo={flyToKey > 0 ? { coordinate: center, key: flyToKey } : null}
+              selectedActivity={selectedActivity}
+              popupContent={selectedActivity ? (
+                <ActivityPopup
+                  activity={selectedActivity}
+                  onPress={() => {
+                    router.push(`/(auth)/activity/${selectedActivity.id}`);
+                    setSelectedActivity(null);
+                  }}
+                />
+              ) : undefined}
               onActivityPress={(a) => { setTappedPoint(null); setSelectedActivity(a); }}
               onMapPress={(lng, lat) => { setSelectedActivity(null); setTappedPoint({ lng, lat }); }}
               onBoundsChange={handleBoundsChange}
             />
 
-            {tappedPoint && !selectedActivity && (
-              <View style={styles.createTooltip}>
-                <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
-                <View style={styles.createTooltipRow}>
-                  <Pressable
-                    style={styles.createTooltipOption}
-                    onPress={() => {
-                      useCreateStore.getState().resetForm();
-                      useCreateStore.getState().updateForm({ location_meeting: tappedPoint });
-                      setTappedPoint(null);
-                      router.push('/(auth)/create/step1');
-                    }}
-                  >
-                    <Text style={styles.createTooltipDot}>🔵</Text>
-                    <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.createTooltipOption}
-                    onPress={() => {
-                      useCreateStore.getState().resetForm();
-                      useCreateStore.getState().updateForm({ location_start: tappedPoint });
-                      setTappedPoint(null);
-                      router.push('/(auth)/create/step1');
-                    }}
-                  >
-                    <Text style={styles.createTooltipDot}>🟢</Text>
-                    <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
 
-            {selectedActivity && (
-              <ActivityPopup
-                activity={selectedActivity}
-                onViewDetail={() => {
-                  router.push(`/(auth)/activity/${selectedActivity.id}`);
-                  setSelectedActivity(null);
-                }}
-                onClose={() => setSelectedActivity(null)}
-              />
-            )}
           </>
         ) : (
           <ActivitySearch activities={activities ?? []} userLocation={center} routePrefix="/(auth)" />
@@ -195,12 +200,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  createTooltip: {
-    position: 'absolute',
-    bottom: 100,
-    alignSelf: 'center',
+  tapMarkerContent: {
     alignItems: 'center',
-    zIndex: 10,
+    gap: spacing.xs,
+  },
+  tapMarkerX: {
+    color: '#ef4444',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  createTooltipInline: {
+    alignItems: 'center',
     gap: spacing.sm,
   },
   createTooltipTitle: {
@@ -212,11 +222,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: 'bold',
     overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   createTooltipRow: {
     flexDirection: 'row',

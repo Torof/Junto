@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -42,6 +42,10 @@ interface MapViewProps {
   routeLine?: [number, number][];
   pins?: MapPin[];
   userLocation?: [number, number] | null;
+  selectedActivity?: NearbyActivity | null;
+  popupContent?: React.ReactNode;
+  tapMarker?: [number, number] | null;
+  tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
@@ -57,6 +61,10 @@ export function JuntoMapView({
   routeLine,
   pins = [],
   userLocation,
+  selectedActivity,
+  popupContent,
+  tapMarker,
+  tapMarkerContent,
   onActivityPress,
   onMapPress,
   onBoundsChange,
@@ -173,6 +181,12 @@ export function JuntoMapView({
         </Mapbox.MarkerView>
       )}
 
+      {tapMarker && (
+        <Mapbox.MarkerView id="tap-marker" coordinate={tapMarker} anchor={{ x: 0.5, y: 0 }}>
+          <View>{tapMarkerContent ?? <Text style={styles.tapMarker}>✕</Text>}</View>
+        </Mapbox.MarkerView>
+      )}
+
       {pins.map((pin) => (
         <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate}>
           <MapPinIcon color={pin.color} />
@@ -223,6 +237,22 @@ export function JuntoMapView({
           </Mapbox.MarkerView>
         );
       })}
+
+      {/* Activity popup — anchored to activity location */}
+      {selectedActivity && popupContent && (() => {
+        const viewCenter = (bounds[0] + bounds[2]) / 2;
+        const isOnRight = selectedActivity.lng > viewCenter;
+        return (
+          <Mapbox.MarkerView
+            key={`popup-${selectedActivity.id}`}
+            id={`popup-${selectedActivity.id}`}
+            coordinate={[selectedActivity.lng, selectedActivity.lat]}
+            anchor={{ x: isOnRight ? 1.15 : -0.15, y: 0.5 }}
+          >
+            <View>{popupContent}</View>
+          </Mapbox.MarkerView>
+        );
+      })()}
     </Mapbox.MapView>
   );
 }
@@ -230,6 +260,12 @@ export function JuntoMapView({
 const styles = StyleSheet.create({
   map: {
     flex: 1,
+  },
+  tapMarker: {
+    color: '#ef4444',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   userDotOuter: {
     width: 22,

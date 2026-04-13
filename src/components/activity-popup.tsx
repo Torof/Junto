@@ -1,128 +1,110 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
-import { UserAvatar } from './user-avatar';
-import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { getSportIcon } from '@/constants/sport-icons';
+import { getRemainingPlaces } from '@/utils/activity-status';
 
 interface ActivityPopupProps {
   activity: NearbyActivity;
-  onViewDetail: () => void;
-  onClose: () => void;
+  onPress: () => void;
 }
 
-export function ActivityPopup({ activity, onViewDetail, onClose }: ActivityPopupProps) {
+export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const { t, i18n } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
-  const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   return (
-    <Pressable style={styles.backdrop} onPress={onClose}>
-      <Pressable style={[styles.card, { paddingBottom: insets.bottom + spacing.xl }]} onPress={() => {}}>
-        <View style={styles.header}>
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-        </View>
+    <Pressable style={styles.card} onPress={onPress}>
+      {/* Title */}
+      <Text style={styles.title} numberOfLines={1}>
+        {activity.title.length > 14 ? activity.title.slice(0, 14) + '...' : activity.title}
+      </Text>
 
-        <Text style={styles.title} numberOfLines={2}>
-          {activity.title}
+      {/* Date */}
+      <View style={styles.row}>
+        <Text style={styles.label}>📅</Text>
+        <Text style={styles.value}>
+          {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
         </Text>
+      </View>
 
-        <View style={styles.details}>
-          <Text style={styles.detail}>
-            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
-          </Text>
-          <Text style={styles.detail}>
-            {t('activity.level')}: {activity.level}
-          </Text>
-          <Text style={styles.detail}>
-            {t('activity.places', { remaining, max: activity.max_participants })}
-          </Text>
-        </View>
+      {/* Level */}
+      <View style={styles.row}>
+        <Text style={styles.label}>📊</Text>
+        <Text style={styles.value}>{activity.level}</Text>
+      </View>
 
-        <View style={styles.creator}>
-          <UserAvatar name={activity.creator_name} avatarUrl={activity.creator_avatar} size={32} />
-          <Text style={styles.creatorName}>{activity.creator_name}</Text>
-        </View>
-
-        <Pressable style={styles.button} onPress={onViewDetail}>
-          <Text style={styles.buttonText}>{t('activity.viewDetail')}</Text>
-        </Pressable>
-      </Pressable>
+      {/* Sport icon — bottom right */}
+      <View style={styles.sportCircle}>
+        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    top: 0,
-    justifyContent: 'flex-end',
-  },
   card: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: spacing.sm,
-  },
-  sport: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    textTransform: 'capitalize',
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.lg,
-    fontWeight: 'bold',
-    marginBottom: spacing.md,
-  },
-  details: {
-    marginBottom: spacing.md,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xl + spacing.md,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    minWidth: 170,
     gap: spacing.xs,
   },
-  detail: {
-    color: colors.textSecondary,
+  title: {
+    color: '#1a1a1a',
     fontSize: fontSizes.sm,
+    fontWeight: 'bold',
+    marginBottom: 2,
   },
-  creator: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: spacing.xs,
   },
-  creatorName: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
+  label: {
+    fontSize: 10,
   },
-  button: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+  value: {
+    color: '#555',
+    fontSize: fontSizes.xs,
   },
-  buttonText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
+  spacer: {
+    width: spacing.sm,
+  },
+  spotDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  spotText: {
+    color: '#555',
+    fontSize: fontSizes.xs,
     fontWeight: 'bold',
+  },
+  sportCircle: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: '#000',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sportIcon: {
+    fontSize: 12,
   },
 });
