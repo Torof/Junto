@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,50 +31,52 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.content}>
-        <Image source={require('../../assets/Junto_logo.png')} style={styles.logo} />
-        <Text style={styles.title}>{t('app.name')}</Text>
-        <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Image source={require('../../assets/Junto_logo.png')} style={styles.logo} />
+      <Text style={styles.title}>{t('app.name')}</Text>
+      <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.email')}
-          placeholderTextColor={colors.textSecondary}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
+      <TextInput
+        style={styles.input}
+        placeholder={t('auth.email')}
+        placeholderTextColor={colors.textSecondary}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+      />
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.password')}
-          placeholderTextColor={colors.textSecondary}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete={isRegister ? 'new-password' : 'current-password'}
-        />
+      <TextInput
+        style={styles.input}
+        placeholder={t('auth.password')}
+        placeholderTextColor={colors.textSecondary}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        autoComplete={isRegister ? 'new-password' : 'current-password'}
+      />
 
-        <Pressable
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? '...' : isRegister ? t('auth.register') : t('auth.login')}
-          </Text>
-        </Pressable>
+      <Pressable
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleSubmit}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? '...' : isRegister ? t('auth.register') : t('auth.login')}
+        </Text>
+      </Pressable>
 
-        <Pressable onPress={() => setIsRegister(!isRegister)}>
-          <Text style={styles.toggleText}>
-            {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
-          </Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+      <Pressable onPress={() => setIsRegister(!isRegister)}>
+        <Text style={styles.toggleText}>
+          {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
+        </Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },

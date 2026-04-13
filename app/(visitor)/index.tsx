@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -18,6 +19,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { center } = useInitialLocation();
   const { data: activities } = useNearbyActivities();
   const filtered = useFilteredActivities(activities ?? []);
@@ -54,7 +56,7 @@ export default function VisitorMapScreen() {
       )}
 
       {!selectedActivity && viewMode === 'map' && (
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { paddingBottom: insets.bottom + spacing.xl }]}>
           <Image source={require('../../assets/Junto_logo.png')} style={styles.logo} />
           <Text style={styles.title}>{t('app.name')}</Text>
           <Text style={styles.subtitle}>{t('visitor.explore')}</Text>
@@ -82,7 +84,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background + 'E6',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
-    paddingBottom: spacing.xl + 16,
     alignItems: 'center',
   },
   logo: {
