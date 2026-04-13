@@ -71,9 +71,11 @@ export const userService = {
   },
 
   unblockUser: async (blockedId: string): Promise<void> => {
+    const userId = (await supabase.auth.getUser()).data.user?.id ?? '';
     const { error } = await supabase
       .from('blocked_users')
       .delete()
+      .eq('blocker_id', userId)
       .eq('blocked_id', blockedId);
     if (error) throw error;
   },
