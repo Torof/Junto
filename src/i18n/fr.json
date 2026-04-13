@@ -200,6 +200,26 @@
     "blocked": "Utilisateur bloqué",
     "unblocked": "Utilisateur débloqué"
   },
+  "admin": {
+    "moderation": "Modération",
+    "pending": "En attente",
+    "resolved": "Traités",
+    "noReports": "Aucun signalement",
+    "reason": "Motif",
+    "targetId": "ID cible",
+    "note": "Note admin",
+    "notePlaceholder": "Note optionnelle...",
+    "dismiss": "Rejeter",
+    "action": "Sanctionner",
+    "dismissed": "Rejeté",
+    "actioned": "Sanctionné",
+    "suspendConfirm": "Suspendre cet utilisateur ?",
+    "suspendYes": "Oui, suspendre",
+    "targetUser": "Utilisateur",
+    "targetActivity": "Activité",
+    "targetWallMessage": "Message mur",
+    "targetPrivateMessage": "Message privé"
+  },
   "report": {
     "title": "Signaler",
     "subtitle": "Décris le problème. Ton signalement sera examiné par notre équipe.",

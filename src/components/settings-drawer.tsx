@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -27,6 +28,7 @@ interface SettingsDrawerProps {
 
 export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -39,9 +41,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
       if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; created_at: string; notification_preferences: NotificationPreferences } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: NotificationPreferences } | null;
     },
     retry: 2,
   });
@@ -155,6 +157,14 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   </View>
                 ))}
               </View>
+            )}
+
+            {/* Admin */}
+            {user?.is_admin && (
+              <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/admin/moderation'); }}>
+                <Text style={styles.rowLabel}>{t('admin.moderation')}</Text>
+                <Text style={styles.arrow}>›</Text>
+              </Pressable>
             )}
 
             {/* Logout */}

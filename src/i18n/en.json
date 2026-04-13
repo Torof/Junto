@@ -200,6 +200,26 @@
     "blocked": "User blocked",
     "unblocked": "User unblocked"
   },
+  "admin": {
+    "moderation": "Moderation",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "noReports": "No reports",
+    "reason": "Reason",
+    "targetId": "Target ID",
+    "note": "Admin note",
+    "notePlaceholder": "Optional note...",
+    "dismiss": "Dismiss",
+    "action": "Take action",
+    "dismissed": "Dismissed",
+    "actioned": "Actioned",
+    "suspendConfirm": "Suspend this user?",
+    "suspendYes": "Yes, suspend",
+    "targetUser": "User",
+    "targetActivity": "Activity",
+    "targetWallMessage": "Wall message",
+    "targetPrivateMessage": "Private message"
+  },
   "report": {
     "title": "Report",
     "subtitle": "Describe the issue. Your report will be reviewed by our team.",

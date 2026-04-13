@@ -27,9 +27,9 @@ export default function ProfilScreen() {
       if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, avatar_url, reliability_score, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
     retry: 2,
   });
