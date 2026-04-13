@@ -82,7 +82,7 @@ export function JuntoMapView({
   const cluster = useMemo(() => {
     const sc = new Supercluster<{ id: string }>({
       radius: 60,
-      maxZoom: 16,
+      maxZoom: 20,
     });
     const points: ActivityPoint[] = activities.map((a) => ({
       type: 'Feature',
@@ -209,7 +209,7 @@ export function JuntoMapView({
               coordinate={[lng, lat]}
             >
               <Pressable onPress={() => {
-                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId), 16);
+                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId), 20);
                 cameraRef.current?.setCamera({
                   centerCoordinate: [lng, lat],
                   zoomLevel: expansionZoom,
