@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -79,19 +79,20 @@ export default function VisitorMapScreen() {
 
   return (
     <View style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.statusBar} />
       <FilterButton onPress={() => setShowFilters(true)} />
       <ViewToggle />
 
-      {/* Sign in banner */}
-      <View style={[styles.banner, { top: insets.top + 48 }]}>
-        <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
-        <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
-          <Text style={styles.signInText}>{t('auth.signIn')}</Text>
-        </Pressable>
-      </View>
-
       {viewMode === 'map' ? (
         <>
+          {/* Sign in banner */}
+          <View style={styles.banner}>
+            <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
+            <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
+              <Text style={styles.signInText}>{t('auth.signIn')}</Text>
+            </Pressable>
+          </View>
+
           {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
           <JuntoMapView
@@ -124,9 +125,14 @@ export default function VisitorMapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  statusBar: {
+    backgroundColor: colors.background,
   },
   banner: {
     position: 'absolute',
+    top: 95,
     left: spacing.md,
     right: spacing.md,
     flexDirection: 'row',

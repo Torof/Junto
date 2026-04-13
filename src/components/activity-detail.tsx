@@ -243,6 +243,7 @@ export function ActivityDetail({
         creatorId={activity.creator_id}
         creatorName={activity.creator_name}
         creatorAvatar={activity.creator_avatar}
+        onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
       />
 
       {(isCreator || isAccepted) && (

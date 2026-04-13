@@ -14,9 +14,10 @@ interface ParticipantListProps {
   creatorId: string;
   creatorName: string;
   creatorAvatar?: string | null;
+  onProfilePress?: (userId: string) => void;
 }
 
-export function ParticipantList({ activityId, isCreator, creatorId, creatorName, creatorAvatar }: ParticipantListProps) {
+export function ParticipantList({ activityId, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -64,7 +65,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
 
       <View style={styles.avatarRow}>
         {/* Creator — always first */}
-        <Pressable style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${creatorId}`)}>
+        <Pressable style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(creatorId) : router.push(`/(auth)/profile/${creatorId}`)}>
           <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} />
           <View style={styles.organizerPill}>
             <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
@@ -77,7 +78,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
           <Text style={styles.subTitle}>{t('participants.pending', { count: (pending ?? []).length })}</Text>
           {(pending ?? []).map((p) => (
             <View key={p.participation_id} style={styles.pendingCard}>
-              <Pressable style={styles.pendingProfileLink} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+              <Pressable style={styles.pendingProfileLink} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
                 <Text style={styles.pendingName}>{p.display_name}</Text>
               </Pressable>
@@ -104,7 +105,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
 
         {/* Accepted participants (excluding creator) */}
         {otherAccepted.map((p) => (
-          <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}>
+          <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
             <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
           </Pressable>
         ))}

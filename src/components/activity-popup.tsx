@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -14,13 +15,14 @@ interface ActivityPopupProps {
 
 export function ActivityPopup({ activity, onViewDetail, onClose }: ActivityPopupProps) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   return (
     <Pressable style={styles.backdrop} onPress={onClose}>
-      <Pressable style={styles.card} onPress={() => {}}>
+      <Pressable style={[styles.card, { paddingBottom: insets.bottom + spacing.xl }]} onPress={() => {}}>
         <View style={styles.header}>
           <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
           <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     padding: spacing.lg,
-    paddingBottom: spacing.xl + 16,
+    paddingBottom: spacing.xl,
   },
   header: {
     flexDirection: 'row',
