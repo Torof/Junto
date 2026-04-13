@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
@@ -41,9 +41,11 @@ interface MapViewProps {
   activities?: NearbyActivity[];
   routeLine?: [number, number][];
   pins?: MapPin[];
+  userLocation?: [number, number] | null;
   onActivityPress?: (activity: NearbyActivity) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
+  flyTo?: { coordinate: [number, number]; key: number } | null;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -54,9 +56,11 @@ export function JuntoMapView({
   activities = [],
   routeLine,
   pins = [],
+  userLocation,
   onActivityPress,
   onMapPress,
   onBoundsChange,
+  flyTo,
 }: MapViewProps) {
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
@@ -85,6 +89,16 @@ export function JuntoMapView({
     () => cluster.getClusters(bounds, Math.floor(currentZoom)),
     [cluster, bounds, currentZoom],
   );
+
+  useEffect(() => {
+    if (flyTo && cameraRef.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: flyTo.coordinate,
+        zoomLevel: 13,
+        animationDuration: 500,
+      });
+    }
+  }, [flyTo?.key]);
 
   const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
     setCurrentZoom(state.properties.zoom);
@@ -129,6 +143,7 @@ export function JuntoMapView({
         }}
       />
 
+
       {routeLine && routeLine.length >= 2 && (
         <Mapbox.ShapeSource
           id="route-line"
@@ -148,6 +163,14 @@ export function JuntoMapView({
             }}
           />
         </Mapbox.ShapeSource>
+      )}
+
+      {userLocation && (
+        <Mapbox.MarkerView id="user-location" coordinate={userLocation}>
+          <View style={styles.userDotOuter}>
+            <View style={styles.userDotInner} />
+          </View>
+        </Mapbox.MarkerView>
       )}
 
       {pins.map((pin) => (
@@ -207,5 +230,21 @@ export function JuntoMapView({
 const styles = StyleSheet.create({
   map: {
     flex: 1,
+  },
+  userDotOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(66, 133, 244, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userDotInner: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#4285F4',
+    borderWidth: 2.5,
+    borderColor: '#fff',
   },
 });

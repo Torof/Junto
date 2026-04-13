@@ -4,12 +4,13 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
-import { ActivityList } from '@/components/activity-list';
+import { ActivitySearch } from '@/components/activity-search';
 import { ViewToggle } from '@/components/view-toggle';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { SearchAreaButton } from '@/components/search-area-button';
+import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
@@ -51,6 +52,7 @@ export default function CarteScreen() {
   const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [flyToKey, setFlyToKey] = useState(0);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
@@ -110,6 +112,7 @@ export default function CarteScreen() {
         <CreateButton />
         <FilterButton onPress={() => setShowFilters(true)} />
         <ViewToggle />
+        {viewMode === 'map' && <RecenterButton onPress={() => setFlyToKey((k) => k + 1)} />}
 
         {viewMode === 'map' ? (
           <>
@@ -118,6 +121,8 @@ export default function CarteScreen() {
             <JuntoMapView
               center={center}
               activities={filtered}
+              userLocation={center}
+              flyTo={flyToKey > 0 ? { coordinate: center, key: flyToKey } : null}
               onActivityPress={setSelectedActivity}
               onBoundsChange={handleBoundsChange}
             />
@@ -134,7 +139,7 @@ export default function CarteScreen() {
             )}
           </>
         ) : (
-          <ActivityList activities={filtered} routePrefix="/(auth)" />
+          <ActivitySearch activities={activities ?? []} userLocation={center} routePrefix="/(auth)" />
         )}
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />

@@ -1,13 +1,14 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '@/constants/theme';
-import { useMapStore } from '@/store/map-store';
 
-export function ViewToggle() {
-  const { viewMode, toggleViewMode } = useMapStore();
+interface RecenterButtonProps {
+  onPress: () => void;
+}
 
+export function RecenterButton({ onPress }: RecenterButtonProps) {
   return (
-    <Pressable style={styles.button} onPress={toggleViewMode}>
-      <Text style={styles.icon}>{viewMode === 'map' ? '🔍' : '🌍'}</Text>
+    <Pressable style={styles.button} onPress={onPress}>
+      <Text style={styles.icon}>◎</Text>
     </Pressable>
   );
 }
@@ -15,7 +16,7 @@ export function ViewToggle() {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: spacing.xl + 32,
+    bottom: spacing.xl - 16,
     right: spacing.md,
     backgroundColor: colors.background,
     borderRadius: radius.full,
@@ -28,6 +29,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
   },
   icon: {
-    fontSize: 18,
+    fontSize: 20,
+    color: '#4285F4',
   },
 });

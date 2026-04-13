@@ -102,6 +102,11 @@
     "via-ferrata": "Via ferrata",
     "slacklining": "Slacklining"
   },
+  "search": {
+    "distance": "Distance",
+    "results": "results",
+    "noResults": "No activities found"
+  },
   "sportDropdown": {
     "select": "Choose a sport",
     "selected": "sports"
