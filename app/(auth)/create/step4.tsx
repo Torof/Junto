@@ -18,7 +18,7 @@ export default function CreateStep4() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePublish = async () => {
-    if (!form.location_start || !form.starts_at) return;
+    if (!form.location_meeting || !form.starts_at) return;
 
     setIsLoading(true);
     try {
