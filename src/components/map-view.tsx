@@ -73,6 +73,7 @@ export function JuntoMapView({
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
+  const lastTap = useRef<{ id: string; time: number }>({ id: '', time: 0 });
 
   const activityMap = useMemo(
     () => new Map(activities.map((a) => [a.id, a])),
@@ -231,7 +232,22 @@ export function JuntoMapView({
             id={activity.id}
             coordinate={[lng, lat]}
           >
-            <Pressable onPress={() => onActivityPress?.(activity)}>
+            <Pressable onPress={() => {
+              const now = Date.now();
+              if (lastTap.current.id === activity.id && now - lastTap.current.time < 300) {
+                // Double tap — zoom to activity
+                cameraRef.current?.setCamera({
+                  centerCoordinate: [lng, lat],
+                  zoomLevel: Math.min(currentZoom + 3, 18),
+                  animationDuration: 400,
+                });
+                lastTap.current = { id: '', time: 0 };
+              } else {
+                // Single tap — show popup
+                lastTap.current = { id: activity.id, time: now };
+                onActivityPress?.(activity);
+              }
+            }}>
               <ActivityPin activity={activity} />
             </Pressable>
           </Mapbox.MarkerView>
@@ -242,12 +258,15 @@ export function JuntoMapView({
       {selectedActivity && popupContent && (() => {
         const viewCenter = (bounds[0] + bounds[2]) / 2;
         const isOnRight = selectedActivity.lng > viewCenter;
+        const lngSpan = Math.abs(bounds[2] - bounds[0]);
+        const offset = lngSpan * 0.01;
+        const popupLng = selectedActivity.lng + (isOnRight ? -offset : offset);
         return (
           <Mapbox.MarkerView
             key={`popup-${selectedActivity.id}`}
             id={`popup-${selectedActivity.id}`}
-            coordinate={[selectedActivity.lng, selectedActivity.lat]}
-            anchor={{ x: isOnRight ? 1.15 : -0.15, y: 0.5 }}
+            coordinate={[popupLng, selectedActivity.lat]}
+            anchor={{ x: isOnRight ? 1 : 0, y: 0.5 }}
           >
             <View>{popupContent}</View>
           </Mapbox.MarkerView>

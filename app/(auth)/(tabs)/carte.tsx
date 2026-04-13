@@ -76,7 +76,6 @@ export default function CarteScreen() {
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
     setTappedPoint(null);
-    setSelectedActivity(null);
 
     // First load — auto-search
     if (!initialSearchDone.current) {
