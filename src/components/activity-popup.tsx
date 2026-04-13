@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -14,7 +15,7 @@ interface ActivityPopupProps {
 }
 
 export function ActivityPopup({ activity, onViewDetail, onClose }: ActivityPopupProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
@@ -34,7 +35,7 @@ export function ActivityPopup({ activity, onViewDetail, onClose }: ActivityPopup
 
         <View style={styles.details}>
           <Text style={styles.detail}>
-            {dayjs(activity.starts_at).format('ddd D MMM · HH:mm')}
+            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
           </Text>
           <Text style={styles.detail}>
             {t('activity.level')}: {activity.level}

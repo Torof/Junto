@@ -37,7 +37,7 @@
   },
   "activity": {
     "level": "Level",
-    "places": "{{remaining}}/{{max}} places",
+    "places": "{{remaining}}/{{max}} places remaining",
     "viewDetail": "View activity",
     "join": "Join",
     "description": "Description",

@@ -109,7 +109,7 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        {viewMode === 'map' && (
+        {viewMode === 'map' && !selectedActivity && (
           <>
             <CreateButton />
             <FilterButton onPress={() => setShowFilters(true)} />
