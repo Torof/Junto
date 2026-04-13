@@ -253,6 +253,8 @@ export function ActivityDetail({
         onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
       />
 
+      {(isCreator || isAccepted) && <View style={styles.separator} />}
+
       {(isCreator || isAccepted) && (
         <ActivityWall
           activityId={activity.id}
@@ -329,6 +331,7 @@ const styles = StyleSheet.create({
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
   visibilityBadge: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, marginLeft: 'auto' },
   visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   moreButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
