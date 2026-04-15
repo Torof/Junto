@@ -223,7 +223,15 @@ export function JuntoMapView({
         </Mapbox.MarkerView>
       ))}
 
-      {clusters.map((feature) => {
+      {[...clusters]
+        .sort((a, b) => {
+          // Selected activity rendered last so its popup sits on top of other pins
+          const aSel = !('cluster' in a.properties && a.properties.cluster) && (a.properties as { id: string }).id === selectedActivity?.id;
+          const bSel = !('cluster' in b.properties && b.properties.cluster) && (b.properties as { id: string }).id === selectedActivity?.id;
+          if (aSel === bSel) return 0;
+          return aSel ? 1 : -1;
+        })
+        .map((feature) => {
         const lng = feature.geometry.coordinates[0] ?? 0;
         const lat = feature.geometry.coordinates[1] ?? 0;
         const props = feature.properties;
@@ -264,8 +272,9 @@ export function JuntoMapView({
             key={activity.id}
             id={activity.id}
             coordinate={[lng, lat]}
+            allowOverlap={isSelected}
           >
-            <View>
+            <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
               <Pressable onPress={() => {
                 const now = Date.now();
                 if (lastTap.current.id === activity.id && now - lastTap.current.time < 300) {
@@ -287,21 +296,33 @@ export function JuntoMapView({
               }}>
                 <ActivityPin activity={activity} />
               </Pressable>
-              {isSelected && popupContent && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    ...(isOnRight ? { right: '100%', marginRight: 8 } : { left: '100%', marginLeft: 8 }),
-                  }}
-                >
-                  {popupContent}
-                </View>
-              )}
             </View>
           </Mapbox.MarkerView>
         );
       })}
+
+      {/* Popup rendered as a separate MarkerView AFTER all pins so it always stacks on top */}
+      {selectedActivity && popupContent && (() => {
+        const popupOnRight = selectedActivity.lng <= (bounds[0] + bounds[2]) / 2;
+        // Anchor on the side facing the pin so the popup extends away from it
+        const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
+        return (
+          <Mapbox.MarkerView
+            key={`popup-${selectedActivity.id}`}
+            id={`popup-${selectedActivity.id}`}
+            coordinate={[selectedActivity.lng, selectedActivity.lat]}
+            allowOverlap
+            anchor={anchor}
+          >
+            <View
+              style={popupOnRight ? { marginLeft: 30 } : { marginRight: 30 }}
+              pointerEvents="box-none"
+            >
+              {popupContent}
+            </View>
+          </Mapbox.MarkerView>
+        );
+      })()}
     </Mapbox.MapView>
   );
 }

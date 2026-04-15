@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useFocusEffect } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,16 @@ function isWithinFetchedBounds(current: MapBounds, fetched: QueryBounds): boolea
   );
 }
 
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const dlat = lat2 - lat1;
   const dlng = lng2 - lng1;
@@ -55,6 +66,7 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 export default function CarteScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { center } = useInitialLocation();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -63,6 +75,7 @@ export default function CarteScreen() {
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
   const suppressMapPressUntil = useRef(0);
+  const selectionBoundsSpan = useRef<number | null>(null);
   const tutorialStep = useTutorialStore((s) => s.step);
   const setTutorialStep = useTutorialStore((s) => s.setStep);
   const tutorialChecked = useRef(false);
@@ -86,6 +99,18 @@ export default function CarteScreen() {
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
     setTappedPoint(null);
+
+    // Close the popup on zoom-out: track the smallest viewport span since selection,
+    // close when the current viewport grows 30%+ above that minimum.
+    if (selectionBoundsSpan.current !== null) {
+      const newSpan = Math.abs(bounds.neLng - bounds.swLng);
+      if (newSpan < selectionBoundsSpan.current) {
+        selectionBoundsSpan.current = newSpan;
+      } else if (newSpan > selectionBoundsSpan.current * 1.3) {
+        setSelectedActivity(null);
+        selectionBoundsSpan.current = null;
+      }
+    }
 
     // First load — auto-search
     if (!initialSearchDone.current) {
@@ -127,19 +152,28 @@ export default function CarteScreen() {
 
       if (userRow?.tutorial_seen_at) return;
 
-      // Always call — idempotent: reuses existing demo nearby, else creates one
-      const { data: demoId } = await supabase.rpc('seed_demo_activity' as 'join_activity', {
-        p_lng: center[0],
-        p_lat: center[1],
-      } as unknown as { p_activity_id: string });
-      if (demoId) useTutorialStore.getState().setDemoActivityId(demoId as unknown as string);
-      if ((activities ?? []).length === 0 && currentBounds.current) {
-        doSearch(currentBounds.current);
+      // Find the closest real activity around the user — tutorial uses it as target.
+      // No demo activity is created (avoids polluting other users' maps).
+      const list = activities ?? [];
+      if (list.length > 0) {
+        let nearest = list[0]!;
+        let nearestDist = haversine(center[1], center[0], nearest.lat, nearest.lng);
+        for (const a of list) {
+          const d = haversine(center[1], center[0], a.lat, a.lng);
+          if (d < nearestDist) {
+            nearest = a;
+            nearestDist = d;
+          }
+        }
+        useTutorialStore.getState().setDemoActivityId(nearest.id);
+        setTutorialStep('click_activity');
+      } else {
+        // No real activity nearby — skip the click-activity + open-popup steps,
+        // go straight to the alert step which is the most valuable part of the tutorial.
+        setTutorialStep('click_alert');
       }
-
-      setTutorialStep('click_activity');
     })();
-  }, [activities, center, doSearch, setTutorialStep]);
+  }, [activities, center, setTutorialStep]);
 
   // Advance tutorial when user taps a pin (popup appears)
   useEffect(() => {
@@ -161,8 +195,12 @@ export default function CarteScreen() {
   // Refresh activity statuses every time the map tab gets focus
   useFocusEffect(
     useCallback(() => {
-      void supabase.rpc('check_activity_transitions' as 'accept_tos');
-    }, [])
+      (async () => {
+        await supabase.rpc('check_activity_transitions' as 'accept_tos');
+        // Invalidate so the freshly-transitioned statuses are re-fetched
+        await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      })();
+    }, [queryClient])
   );
 
   // Final step: user taps the map → wrap up the tutorial
@@ -170,13 +208,7 @@ export default function CarteScreen() {
     if (tutorialStep === 'create_activity_hint' && tappedPoint) {
       (async () => {
         await supabase.rpc('mark_tutorial_seen' as 'accept_tos');
-        const demoId = useTutorialStore.getState().demoActivityId;
-        if (demoId) {
-          await supabase.rpc('delete_demo_activity' as 'join_activity', {
-            p_activity_id: demoId,
-          } as unknown as { p_activity_id: string });
-          useTutorialStore.getState().setDemoActivityId(null);
-        }
+        useTutorialStore.getState().setDemoActivityId(null);
         setTutorialStep('done');
       })();
     }
@@ -261,7 +293,12 @@ export default function CarteScreen() {
                   if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
                   router.push(`/(auth)/activity/${a.id}`);
                   setSelectedActivity(null);
+                  selectionBoundsSpan.current = null;
                 } else {
+                  // Snapshot the viewport span so we can detect a later zoom-out
+                  if (currentBounds.current) {
+                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
+                  }
                   // First tap: fly to the pin (offset to land at ~40% horizontally)
                   setFlyTarget([a.lng, a.lat]);
                   setFlyOffset({ x: 0.1 });
