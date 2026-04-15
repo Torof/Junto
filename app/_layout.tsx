@@ -39,6 +39,14 @@ function AuthGate() {
   useEffect(() => {
     if (isLoading) return;
 
+    // Cold-start guard: on the very first render, expo-router may not have
+    // processed the incoming deep link yet (segments will be empty). Wait
+    // until segments resolves to avoid redirecting away from the deep link.
+    if (segments.length === 0) {
+      setIsReady(true);
+      return;
+    }
+
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(visitor)' && (segments as string[])[1] === 'onboarding';
     const inSuspended = segments[0] === '(visitor)' && (segments as string[])[1] === 'suspended';
@@ -58,7 +66,10 @@ function AuthGate() {
     // Trigger activity status transitions once per session (no pg_cron available)
     if (isAuthenticated && !transitionRan.current) {
       transitionRan.current = true;
-      void supabase.rpc('check_activity_transitions' as 'accept_tos');
+      (async () => {
+        await supabase.rpc('check_activity_transitions' as 'accept_tos');
+        await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      })();
     }
   }, [isLoading, isAuthenticated, needsOnboarding, segments, router]);
 
@@ -66,7 +77,10 @@ function AuthGate() {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active' && isAuthenticated) {
-        void supabase.rpc('check_activity_transitions' as 'accept_tos');
+        (async () => {
+          await supabase.rpc('check_activity_transitions' as 'accept_tos');
+          await queryClient.invalidateQueries({ queryKey: ['activities'] });
+        })();
       }
     });
     return () => sub.remove();
