@@ -69,6 +69,7 @@ export function ActivitySearch({ activities, userLocation, routePrefix }: Activi
 
   return (
     <View style={styles.container}>
+      <Text style={styles.screenTitle}>{t('search.title')}</Text>
       {/* Filters */}
       <View style={styles.filters}>
         {/* Distance */}
@@ -183,6 +184,7 @@ export function ActivitySearch({ activities, userLocation, routePrefix }: Activi
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  screenTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingTop: spacing.md },
   filters: { padding: spacing.md, paddingBottom: 0 },
   filterLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.xs, marginTop: spacing.md },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },

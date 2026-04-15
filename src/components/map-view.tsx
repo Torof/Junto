@@ -49,7 +49,7 @@ interface MapViewProps {
   onActivityPress?: (activity: NearbyActivity) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
-  flyTo?: { coordinate: [number, number]; key: number } | null;
+  flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number } } | null;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -73,7 +73,28 @@ export function JuntoMapView({
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
+  const centerApplied = useRef<string>('');
   const lastTap = useRef<{ id: string; time: number }>({ id: '', time: 0 });
+  const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Follow `center` prop updates (e.g. GPS resolved after initial mount).
+  // Also: force a tiny camera bump on first mount so onCameraChanged fires
+  // (Mapbox sometimes skips the initial event, which leaves bounds stale
+  // and prevents the first activity search from running).
+  useEffect(() => {
+    const key = `${center[0]},${center[1]}`;
+    if (!cameraRef.current || centerApplied.current === key) return;
+    const isFirst = centerApplied.current === '';
+    centerApplied.current = key;
+    const timer = setTimeout(() => {
+      cameraRef.current?.setCamera({
+        centerCoordinate: isFirst ? [center[0] + 0.00001, center[1]] : center,
+        zoomLevel: zoom,
+        animationDuration: isFirst ? 0 : 300,
+      });
+    }, isFirst ? 250 : 0);
+    return () => clearTimeout(timer);
+  }, [center, zoom]);
 
   const activityMap = useMemo(
     () => new Map(activities.map((a) => [a.id, a])),
@@ -101,9 +122,17 @@ export function JuntoMapView({
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
+      const targetZoom = Math.max(13, currentZoom);
+      // Approximate viewport span in degrees at the target zoom (Web Mercator).
+      // ~360 / 2^zoom is the longitudinal width of one base tile across the screen.
+      const viewportLngSpan = 360 / Math.pow(2, targetZoom);
+      const viewportLatSpan = viewportLngSpan * Math.cos((flyTo.coordinate[1] * Math.PI) / 180);
+      const offsetX = (flyTo.offsetRatio?.x ?? 0) * viewportLngSpan;
+      const offsetY = (flyTo.offsetRatio?.y ?? 0) * viewportLatSpan;
       cameraRef.current.setCamera({
-        centerCoordinate: flyTo.coordinate,
-        zoomLevel: 13,
+        centerCoordinate: [flyTo.coordinate[0] + offsetX, flyTo.coordinate[1] + offsetY],
+        // Keep the current zoom if already zoomed in deeper than 13 (e.g. after expanding a cluster)
+        zoomLevel: targetZoom,
         animationDuration: 500,
       });
     }
@@ -236,13 +265,11 @@ export function JuntoMapView({
             id={activity.id}
             coordinate={[lng, lat]}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {isSelected && isOnRight && popupContent && (
-                <View style={{ marginRight: 8 }}>{popupContent}</View>
-              )}
+            <View>
               <Pressable onPress={() => {
                 const now = Date.now();
                 if (lastTap.current.id === activity.id && now - lastTap.current.time < 300) {
+                  if (tapTimeout.current) { clearTimeout(tapTimeout.current); tapTimeout.current = null; }
                   cameraRef.current?.setCamera({
                     centerCoordinate: [lng, lat],
                     zoomLevel: Math.min(currentZoom + 3, 18),
@@ -251,13 +278,25 @@ export function JuntoMapView({
                   lastTap.current = { id: '', time: 0 };
                 } else {
                   lastTap.current = { id: activity.id, time: now };
-                  onActivityPress?.(activity);
+                  if (tapTimeout.current) clearTimeout(tapTimeout.current);
+                  tapTimeout.current = setTimeout(() => {
+                    onActivityPress?.(activity);
+                    tapTimeout.current = null;
+                  }, 300);
                 }
               }}>
                 <ActivityPin activity={activity} />
               </Pressable>
-              {isSelected && !isOnRight && popupContent && (
-                <View style={{ marginLeft: 8 }}>{popupContent}</View>
+              {isSelected && popupContent && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    ...(isOnRight ? { right: '100%', marginRight: 8 } : { left: '100%', marginLeft: 8 }),
+                  }}
+                >
+                  {popupContent}
+                </View>
               )}
             </View>
           </Mapbox.MarkerView>

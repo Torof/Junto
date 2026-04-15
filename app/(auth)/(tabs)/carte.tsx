@@ -1,23 +1,27 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
-import { ActivitySearch } from '@/components/activity-search';
-import { ViewToggle } from '@/components/view-toggle';
+import { ActivitiesBottomSheet } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
+import { AlertButton } from '@/components/alert-button';
 import { SearchAreaButton } from '@/components/search-area-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
-import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
+import { useTutorialStore } from '@/store/tutorial-store';
+import { TutorialTooltip } from '@/components/tutorial-tooltip';
+import { supabase } from '@/services/supabase';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 
 const BUFFER = 0.5; // 50% buffer around viewport
@@ -52,11 +56,17 @@ export default function CarteScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { center } = useInitialLocation();
-  const { viewMode } = useMapStore();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
+  const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
+  const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
+  const suppressMapPressUntil = useRef(0);
+  const tutorialStep = useTutorialStore((s) => s.step);
+  const setTutorialStep = useTutorialStore((s) => s.setStep);
+  const tutorialChecked = useRef(false);
+  const [showAlertTooltip, setShowAlertTooltip] = useState(false);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
@@ -103,6 +113,75 @@ export default function CarteScreen() {
     }
   }, [searchBounds, doSearch]);
 
+  // Tutorial bootstrap: first visit check
+  useEffect(() => {
+    if (tutorialChecked.current) return;
+    if (!activities) return; // wait for first fetch
+    tutorialChecked.current = true;
+
+    (async () => {
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('tutorial_seen_at')
+        .single() as { data: { tutorial_seen_at: string | null } | null };
+
+      if (userRow?.tutorial_seen_at) return;
+
+      // Always call — idempotent: reuses existing demo nearby, else creates one
+      const { data: demoId } = await supabase.rpc('seed_demo_activity' as 'join_activity', {
+        p_lng: center[0],
+        p_lat: center[1],
+      } as unknown as { p_activity_id: string });
+      if (demoId) useTutorialStore.getState().setDemoActivityId(demoId as unknown as string);
+      if ((activities ?? []).length === 0 && currentBounds.current) {
+        doSearch(currentBounds.current);
+      }
+
+      setTutorialStep('click_activity');
+    })();
+  }, [activities, center, doSearch, setTutorialStep]);
+
+  // Advance tutorial when user taps a pin (popup appears)
+  useEffect(() => {
+    if (tutorialStep === 'click_activity' && selectedActivity) {
+      setTutorialStep('open_popup');
+    }
+  }, [tutorialStep, selectedActivity, setTutorialStep]);
+
+  // Delay the click_alert tooltip so it appears AFTER the activity screen transition finishes
+  useEffect(() => {
+    if (tutorialStep !== 'click_alert') {
+      setShowAlertTooltip(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowAlertTooltip(true), 800);
+    return () => clearTimeout(timer);
+  }, [tutorialStep]);
+
+  // Refresh activity statuses every time the map tab gets focus
+  useFocusEffect(
+    useCallback(() => {
+      void supabase.rpc('check_activity_transitions' as 'accept_tos');
+    }, [])
+  );
+
+  // Final step: user taps the map → wrap up the tutorial
+  useEffect(() => {
+    if (tutorialStep === 'create_activity_hint' && tappedPoint) {
+      (async () => {
+        await supabase.rpc('mark_tutorial_seen' as 'accept_tos');
+        const demoId = useTutorialStore.getState().demoActivityId;
+        if (demoId) {
+          await supabase.rpc('delete_demo_activity' as 'join_activity', {
+            p_activity_id: demoId,
+          } as unknown as { p_activity_id: string });
+          useTutorialStore.getState().setDemoActivityId(null);
+        }
+        setTutorialStep('done');
+      })();
+    }
+  }, [tutorialStep, tappedPoint, setTutorialStep]);
+
   const handleSearchArea = useCallback(() => {
     if (currentBounds.current) {
       doSearch(currentBounds.current);
@@ -114,17 +193,12 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        {viewMode === 'map' && (
-          <>
-            <CreateButton />
-            <FilterButton onPress={() => setShowFilters(true)} />
-            <ViewToggle />
-            <RecenterButton onPress={() => setFlyToKey((k) => k + 1)} />
-          </>
-        )}
+        <AlertButton blink={tutorialStep === 'click_alert' && showAlertTooltip} />
+        <CreateButton />
+        <FilterButton onPress={() => setShowFilters(true)} />
+        <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
 
-        {viewMode === 'map' ? (
-          <>
+        <>
             {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
             <JuntoMapView
@@ -134,7 +208,7 @@ export default function CarteScreen() {
               tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
-                  <Text style={styles.tapMarkerX}>✕</Text>
+                  <X size={22} color="#ef4444" strokeWidth={3} />
                   <View style={styles.createTooltipInline}>
                     <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
                     <View style={styles.createTooltipRow}>
@@ -147,7 +221,7 @@ export default function CarteScreen() {
                           router.push('/(auth)/create/step1');
                         }}
                       >
-                        <Text style={styles.createTooltipDot}>🔵</Text>
+                        <View style={[styles.createTooltipDot, { backgroundColor: '#3b82f6' }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
                       </Pressable>
                       <Pressable
@@ -159,33 +233,101 @@ export default function CarteScreen() {
                           router.push('/(auth)/create/step1');
                         }}
                       >
-                        <Text style={styles.createTooltipDot}>🟢</Text>
+                        <View style={[styles.createTooltipDot, { backgroundColor: '#22c55e' }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
                       </Pressable>
                     </View>
                   </View>
                 </View>
               ) : undefined}
-              flyTo={flyToKey > 0 ? { coordinate: center, key: flyToKey } : null}
+              flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
               selectedActivity={selectedActivity}
               popupContent={selectedActivity ? (
                 <ActivityPopup
                   activity={selectedActivity}
                   onPress={() => {
+                    suppressMapPressUntil.current = Date.now() + 400;
+                    if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
                     router.push(`/(auth)/activity/${selectedActivity.id}`);
                     setSelectedActivity(null);
                   }}
                 />
               ) : undefined}
-              onActivityPress={(a) => { setTappedPoint(null); setSelectedActivity(a); }}
-              onMapPress={(lng, lat) => { setSelectedActivity(null); setTappedPoint({ lng, lat }); }}
+              onActivityPress={(a) => {
+                setTappedPoint(null);
+                if (selectedActivity?.id === a.id) {
+                  // Second tap on the same pin → open the activity page
+                  suppressMapPressUntil.current = Date.now() + 400;
+                  if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
+                  router.push(`/(auth)/activity/${a.id}`);
+                  setSelectedActivity(null);
+                } else {
+                  // First tap: fly to the pin (offset to land at ~40% horizontally)
+                  setFlyTarget([a.lng, a.lat]);
+                  setFlyOffset({ x: 0.1 });
+                  setFlyToKey((k) => k + 1);
+                  setSelectedActivity(a);
+                }
+              }}
+              onMapPress={(lng, lat) => {
+                if (Date.now() < suppressMapPressUntil.current) return;
+                if (selectedActivity) { setSelectedActivity(null); return; }
+                setTappedPoint({ lng, lat });
+              }}
               onBoundsChange={handleBoundsChange}
             />
 
 
-          </>
-        ) : (
-          <ActivitySearch activities={activities ?? []} userLocation={center} routePrefix="/(auth)" />
+        </>
+
+        <ActivitiesBottomSheet
+          activities={filtered}
+          userLocation={center}
+          onItemPress={(a) => {
+            setFlyTarget([a.lng, a.lat]);
+            setFlyOffset({ x: 0.1 });
+            setFlyToKey((k) => k + 1);
+          }}
+        />
+
+        {tutorialStep === 'click_activity' && (
+          <TutorialTooltip
+            text={t('tutorial.clickActivity')}
+            position="bottom"
+            anchor={{ top: 100, left: 24, right: 24 }}
+            onDismiss={() => {
+              const demoId = useTutorialStore.getState().demoActivityId;
+              const demo = filtered.find((a) => a.id === demoId);
+              if (demo) {
+                // Camera south of pin → pin renders in upper area of the screen, just below the tooltip
+                setFlyTarget([demo.lng, demo.lat]);
+                setFlyOffset({ y: -0.2 });
+                setFlyToKey((k) => k + 1);
+              }
+            }}
+          />
+        )}
+        {tutorialStep === 'open_popup' && (
+          <TutorialTooltip
+            text={t('tutorial.openPopup')}
+            position="bottom"
+            anchor={{ top: 100, left: 24, right: 24 }}
+          />
+        )}
+        {tutorialStep === 'click_alert' && !selectedActivity && showAlertTooltip && (
+          <TutorialTooltip
+            text={t('tutorial.clickAlert')}
+            position="bottom"
+            anchor={{ bottom: 240, right: 8 }}
+            arrowAlign="right"
+          />
+        )}
+        {tutorialStep === 'create_activity_hint' && !tappedPoint && (
+          <TutorialTooltip
+            text={t('tutorial.createActivity')}
+            position="bottom"
+            anchor={{ bottom: 260, left: 24, right: 24 }}
+          />
         )}
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
@@ -202,11 +344,6 @@ const styles = StyleSheet.create({
   tapMarkerContent: {
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  tapMarkerX: {
-    color: '#ef4444',
-    fontSize: 24,
-    fontWeight: 'bold',
   },
   createTooltipInline: {
     alignItems: 'center',
@@ -241,7 +378,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   createTooltipDot: {
-    fontSize: 10,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   createTooltipOptionText: {
     color: '#000000',

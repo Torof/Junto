@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -8,10 +9,11 @@ import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/uti
 interface ActivityCardProps {
   activity: NearbyActivity;
   onPress: () => void;
+  distanceKm?: number;
 }
 
-export function ActivityCard({ activity, onPress }: ActivityCardProps) {
-  const { t } = useTranslation();
+export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProps) {
+  const { t, i18n } = useTranslation();
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
@@ -21,7 +23,7 @@ export function ActivityCard({ activity, onPress }: ActivityCardProps) {
       <View style={styles.top}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-        <Text style={styles.time}>{dayjs(activity.starts_at).format('ddd D MMM · HH:mm')}</Text>
+        <Text style={styles.time}>{dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}</Text>
       </View>
 
       <Text style={styles.title} numberOfLines={1}>
@@ -33,6 +35,9 @@ export function ActivityCard({ activity, onPress }: ActivityCardProps) {
         <Text style={styles.places}>
           {t('activity.places', { remaining, max: activity.max_participants })}
         </Text>
+        {distanceKm !== undefined && (
+          <Text style={styles.distance}>{distanceKm.toFixed(1)} km</Text>
+        )}
         <Text style={styles.creator}>{activity.creator_name}</Text>
       </View>
     </Pressable>
@@ -85,6 +90,11 @@ const styles = StyleSheet.create({
   places: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
+  },
+  distance: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
   },
   creator: {
     color: colors.textSecondary,

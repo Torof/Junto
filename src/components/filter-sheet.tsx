@@ -8,7 +8,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
 import { SportDropdown } from './sport-dropdown';
 
-const QUICK_OPTIONS = ['all', 'today', 'week'] as const;
+const QUICK_OPTIONS = ['all', 'today'] as const;
 
 interface FilterSheetProps {
   visible: boolean;

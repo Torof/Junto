@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fontSizes, radius } from '@/constants/theme';
-import { getRemainingPlaces } from '@/utils/activity-status';
+import { getActivityTimeStatus, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
 import { type NearbyActivity } from '@/services/activity-service';
 
@@ -15,10 +15,17 @@ export function ActivityPin({ activity }: ActivityPinProps) {
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const isFull = remaining === 0;
   const dotColor = isFull ? colors.error : colors.success;
+  const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
+  const circleStyle =
+    timeStatus === 'in_progress'
+      ? styles.circleInProgress
+      : timeStatus === 'soon'
+        ? styles.circleSoon
+        : null;
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.circle}>
+      <View style={[styles.circle, circleStyle]}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
       </View>
       <View style={[styles.dot, { backgroundColor: dotColor }]}>
@@ -43,6 +50,12 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  circleSoon: {
+    backgroundColor: colors.warning,
+  },
+  circleInProgress: {
+    backgroundColor: colors.success,
   },
   icon: {
     fontSize: 18,

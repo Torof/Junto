@@ -1,4 +1,5 @@
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { LocateFixed } from 'lucide-react-native';
 import { colors, spacing, radius } from '@/constants/theme';
 
 interface RecenterButtonProps {
@@ -8,7 +9,7 @@ interface RecenterButtonProps {
 export function RecenterButton({ onPress }: RecenterButtonProps) {
   return (
     <Pressable style={styles.button} onPress={onPress}>
-      <Text style={styles.icon}>◎</Text>
+      <LocateFixed size={22} color="#4285F4" strokeWidth={2.2} />
     </Pressable>
   );
 }
@@ -16,7 +17,7 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: spacing.xl - 16,
+    bottom: 40,
     right: spacing.md,
     backgroundColor: '#e5e5e5',
     borderRadius: radius.full,
@@ -27,9 +28,5 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderWidth: 1,
     borderColor: colors.surface,
-  },
-  icon: {
-    fontSize: 20,
-    color: '#4285F4',
   },
 });
