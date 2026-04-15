@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { wallService, type WallMessageWithProfile } from '@/services/wall-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
 import { supabase } from '@/services/supabase';
 
@@ -60,11 +61,11 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
       setMessage('');
       await queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : t('auth.unknownError');
+      const errMsg = err instanceof Error ? err.message : '';
       if (errMsg.includes('Operation not permitted')) {
         Burnt.toast({ title: t('wall.rateLimited') });
       } else {
-        Alert.alert(t('auth.error'), errMsg);
+        Alert.alert(t('auth.error'), getFriendlyError(err, 'sendWallMessage'));
       }
     } finally {
       setIsSending(false);

@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
+import { Calendar, BarChart2 } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -25,7 +26,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Date */}
       <View style={styles.row}>
-        <Text style={styles.label}>📅</Text>
+        <Calendar size={12} color="#555" strokeWidth={2} />
         <Text style={styles.value}>
           {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
         </Text>
@@ -33,7 +34,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Level */}
       <View style={styles.row}>
-        <Text style={styles.label}>📊</Text>
+        <BarChart2 size={12} color="#555" strokeWidth={2} />
         <Text style={styles.value}>{activity.level}</Text>
       </View>
 

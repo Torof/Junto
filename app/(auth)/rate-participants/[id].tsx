@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { participationService } from '@/services/participation-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES } from '@/services/badge-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { supabase } from '@/services/supabase';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 const ALL_BADGES = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
 
@@ -33,9 +34,33 @@ export default function RateParticipantsScreen() {
     enabled: !!activityId,
   });
 
+  const { data: existingVotes, isLoading: votesLoading } = useQuery({
+    queryKey: ['my-votes', activityId],
+    queryFn: async () => {
+      if (!activityId || !currentUserId) return [] as { voted_id: string }[];
+      const { data } = await supabase
+        .from('reputation_votes')
+        .select('voted_id')
+        .eq('voter_id', currentUserId)
+        .eq('activity_id', activityId);
+      return (data ?? []) as { voted_id: string }[];
+    },
+    enabled: !!activityId && !!currentUserId,
+  });
+
+  const ratedIds = new Set((existingVotes ?? []).map((v) => v.voted_id));
   const others = (participants ?? []).filter(
-    (p) => p.status === 'accepted' && p.user_id !== currentUserId,
+    (p) => p.status === 'accepted' && p.user_id !== currentUserId && !ratedIds.has(p.user_id),
   );
+
+  // Auto-close when nothing left to rate
+  useEffect(() => {
+    if (isLoading || votesLoading) return;
+    if ((participants ?? []).length > 0 && others.length === 0) {
+      const timer = setTimeout(() => router.back(), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, votesLoading, participants, others.length, router]);
 
   const toggleBadge = (userId: string, badgeKey: string) => {
     setSelections((prev) => {
@@ -58,10 +83,11 @@ export default function RateParticipantsScreen() {
       }
       await Promise.all(promises);
       await queryClient.invalidateQueries({ queryKey: ['reputation'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-votes', activityId] });
       Burnt.toast({ title: t('rate.submitted'), preset: 'done' });
       router.back();
-    } catch {
-      Alert.alert(t('auth.error'), t('auth.unknownError'));
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'rateParticipants'));
     } finally {
       setIsSaving(false);
     }
@@ -69,10 +95,18 @@ export default function RateParticipantsScreen() {
 
   const hasSelections = Object.values(selections).some((s) => s.size > 0);
 
-  if (isLoading) {
+  if (isLoading || votesLoading) {
     return (
       <View style={styles.center}>
         <Text style={styles.loadingText}>...</Text>
+      </View>
+    );
+  }
+
+  if ((participants ?? []).length > 0 && others.length === 0) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.title}>{t('rate.alreadyDone')}</Text>
       </View>
     );
   }

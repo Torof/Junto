@@ -1,11 +1,19 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
+import * as Location from 'expo-location';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
+import { getFriendlyError } from '@/utils/friendly-error';
+import { reliabilityService } from '@/services/reliability-service';
+import { PresenceQrModal } from './presence-qr-modal';
+import { PresenceScannerModal } from './presence-scanner-modal';
+import { LeaveActivityModal } from './leave-activity-modal';
+import { CancelActivityModal } from './cancel-activity-modal';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
@@ -33,16 +41,128 @@ export function ActivityDetail({
 }: ActivityDetailProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
+  const [isAtActivity, setIsAtActivity] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const startsAtMs2 = new Date(activity.starts_at).getTime();
+  const isLateLeave = Date.now() > startsAtMs2 - 12 * 3600 * 1000;
+
+  const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
+  const canShare = !isPrivateLink || isCreator;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {canShare && (
+            <Pressable onPress={handleShare} hitSlop={10} style={{ paddingHorizontal: spacing.sm }}>
+              <Share2 size={22} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          )}
+          {isCreator && (
+            <Pressable onPress={() => setShowMenu(true)} hitSlop={10} style={{ paddingHorizontal: spacing.sm }}>
+              <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          )}
+        </View>
+      ),
+    });
+  }, [navigation, isCreator, canShare]);
+
+  // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
+  const parseDurationMs = (d: string): number => {
+    if (d.includes(':')) {
+      const [h, m, s] = d.split(':').map(Number);
+      return ((h ?? 0) * 3600 + (m ?? 0) * 60 + (s ?? 0)) * 1000;
+    }
+    const match = d.match(/(\d+)\s*hour/);
+    return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
+  };
+
+  const startsAtMs = new Date(activity.starts_at).getTime();
+  const durationMs = parseDurationMs(activity.duration);
+  const nowMs = Date.now();
+  const isInPresenceWindow = nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
 
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
+
+  const alreadyConfirmed = !!participation?.confirmed_present;
+  const canCheckIn = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInPresenceWindow;
+
+  // Passive geo detection: silently check if the user is at the activity location
+  useEffect(() => {
+    if (!canCheckIn) return;
+    let cancelled = false;
+    (async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        const req = await Location.requestForegroundPermissionsAsync();
+        if (req.status !== 'granted') return;
+      }
+      try {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (cancelled) return;
+        const R = 6371000;
+        const distFromTo = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+          const dLat = ((lat2 - lat1) * Math.PI) / 180;
+          const dLng = ((lng2 - lng1) * Math.PI) / 180;
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+          return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+        const candidates: number[] = [
+          distFromTo(pos.coords.latitude, pos.coords.longitude, activity.lat, activity.lng),
+        ];
+        if (activity.meeting_lat != null && activity.meeting_lng != null) {
+          candidates.push(distFromTo(pos.coords.latitude, pos.coords.longitude, activity.meeting_lat, activity.meeting_lng));
+        }
+        if (activity.end_lat != null && activity.end_lng != null) {
+          candidates.push(distFromTo(pos.coords.latitude, pos.coords.longitude, activity.end_lat, activity.end_lng));
+        }
+        const minDist = Math.min(...candidates);
+        if (!cancelled) setIsAtActivity(minDist <= 150);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [canCheckIn, activity.lat, activity.lng]);
+
+  const handleCheckIn = async () => {
+    setIsConfirming(true);
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        const req = await Location.requestForegroundPermissionsAsync();
+        if (req.status !== 'granted') {
+          Alert.alert(t('auth.error'), t('presence.locationPermissionDenied'));
+          return;
+        }
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
+      await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   const handleJoin = async () => {
     if (!isAuthenticated) {
@@ -58,59 +178,61 @@ export function ActivityDetail({
       const isApproval = activity.visibility === 'approval' || activity.visibility === 'private_link_approval';
       Burnt.toast({ title: t(isApproval ? 'toast.requestSent' : 'toast.joinedActivity'), preset: 'done' });
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'joinActivity'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLeave = async () => {
+  const performLeave = async (reason?: string) => {
     setIsLoading(true);
     try {
-      await participationService.leave(activity.id);
+      await participationService.leave(activity.id, reason);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       Burnt.toast({ title: t('toast.leftActivity') });
+      setShowLeaveModal(false);
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'leaveActivity'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancel = async () => {
-    Alert.alert(t('activity.cancelConfirmTitle'), t('activity.cancelConfirmMessage'), [
-      { text: t('activity.no'), style: 'cancel' },
-      {
-        text: t('activity.yes'),
-        style: 'destructive',
-        onPress: async () => {
-          setIsLoading(true);
-          try {
-            await participationService.cancel(activity.id);
-            await queryClient.invalidateQueries({ queryKey: ['activities'] });
-            Burnt.toast({ title: t('toast.activityCancelled') });
-          } catch (err) {
-            Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
-          } finally {
-            setIsLoading(false);
-          }
-        },
-      },
-    ]);
+  const performCancel = async (reason: string) => {
+    setIsLoading(true);
+    try {
+      await participationService.cancel(activity.id, reason);
+      await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      Burnt.toast({ title: t('toast.activityCancelled') });
+      setShowCancelModal(false);
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'cancelActivity'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleShare = async () => {
     try {
-      const token = await activityService.getInviteToken(activity.id);
-      if (!token) return;
-      const link = `junto://invite/${token}`;
-      await Share.share({
-        message: `${activity.title} — ${link}`,
-      });
-    } catch {
-      // User cancelled share — do nothing
+      const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
+      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto.vercel.app';
+      let link: string;
+      if (isPrivateLink) {
+        // Only the creator can share private-link activities (token gated)
+        const token = await activityService.getInviteToken(activity.id);
+        if (!token) return;
+        link = `https://${webHost}/invite/${token}`;
+      } else {
+        link = `https://${webHost}/activity/${activity.id}`;
+      }
+      const sportLabel = t(`sports.${activity.sport_key}`, activity.sport_key);
+      const when = dayjs(activity.starts_at).format('ddd D MMM HH:mm');
+      const message = `${activity.title}\n${sportLabel} · ${when}\n\n${t('activity.shareJoin')}\n${link}`;
+      await Share.share({ message });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     }
   };
 
@@ -135,19 +257,19 @@ export function ActivityDetail({
         <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
         <View style={styles.visibilityBadge}>
-          <Text style={styles.visibilityText}>
-            {activity.visibility === 'public' ? '🌍' : activity.visibility === 'approval' ? '✋' : '🔒'} {t(`create.visibility.${activity.visibility}`)}
-          </Text>
+          {activity.visibility === 'public' ? (
+            <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
+          ) : activity.visibility === 'approval' ? (
+            <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
+          ) : (
+            <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
+          )}
+          <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
         </View>
       </View>
 
       <View style={styles.titleRow}>
         <Text style={styles.title}>{activity.title}</Text>
-        {isCreator && (
-          <Pressable style={styles.moreButton} onPress={() => setShowMenu(true)}>
-            <Text style={styles.moreText}>⋯</Text>
-          </Pressable>
-        )}
       </View>
 
       {!isActive && (
@@ -253,6 +375,63 @@ export function ActivityDetail({
         onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
       />
 
+      {canCheckIn && (
+        <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
+          <View style={styles.presenceHeader}>
+            <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
+            <Text style={styles.presenceTitle}>
+              {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
+            </Text>
+          </View>
+          <Text style={styles.presenceSubtitle}>
+            {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
+          </Text>
+          <View style={styles.presenceActions}>
+            <Pressable
+              style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
+              onPress={handleCheckIn}
+              disabled={isConfirming}
+            >
+              <Text style={styles.presenceButtonText} numberOfLines={1}>
+                {isConfirming ? '...' : t('presence.confirm')}
+              </Text>
+            </Pressable>
+            <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+              <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {isCreator && isInPresenceWindow && (
+        <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+          <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
+        </Pressable>
+      )}
+
+      <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
+      <PresenceScannerModal visible={showScanner} onClose={() => setShowScanner(false)} />
+      <LeaveActivityModal
+        visible={showLeaveModal}
+        isLate={isLateLeave}
+        isSubmitting={isLoading}
+        onCancel={() => setShowLeaveModal(false)}
+        onConfirm={performLeave}
+      />
+      <CancelActivityModal
+        visible={showCancelModal}
+        isSubmitting={isLoading}
+        onCancel={() => setShowCancelModal(false)}
+        onConfirm={performCancel}
+      />
+
+      {alreadyConfirmed && !isCreator && (
+        <View style={styles.presenceDone}>
+          <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
+          <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
+        </View>
+      )}
+
       {(isCreator || isAccepted) && <View style={styles.separator} />}
 
       {(isCreator || isAccepted) && (
@@ -275,7 +454,7 @@ export function ActivityDetail({
       {showLeaveButton && (
         <Pressable
           style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
-          onPress={handleLeave}
+          onPress={() => setShowLeaveModal(true)}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
@@ -302,15 +481,12 @@ export function ActivityDetail({
             <View style={styles.tooltip}>
               {isActive && (
                 <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); router.push(`/(auth)/edit/${activity.id}`); }}>
-                  <Text style={styles.tooltipIcon}>✏️</Text>
+                  <Pencil size={20} color={colors.textPrimary} strokeWidth={2} />
                 </Pressable>
               )}
-              <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); handleShare(); }}>
-                <Text style={styles.tooltipIcon}>🔗</Text>
-              </Pressable>
               {showCancelButton && (
-                <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); handleCancel(); }}>
-                  <Text style={styles.tooltipIconDanger}>✕</Text>
+                <Pressable style={styles.tooltipItem} onPress={() => { setShowMenu(false); setShowCancelModal(true); }}>
+                  <Trash2 size={20} color={colors.error} strokeWidth={2} />
                 </Pressable>
               )}
             </View>
@@ -324,40 +500,79 @@ export function ActivityDetail({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  visibilityBadge: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, marginLeft: 'auto' },
+  visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
   visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
-  moreButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
-  moreText: { fontSize: 20, color: colors.textSecondary, fontWeight: 'bold' },
-  inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  infoGrid: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm },
+  infoGrid: {
+    backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
+    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+  },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
   infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.sm, textTransform: 'uppercase' },
+  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
-  mapContainer: { height: 200, borderRadius: radius.md, overflow: 'hidden' },
+  mapContainer: {
+    height: 200, borderRadius: radius.lg, overflow: 'hidden',
+    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+  },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
   navigateText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
-  joinButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
+  presenceBlock: {
+    backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md,
+    marginTop: spacing.md, marginBottom: spacing.md, gap: spacing.sm,
+    borderWidth: 1, borderColor: colors.surface,
+  },
+  presenceBlockActive: {
+    borderColor: colors.success, backgroundColor: colors.success + '20',
+  },
+  presenceHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  presenceTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  presenceSubtitle: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  presenceActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  presenceButton: {
+    flex: 1, backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm, alignItems: 'center',
+  },
+  presenceButtonText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  presenceSecondaryButton: {
+    flex: 1, backgroundColor: 'transparent', borderRadius: radius.full,
+    paddingVertical: spacing.sm, alignItems: 'center',
+    borderWidth: 1, borderColor: colors.textPrimary,
+  },
+  presenceSecondaryText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  presenceCreatorButton: {
+    backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingVertical: spacing.md, alignItems: 'center',
+    marginTop: spacing.sm, marginBottom: spacing.sm,
+    borderWidth: 1, borderColor: colors.cta,
+  },
+  presenceCreatorText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  presenceDone: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
+  },
+  presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
@@ -366,7 +581,7 @@ const styles = StyleSheet.create({
   tooltip: {
     position: 'absolute', top: 90, right: spacing.lg,
     flexDirection: 'row', gap: spacing.sm,
-    backgroundColor: '#ffffff', borderRadius: radius.md,
+    backgroundColor: colors.surface, borderRadius: radius.full,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
     elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
   },

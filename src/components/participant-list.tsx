@@ -36,6 +36,26 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
     staleTime: 0,
   });
 
+  const { data: lateLeavers } = useQuery({
+    queryKey: ['participants-late-leavers', activityId],
+    queryFn: () => participationService.getLateLeaversForCreator(activityId),
+    enabled: isCreator,
+    staleTime: 0,
+  });
+
+  const handleWaive = async (participationId: string) => {
+    setLoadingId(participationId);
+    try {
+      await participationService.waivePenalty(participationId);
+      await queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activityId] });
+      Burnt.toast({ title: t('participants.penaltyWaived'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   // Filter out creator from accepted list (shown separately above)
   const otherAccepted = (accepted ?? []).filter((p) => p.user_id !== creatorId);
 
@@ -103,6 +123,35 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
         </>
       )}
 
+        {/* Late leavers (creator only) */}
+        {isCreator && (lateLeavers ?? []).length > 0 && (
+          <View style={styles.lateLeaversBlock}>
+            <Text style={styles.subTitle}>{t('participants.lateLeavers')}</Text>
+            {(lateLeavers ?? []).map((p) => (
+              <View key={p.participation_id} style={styles.pendingCard}>
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
+                <View style={styles.lateLeaverInfo}>
+                  <Text style={styles.pendingName}>{p.display_name}</Text>
+                  {p.left_reason && (
+                    <Text style={styles.lateLeaverReason} numberOfLines={2}>{p.left_reason}</Text>
+                  )}
+                </View>
+                {p.penalty_waived ? (
+                  <Text style={styles.waivedTag}>{t('participants.penaltyWaivedTag')}</Text>
+                ) : (
+                  <Pressable
+                    style={[styles.waiveBtn, loadingId === p.participation_id && styles.disabled]}
+                    onPress={() => handleWaive(p.participation_id)}
+                    disabled={loadingId === p.participation_id}
+                  >
+                    <Text style={styles.waiveBtnText}>{t('participants.waive')}</Text>
+                  </Pressable>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Accepted participants (excluding creator) */}
         {otherAccepted.map((p) => (
           <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
@@ -130,4 +179,13 @@ const styles = StyleSheet.create({
   refuseBtn: { backgroundColor: colors.error, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   btnText: { color: colors.textPrimary, fontSize: 16, fontWeight: 'bold' },
   disabled: { opacity: 0.4 },
+  lateLeaversBlock: { width: '100%', gap: spacing.xs, marginBottom: spacing.sm },
+  lateLeaverInfo: { flex: 1, marginLeft: spacing.sm, gap: 2 },
+  lateLeaverReason: { color: colors.textSecondary, fontSize: fontSizes.xs, fontStyle: 'italic' },
+  waiveBtn: {
+    backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.cta,
+    borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4,
+  },
+  waiveBtnText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  waivedTag: { color: colors.success, fontSize: fontSizes.xs, fontStyle: 'italic' },
 });

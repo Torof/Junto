@@ -10,6 +10,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { activityService } from '@/services/activity-service';
 import { supabase } from '@/services/supabase';
 import { LEVELS } from '@/types/activity-form';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 const VISIBILITIES = ['public', 'approval', 'private_link', 'private_link_approval'] as const;
 
@@ -89,7 +90,7 @@ export default function EditActivityScreen() {
       Burnt.toast({ title: t('toast.activityUpdated'), preset: 'done' });
       router.back();
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'updateActivity'));
     } finally {
       setIsSaving(false);
     }

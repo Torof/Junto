@@ -10,6 +10,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { messageService, type PrivateMessage } from '@/services/message-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -107,8 +108,8 @@ export default function ConversationScreen() {
       await messageService.edit(selectedMessage!.id, editContent.trim());
       await queryClient.invalidateQueries({ queryKey: ['messages', id] });
       Burnt.toast({ title: t('messagerie.messageEdited'), preset: 'done' });
-    } catch {
-      Alert.alert(t('auth.error'), t('auth.unknownError'));
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'sendMessage'));
     }
     setIsEditMode(false);
     setEditContent('');

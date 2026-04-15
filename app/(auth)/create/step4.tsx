@@ -9,6 +9,7 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useCreateStore } from '@/store/create-store';
 import { activityService } from '@/services/activity-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 export default function CreateStep4() {
   const { t, i18n } = useTranslation();
@@ -56,7 +57,7 @@ export default function CreateStep4() {
 
       router.replace('/(auth)/(tabs)/carte');
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'createActivity'));
     } finally {
       setIsLoading(false);
     }
