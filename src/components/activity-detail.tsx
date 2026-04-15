@@ -217,7 +217,7 @@ export function ActivityDetail({
   const handleShare = async () => {
     try {
       const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
-      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto.vercel.app';
+      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto-nine.vercel.app';
       let link: string;
       if (isPrivateLink) {
         // Only the creator can share private-link activities (token gated)
