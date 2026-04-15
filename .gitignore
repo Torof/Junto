@@ -41,3 +41,5 @@ Thumbs.db
 *.aab
 *.ipa
 supabase/.temp/
+google-services.json
+*firebase-adminsdk*.json
