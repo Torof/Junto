@@ -13,6 +13,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const friendlyAuthError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes('invalid login credentials')) return t('auth.errInvalidCredentials');
+    if (m.includes('email not confirmed')) return t('auth.errEmailNotConfirmed');
+    if (m.includes('user already registered') || m.includes('already been registered')) return t('auth.errEmailTaken');
+    if (m.includes('password should be at least')) return t('auth.errPasswordTooShort');
+    if (m.includes('unable to validate email') || m.includes('invalid email')) return t('auth.errInvalidEmail');
+    if (m.includes('rate limit') || m.includes('too many requests')) return t('auth.errRateLimit');
+    if (m.includes('network')) return t('auth.errNetwork');
+    return raw;
+  };
+
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) return;
     setIsLoading(true);
@@ -24,7 +36,8 @@ export default function LoginScreen() {
         await authService.signInWithEmail(email.trim(), password);
       }
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      const raw = err instanceof Error ? err.message : t('auth.unknownError');
+      Alert.alert(t('auth.error'), friendlyAuthError(raw));
     } finally {
       setIsLoading(false);
     }

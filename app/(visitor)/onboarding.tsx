@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
@@ -39,7 +40,29 @@ export default function OnboardingScreen() {
       const { error: tosError } = await supabase.rpc('accept_tos');
       if (tosError) throw tosError;
 
-      router.replace('/(auth)/(tabs)/carte');
+      // Verify we can read the updated row — if not, surface why
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        Alert.alert('Debug', 'No session after RPCs');
+        return;
+      }
+      const { data: row, error: rowErr } = await supabase
+        .from('users')
+        .select('date_of_birth, accepted_tos_at')
+        .eq('id', session.user.id)
+        .single();
+
+      if (rowErr) {
+        Alert.alert('Debug', 'Row fetch error: ' + rowErr.message);
+        return;
+      }
+      if (!row?.date_of_birth || !row?.accepted_tos_at) {
+        Alert.alert('Debug', `Row still incomplete: dob=${row?.date_of_birth} tos=${row?.accepted_tos_at}`);
+        return;
+      }
+
+      useAuthStore.getState().triggerRefresh();
+      setTimeout(() => router.replace('/(auth)/(tabs)/carte'), 300);
     } catch (err) {
       Alert.alert(t('onboarding.error'), err instanceof Error ? err.message : t('auth.unknownError'));
     } finally {
