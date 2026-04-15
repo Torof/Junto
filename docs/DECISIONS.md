@@ -83,3 +83,47 @@ Log des décisions techniques non évidentes. Ce fichier capture le "pourquoi" d
 **Décision :** Le profil public affiche uniquement des stats agrégées (nombre d'activités complétées, sports pratiqués, membre depuis). L'historique détaillé des activités (lieux, dates, co-participants) reste privé dans l'onglet "Mes activités" de l'utilisateur.
 **Pourquoi :** Exposer l'historique d'activités permet de tracer les habitudes de déplacement d'un utilisateur (lieux fréquentés, jours, horaires). Pour une app qui met en contact des inconnus en plein air, c'est un risque de sécurité personnelle. Les stats agrégées donnent les signaux de confiance (expérience, régularité) sans exposer les patterns de localisation. Le système de réputation/badges (Sprint 8) complètera ces signaux.
 **Alternative considérée :** Historique avec précision réduite (sans lieux exacts) — rejeté car même les titres d'activités et dates peuvent révéler des patterns.
+
+
+## 2026-04-15 — Coordination transport : spec prête, shipping reporté
+
+**Décision :** Feature de coordination transport entre participants (déclaration du moyen de transport + ville de départ) spécifiée entièrement, mais pas shippée tant qu'un besoin réel ne remonte pas des testeurs.
+
+**Pourquoi :** Le besoin est réel pour les sports outdoor asymétriques (parapente, randos one-way, canyon, ski de rando) — un pilote parapente l'a évoqué spontanément. Mais avec un petit cercle de testeurs qui se connaissent et peuvent se coordonner par DM, la valeur de la feature est nulle à ce stade. Shipping maintenant = 2-3h de dev sans signal d'usage. Attendre qu'un testeur demande explicitement la feature garantit qu'elle répond à un besoin ressenti, pas imposé.
+
+**Spec complète (à implémenter au signal) :**
+
+Activation :
+- Nouveau boolean `transport_coordination` sur `activities` (default false). Toggle optionnel à la création de l'activité : "Coordination transport — permet aux participants d'indiquer comment ils viennent".
+
+Données (sur `participations`) :
+- `transport_type TEXT` — enum : `'driver' | 'lift_needed' | 'public' | 'own_way' | 'undecided'`
+- `transport_from_name TEXT` — nom de la ville/arrondissement (ex: "Briançon", "Paris 15e")
+- `transport_from_lng FLOAT`, `transport_from_lat FLOAT` — coords géocodées (pour clustering v2)
+- `transport_seats SMALLINT` — uniquement si driver (1–4)
+- Colonnes protégées par le whitelist trigger ; écriture via `set_participation_transport(...)` RPC.
+
+Sélection du lieu de départ :
+- Google Places autocomplete avec `types=(cities)` — limite aux villes et districts. Pas d'adresse précise (overkill pour du covoiturage). Pas de free-text (data trop bruitée pour clustering futur).
+
+Flow participant :
+- Sur activité avec `transport_coordination = true`, prompt léger après acceptation/join. Formulaire : 5 pills (tap-to-select). Champ "Partir de" conditionnel (affiché seulement pour driver et lift_needed). Skip aussi visible que Valider.
+- Modifiable n'importe quand via section "Transport" de l'activité.
+
+Affichage sur l'activité (si toggle activé) :
+- Section "Transport" collapsed par défaut (juste titre + chevron). Expand → liste groupée par type (🚗 Conducteurs / 🙋 Passagers / 🚌 Transport en commun / 🚲 Moyens propres), avec ville de départ et nombre de places. Entête résumé : "2 conducteurs · 3 passagers". Lien "Modifier mon transport" en bas de section.
+- Tri interne par nom de ville → clustering visuel naturel (toutes les personnes d'une même ville groupées).
+- Si toggle désactivé : section pas rendue du tout, aucune mention.
+
+Ce qui est explicitement **out of scope v1** :
+- Pas de matching automatique conducteur/passager. v1 = affichage uniquement, les gens se DM.
+- Pas d'icône transport dans la liste des participants (cluttererait la vue).
+- Pas de banner/nudge pour les activités one-way (la présence de la section suffit).
+- Pas de free-text (Places-only).
+
+Signal déclencheur pour shipping : au moins 2 testeurs distincts demandant spontanément la feature, OU expansion vers un groupe de testeurs parapente/rando où le besoin est immédiat.
+
+**Alternatives considérées :**
+- Champ libre "Comment venir" côté créateur — passif, ne couvre pas le besoin "je cherche un lift".
+- Outil de covoiturage complet avec matching auto — over-engineering, territoire BlaBlaCar.
+- Intégration avec `location_end` pour détecter automatiquement les activités one-way — utile pour v2 si on ajoute le banner, mais pas pour la spec minimale.

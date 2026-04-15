@@ -19,31 +19,31 @@
 
 | I'm about to... | Read first |
 |-----------------|-----------|
-| Start any work | This file (auto-loaded) + `BACKLOG.md` task description |
-| Start a new sprint | `BACKLOG.md` + `WORKING_MODE.md` |
-| Write a migration / create a table | `SECURITY.md` → "Pattern migration obligatoire" + "Matrice RLS complète" (for this table) + "Contraintes UNIQUE et CHECK" + "Stratégie de suppression par table" + "Colonnes privilégiées" |
-| Add a column to an existing table | `SECURITY.md` → "Colonnes privilégiées" (add to whitelist trigger if privileged) |
-| Write a Postgres function | `SECURITY.md` → "Chaîne d'autorisation complète par fonction" (for this function) + "SECURITY DEFINER" + "Exposition des fonctions via PostgREST" |
-| Write a function that rate-limits | `SECURITY.md` → "Rate Limiting" (for limits) + "Intégrité des données" (advisory locks) |
-| Build a screen or component | `UX_UI.md` for design + `PRODUCT.md` for behavior |
+| Start any work | This file (auto-loaded) + `docs/BACKLOG.md` task description |
+| Start a new sprint | `docs/BACKLOG.md` + `docs/WORKING_MODE.md` |
+| Write a migration / create a table | `docs/SECURITY.md` → "Pattern migration obligatoire" + "Matrice RLS complète" (for this table) + "Contraintes UNIQUE et CHECK" + "Stratégie de suppression par table" + "Colonnes privilégiées" |
+| Add a column to an existing table | `docs/SECURITY.md` → "Colonnes privilégiées" (add to whitelist trigger if privileged) |
+| Write a Postgres function | `docs/SECURITY.md` → "Chaîne d'autorisation complète par fonction" (for this function) + "SECURITY DEFINER" + "Exposition des fonctions via PostgREST" |
+| Write a function that rate-limits | `docs/SECURITY.md` → "Rate Limiting" (for limits) + "Intégrité des données" (advisory locks) |
+| Build a screen or component | `docs/UX_UI.md` for design + `docs/PRODUCT.md` for behavior |
 | Build a query that shows user info | Always JOIN on `public_profiles`, not `users`. See "Limitation RLS : colonnes" |
-| Work on notifications | `SECURITY.md` → "Notifications push — contenu" |
-| Work on blocking | `SECURITY.md` → "Blocage — directionnalité" |
-| Work on storage / upload | `SECURITY.md` → "Storage" (buckets, policies, validation) |
-| Work on user deletion | `SECURITY.md` → "Suppression de compte — Edge Function" + "Stratégie de suppression par table" |
-| Work on tier changes / Stripe | `SECURITY.md` → "Changement de tier" + "Stripe webhook idempotency" |
-| Set up Supabase config | `SECURITY.md` → "Configuration Supabase" |
-| Make an architectural decision | `DECISIONS.md` — check if already decided, log new ones |
-| Doubt how we work | `WORKING_MODE.md` |
+| Work on notifications | `docs/SECURITY.md` → "Notifications push — contenu" |
+| Work on blocking | `docs/SECURITY.md` → "Blocage — directionnalité" |
+| Work on storage / upload | `docs/SECURITY.md` → "Storage" (buckets, policies, validation) |
+| Work on user deletion | `docs/SECURITY.md` → "Suppression de compte — Edge Function" + "Stratégie de suppression par table" |
+| Work on tier changes / Stripe | `docs/SECURITY.md` → "Changement de tier" + "Stripe webhook idempotency" |
+| Set up Supabase config | `docs/SECURITY.md` → "Configuration Supabase" |
+| Make an architectural decision | `docs/DECISIONS.md` — check if already decided, log new ones |
+| Doubt how we work | `docs/WORKING_MODE.md` |
 
 ## References
-- Product definition → `PRODUCT.md`
-- Tech stack & architecture → `TECH_STACK.md`
-- UX/UI design system → `UX_UI.md`
-- Development process & conventions → `WORKING_MODE.md`
-- Security model → `SECURITY.md`
-- Sprint backlog → `BACKLOG.md`
-- Technical decisions log → `DECISIONS.md`
+- Product definition → `docs/PRODUCT.md`
+- Tech stack & architecture → `docs/TECH_STACK.md`
+- UX/UI design system → `docs/UX_UI.md`
+- Development process & conventions → `docs/WORKING_MODE.md`
+- Security model → `docs/SECURITY.md`
+- Sprint backlog → `docs/BACKLOG.md`
+- Technical decisions log → `docs/DECISIONS.md`
 
 ## Stack (quick reference)
 - React Native + Expo + TypeScript
@@ -63,7 +63,7 @@
 - Services: `xService` (`activityService.ts`)
 - Colors/spacing/typography: always from `@/constants/theme` — never hardcoded
 - Imports: always use path aliases (`@/components/...`)
-- Commit format: conventional commits, double `-m` — see `WORKING_MODE.md` for prefixes and examples
+- Commit format: conventional commits, double `-m` — see `docs/WORKING_MODE.md` for prefixes and examples
 - Commit language: English
 - Database: UTC for all timestamps, constraints on every column, RLS on every table
 
@@ -94,12 +94,12 @@
 11. Add the function to the SECURITY.md function classification table
 
 ## Before Any Feature
-1. Read `BACKLOG.md` task description (contains security requirements and edge cases)
-2. Read `PRODUCT.md` for business rules + `UX_UI.md` for design — verify behavior and appearance
+1. Read `docs/BACKLOG.md` task description (contains security requirements and edge cases)
+2. Read `docs/PRODUCT.md` for business rules + `docs/UX_UI.md` for design — verify behavior and appearance
 3. Present approach to Scott (what, how, which files)
 4. Wait for explicit validation
 5. Code the feature
-6. Commit with conventional commit format (see `WORKING_MODE.md` for prefixes/examples)
+6. Commit with conventional commit format (see `docs/WORKING_MODE.md` for prefixes/examples)
 7. Scott tests on Expo dev build
 8. Iterate if needed
 9. Merge to main only after Scott's validation
