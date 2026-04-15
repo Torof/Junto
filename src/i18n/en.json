@@ -427,6 +427,8 @@
     "step": "Step {{current}}/{{total}}",
     "step1Title": "What sport?",
     "step3Title": "Visibility",
+    "presenceTitle": "Presence verification",
+    "presenceDesc": "Enabled by default. Turn off for very casual outings (gym, slackline, coffee…).",
     "step4Title": "Summary",
     "sport": "Sport",
     "title": "Title",

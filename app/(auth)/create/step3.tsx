@@ -69,6 +69,20 @@ export default function CreateStep3() {
         })}
       </View>
 
+      {/* Presence verification toggle */}
+      <Pressable
+        style={[styles.toggleRow]}
+        onPress={() => updateForm({ requires_presence: !(form.requires_presence ?? true) })}
+      >
+        <View style={{ flex: 1, marginRight: spacing.md }}>
+          <Text style={styles.toggleTitle}>{t('create.presenceTitle')}</Text>
+          <Text style={styles.toggleDesc}>{t('create.presenceDesc')}</Text>
+        </View>
+        <View style={[styles.toggleSwitch, (form.requires_presence ?? true) && styles.toggleSwitchOn]}>
+          <View style={[styles.toggleKnob, (form.requires_presence ?? true) && styles.toggleKnobOn]} />
+        </View>
+      </Pressable>
+
       <Pressable
         style={styles.nextButton}
         onPress={() => router.push('/(auth)/create/step4')}
@@ -95,4 +109,19 @@ const styles = StyleSheet.create({
   optionDesc: { color: colors.textSecondary, fontSize: fontSizes.sm },
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xl },
   nextText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  toggleRow: {
+    flexDirection: 'row', alignItems: 'center', marginTop: spacing.xl,
+    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md,
+  },
+  toggleTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', marginBottom: 2 },
+  toggleDesc: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16 },
+  toggleSwitch: {
+    width: 44, height: 26, borderRadius: 13,
+    backgroundColor: colors.background, padding: 3, justifyContent: 'center',
+  },
+  toggleSwitchOn: { backgroundColor: colors.cta },
+  toggleKnob: {
+    width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary,
+  },
+  toggleKnobOn: { backgroundColor: '#fff', alignSelf: 'flex-end' },
 });

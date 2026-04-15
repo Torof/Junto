@@ -29,6 +29,7 @@ export const activityFormSchema = z.object({
   duration_minutes: z.number().min(0).max(59),
   // Step 3
   visibility: z.enum(['public', 'approval', 'private_link', 'private_link_approval']),
+  requires_presence: z.boolean().default(true).optional(),
 });
 
 export type ActivityFormData = z.infer<typeof activityFormSchema>;

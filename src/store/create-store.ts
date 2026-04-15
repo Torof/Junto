@@ -13,6 +13,7 @@ interface CreateFormState {
   duration_hours: number;
   duration_minutes: number;
   visibility: 'public' | 'approval' | 'private_link' | 'private_link_approval';
+  requires_presence: boolean;
 }
 
 interface CreateStore {
@@ -34,6 +35,7 @@ const DEFAULT_FORM: CreateFormState = {
   duration_hours: 2,
   duration_minutes: 0,
   visibility: 'public',
+  requires_presence: true,
 };
 
 export const useCreateStore = create<CreateStore>((set) => ({

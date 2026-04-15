@@ -36,6 +36,7 @@ export default function CreateStep4() {
         duration_hours: form.duration_hours,
         duration_minutes: form.duration_minutes,
         visibility: form.visibility,
+        requires_presence: form.requires_presence ?? true,
       });
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });

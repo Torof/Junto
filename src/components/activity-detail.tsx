@@ -56,7 +56,8 @@ export function ActivityDetail({
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const startsAtMs2 = new Date(activity.starts_at).getTime();
-  const isLateLeave = Date.now() > startsAtMs2 - 12 * 3600 * 1000;
+  const isLateLeave = activity.requires_presence !== false
+    && Date.now() > startsAtMs2 - 12 * 3600 * 1000;
 
   const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
   const canShare = !isPrivateLink || isCreator;
@@ -93,7 +94,8 @@ export function ActivityDetail({
   const startsAtMs = new Date(activity.starts_at).getTime();
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
-  const isInPresenceWindow = nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
+  const requiresPresence = activity.requires_presence !== false;
+  const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
 
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
