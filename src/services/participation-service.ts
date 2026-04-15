@@ -18,6 +18,7 @@ export interface Participation {
   status: string;
   created_at: string;
   left_at: string | null;
+  confirmed_present: boolean | null;
 }
 
 export const participationService = {
@@ -43,10 +44,11 @@ export const participationService = {
     if (error) throw error;
   },
 
-  leave: async (activityId: string): Promise<void> => {
+  leave: async (activityId: string, reason?: string): Promise<void> => {
     const { error } = await supabase.rpc('leave_activity', {
       p_activity_id: activityId,
-    });
+      p_reason: reason ?? null,
+    } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
 
@@ -57,10 +59,18 @@ export const participationService = {
     if (error) throw error;
   },
 
-  cancel: async (activityId: string): Promise<void> => {
+  cancel: async (activityId: string, reason: string): Promise<void> => {
     const { error } = await supabase.rpc('cancel_activity', {
       p_activity_id: activityId,
-    });
+      p_reason: reason,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  waivePenalty: async (participationId: string): Promise<void> => {
+    const { error } = await supabase.rpc('waive_late_cancel_penalty' as 'join_activity', {
+      p_participation_id: participationId,
+    } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
 
@@ -70,7 +80,7 @@ export const participationService = {
 
     const { data, error } = await supabase
       .from('participations')
-      .select('id, activity_id, user_id, status, created_at, left_at')
+      .select('id, activity_id, user_id, status, created_at, left_at, confirmed_present')
       .eq('activity_id', activityId)
       .eq('user_id', userId)
       .maybeSingle();
@@ -86,6 +96,45 @@ export const participationService = {
       .order('created_at');
     if (error) throw error;
     return (data ?? []) as unknown as ParticipantInfo[];
+  },
+
+  getLateLeaversForCreator: async (activityId: string): Promise<{
+    participation_id: string;
+    user_id: string;
+    display_name: string;
+    avatar_url: string | null;
+    left_at: string;
+    left_reason: string | null;
+    penalty_waived: boolean;
+  }[]> => {
+    const { data, error } = await supabase
+      .from('participations')
+      .select('id, user_id, left_at, left_reason, penalty_waived, public_profiles!inner(display_name, avatar_url), activities!inner(starts_at)' as 'id')
+      .eq('activity_id', activityId)
+      .eq('status' as 'user_id', 'withdrawn')
+      .not('left_at' as 'user_id', 'is', null);
+    if (error) throw error;
+    type Row = {
+      id: string;
+      user_id: string;
+      left_at: string;
+      left_reason: string | null;
+      penalty_waived: boolean;
+      public_profiles: { display_name: string; avatar_url: string | null };
+      activities: { starts_at: string };
+    };
+    const rows = (data ?? []) as unknown as Row[];
+    return rows
+      .filter((r) => new Date(r.left_at).getTime() > new Date(r.activities.starts_at).getTime() - 12 * 3600 * 1000)
+      .map((r) => ({
+        participation_id: r.id,
+        user_id: r.user_id,
+        display_name: r.public_profiles.display_name,
+        avatar_url: r.public_profiles.avatar_url,
+        left_at: r.left_at,
+        left_reason: r.left_reason,
+        penalty_waived: r.penalty_waived,
+      }));
   },
 
   getPendingForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
