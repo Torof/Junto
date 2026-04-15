@@ -21,7 +21,7 @@ async function fetchActivity(id: string): Promise<Activity | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
   const { data } = await supabase
-    .from('activities_with_creator')
+    .from('activities_with_coords')
     .select('id, title, description, starts_at, level, max_participants, participant_count, visibility, sport_key, sport_icon, creator_name')
     .eq('id', id)
     .in('visibility', ['public', 'approval'])

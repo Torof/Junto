@@ -1,6 +1,10 @@
 // Edge function: send push notification via Expo Push API
-// Called by DB trigger on notifications INSERT.
+// Called by DB trigger on notifications INSERT (and direct calls from server-side functions).
 // Deployment: supabase functions deploy send-push --no-verify-jwt
+//
+// Auth: a shared secret (`PUSH_WEBHOOK_SECRET`) must be passed in the
+// `x-junto-push-secret` header. The DB trigger reads the same secret
+// from a Postgres setting. Without this header the request is rejected.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -11,12 +15,26 @@ interface Payload {
   data?: Record<string, unknown>;
 }
 
+const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const { user_id, title, body, data }: Payload = await req.json();
+  // Reject if the shared secret is missing or wrong (constant-time-ish compare).
+  const provided = req.headers.get('x-junto-push-secret') ?? '';
+  if (!SECRET || provided.length !== SECRET.length || provided !== SECRET) {
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  let payload: Payload;
+  try {
+    payload = await req.json();
+  } catch {
+    return new Response('Invalid JSON', { status: 400 });
+  }
+  const { user_id, title, body, data } = payload;
   if (!user_id || !title || !body) {
     return new Response('Missing fields', { status: 400 });
   }
