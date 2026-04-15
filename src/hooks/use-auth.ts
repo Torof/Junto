@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type Session } from '@supabase/supabase-js';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
+import { useAuthStore } from '@/store/auth-store';
 
 interface AuthState {
   session: Session | null;
@@ -9,6 +10,7 @@ interface AuthState {
   isAuthenticated: boolean;
   needsOnboarding: boolean;
   isSuspended: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 export function useAuth(): AuthState {
@@ -16,6 +18,27 @@ export function useAuth(): AuthState {
   const [isLoading, setIsLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isSuspended, setIsSuspended] = useState(false);
+
+  const checkUserStatus = useCallback(async (userId: string) => {
+    // Self-heal: ensure public.users row exists (guards against trigger failures)
+    await supabase.rpc('ensure_user_row' as 'accept_tos');
+
+    const { data } = await supabase
+      .from('users')
+      .select('date_of_birth, accepted_tos_at, suspended_at')
+      .eq('id', userId)
+      .single();
+
+    setNeedsOnboarding(!data?.date_of_birth || !data?.accepted_tos_at);
+    setIsSuspended(!!data?.suspended_at);
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    const s = await authService.getSession();
+    if (s) await checkUserStatus(s.user.id);
+  }, [checkUserStatus]);
+
+  const refreshTick = useAuthStore((s) => s.refreshTick);
 
   useEffect(() => {
     authService.getSession().then(async (s) => {
@@ -38,18 +61,14 @@ export function useAuth(): AuthState {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkUserStatus]);
 
-  async function checkUserStatus(userId: string) {
-    const { data } = await supabase
-      .from('users')
-      .select('date_of_birth, accepted_tos_at, suspended_at')
-      .eq('id', userId)
-      .single();
-
-    setNeedsOnboarding(!data?.date_of_birth || !data?.accepted_tos_at);
-    setIsSuspended(!!data?.suspended_at);
-  }
+  useEffect(() => {
+    if (refreshTick === 0) return;
+    authService.getSession().then(async (s) => {
+      if (s) await checkUserStatus(s.user.id);
+    });
+  }, [refreshTick, checkUserStatus]);
 
   return {
     session,
@@ -57,5 +76,6 @@ export function useAuth(): AuthState {
     isAuthenticated: !!session,
     needsOnboarding,
     isSuspended,
+    refreshUser,
   };
 }
