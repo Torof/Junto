@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { OpenAppLink } from '../../open-app-link';
 
 const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
@@ -18,6 +18,8 @@ interface Activity {
 }
 
 async function fetchActivity(id: string): Promise<Activity | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
   const { data } = await supabase
     .from('activities_with_creator')
     .select('id, title, description, starts_at, level, max_participants, participant_count, visibility, sport_key, sport_icon, creator_name')
