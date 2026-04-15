@@ -1,0 +1,29 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0D1B2A;
+  --surface: #1B3A5C;
+  --surface-2: #142D48;
+  --cta: #F4642A;
+  --text: #F5F5F0;
+  --text-secondary: #8A9BB0;
+  --success: #2ECC71;
+  --warning: #F39C12;
+  --error: #E74C3C;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button, .btn {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+}
