@@ -4,7 +4,12 @@
 -- BUCKET: avatars (public — visible to everyone)
 -- Path convention: /avatars/{user_id}/avatar (fixed name, overwrites old)
 -- ============================================================================
-INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "avatars_read_all" ON storage.objects;
+DROP POLICY IF EXISTS "avatars_insert_own" ON storage.objects;
+DROP POLICY IF EXISTS "avatars_update_own" ON storage.objects;
+DROP POLICY IF EXISTS "avatars_delete_own" ON storage.objects;
 
 -- Anyone can read (public bucket)
 CREATE POLICY "avatars_read_all"

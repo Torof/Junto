@@ -39,6 +39,7 @@ END;
 $$;
 
 -- Update create_activity to accept end point
+DROP FUNCTION IF EXISTS create_activity(UUID, TEXT, TEXT, TEXT, INTEGER, FLOAT, FLOAT, FLOAT, FLOAT, TIMESTAMPTZ, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION create_activity(
   p_sport_id UUID,
   p_title TEXT,
