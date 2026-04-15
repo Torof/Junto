@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Map, ListChecks, Bell, MessageCircle, User, type LucideIcon } from 'lucide-react-native';
 import { colors, fontSizes } from '@/constants/theme';
 import { notificationService } from '@/services/notification-service';
 import { useMapStore } from '@/store/map-store';
@@ -10,8 +11,14 @@ import { conversationService } from '@/services/conversation-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, lineHeight: 28, textAlign: 'center', opacity: focused ? 1 : 0.6 }}>{icon}</Text>;
+function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: boolean }) {
+  return (
+    <IconComponent
+      size={26}
+      color={focused ? colors.cta : colors.textSecondary}
+      strokeWidth={focused ? 2.4 : 2}
+    />
+  );
 }
 
 function NotificationTabIcon({ focused }: { focused: boolean }) {
@@ -23,7 +30,7 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <Text style={{ fontSize: 22, lineHeight: 28, opacity: focused ? 1 : 0.6 }}>🔔</Text>
+      <Bell size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
       {(count ?? 0) > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count! > 99 ? '99+' : count}</Text>
@@ -53,7 +60,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <Text style={{ fontSize: 22, lineHeight: 28, opacity: focused ? 1 : 0.6 }}>💬</Text>
+      <MessageCircle size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
       {hasUnread && <View style={styles.dot} />}
     </View>
   );
@@ -87,7 +94,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.carte'),
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon icon="🌍" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon={Map} focused={focused} />,
         }}
         listeners={{
           tabPress: () => {
@@ -99,7 +106,7 @@ export default function TabsLayout() {
         name="mes-activites"
         options={{
           title: t('tabs.mesActivites'),
-          tabBarIcon: ({ focused }) => <TabIcon icon="📋" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon={ListChecks} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -120,7 +127,7 @@ export default function TabsLayout() {
         name="profil"
         options={{
           title: t('tabs.profil'),
-          tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon={User} focused={focused} />,
         }}
       />
     </Tabs>

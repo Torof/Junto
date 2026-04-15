@@ -1,5 +1,6 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { MoreHorizontal } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -8,9 +9,10 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
 import { reliabilityService } from '@/services/reliability-service';
+import { ReliabilityMeter } from '@/components/reliability-meter';
 import { badgeService } from '@/services/badge-service';
 import { conversationService } from '@/services/conversation-service';
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
 import { ReportModal } from '@/components/report-modal';
@@ -20,7 +22,9 @@ export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const navigation = useNavigation();
   const [showReport, setShowReport] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -29,6 +33,17 @@ export default function PublicProfileScreen() {
   });
 
   const isOwnProfile = currentUser === id;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+        isOwnProfile ? null : (
+          <Pressable onPress={() => setShowMenu(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
+            <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        ),
+    });
+  }, [navigation, isOwnProfile]);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['public-profile', id],
@@ -89,18 +104,15 @@ export default function PublicProfileScreen() {
     );
   }
 
-  const sports = profile.sports ?? [];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.profile}>
         <UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} size={80} />
         <Text style={styles.name}>{profile.display_name}</Text>
-        {stats?.reliability_score != null && (
-          <Text style={styles.reliability}>
-            {reliabilityService.getReliabilityEmoji(stats.reliability_score)} {reliabilityService.getReliabilityLabel(stats.reliability_score)}
-          </Text>
-        )}
+        <View style={styles.reliabilityWrap}>
+          <ReliabilityMeter score={stats?.reliability_score ?? null} />
+        </View>
         <Text style={styles.memberSince}>
           {t('profil.memberSince', { date: dayjs(profile.created_at).locale(i18n.language).format('MMM YYYY') })}
         </Text>
@@ -116,30 +128,12 @@ export default function PublicProfileScreen() {
           <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
           <Text style={styles.statLabel}>{t('profil.completed')}</Text>
         </View>
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>{stats?.sports_count ?? 0}</Text>
-          <Text style={styles.statLabel}>{t('profil.sportsCount')}</Text>
-        </View>
       </View>
 
       {/* Badges */}
       <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
 
-      {/* Sports */}
-      {sports.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('profil.sportsLevels')}</Text>
-          <View style={styles.sportsTags}>
-            {sports.map((sportKey) => (
-              <View key={sportKey} style={styles.sportTag}>
-                <Text style={styles.sportTagText}>{t(`sports.${sportKey}`, sportKey)}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Actions (not on own profile) */}
+      {/* Primary action — send message (on other people's profile) */}
       {!isOwnProfile && (
         <View style={styles.actions}>
           <Pressable style={styles.messageButton} onPress={async () => {
@@ -152,22 +146,29 @@ export default function PublicProfileScreen() {
           }}>
             <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
           </Pressable>
-
-          {isBlocked ? (
-            <Pressable style={styles.unblockButton} onPress={handleUnblock}>
-              <Text style={styles.unblockText}>{t('publicProfile.unblock')}</Text>
-            </Pressable>
-          ) : (
-            <Pressable style={styles.blockButton} onPress={handleBlock}>
-              <Text style={styles.blockText}>{t('publicProfile.block')}</Text>
-            </Pressable>
-          )}
-
-          <Pressable style={styles.reportButton} onPress={() => setShowReport(true)}>
-            <Text style={styles.reportText}>{t('report.reportUser')}</Text>
-          </Pressable>
         </View>
       )}
+
+      {/* Overflow menu: block / report */}
+      <Modal visible={showMenu} animationType="fade" transparent>
+        <Pressable style={styles.menuBackdrop} onPress={() => setShowMenu(false)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            {isBlocked ? (
+              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); void handleUnblock(); }}>
+                <Text style={styles.menuItemText}>{t('publicProfile.unblock')}</Text>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleBlock(); }}>
+                <Text style={[styles.menuItemText, { color: colors.error }]}>{t('publicProfile.block')}</Text>
+              </Pressable>
+            )}
+            <View style={styles.menuDivider} />
+            <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReport(true); }}>
+              <Text style={[styles.menuItemText, { color: colors.error }]}>{t('report.reportUser')}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <ReportModal
         visible={showReport}
@@ -187,36 +188,47 @@ const styles = StyleSheet.create({
   profile: { alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.xl },
   name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
   reliability: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: spacing.xs },
+  reliabilityWrap: { width: '80%', marginTop: spacing.md },
   memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
   statsRow: {
     flexDirection: 'row', justifyContent: 'space-around',
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surface, borderRadius: radius.lg,
     paddingVertical: spacing.md, marginBottom: spacing.xl,
+    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   stat: { alignItems: 'center' },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
   section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
+  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: spacing.sm },
   sportsTags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   sportTag: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   sportTagText: { color: colors.textPrimary, fontSize: fontSizes.xs },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
   messageText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   blockButton: {
-    backgroundColor: 'transparent', borderRadius: radius.md,
+    backgroundColor: 'transparent', borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
   blockText: { color: colors.error, fontSize: fontSizes.sm },
   unblockButton: {
-    backgroundColor: 'transparent', borderRadius: radius.md,
+    backgroundColor: 'transparent', borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
   unblockText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   reportButton: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
   reportText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 56, paddingRight: spacing.md },
+  menuSheet: {
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    minWidth: 220, paddingVertical: spacing.xs,
+    elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
+  },
+  menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
+  menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
 });

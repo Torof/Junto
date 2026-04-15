@@ -5,23 +5,35 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
+import {
+  Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
+  Pencil, MapPinCheck, Star, AlertTriangle, MessageCircle,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { notificationService, type Notification } from '@/services/notification-service';
 
 dayjs.extend(relativeTime);
 
-const NOTIFICATION_ICONS: Record<string, string> = {
-  join_request: '🔔',
-  participant_joined: '✅',
-  request_accepted: '🎉',
-  request_refused: '❌',
-  participant_removed: '🚫',
-  participant_left: '👋',
-  activity_cancelled: '🚨',
-  activity_updated: '📝',
-  confirm_presence: '📋',
-  rate_participants: '⭐',
+type IconMeta = { icon: LucideIcon; color: string };
+
+const NOTIFICATION_ICONS: Record<string, IconMeta> = {
+  join_request: { icon: UserPlus, color: colors.cta },
+  participant_joined: { icon: UserCheck, color: colors.success },
+  request_accepted: { icon: Check, color: colors.success },
+  request_refused: { icon: X, color: colors.error },
+  participant_removed: { icon: UserMinus, color: colors.error },
+  participant_left: { icon: LogOut, color: colors.textSecondary },
+  participant_left_late: { icon: AlertTriangle, color: colors.warning },
+  activity_cancelled: { icon: Ban, color: colors.error },
+  activity_updated: { icon: Pencil, color: colors.cta },
+  confirm_presence: { icon: MapPinCheck, color: colors.success },
+  rate_participants: { icon: Star, color: colors.warning },
+  alert_match: { icon: Bell, color: colors.cta },
+  new_message: { icon: MessageCircle, color: colors.textPrimary },
 };
+
+const DEFAULT_ICON: IconMeta = { icon: Bell, color: colors.textSecondary };
 
 export default function NotificationsScreen() {
   const { t, i18n } = useTranslation();
@@ -79,12 +91,17 @@ export default function NotificationsScreen() {
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+          renderItem={({ item }) => {
+            const meta = NOTIFICATION_ICONS[item.type] ?? DEFAULT_ICON;
+            const IconComp = meta.icon;
+            return (
             <Pressable
               style={[styles.card, !item.read_at && styles.cardUnread]}
               onPress={() => handlePress(item)}
             >
-              <Text style={styles.icon}>{NOTIFICATION_ICONS[item.type] ?? '🔔'}</Text>
+              <View style={[styles.iconWrap, { backgroundColor: meta.color + '22' }]}>
+                <IconComp size={20} color={meta.color} strokeWidth={2.2} />
+              </View>
               <View style={styles.cardContent}>
                 <Text style={[styles.cardTitle, !item.read_at && styles.cardTitleUnread]}>
                   {item.title}
@@ -96,7 +113,8 @@ export default function NotificationsScreen() {
               </View>
               {!item.read_at && <View style={styles.unreadDot} />}
             </Pressable>
-          )}
+            );
+          }}
           contentContainerStyle={styles.list}
         />
       )}
@@ -132,8 +150,12 @@ const styles = StyleSheet.create({
   cardUnread: {
     backgroundColor: colors.cta + '15',
   },
-  icon: {
-    fontSize: 24,
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing.md,
   },
   cardContent: {

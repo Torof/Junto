@@ -24,7 +24,14 @@
     "checkEmail": "Vérifie ton email",
     "confirmationSent": "Un lien de confirmation a été envoyé à ton adresse email.",
     "error": "Erreur",
-    "unknownError": "Une erreur est survenue"
+    "unknownError": "Une erreur est survenue",
+    "errInvalidCredentials": "Email ou mot de passe incorrect.",
+    "errEmailNotConfirmed": "Confirme d'abord ton email via le lien reçu.",
+    "errEmailTaken": "Cet email est déjà utilisé — essaie de te connecter.",
+    "errPasswordTooShort": "Ton mot de passe doit faire au moins 6 caractères.",
+    "errInvalidEmail": "Format d'email invalide.",
+    "errRateLimit": "Trop de tentatives, réessaie dans quelques minutes.",
+    "errNetwork": "Problème de connexion — vérifie ton internet."
   },
   "onboarding": {
     "welcome": "Bienvenue !",
@@ -39,6 +46,7 @@
     "level": "Niveau",
     "places": "{{remaining}}/{{max}} places restantes",
     "viewDetail": "Voir l'activité",
+    "shareJoin": "Rejoins-moi sur Junto :",
     "join": "Rejoindre",
     "description": "Description",
     "duration": "Durée",
@@ -105,7 +113,77 @@
     "via-ferrata": "Via ferrata",
     "slacklining": "Slackline"
   },
+  "alerts": {
+    "title": "Mes alertes",
+    "subtitle": "Reçois une notification quand une activité correspondant à tes critères est créée.",
+    "manage": "Alertes d'activités",
+    "tapMap": "Touche la carte pour choisir le centre",
+    "radius": "Rayon",
+    "sport": "Sport (optionnel)",
+    "anySport": "Tous les sports",
+    "level": "Niveau (optionnel)",
+    "anyLevel": "Tous",
+    "period": "Période (optionnel)",
+    "from": "Du",
+    "to": "Au",
+    "clearPeriod": "Effacer",
+    "create": "Créer l'alerte",
+    "created": "Alerte créée !",
+    "deleted": "Alerte supprimée",
+    "locationSet": "Position définie",
+    "confirmLocation": "Confirmer la position",
+    "existing": "Tes alertes"
+  },
+  "cancel": {
+    "leaveTitle": "Quitter cette activité ?",
+    "leaveSafe": "Tu peux quitter sans impact sur ta fiabilité.",
+    "leaveLateWarning": "Quitter à moins de 12h pénalisera ton score de fiabilité. Le créateur peut lever la pénalité.",
+    "leaveConfirm": "Quitter",
+    "keep": "Garder",
+    "reasonPlaceholderLeave": "Une raison ? (optionnel — visible par le créateur)",
+    "cancelTitle": "Annuler l'activité ?",
+    "cancelSubtitle": "Tous les participants seront prévenus avec ta raison.",
+    "cancelConfirm": "Annuler définitivement",
+    "reasonPlaceholderCancel": "Détails (optionnel)",
+    "cat": {
+      "weather": "Météo",
+      "personal": "Imprévu personnel",
+      "lowSignups": "Pas assez de monde",
+      "conditions": "Conditions terrain"
+    }
+  },
+  "errors": {
+    "network": "Problème de connexion — vérifie ton internet.",
+    "rateLimit": "Tu vas trop vite, réessaie dans quelques instants.",
+    "sessionExpired": "Ta session a expiré, reconnecte-toi.",
+    "generic": "Une erreur est survenue, réessaie.",
+    "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
+    "updateActivity": "Impossible de modifier l'activité. Réessaie.",
+    "joinActivity": "Impossible de rejoindre cette activité — elle est peut-être complète ou annulée.",
+    "leaveActivity": "Impossible de quitter l'activité. Réessaie.",
+    "cancelActivity": "Impossible d'annuler l'activité. Réessaie.",
+    "sendMessage": "Message non envoyé. Réessaie dans un instant.",
+    "sendWallMessage": "Message non publié sur le mur. Réessaie.",
+    "createAlert": "Impossible de créer l'alerte. Vérifie les infos et réessaie.",
+    "deleteAlert": "Impossible de supprimer l'alerte. Réessaie.",
+    "rateParticipants": "Impossible d'enregistrer tes évaluations. Réessaie.",
+    "uploadAvatar": "Impossible de mettre à jour ta photo. Réessaie.",
+    "sendReport": "Impossible d'envoyer le signalement. Réessaie."
+  },
+  "reliability": {
+    "label": "Fiabilité",
+    "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité"
+  },
+  "tutorial": {
+    "clickActivity": "👋 Bienvenue ! Appuie sur une activité pour la découvrir",
+    "openPopup": "Appuie sur le pop-up pour ouvrir l'activité",
+    "clickAlert": "Super ! Maintenant crée une alerte pour être notifié des nouvelles activités près de chez toi",
+    "setRadius": "Fais glisser le curseur jusqu'à 200 km",
+    "validate": "Parfait — valide pour activer l'alerte",
+    "createActivity": "Et maintenant crée ta première activité — tape n'importe où sur la carte"
+  },
   "search": {
+    "title": "Rechercher",
     "distance": "Distance",
     "results": "résultats",
     "noResults": "Aucune activité trouvée"
@@ -168,7 +246,11 @@
     "organizer": "Organisateur",
     "pending": "Demandes en attente ({{count}})",
     "accepted": "Participants ({{count}})",
-    "removeConfirm": "Retirer ce participant ?"
+    "removeConfirm": "Retirer ce participant ?",
+    "lateLeavers": "Désistements tardifs",
+    "waive": "Lever pénalité",
+    "penaltyWaived": "Pénalité levée",
+    "penaltyWaivedTag": "Pénalité levée ✓"
   },
   "myActivities": {
     "created": "Créées",
@@ -290,13 +372,29 @@
     "negative": "Négatif",
     "submit": "Envoyer",
     "skip": "Passer",
-    "submitted": "Évaluations envoyées !"
+    "submitted": "Évaluations envoyées !",
+    "alreadyDone": "Tu as déjà évalué tout le monde ✓"
   },
   "presence": {
     "title": "Qui était présent ?",
     "subtitle": "Sélectionne les participants qui étaient présents à l'activité",
-    "confirm": "Confirmer les présences",
-    "confirmed": "Présences confirmées !"
+    "confirm": "Confirmer ma présence",
+    "confirmed": "Présence confirmée !",
+    "confirmMyPresence": "Confirme ta présence",
+    "atActivity": "Tu es sur le lieu de l'activité",
+    "atActivitySubtitle": "Ta position a été détectée — confirme pour enregistrer ta présence.",
+    "mustBeAtLocation": "Tu dois être sur le lieu de l'activité pour confirmer.",
+    "alreadyConfirmed": "Présence confirmée",
+    "locationPermissionDenied": "Active la localisation pour confirmer ta présence.",
+    "scanQr": "Scanner le QR",
+    "showQr": "Afficher le QR de présence",
+    "qrTitle": "QR de présence",
+    "qrSubtitle": "Les participants scannent ce code pour confirmer leur présence",
+    "qrHint": "Le code reste valide 30 minutes",
+    "scanTitle": "Scanner le QR",
+    "scanSubtitle": "Pointe la caméra vers le QR de l'organisateur",
+    "cameraPermission": "Autorise l'accès à la caméra pour scanner",
+    "grantCamera": "Autoriser"
   },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"

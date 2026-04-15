@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
+import { useNavigation } from 'expo-router';
+import { Menu } from 'lucide-react-native';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,14 +11,28 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { activityService } from '@/services/activity-service';
 import { reliabilityService } from '@/services/reliability-service';
+import { ReliabilityMeter } from '@/components/reliability-meter';
 import { UserAvatar } from '@/components/user-avatar';
+import { Camera, Plus } from 'lucide-react-native';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
 const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.pickAndUploadAvatar());
 
 export default function ProfilScreen() {
   const { t, i18n } = useTranslation();
+  const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={() => setDrawerOpen(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
+          <Menu size={24} color={colors.textPrimary} strokeWidth={2.2} />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -50,7 +66,6 @@ export default function ProfilScreen() {
   ].filter((a) => a.status === 'completed').length;
 
   const totalCount = (createdActivities?.length ?? 0) + (joinedActivities?.length ?? 0);
-  const sports = user?.sports ?? [];
 
   const handleAvatarPress = async () => {
     if (uploading) return;
@@ -61,8 +76,8 @@ export default function ProfilScreen() {
         await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         Burnt.toast({ title: t('toast.avatarUpdated'), preset: 'done' });
       }
-    } catch {
-      Alert.alert(t('auth.error'), t('profil.avatarError'));
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'uploadAvatar'));
     } finally {
       setUploading(false);
     }
@@ -71,23 +86,25 @@ export default function ProfilScreen() {
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Burger menu */}
-        <Pressable style={styles.burgerButton} onPress={() => setDrawerOpen(true)}>
-          <Text style={styles.burgerIcon}>☰</Text>
-        </Pressable>
-
         {/* Avatar + Name */}
         <View style={styles.profile}>
           <Pressable onPress={handleAvatarPress} disabled={uploading} style={uploading && styles.uploading}>
-            <UserAvatar name={user?.display_name ?? '?'} avatarUrl={user?.avatar_url} size={80} />
+            {user?.avatar_url ? (
+              <UserAvatar name={user?.display_name ?? '?'} avatarUrl={user.avatar_url} size={80} />
+            ) : (
+              <View style={styles.uploadPlaceholder}>
+                <Camera size={32} color={colors.textSecondary} strokeWidth={2} />
+                <View style={styles.plusBadge}>
+                  <Plus size={14} color={colors.textPrimary} strokeWidth={3} />
+                </View>
+              </View>
+            )}
           </Pressable>
           <Text style={styles.name}>{user?.display_name ?? '...'}</Text>
           <Text style={styles.tier}>{user?.tier ?? 'free'}</Text>
-          {user?.reliability_score != null && (
-            <Text style={styles.reliability}>
-              {reliabilityService.getReliabilityEmoji(user.reliability_score)} {reliabilityService.getReliabilityLabel(user.reliability_score)}
-            </Text>
-          )}
+          <View style={styles.reliabilityWrap}>
+            <ReliabilityMeter score={user?.reliability_score ?? null} />
+          </View>
           {user?.created_at && (
             <Text style={styles.memberSince}>
               {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
@@ -105,25 +122,8 @@ export default function ProfilScreen() {
             <Text style={styles.statNumber}>{completedCount}</Text>
             <Text style={styles.statLabel}>{t('profil.completed')}</Text>
           </View>
-          <View style={styles.stat}>
-            <Text style={styles.statNumber}>{sports.length}</Text>
-            <Text style={styles.statLabel}>{t('profil.sportsCount')}</Text>
-          </View>
         </View>
 
-        {/* Sports */}
-        {sports.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('profil.sportsLevels')}</Text>
-            <View style={styles.sportsTags}>
-              {sports.map((sportKey) => (
-                <View key={sportKey} style={styles.sportTag}>
-                  <Text style={styles.sportTagText}>{t(`sports.${sportKey}`, sportKey)}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
 
       <SettingsDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
@@ -134,17 +134,33 @@ export default function ProfilScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  burgerButton: {
-    alignSelf: 'flex-end',
-    width: 40, height: 40,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  burgerIcon: { fontSize: 24, color: colors.textPrimary },
   profile: { alignItems: 'center', marginBottom: spacing.xl },
   uploading: { opacity: 0.5 },
+  uploadPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#6B7280',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plusBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.cta,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.background,
+  },
   name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
   tier: { color: colors.cta, fontSize: fontSizes.xs, marginTop: spacing.sm, textTransform: 'uppercase' },
   reliability: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: spacing.xs },
+  reliabilityWrap: { width: '80%', marginTop: spacing.md },
   memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
   statsRow: {
     flexDirection: 'row', justifyContent: 'space-around',

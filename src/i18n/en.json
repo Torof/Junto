@@ -24,7 +24,14 @@
     "checkEmail": "Check your email",
     "confirmationSent": "A confirmation link has been sent to your email address.",
     "error": "Error",
-    "unknownError": "An error occurred"
+    "unknownError": "An error occurred",
+    "errInvalidCredentials": "Wrong email or password.",
+    "errEmailNotConfirmed": "Confirm your email first via the link you received.",
+    "errEmailTaken": "This email is already used — try signing in.",
+    "errPasswordTooShort": "Your password must be at least 6 characters.",
+    "errInvalidEmail": "Invalid email format.",
+    "errRateLimit": "Too many attempts, try again in a few minutes.",
+    "errNetwork": "Connection issue — check your internet."
   },
   "onboarding": {
     "welcome": "Welcome!",
@@ -39,6 +46,7 @@
     "level": "Level",
     "places": "{{remaining}}/{{max}} places remaining",
     "viewDetail": "View activity",
+    "shareJoin": "Join me on Junto:",
     "join": "Join",
     "description": "Description",
     "duration": "Duration",
@@ -105,7 +113,77 @@
     "via-ferrata": "Via ferrata",
     "slacklining": "Slacklining"
   },
+  "alerts": {
+    "title": "My alerts",
+    "subtitle": "Get notified when an activity matching your criteria is created.",
+    "manage": "Activity alerts",
+    "tapMap": "Tap the map to choose the center",
+    "radius": "Radius",
+    "sport": "Sport (optional)",
+    "anySport": "All sports",
+    "level": "Level (optional)",
+    "anyLevel": "All",
+    "period": "Period (optional)",
+    "from": "From",
+    "to": "To",
+    "clearPeriod": "Clear",
+    "create": "Create alert",
+    "created": "Alert created!",
+    "deleted": "Alert deleted",
+    "locationSet": "Location set",
+    "confirmLocation": "Confirm location",
+    "existing": "Your alerts"
+  },
+  "cancel": {
+    "leaveTitle": "Leave this activity?",
+    "leaveSafe": "You can leave without affecting your reliability score.",
+    "leaveLateWarning": "Leaving less than 12h before will affect your reliability score. The organizer can waive the penalty.",
+    "leaveConfirm": "Leave",
+    "keep": "Keep",
+    "reasonPlaceholderLeave": "A reason? (optional — visible to the organizer)",
+    "cancelTitle": "Cancel the activity?",
+    "cancelSubtitle": "All participants will be notified with your reason.",
+    "cancelConfirm": "Cancel for good",
+    "reasonPlaceholderCancel": "Details (optional)",
+    "cat": {
+      "weather": "Weather",
+      "personal": "Personal",
+      "lowSignups": "Not enough people",
+      "conditions": "Field conditions"
+    }
+  },
+  "errors": {
+    "network": "Connection issue — check your internet.",
+    "rateLimit": "Slow down, try again in a few moments.",
+    "sessionExpired": "Your session expired, sign in again.",
+    "generic": "Something went wrong, try again.",
+    "createActivity": "Couldn't create the activity. Check the info and try again.",
+    "updateActivity": "Couldn't update the activity. Try again.",
+    "joinActivity": "Couldn't join this activity — it may be full or cancelled.",
+    "leaveActivity": "Couldn't leave the activity. Try again.",
+    "cancelActivity": "Couldn't cancel the activity. Try again.",
+    "sendMessage": "Message not sent. Try again in a moment.",
+    "sendWallMessage": "Couldn't post to the wall. Try again.",
+    "createAlert": "Couldn't create the alert. Check the info and try again.",
+    "deleteAlert": "Couldn't delete the alert. Try again.",
+    "rateParticipants": "Couldn't save your ratings. Try again.",
+    "uploadAvatar": "Couldn't update your photo. Try again.",
+    "sendReport": "Couldn't send the report. Try again."
+  },
+  "reliability": {
+    "label": "Reliability",
+    "notEnoughData": "Not enough activities yet to rate reliability"
+  },
+  "tutorial": {
+    "clickActivity": "👋 Welcome! Tap an activity to check it out",
+    "openPopup": "Tap the popup to open the activity",
+    "clickAlert": "Great! Now create an alert to get notified of new activities near you",
+    "setRadius": "Slide the cursor up to 200 km",
+    "validate": "Perfect — validate to enable the alert",
+    "createActivity": "Now create your first activity — tap anywhere on the map"
+  },
   "search": {
+    "title": "Search",
     "distance": "Distance",
     "results": "results",
     "noResults": "No activities found"
@@ -168,7 +246,11 @@
     "organizer": "Organizer",
     "pending": "Pending requests ({{count}})",
     "accepted": "Participants ({{count}})",
-    "removeConfirm": "Remove this participant?"
+    "removeConfirm": "Remove this participant?",
+    "lateLeavers": "Late cancellations",
+    "waive": "Waive penalty",
+    "penaltyWaived": "Penalty waived",
+    "penaltyWaivedTag": "Penalty waived ✓"
   },
   "myActivities": {
     "created": "Created",
@@ -290,13 +372,29 @@
     "negative": "Negative",
     "submit": "Submit",
     "skip": "Skip",
-    "submitted": "Ratings submitted!"
+    "submitted": "Ratings submitted!",
+    "alreadyDone": "You've already rated everyone ✓"
   },
   "presence": {
     "title": "Who was present?",
     "subtitle": "Select the participants who attended the activity",
-    "confirm": "Confirm attendance",
-    "confirmed": "Attendance confirmed!"
+    "confirm": "Confirm my presence",
+    "confirmed": "Presence confirmed!",
+    "confirmMyPresence": "Confirm your presence",
+    "atActivity": "You're at the activity location",
+    "atActivitySubtitle": "Your position was detected — confirm to record your presence.",
+    "mustBeAtLocation": "You must be at the activity location to confirm.",
+    "alreadyConfirmed": "Presence confirmed",
+    "locationPermissionDenied": "Enable location to confirm your presence.",
+    "scanQr": "Scan QR",
+    "showQr": "Show presence QR",
+    "qrTitle": "Presence QR",
+    "qrSubtitle": "Participants scan this code to confirm their presence",
+    "qrHint": "This code stays valid for 30 minutes",
+    "scanTitle": "Scan the QR",
+    "scanSubtitle": "Point the camera at the organizer's QR",
+    "cameraPermission": "Allow camera access to scan",
+    "grantCamera": "Allow"
   },
   "invite": {
     "invalid": "This invite link is not valid"

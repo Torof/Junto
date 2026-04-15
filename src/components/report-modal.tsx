@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { reportService } from '@/services/report-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 interface ReportModalProps {
   visible: boolean;
@@ -28,8 +29,8 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
       Burnt.toast({ title: t('report.submitted'), preset: 'done' });
       setReason('');
       onClose();
-    } catch {
-      Alert.alert(t('auth.error'), t('auth.unknownError'));
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'sendReport'));
     } finally {
       setIsSending(false);
     }

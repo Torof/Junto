@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import { SlidersHorizontal } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from '@/components/activity-card';
@@ -114,7 +115,10 @@ export default function MesActivitesScreen() {
           style={[styles.filterToggle, hasActiveFilters && styles.filterToggleActive]}
           onPress={() => setShowFilters(true)}
         >
-          <Text style={styles.filterIcon}>{hasActiveFilters ? '⚙ ●' : '⚙'}</Text>
+          <View style={styles.filterIconWrap}>
+            <SlidersHorizontal size={18} color={hasActiveFilters ? colors.cta : colors.textSecondary} strokeWidth={2} />
+            {hasActiveFilters && <View style={styles.filterDot} />}
+          </View>
         </Pressable>
       </View>
 
@@ -255,9 +259,20 @@ const styles = StyleSheet.create({
   filterToggleActive: {
     backgroundColor: colors.cta + '30',
   },
-  filterIcon: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  filterIconWrap: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterDot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.cta,
   },
   backdrop: {
     flex: 1,

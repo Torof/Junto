@@ -159,6 +159,19 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               </View>
             )}
 
+            {/* Alerts (Premium) */}
+            {(user?.tier === 'premium' || user?.tier === 'pro') ? (
+              <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }}>
+                <Text style={styles.rowLabel}>{t('alerts.manage')}</Text>
+                <Text style={styles.arrow}>›</Text>
+              </Pressable>
+            ) : (
+              <View style={[styles.row, { opacity: 0.4 }]}>
+                <Text style={styles.rowLabel}>{t('alerts.manage')}</Text>
+                <Text style={styles.premiumLabel}>Premium</Text>
+              </View>
+            )}
+
             {/* Admin */}
             {user?.is_admin && (
               <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/admin/moderation'); }}>
@@ -178,8 +191,13 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Text style={styles.arrow}>›</Text>
             </Pressable>
 
-            {/* Delete account */}
-            <Pressable style={styles.deleteButton} onPress={() => {
+            {/* Logout */}
+            <Pressable style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutText}>{t('profil.logout')}</Text>
+            </Pressable>
+
+            {/* Delete account (less prominent — intentional friction) */}
+            <Pressable style={styles.deleteLink} onPress={() => {
               Alert.alert(
                 t('account.deleteTitle'),
                 t('account.deleteMessage'),
@@ -189,7 +207,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                     text: t('account.deleteConfirm'),
                     style: 'destructive',
                     onPress: () => {
-                      // Second confirmation
                       Alert.alert(
                         t('account.deleteTitle2'),
                         t('account.deleteMessage2'),
@@ -215,12 +232,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 ],
               );
             }}>
-              <Text style={styles.deleteText}>{t('account.delete')}</Text>
-            </Pressable>
-
-            {/* Logout */}
-            <Pressable style={styles.logoutButton} onPress={handleLogout}>
-              <Text style={styles.logoutText}>{t('profil.logout')}</Text>
+              <Text style={styles.deleteLinkText}>{t('account.delete')}</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -262,6 +274,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs,
     textTransform: 'uppercase', marginBottom: spacing.md, marginTop: spacing.lg,
   },
+  premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
   row: {
     backgroundColor: colors.surface, borderRadius: radius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md,
@@ -289,10 +302,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.xs,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
-  deleteButton: {
+  deleteLink: {
     paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.xl,
   },
-  deleteText: { color: colors.error, fontSize: fontSizes.xs },
+  deleteLinkText: {
+    color: colors.textSecondary, fontSize: fontSizes.xs,
+    textDecorationLine: 'underline', opacity: 0.6,
+  },
   logoutButton: {
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },
