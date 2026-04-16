@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, Clock } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -39,7 +39,7 @@ export function ActivityDetail({
   isAuthenticated,
   onJoinRedirect,
 }: ActivityDetailProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -89,6 +89,16 @@ export function ActivityDetail({
     }
     const match = d.match(/(\d+)\s*hour/);
     return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
+  };
+
+  const formatDuration = (d: string): string => {
+    const ms = parseDurationMs(d);
+    const totalMinutes = Math.round(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours === 0) return `${minutes}min`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h${String(minutes).padStart(2, '0')}`;
   };
 
   const startsAtMs = new Date(activity.starts_at).getTime();
@@ -270,26 +280,20 @@ export function ActivityDetail({
       </View>
 
       <Text style={styles.title}>{activity.title}</Text>
-      <Text style={styles.organizer}>
-        {t('activity.organizedBy', { name: activity.creator_name })}
-      </Text>
 
       <View style={styles.heroDate}>
-        <Text style={styles.heroDay}>{dayjs(activity.starts_at).format('ddd D MMM')}</Text>
-        <Text style={styles.heroTime}>{dayjs(activity.starts_at).format('HH:mm')}</Text>
+        <Clock size={18} color={colors.cta} strokeWidth={2.4} />
+        <View>
+          <Text style={styles.heroLabel}>{t('activity.starts')}</Text>
+          <Text style={styles.heroDateTime}>
+            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.statChips}>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{activity.level}</Text>
-        </View>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{activity.duration}</Text>
-        </View>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{activity.participant_count}/{activity.max_participants}</Text>
-        </View>
-      </View>
+      <Text style={styles.metaLine}>
+        {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
+      </Text>
 
       {!isActive && (
         <View style={styles.inactiveBanner}>
@@ -311,7 +315,6 @@ export function ActivityDetail({
 
       {activity.description ? (
         <View style={styles.descriptionCard}>
-          <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
           <Text style={styles.description}>{activity.description}</Text>
         </View>
       ) : null}
@@ -508,20 +511,14 @@ const styles = StyleSheet.create({
   topDot: { color: colors.textSecondary, fontSize: fontSizes.sm, marginHorizontal: 2 },
   visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
-  organizer: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2, marginBottom: spacing.md },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.md },
   heroDate: {
-    flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  heroDay: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textTransform: 'capitalize' },
-  heroTime: { color: colors.cta, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  statChips: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.lg, flexWrap: 'wrap' },
-  chip: {
-    backgroundColor: colors.surface, borderRadius: radius.full,
-    paddingHorizontal: spacing.sm, paddingVertical: 6,
-  },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600', textTransform: 'capitalize' },
+  heroLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.8, textTransform: 'uppercase' },
+  heroDateTime: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textTransform: 'capitalize' },
+  metaLine: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg, textTransform: 'capitalize' },
   descriptionCard: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
     padding: spacing.md, marginBottom: spacing.lg,
