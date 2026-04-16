@@ -64,6 +64,21 @@ export function ActivityDetail({
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={{ fontSize: 16 }}>{getSportIcon(activity.sport_key)}</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textTransform: 'capitalize' }}>
+            {t(`sports.${activity.sport_key}`, activity.sport_key)}
+          </Text>
+          {activity.visibility === 'public' ? (
+            <Globe size={14} color={colors.textSecondary} strokeWidth={2} />
+          ) : activity.visibility === 'approval' ? (
+            <Hand size={14} color={colors.textSecondary} strokeWidth={2} />
+          ) : (
+            <Lock size={14} color={colors.textSecondary} strokeWidth={2} />
+          )}
+        </View>
+      ),
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {canShare && (
@@ -79,7 +94,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare]);
+  }, [navigation, isCreator, canShare, activity.sport_key, activity.visibility, t]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -262,24 +277,12 @@ export function ActivityDetail({
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.topRow}>
-        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
-        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-        <Text style={styles.topDot}>·</Text>
-        {activity.visibility === 'public' ? (
-          <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
-        ) : activity.visibility === 'approval' ? (
-          <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
-        ) : (
-          <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
-        )}
-        <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{activity.title}</Text>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
           <Text style={styles.statusText}>{t(`activity.status.${timeStatus}`)}</Text>
         </View>
       </View>
-
-      <Text style={styles.title}>{activity.title}</Text>
 
       <View style={styles.infoCard}>
         <View style={styles.infoTimeRow}>
@@ -502,15 +505,11 @@ export function ActivityDetail({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  topRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, gap: 6 },
-  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full, marginLeft: 'auto' },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.md },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
+  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full, marginTop: 4 },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
-  sportIcon: { fontSize: 18 },
-  sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  topDot: { color: colors.textSecondary, fontSize: fontSizes.sm, marginHorizontal: 2 },
-  visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.md },
   infoCard: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
     padding: spacing.md, marginBottom: spacing.lg,
