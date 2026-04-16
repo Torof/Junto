@@ -234,6 +234,13 @@
     "activities": "Activités",
     "completed": "Terminées",
     "sportsCount": "Sports",
+    "created": "Créées",
+    "joined": "Rejointes",
+    "sportsSection": "Sports et niveaux",
+    "noSportsYet": "Aucun sport sélectionné",
+    "sportOutings_one": "{{count}} sortie",
+    "sportOutings_other": "{{count}} sorties",
+    "badgesSection": "Badges",
     "notificationPrefs": "Préférences de notifications",
     "notifType": {
       "join_request": "Nouvelle demande de participation",

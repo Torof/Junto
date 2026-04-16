@@ -9,10 +9,12 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
-import { activityService } from '@/services/activity-service';
-import { reliabilityService } from '@/services/reliability-service';
+import { userService } from '@/services/user-service';
+import { badgeService } from '@/services/badge-service';
 import { ReliabilityMeter } from '@/components/reliability-meter';
 import { UserAvatar } from '@/components/user-avatar';
+import { BadgeDisplay } from '@/components/badge-display';
+import { SportsBreakdown } from '@/components/sports-breakdown';
 import { Camera, Plus } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
@@ -43,29 +45,38 @@ export default function ProfilScreen() {
       if (!session) return null;
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
+        .select('id, display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { id: string; display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
     retry: 2,
   });
 
-  const { data: createdActivities } = useQuery({
-    queryKey: ['activities', 'my-created'],
-    queryFn: () => activityService.getMyCreated(),
+  const userId = user?.id ?? null;
+
+  const { data: stats } = useQuery({
+    queryKey: ['user-stats', userId],
+    queryFn: () => userService.getPublicStats(userId ?? ''),
+    enabled: !!userId,
   });
 
-  const { data: joinedActivities } = useQuery({
-    queryKey: ['activities', 'my-joined'],
-    queryFn: () => activityService.getMyJoined(),
+  const { data: sportBreakdown } = useQuery({
+    queryKey: ['user-sport-breakdown', userId],
+    queryFn: () => userService.getSportBreakdown(userId ?? ''),
+    enabled: !!userId,
   });
 
-  const completedCount = [
-    ...(createdActivities ?? []),
-    ...(joinedActivities ?? []),
-  ].filter((a) => a.status === 'completed').length;
+  const { data: reputation } = useQuery({
+    queryKey: ['reputation', userId],
+    queryFn: () => badgeService.getUserReputation(userId ?? ''),
+    enabled: !!userId,
+  });
 
-  const totalCount = (createdActivities?.length ?? 0) + (joinedActivities?.length ?? 0);
+  const { data: trophies } = useQuery({
+    queryKey: ['trophies', userId],
+    queryFn: () => badgeService.getUserTrophies(userId ?? ''),
+    enabled: !!userId,
+  });
 
   const handleAvatarPress = async () => {
     if (uploading) return;
@@ -115,14 +126,26 @@ export default function ProfilScreen() {
         {/* Stats */}
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Text style={styles.statNumber}>{totalCount}</Text>
-            <Text style={styles.statLabel}>{t('profil.activities')}</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={styles.statNumber}>{completedCount}</Text>
+            <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
             <Text style={styles.statLabel}>{t('profil.completed')}</Text>
           </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
+            <Text style={styles.statLabel}>{t('profil.created')}</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
+            <Text style={styles.statLabel}>{t('profil.joined')}</Text>
+          </View>
         </View>
+
+        {/* Sports breakdown */}
+        <SportsBreakdown rows={sportBreakdown ?? []} />
+
+        {/* Badges */}
+        <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
 
       </ScrollView>
 
@@ -167,9 +190,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: radius.md,
     paddingVertical: spacing.md, marginBottom: spacing.xl,
   },
-  stat: { alignItems: 'center' },
+  stat: { alignItems: 'center', flex: 1 },
+  statDivider: { width: 1, backgroundColor: colors.background, marginVertical: spacing.xs },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
-  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
   sportsTags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },

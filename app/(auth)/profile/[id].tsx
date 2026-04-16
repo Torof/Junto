@@ -15,6 +15,7 @@ import { conversationService } from '@/services/conversation-service';
 import { useLayoutEffect, useState } from 'react';
 import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
+import { SportsBreakdown } from '@/components/sports-breakdown';
 import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
@@ -54,6 +55,12 @@ export default function PublicProfileScreen() {
   const { data: stats } = useQuery({
     queryKey: ['user-stats', id],
     queryFn: () => userService.getPublicStats(id ?? ''),
+    enabled: !!id,
+  });
+
+  const { data: sportBreakdown } = useQuery({
+    queryKey: ['user-sport-breakdown', id],
+    queryFn: () => userService.getSportBreakdown(id ?? ''),
     enabled: !!id,
   });
 
@@ -121,14 +128,23 @@ export default function PublicProfileScreen() {
       {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.stat}>
-          <Text style={styles.statNumber}>{stats?.total_activities ?? 0}</Text>
-          <Text style={styles.statLabel}>{t('profil.activities')}</Text>
-        </View>
-        <View style={styles.stat}>
           <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
           <Text style={styles.statLabel}>{t('profil.completed')}</Text>
         </View>
+        <View style={styles.statDivider} />
+        <View style={styles.stat}>
+          <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
+          <Text style={styles.statLabel}>{t('profil.created')}</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.stat}>
+          <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
+          <Text style={styles.statLabel}>{t('profil.joined')}</Text>
+        </View>
       </View>
+
+      {/* Sports breakdown */}
+      <SportsBreakdown rows={sportBreakdown ?? []} />
 
       {/* Badges */}
       <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
@@ -196,9 +212,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, marginBottom: spacing.xl,
     elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  stat: { alignItems: 'center' },
+  stat: { alignItems: 'center', flex: 1 },
+  statDivider: { width: 1, backgroundColor: colors.background, marginVertical: spacing.xs },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
-  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: spacing.sm },
   sportsTags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },

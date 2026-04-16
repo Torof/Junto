@@ -234,6 +234,13 @@
     "activities": "Activities",
     "completed": "Completed",
     "sportsCount": "Sports",
+    "created": "Created",
+    "joined": "Joined",
+    "sportsSection": "Sports & levels",
+    "noSportsYet": "No sports selected yet",
+    "sportOutings_one": "{{count}} outing",
+    "sportOutings_other": "{{count}} outings",
+    "badgesSection": "Badges",
     "notificationPrefs": "Notification preferences",
     "notifType": {
       "join_request": "New join request",
