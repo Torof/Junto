@@ -275,8 +275,14 @@ export function ActivityDetail({
     ? t('activity.requestJoin')
     : t('activity.join');
 
+  const hasBottomAction = showJoinButton || showLeaveButton;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.screen}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, hasBottomAction && { paddingBottom: 96 }]}
+    >
       <View style={styles.titleRow}>
         <Text style={styles.title}>{activity.title}</Text>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
@@ -284,18 +290,12 @@ export function ActivityDetail({
         </View>
       </View>
 
-      <View style={styles.infoCard}>
-        <View style={styles.infoTimeRow}>
-          <Clock size={18} color={colors.cta} strokeWidth={2.4} />
-          <Text style={styles.infoTime}>
-            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
-          </Text>
-        </View>
-        <View style={styles.infoDivider} />
-        <Text style={styles.infoMeta}>
-          {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
-        </Text>
-      </View>
+      <Text style={styles.dateLine}>
+        {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
+      </Text>
+      <Text style={styles.metaLine}>
+        {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
+      </Text>
 
       {!isActive && (
         <View style={styles.inactiveBanner}>
@@ -316,7 +316,9 @@ export function ActivityDetail({
       )}
 
       {activity.description ? (
-        <View style={styles.descriptionCard}>
+        <View style={styles.sectionBlock}>
+          <View style={styles.hairline} />
+          <Text style={styles.sectionLabel}>{t('activity.description')}</Text>
           <Text style={styles.description}>{activity.description}</Text>
         </View>
       ) : null}
@@ -342,8 +344,9 @@ export function ActivityDetail({
           : undefined;
 
         return (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
+          <View style={styles.sectionBlock}>
+            <View style={styles.hairline} />
+            <Text style={styles.sectionLabel}>{t('activity.location')}</Text>
             <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
               <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
               <View style={styles.mapTapOverlay} pointerEvents="box-only" />
@@ -371,14 +374,17 @@ export function ActivityDetail({
         );
       })()}
 
-      <ParticipantList
-        activityId={activity.id}
-        isCreator={isCreator}
-        creatorId={activity.creator_id}
-        creatorName={activity.creator_name}
-        creatorAvatar={activity.creator_avatar}
-        onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
-      />
+      <View style={styles.sectionBlock}>
+        <View style={styles.hairline} />
+        <ParticipantList
+          activityId={activity.id}
+          isCreator={isCreator}
+          creatorId={activity.creator_id}
+          creatorName={activity.creator_name}
+          creatorAvatar={activity.creator_avatar}
+          onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
+        />
+      </View>
 
       {canCheckIn && (
         <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
@@ -437,33 +443,14 @@ export function ActivityDetail({
         </View>
       )}
 
-      {(isCreator || isAccepted) && <View style={styles.separator} />}
-
       {(isCreator || isAccepted) && (
-        <ActivityWall
-          activityId={activity.id}
-          isActive={['published', 'in_progress'].includes(activity.status)}
-        />
-      )}
-
-      {showJoinButton && (
-        <Pressable
-          style={[styles.joinButton, isLoading && styles.buttonDisabled]}
-          onPress={handleJoin}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
-        </Pressable>
-      )}
-
-      {showLeaveButton && (
-        <Pressable
-          style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
-          onPress={() => setShowLeaveModal(true)}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
-        </Pressable>
+        <View style={styles.sectionBlock}>
+          <View style={styles.hairline} />
+          <ActivityWall
+            activityId={activity.id}
+            isActive={['published', 'in_progress'].includes(activity.status)}
+          />
+        </View>
       )}
 
       {!isCreator && isAuthenticated && (
@@ -499,29 +486,51 @@ export function ActivityDetail({
         </Modal>
       )}
     </ScrollView>
+
+    {hasBottomAction && (
+      <View style={[styles.stickyFooter, { paddingBottom: insets.bottom + spacing.sm }]}>
+        {showJoinButton && (
+          <Pressable
+            style={[styles.joinButton, isLoading && styles.buttonDisabled]}
+            onPress={handleJoin}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
+          </Pressable>
+        )}
+        {showLeaveButton && (
+          <Pressable
+            style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
+            onPress={() => setShowLeaveModal(true)}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+          </Pressable>
+        )}
+      </View>
+    )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.md },
+  content: { padding: spacing.lg },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.xs },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full, marginTop: 4 },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
-  separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
-  infoCard: {
-    backgroundColor: colors.surface, borderRadius: radius.lg,
-    padding: spacing.md, marginBottom: spacing.lg,
-  },
-  infoTimeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  infoTime: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textTransform: 'capitalize', flex: 1 },
-  infoDivider: { height: 1, backgroundColor: colors.background, marginVertical: spacing.sm },
-  infoMeta: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  descriptionCard: {
-    backgroundColor: colors.surface, borderRadius: radius.lg,
-    padding: spacing.md, marginBottom: spacing.lg,
-    borderLeftWidth: 3, borderLeftColor: colors.cta,
+  dateLine: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600', textTransform: 'capitalize', marginBottom: 2 },
+  metaLine: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize', marginBottom: spacing.lg },
+  sectionBlock: { marginTop: spacing.sm, marginBottom: spacing.md },
+  hairline: { height: 1, backgroundColor: colors.surface, marginBottom: spacing.md },
+  sectionLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm },
+  stickyFooter: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    paddingHorizontal: spacing.lg, paddingTop: spacing.sm,
+    backgroundColor: colors.background,
+    borderTopWidth: 1, borderTopColor: colors.surface,
   },
   inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
@@ -529,8 +538,6 @@ const styles = StyleSheet.create({
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   mapContainer: {
     height: 200, borderRadius: radius.lg, overflow: 'hidden',
@@ -577,8 +584,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
+  joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center' },
+  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
