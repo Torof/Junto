@@ -107,6 +107,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
                   onPress={() => handleAction(p.participation_id, 'accept')}
                   disabled={loadingId === p.participation_id}
+                  accessibilityLabel={t('participants.accept')}
                 >
                   <Text style={styles.btnText}>✓</Text>
                 </Pressable>
@@ -114,6 +115,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                   style={[styles.refuseBtn, loadingId === p.participation_id && styles.disabled]}
                   onPress={() => handleAction(p.participation_id, 'refuse')}
                   disabled={loadingId === p.participation_id}
+                  accessibilityLabel={t('participants.refuse')}
                 >
                   <Text style={styles.btnText}>✕</Text>
                 </Pressable>
@@ -169,15 +171,15 @@ const styles = StyleSheet.create({
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
-  organizerPillText: { color: '#fff', fontSize: fontSizes.xs - 2, fontWeight: 'bold' },
+  organizerPillText: { color: '#fff', fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
   pendingProfileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
   actions: { flexDirection: 'row', gap: spacing.sm },
-  acceptBtn: { backgroundColor: colors.success, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  refuseBtn: { backgroundColor: colors.error, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  btnText: { color: colors.textPrimary, fontSize: 16, fontWeight: 'bold' },
+  acceptBtn: { backgroundColor: colors.success, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  refuseBtn: { backgroundColor: colors.error, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  btnText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   disabled: { opacity: 0.4 },
   lateLeaversBlock: { width: '100%', gap: spacing.xs, marginBottom: spacing.sm },
   lateLeaverInfo: { flex: 1, marginLeft: spacing.sm, gap: 2 },

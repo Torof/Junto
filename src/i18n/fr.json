@@ -132,7 +132,8 @@
     "deleted": "Alerte supprimée",
     "locationSet": "Position définie",
     "confirmLocation": "Confirmer la position",
-    "existing": "Tes alertes"
+    "existing": "Tes alertes",
+    "createButton": "Créer une alerte d'activité"
   },
   "cancel": {
     "leaveTitle": "Quitter cette activité ?",
@@ -209,7 +210,9 @@
     "resetFilters": "Réinitialiser",
     "apply": "Appliquer",
     "searchArea": "Rechercher dans cette zone",
-    "createHere": "Créer une activité ici"
+    "createHere": "Créer une activité ici",
+    "recenter": "Recentrer sur ma position",
+    "openFilters": "Ouvrir les filtres"
   },
   "profil": {
     "logout": "Se déconnecter",
@@ -250,7 +253,9 @@
     "lateLeavers": "Désistements tardifs",
     "waive": "Lever pénalité",
     "penaltyWaived": "Pénalité levée",
-    "penaltyWaivedTag": "Pénalité levée ✓"
+    "penaltyWaivedTag": "Pénalité levée ✓",
+    "accept": "Accepter",
+    "refuse": "Refuser"
   },
   "myActivities": {
     "created": "Créées",

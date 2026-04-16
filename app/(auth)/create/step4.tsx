@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -102,9 +102,11 @@ export default function CreateStep4() {
         onPress={handlePublish}
         disabled={isLoading}
       >
-        <Text style={styles.publishText}>
-          {isLoading ? '...' : t('create.publish')}
-        </Text>
+        {isLoading ? (
+          <ActivityIndicator color={colors.textPrimary} />
+        ) : (
+          <Text style={styles.publishText}>{t('create.publish')}</Text>
+        )}
       </Pressable>
     </ScrollView>
   );

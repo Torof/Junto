@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { LocateFixed } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, radius } from '@/constants/theme';
 
 interface RecenterButtonProps {
@@ -7,8 +8,9 @@ interface RecenterButtonProps {
 }
 
 export function RecenterButton({ onPress }: RecenterButtonProps) {
+  const { t } = useTranslation();
   return (
-    <Pressable style={styles.button} onPress={onPress}>
+    <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.recenter')}>
       <LocateFixed size={22} color="#4285F4" strokeWidth={2.2} />
     </Pressable>
   );

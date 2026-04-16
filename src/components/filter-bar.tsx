@@ -1,14 +1,16 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { SlidersHorizontal } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
 
 export function FilterButton({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   const { filters } = useMapStore();
   const hasActiveFilter = filters.sportKeys.length > 0 || filters.dateMode !== 'all';
 
   return (
-    <Pressable style={styles.button} onPress={onPress}>
+    <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.openFilters')}>
       <SlidersHorizontal size={22} color={colors.background} strokeWidth={2.2} />
       {hasActiveFilter && <View style={styles.badge} />}
     </Pressable>

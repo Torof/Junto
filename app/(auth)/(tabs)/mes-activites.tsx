@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -170,7 +170,7 @@ export default function MesActivitesScreen() {
 
       {isLoading ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>...</Text>
+          <ActivityIndicator size="large" color={colors.cta} />
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -98,7 +98,7 @@ export default function RateParticipantsScreen() {
   if (isLoading || votesLoading) {
     return (
       <View style={styles.center}>
-        <Text style={styles.loadingText}>...</Text>
+        <ActivityIndicator size="large" color={colors.cta} />
       </View>
     );
   }

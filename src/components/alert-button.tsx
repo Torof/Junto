@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { BellPlus } from 'lucide-react-native';
 import { colors, spacing, radius } from '@/constants/theme';
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function AlertButton({ blink = false }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -37,7 +39,7 @@ export function AlertButton({ blink = false }: Props) {
 
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ scale }], opacity }]}>
-      <Pressable style={styles.button} onPress={() => router.push('/(auth)/create-alert')}>
+      <Pressable style={styles.button} onPress={() => router.push('/(auth)/create-alert')} accessibilityLabel={t('alerts.createButton')}>
         <BellPlus size={22} color={colors.background} strokeWidth={2.2} />
       </Pressable>
     </Animated.View>

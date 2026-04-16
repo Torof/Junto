@@ -132,7 +132,8 @@
     "deleted": "Alert deleted",
     "locationSet": "Location set",
     "confirmLocation": "Confirm location",
-    "existing": "Your alerts"
+    "existing": "Your alerts",
+    "createButton": "Create an activity alert"
   },
   "cancel": {
     "leaveTitle": "Leave this activity?",
@@ -209,7 +210,9 @@
     "resetFilters": "Reset",
     "apply": "Apply",
     "searchArea": "Search this area",
-    "createHere": "Create activity here"
+    "createHere": "Create activity here",
+    "recenter": "Recenter on my location",
+    "openFilters": "Open filters"
   },
   "profil": {
     "logout": "Log out",
@@ -250,7 +253,9 @@
     "lateLeavers": "Late cancellations",
     "waive": "Waive penalty",
     "penaltyWaived": "Penalty waived",
-    "penaltyWaivedTag": "Penalty waived ✓"
+    "penaltyWaivedTag": "Penalty waived ✓",
+    "accept": "Accept",
+    "refuse": "Refuse"
   },
   "myActivities": {
     "created": "Created",
