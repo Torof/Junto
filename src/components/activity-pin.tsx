@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { colors, fontSizes, radius } from '@/constants/theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -10,6 +11,13 @@ interface ActivityPinProps {
 
 const PIN_SIZE = 44;
 const DOT_SIZE = 16;
+// Tail geometry: corners touch the circle's outer edge; point extends below.
+const TAIL_HALF_WIDTH = 13;
+const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
+  (PIN_SIZE / 2) ** 2 - TAIL_HALF_WIDTH ** 2
+);
+const TAIL_BOTTOM_Y = PIN_SIZE + 10;
+const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 
 export function ActivityPin({ activity }: ActivityPinProps) {
   const joined = activity.participant_count;
@@ -22,9 +30,25 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       : timeStatus === 'soon'
         ? styles.circleSoon
         : null;
+  const tailFill =
+    timeStatus === 'in_progress'
+      ? colors.success
+      : timeStatus === 'soon'
+        ? colors.warning
+        : colors.textPrimary;
 
   return (
     <View style={styles.wrapper}>
+      <Svg width={PIN_SIZE} height={TOTAL_HEIGHT} style={StyleSheet.absoluteFill}>
+        <Path
+          d={`M ${PIN_SIZE / 2 - TAIL_HALF_WIDTH} ${TAIL_TOP_Y} L ${PIN_SIZE / 2} ${TAIL_BOTTOM_Y} L ${PIN_SIZE / 2 + TAIL_HALF_WIDTH} ${TAIL_TOP_Y}`}
+          fill={tailFill}
+          stroke="#000000"
+          strokeWidth={1.5}
+          strokeLinejoin="miter"
+          strokeLinecap="butt"
+        />
+      </Svg>
       <View style={[styles.circle, circleStyle]}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
       </View>
@@ -38,7 +62,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
 const styles = StyleSheet.create({
   wrapper: {
     width: PIN_SIZE,
-    height: PIN_SIZE,
+    height: TOTAL_HEIGHT,
     overflow: 'visible',
   },
   circle: {
