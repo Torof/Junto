@@ -281,19 +281,18 @@ export function ActivityDetail({
 
       <Text style={styles.title}>{activity.title}</Text>
 
-      <View style={styles.heroDate}>
-        <Clock size={18} color={colors.cta} strokeWidth={2.4} />
-        <View>
-          <Text style={styles.heroLabel}>{t('activity.starts')}</Text>
-          <Text style={styles.heroDateTime}>
+      <View style={styles.infoCard}>
+        <View style={styles.infoTimeRow}>
+          <Clock size={18} color={colors.cta} strokeWidth={2.4} />
+          <Text style={styles.infoTime}>
             {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
           </Text>
         </View>
+        <View style={styles.infoDivider} />
+        <Text style={styles.infoMeta}>
+          {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
+        </Text>
       </View>
-
-      <Text style={styles.metaLine}>
-        {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
-      </Text>
 
       {!isActive && (
         <View style={styles.inactiveBanner}>
@@ -512,13 +511,14 @@ const styles = StyleSheet.create({
   visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.md },
-  heroDate: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    marginBottom: spacing.sm,
+  infoCard: {
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    padding: spacing.md, marginBottom: spacing.lg,
   },
-  heroLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.8, textTransform: 'uppercase' },
-  heroDateTime: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textTransform: 'capitalize' },
-  metaLine: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg, textTransform: 'capitalize' },
+  infoTimeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  infoTime: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textTransform: 'capitalize', flex: 1 },
+  infoDivider: { height: 1, backgroundColor: colors.background, marginVertical: spacing.sm },
+  infoMeta: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
   descriptionCard: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
     padding: spacing.md, marginBottom: spacing.lg,
