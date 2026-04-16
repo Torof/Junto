@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
-import { ActivityPin } from './activity-pin';
+import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon } from './map-pin';
 
@@ -272,6 +272,7 @@ export function JuntoMapView({
             key={activity.id}
             id={activity.id}
             coordinate={[lng, lat]}
+            anchor={ACTIVITY_PIN_ANCHOR}
             allowOverlap={isSelected}
           >
             <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>

@@ -23,6 +23,10 @@ const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
 const TAIL_BOTTOM_Y = PIN_SIZE + 6;
 const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 
+// Anchor point for Mapbox MarkerView so the tail's tip sits exactly on
+// the geographic coordinate (x centered, y at the tip).
+export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: TAIL_BOTTOM_Y / TOTAL_HEIGHT };
+
 export function ActivityPin({ activity }: ActivityPinProps) {
   const joined = activity.participant_count;
   const isFull = joined >= activity.max_participants;
