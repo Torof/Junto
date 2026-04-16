@@ -3,6 +3,7 @@ import { type Session } from '@supabase/supabase-js';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { setSentryUser } from '@/lib/sentry';
 
 interface AuthState {
   session: Session | null;
@@ -45,6 +46,7 @@ export function useAuth(): AuthState {
       setSession(s);
       if (s) {
         await checkUserStatus(s.user.id);
+        setSentryUser(s.user.id);
       }
       setIsLoading(false);
     });
@@ -53,10 +55,12 @@ export function useAuth(): AuthState {
       if (s) {
         await checkUserStatus(s.user.id);
         setSession(s);
+        setSentryUser(s.user.id);
       } else {
         setNeedsOnboarding(false);
         setIsSuspended(false);
         setSession(null);
+        setSentryUser(null);
       }
     });
 

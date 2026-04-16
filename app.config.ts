@@ -72,6 +72,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: 'Junto needs camera access to scan presence QR codes.',
       },
     ],
+    '@sentry/react-native/expo',
   ],
   extra: {
     router: {},

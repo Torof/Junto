@@ -1,4 +1,6 @@
 import '@/i18n';
+import { initSentry, wrap } from '@/lib/sentry';
+initSentry();
 import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -103,7 +105,7 @@ function AuthGate() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -114,6 +116,8 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default wrap(RootLayout);
 
 const styles = StyleSheet.create({
   loading: {
