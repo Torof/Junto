@@ -11,14 +11,13 @@ interface ActivityPinProps {
 
 const PIN_SIZE = 44;
 const DOT_SIZE = 16;
-// Tail geometry: corners sit on the circle's outer edge, and the tip is
-// placed so each slanted edge is tangent to the circle at its corner —
-// the arc flows smoothly into the straight edge with zero kink.
-const RADIUS = PIN_SIZE / 2;
+// Tail geometry: corners sit exactly on the circle's outer edge; tip
+// extends below.
 const TAIL_HALF_WIDTH = 9;
-const DY = Math.sqrt(RADIUS ** 2 - TAIL_HALF_WIDTH ** 2);
-const TAIL_TOP_Y = RADIUS + DY;
-const TAIL_BOTTOM_Y = RADIUS + (RADIUS ** 2) / DY;
+const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
+  (PIN_SIZE / 2) ** 2 - TAIL_HALF_WIDTH ** 2
+);
+const TAIL_BOTTOM_Y = PIN_SIZE + 6;
 const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 
 export function ActivityPin({ activity }: ActivityPinProps) {
