@@ -125,9 +125,10 @@ export default function ProfilScreen() {
 
         {/* DEBUG — remove after */}
         <View style={{ padding: 8, backgroundColor: '#222', borderRadius: 8, marginBottom: 12 }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>user keys: {user ? Object.keys(user).join(',') : 'null'}</Text>
+          <Text style={{ color: '#fff', fontSize: 10 }}>user.id: {String(user?.id)}</Text>
           <Text style={{ color: '#fff', fontSize: 10 }}>userId: {String(userId)}</Text>
           <Text style={{ color: '#fff', fontSize: 10 }}>loading: {String(statsLoading)}</Text>
-          <Text style={{ color: '#fff', fontSize: 10 }}>err: {statsError ? String(statsError) : 'none'}</Text>
           <Text style={{ color: '#fff', fontSize: 10 }}>stats: {stats ? JSON.stringify(stats) : 'undefined'}</Text>
         </View>
 
