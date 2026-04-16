@@ -11,11 +11,14 @@ interface ActivityPinProps {
 
 const PIN_SIZE = 44;
 const DOT_SIZE = 16;
-// Tail geometry: corners sit exactly on the circle's outer edge; tip
-// extends below.
+// Tail geometry: corners sit on the visual middle of the 1.5px border
+// so the tail's stroke and the circle's stroke share pixels at the
+// junction. Tip extends below.
+const BORDER_WIDTH = 1.5;
+const ANCHOR_RADIUS = PIN_SIZE / 2 - BORDER_WIDTH / 2;
 const TAIL_HALF_WIDTH = 9;
 const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
-  (PIN_SIZE / 2) ** 2 - TAIL_HALF_WIDTH ** 2
+  ANCHOR_RADIUS ** 2 - TAIL_HALF_WIDTH ** 2
 );
 const TAIL_BOTTOM_Y = PIN_SIZE + 6;
 const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
