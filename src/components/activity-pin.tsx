@@ -39,6 +39,9 @@ export function ActivityPin({ activity }: ActivityPinProps) {
 
   return (
     <View style={styles.wrapper}>
+      <View style={[styles.circle, circleStyle]}>
+        <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+      </View>
       <Svg width={PIN_SIZE} height={TOTAL_HEIGHT} style={StyleSheet.absoluteFill}>
         <Path
           d={`M ${PIN_SIZE / 2 - TAIL_HALF_WIDTH} ${TAIL_TOP_Y} L ${PIN_SIZE / 2} ${TAIL_BOTTOM_Y} L ${PIN_SIZE / 2 + TAIL_HALF_WIDTH} ${TAIL_TOP_Y}`}
@@ -49,9 +52,6 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           strokeLinecap="butt"
         />
       </Svg>
-      <View style={[styles.circle, circleStyle]}>
-        <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
-      </View>
       <View style={[styles.dot, { backgroundColor: dotColor }]}>
         <Text style={styles.dotText}>{joined}</Text>
       </View>
