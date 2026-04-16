@@ -39,7 +39,7 @@ export function ActivityDetail({
   isAuthenticated,
   onJoinRedirect,
 }: ActivityDetailProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -62,10 +62,16 @@ export function ActivityDetail({
   const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
   const canShare = !isPrivateLink || isCreator;
 
+  const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
+  const statusColor = getStatusColor(timeStatus);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>
+            <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
+          </View>
           {canShare && (
             <Pressable onPress={handleShare} hitSlop={10} style={{ paddingHorizontal: spacing.sm }}>
               <Share2 size={22} color={colors.textPrimary} strokeWidth={2.2} />
@@ -79,7 +85,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare]);
+  }, [navigation, isCreator, canShare, timeStatus, statusColor, t]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -91,14 +97,22 @@ export function ActivityDetail({
     return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
   };
 
+  const formatDuration = (d: string): string => {
+    const ms = parseDurationMs(d);
+    const totalMinutes = Math.round(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours === 0) return `${minutes}min`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h${String(minutes).padStart(2, '0')}`;
+  };
+
   const startsAtMs = new Date(activity.starts_at).getTime();
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
   const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
 
-  const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
-  const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   const alreadyConfirmed = !!participation?.confirmed_present;
@@ -253,9 +267,6 @@ export function ActivityDetail({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          <Text style={styles.statusText}>{t(`activity.status.${timeStatus}`)}</Text>
-        </View>
         <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
         <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
         <View style={styles.visibilityBadge}>
@@ -298,12 +309,14 @@ export function ActivityDetail({
           <Text style={styles.infoValue}>{activity.level}</Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{dayjs(activity.starts_at).format('ddd D MMM')}</Text>
-          <Text style={styles.infoValue}>{dayjs(activity.starts_at).format('HH:mm')}</Text>
+          <Text style={styles.infoLabel}>{t('activity.starts')}</Text>
+          <Text style={styles.infoValue}>
+            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
+          </Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
-          <Text style={styles.infoValue}>{activity.duration}</Text>
+          <Text style={styles.infoValue}>{formatDuration(activity.duration)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
@@ -503,8 +516,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
-  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
-  statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
+  headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
   visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
