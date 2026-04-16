@@ -53,6 +53,7 @@
     "location": "Localisation",
     "navigate": "Y aller",
     "creator": "Organisé par",
+    "organizedBy": "Organisé par {{name}}",
     "requestJoin": "Demander à rejoindre",
     "leave": "Quitter l'activité",
     "cancel": "Annuler l'activité",

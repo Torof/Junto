@@ -53,6 +53,7 @@
     "location": "Location",
     "navigate": "Navigate",
     "creator": "Organized by",
+    "organizedBy": "Organized by {{name}}",
     "requestJoin": "Request to join",
     "leave": "Leave activity",
     "cancel": "Cancel activity",

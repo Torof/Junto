@@ -252,26 +252,43 @@ export function ActivityDetail({
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
+      <View style={styles.topRow}>
+        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
+        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+        <Text style={styles.topDot}>·</Text>
+        {activity.visibility === 'public' ? (
+          <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
+        ) : activity.visibility === 'approval' ? (
+          <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
+        ) : (
+          <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
+        )}
+        <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
           <Text style={styles.statusText}>{t(`activity.status.${timeStatus}`)}</Text>
         </View>
-        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
-        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-        <View style={styles.visibilityBadge}>
-          {activity.visibility === 'public' ? (
-            <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
-          ) : activity.visibility === 'approval' ? (
-            <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
-          ) : (
-            <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
-          )}
-          <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
-        </View>
       </View>
 
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>{activity.title}</Text>
+      <Text style={styles.title}>{activity.title}</Text>
+      <Text style={styles.organizer}>
+        {t('activity.organizedBy', { name: activity.creator_name })}
+      </Text>
+
+      <View style={styles.heroDate}>
+        <Text style={styles.heroDay}>{dayjs(activity.starts_at).format('ddd D MMM')}</Text>
+        <Text style={styles.heroTime}>{dayjs(activity.starts_at).format('HH:mm')}</Text>
+      </View>
+
+      <View style={styles.statChips}>
+        <View style={styles.chip}>
+          <Text style={styles.chipText}>{activity.level}</Text>
+        </View>
+        <View style={styles.chip}>
+          <Text style={styles.chipText}>{activity.duration}</Text>
+        </View>
+        <View style={styles.chip}>
+          <Text style={styles.chipText}>{activity.participant_count}/{activity.max_participants}</Text>
+        </View>
       </View>
 
       {!isActive && (
@@ -292,27 +309,8 @@ export function ActivityDetail({
         </View>
       )}
 
-      <View style={styles.infoGrid}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.level')}</Text>
-          <Text style={styles.infoValue}>{activity.level}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{dayjs(activity.starts_at).format('ddd D MMM')}</Text>
-          <Text style={styles.infoValue}>{dayjs(activity.starts_at).format('HH:mm')}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
-          <Text style={styles.infoValue}>{activity.duration}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
-          <Text style={styles.infoValue}>{activity.participant_count}/{activity.max_participants}</Text>
-        </View>
-      </View>
-
       {activity.description ? (
-        <View style={styles.section}>
+        <View style={styles.descriptionCard}>
           <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
           <Text style={styles.description}>{activity.description}</Text>
         </View>
@@ -502,29 +500,39 @@ export function ActivityDetail({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
-  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
+  topRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, gap: 6 },
+  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full, marginLeft: 'auto' },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
-  sportIcon: { fontSize: 20 },
+  sportIcon: { fontSize: 18 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
+  topDot: { color: colors.textSecondary, fontSize: fontSizes.sm, marginHorizontal: 2 },
   visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
+  organizer: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2, marginBottom: spacing.md },
+  heroDate: {
+    flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  heroDay: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textTransform: 'capitalize' },
+  heroTime: { color: colors.cta, fontSize: fontSizes.lg, fontWeight: 'bold' },
+  statChips: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.lg, flexWrap: 'wrap' },
+  chip: {
+    backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm, paddingVertical: 6,
+  },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600', textTransform: 'capitalize' },
+  descriptionCard: {
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    padding: spacing.md, marginBottom: spacing.lg,
+    borderLeftWidth: 3, borderLeftColor: colors.cta,
+  },
   inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  infoGrid: {
-    backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
-  },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
