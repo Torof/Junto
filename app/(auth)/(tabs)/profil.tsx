@@ -54,7 +54,7 @@ export default function ProfilScreen() {
 
   const userId = user?.id ?? null;
 
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['user-stats', userId],
     queryFn: () => userService.getPublicStats(userId ?? ''),
     enabled: !!userId,
@@ -121,6 +121,14 @@ export default function ProfilScreen() {
               {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
             </Text>
           )}
+        </View>
+
+        {/* DEBUG — remove after */}
+        <View style={{ padding: 8, backgroundColor: '#222', borderRadius: 8, marginBottom: 12 }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>userId: {String(userId)}</Text>
+          <Text style={{ color: '#fff', fontSize: 10 }}>loading: {String(statsLoading)}</Text>
+          <Text style={{ color: '#fff', fontSize: 10 }}>err: {statsError ? String(statsError) : 'none'}</Text>
+          <Text style={{ color: '#fff', fontSize: 10 }}>stats: {stats ? JSON.stringify(stats) : 'undefined'}</Text>
         </View>
 
         {/* Stats */}
