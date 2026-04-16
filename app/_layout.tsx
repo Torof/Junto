@@ -42,12 +42,11 @@ function AuthGate() {
     if (isLoading) return;
 
     // Cold-start guard: on the very first render, expo-router may not have
-    // processed the incoming deep link yet (segments will be empty). Wait
-    // until segments resolves to avoid redirecting away from the deep link.
-    if (segments.length === 0) {
-      setIsReady(true);
-      return;
-    }
+    // processed the incoming deep link yet (segments will be empty). Keep
+    // the loading overlay up until segments populate — avoids both flashing
+    // visitor content AND redirecting away from a deep link that hasn't
+    // resolved yet.
+    if (segments.length === 0) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inVisitorGroup = segments[0] === '(visitor)';
