@@ -11,11 +11,13 @@ interface ActivityPinProps {
 
 const PIN_SIZE = 44;
 const DOT_SIZE = 16;
-// Tail geometry: corners touch the circle's outer edge; point extends below.
+// Tail geometry: corners tucked just inside the circle's border so the
+// slanted strokes visually continue the ring rather than meeting it at
+// a kink. Point extends below the circle.
 const TAIL_HALF_WIDTH = 9;
 const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
   (PIN_SIZE / 2) ** 2 - TAIL_HALF_WIDTH ** 2
-);
+) - 2;
 const TAIL_BOTTOM_Y = PIN_SIZE + 6;
 const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 
