@@ -12,11 +12,11 @@ interface ActivityPinProps {
 const PIN_SIZE = 44;
 const DOT_SIZE = 16;
 // Tail geometry: corners touch the circle's outer edge; point extends below.
-const TAIL_HALF_WIDTH = 13;
+const TAIL_HALF_WIDTH = 9;
 const TAIL_TOP_Y = PIN_SIZE / 2 + Math.sqrt(
   (PIN_SIZE / 2) ** 2 - TAIL_HALF_WIDTH ** 2
 );
-const TAIL_BOTTOM_Y = PIN_SIZE + 10;
+const TAIL_BOTTOM_Y = PIN_SIZE + 6;
 const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 
 export function ActivityPin({ activity }: ActivityPinProps) {
