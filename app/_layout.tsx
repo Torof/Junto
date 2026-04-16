@@ -42,10 +42,8 @@ function AuthGate() {
     if (isLoading) return;
 
     // Cold-start guard: on the very first render, expo-router may not have
-    // processed the incoming deep link yet (segments will be empty). Keep
-    // the loading overlay up until segments populate — avoids both flashing
-    // visitor content AND redirecting away from a deep link that hasn't
-    // resolved yet.
+    // processed the incoming deep link yet (segments will be empty). Wait
+    // until segments resolves so we don't redirect away from the deep link.
     if (segments.length === 0) return;
 
     const inAuthGroup = segments[0] === '(auth)';
@@ -96,19 +94,18 @@ function AuthGate() {
     return () => sub.remove();
   }, [isAuthenticated]);
 
-  if (isLoading || !isReady) {
-    return (
-      <View style={styles.loading}>
-        <StatusBar style="light" />
-        <ActivityIndicator size="large" color={colors.cta} />
-      </View>
-    );
-  }
-
+  // Always render Slot so expo-router can populate segments; overlay the
+  // loading screen on top until we're sure we're on the correct route.
+  // This avoids the flash of default visitor content on cold start.
   return (
     <>
       <StatusBar style="light" />
       <Slot />
+      {(isLoading || !isReady) && (
+        <View style={styles.loading} pointerEvents="auto">
+          <ActivityIndicator size="large" color={colors.cta} />
+        </View>
+      )}
     </>
   );
 }
@@ -129,9 +126,10 @@ export default wrap(RootLayout);
 
 const styles = StyleSheet.create({
   loading: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
 });
