@@ -202,6 +202,55 @@ Développement agile par sprints. Chaque sprint livre quelque chose de fonctionn
 
 ---
 
+## Sprint — Discovery (Partenaires + Demandes)
+**Objectif :** résoudre le cold-start au lancement (stratégie flyers/QR) en permettant aux utilisateurs de se trouver par sport + rayon bidirectionnel, sans aucune dérive dating-app. Spec complète : `docs/sprint-discovery.md`.
+
+### Phase A — Design & décisions (fait)
+- [x] Scope figé (règles anti-dating-drift non-négociables)
+- [x] Data model défini (colonnes sur users + conversations)
+- [x] Chaînes d'autorisation rédigées
+- [x] UI flows spec'ées
+- [x] Décision loggée dans `docs/DECISIONS.md`
+- [ ] Scott valide les chaînes d'autorisation (§6 sprint doc) — requis avant Phase B
+
+### Phase B — Backend (migrations + RPCs)
+- [ ] Migration : colonnes discovery_* sur users, CHECK constraints, whitelist trigger update
+- [ ] Migration : colonnes status + initiated_from + request_expires_at sur conversations
+- [ ] RPC `get_discovery_partners()` — bidirectional radius + sport overlap + blocked filter + reliability sort
+- [ ] RPC `update_discovery_settings(...)` — opt-in toggle + fields
+- [ ] RPC `send_contact_request(...)` — rate-limited, pre-seeded message
+- [ ] RPC `accept_contact_request(...)` / `decline_contact_request(...)` / `cancel_contact_request(...)`
+- [ ] Auto-expiration des demandes pending > 30 jours
+- [ ] Cascade sur block / suspension
+- [ ] RLS sur nouveaux états de conversation
+- [ ] GRANT/REVOKE approprié
+
+### Phase C — Services & types
+- [ ] `discovery-service.ts`
+- [ ] Extensions de `conversation-service.ts`
+- [ ] Régénération des types Supabase
+
+### Phase D — Client UI
+- [ ] Nouvel onglet Discovery dans `(tabs)/_layout.tsx`
+- [ ] Écran opt-in / settings (toggle, center picker, radius slider, sports, transport)
+- [ ] Liste Partenaires (cards reliability-sorted)
+- [ ] Modal demande de contact (sport + period pickers, message auto-généré éditable)
+- [ ] Inbox Demandes (Reçues + Envoyées collapsible)
+- [ ] Swap `BellPlus` → `Radar` sur AlertButton (map)
+- [ ] i18n FR + EN
+- [ ] Empty / loading / error states
+
+### Phase E — Ship
+- [ ] Typecheck clean, régénération des types
+- [ ] Commits en chunks logiques
+- [ ] OTA push preview
+- [ ] Test device
+
+### Out of scope (parked pour Ship 2)
+- Annonces / mur de petites annonces — à construire UNIQUEMENT si Ship 1 prouve que les users créent des activités à partir de leurs matches. Sinon abandonné.
+
+---
+
 ## Backlog futur (post-launch)
 
 ### Features V2

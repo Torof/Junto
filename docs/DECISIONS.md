@@ -127,3 +127,33 @@ Signal déclencheur pour shipping : au moins 2 testeurs distincts demandant spon
 - Champ libre "Comment venir" côté créateur — passif, ne couvre pas le besoin "je cherche un lift".
 - Outil de covoiturage complet avec matching auto — over-engineering, territoire BlaBlaCar.
 - Intégration avec `location_end` pour détecter automatiquement les activités one-way — utile pour v2 si on ajoute le banner, mais pas pour la spec minimale.
+
+---
+
+## 2026-04-16 — Discovery feature : scope + anti-dating-drift rules
+
+**Décision :** Ajouter une feature Discovery (onglet navbar) avec deux sous-sections — Partenaires (liste de profils filtrée par sport + rayon bidirectionnel) et Demandes (flux de demandes de contact accepter/décliner). Le flux Annonces (mur de petites annonces) est parked pour un Ship 2 éventuel, pas maintenant. Spec complète : `docs/sprint-discovery.md`.
+
+**Pourquoi :** Résout le problème de cold-start dès le lancement (stratégie flyers/QR codes en salles/bars/clubs). Un nouvel utilisateur scannant un flyer dans une région peu dense a besoin de voir quelque chose de vivant à l'ouverture. Réutilise l'infra existante (profils, messagerie privée, score de fiabilité, PostGIS). ~2–3 jours de dev, aucun blocker de lancement affecté.
+
+**Règles anti-dating-drift (non-négociables) :**
+- Pas de bio (déjà une règle Junto existante — la feature l'hérite).
+- Pas de champ genre.
+- Pas de mécanique "match" (pas d'entité match, pas d'affichage "c'est un match !", pas d'effet confetti, pas de révélation mutuelle).
+- Pas de swipe deck, pas de card stack. Liste filtrée à la Airbnb.
+- Pas de "qui a vu mon profil", pas de likes, pas de favorites.
+- Pas de pictogrammes cœur / étincelles.
+- Pas de monétisation liée (ni "payer pour voir qui m'a liké" ni "boost du profil").
+- Demande de contact pré-remplie obligatoire — pas de DM froid direct depuis Discovery.
+- Rayon bidirectionnel — consentement géographique mutuel. Personne ne voit l'autre sans que leurs zones se croisent.
+- Refus silencieux — l'émetteur n'est pas notifié d'un décline.
+- Tri par score de fiabilité — récompense le comportement, pas l'apparence.
+- Vocabulaire : "partenaires", "demande de contact", "accepter/décliner". Pas "match", "connect", "rencontrer", "meet".
+
+**Alternatives considérées :**
+- **Annonces uniquement** (spec "Open Calls" proposée initialement) — plus anti-dating, mais nouvelle entité, nouveau type de contenu, et risque de cannibaliser la création d'activités (les users postent une annonce à la place d'une activité). Parked pour Ship 2.
+- **DM direct sans demande** — plus simple mais vecteur de harcèlement, pas de filtre de consentement.
+- **Entité "match" à la Tinder** — rejeté immédiatement (dérive dating).
+- **Hand-seeding de profils et d'activités avant chaque lancement régional** — complémentaire, à faire en plus de Discovery, pas à la place.
+
+**Déclencheur de validation Ship 2 (Annonces) :** après déploiement de Ship 1, si les users créent des activités à partir de leurs matches Discovery, on construit Annonces. Si Ship 1 ne génère pas d'activités, Annonces n'aidera pas — on abandonne.
