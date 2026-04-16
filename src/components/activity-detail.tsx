@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, Clock } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -39,7 +39,7 @@ export function ActivityDetail({
   isAuthenticated,
   onJoinRedirect,
 }: ActivityDetailProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -64,21 +64,6 @@ export function ActivityDetail({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ fontSize: 16 }}>{getSportIcon(activity.sport_key)}</Text>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textTransform: 'capitalize' }}>
-            {t(`sports.${activity.sport_key}`, activity.sport_key)}
-          </Text>
-          {activity.visibility === 'public' ? (
-            <Globe size={14} color={colors.textSecondary} strokeWidth={2} />
-          ) : activity.visibility === 'approval' ? (
-            <Hand size={14} color={colors.textSecondary} strokeWidth={2} />
-          ) : (
-            <Lock size={14} color={colors.textSecondary} strokeWidth={2} />
-          )}
-        </View>
-      ),
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {canShare && (
@@ -94,7 +79,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, activity.sport_key, activity.visibility, t]);
+  }, [navigation, isCreator, canShare]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -104,16 +89,6 @@ export function ActivityDetail({
     }
     const match = d.match(/(\d+)\s*hour/);
     return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
-  };
-
-  const formatDuration = (d: string): string => {
-    const ms = parseDurationMs(d);
-    const totalMinutes = Math.round(ms / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours === 0) return `${minutes}min`;
-    if (minutes === 0) return `${hours}h`;
-    return `${hours}h${String(minutes).padStart(2, '0')}`;
   };
 
   const startsAtMs = new Date(activity.starts_at).getTime();
@@ -275,27 +250,29 @@ export function ActivityDetail({
     ? t('activity.requestJoin')
     : t('activity.join');
 
-  const hasBottomAction = showJoinButton || showLeaveButton;
-
   return (
-    <View style={styles.screen}>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, hasBottomAction && { paddingBottom: 96 }]}
-    >
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>{activity.title}</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
           <Text style={styles.statusText}>{t(`activity.status.${timeStatus}`)}</Text>
         </View>
+        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
+        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+        <View style={styles.visibilityBadge}>
+          {activity.visibility === 'public' ? (
+            <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
+          ) : activity.visibility === 'approval' ? (
+            <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
+          ) : (
+            <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
+          )}
+          <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
+        </View>
       </View>
 
-      <Text style={styles.dateLine}>
-        {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
-      </Text>
-      <Text style={styles.metaLine}>
-        {t(`activity.level_${activity.level}`, activity.level)} · {formatDuration(activity.duration)} · {t('activity.peopleCount', { joined: activity.participant_count, max: activity.max_participants })}
-      </Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{activity.title}</Text>
+      </View>
 
       {!isActive && (
         <View style={styles.inactiveBanner}>
@@ -315,10 +292,28 @@ export function ActivityDetail({
         </View>
       )}
 
+      <View style={styles.infoGrid}>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>{t('activity.level')}</Text>
+          <Text style={styles.infoValue}>{activity.level}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>{dayjs(activity.starts_at).format('ddd D MMM')}</Text>
+          <Text style={styles.infoValue}>{dayjs(activity.starts_at).format('HH:mm')}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
+          <Text style={styles.infoValue}>{activity.duration}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
+          <Text style={styles.infoValue}>{activity.participant_count}/{activity.max_participants}</Text>
+        </View>
+      </View>
+
       {activity.description ? (
-        <View style={styles.sectionBlock}>
-          <View style={styles.hairline} />
-          <Text style={styles.sectionLabel}>{t('activity.description')}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
           <Text style={styles.description}>{activity.description}</Text>
         </View>
       ) : null}
@@ -344,9 +339,8 @@ export function ActivityDetail({
           : undefined;
 
         return (
-          <View style={styles.sectionBlock}>
-            <View style={styles.hairline} />
-            <Text style={styles.sectionLabel}>{t('activity.location')}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
             <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
               <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
               <View style={styles.mapTapOverlay} pointerEvents="box-only" />
@@ -374,17 +368,14 @@ export function ActivityDetail({
         );
       })()}
 
-      <View style={styles.sectionBlock}>
-        <View style={styles.hairline} />
-        <ParticipantList
-          activityId={activity.id}
-          isCreator={isCreator}
-          creatorId={activity.creator_id}
-          creatorName={activity.creator_name}
-          creatorAvatar={activity.creator_avatar}
-          onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
-        />
-      </View>
+      <ParticipantList
+        activityId={activity.id}
+        isCreator={isCreator}
+        creatorId={activity.creator_id}
+        creatorName={activity.creator_name}
+        creatorAvatar={activity.creator_avatar}
+        onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
+      />
 
       {canCheckIn && (
         <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
@@ -443,14 +434,33 @@ export function ActivityDetail({
         </View>
       )}
 
+      {(isCreator || isAccepted) && <View style={styles.separator} />}
+
       {(isCreator || isAccepted) && (
-        <View style={styles.sectionBlock}>
-          <View style={styles.hairline} />
-          <ActivityWall
-            activityId={activity.id}
-            isActive={['published', 'in_progress'].includes(activity.status)}
-          />
-        </View>
+        <ActivityWall
+          activityId={activity.id}
+          isActive={['published', 'in_progress'].includes(activity.status)}
+        />
+      )}
+
+      {showJoinButton && (
+        <Pressable
+          style={[styles.joinButton, isLoading && styles.buttonDisabled]}
+          onPress={handleJoin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
+        </Pressable>
+      )}
+
+      {showLeaveButton && (
+        <Pressable
+          style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
+          onPress={() => setShowLeaveModal(true)}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+        </Pressable>
       )}
 
       {!isCreator && isAuthenticated && (
@@ -486,58 +496,37 @@ export function ActivityDetail({
         </Modal>
       )}
     </ScrollView>
-
-    {hasBottomAction && (
-      <View style={[styles.stickyFooter, { paddingBottom: insets.bottom + spacing.sm }]}>
-        {showJoinButton && (
-          <Pressable
-            style={[styles.joinButton, isLoading && styles.buttonDisabled]}
-            onPress={handleJoin}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
-          </Pressable>
-        )}
-        {showLeaveButton && (
-          <Pressable
-            style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
-            onPress={() => setShowLeaveModal(true)}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
-          </Pressable>
-        )}
-      </View>
-    )}
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.xs },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
-  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full, marginTop: 4 },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
+  statusBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
   statusText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
-  dateLine: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600', textTransform: 'capitalize', marginBottom: 2 },
-  metaLine: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize', marginBottom: spacing.lg },
-  sectionBlock: { marginTop: spacing.sm, marginBottom: spacing.md },
-  hairline: { height: 1, backgroundColor: colors.surface, marginBottom: spacing.md },
-  sectionLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm },
-  stickyFooter: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    paddingHorizontal: spacing.lg, paddingTop: spacing.sm,
-    backgroundColor: colors.background,
-    borderTopWidth: 1, borderTopColor: colors.surface,
-  },
+  sportIcon: { fontSize: 20 },
+  sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
+  visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
+  visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
+  infoGrid: {
+    backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
+    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+  },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  section: { marginBottom: spacing.lg },
+  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   mapContainer: {
     height: 200, borderRadius: radius.lg, overflow: 'hidden',
@@ -584,8 +573,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center' },
-  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', borderWidth: 1, borderColor: colors.textSecondary },
+  joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
