@@ -67,7 +67,7 @@ export default function CarteScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { center } = useInitialLocation();
+  const { center, currentLocation } = useInitialLocation();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
@@ -236,7 +236,7 @@ export default function CarteScreen() {
             <JuntoMapView
               center={center}
               activities={filtered}
-              userLocation={center}
+              userLocation={currentLocation ?? center}
               tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
@@ -319,7 +319,7 @@ export default function CarteScreen() {
 
         <ActivitiesBottomSheet
           activities={filtered}
-          userLocation={center}
+          userLocation={currentLocation ?? center}
           onItemPress={(a) => {
             setFlyTarget([a.lng, a.lat]);
             setFlyOffset({ x: 0.1 });

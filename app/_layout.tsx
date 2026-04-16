@@ -50,20 +50,29 @@ function AuthGate() {
     }
 
     const inAuthGroup = segments[0] === '(auth)';
-    const inOnboarding = segments[0] === '(visitor)' && (segments as string[])[1] === 'onboarding';
-    const inSuspended = segments[0] === '(visitor)' && (segments as string[])[1] === 'suspended';
+    const inVisitorGroup = segments[0] === '(visitor)';
+    const inOnboarding = inVisitorGroup && (segments as string[])[1] === 'onboarding';
+    const inSuspended = inVisitorGroup && (segments as string[])[1] === 'suspended';
 
+    // Determine whether the user is already on the right route. If not, we
+    // issue a redirect and keep the loading overlay up until the segments
+    // update — prevents a flash of the wrong screen on cold start.
+    let onCorrectRoute: boolean;
     if (isAuthenticated && isSuspended) {
+      onCorrectRoute = inSuspended;
       if (!inSuspended) router.replace('/(visitor)/suspended');
     } else if (isAuthenticated && needsOnboarding) {
+      onCorrectRoute = inOnboarding;
       if (!inOnboarding) router.replace('/(visitor)/onboarding');
     } else if (isAuthenticated && !needsOnboarding) {
+      onCorrectRoute = inAuthGroup;
       if (!inAuthGroup) router.replace('/(auth)/(tabs)/carte');
-    } else if (!isAuthenticated) {
+    } else {
+      onCorrectRoute = !inAuthGroup && !inSuspended;
       if (inAuthGroup || inSuspended) router.replace('/(visitor)');
     }
 
-    setIsReady(true);
+    if (onCorrectRoute) setIsReady(true);
 
     // Trigger activity status transitions once per session (no pg_cron available)
     if (isAuthenticated && !transitionRan.current) {
