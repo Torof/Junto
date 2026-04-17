@@ -152,6 +152,21 @@ export const conversationService = {
     if (error) throw error;
   },
 
+  getExistingWith: async (otherUserId: string): Promise<string | null> => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return null;
+    const u1 = userId < otherUserId ? userId : otherUserId;
+    const u2 = userId < otherUserId ? otherUserId : userId;
+    const { data } = await supabase
+      .from('conversations' as 'users')
+      .select('id, status')
+      .eq('user_1' as 'id', u1)
+      .eq('user_2' as 'id', u2)
+      .single() as unknown as { data: { id: string; status: string } | null };
+    if (data?.status === 'active') return data.id;
+    return null;
+  },
+
   createOrGet: async (otherUserId: string): Promise<string> => {
     const { data, error } = await supabase.rpc('create_or_get_conversation' as 'join_activity', {
       p_other_user_id: otherUserId,

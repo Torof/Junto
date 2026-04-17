@@ -76,6 +76,12 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
+  const { data: existingConversationId } = useQuery({
+    queryKey: ['existing-conversation', id],
+    queryFn: () => conversationService.getExistingWith(id ?? ''),
+    enabled: !!id && !isOwnProfile,
+  });
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
@@ -194,19 +200,23 @@ export default function PublicProfileScreen() {
       {/* Primary action — send message (on other people's profile) */}
       {!isOwnProfile && (
         <View style={styles.actions}>
-          <Pressable style={styles.messageButton} onPress={async () => {
-            try {
-              const message = t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' });
-              const conversationId = await conversationService.sendContactRequest(id ?? '', message, 'profile');
-              if (conversationId) {
+          {existingConversationId ? (
+            <Pressable style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
+              <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.messageButton} onPress={async () => {
+              try {
+                const message = t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' });
+                await conversationService.sendContactRequest(id ?? '', message, 'profile');
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
+              } catch {
+                Alert.alert(t('auth.error'), t('auth.unknownError'));
               }
-            } catch {
-              Alert.alert(t('auth.error'), t('auth.unknownError'));
-            }
-          }}>
-            <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
-          </Pressable>
+            }}>
+              <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
+            </Pressable>
+          )}
         </View>
       )}
 
