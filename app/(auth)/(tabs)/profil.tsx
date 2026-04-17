@@ -64,7 +64,7 @@ export default function ProfilScreen() {
             {user?.display_name ?? '...'}
           </Text>
           {badgeColor && (
-            <BadgeCheck size={20} color={badgeColor} fill={badgeColor} strokeWidth={2.5} />
+            <BadgeCheck size={22} color={badgeColor} fill={badgeColor + '30'} strokeWidth={2.5} />
           )}
         </View>
       ),
@@ -138,7 +138,7 @@ export default function ProfilScreen() {
         {/* Hero row: avatar + stats */}
         <View style={styles.heroRow}>
           <Pressable onPress={handleAvatarPress} disabled={uploading} style={uploading && styles.uploading}>
-            <ReliabilityRing score={user?.reliability_score ?? null} size={110} strokeWidth={3.5}>
+            <ReliabilityRing score={user?.reliability_score ?? null} size={110}>
               {user?.avatar_url ? (
                 <UserAvatar name={user?.display_name ?? '?'} avatarUrl={user.avatar_url} size={110} />
               ) : (
