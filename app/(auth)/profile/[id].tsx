@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,14 +8,13 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
-import { reliabilityService } from '@/services/reliability-service';
-import { ReliabilityMeter } from '@/components/reliability-meter';
 import { badgeService } from '@/services/badge-service';
 import { conversationService } from '@/services/conversation-service';
 import { useLayoutEffect, useState } from 'react';
 import { UserAvatar } from '@/components/user-avatar';
+import { ReliabilityRing } from '@/components/reliability-ring';
 import { BadgeDisplay } from '@/components/badge-display';
-import { SportsBreakdown } from '@/components/sports-breakdown';
+import { SportIconGrid } from '@/components/sport-icon-grid';
 import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
@@ -34,17 +33,6 @@ export default function PublicProfileScreen() {
   });
 
   const isOwnProfile = currentUser === id;
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        isOwnProfile ? null : (
-          <Pressable onPress={() => setShowMenu(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
-            <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
-          </Pressable>
-        ),
-    });
-  }, [navigation, isOwnProfile]);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['public-profile', id],
@@ -82,6 +70,25 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
+            {profile?.display_name ?? '...'}
+          </Text>
+        </View>
+      ),
+      headerTitleAlign: 'left' as const,
+      headerRight: () =>
+        isOwnProfile ? null : (
+          <Pressable onPress={() => setShowMenu(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
+            <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        ),
+    });
+  }, [navigation, isOwnProfile, profile?.display_name]);
+
   const handleBlock = () => {
     Alert.alert(t('publicProfile.blockConfirmTitle'), t('publicProfile.blockConfirmMessage'), [
       { text: t('activity.no'), style: 'cancel' },
@@ -106,48 +113,55 @@ export default function PublicProfileScreen() {
   if (isLoading || !profile) {
     return (
       <View style={styles.center}>
-        <Text style={styles.loadingText}>...</Text>
+        <ActivityIndicator size="large" color={colors.cta} />
       </View>
     );
   }
 
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.profile}>
-        <UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} size={80} />
-        <Text style={styles.name}>{profile.display_name}</Text>
-        <View style={styles.reliabilityWrap}>
-          <ReliabilityMeter score={stats?.reliability_score ?? null} />
+      {/* Hero row: avatar with ring + stats */}
+      <View style={styles.heroRow}>
+        <ReliabilityRing score={stats?.reliability_score ?? null} size={110}>
+          <UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} size={110} />
+        </ReliabilityRing>
+
+        <View style={styles.statsColumn}>
+          <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
+          <View style={styles.statsCard}>
+            <View style={styles.statsRow}>
+              <View style={styles.stat}>
+                <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
+                <Text style={styles.statLabel}>{t('profil.completed')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.stat}>
+                <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
+                <Text style={styles.statLabel}>{t('profil.created')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.stat}>
+                <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
+                <Text style={styles.statLabel}>{t('profil.joined')}</Text>
+              </View>
+            </View>
+          </View>
+          {profile.created_at && (
+            <Text style={styles.memberSince}>
+              {t('profil.memberSince', { date: dayjs(profile.created_at).locale(i18n.language).format('MMM YYYY') })}
+            </Text>
+          )}
         </View>
-        <Text style={styles.memberSince}>
-          {t('profil.memberSince', { date: dayjs(profile.created_at).locale(i18n.language).format('MMM YYYY') })}
-        </Text>
       </View>
 
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
-          <Text style={styles.statLabel}>{t('profil.completed')}</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
-          <Text style={styles.statLabel}>{t('profil.created')}</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
-          <Text style={styles.statLabel}>{t('profil.joined')}</Text>
-        </View>
-      </View>
-
-      {/* Sports breakdown */}
-      <SportsBreakdown rows={sportBreakdown ?? []} />
+      {/* Sports icon grid */}
+      <SportIconGrid rows={sportBreakdown ?? []} />
 
       {/* Badges */}
-      <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
+      <View style={styles.badgesSection}>
+        <Text style={[styles.sectionTitle, { marginBottom: spacing.md }]}>{t('profil.badgesSection')}</Text>
+        <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
+      </View>
 
       {/* Primary action — send message (on other people's profile) */}
       {!isOwnProfile && (
@@ -200,45 +214,62 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
-  profile: { alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.xl },
-  name: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginTop: spacing.md },
-  reliability: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: spacing.xs },
-  reliabilityWrap: { width: '80%', marginTop: spacing.md },
-  memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  statsColumn: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  statsCardTitle: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  statsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
   statsRow: {
-    flexDirection: 'row', justifyContent: 'space-around',
-    backgroundColor: colors.surface, borderRadius: radius.lg,
-    paddingVertical: spacing.md, marginBottom: spacing.xl,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   stat: { alignItems: 'center', flex: 1 },
-  statDivider: { width: 1, backgroundColor: colors.background, marginVertical: spacing.xs },
-  statNumber: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold' },
+  statDivider: { width: 1, height: 28, backgroundColor: colors.textSecondary, opacity: 0.2 },
+  statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: spacing.sm },
-  sportsTags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  sportTag: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-  sportTagText: { color: colors.textPrimary, fontSize: fontSizes.xs },
+  memberSince: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs - 1,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    opacity: 0.7,
+  },
+  sectionTitle: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  badgesSection: { marginBottom: spacing.lg, marginTop: -spacing.xs },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
     backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
   messageText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  blockButton: {
-    backgroundColor: 'transparent', borderRadius: radius.full,
-    paddingVertical: spacing.sm, alignItems: 'center',
-  },
-  blockText: { color: colors.error, fontSize: fontSizes.sm },
-  unblockButton: {
-    backgroundColor: 'transparent', borderRadius: radius.full,
-    paddingVertical: spacing.sm, alignItems: 'center',
-  },
-  unblockText: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  reportButton: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
-  reportText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 56, paddingRight: spacing.md },
   menuSheet: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
