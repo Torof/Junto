@@ -79,11 +79,14 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
-  const { data: existingConversationId } = useQuery({
-    queryKey: ['existing-conversation', id],
-    queryFn: () => conversationService.getExistingWith(id ?? ''),
+  const { data: conversationState } = useQuery({
+    queryKey: ['conversation-state', id],
+    queryFn: () => conversationService.getConversationStateWith(id ?? ''),
     enabled: !!id && !isOwnProfile,
   });
+
+  const existingConversationId = conversationState?.status === 'active' ? conversationState.id : null;
+  const requestAlreadySent = conversationState?.status === 'pending_request' || conversationState?.status === 'declined';
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -207,6 +210,10 @@ export default function PublicProfileScreen() {
             <Pressable style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
               <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
             </Pressable>
+          ) : requestAlreadySent ? (
+            <View style={[styles.messageButton, { opacity: 0.4 }]}>
+              <Text style={styles.messageText}>{t('publicProfile.requestPending')}</Text>
+            </View>
           ) : (
             <Pressable style={styles.messageButton} onPress={() => {
               setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));

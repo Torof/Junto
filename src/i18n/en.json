@@ -305,6 +305,7 @@
     "sendMessage": "Send message",
     "requestContact": "Request contact",
     "requestSent": "Contact request sent",
+    "requestPending": "Request sent",
     "requestModalTitle": "Send a contact request",
     "requestPlaceholder": "Write a message...",
     "sendRequest": "Send request",

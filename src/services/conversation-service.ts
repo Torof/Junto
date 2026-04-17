@@ -152,7 +152,7 @@ export const conversationService = {
     if (error) throw error;
   },
 
-  getExistingWith: async (otherUserId: string): Promise<string | null> => {
+  getConversationStateWith: async (otherUserId: string): Promise<{ id: string; status: string } | null> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return null;
     const u1 = userId < otherUserId ? userId : otherUserId;
@@ -163,8 +163,7 @@ export const conversationService = {
       .eq('user_1' as 'id', u1)
       .eq('user_2' as 'id', u2)
       .single() as unknown as { data: { id: string; status: string } | null };
-    if (data?.status === 'active') return data.id;
-    return null;
+    return data ?? null;
   },
 
   createOrGet: async (otherUserId: string): Promise<string> => {
