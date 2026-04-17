@@ -58,12 +58,12 @@ export default function ProfilScreen() {
     const tierLabel = user?.tier && user.tier !== 'free' ? user.tier : null;
     navigation.setOptions({
       headerTitle: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
           {tierLabel && (
-            <View style={{ backgroundColor: colors.cta + '30', borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2 }}>
+            <View style={{ backgroundColor: colors.cta + '30', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}>
               <Text style={{ color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: 'bold', textTransform: 'uppercase' }}>
                 {tierLabel}
               </Text>
@@ -155,17 +155,19 @@ export default function ProfilScreen() {
           </Pressable>
 
           <View style={styles.statsColumn}>
-            <Text style={styles.sectionTitle}>{t('profil.activities')}</Text>
             <View style={styles.statsCard}>
+              <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
               <View style={styles.statsRow}>
                 <View style={styles.stat}>
                   <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
                   <Text style={styles.statLabel}>{t('profil.completed')}</Text>
                 </View>
+                <View style={styles.statDivider} />
                 <View style={styles.stat}>
                   <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
                   <Text style={styles.statLabel}>{t('profil.created')}</Text>
                 </View>
+                <View style={styles.statDivider} />
                 <View style={styles.stat}>
                   <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
                   <Text style={styles.statLabel}>{t('profil.joined')}</Text>
@@ -257,14 +259,25 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
+  statsCardTitle: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignItems: 'center',
   },
-  stat: { alignItems: 'center' },
+  stat: { alignItems: 'center', flex: 1 },
+  statDivider: { width: 1, height: '70%', backgroundColor: colors.background },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  badgesSection: { marginBottom: spacing.lg },
+  badgesSection: { marginBottom: spacing.lg, marginTop: spacing.sm },
   memberSince: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs - 1,

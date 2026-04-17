@@ -17,10 +17,10 @@ function colorFor(score: number): string {
 }
 
 // Leave a visible gap at the top so the ring reads as a meter, not a border.
-const GAP_DEGREES = 30;
+const GAP_DEGREES = 20;
 const ARC_FRACTION = (360 - GAP_DEGREES) / 360;
 
-export function ReliabilityRing({ score, size, strokeWidth = 3.5, children }: Props) {
+export function ReliabilityRing({ score, size, strokeWidth = 5, children }: Props) {
   const { t } = useTranslation();
   const outerSize = size + strokeWidth * 2 + 6;
   const center = outerSize / 2;

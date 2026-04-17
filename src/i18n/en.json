@@ -242,6 +242,10 @@
     "sportOutings_one": "{{count}} outing",
     "sportOutings_other": "{{count}} outings",
     "badgesSection": "Badges",
+    "levelBeginner": "Beginner",
+    "levelIntermediate": "Intermediate",
+    "levelAdvanced": "Advanced",
+    "levelExpert": "Expert",
     "notificationPrefs": "Notification preferences",
     "notifType": {
       "join_request": "New join request",

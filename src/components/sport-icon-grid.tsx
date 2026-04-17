@@ -55,23 +55,43 @@ export function SportIconGrid({ rows, onEdit }: Props) {
           <Text style={styles.emptyText}>{t('profil.noSportsYet')}</Text>
         </Pressable>
       ) : (
-        <View style={styles.grid}>
-          {sortByLevelThenCount(rows).map((row) => {
-            const borderColor = LEVEL_COLORS[row.level ?? ''] ?? colors.surface;
-            return (
-              <View key={row.sport_key} style={styles.iconWrap}>
-                <View style={[styles.iconCircle, { borderColor }]}>
-                  <Text style={styles.icon}>{getSportIcon(row.sport_key)}</Text>
-                  {row.completed_count > 0 && (
-                    <View style={styles.countBadge}>
-                      <Text style={styles.countText}>{row.completed_count}</Text>
-                    </View>
-                  )}
+        <>
+          <View style={styles.grid}>
+            {sortByLevelThenCount(rows).map((row) => {
+              const borderColor = LEVEL_COLORS[row.level ?? ''] ?? colors.surface;
+              return (
+                <View key={row.sport_key} style={styles.iconWrap}>
+                  <View style={[styles.iconCircle, { borderColor }]}>
+                    <Text style={styles.icon}>{getSportIcon(row.sport_key)}</Text>
+                    {row.completed_count > 0 && (
+                      <View style={styles.countBadge}>
+                        <Text style={styles.countText}>{row.completed_count}</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
+              );
+            })}
+          </View>
+          <View style={styles.legend}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['débutant'] }]} />
+              <Text style={styles.legendText}>{t('profil.levelBeginner')}</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['intermédiaire'] }]} />
+              <Text style={styles.legendText}>{t('profil.levelIntermediate')}</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['avancé'] }]} />
+              <Text style={styles.legendText}>{t('profil.levelAdvanced')}</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['expert'] }]} />
+              <Text style={styles.legendText}>{t('profil.levelExpert')}</Text>
+            </View>
+          </View>
+        </>
       )}
     </View>
   );
@@ -79,7 +99,7 @@ export function SportIconGrid({ rows, onEdit }: Props) {
 
 const styles = StyleSheet.create({
   section: { marginBottom: spacing.lg },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   sectionTitle: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
@@ -126,5 +146,27 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    justifyContent: 'center',
+    opacity: 0.6,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs - 2,
   },
 });
