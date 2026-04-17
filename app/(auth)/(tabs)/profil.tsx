@@ -58,7 +58,7 @@ export default function ProfilScreen() {
     const tierLabel = user?.tier && user.tier !== 'free' ? user.tier : null;
     navigation.setOptions({
       headerTitle: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
@@ -71,6 +71,7 @@ export default function ProfilScreen() {
           )}
         </View>
       ),
+      headerTitleAlign: 'center' as const,
       headerRight: () => (
         <Pressable onPress={() => setDrawerOpen(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
           <Menu size={24} color={colors.textPrimary} strokeWidth={2.2} />
@@ -155,8 +156,8 @@ export default function ProfilScreen() {
           </Pressable>
 
           <View style={styles.statsColumn}>
+            <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
             <View style={styles.statsCard}>
-              <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
               <View style={styles.statsRow}>
                 <View style={styles.stat}>
                   <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
@@ -190,7 +191,7 @@ export default function ProfilScreen() {
 
         {/* Badges */}
         <View style={styles.badgesSection}>
-          <Text style={styles.sectionTitle}>{t('profil.badgesSection')}</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: spacing.md }]}>{t('profil.badgesSection')}</Text>
           <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
         </View>
 
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stat: { alignItems: 'center', flex: 1 },
-  statDivider: { width: 1, height: '70%', backgroundColor: colors.background },
+  statDivider: { width: 1, height: 28, backgroundColor: colors.textSecondary, opacity: 0.2 },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
   badgesSection: { marginBottom: spacing.lg, marginTop: spacing.sm },

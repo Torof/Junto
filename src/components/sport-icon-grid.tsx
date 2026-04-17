@@ -151,8 +151,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.sm,
-    justifyContent: 'center',
+    marginTop: spacing.md,
+    marginBottom: -spacing.xs,
+    justifyContent: 'flex-start',
     opacity: 0.6,
   },
   legendItem: {
