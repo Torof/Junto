@@ -59,7 +59,7 @@ export default function ProfilScreen() {
     const badgeColor = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#F5A623' : null;
     navigation.setOptions({
       headerTitle: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
           <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
