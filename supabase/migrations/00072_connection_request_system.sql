@@ -163,8 +163,8 @@ BEGIN
   WHERE id = p_conversation_id;
 
   -- Insert the request message as the first real message
-  INSERT INTO private_messages (conversation_id, user_id, content, created_at)
-  VALUES (p_conversation_id, v_sender_id, v_conv.request_message, v_conv.created_at);
+  INSERT INTO private_messages (conversation_id, sender_id, receiver_id, content, created_at)
+  VALUES (p_conversation_id, v_sender_id, v_user_id, v_conv.request_message, v_conv.created_at);
 
   -- Notify the sender that their request was accepted
   INSERT INTO notifications (user_id, type, title, body, data, created_at)
