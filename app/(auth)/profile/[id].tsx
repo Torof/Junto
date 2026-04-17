@@ -277,6 +277,7 @@ export default function PublicProfileScreen() {
               setRequestSending(true);
               try {
                 await conversationService.sendContactRequest(id ?? '', requestMessage.trim(), 'profile');
+                await queryClient.invalidateQueries({ queryKey: ['conversation-state', id] });
                 setShowRequestModal(false);
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
               } catch (err) {

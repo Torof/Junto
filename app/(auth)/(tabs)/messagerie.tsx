@@ -22,6 +22,7 @@ export default function MessagerieScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
+  const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
 
   const { isConversationUnread } = useMessageStore();
 
@@ -109,7 +110,9 @@ export default function MessagerieScreen() {
                 <Text style={styles.requestName} numberOfLines={1}>{req.sender_name}</Text>
                 <Text style={styles.requestSource}>{sourceLabel(req.initiated_from)}</Text>
                 {req.request_message && (
-                  <Text style={styles.requestMessage} numberOfLines={2}>{req.request_message}</Text>
+                  <Pressable onPress={(e) => { e.stopPropagation(); setExpandedMessageId(expandedMessageId === req.id ? null : req.id); }}>
+                    <Text style={styles.requestMessage} numberOfLines={expandedMessageId === req.id ? undefined : 2}>{req.request_message}</Text>
+                  </Pressable>
                 )}
               </View>
               <View style={styles.requestActions}>

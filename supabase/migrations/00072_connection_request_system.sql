@@ -109,8 +109,8 @@ BEGIN
     p_target_user_id,
     'contact_request',
     (SELECT display_name FROM public_profiles WHERE id = v_user_id) || ' souhaite te contacter',
-    trim(p_message),
-    jsonb_build_object('conversation_id', v_conversation_id, 'from_user_id', v_user_id),
+    '',
+    jsonb_build_object('conversation_id', v_conversation_id, 'from_user_id', v_user_id, 'type', 'contact_request'),
     NOW()
   );
 
@@ -173,7 +173,7 @@ BEGIN
     'contact_request_accepted',
     'Demande acceptée',
     '',
-    jsonb_build_object('conversation_id', p_conversation_id),
+    jsonb_build_object('conversation_id', p_conversation_id, 'type', 'contact_request_accepted'),
     NOW()
   );
 END;
