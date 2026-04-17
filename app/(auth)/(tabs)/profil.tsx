@@ -156,20 +156,27 @@ export default function ProfilScreen() {
 
           <View style={styles.statsColumn}>
             <Text style={styles.sectionTitle}>{t('profil.activities')}</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.completed')}</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.created')}</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.joined')}</Text>
+            <View style={styles.statsCard}>
+              <View style={styles.statsRow}>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
+                  <Text style={styles.statLabel}>{t('profil.completed')}</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
+                  <Text style={styles.statLabel}>{t('profil.created')}</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
+                  <Text style={styles.statLabel}>{t('profil.joined')}</Text>
+                </View>
               </View>
             </View>
+            {user?.created_at && (
+              <Text style={styles.memberSince}>
+                {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -184,13 +191,6 @@ export default function ProfilScreen() {
           <Text style={styles.sectionTitle}>{t('profil.badgesSection')}</Text>
           <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
         </View>
-
-        {/* Member since — subtle, at the bottom */}
-        {user?.created_at && (
-          <Text style={styles.memberSince}>
-            {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
-          </Text>
-        )}
 
       </ScrollView>
 
@@ -251,6 +251,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
   },
+  statsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -261,10 +267,9 @@ const styles = StyleSheet.create({
   badgesSection: { marginBottom: spacing.lg },
   memberSince: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs,
+    fontSize: fontSizes.xs - 1,
     textAlign: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-    fontStyle: 'italic',
+    marginTop: spacing.xs,
+    opacity: 0.7,
   },
 });

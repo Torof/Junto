@@ -1,6 +1,7 @@
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { colors } from '@/constants/theme';
+import { useTranslation } from 'react-i18next';
+import { colors, fontSizes, spacing } from '@/constants/theme';
 
 interface Props {
   score: number | null;
@@ -15,20 +16,32 @@ function colorFor(score: number): string {
   return colors.error;
 }
 
-export function ReliabilityRing({ score, size, strokeWidth = 3, children }: Props) {
-  const outerSize = size + strokeWidth * 2 + 4;
+// Leave a visible gap at the top so the ring reads as a meter, not a border.
+const GAP_DEGREES = 30;
+const ARC_FRACTION = (360 - GAP_DEGREES) / 360;
+
+export function ReliabilityRing({ score, size, strokeWidth = 3.5, children }: Props) {
+  const { t } = useTranslation();
+  const outerSize = size + strokeWidth * 2 + 6;
   const center = outerSize / 2;
   const svgRadius = (size + strokeWidth) / 2;
-  const circumference = 2 * Math.PI * svgRadius;
+  const fullCircumference = 2 * Math.PI * svgRadius;
+  const arcLength = fullCircumference * ARC_FRACTION;
 
   const clamped = score !== null ? Math.max(0, Math.min(100, score)) : 0;
   const progress = clamped / 100;
-  const strokeDashoffset = circumference * (1 - progress);
+  const filledLength = arcLength * progress;
   const ringColor = score !== null ? colorFor(clamped) : colors.surface;
+
+  // Rotation: start the arc at bottom-left of the gap (centered at top).
+  // Gap is at the top. Arc starts at (90 + GAP_DEGREES/2) degrees from the
+  // standard SVG 3-o'clock position, going clockwise.
+  const startRotation = 90 + GAP_DEGREES / 2;
 
   return (
     <View style={[styles.container, { width: outerSize, height: outerSize }]}>
       <Svg width={outerSize} height={outerSize} style={StyleSheet.absoluteFill}>
+        {/* Track (grey arc with gap) */}
         <Circle
           cx={center}
           cy={center}
@@ -36,8 +49,13 @@ export function ReliabilityRing({ score, size, strokeWidth = 3, children }: Prop
           stroke={colors.surface}
           strokeWidth={strokeWidth}
           fill="none"
+          strokeDasharray={`${arcLength} ${fullCircumference - arcLength}`}
+          strokeLinecap="round"
+          rotation={startRotation}
+          origin={`${center}, ${center}`}
         />
-        {score !== null && (
+        {/* Filled arc */}
+        {score !== null && filledLength > 0 && (
           <Circle
             cx={center}
             cy={center}
@@ -45,10 +63,9 @@ export function ReliabilityRing({ score, size, strokeWidth = 3, children }: Prop
             stroke={ringColor}
             strokeWidth={strokeWidth}
             fill="none"
-            strokeDasharray={`${circumference}`}
-            strokeDashoffset={strokeDashoffset}
+            strokeDasharray={`${filledLength} ${fullCircumference - filledLength}`}
             strokeLinecap="round"
-            rotation={-90}
+            rotation={startRotation}
             origin={`${center}, ${center}`}
           />
         )}
@@ -56,6 +73,12 @@ export function ReliabilityRing({ score, size, strokeWidth = 3, children }: Prop
       <View style={styles.content}>
         {children}
       </View>
+      {/* Score label at the gap (top center) */}
+      {score !== null && (
+        <View style={styles.scoreBadge}>
+          <Text style={[styles.scoreText, { color: ringColor }]}>{clamped}%</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -67,5 +90,17 @@ const styles = StyleSheet.create({
   },
   content: {
     position: 'absolute',
+  },
+  scoreBadge: {
+    position: 'absolute',
+    top: -2,
+    alignSelf: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+  },
+  scoreText: {
+    fontSize: fontSizes.xs - 1,
+    fontWeight: 'bold',
   },
 });
