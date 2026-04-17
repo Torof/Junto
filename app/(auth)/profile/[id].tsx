@@ -13,6 +13,7 @@ import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useLayoutEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
 import { BadgeDisplay } from '@/components/badge-display';
@@ -25,6 +26,7 @@ export default function PublicProfileScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showReport, setShowReport] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [requestHandled, setRequestHandled] = useState(false);
@@ -236,7 +238,7 @@ export default function PublicProfileScreen() {
 
     {/* Floating accept/refuse bar when coming from a pending request */}
     {participationId && !requestHandled && (
-      <View style={styles.requestCard}>
+      <View style={[styles.requestCard, { bottom: insets.bottom + spacing.md }]}>
         <Text style={styles.requestContext} numberOfLines={2}>
           {t('participants.requestFor', { title: activityTitle ? decodeURIComponent(activityTitle) : '...' })}
         </Text>
@@ -332,7 +334,7 @@ const styles = StyleSheet.create({
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
   requestCard: {
-    position: 'absolute', bottom: spacing.xl, left: spacing.lg, right: spacing.lg,
+    position: 'absolute', left: spacing.lg, right: spacing.lg,
     backgroundColor: colors.surface, borderRadius: radius.lg,
     padding: spacing.md, gap: spacing.sm,
     elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,

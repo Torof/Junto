@@ -7,6 +7,7 @@ interface Props {
   score: number | null;
   size: number;
   strokeWidth?: number;
+  showLabel?: boolean;
   children: React.ReactNode;
 }
 
@@ -21,7 +22,7 @@ function colorFor(score: number): string {
 const GAP_DEGREES = 10;
 const ARC_FRACTION = (360 - GAP_DEGREES) / 360;
 
-export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Props) {
+export function ReliabilityRing({ score, size, strokeWidth = 10, showLabel = true, children }: Props) {
   const { t } = useTranslation();
   const outerSize = size + strokeWidth * 2 + 6;
   const center = outerSize / 2;
@@ -74,12 +75,14 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Pro
         {children}
       </View>
       {/* Score label at the gap */}
-      <View style={styles.scoreBadge}>
-        {score !== null ? (
-          <Text style={[styles.scoreText, { color: ringColor }]}>{clamped}%</Text>
-        ) : null}
-        <Text style={styles.scoreLabel}>{t('reliability.label')}</Text>
-      </View>
+      {showLabel && (
+        <View style={styles.scoreBadge}>
+          {score !== null ? (
+            <Text style={[styles.scoreText, { color: ringColor }]}>{clamped}%</Text>
+          ) : null}
+          <Text style={styles.scoreLabel}>{t('reliability.label')}</Text>
+        </View>
+      )}
     </View>
   );
 }
