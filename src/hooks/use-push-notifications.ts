@@ -66,7 +66,9 @@ export function usePushNotifications(enabled: boolean) {
         conversation_id?: string;
         type?: string;
       };
-      if (data?.type === 'contact_request' || data?.type === 'contact_request_accepted') {
+      if (data?.type === 'contact_request') {
+        router.push('/(auth)/(tabs)/messagerie?tab=requests');
+      } else if (data?.type === 'contact_request_accepted') {
         router.push('/(auth)/(tabs)/messagerie');
       } else if (data?.conversation_id) {
         router.push(`/(auth)/conversation/${data.conversation_id}`);
