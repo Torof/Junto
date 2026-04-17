@@ -17,6 +17,22 @@ const LEVEL_COLORS: Record<string, string> = {
   'expert': colors.error,
 };
 
+const LEVEL_PRIORITY: Record<string, number> = {
+  'expert': 4,
+  'avancé': 3,
+  'intermédiaire': 2,
+  'débutant': 1,
+};
+
+function sortByLevelThenCount(rows: SportBreakdownRow[]): SportBreakdownRow[] {
+  return [...rows].sort((a, b) => {
+    const levelA = LEVEL_PRIORITY[a.level ?? ''] ?? 0;
+    const levelB = LEVEL_PRIORITY[b.level ?? ''] ?? 0;
+    if (levelB !== levelA) return levelB - levelA;
+    return b.completed_count - a.completed_count;
+  });
+}
+
 const ICON_SIZE = 44;
 
 export function SportIconGrid({ rows, onEdit }: Props) {
@@ -40,7 +56,7 @@ export function SportIconGrid({ rows, onEdit }: Props) {
         </Pressable>
       ) : (
         <View style={styles.grid}>
-          {rows.map((row) => {
+          {sortByLevelThenCount(rows).map((row) => {
             const borderColor = LEVEL_COLORS[row.level ?? ''] ?? colors.surface;
             return (
               <View key={row.sport_key} style={styles.iconWrap}>

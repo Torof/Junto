@@ -155,6 +155,7 @@ export default function ProfilScreen() {
           </Pressable>
 
           <View style={styles.statsColumn}>
+            <Text style={styles.sectionTitle}>{t('profil.activities')}</Text>
             <View style={styles.statsRow}>
               <View style={styles.stat}>
                 <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
@@ -169,11 +170,6 @@ export default function ProfilScreen() {
                 <Text style={styles.statLabel}>{t('profil.joined')}</Text>
               </View>
             </View>
-            {user?.created_at && (
-              <Text style={styles.memberSince}>
-                {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
-              </Text>
-            )}
           </View>
         </View>
 
@@ -184,7 +180,17 @@ export default function ProfilScreen() {
         />
 
         {/* Badges */}
-        <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
+        <View style={styles.badgesSection}>
+          <Text style={styles.sectionTitle}>{t('profil.badgesSection')}</Text>
+          <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
+        </View>
+
+        {/* Member since — subtle, at the bottom */}
+        {user?.created_at && (
+          <Text style={styles.memberSince}>
+            {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
+          </Text>
+        )}
 
       </ScrollView>
 
@@ -237,6 +243,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
+  sectionTitle: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: 'bold',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -244,5 +258,13 @@ const styles = StyleSheet.create({
   stat: { alignItems: 'center' },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  memberSince: { color: colors.textSecondary, fontSize: fontSizes.xs, textAlign: 'center' },
+  badgesSection: { marginBottom: spacing.lg },
+  memberSince: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+    fontStyle: 'italic',
+  },
 });
