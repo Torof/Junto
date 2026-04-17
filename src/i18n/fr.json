@@ -269,7 +269,8 @@
     "penaltyWaived": "Pénalité levée",
     "penaltyWaivedTag": "Pénalité levée ✓",
     "accept": "Accepter",
-    "refuse": "Refuser"
+    "refuse": "Refuser",
+    "requestFor": "Accepter ou refuser la demande pour « {{title}} »"
   },
   "myActivities": {
     "created": "Créées",

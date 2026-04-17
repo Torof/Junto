@@ -383,6 +383,7 @@ export function ActivityDetail({
 
       <ParticipantList
         activityId={activity.id}
+        activityTitle={activity.title}
         isCreator={isCreator}
         creatorId={activity.creator_id}
         creatorName={activity.creator_name}

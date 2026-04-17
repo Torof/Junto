@@ -12,6 +12,7 @@ import { getSportIcon } from '@/constants/sport-icons';
 
 interface ParticipantListProps {
   activityId: string;
+  activityTitle?: string;
   isCreator: boolean;
   creatorId: string;
   creatorName: string;
@@ -19,7 +20,7 @@ interface ParticipantListProps {
   onProfilePress?: (userId: string) => void;
 }
 
-export function ParticipantList({ activityId, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
+export function ParticipantList({ activityId, activityTitle, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -102,17 +103,12 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
             <Pressable
               key={p.participation_id}
               style={styles.pendingRow}
-              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}`)}
+              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}&activityTitle=${encodeURIComponent(activityTitle ?? '')}`)}
             >
               <ReliabilityRing score={p.reliability_score ?? null} size={36} strokeWidth={3}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={36} />
               </ReliabilityRing>
               <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
-              {(p.sports ?? []).length > 0 && (
-                <Text style={styles.pendingSports} numberOfLines={1}>
-                  {(p.sports ?? []).slice(0, 4).map((s) => getSportIcon(s)).join(' ')}
-                </Text>
-              )}
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}

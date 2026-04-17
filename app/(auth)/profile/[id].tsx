@@ -21,7 +21,7 @@ import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
-  const { id, participation: participationId } = useLocalSearchParams<{ id: string; participation?: string }>();
+  const { id, participation: participationId, activityTitle } = useLocalSearchParams<{ id: string; participation?: string; activityTitle?: string }>();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
@@ -236,21 +236,26 @@ export default function PublicProfileScreen() {
 
     {/* Floating accept/refuse bar when coming from a pending request */}
     {participationId && !requestHandled && (
-      <View style={styles.requestBar}>
-        <Pressable
-          style={[styles.requestAccept, requestLoading && styles.requestDisabled]}
-          onPress={() => handleParticipation('accept')}
-          disabled={requestLoading}
-        >
-          <Text style={styles.requestAcceptText}>{t('participants.accept')}</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.requestRefuse, requestLoading && styles.requestDisabled]}
-          onPress={() => handleParticipation('refuse')}
-          disabled={requestLoading}
-        >
-          <Text style={styles.requestRefuseText}>{t('participants.refuse')}</Text>
-        </Pressable>
+      <View style={styles.requestCard}>
+        <Text style={styles.requestContext} numberOfLines={2}>
+          {t('participants.requestFor', { title: activityTitle ? decodeURIComponent(activityTitle) : '...' })}
+        </Text>
+        <View style={styles.requestButtons}>
+          <Pressable
+            style={[styles.requestAccept, requestLoading && styles.requestDisabled]}
+            onPress={() => handleParticipation('accept')}
+            disabled={requestLoading}
+          >
+            <Text style={styles.requestAcceptText}>{t('participants.accept')}</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.requestRefuse, requestLoading && styles.requestDisabled]}
+            onPress={() => handleParticipation('refuse')}
+            disabled={requestLoading}
+          >
+            <Text style={styles.requestRefuseText}>{t('participants.refuse')}</Text>
+          </Pressable>
+        </View>
       </View>
     )}
     </View>
@@ -326,23 +331,25 @@ const styles = StyleSheet.create({
   menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
-  requestBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    flexDirection: 'row', gap: spacing.sm,
-    paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl,
-    backgroundColor: colors.background,
-    borderTopWidth: 1, borderTopColor: colors.surface,
+  requestCard: {
+    position: 'absolute', bottom: spacing.xl, left: spacing.lg, right: spacing.lg,
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    padding: spacing.md, gap: spacing.sm,
+    elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
+  requestContext: {
+    color: colors.textSecondary, fontSize: fontSizes.xs, textAlign: 'center',
+  },
+  requestButtons: { flexDirection: 'row', gap: spacing.sm },
   requestAccept: {
     flex: 1, backgroundColor: colors.success, borderRadius: radius.full,
-    paddingVertical: spacing.md, alignItems: 'center',
+    paddingVertical: spacing.sm, alignItems: 'center',
   },
-  requestAcceptText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  requestAcceptText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   requestRefuse: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: radius.full,
-    paddingVertical: spacing.md, alignItems: 'center',
-    borderWidth: 1, borderColor: colors.textSecondary,
+    flex: 1, backgroundColor: colors.error, borderRadius: radius.full,
+    paddingVertical: spacing.sm, alignItems: 'center',
   },
-  requestRefuseText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  requestRefuseText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   requestDisabled: { opacity: 0.4 },
 });

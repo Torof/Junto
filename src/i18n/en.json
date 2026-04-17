@@ -269,7 +269,8 @@
     "penaltyWaived": "Penalty waived",
     "penaltyWaivedTag": "Penalty waived ✓",
     "accept": "Accept",
-    "refuse": "Refuse"
+    "refuse": "Refuse",
+    "requestFor": "Accept or refuse request for \"{{title}}\""
   },
   "myActivities": {
     "created": "Created",
