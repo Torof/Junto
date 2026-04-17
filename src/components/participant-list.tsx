@@ -101,22 +101,18 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
           {(pending ?? []).map((p) => (
             <Pressable
               key={p.participation_id}
-              style={styles.pendingCard}
-              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}
+              style={styles.pendingRow}
+              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}`)}
             >
-              <View style={styles.pendingTop}>
-                <ReliabilityRing score={p.reliability_score ?? null} size={48} strokeWidth={4}>
-                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={48} />
-                </ReliabilityRing>
-                <View style={styles.pendingInfo}>
-                  <Text style={styles.pendingName}>{p.display_name}</Text>
-                  {(p.sports ?? []).length > 0 && (
-                    <Text style={styles.pendingSports} numberOfLines={1}>
-                      {(p.sports ?? []).map((s) => getSportIcon(s)).join('  ')}
-                    </Text>
-                  )}
-                </View>
-              </View>
+              <ReliabilityRing score={p.reliability_score ?? null} size={36} strokeWidth={3}>
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={36} />
+              </ReliabilityRing>
+              <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
+              {(p.sports ?? []).length > 0 && (
+                <Text style={styles.pendingSports} numberOfLines={1}>
+                  {(p.sports ?? []).slice(0, 4).map((s) => getSportIcon(s)).join(' ')}
+                </Text>
+              )}
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
@@ -145,7 +141,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
           <View style={styles.lateLeaversBlock}>
             <Text style={styles.subTitle}>{t('participants.lateLeavers')}</Text>
             {(lateLeavers ?? []).map((p) => (
-              <View key={p.participation_id} style={styles.pendingCard}>
+              <View key={p.participation_id} style={styles.pendingRow}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
                 <View style={styles.lateLeaverInfo}>
                   <Text style={styles.pendingName}>{p.display_name}</Text>
@@ -188,14 +184,14 @@ const styles = StyleSheet.create({
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
   organizerPillText: { color: '#fff', fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
-  pendingCard: {
+  pendingRow: {
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: spacing.sm, marginBottom: spacing.sm, gap: spacing.sm,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
+    marginBottom: spacing.xs, gap: spacing.sm,
   },
-  pendingTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  pendingInfo: { flex: 1, gap: 2 },
-  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-  pendingSports: { fontSize: 14 },
+  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
+  pendingSports: { fontSize: 13 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   refuseBtn: { backgroundColor: colors.error, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

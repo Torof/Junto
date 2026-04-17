@@ -9,7 +9,9 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
+import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { useLayoutEffect, useState } from 'react';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
@@ -19,12 +21,14 @@ import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, participation: participationId } = useLocalSearchParams<{ id: string; participation?: string }>();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const [showReport, setShowReport] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [requestHandled, setRequestHandled] = useState(false);
+  const [requestLoading, setRequestLoading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -104,6 +108,27 @@ export default function PublicProfileScreen() {
     ]);
   };
 
+  const handleParticipation = async (action: 'accept' | 'refuse') => {
+    if (!participationId) return;
+    setRequestLoading(true);
+    try {
+      if (action === 'accept') {
+        await participationService.accept(participationId);
+        Burnt.toast({ title: t('toast.participantAccepted'), preset: 'done' });
+      } else {
+        await participationService.refuse(participationId);
+        Burnt.toast({ title: t('toast.participantRefused') });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['participants-pending'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants'] });
+      setRequestHandled(true);
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
   const handleUnblock = async () => {
     await userService.unblockUser(id ?? '');
     await queryClient.invalidateQueries({ queryKey: ['is-blocked', id] });
@@ -119,7 +144,8 @@ export default function PublicProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1 }}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, participationId && !requestHandled && { paddingBottom: 120 }]}>
       {/* Hero row: avatar with ring + stats */}
       <View style={styles.heroRow}>
         <ReliabilityRing score={stats?.reliability_score ?? null} size={110}>
@@ -207,6 +233,27 @@ export default function PublicProfileScreen() {
         onClose={() => setShowReport(false)}
       />
     </ScrollView>
+
+    {/* Floating accept/refuse bar when coming from a pending request */}
+    {participationId && !requestHandled && (
+      <View style={styles.requestBar}>
+        <Pressable
+          style={[styles.requestAccept, requestLoading && styles.requestDisabled]}
+          onPress={() => handleParticipation('accept')}
+          disabled={requestLoading}
+        >
+          <Text style={styles.requestAcceptText}>{t('participants.accept')}</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.requestRefuse, requestLoading && styles.requestDisabled]}
+          onPress={() => handleParticipation('refuse')}
+          disabled={requestLoading}
+        >
+          <Text style={styles.requestRefuseText}>{t('participants.refuse')}</Text>
+        </Pressable>
+      </View>
+    )}
+    </View>
   );
 }
 
@@ -279,4 +326,23 @@ const styles = StyleSheet.create({
   menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
+  requestBar: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row', gap: spacing.sm,
+    paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl,
+    backgroundColor: colors.background,
+    borderTopWidth: 1, borderTopColor: colors.surface,
+  },
+  requestAccept: {
+    flex: 1, backgroundColor: colors.success, borderRadius: radius.full,
+    paddingVertical: spacing.md, alignItems: 'center',
+  },
+  requestAcceptText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  requestRefuse: {
+    flex: 1, backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingVertical: spacing.md, alignItems: 'center',
+    borderWidth: 1, borderColor: colors.textSecondary,
+  },
+  requestRefuseText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  requestDisabled: { opacity: 0.4 },
 });
