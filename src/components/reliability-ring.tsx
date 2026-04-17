@@ -73,12 +73,13 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Pro
       <View style={styles.content}>
         {children}
       </View>
-      {/* Score label at the gap (top center) */}
-      {score !== null && (
-        <View style={styles.scoreBadge}>
+      {/* Score label at the gap */}
+      <View style={styles.scoreBadge}>
+        {score !== null ? (
           <Text style={[styles.scoreText, { color: ringColor }]}>{clamped}%</Text>
-        </View>
-      )}
+        ) : null}
+        <Text style={styles.scoreLabel}>{t('reliability.label')}</Text>
+      </View>
     </View>
   );
 }
@@ -102,5 +103,10 @@ const styles = StyleSheet.create({
   scoreText: {
     fontSize: fontSizes.xs - 1,
     fontWeight: 'bold',
+  },
+  scoreLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs - 2,
+    opacity: 0.7,
   },
 });

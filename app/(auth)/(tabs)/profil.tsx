@@ -16,7 +16,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportIconGrid } from '@/components/sport-icon-grid';
 import { SportsLevelEditor } from '@/components/sports-level-editor';
-import { Camera, Plus, BadgeCheck } from 'lucide-react-native';
+import { Camera, Plus, BadgeCheck, Pencil } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
@@ -66,6 +66,9 @@ export default function ProfilScreen() {
           <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
+          <Pressable onPress={() => setDrawerOpen(true)} hitSlop={10}>
+            <Pencil size={14} color={colors.textSecondary} strokeWidth={2} />
+          </Pressable>
         </View>
       ),
       headerTitleAlign: 'left' as const,
