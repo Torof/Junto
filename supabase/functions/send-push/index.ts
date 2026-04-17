@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     return new Response('Invalid JSON', { status: 400 });
   }
   const { user_id, title, body, data } = payload;
-  if (!user_id || !title || !body) {
+  if (!user_id || !title) {
     return new Response('Missing fields', { status: 400 });
   }
 
