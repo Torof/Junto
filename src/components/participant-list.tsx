@@ -7,6 +7,8 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
+import { ReliabilityRing } from './reliability-ring';
+import { getSportIcon } from '@/constants/sport-icons';
 
 interface ParticipantListProps {
   activityId: string;
@@ -97,15 +99,28 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
         <>
           <Text style={styles.subTitle}>{t('participants.pending', { count: (pending ?? []).length })}</Text>
           {(pending ?? []).map((p) => (
-            <View key={p.participation_id} style={styles.pendingCard}>
-              <Pressable style={styles.pendingProfileLink} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
-                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
-                <Text style={styles.pendingName}>{p.display_name}</Text>
-              </Pressable>
+            <Pressable
+              key={p.participation_id}
+              style={styles.pendingCard}
+              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}
+            >
+              <View style={styles.pendingTop}>
+                <ReliabilityRing score={p.reliability_score ?? null} size={48} strokeWidth={4}>
+                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={48} />
+                </ReliabilityRing>
+                <View style={styles.pendingInfo}>
+                  <Text style={styles.pendingName}>{p.display_name}</Text>
+                  {(p.sports ?? []).length > 0 && (
+                    <Text style={styles.pendingSports} numberOfLines={1}>
+                      {(p.sports ?? []).map((s) => getSportIcon(s)).join('  ')}
+                    </Text>
+                  )}
+                </View>
+              </View>
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
-                  onPress={() => handleAction(p.participation_id, 'accept')}
+                  onPress={(e) => { e.stopPropagation(); handleAction(p.participation_id, 'accept'); }}
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.accept')}
                 >
@@ -113,14 +128,14 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                 </Pressable>
                 <Pressable
                   style={[styles.refuseBtn, loadingId === p.participation_id && styles.disabled]}
-                  onPress={() => handleAction(p.participation_id, 'refuse')}
+                  onPress={(e) => { e.stopPropagation(); handleAction(p.participation_id, 'refuse'); }}
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.refuse')}
                 >
                   <Text style={styles.btnText}>✕</Text>
                 </Pressable>
               </View>
-            </View>
+            </Pressable>
           ))}
         </>
       )}
@@ -173,9 +188,14 @@ const styles = StyleSheet.create({
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
   organizerPillText: { color: '#fff', fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
-  pendingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm },
-  pendingProfileLink: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+  pendingCard: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    padding: spacing.sm, marginBottom: spacing.sm, gap: spacing.sm,
+  },
+  pendingTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  pendingInfo: { flex: 1, gap: 2 },
+  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  pendingSports: { fontSize: 14 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   refuseBtn: { backgroundColor: colors.error, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
