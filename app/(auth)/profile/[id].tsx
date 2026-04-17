@@ -210,8 +210,9 @@ export default function PublicProfileScreen() {
                 const message = t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' });
                 await conversationService.sendContactRequest(id ?? '', message, 'profile');
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
-              } catch {
-                Alert.alert(t('auth.error'), t('auth.unknownError'));
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : JSON.stringify(err);
+                Alert.alert('Debug', msg);
               }
             }}>
               <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
