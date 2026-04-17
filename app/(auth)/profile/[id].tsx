@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, ActivityIndicator, TextInput } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -29,6 +29,9 @@ export default function PublicProfileScreen() {
   const insets = useSafeAreaInsets();
   const [showReport, setShowReport] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestMessage, setRequestMessage] = useState('');
+  const [requestSending, setRequestSending] = useState(false);
   const [requestHandled, setRequestHandled] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -205,15 +208,9 @@ export default function PublicProfileScreen() {
               <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
             </Pressable>
           ) : (
-            <Pressable style={styles.messageButton} onPress={async () => {
-              try {
-                const message = t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' });
-                await conversationService.sendContactRequest(id ?? '', message, 'profile');
-                Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
-              } catch (err) {
-                const msg = err instanceof Error ? err.message : JSON.stringify(err);
-                Alert.alert('Debug', msg);
-              }
+            <Pressable style={styles.messageButton} onPress={() => {
+              setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));
+              setShowRequestModal(true);
             }}>
               <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
             </Pressable>
@@ -251,6 +248,45 @@ export default function PublicProfileScreen() {
     </ScrollView>
 
     {/* Floating accept/refuse bar when coming from a pending request */}
+    {/* Contact request modal */}
+    <Modal visible={showRequestModal} animationType="slide" transparent>
+      <Pressable style={styles.modalBackdrop} onPress={() => setShowRequestModal(false)}>
+        <Pressable style={styles.modalSheet} onPress={() => {}}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>{t('publicProfile.requestModalTitle')}</Text>
+          <TextInput
+            style={styles.requestInput}
+            value={requestMessage}
+            onChangeText={setRequestMessage}
+            multiline
+            maxLength={500}
+            placeholder={t('publicProfile.requestPlaceholder')}
+            placeholderTextColor={colors.textSecondary}
+          />
+          <Pressable
+            style={[styles.modalSendButton, requestSending && { opacity: 0.4 }]}
+            onPress={async () => {
+              if (!requestMessage.trim()) return;
+              setRequestSending(true);
+              try {
+                await conversationService.sendContactRequest(id ?? '', requestMessage.trim(), 'profile');
+                setShowRequestModal(false);
+                Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : t('auth.unknownError');
+                Alert.alert(t('auth.error'), msg);
+              } finally {
+                setRequestSending(false);
+              }
+            }}
+            disabled={requestSending || !requestMessage.trim()}
+          >
+            <Text style={styles.modalSendText}>{t('publicProfile.sendRequest')}</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+
     {participationId && !requestHandled && (
       <View style={[styles.requestCard, { bottom: insets.bottom + spacing.md }]}>
         <Text style={styles.requestContext} numberOfLines={2}>
@@ -347,6 +383,23 @@ const styles = StyleSheet.create({
   menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalSheet: {
+    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
+    padding: spacing.lg, paddingBottom: spacing.xl + 16,
+  },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
+  modalTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
+  requestInput: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    padding: spacing.md, color: colors.textPrimary, fontSize: fontSizes.sm,
+    minHeight: 100, textAlignVertical: 'top', marginBottom: spacing.md,
+  },
+  modalSendButton: {
+    backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.md, alignItems: 'center',
+  },
+  modalSendText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   requestCard: {
     position: 'absolute', left: spacing.lg, right: spacing.lg,
     backgroundColor: colors.surface, borderRadius: radius.lg,
