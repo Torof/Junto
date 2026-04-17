@@ -51,6 +51,7 @@ export default function MessagerieScreen() {
       await queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       Burnt.toast({ title: t('messagerie.requestAccepted'), preset: 'done' });
+      router.push(`/(auth)/conversation/${requestId}`);
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {
