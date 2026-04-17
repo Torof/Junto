@@ -20,7 +20,7 @@ function colorFor(score: number): string {
 const GAP_DEGREES = 10;
 const ARC_FRACTION = (360 - GAP_DEGREES) / 360;
 
-export function ReliabilityRing({ score, size, strokeWidth = 30, children }: Props) {
+export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Props) {
   const { t } = useTranslation();
   const outerSize = size + strokeWidth * 2 + 6;
   const center = outerSize / 2;

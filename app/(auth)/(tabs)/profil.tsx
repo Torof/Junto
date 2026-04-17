@@ -64,7 +64,7 @@ export default function ProfilScreen() {
             {user?.display_name ?? '...'}
           </Text>
           {badgeColor && (
-            <BadgeCheck size={22} color={badgeColor} fill={badgeColor + '30'} strokeWidth={2.5} />
+            <BadgeCheck size={22} color={badgeColor} fill={badgeColor + '50'} strokeWidth={1.5} />
           )}
         </View>
       ),
