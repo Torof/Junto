@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     width: ICON_SIZE,
     height: ICON_SIZE,
     borderRadius: ICON_SIZE / 2,
-    borderWidth: 3,
+    borderWidth: 2,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
