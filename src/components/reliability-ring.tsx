@@ -64,7 +64,6 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Pro
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={`${filledLength} ${fullCircumference - filledLength}`}
-            strokeDashoffset={-(arcLength - filledLength)}
             strokeLinecap="round"
             rotation={startRotation}
             origin={`${center}, ${center}`}
