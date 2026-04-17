@@ -16,7 +16,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportIconGrid } from '@/components/sport-icon-grid';
 import { SportsLevelEditor } from '@/components/sports-level-editor';
-import { Camera, Plus } from 'lucide-react-native';
+import { Camera, Plus, BadgeCheck } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
@@ -55,19 +55,16 @@ export default function ProfilScreen() {
   });
 
   useLayoutEffect(() => {
-    const tierLabel = user?.tier && user.tier !== 'free' ? user.tier : null;
+    const tier = user?.tier ?? 'free';
+    const badgeColor = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#F5A623' : null;
     navigation.setOptions({
       headerTitle: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
-          {tierLabel && (
-            <View style={{ backgroundColor: colors.cta + '30', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}>
-              <Text style={{ color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: 'bold', textTransform: 'uppercase' }}>
-                {tierLabel}
-              </Text>
-            </View>
+          {badgeColor && (
+            <BadgeCheck size={20} color={badgeColor} fill={badgeColor} strokeWidth={2.5} />
           )}
         </View>
       ),
