@@ -11,8 +11,9 @@ interface Props {
 }
 
 function colorFor(score: number): string {
-  if (score >= 90) return colors.success;
-  if (score >= 70) return colors.warning;
+  if (score >= 75) return colors.success;
+  if (score >= 50) return colors.warning;
+  if (score >= 25) return '#F97316';
   return colors.error;
 }
 
@@ -33,10 +34,9 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, children }: Pro
   const filledLength = arcLength * progress;
   const ringColor = score !== null ? colorFor(clamped) : colors.surface;
 
-  // Rotation: start the arc at bottom-left of the gap (centered at top).
-  // Gap is at the top. Arc starts at (90 + GAP_DEGREES/2) degrees from the
-  // standard SVG 3-o'clock position, going clockwise.
-  const startRotation = 90 + GAP_DEGREES / 2;
+  // Gap is on the right side (3-o'clock position). Arc starts just after
+  // the gap and goes clockwise around to just before the gap.
+  const startRotation = GAP_DEGREES / 2;
 
   return (
     <View style={[styles.container, { width: outerSize, height: outerSize }]}>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   scoreBadge: {
     position: 'absolute',
-    top: -2,
+    right: -4,
     alignSelf: 'center',
     backgroundColor: colors.background,
     paddingHorizontal: 4,
