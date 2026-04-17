@@ -294,10 +294,18 @@
     "deleteMessage": "Delete message",
     "deleteConfirm": "Delete this message?",
     "messageEdited": "Message edited",
-    "messageDeleted": "Message deleted"
+    "messageDeleted": "Message deleted",
+    "requests": "Contact requests",
+    "requestAccepted": "Request accepted",
+    "viaProfile": "Via profile",
+    "viaDiscovery": "Via discovery",
+    "viaTransport": "Transport request"
   },
   "publicProfile": {
     "sendMessage": "Send message",
+    "requestContact": "Request contact",
+    "requestSent": "Contact request sent",
+    "defaultRequestMessage": "Hi {{name}}, I'd like to connect with you on Junto!",
     "messageSoon": "Messaging coming soon",
     "block": "Block this user",
     "unblock": "Unblock this user",

@@ -196,13 +196,16 @@ export default function PublicProfileScreen() {
         <View style={styles.actions}>
           <Pressable style={styles.messageButton} onPress={async () => {
             try {
-              const conversationId = await conversationService.createOrGet(id ?? '');
-              router.push(`/(auth)/conversation/${conversationId}`);
+              const message = t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' });
+              const conversationId = await conversationService.sendContactRequest(id ?? '', message, 'profile');
+              if (conversationId) {
+                Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
+              }
             } catch {
               Alert.alert(t('auth.error'), t('auth.unknownError'));
             }
           }}>
-            <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
+            <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
           </Pressable>
         </View>
       )}
