@@ -238,6 +238,7 @@
     "joined": "Rejointes",
     "sportsSection": "Sports et niveaux",
     "noSportsYet": "Aucun sport sélectionné",
+    "addSport": "Ajouter un sport",
     "sportOutings_one": "{{count}} sortie",
     "sportOutings_other": "{{count}} sorties",
     "badgesSection": "Badges",

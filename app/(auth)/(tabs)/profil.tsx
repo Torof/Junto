@@ -15,7 +15,8 @@ import { ReliabilityMeter } from '@/components/reliability-meter';
 import { UserAvatar } from '@/components/user-avatar';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportsBreakdown } from '@/components/sports-breakdown';
-import { Camera, Plus } from 'lucide-react-native';
+import { SportsLevelEditor } from '@/components/sports-level-editor';
+import { Camera, Plus, Pencil } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
@@ -25,6 +26,8 @@ export default function ProfilScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sportsEditorOpen, setSportsEditorOpen] = useState(false);
+  const [isSavingSports, setIsSavingSports] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -52,10 +55,10 @@ export default function ProfilScreen() {
     queryFn: async () => {
       const { data } = await supabase
         .from('users')
-        .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, levels_per_sport, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
         .eq('id', userId!)
         .single();
-      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; levels_per_sport: Record<string, string> | null; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
     enabled: !!userId,
     retry: 2,
@@ -84,6 +87,21 @@ export default function ProfilScreen() {
     queryFn: () => badgeService.getUserTrophies(userId ?? ''),
     enabled: !!userId,
   });
+
+  const handleSaveSports = async (sports: string[], levelsPerSport: Record<string, string>) => {
+    setIsSavingSports(true);
+    try {
+      await userService.updateProfile({ sports, levels_per_sport: levelsPerSport });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-sport-breakdown'] });
+      setSportsEditorOpen(false);
+      Burnt.toast({ title: t('profil.save'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setIsSavingSports(false);
+    }
+  };
 
   const handleAvatarPress = async () => {
     if (uploading) return;
@@ -148,14 +166,29 @@ export default function ProfilScreen() {
           </View>
         </View>
 
-        {/* Sports breakdown */}
-        <SportsBreakdown rows={sportBreakdown ?? []} />
+        {/* Sports breakdown + edit button */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <SportsBreakdown rows={sportBreakdown ?? []} />
+          </View>
+          <Pressable onPress={() => setSportsEditorOpen(true)} hitSlop={12} style={{ paddingLeft: spacing.sm }}>
+            <Pencil size={18} color={colors.textSecondary} strokeWidth={2} />
+          </Pressable>
+        </View>
 
         {/* Badges */}
         <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
 
       </ScrollView>
 
+      <SportsLevelEditor
+        visible={sportsEditorOpen}
+        sports={user?.sports ?? []}
+        levelsPerSport={(user?.levels_per_sport ?? {}) as Record<string, string>}
+        onSave={handleSaveSports}
+        onClose={() => setSportsEditorOpen(false)}
+        isSaving={isSavingSports}
+      />
       <SettingsDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>
   );
