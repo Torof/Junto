@@ -60,12 +60,12 @@ export default function ProfilScreen() {
     navigation.setOptions({
       headerTitle: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
-            {user?.display_name ?? '...'}
-          </Text>
           {badgeColor && (
             <BadgeCheck size={22} color={badgeColor} fill={badgeColor + '50'} strokeWidth={1.5} />
           )}
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
+            {user?.display_name ?? '...'}
+          </Text>
         </View>
       ),
       headerTitleAlign: 'left' as const,
