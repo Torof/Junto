@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   statDivider: { width: 1, height: 28, backgroundColor: colors.textSecondary, opacity: 0.2 },
   statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  badgesSection: { marginBottom: spacing.lg, marginTop: spacing.sm },
+  badgesSection: { marginBottom: spacing.lg, marginTop: -spacing.xs },
   memberSince: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs - 1,
