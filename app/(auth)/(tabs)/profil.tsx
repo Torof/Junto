@@ -38,23 +38,30 @@ export default function ProfilScreen() {
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
+  const { data: authId } = useQuery({
+    queryKey: ['auth-user-id'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      return authUser?.id ?? null;
+    },
+  });
+  const userId = authId ?? null;
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser', userId],
+    queryFn: async () => {
       const { data } = await supabase
         .from('users')
-        .select('id, display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
+        .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
+        .eq('id', userId!)
         .single();
-      return data as { id: string; display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
+      return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: Record<string, boolean> } | null;
     },
+    enabled: !!userId,
     retry: 2,
   });
 
-  const userId = user?.id ?? null;
-
-  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['user-stats', userId],
     queryFn: () => userService.getPublicStats(userId ?? ''),
     enabled: !!userId,
@@ -121,15 +128,6 @@ export default function ProfilScreen() {
               {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
             </Text>
           )}
-        </View>
-
-        {/* DEBUG — remove after */}
-        <View style={{ padding: 8, backgroundColor: '#222', borderRadius: 8, marginBottom: 12 }}>
-          <Text style={{ color: '#fff', fontSize: 10 }}>user keys: {user ? Object.keys(user).join(',') : 'null'}</Text>
-          <Text style={{ color: '#fff', fontSize: 10 }}>user.id: {String(user?.id)}</Text>
-          <Text style={{ color: '#fff', fontSize: 10 }}>userId: {String(userId)}</Text>
-          <Text style={{ color: '#fff', fontSize: 10 }}>loading: {String(statsLoading)}</Text>
-          <Text style={{ color: '#fff', fontSize: 10 }}>stats: {stats ? JSON.stringify(stats) : 'undefined'}</Text>
         </View>
 
         {/* Stats */}
