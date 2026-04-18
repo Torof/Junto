@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
   },
   countText: {
-    color: '#000000',
+    color: colors.background,
     fontSize: 10,
     fontWeight: 'bold',
   },

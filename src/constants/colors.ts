@@ -12,4 +12,13 @@ export const colors = {
   success: '#2ECC71',
   error: '#E74C3C',
   warning: '#F39C12',
+
+  // Pins carte
+  pinStart: '#22c55e',
+  pinMeeting: '#3b82f6',
+  pinEnd: '#ef4444',
+  pinObjective: '#F5A623',
+
+  // Overlay
+  overlay: 'rgba(0,0,0,0.5)',
 } as const;

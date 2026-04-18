@@ -10,7 +10,7 @@ interface RecenterButtonProps {
 export function RecenterButton({ onPress }: RecenterButtonProps) {
   const { t } = useTranslation();
   return (
-    <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.recenter')}>
+    <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.recenter')}>
       <LocateFixed size={22} color={colors.textPrimary} strokeWidth={2.2} />
     </Pressable>
   );

@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
-  organizerPillText: { color: '#fff', fontSize: fontSizes.xs, fontWeight: 'bold' },
+  organizerPillText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingRow: {
     flexDirection: 'row', alignItems: 'center',

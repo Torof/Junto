@@ -242,7 +242,7 @@ export default function CarteScreen() {
               tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
-                  <X size={22} color="#ef4444" strokeWidth={3} />
+                  <X size={22} color={colors.error} strokeWidth={3} />
                   <View style={styles.createTooltipInline}>
                     <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
                     <View style={styles.createTooltipRow}>
@@ -255,7 +255,7 @@ export default function CarteScreen() {
                           router.push('/(auth)/create/step1');
                         }}
                       >
-                        <View style={[styles.createTooltipDot, { backgroundColor: '#3b82f6' }]} />
+                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinMeeting }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
                       </Pressable>
                       <Pressable
@@ -267,7 +267,7 @@ export default function CarteScreen() {
                           router.push('/(auth)/create/step1');
                         }}
                       >
-                        <View style={[styles.createTooltipDot, { backgroundColor: '#22c55e' }]} />
+                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinStart }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
                       </Pressable>
                       <Pressable
@@ -279,7 +279,7 @@ export default function CarteScreen() {
                           router.push('/(auth)/create/step1');
                         }}
                       >
-                        <View style={[styles.createTooltipDot, { backgroundColor: '#F5A623' }]} />
+                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinObjective }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.objectiveSet')}</Text>
                       </Pressable>
                     </View>

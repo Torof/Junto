@@ -14,7 +14,7 @@ export function CreateButton() {
   };
 
   return (
-    <Pressable style={styles.button} onPress={handlePress}>
+    <Pressable style={styles.button} onPress={handlePress} hitSlop={8} accessibilityLabel="Create activity">
       <Plus size={24} color={colors.textPrimary} strokeWidth={2.5} />
     </Pressable>
   );

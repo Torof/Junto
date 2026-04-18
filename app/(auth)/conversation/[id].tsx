@@ -11,6 +11,7 @@ import { messageService, type PrivateMessage } from '@/services/message-service'
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { LogoSpinner } from '@/components/logo-spinner';
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -140,7 +141,7 @@ export default function ConversationScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
       {isLoading ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>...</Text>
+          <LogoSpinner />
         </View>
       ) : !messages || messages.length === 0 ? (
         <View style={styles.center}>

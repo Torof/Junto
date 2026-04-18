@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 6,
   },
-  badgeText: { color: '#fff', fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
+  badgeText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   card: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surface, borderRadius: radius.md,

@@ -45,7 +45,7 @@ export function NotificationBell() {
   });
 
   return (
-    <Pressable style={styles.container} onPress={() => router.push('/(auth)/(tabs)/notifications')}>
+    <Pressable style={styles.container} onPress={() => router.push('/(auth)/(tabs)/notifications')} accessibilityLabel="Notifications">
       <Animated.View style={{ transform: [{ rotate }] }}>
         <Bell
           size={36}
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: fontSizes.xs - 2,
     fontWeight: 'bold',
   },

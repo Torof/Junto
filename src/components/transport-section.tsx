@@ -148,7 +148,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={28} />
                   <Text style={styles.participantName} numberOfLines={1}>{p.display_name}</Text>
                   {p.transport_from_name && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
                       <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
                       <Text style={styles.fromCity} numberOfLines={1}>{p.transport_from_name}</Text>
                     </View>
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   passengerLine: { width: 1, height: 16, backgroundColor: colors.textSecondary, opacity: 0.3, marginRight: spacing.xs },
   passengerName: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
     padding: spacing.lg, paddingBottom: spacing.xl + 16,

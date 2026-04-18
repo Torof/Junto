@@ -6,6 +6,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon } from './map-pin';
+import { colors } from '@/constants/theme';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tapMarker: {
-    color: '#ef4444',
+    color: colors.error,
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',

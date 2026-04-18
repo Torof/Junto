@@ -125,6 +125,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
             style={[styles.sendButton, (!message.trim() || isSending) && styles.sendDisabled]}
             onPress={handleSend}
             disabled={!message.trim() || isSending}
+            hitSlop={8}
           >
             <Text style={styles.sendText}>↑</Text>
           </Pressable>
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   messageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   avatar: {
     width: 24,

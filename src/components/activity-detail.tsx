@@ -284,16 +284,16 @@ export function ActivityDetail({
 
   const mapPins: MapPin[] = [
     ...(activity.start_lng && activity.start_lat
-      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: '#22c55e', label: t('activity.pinDepart') }]
+      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: colors.pinStart, label: t('activity.pinDepart') }]
       : []),
     ...(activity.meeting_lng && activity.meeting_lat
-      ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6', label: t('activity.pinRdv') }]
+      ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: colors.pinMeeting, label: t('activity.pinRdv') }]
       : []),
     ...(activity.end_lng && activity.end_lat
-      ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444', label: t('activity.pinArrivee') }]
+      ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: colors.pinEnd, label: t('activity.pinArrivee') }]
       : []),
     ...(activity.objective_lng && activity.objective_lat
-      ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: '#F5A623', label: t('activity.pinObjectif') }]
+      ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: colors.pinObjective, label: t('activity.pinObjectif') }]
       : []),
   ];
   const allLngs = mapPins.map((p) => p.coordinate[0]);
@@ -557,7 +557,7 @@ export function ActivityDetail({
             flyTo={fullMapFly}
             onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now(), zoom: 16 })}
           />
-          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
+          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <Text style={styles.closeMapText}>✕</Text>
           </Pressable>
           <Pressable
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
   acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   infoGrid: {
     backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    elevation: 3, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   mapContainer: {
     height: 200, borderRadius: radius.lg, overflow: 'hidden',
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    elevation: 3, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: spacing.sm,
     backgroundColor: colors.surface, borderRadius: radius.full,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
-    elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
+    elevation: 5, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
   },
   tooltipItem: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   tooltipIcon: { fontSize: 18 },

@@ -36,10 +36,10 @@ export default function CreateStep2() {
   };
 
   const pins = [
-    form.location_start && { id: 'start', coordinate: [form.location_start.lng, form.location_start.lat] as [number, number], color: '#22c55e' },
-    form.location_meeting && { id: 'meeting', coordinate: [form.location_meeting.lng, form.location_meeting.lat] as [number, number], color: '#3b82f6' },
-    form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: '#ef4444' },
-    form.location_objective && { id: 'objective', coordinate: [form.location_objective.lng, form.location_objective.lat] as [number, number], color: '#F5A623' },
+    form.location_start && { id: 'start', coordinate: [form.location_start.lng, form.location_start.lat] as [number, number], color: colors.pinStart },
+    form.location_meeting && { id: 'meeting', coordinate: [form.location_meeting.lng, form.location_meeting.lat] as [number, number], color: colors.pinMeeting },
+    form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: colors.pinEnd },
+    form.location_objective && { id: 'objective', coordinate: [form.location_objective.lng, form.location_objective.lat] as [number, number], color: colors.pinObjective },
   ].filter(Boolean) as { id: string; coordinate: [number, number]; color: string }[];
 
   const isValid = form.location_meeting && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   pinSet: { borderColor: colors.success, borderWidth: 1 },
   pinText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   objectiveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md },
-  objectiveSet: { borderColor: '#F5A623', borderWidth: 1 },
+  objectiveSet: { borderColor: colors.pinObjective, borderWidth: 1 },
   objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   objectiveNameInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: fontSizes.sm, marginBottom: spacing.md },
   dateButton: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },

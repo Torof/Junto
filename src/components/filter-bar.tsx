@@ -10,7 +10,7 @@ export function FilterButton({ onPress }: { onPress: () => void }) {
   const hasActiveFilter = filters.sportKeys.length > 0 || filters.dateMode !== 'all';
 
   return (
-    <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.openFilters')}>
+    <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.openFilters')}>
       <SlidersHorizontal size={22} color={colors.textPrimary} strokeWidth={2.2} />
       {hasActiveFilter && <View style={styles.badge} />}
     </Pressable>
