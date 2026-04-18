@@ -48,8 +48,8 @@ export function NotificationBell() {
     <Pressable style={styles.container} onPress={() => router.push('/(auth)/(tabs)/notifications')}>
       <Animated.View style={{ transform: [{ rotate }] }}>
         <Bell
-          size={24}
-          color={hasUnread ? colors.cta : colors.textSecondary}
+          size={48}
+          color={hasUnread ? colors.cta : '#000000'}
           strokeWidth={2}
         />
       </Animated.View>
