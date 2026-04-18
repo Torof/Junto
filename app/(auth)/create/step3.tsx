@@ -95,7 +95,7 @@ export default function CreateStep3() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
-  stepLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
+  stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
   options: { gap: spacing.sm },
   option: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 2, borderColor: 'transparent' },

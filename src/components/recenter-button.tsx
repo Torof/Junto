@@ -11,7 +11,7 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
   const { t } = useTranslation();
   return (
     <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.recenter')}>
-      <LocateFixed size={22} color="#4285F4" strokeWidth={2.2} />
+      <LocateFixed size={22} color={colors.textPrimary} strokeWidth={2.2} />
     </Pressable>
   );
 }
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 40,
     right: spacing.md,
-    backgroundColor: '#e5e5e5',
+    backgroundColor: colors.surface,
     borderRadius: radius.full,
     width: 40,
     height: 40,

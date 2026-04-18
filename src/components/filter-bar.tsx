@@ -11,7 +11,7 @@ export function FilterButton({ onPress }: { onPress: () => void }) {
 
   return (
     <Pressable style={styles.button} onPress={onPress} accessibilityLabel={t('map.openFilters')}>
-      <SlidersHorizontal size={22} color={colors.background} strokeWidth={2.2} />
+      <SlidersHorizontal size={22} color={colors.textPrimary} strokeWidth={2.2} />
       {hasActiveFilter && <View style={styles.badge} />}
     </Pressable>
   );
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 90,
     right: spacing.md,
-    backgroundColor: '#e5e5e5',
+    backgroundColor: colors.surface,
     borderRadius: radius.full,
     width: 40,
     height: 40,

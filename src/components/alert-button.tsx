@@ -40,7 +40,7 @@ export function AlertButton({ blink = false }: Props) {
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ scale }], opacity }]}>
       <Pressable style={styles.button} onPress={() => router.push('/(auth)/create-alert')} accessibilityLabel={t('alerts.createButton')}>
-        <Radar size={22} color={colors.background} strokeWidth={2.2} />
+        <Radar size={22} color={colors.textPrimary} strokeWidth={2.2} />
       </Pressable>
     </Animated.View>
   );
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   button: {
-    backgroundColor: '#e5e5e5',
+    backgroundColor: colors.surface,
     borderRadius: radius.full,
     width: 40,
     height: 40,

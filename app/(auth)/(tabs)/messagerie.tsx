@@ -237,7 +237,7 @@ export default function MessagerieScreen() {
             {/* Seat requests */}
             {(seatRequests ?? []).map((sr) => (
               <View key={sr.id} style={styles.requestCard}>
-                <Car size={20} color={colors.cta} strokeWidth={2} />
+                <Car size={28} color={colors.cta} strokeWidth={2} />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName} numberOfLines={1}>{(sr as { requester_name: string }).requester_name}</Text>
                   <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>

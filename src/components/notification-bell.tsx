@@ -49,7 +49,7 @@ export function NotificationBell() {
       <Animated.View style={{ transform: [{ rotate }] }}>
         <Bell
           size={36}
-          color={hasUnread ? colors.cta : '#000000'}
+          color={hasUnread ? colors.cta : colors.textPrimary}
           strokeWidth={2}
         />
       </Animated.View>

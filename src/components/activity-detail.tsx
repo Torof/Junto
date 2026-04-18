@@ -616,9 +616,9 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 4, paddingVertical: spacing.sm, borderRadius: radius.full, backgroundColor: colors.surface,
   },
-  tabActive: { backgroundColor: colors.cta },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
-  tabTextActive: { color: colors.textPrimary },
+  tabActive: { backgroundColor: colors.cta, borderWidth: 2, borderColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   tabDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.cta },
   presenceReminder: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,

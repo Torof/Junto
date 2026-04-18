@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     marginBottom: -spacing.xs,
     justifyContent: 'flex-start',
-    opacity: 0.6,
+    opacity: 0.8,
   },
   legendItem: {
     flexDirection: 'row',

@@ -29,7 +29,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Date */}
       <View style={styles.row}>
-        <Calendar size={12} color="#555" strokeWidth={2} />
+        <Calendar size={12} color={colors.textSecondary} strokeWidth={2} />
         <Text style={styles.value}>
           {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
         </Text>
@@ -37,7 +37,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Level */}
       <View style={styles.row}>
-        <BarChart2 size={12} color="#555" strokeWidth={2} />
+        <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
         <Text style={styles.value}>{activity.level}</Text>
       </View>
 
@@ -51,7 +51,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingLeft: spacing.md,
@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    color: '#1a1a1a',
+    color: colors.textPrimary,
     fontSize: fontSizes.sm,
     fontWeight: 'bold',
     marginBottom: 2,
   },
   objectiveName: {
-    color: '#666',
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
     marginBottom: 2,
   },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   value: {
-    color: '#555',
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
   spacer: {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   spotText: {
-    color: '#555',
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: 'bold',
   },
@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#000',
-    backgroundColor: '#ffffff',
+    borderColor: colors.textSecondary,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
