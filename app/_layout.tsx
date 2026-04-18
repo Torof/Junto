@@ -4,7 +4,7 @@ initSentry();
 import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AppState, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { AppState, View, StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,6 +14,7 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
 import { colors } from '@/constants/theme';
+import { LogoSpinner } from '@/components/logo-spinner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,7 +104,7 @@ function AuthGate() {
       <Slot />
       {(isLoading || !isReady) && (
         <View style={styles.loading} pointerEvents="auto">
-          <ActivityIndicator size="large" color={colors.cta} />
+          <LogoSpinner size={64} />
         </View>
       )}
     </>
