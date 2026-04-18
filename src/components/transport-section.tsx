@@ -1,8 +1,8 @@
-import { View, Text, Pressable, Modal, StyleSheet, TextInput } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Car, Bike, TrainFront, Footprints, HelpCircle } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { transportService, type ParticipantTransport } from '@/services/transport-service';
@@ -110,7 +110,10 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={28} />
                   <Text style={styles.participantName} numberOfLines={1}>{p.display_name}</Text>
                   {p.transport_from_name && (
-                    <Text style={styles.fromCity} numberOfLines={1}>{p.transport_from_name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                      <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
+                      <Text style={styles.fromCity} numberOfLines={1}>{p.transport_from_name}</Text>
+                    </View>
                   )}
                   {p.transport_seats != null && p.transport_seats > 0 && (
                     <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
@@ -124,7 +127,9 @@ export function TransportSection({ activityId, currentUserId }: Props) {
 
       {/* Transport editor modal */}
       <Modal visible={showEditor} animationType="slide" transparent>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
             <Text style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</Text>
@@ -183,7 +188,9 @@ export function TransportSection({ activityId, currentUserId }: Props) {
               <Text style={styles.saveText}>{t('profil.save')}</Text>
             </Pressable>
           </Pressable>
+          </ScrollView>
         </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
