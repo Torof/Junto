@@ -32,6 +32,8 @@ export default function CreateStep4() {
         location_start: form.location_start ?? undefined,
         location_meeting: form.location_meeting!,
         location_end: form.location_end ?? undefined,
+        location_objective: form.location_objective ?? undefined,
+        objective_name: form.objective_name || undefined,
         starts_at: form.starts_at,
         duration_hours: form.duration_hours,
         duration_minutes: form.duration_minutes,

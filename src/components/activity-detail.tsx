@@ -282,12 +282,17 @@ export function ActivityDetail({
   const showTabs = isCreator || isAccepted;
 
   const mapPins: MapPin[] = [
-    { id: 'start', coordinate: [activity.lng, activity.lat], color: '#22c55e' },
+    ...(activity.start_lng && activity.start_lat
+      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: '#22c55e' }]
+      : []),
     ...(activity.meeting_lng && activity.meeting_lat
       ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6' }]
       : []),
     ...(activity.end_lng && activity.end_lat
       ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444' }]
+      : []),
+    ...(activity.objective_lng && activity.objective_lat
+      ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: '#F5A623' }]
       : []),
   ];
   const allLngs = mapPins.map((p) => p.coordinate[0]);
@@ -295,8 +300,8 @@ export function ActivityDetail({
   const mapCenter: [number, number] = [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2];
   const mapSpread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
   const mapZoom = mapSpread > 0.1 ? 10 : mapSpread > 0.01 ? 12 : 14;
-  const mapRouteLine = activity.end_lng && activity.end_lat
-    ? [[activity.lng, activity.lat], [activity.end_lng, activity.end_lat]] as [number, number][]
+  const mapRouteLine = activity.end_lng && activity.end_lat && activity.start_lng && activity.start_lat
+    ? [[activity.start_lng, activity.start_lat], [activity.end_lng, activity.end_lat]] as [number, number][]
     : undefined;
 
   return (
