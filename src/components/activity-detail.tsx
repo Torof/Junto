@@ -390,14 +390,14 @@ export function ActivityDetail({
               <View style={styles.transportSummary}>
                 <Car size={16} color={colors.cta} strokeWidth={2} />
                 <Text style={styles.transportSummaryText}>
-                  {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
+                  : {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
                 </Text>
                 {allCities.length > 0 && (
                   <>
-                    <Text style={{ color: colors.textSecondary }}>—</Text>
+                    <Text style={{ color: colors.textSecondary }}> — </Text>
                     <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} />
                     <Text style={styles.transportSummaryText}>
-                      {[...new Set(allCities)].join(', ')}
+                      : {[...new Set(allCities)].join(', ')}
                     </Text>
                   </>
                 )}
