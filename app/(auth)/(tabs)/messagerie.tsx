@@ -86,6 +86,8 @@ export default function MessagerieScreen() {
       await transportService.acceptSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['transport'] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
       Burnt.toast({ title: t('transport.seatAccepted'), preset: 'done' });
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });

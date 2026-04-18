@@ -56,10 +56,12 @@ export default function NotificationsScreen() {
       router.push(`/(auth)/confirm-presence/${notification.data.activity_id}`);
     } else if (notification.type === 'rate_participants' && notification.data?.activity_id) {
       router.push(`/(auth)/rate-participants/${notification.data.activity_id}`);
-    } else if (notification.type === 'contact_request') {
+    } else if (notification.type === 'contact_request' || notification.type === 'seat_request') {
       router.push('/(auth)/(tabs)/messagerie?tab=requests');
     } else if (notification.type === 'contact_request_accepted') {
       router.push('/(auth)/(tabs)/messagerie');
+    } else if (notification.type === 'seat_request_accepted' && notification.data?.conversation_id) {
+      router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.activity_id) {
