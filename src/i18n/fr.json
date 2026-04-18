@@ -60,6 +60,23 @@
     "transport": "Transport",
     "gear": "Matériel",
     "comingSoon": "Bientôt disponible",
+  "transport": {
+    "saved": "Transport enregistré",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "empty": "Personne n'a encore partagé son transport — sois le premier !",
+    "howAreYouGoing": "Comment tu y vas ?",
+    "freeSeats": "Places disponibles",
+    "seats": "places",
+    "type": {
+      "car": "Voiture",
+      "carpool": "Covoiturage",
+      "public_transport": "Transport en commun",
+      "bike": "Vélo",
+      "on_foot": "À pied",
+      "other": "Autre"
+    }
+  },
     "creator": "Organisé par",
     "starts": "Début",
     "at": "à",

@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
@@ -15,6 +15,7 @@ import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { supabase } from '@/services/supabase';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
@@ -23,6 +24,7 @@ import { JuntoMapView, type MapPin } from './map-view';
 import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
+import { TransportSection } from './transport-section';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -44,6 +46,10 @@ export function ActivityDetail({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { data: currentUserId } = useQuery({
+    queryKey: ['auth-user-id'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -481,11 +487,8 @@ export function ActivityDetail({
             </View>
           )}
 
-          {/* Transport placeholder */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('activity.transport')}</Text>
-            <Text style={styles.comingSoon}>{t('activity.comingSoon')}</Text>
-          </View>
+          {/* Transport */}
+          <TransportSection activityId={activity.id} currentUserId={currentUserId ?? null} />
 
           {/* Gear placeholder */}
           <View style={styles.section}>
