@@ -521,6 +521,7 @@
     "tapEnd": "Touche la carte pour le point d'arrivée",
     "setObjective": "Objectif (optionnel)",
     "objectiveSet": "Objectif",
+    "objectiveName": "Nom de l'objectif (ex: Puy Aillaud)",
     "tapObjective": "Touche la carte pour l'objectif",
     "dateTime": "Date et heure",
     "selectDateTime": "Sélectionner",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -104,6 +104,16 @@ export default function CreateStep2() {
             {form.location_objective ? '🎯 ' + t('create.objectiveSet') : '🎯 ' + t('create.setObjective')}
           </Text>
         </Pressable>
+        {form.location_objective && (
+          <TextInput
+            style={styles.objectiveNameInput}
+            placeholder={t('create.objectiveName')}
+            placeholderTextColor={colors.textSecondary}
+            value={form.objective_name}
+            onChangeText={(text) => updateForm({ objective_name: text })}
+            maxLength={100}
+          />
+        )}
 
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
@@ -180,6 +190,7 @@ const styles = StyleSheet.create({
   objectiveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md },
   objectiveSet: { borderColor: '#F5A623', borderWidth: 1 },
   objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  objectiveNameInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: fontSizes.sm, marginBottom: spacing.md },
   dateButton: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   dateLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },

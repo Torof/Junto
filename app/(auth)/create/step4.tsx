@@ -91,6 +91,10 @@ export default function CreateStep4() {
           label={t('create.startPoint')}
           value={form.location_start ? '✓' : '-'}
         />
+        <RecapRow
+          label={t('create.objectiveSet')}
+          value={form.location_objective ? (form.objective_name || '✓') : '-'}
+        />
         {form.description ? (
           <View style={styles.descSection}>
             <Text style={styles.recapLabel}>{t('activity.description')}</Text>
