@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   triggerText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   triggerTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   arrow: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
     padding: spacing.lg, paddingBottom: spacing.xl + 16, maxHeight: '70%',

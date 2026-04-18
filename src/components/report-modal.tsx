@@ -70,7 +70,7 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.xs },
@@ -83,5 +83,5 @@ const styles = StyleSheet.create({
   charCount: { color: colors.textSecondary, fontSize: fontSizes.xs, alignSelf: 'flex-end', marginTop: spacing.xs },
   submitButton: { backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   disabled: { opacity: 0.4 },
-  submitText: { color: '#fff', fontSize: fontSizes.md, fontWeight: 'bold' },
+  submitText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
 });

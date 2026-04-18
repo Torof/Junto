@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   dismissedBadge: { backgroundColor: colors.textSecondary + '30' },
   actionedBadge: { backgroundColor: colors.error + '30' },
   statusText: { fontSize: fontSizes.xs, fontWeight: 'bold' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16, maxHeight: '80%' },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
@@ -216,6 +216,6 @@ const styles = StyleSheet.create({
   dismissButton: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   dismissText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   actionButton: { flex: 1, backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
-  actionText: { color: '#fff', fontSize: fontSizes.sm, fontWeight: 'bold' },
+  actionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   disabled: { opacity: 0.4 },
 });

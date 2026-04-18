@@ -8,7 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
-import { LogoSpinner } from '@/components/logo-spinner';
+import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
@@ -151,11 +151,7 @@ export default function PublicProfileScreen() {
   };
 
   if (isLoading || !profile) {
-    return (
-      <View style={styles.center}>
-        <LogoSpinner size={48} />
-      </View>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (
@@ -391,7 +387,7 @@ const styles = StyleSheet.create({
   menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
     padding: spacing.lg, paddingBottom: spacing.xl + 16,

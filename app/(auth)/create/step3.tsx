@@ -123,5 +123,5 @@ const styles = StyleSheet.create({
   toggleKnob: {
     width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary,
   },
-  toggleKnobOn: { backgroundColor: '#fff', alignSelf: 'flex-end' },
+  toggleKnobOn: { backgroundColor: colors.textPrimary, alignSelf: 'flex-end' },
 });

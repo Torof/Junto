@@ -63,7 +63,7 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   sheet: {
     width: '100%', maxWidth: 340, backgroundColor: colors.surface, borderRadius: radius.lg,
     padding: spacing.lg, alignItems: 'center',
