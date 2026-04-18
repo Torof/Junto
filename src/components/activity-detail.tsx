@@ -25,6 +25,8 @@ import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
+import { transportService, type TransportSummary } from '@/services/transport-service';
+import { Car, Bike, TrainFront, Footprints } from 'lucide-react-native';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -46,6 +48,11 @@ export function ActivityDetail({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { data: transportSummary } = useQuery({
+    queryKey: ['transport-summary', activity.id],
+    queryFn: () => transportService.getSummary(activity.id),
+  });
+
   const { data: currentUserId } = useQuery({
     queryKey: ['auth-user-id'],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
@@ -400,6 +407,29 @@ export function ActivityDetail({
             onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
           />
 
+          {/* Transport summary (visible to everyone) */}
+          {(transportSummary ?? []).length > 0 && (
+            <View style={styles.transportSummary}>
+              {(transportSummary ?? []).map((s) => {
+                const icon = s.transport_type === 'car' || s.transport_type === 'carpool' ? Car
+                  : s.transport_type === 'bike' ? Bike
+                  : s.transport_type === 'public_transport' ? TrainFront
+                  : s.transport_type === 'on_foot' ? Footprints : Car;
+                const IconComp = icon;
+                return (
+                  <View key={s.transport_type} style={styles.transportSummaryRow}>
+                    <IconComp size={14} color={colors.textSecondary} strokeWidth={2} />
+                    <Text style={styles.transportSummaryText}>
+                      {s.count} {t(`transport.type.${s.transport_type}`).toLowerCase()}
+                      {s.total_seats > 0 ? ` · ${s.total_seats} ${t('transport.seats')}` : ''}
+                      {s.cities && s.cities.length > 0 ? ` · ${s.cities.join(', ')}` : ''}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
           {/* Presence reminder banner on Info tab */}
           {canCheckIn && !alreadyConfirmed && (
             <Pressable style={styles.presenceReminder} onPress={() => setActiveTab('organization')}>
@@ -595,6 +625,12 @@ const styles = StyleSheet.create({
   },
   presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
+  transportSummary: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    padding: spacing.sm, marginTop: spacing.md, gap: spacing.xs,
+  },
+  transportSummaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  transportSummaryText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
