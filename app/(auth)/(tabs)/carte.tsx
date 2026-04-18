@@ -268,6 +268,18 @@ export default function CarteScreen() {
                         <View style={[styles.createTooltipDot, { backgroundColor: '#22c55e' }]} />
                         <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
                       </Pressable>
+                      <Pressable
+                        style={styles.createTooltipOption}
+                        onPress={() => {
+                          useCreateStore.getState().resetForm();
+                          useCreateStore.getState().updateForm({ location_objective: tappedPoint });
+                          setTappedPoint(null);
+                          router.push('/(auth)/create/step1');
+                        }}
+                      >
+                        <View style={[styles.createTooltipDot, { backgroundColor: '#F5A623' }]} />
+                        <Text style={styles.createTooltipOptionText}>{t('create.objectiveSet')}</Text>
+                      </Pressable>
                     </View>
                   </View>
                 </View>
