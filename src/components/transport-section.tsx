@@ -38,6 +38,14 @@ export function TransportSection({ activityId, currentUserId }: Props) {
     queryFn: () => transportService.getForActivity(activityId),
   });
 
+  const { data: pendingSeatRequests } = useQuery({
+    queryKey: ['seat-requests', activityId],
+    queryFn: () => transportService.getPendingSeatRequests(activityId),
+  });
+
+  const hasPendingRequest = (driverId: string) =>
+    (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
+
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
   const hasSetTransport = !!myTransport;
 
@@ -118,12 +126,13 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_seats != null && p.transport_seats > 0 && (
                     <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
                   )}
-                  {p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && (
+                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && !hasPendingRequest(p.user_id) && (
                     <Pressable
                       style={styles.requestSeatBtn}
                       onPress={async () => {
                         try {
                           await transportService.requestSeat(activityId, p.user_id);
+                          await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
                           Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
                         } catch {
                           Burnt.toast({ title: t('auth.unknownError') });
@@ -132,6 +141,9 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                     >
                       <Text style={styles.requestSeatText}>{t('transport.requestSeat')}</Text>
                     </Pressable>
+                  )}
+                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.user_id !== currentUserId && hasPendingRequest(p.user_id) && (
+                    <Text style={styles.requestSentLabel}>{t('transport.seatRequested')}</Text>
                   )}
                 </View>
               ))}
@@ -240,6 +252,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: 4,
   },
   requestSeatText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
+  requestSentLabel: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontStyle: 'italic' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
