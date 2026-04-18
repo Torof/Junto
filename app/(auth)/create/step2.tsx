@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -67,7 +67,7 @@ export default function CreateStep2() {
         )}
       </View>
 
-      <View style={styles.controls}>
+      <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
         <Text style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</Text>
 
         <View style={styles.pinButtons}>
@@ -160,7 +160,7 @@ export default function CreateStep2() {
         >
           <Text style={styles.nextText}>{t('create.next')}</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -170,7 +170,8 @@ const styles = StyleSheet.create({
   mapContainer: { flex: 1 },
   mapOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.md, right: spacing.md, alignItems: 'center' },
   mapHint: { backgroundColor: colors.background + 'E6', color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full },
-  controls: { flex: 1, padding: spacing.lg },
+  controls: { flex: 1 },
+  controlsContent: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.md },
   pinButtons: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   pinButton: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
