@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { transportService } from '@/services/transport-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
+import { haptic } from '@/lib/haptics';
 import { useState } from 'react';
 
 dayjs.extend(relativeTime);
@@ -29,6 +30,7 @@ export default function MessagerieScreen() {
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const [hidingConversationId, setHidingConversationId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { isConversationUnread } = useMessageStore();
 
@@ -67,6 +69,7 @@ export default function MessagerieScreen() {
   });
 
   const handleAccept = async (requestId: string) => {
+    haptic.success();
     setLoadingRequestId(requestId);
     try {
       await conversationService.acceptRequest(requestId);
@@ -82,6 +85,7 @@ export default function MessagerieScreen() {
   };
 
   const handleAcceptSeat = async (requestId: string) => {
+    haptic.success();
     setLoadingRequestId(requestId);
     try {
       await transportService.acceptSeatRequest(requestId);
@@ -141,6 +145,14 @@ export default function MessagerieScreen() {
         },
       ]
     );
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    await queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+    await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+    setRefreshing(false);
   };
 
   const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length;
@@ -223,6 +235,14 @@ export default function MessagerieScreen() {
               );
             }}
             contentContainerStyle={styles.list}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.cta}
+                colors={[colors.cta]}
+              />
+            }
           />
         )
       )}

@@ -11,6 +11,7 @@ import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { haptic } from '@/lib/haptics';
 
 export default function CreateStep4() {
   const { t, i18n } = useTranslation();
@@ -43,6 +44,7 @@ export default function CreateStep4() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      haptic.success();
       const isPrivate = form.visibility === 'private_link' || form.visibility === 'private_link_approval';
       const title = form.title;
       resetForm();

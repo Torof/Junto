@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { SlidersHorizontal } from 'lucide-react-native';
@@ -18,6 +18,8 @@ type DateRange = 'all' | 'today' | 'week';
 export default function MesActivitesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('created');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [sportFilters, setSportFilters] = useState<string[]>([]);
@@ -64,6 +66,13 @@ export default function MesActivitesScreen() {
     if (mainTab === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
     if (sportFilters.length > 0 || dateRange !== 'all') return t('myActivities.noResults');
     return timeFilter === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['activities', 'my-created'] });
+    await queryClient.invalidateQueries({ queryKey: ['activities', 'my-joined'] });
+    setRefreshing(false);
   };
 
   const hasActiveFilters = sportFilters.length > 0 || dateRange !== 'all';
@@ -188,6 +197,14 @@ export default function MesActivitesScreen() {
             />
           )}
           contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.cta}
+              colors={[colors.cta]}
+            />
+          }
         />
       )}
     </View>

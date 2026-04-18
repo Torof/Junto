@@ -10,6 +10,7 @@ import { wallService, type WallMessageWithProfile } from '@/services/wall-servic
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
 import { supabase } from '@/services/supabase';
+import { haptic } from '@/lib/haptics';
 
 interface ActivityWallProps {
   activityId: string;
@@ -53,6 +54,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   }, [activityId, queryClient]);
 
   const handleSend = async () => {
+    haptic.light();
     if (!message.trim() || isSending) return;
 
     setIsSending(true);
@@ -98,7 +100,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                     disabled={!item.user_id}
                   >
                     <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
-                    <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
+                    <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
                   </Pressable>
                   <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
                 </View>

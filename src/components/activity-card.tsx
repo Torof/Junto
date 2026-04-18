@@ -22,7 +22,7 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.top}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+        <Text style={styles.sport} numberOfLines={1}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
         <Text style={styles.time}>{dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}</Text>
       </View>
 
@@ -38,7 +38,7 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
         {distanceKm !== undefined && (
           <Text style={styles.distance}>{distanceKm.toFixed(1)} km</Text>
         )}
-        <Text style={styles.creator}>{activity.creator_name}</Text>
+        <Text style={styles.creator} numberOfLines={1}>{activity.creator_name}</Text>
       </View>
     </Pressable>
   );

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
@@ -538,12 +538,14 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
-        <View style={{ flex: 1, padding: spacing.lg }}>
-          <ActivityWall
-            activityId={activity.id}
-            isActive={['published', 'in_progress'].includes(activity.status)}
-          />
-        </View>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={100}>
+          <View style={{ flex: 1, padding: spacing.lg }}>
+            <ActivityWall
+              activityId={activity.id}
+              isActive={['published', 'in_progress'].includes(activity.status)}
+            />
+          </View>
+        </KeyboardAvoidingView>
       )}
 
       {/* Modals — shared across all tabs */}

@@ -9,6 +9,7 @@ import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 import { ReliabilityRing } from './reliability-ring';
 import { getSportIcon } from '@/constants/sport-icons';
+import { haptic } from '@/lib/haptics';
 
 interface ParticipantListProps {
   activityId: string;
@@ -112,7 +113,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
-                  onPress={(e) => { e.stopPropagation(); handleAction(p.participation_id, 'accept'); }}
+                  onPress={(e) => { e.stopPropagation(); haptic.success(); handleAction(p.participation_id, 'accept'); }}
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.accept')}
                 >
@@ -120,7 +121,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
                 </Pressable>
                 <Pressable
                   style={[styles.refuseBtn, loadingId === p.participation_id && styles.disabled]}
-                  onPress={(e) => { e.stopPropagation(); handleAction(p.participation_id, 'refuse'); }}
+                  onPress={(e) => { e.stopPropagation(); haptic.light(); handleAction(p.participation_id, 'refuse'); }}
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.refuse')}
                 >
