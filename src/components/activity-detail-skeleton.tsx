@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { colors, spacing, radius, fontSizes } from '@/constants/theme';
+import { colors, spacing, radius } from '@/constants/theme';
 
-function Bone({ width, height, style }: { width: number | string; height: number; style?: object }) {
+function Bone({ width, height, style }: { width: number | `${number}%`; height: number; style?: object }) {
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -19,7 +19,7 @@ function Bone({ width, height, style }: { width: number | string; height: number
   return (
     <Animated.View
       style={[
-        { width: width as number, height, borderRadius: 4, backgroundColor: colors.surface, opacity },
+        { width, height, borderRadius: 4, backgroundColor: colors.surface, opacity },
         style,
       ]}
     />
@@ -30,47 +30,58 @@ export function ActivityDetailSkeleton() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {/* Header: sport icon + sport name + visibility */}
-        <View style={styles.headerRow}>
-          <Bone width={24} height={24} style={{ borderRadius: 12 }} />
-          <Bone width={90} height={14} />
-          <View style={{ marginLeft: 'auto' }}>
-            <Bone width={70} height={22} style={{ borderRadius: 11 }} />
-          </View>
+        {/* Header: sport emoji + sport name + visibility pill */}
+        <View style={styles.header}>
+          <Bone width={20} height={20} style={{ borderRadius: 10 }} />
+          <Bone width={80} height={14} />
+          <View style={{ flex: 1 }} />
+          <Bone width={75} height={24} style={{ borderRadius: 12 }} />
         </View>
 
         {/* Title */}
-        <Bone width="70%" height={22} style={{ marginBottom: spacing.md }} />
+        <Bone width="65%" height={24} style={{ marginBottom: spacing.md }} />
 
-        {/* Info grid: 4 rows */}
+        {/* Info grid — surface card with 4 rows */}
         <View style={styles.infoGrid}>
-          {[1, 2, 3, 4].map((i) => (
+          {[120, 90, 70, 110].map((labelW, i) => (
             <View key={i} style={styles.infoRow}>
-              <Bone width={100} height={13} />
-              <Bone width={80} height={13} />
+              <Bone width={labelW} height={14} />
+              <Bone width={i === 1 ? 130 : 80} height={14} />
             </View>
           ))}
         </View>
 
-        {/* Description placeholder */}
-        <Bone width="100%" height={12} style={{ marginTop: spacing.lg, marginBottom: 6 }} />
-        <Bone width="85%" height={12} style={{ marginBottom: 6 }} />
-        <Bone width="60%" height={12} />
+        {/* Description section */}
+        <View style={styles.section}>
+          <Bone width={100} height={10} style={{ marginBottom: spacing.sm }} />
+          <Bone width="100%" height={14} style={{ marginBottom: 6 }} />
+          <Bone width="90%" height={14} style={{ marginBottom: 6 }} />
+          <Bone width="55%" height={14} />
+        </View>
 
-        {/* Creator row */}
-        <View style={styles.creatorRow}>
-          <Bone width={36} height={36} style={{ borderRadius: 18 }} />
-          <View style={{ gap: 4 }}>
-            <Bone width={100} height={12} />
-            <Bone width={60} height={10} />
+        {/* Map section */}
+        <View style={styles.section}>
+          <Bone width={110} height={10} style={{ marginBottom: spacing.sm }} />
+          <Bone width="100%" height={200} style={{ borderRadius: radius.lg }} />
+        </View>
+
+        {/* Participants — creator row + 2 avatars */}
+        <View style={styles.section}>
+          <Bone width={100} height={10} style={{ marginBottom: spacing.sm }} />
+          <View style={styles.participantRow}>
+            <Bone width={36} height={36} style={{ borderRadius: 18 }} />
+            <Bone width={110} height={14} />
+            <View style={{ flex: 1 }} />
+            <Bone width={50} height={20} style={{ borderRadius: 10 }} />
+          </View>
+          <View style={styles.participantRow}>
+            <Bone width={36} height={36} style={{ borderRadius: 18 }} />
+            <Bone width={90} height={14} />
           </View>
         </View>
 
-        {/* Map placeholder */}
-        <Bone width="100%" height={160} style={{ borderRadius: radius.md, marginTop: spacing.md }} />
-
         {/* Join button */}
-        <Bone width="100%" height={44} style={{ borderRadius: radius.md, marginTop: spacing.lg }} />
+        <Bone width="100%" height={48} style={{ borderRadius: radius.md, marginTop: spacing.sm }} />
       </View>
     </View>
   );
@@ -85,7 +96,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xl + 32,
   },
-  headerRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
@@ -93,8 +104,9 @@ const styles = StyleSheet.create({
   },
   infoGrid: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.md,
+    marginBottom: spacing.lg,
     gap: spacing.sm,
   },
   infoRow: {
@@ -102,10 +114,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  creatorRow: {
+  section: {
+    marginBottom: spacing.lg,
+  },
+  participantRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
   },
 });
