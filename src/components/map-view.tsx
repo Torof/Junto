@@ -247,7 +247,7 @@ export function JuntoMapView({
               coordinate={[lng, lat]}
             >
               <Pressable onPress={() => {
-                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId), 20);
+                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId) + 1, 20);
                 cameraRef.current?.setCamera({
                   centerCoordinate: [lng, lat],
                   zoomLevel: expansionZoom,

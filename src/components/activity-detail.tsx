@@ -118,6 +118,7 @@ export function ActivityDetail({
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
   const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
+  const isQrAvailable = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 2 * 3600 * 1000;
 
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
@@ -261,7 +262,7 @@ export function ActivityDetail({
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
-  const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && isActive;
+  const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && activity.status === 'published';
   const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status) && isActive;
   const showCancelButton = isCreator && isActive;
   const isPending = participation?.status === 'pending';
@@ -305,7 +306,7 @@ export function ActivityDetail({
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                 {t(`activity.tab.${tab}`)}
               </Text>
-              {tab === 'organization' && (canCheckIn || (isCreator && isInPresenceWindow)) && (
+              {tab === 'organization' && (canCheckIn || (isCreator && isQrAvailable)) && (
                 <View style={styles.tabDot} />
               )}
             </Pressable>
@@ -474,7 +475,7 @@ export function ActivityDetail({
             </View>
           )}
 
-          {isCreator && isInPresenceWindow && (
+          {isCreator && isQrAvailable && (
             <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
               <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
             </Pressable>
