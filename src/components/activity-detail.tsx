@@ -399,9 +399,12 @@ export function ActivityDetail({
                   {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
                 </Text>
                 {allCities.length > 0 && (
-                  <Text style={styles.transportCities} numberOfLines={1}>
-                    {[...new Set(allCities)].join(', ')}
-                  </Text>
+                  <>
+                    <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} style={{ marginLeft: 'auto' }} />
+                    <Text style={styles.transportCities} numberOfLines={1}>
+                      {[...new Set(allCities)].join(', ')}
+                    </Text>
+                  </>
                 )}
               </View>
             );
@@ -642,7 +645,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm, marginBottom: spacing.md,
   },
   transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, marginLeft: 'auto', flexShrink: 1 },
+  transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },

@@ -82,8 +82,14 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
         <Text style={styles.emptyText}>{t('wall.empty')}</Text>
       ) : (
         <View style={styles.messageList}>
-          {messages.map((item, index) => (
-            <View key={item.id} style={[styles.messageRow, index % 2 === 0 ? styles.messageLeft : styles.messageRight]}>
+          {(() => {
+            const sides: ('left' | 'right')[] = [];
+            messages.forEach((item, i) => {
+              if (i === 0) { sides.push('left'); return; }
+              sides.push(item.user_id !== messages[i - 1]?.user_id ? (sides[i - 1] === 'left' ? 'right' : 'left') : sides[i - 1]!);
+            });
+            return messages.map((item, index) => (
+            <View key={item.id} style={[styles.messageRow, sides[index] === 'left' ? styles.messageLeft : styles.messageRight]}>
               <View style={styles.messageCard}>
                 <View style={styles.messageHeader}>
                   <Pressable
@@ -99,7 +105,8 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                 <Text style={styles.messageContent}>{item.content}</Text>
               </View>
             </View>
-          ))}
+          ));
+          })()}
         </View>
       )}
 
