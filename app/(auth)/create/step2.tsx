@@ -17,7 +17,7 @@ export default function CreateStep2() {
   const { center } = useInitialLocation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | null>('meeting');
+  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | 'objective' | null>('meeting');
 
   const handleMapPress = (lng: number, lat: number) => {
     if (placingPin === 'start') {
@@ -29,6 +29,9 @@ export default function CreateStep2() {
     } else if (placingPin === 'end') {
       updateForm({ location_end: { lng, lat } });
       setPlacingPin(null);
+    } else if (placingPin === 'objective') {
+      updateForm({ location_objective: { lng, lat } });
+      setPlacingPin(null);
     }
   };
 
@@ -36,6 +39,7 @@ export default function CreateStep2() {
     form.location_start && { id: 'start', coordinate: [form.location_start.lng, form.location_start.lat] as [number, number], color: '#22c55e' },
     form.location_meeting && { id: 'meeting', coordinate: [form.location_meeting.lng, form.location_meeting.lat] as [number, number], color: '#3b82f6' },
     form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: '#ef4444' },
+    form.location_objective && { id: 'objective', coordinate: [form.location_objective.lng, form.location_objective.lat] as [number, number], color: '#F5A623' },
   ].filter(Boolean) as { id: string; coordinate: [number, number]; color: string }[];
 
   const isValid = form.location_meeting && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
@@ -57,7 +61,7 @@ export default function CreateStep2() {
         {placingPin && (
           <View style={styles.mapOverlay}>
             <Text style={styles.mapHint}>
-              {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : t('create.tapEnd')}
+              {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
             </Text>
           </View>
         )}
@@ -92,6 +96,14 @@ export default function CreateStep2() {
             </Text>
           </Pressable>
         </View>
+        <Pressable
+          style={[styles.objectiveButton, form.location_objective && styles.objectiveSet]}
+          onPress={() => setPlacingPin('objective')}
+        >
+          <Text style={styles.objectiveText}>
+            {form.location_objective ? '🎯 ' + t('create.objectiveSet') : '🎯 ' + t('create.setObjective')}
+          </Text>
+        </Pressable>
 
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
@@ -164,6 +176,9 @@ const styles = StyleSheet.create({
   pinButton: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
   pinSet: { borderColor: colors.success, borderWidth: 1 },
   pinText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  objectiveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md },
+  objectiveSet: { borderColor: '#F5A623', borderWidth: 1 },
+  objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   dateButton: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   dateLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },
