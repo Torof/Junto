@@ -380,6 +380,23 @@ export function ActivityDetail({
             </View>
           </View>
 
+          {/* Transport summary — cars only, seats + cities */}
+          {(() => {
+            const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
+            const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
+            const allCities = carSummary.flatMap((s) => s.cities ?? []).filter(Boolean);
+            if (carSummary.length === 0) return null;
+            return (
+              <View style={styles.transportSummary}>
+                <Car size={16} color={colors.cta} strokeWidth={2} />
+                <Text style={styles.transportSummaryText}>
+                  {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
+                  {allCities.length > 0 ? ` · ${[...new Set(allCities)].join(', ')}` : ''}
+                </Text>
+              </View>
+            );
+          })()}
+
           {activity.description ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
@@ -406,29 +423,6 @@ export function ActivityDetail({
             creatorAvatar={activity.creator_avatar}
             onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
           />
-
-          {/* Transport summary (visible to everyone) */}
-          {(transportSummary ?? []).length > 0 && (
-            <View style={styles.transportSummary}>
-              {(transportSummary ?? []).map((s) => {
-                const icon = s.transport_type === 'car' || s.transport_type === 'carpool' ? Car
-                  : s.transport_type === 'bike' ? Bike
-                  : s.transport_type === 'public_transport' ? TrainFront
-                  : s.transport_type === 'on_foot' ? Footprints : Car;
-                const IconComp = icon;
-                return (
-                  <View key={s.transport_type} style={styles.transportSummaryRow}>
-                    <IconComp size={14} color={colors.textSecondary} strokeWidth={2} />
-                    <Text style={styles.transportSummaryText}>
-                      {s.count} {t(`transport.type.${s.transport_type}`).toLowerCase()}
-                      {s.total_seats > 0 ? ` · ${s.total_seats} ${t('transport.seats')}` : ''}
-                      {s.cities && s.cities.length > 0 ? ` · ${s.cities.join(', ')}` : ''}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
 
           {/* Presence reminder banner on Info tab */}
           {canCheckIn && !alreadyConfirmed && (
@@ -626,11 +620,11 @@ const styles = StyleSheet.create({
   presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
   transportSummary: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: spacing.sm, marginTop: spacing.md, gap: spacing.xs,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.cta + '15', borderRadius: radius.md,
+    padding: spacing.sm, marginBottom: spacing.md,
   },
-  transportSummaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  transportSummaryText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
