@@ -87,6 +87,7 @@ export function JuntoMapView({
     if (!cameraRef.current || centerApplied.current === key) return;
     const isFirst = centerApplied.current === '';
     centerApplied.current = key;
+    if (isFirst && !onBoundsChange) return;
     const timer = setTimeout(() => {
       cameraRef.current?.setCamera({
         centerCoordinate: isFirst ? [center[0] + 0.00001, center[1]] : center,
@@ -95,7 +96,7 @@ export function JuntoMapView({
       });
     }, isFirst ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [center, zoom]);
+  }, [center, zoom, onBoundsChange]);
 
   const activityMap = useMemo(
     () => new Map(activities.map((a) => [a.id, a])),
