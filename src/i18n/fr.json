@@ -198,6 +198,7 @@
     "seats": "places",
     "requestSeat": "Demander",
     "seatRequested": "Place demandée",
+    "seatCancelled": "Place annulée",
     "seatAccepted": "Place confirmée !",
     "type": {
       "car": "Voiture",

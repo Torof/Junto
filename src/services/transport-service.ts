@@ -63,6 +63,13 @@ export const transportService = {
     if (error) throw error;
   },
 
+  cancelAcceptedSeat: async (requestId: string): Promise<void> => {
+    const { error } = await supabase.rpc('cancel_accepted_seat' as 'join_activity', {
+      p_request_id: requestId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
   getPendingSeatRequests: async (activityId: string): Promise<{ id: string; requester_id: string; driver_id: string; status: string }[]> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return [];

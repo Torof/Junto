@@ -2,7 +2,7 @@ import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingVi
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, X } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { transportService, type ParticipantTransport } from '@/services/transport-service';
@@ -75,6 +75,9 @@ export function TransportSection({ activityId, currentUserId }: Props) {
 
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
   const hasSetTransport = !!myTransport;
+  const isDriver = myTransport && ['car', 'carpool'].includes(myTransport.transport_type ?? '') && (myTransport.transport_seats ?? 0) > 0;
+  const myAcceptedSeat = (acceptedSeatRequests ?? []).find((r) => r.requester_id === currentUserId);
+  const canRequestSeats = !isDriver && !myAcceptedSeat;
 
   const handleSave = async () => {
     if (!selectedType) return;
@@ -153,7 +156,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_seats != null && p.transport_seats > 0 && (
                     <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
                   )}
-                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && !hasPendingRequest(p.user_id) && !hasAcceptedSeat(p.user_id) && (
+                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && canRequestSeats && !hasPendingRequest(p.user_id) && !hasAcceptedSeat(p.user_id) && (
                     <Pressable
                       style={styles.requestSeatBtn}
                       onPress={async () => {
@@ -171,6 +174,23 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   )}
                   {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.user_id !== currentUserId && hasPendingRequest(p.user_id) && (
                     <Text style={styles.requestSentLabel}>{t('transport.seatRequested')}</Text>
+                  )}
+                  {hasAcceptedSeat(p.user_id) && myAcceptedSeat && (
+                    <Pressable
+                      style={styles.cancelSeatBtn}
+                      onPress={async () => {
+                        try {
+                          await transportService.cancelAcceptedSeat(myAcceptedSeat.id);
+                          await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
+                          await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+                          Burnt.toast({ title: t('transport.seatCancelled'), preset: 'done' });
+                        } catch {
+                          Burnt.toast({ title: t('auth.unknownError') });
+                        }
+                      }}
+                    >
+                      <X size={14} color={colors.error} strokeWidth={2.5} />
+                    </Pressable>
                   )}
                 </View>
                 {/* Passengers nested under this driver */}
@@ -289,6 +309,10 @@ const styles = StyleSheet.create({
   },
   requestSeatText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   requestSentLabel: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontStyle: 'italic' },
+  cancelSeatBtn: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: colors.error + '20', alignItems: 'center', justifyContent: 'center',
+  },
   passengerRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
     paddingLeft: spacing.lg + spacing.md, paddingVertical: 2,

@@ -198,6 +198,7 @@
     "seats": "seats",
     "requestSeat": "Request seat",
     "seatRequested": "Seat requested",
+    "seatCancelled": "Seat cancelled",
     "seatAccepted": "Seat confirmed!",
     "type": {
       "car": "Car",
