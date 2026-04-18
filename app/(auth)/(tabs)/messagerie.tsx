@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -6,9 +6,10 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Check, X } from 'lucide-react-native';
+import { Check, X, Car } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { conversationService, type Conversation, type PendingRequest } from '@/services/conversation-service';
+import { transportService } from '@/services/transport-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
@@ -45,6 +46,25 @@ export default function MessagerieScreen() {
     queryFn: () => conversationService.getPendingReceived(),
   });
 
+  const { data: seatRequests } = useQuery({
+    queryKey: ['seat-requests-received'],
+    queryFn: async () => {
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) return [];
+      const { data } = await supabase
+        .from('seat_requests' as 'participations')
+        .select('id, activity_id, requester_id, driver_id, status, created_at')
+        .eq('driver_id' as 'user_id', userId)
+        .eq('status' as 'user_id', 'pending')
+        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string }[] | null };
+      if (!data || data.length === 0) return [];
+      const requesterIds = data.map((r) => r.requester_id);
+      const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return data.map((r) => ({ ...r, requester_name: profileMap.get(r.requester_id)?.display_name ?? '?', requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null }));
+    },
+  });
+
   const handleAccept = async (requestId: string) => {
     setLoadingRequestId(requestId);
     try {
@@ -53,6 +73,32 @@ export default function MessagerieScreen() {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       Burnt.toast({ title: t('messagerie.requestAccepted'), preset: 'done' });
       router.push(`/(auth)/conversation/${requestId}`);
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+
+  const handleAcceptSeat = async (requestId: string) => {
+    setLoadingRequestId(requestId);
+    try {
+      await transportService.acceptSeatRequest(requestId);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+      await queryClient.invalidateQueries({ queryKey: ['transport'] });
+      Burnt.toast({ title: t('transport.seatAccepted'), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+
+  const handleDeclineSeat = async (requestId: string) => {
+    setLoadingRequestId(requestId);
+    try {
+      await transportService.declineSeatRequest(requestId);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {
@@ -94,7 +140,7 @@ export default function MessagerieScreen() {
     );
   };
 
-  const pendingCount = (pendingRequests ?? []).length;
+  const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length;
 
   const sourceLabel = (source: string | null) => {
     if (source === 'discovery') return t('messagerie.viaDiscovery');
@@ -185,11 +231,38 @@ export default function MessagerieScreen() {
             <Text style={styles.emptyText}>{t('messagerie.noRequests')}</Text>
           </View>
         ) : (
-          <FlatList
-            data={pendingRequests}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item: req }) => (
+          <ScrollView contentContainerStyle={styles.list}>
+            {/* Seat requests */}
+            {(seatRequests ?? []).map((sr) => (
+              <View key={sr.id} style={styles.requestCard}>
+                <Car size={20} color={colors.cta} strokeWidth={2} />
+                <View style={styles.requestInfo}>
+                  <Text style={styles.requestName} numberOfLines={1}>{(sr as { requester_name: string }).requester_name}</Text>
+                  <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>
+                </View>
+                <View style={styles.requestActions}>
+                  <Pressable
+                    style={[styles.acceptBtn, loadingRequestId === sr.id && styles.btnDisabled]}
+                    onPress={() => handleAcceptSeat(sr.id)}
+                    disabled={loadingRequestId === sr.id}
+                  >
+                    <Check size={18} color={colors.textPrimary} strokeWidth={3} />
+                  </Pressable>
+                  <Pressable
+                    style={[styles.declineBtn, loadingRequestId === sr.id && styles.btnDisabled]}
+                    onPress={() => handleDeclineSeat(sr.id)}
+                    disabled={loadingRequestId === sr.id}
+                  >
+                    <X size={18} color={colors.textPrimary} strokeWidth={3} />
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+
+            {/* Contact requests */}
+            {(pendingRequests ?? []).map((req) => (
               <Pressable
+                key={req.id}
                 style={styles.requestCard}
                 onPress={() => router.push(`/(auth)/profile/${req.request_sender_id}`)}
               >
@@ -222,9 +295,8 @@ export default function MessagerieScreen() {
                   </Pressable>
                 </View>
               </Pressable>
-            )}
-            contentContainerStyle={styles.list}
-          />
+            ))}
+          </ScrollView>
         )
       )}
     </View>

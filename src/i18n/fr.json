@@ -191,6 +191,9 @@
     "fromPlaceholder": "Ville, commune...",
     "freeSeats": "Places disponibles",
     "seats": "places",
+    "requestSeat": "Demander",
+    "seatRequested": "Place demandée",
+    "seatAccepted": "Place confirmée !",
     "type": {
       "car": "Voiture",
       "carpool": "Covoiturage",

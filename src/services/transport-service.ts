@@ -40,6 +40,41 @@ export const transportService = {
     return (data as unknown as TransportSummary[]) ?? [];
   },
 
+  requestSeat: async (activityId: string, driverId: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('request_seat' as 'join_activity', {
+      p_activity_id: activityId,
+      p_driver_id: driverId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+    return data as unknown as string;
+  },
+
+  acceptSeatRequest: async (requestId: string): Promise<void> => {
+    const { error } = await supabase.rpc('accept_seat_request' as 'join_activity', {
+      p_request_id: requestId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  declineSeatRequest: async (requestId: string): Promise<void> => {
+    const { error } = await supabase.rpc('decline_seat_request' as 'join_activity', {
+      p_request_id: requestId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  getPendingSeatRequests: async (activityId: string): Promise<{ id: string; requester_id: string; driver_id: string; status: string }[]> => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return [];
+    const { data, error } = await supabase
+      .from('seat_requests' as 'participations')
+      .select('id, requester_id, driver_id, status')
+      .eq('activity_id', activityId)
+      .eq('status' as 'user_id', 'pending') as unknown as { data: { id: string; requester_id: string; driver_id: string; status: string }[] | null; error: Error | null };
+    if (error) return [];
+    return data ?? [];
+  },
+
   getForActivity: async (activityId: string): Promise<ParticipantTransport[]> => {
     const { data, error } = await supabase
       .from('public_participants' as 'participations')

@@ -118,6 +118,21 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_seats != null && p.transport_seats > 0 && (
                     <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
                   )}
+                  {p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && (
+                    <Pressable
+                      style={styles.requestSeatBtn}
+                      onPress={async () => {
+                        try {
+                          await transportService.requestSeat(activityId, p.user_id);
+                          Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
+                        } catch {
+                          Burnt.toast({ title: t('auth.unknownError') });
+                        }
+                      }}
+                    >
+                      <Text style={styles.requestSeatText}>{t('transport.requestSeat')}</Text>
+                    </Pressable>
+                  )}
                 </View>
               ))}
             </View>
@@ -220,6 +235,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cta + '20', borderRadius: radius.full,
     paddingHorizontal: spacing.xs, paddingVertical: 2,
   },
+  requestSeatBtn: {
+    backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm, paddingVertical: 4,
+  },
+  requestSeatText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,

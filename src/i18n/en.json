@@ -191,6 +191,9 @@
     "fromPlaceholder": "City, town...",
     "freeSeats": "Free seats",
     "seats": "seats",
+    "requestSeat": "Request seat",
+    "seatRequested": "Seat requested",
+    "seatAccepted": "Seat confirmed!",
     "type": {
       "car": "Car",
       "carpool": "Carpool",
