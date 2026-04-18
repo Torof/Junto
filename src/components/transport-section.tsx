@@ -67,6 +67,9 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   const hasPendingRequest = (driverId: string) =>
     (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
 
+  const hasAcceptedSeat = (driverId: string) =>
+    (acceptedSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
+
   const getPassengers = (driverId: string) =>
     (acceptedSeatRequests ?? []).filter((r) => r.driver_id === driverId);
 
@@ -150,7 +153,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_seats != null && p.transport_seats > 0 && (
                     <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
                   )}
-                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && !hasPendingRequest(p.user_id) && (
+                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && !hasPendingRequest(p.user_id) && !hasAcceptedSeat(p.user_id) && (
                     <Pressable
                       style={styles.requestSeatBtn}
                       onPress={async () => {
