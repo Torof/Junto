@@ -61,6 +61,7 @@ export function ActivityDetail({
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
+  const [fullMapFly, setFullMapFly] = useState<{ coordinate: [number, number]; key: number } | null>(null);
   const [isAtActivity, setIsAtActivity] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -283,16 +284,16 @@ export function ActivityDetail({
 
   const mapPins: MapPin[] = [
     ...(activity.start_lng && activity.start_lat
-      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: '#22c55e' }]
+      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: '#22c55e', label: t('activity.pinDepart') }]
       : []),
     ...(activity.meeting_lng && activity.meeting_lat
-      ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6' }]
+      ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6', label: t('activity.pinRdv') }]
       : []),
     ...(activity.end_lng && activity.end_lat
-      ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444' }]
+      ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444', label: t('activity.pinArrivee') }]
       : []),
     ...(activity.objective_lng && activity.objective_lat
-      ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: '#F5A623' }]
+      ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: '#F5A623', label: t('activity.pinObjectif') }]
       : []),
   ];
   const allLngs = mapPins.map((p) => p.coordinate[0]);
@@ -547,9 +548,16 @@ export function ActivityDetail({
       )}
 
       {/* Modals — shared across all tabs */}
-      <Modal visible={showFullMap} animationType="slide">
+      <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-          <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+          <JuntoMapView
+            center={mapCenter}
+            zoom={mapZoom}
+            pins={mapPins}
+            routeLine={mapRouteLine}
+            flyTo={fullMapFly}
+            onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now() })}
+          />
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
             <Text style={styles.closeMapText}>✕</Text>
           </Pressable>

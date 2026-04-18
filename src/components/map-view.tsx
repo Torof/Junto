@@ -33,6 +33,7 @@ export interface MapPin {
   id: string;
   coordinate: [number, number];
   color: string;
+  label?: string;
 }
 
 interface MapViewProps {
@@ -47,6 +48,7 @@ interface MapViewProps {
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
+  onPinPress?: (pin: MapPin) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number } } | null;
@@ -66,6 +68,7 @@ export function JuntoMapView({
   tapMarker,
   tapMarkerContent,
   onActivityPress,
+  onPinPress,
   onMapPress,
   onBoundsChange,
   flyTo,
@@ -217,7 +220,16 @@ export function JuntoMapView({
 
       {pins.map((pin) => (
         <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate}>
-          <MapPinIcon color={pin.color} />
+          <Pressable onPress={() => onPinPress?.(pin)}>
+            <View style={styles.labeledPin}>
+              <MapPinIcon color={pin.color} />
+              {pin.label && (
+                <View style={[styles.pinLabel, { backgroundColor: pin.color }]}>
+                  <Text style={styles.pinLabelText}>{pin.label}</Text>
+                </View>
+              )}
+            </View>
+          </Pressable>
         </Mapbox.MarkerView>
       ))}
 
@@ -335,5 +347,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
     borderWidth: 2.5,
     borderColor: '#fff',
+  },
+  labeledPin: {
+    alignItems: 'center',
+  },
+  pinLabel: {
+    marginTop: -2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  pinLabelText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

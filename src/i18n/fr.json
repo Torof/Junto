@@ -86,7 +86,11 @@
       "completed": "Cette activité est terminée",
       "cancelled": "Cette activité a été annulée",
       "expired": "Cette activité a expiré"
-    }
+    },
+    "pinDepart": "Départ",
+    "pinRdv": "RDV",
+    "pinArrivee": "Arrivée",
+    "pinObjectif": "Objectif"
   },
   "sports": {
     "hiking": "Randonnée",

@@ -86,7 +86,11 @@
       "completed": "This activity is finished",
       "cancelled": "This activity was cancelled",
       "expired": "This activity has expired"
-    }
+    },
+    "pinDepart": "Start",
+    "pinRdv": "Meeting",
+    "pinArrivee": "End",
+    "pinObjectif": "Objective"
   },
   "sports": {
     "hiking": "Hiking",
