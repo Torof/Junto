@@ -252,6 +252,7 @@ export function ActivityDetail({
     }
   };
 
+  const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
   const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && isActive;
@@ -264,166 +265,265 @@ export function ActivityDetail({
     ? t('activity.requestJoin')
     : t('activity.join');
 
+  const showTabs = isCreator || isAccepted;
+
+  const mapPins: MapPin[] = [
+    { id: 'start', coordinate: [activity.lng, activity.lat], color: '#22c55e' },
+    ...(activity.meeting_lng && activity.meeting_lat
+      ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6' }]
+      : []),
+    ...(activity.end_lng && activity.end_lat
+      ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444' }]
+      : []),
+  ];
+  const allLngs = mapPins.map((p) => p.coordinate[0]);
+  const allLats = mapPins.map((p) => p.coordinate[1]);
+  const mapCenter: [number, number] = [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2];
+  const mapSpread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
+  const mapZoom = mapSpread > 0.1 ? 10 : mapSpread > 0.01 ? 12 : 14;
+  const mapRouteLine = activity.end_lng && activity.end_lat
+    ? [[activity.lng, activity.lat], [activity.end_lng, activity.end_lat]] as [number, number][]
+    : undefined;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
-        <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-        <View style={styles.visibilityBadge}>
-          {activity.visibility === 'public' ? (
-            <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
-          ) : activity.visibility === 'approval' ? (
-            <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
-          ) : (
-            <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
-          )}
-          <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>{activity.title}</Text>
-      </View>
-
-      {!isActive && (
-        <View style={styles.inactiveBanner}>
-          <Text style={styles.inactiveText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
-        </View>
-      )}
-
-      {isPending && isActive && (
-        <View style={styles.pendingBanner}>
-          <Text style={styles.pendingText}>{t('activity.pendingRequest')}</Text>
-        </View>
-      )}
-
-      {isAccepted && !isCreator && isActive && (
-        <View style={styles.acceptedBanner}>
-          <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
-        </View>
-      )}
-
-      <View style={styles.infoGrid}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.level')}</Text>
-          <Text style={styles.infoValue}>{activity.level}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.starts')}</Text>
-          <Text style={styles.infoValue}>
-            {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
-          </Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
-          <Text style={styles.infoValue}>{formatDuration(activity.duration)}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
-          <Text style={styles.infoValue}>{activity.participant_count}/{activity.max_participants}</Text>
-        </View>
-      </View>
-
-      {activity.description ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
-          <Text style={styles.description}>{activity.description}</Text>
-        </View>
-      ) : null}
-
-      {(isCreator || isAccepted) && (() => {
-        const mapPins: MapPin[] = [
-          { id: 'start', coordinate: [activity.lng, activity.lat], color: '#22c55e' },
-          ...(activity.meeting_lng && activity.meeting_lat
-            ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: '#3b82f6' }]
-            : []),
-          ...(activity.end_lng && activity.end_lat
-            ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: '#ef4444' }]
-            : []),
-        ];
-        const allLngs = mapPins.map((p) => p.coordinate[0]);
-        const allLats = mapPins.map((p) => p.coordinate[1]);
-        const centerLng = (Math.min(...allLngs) + Math.max(...allLngs)) / 2;
-        const centerLat = (Math.min(...allLats) + Math.max(...allLats)) / 2;
-        const spread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
-        const mapZoom = spread > 0.1 ? 10 : spread > 0.01 ? 12 : 14;
-        const mapRouteLine = activity.end_lng && activity.end_lat
-          ? [[activity.lng, activity.lat], [activity.end_lng, activity.end_lat]] as [number, number][]
-          : undefined;
-
-        return (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
-            <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-              <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
-              <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-            </Pressable>
-
-            <Modal visible={showFullMap} animationType="slide">
-              <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-                <JuntoMapView center={[centerLng, centerLat]} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
-                <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
-                  <Text style={styles.closeMapText}>✕</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
-                  onPress={() => {
-                    const navLat = activity.meeting_lat ?? activity.lat;
-                    const navLng = activity.meeting_lng ?? activity.lng;
-                    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
-                  }}
-                >
-                  <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
-                </Pressable>
-              </SafeAreaView>
-            </Modal>
-          </View>
-        );
-      })()}
-
-      <ParticipantList
-        activityId={activity.id}
-        activityTitle={activity.title}
-        isCreator={isCreator}
-        creatorId={activity.creator_id}
-        creatorName={activity.creator_name}
-        creatorAvatar={activity.creator_avatar}
-        onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
-      />
-
-      {canCheckIn && (
-        <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
-          <View style={styles.presenceHeader}>
-            <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
-            <Text style={styles.presenceTitle}>
-              {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
-            </Text>
-          </View>
-          <Text style={styles.presenceSubtitle}>
-            {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
-          </Text>
-          <View style={styles.presenceActions}>
+    <View style={styles.container}>
+      {/* Tab bar — only for participants/creator */}
+      {showTabs && (
+        <View style={styles.tabBar}>
+          {(['info', 'organization', 'chat'] as const).map((tab) => (
             <Pressable
-              style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
-              onPress={handleCheckIn}
-              disabled={isConfirming}
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
             >
-              <Text style={styles.presenceButtonText} numberOfLines={1}>
-                {isConfirming ? '...' : t('presence.confirm')}
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                {t(`activity.tab.${tab}`)}
               </Text>
+              {tab === 'organization' && (canCheckIn || (isCreator && isInPresenceWindow)) && (
+                <View style={styles.tabDot} />
+              )}
             </Pressable>
-            <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
-              <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
-            </Pressable>
-          </View>
+          ))}
         </View>
       )}
 
-      {isCreator && isInPresenceWindow && (
-        <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
-          <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
-        </Pressable>
+      {/* ===== INFO TAB ===== */}
+      {(!showTabs || activeTab === 'info') && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
+            <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+            <View style={styles.visibilityBadge}>
+              {activity.visibility === 'public' ? (
+                <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
+              ) : activity.visibility === 'approval' ? (
+                <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
+              ) : (
+                <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
+              )}
+              <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{activity.title}</Text>
+          </View>
+
+          {!isActive && (
+            <View style={styles.inactiveBanner}>
+              <Text style={styles.inactiveText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
+            </View>
+          )}
+          {isPending && isActive && (
+            <View style={styles.pendingBanner}>
+              <Text style={styles.pendingText}>{t('activity.pendingRequest')}</Text>
+            </View>
+          )}
+          {isAccepted && !isCreator && isActive && (
+            <View style={styles.acceptedBanner}>
+              <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
+            </View>
+          )}
+
+          <View style={styles.infoGrid}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('activity.level')}</Text>
+              <Text style={styles.infoValue}>{activity.level}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('activity.starts')}</Text>
+              <Text style={styles.infoValue}>
+                {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
+              <Text style={styles.infoValue}>{formatDuration(activity.duration)}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
+              <Text style={styles.infoValue}>{activity.participant_count}/{activity.max_participants}</Text>
+            </View>
+          </View>
+
+          {activity.description ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
+              <Text style={styles.description}>{activity.description}</Text>
+            </View>
+          ) : null}
+
+          {showTabs && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
+              <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
+                <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+                <View style={styles.mapTapOverlay} pointerEvents="box-only" />
+              </Pressable>
+            </View>
+          )}
+
+          <ParticipantList
+            activityId={activity.id}
+            activityTitle={activity.title}
+            isCreator={isCreator}
+            creatorId={activity.creator_id}
+            creatorName={activity.creator_name}
+            creatorAvatar={activity.creator_avatar}
+            onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
+          />
+
+          {/* Presence reminder banner on Info tab */}
+          {canCheckIn && !alreadyConfirmed && (
+            <Pressable style={styles.presenceReminder} onPress={() => setActiveTab('organization')}>
+              <MapPinCheck size={16} color={colors.cta} strokeWidth={2.4} />
+              <Text style={styles.presenceReminderText}>{t('presence.confirmMyPresence')}</Text>
+            </Pressable>
+          )}
+
+          {alreadyConfirmed && !isCreator && (
+            <View style={styles.presenceDone}>
+              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
+              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
+            </View>
+          )}
+
+          {showJoinButton && (
+            <Pressable
+              style={[styles.joinButton, isLoading && styles.buttonDisabled]}
+              onPress={handleJoin}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
+            </Pressable>
+          )}
+
+          {showLeaveButton && (
+            <Pressable
+              style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
+              onPress={() => setShowLeaveModal(true)}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+            </Pressable>
+          )}
+
+          {!isCreator && isAuthenticated && (
+            <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
+              <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
+            </Pressable>
+          )}
+        </ScrollView>
       )}
+
+      {/* ===== ORGANIZATION TAB ===== */}
+      {showTabs && activeTab === 'organization' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          {/* Presence verification */}
+          {canCheckIn && (
+            <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
+              <View style={styles.presenceHeader}>
+                <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
+                <Text style={styles.presenceTitle}>
+                  {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
+                </Text>
+              </View>
+              <Text style={styles.presenceSubtitle}>
+                {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
+              </Text>
+              <View style={styles.presenceActions}>
+                <Pressable
+                  style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
+                  onPress={handleCheckIn}
+                  disabled={isConfirming}
+                >
+                  <Text style={styles.presenceButtonText} numberOfLines={1}>
+                    {isConfirming ? '...' : t('presence.confirm')}
+                  </Text>
+                </Pressable>
+                <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+                  <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
+          {isCreator && isInPresenceWindow && (
+            <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+              <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
+            </Pressable>
+          )}
+
+          {alreadyConfirmed && !isCreator && (
+            <View style={styles.presenceDone}>
+              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
+              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
+            </View>
+          )}
+
+          {/* Transport placeholder */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('activity.transport')}</Text>
+            <Text style={styles.comingSoon}>{t('activity.comingSoon')}</Text>
+          </View>
+
+          {/* Gear placeholder */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('activity.gear')}</Text>
+            <Text style={styles.comingSoon}>{t('activity.comingSoon')}</Text>
+          </View>
+        </ScrollView>
+      )}
+
+      {/* ===== CHAT TAB ===== */}
+      {showTabs && activeTab === 'chat' && (
+        <View style={{ flex: 1, padding: spacing.lg }}>
+          <ActivityWall
+            activityId={activity.id}
+            isActive={['published', 'in_progress'].includes(activity.status)}
+          />
+        </View>
+      )}
+
+      {/* Modals — shared across all tabs */}
+      <Modal visible={showFullMap} animationType="slide">
+        <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
+          <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
+            <Text style={styles.closeMapText}>✕</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
+            onPress={() => {
+              const navLat = activity.meeting_lat ?? activity.lat;
+              const navLng = activity.meeting_lng ?? activity.lng;
+              Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
+            }}
+          >
+            <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
+          </Pressable>
+        </SafeAreaView>
+      </Modal>
 
       <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
       <PresenceScannerModal visible={showScanner} onClose={() => setShowScanner(false)} />
@@ -440,49 +540,6 @@ export function ActivityDetail({
         onCancel={() => setShowCancelModal(false)}
         onConfirm={performCancel}
       />
-
-      {alreadyConfirmed && !isCreator && (
-        <View style={styles.presenceDone}>
-          <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
-          <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
-        </View>
-      )}
-
-      {(isCreator || isAccepted) && <View style={styles.separator} />}
-
-      {(isCreator || isAccepted) && (
-        <ActivityWall
-          activityId={activity.id}
-          isActive={['published', 'in_progress'].includes(activity.status)}
-        />
-      )}
-
-      {showJoinButton && (
-        <Pressable
-          style={[styles.joinButton, isLoading && styles.buttonDisabled]}
-          onPress={handleJoin}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
-        </Pressable>
-      )}
-
-      {showLeaveButton && (
-        <Pressable
-          style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
-          onPress={() => setShowLeaveModal(true)}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
-        </Pressable>
-      )}
-
-      {!isCreator && isAuthenticated && (
-        <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
-          <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
-        </Pressable>
-      )}
-
       <ReportModal
         visible={showReport}
         targetType="activity"
@@ -490,7 +547,6 @@ export function ActivityDetail({
         onClose={() => setShowReport(false)}
       />
 
-      {/* Creator actions tooltip */}
       {showMenu && (
         <Modal visible animationType="none" transparent>
           <Pressable style={styles.tooltipBackdrop} onPress={() => setShowMenu(false)}>
@@ -509,13 +565,32 @@ export function ActivityDetail({
           </Pressable>
         </Modal>
       )}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  tabBar: {
+    flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm,
+    paddingBottom: spacing.xs, gap: spacing.sm, backgroundColor: colors.background,
+  },
+  tab: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, paddingVertical: spacing.sm, borderRadius: radius.full, backgroundColor: colors.surface,
+  },
+  tabActive: { backgroundColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary },
+  tabDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.cta },
+  presenceReminder: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.cta + '15', borderRadius: radius.md,
+    padding: spacing.md, marginTop: spacing.md,
+  },
+  presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
+  comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },

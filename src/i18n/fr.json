@@ -52,6 +52,14 @@
     "duration": "Durée",
     "location": "Localisation",
     "navigate": "Y aller",
+    "tab": {
+      "info": "Infos",
+      "organization": "Organisation",
+      "chat": "Chat"
+    },
+    "transport": "Transport",
+    "gear": "Matériel",
+    "comingSoon": "Bientôt disponible",
     "creator": "Organisé par",
     "starts": "Début",
     "at": "à",

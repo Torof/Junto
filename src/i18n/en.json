@@ -52,6 +52,14 @@
     "duration": "Duration",
     "location": "Location",
     "navigate": "Navigate",
+    "tab": {
+      "info": "Info",
+      "organization": "Organization",
+      "chat": "Chat"
+    },
+    "transport": "Transport",
+    "gear": "Gear",
+    "comingSoon": "Coming soon",
     "creator": "Organized by",
     "starts": "Starts",
     "at": "at",
