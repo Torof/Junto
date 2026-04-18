@@ -1,8 +1,6 @@
-import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { colors } from '@/constants/theme';
-import { LogoSpinner } from '@/components/logo-spinner';
+import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { ActivityDetail } from '@/components/activity-detail';
 
@@ -17,11 +15,7 @@ export default function VisitorActivityScreen() {
   });
 
   if (isLoading || !activity) {
-    return (
-      <View style={styles.loading}>
-        <LogoSpinner size={48} />
-      </View>
-    );
+    return <ActivityDetailSkeleton />;
   }
 
   return (
@@ -34,12 +28,3 @@ export default function VisitorActivityScreen() {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { colors } from '@/constants/theme';
-import { LogoSpinner } from '@/components/logo-spinner';
+import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
 import { ActivityDetail } from '@/components/activity-detail';
@@ -45,11 +45,7 @@ export default function AuthActivityScreen() {
   });
 
   if (activityLoading || participationLoading || userLoading || !activity) {
-    return (
-      <View style={styles.loading}>
-        <LogoSpinner size={48} />
-      </View>
-    );
+    return <ActivityDetailSkeleton />;
   }
 
   return (
@@ -62,11 +58,4 @@ export default function AuthActivityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const styles = StyleSheet.create({});
