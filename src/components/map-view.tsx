@@ -108,7 +108,7 @@ export function JuntoMapView({
     });
     const points: ActivityPoint[] = activities.map((a) => ({
       type: 'Feature',
-      geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
+      geometry: { type: 'Point', coordinates: [a.objective_lng ?? a.lng, a.objective_lat ?? a.lat] },
       properties: { id: a.id },
     }));
     sc.load(points);

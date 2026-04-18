@@ -23,6 +23,9 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
       <Text style={styles.title} numberOfLines={1}>
         {activity.title.length > 14 ? activity.title.slice(0, 14) + '...' : activity.title}
       </Text>
+      {activity.objective_name && (
+        <Text style={styles.objectiveName} numberOfLines={1}>📍 {activity.objective_name}</Text>
+      )}
 
       {/* Date */}
       <View style={styles.row}>
@@ -65,6 +68,11 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     fontSize: fontSizes.sm,
     fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  objectiveName: {
+    color: '#666',
+    fontSize: fontSizes.xs,
     marginBottom: 2,
   },
   row: {
