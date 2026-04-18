@@ -23,7 +23,7 @@ export function CreateButton() {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 190,
     right: spacing.md,
     backgroundColor: colors.cta,
     borderRadius: radius.full,

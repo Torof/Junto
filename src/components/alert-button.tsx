@@ -49,7 +49,7 @@ export function AlertButton({ blink = false }: Props) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 190,
+    bottom: 140,
     right: spacing.md,
     zIndex: 10,
   },
