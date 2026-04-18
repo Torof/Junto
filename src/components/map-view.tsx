@@ -51,7 +51,7 @@ interface MapViewProps {
   onPinPress?: (pin: MapPin) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
-  flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number } } | null;
+  flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -123,7 +123,7 @@ export function JuntoMapView({
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
-      const targetZoom = Math.max(13, currentZoom);
+      const targetZoom = flyTo.zoom ?? Math.max(13, currentZoom);
       // Approximate viewport span in degrees at the target zoom (Web Mercator).
       // ~360 / 2^zoom is the longitudinal width of one base tile across the screen.
       const viewportLngSpan = 360 / Math.pow(2, targetZoom);

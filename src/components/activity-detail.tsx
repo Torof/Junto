@@ -556,7 +556,7 @@ export function ActivityDetail({
             pins={mapPins}
             routeLine={mapRouteLine}
             flyTo={fullMapFly}
-            onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now() })}
+            onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now(), zoom: 16 })}
           />
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)}>
             <Text style={styles.closeMapText}>✕</Text>
