@@ -6,6 +6,7 @@ import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin } from 'lucide-re
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { transportService, type ParticipantTransport } from '@/services/transport-service';
+import { supabase } from '@/services/supabase';
 import { UserAvatar } from './user-avatar';
 
 interface Props {
@@ -43,8 +44,27 @@ export function TransportSection({ activityId, currentUserId }: Props) {
     queryFn: () => transportService.getPendingSeatRequests(activityId),
   });
 
+  const { data: acceptedSeatRequests } = useQuery({
+    queryKey: ['seat-requests-accepted', activityId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('seat_requests' as 'participations')
+        .select('id, requester_id, driver_id')
+        .eq('activity_id', activityId)
+        .eq('status' as 'user_id', 'accepted') as unknown as { data: { id: string; requester_id: string; driver_id: string }[] | null };
+      return data ?? [];
+    },
+  });
+
   const hasPendingRequest = (driverId: string) =>
     (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
+
+  const getPassengers = (driverId: string) => {
+    const passengerIds = (acceptedSeatRequests ?? [])
+      .filter((r) => r.driver_id === driverId)
+      .map((r) => r.requester_id);
+    return (participants ?? []).filter((p) => passengerIds.includes(p.user_id));
+  };
 
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
   const hasSetTransport = !!myTransport;
@@ -114,7 +134,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                 <Text style={styles.groupCount}>{items.length}</Text>
               </View>
               {items.map((p) => (
-                <View key={p.user_id} style={styles.participantRow}>
+                <View key={p.user_id}><View style={styles.participantRow}>
                   <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={28} />
                   <Text style={styles.participantName} numberOfLines={1}>{p.display_name}</Text>
                   {p.transport_from_name && (
@@ -145,6 +165,15 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.user_id !== currentUserId && hasPendingRequest(p.user_id) && (
                     <Text style={styles.requestSentLabel}>{t('transport.seatRequested')}</Text>
                   )}
+                </View>
+                {/* Passengers nested under this driver */}
+                {['car', 'carpool'].includes(type) && getPassengers(p.user_id).map((passenger) => (
+                  <View key={passenger.user_id} style={styles.passengerRow}>
+                    <View style={styles.passengerLine} />
+                    <UserAvatar name={passenger.display_name} avatarUrl={passenger.avatar_url} size={22} />
+                    <Text style={styles.passengerName} numberOfLines={1}>{passenger.display_name}</Text>
+                  </View>
+                ))}
                 </View>
               ))}
             </View>
@@ -253,6 +282,12 @@ const styles = StyleSheet.create({
   },
   requestSeatText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   requestSentLabel: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontStyle: 'italic' },
+  passengerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
+    paddingLeft: spacing.lg + spacing.md, paddingVertical: 2,
+  },
+  passengerLine: { width: 1, height: 16, backgroundColor: colors.textSecondary, opacity: 0.3, marginRight: spacing.xs },
+  passengerName: { color: colors.textSecondary, fontSize: fontSizes.xs },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
