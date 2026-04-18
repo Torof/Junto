@@ -52,19 +52,23 @@ export function TransportSection({ activityId, currentUserId }: Props) {
         .select('id, requester_id, driver_id')
         .eq('activity_id', activityId)
         .eq('status' as 'user_id', 'accepted') as unknown as { data: { id: string; requester_id: string; driver_id: string }[] | null };
-      return data ?? [];
+      if (!data || data.length === 0) return [];
+      const requesterIds = data.map((r) => r.requester_id);
+      const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return data.map((r) => ({
+        ...r,
+        display_name: profileMap.get(r.requester_id)?.display_name ?? '?',
+        avatar_url: profileMap.get(r.requester_id)?.avatar_url ?? null,
+      }));
     },
   });
 
   const hasPendingRequest = (driverId: string) =>
     (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
 
-  const getPassengers = (driverId: string) => {
-    const passengerIds = (acceptedSeatRequests ?? [])
-      .filter((r) => r.driver_id === driverId)
-      .map((r) => r.requester_id);
-    return (participants ?? []).filter((p) => passengerIds.includes(p.user_id));
-  };
+  const getPassengers = (driverId: string) =>
+    (acceptedSeatRequests ?? []).filter((r) => r.driver_id === driverId);
 
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
   const hasSetTransport = !!myTransport;
@@ -168,10 +172,10 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                 </View>
                 {/* Passengers nested under this driver */}
                 {['car', 'carpool'].includes(type) && getPassengers(p.user_id).map((passenger) => (
-                  <View key={passenger.user_id} style={styles.passengerRow}>
+                  <View key={passenger.requester_id} style={styles.passengerRow}>
                     <View style={styles.passengerLine} />
-                    <UserAvatar name={passenger.display_name} avatarUrl={passenger.avatar_url} size={22} />
-                    <Text style={styles.passengerName} numberOfLines={1}>{passenger.display_name}</Text>
+                    <UserAvatar name={(passenger as { display_name: string }).display_name} avatarUrl={(passenger as { avatar_url: string | null }).avatar_url} size={22} />
+                    <Text style={styles.passengerName} numberOfLines={1}>{(passenger as { display_name: string }).display_name}</Text>
                   </View>
                 ))}
                 </View>
