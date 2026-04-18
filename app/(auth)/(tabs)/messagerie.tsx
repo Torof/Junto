@@ -9,7 +9,7 @@ import * as Burnt from 'burnt';
 import { Check, X, Car } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { conversationService, type Conversation, type PendingRequest } from '@/services/conversation-service';
+import { conversationService } from '@/services/conversation-service';
 import { transportService } from '@/services/transport-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';

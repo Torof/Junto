@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { colors } from '@/constants/theme';
 import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';

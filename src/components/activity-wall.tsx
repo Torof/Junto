@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
-import { wallService, type WallMessageWithProfile } from '@/services/wall-service';
+import { wallService } from '@/services/wall-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
 import { supabase } from '@/services/supabase';

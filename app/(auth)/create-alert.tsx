@@ -15,7 +15,6 @@ import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useTutorialStore } from '@/store/tutorial-store';
 import { TutorialTooltip } from '@/components/tutorial-tooltip';
-import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LEVELS } from '@/types/activity-form';
 

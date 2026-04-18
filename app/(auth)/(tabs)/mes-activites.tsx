@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal, RefreshControl } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, Modal, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

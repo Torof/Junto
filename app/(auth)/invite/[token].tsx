@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing } from '@/constants/theme';
+import { colors, fontSizes } from '@/constants/theme';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 

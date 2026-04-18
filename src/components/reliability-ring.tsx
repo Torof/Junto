@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing } from '@/constants/theme';
+import { colors, fontSizes } from '@/constants/theme';
 
 interface Props {
   score: number | null;

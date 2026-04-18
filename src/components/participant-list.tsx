@@ -8,7 +8,6 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 import { ReliabilityRing } from './reliability-ring';
-import { getSportIcon } from '@/constants/sport-icons';
 import { haptic } from '@/lib/haptics';
 import { getFriendlyError } from '@/utils/friendly-error';
 

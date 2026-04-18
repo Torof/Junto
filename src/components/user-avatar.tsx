@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors, fontSizes } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 
 interface UserAvatarProps {
   name: string;

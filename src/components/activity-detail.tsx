@@ -25,8 +25,8 @@ import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
-import { transportService, type TransportSummary } from '@/services/transport-service';
-import { Car, Bike, TrainFront, Footprints } from 'lucide-react-native';
+import { transportService } from '@/services/transport-service';
+import { Car } from 'lucide-react-native';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
