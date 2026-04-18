@@ -394,6 +394,7 @@ export function ActivityDetail({
                 </Text>
                 {allCities.length > 0 && (
                   <>
+                    <Text style={{ color: colors.textSecondary }}>—</Text>
                     <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} />
                     <Text style={styles.transportSummaryText}>
                       {[...new Set(allCities)].join(', ')}
