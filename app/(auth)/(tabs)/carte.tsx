@@ -327,7 +327,23 @@ export default function CarteScreen() {
               }}
               onMapPress={(lng, lat) => {
                 if (Date.now() < suppressMapPressUntil.current) return;
-                if (selectedActivity) { setSelectedActivity(null); return; }
+                if (selectedActivity) {
+                  const dLng = Math.abs(lng - selectedActivity.lng);
+                  const dLat = Math.abs(lat - selectedActivity.lat);
+                  const viewportSpan = currentBounds.current
+                    ? Math.abs(currentBounds.current.neLng - currentBounds.current.swLng)
+                    : 0.01;
+                  if (dLng < viewportSpan * 0.05 && dLat < viewportSpan * 0.05) {
+                    suppressMapPressUntil.current = Date.now() + 400;
+                    if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
+                    router.push(`/(auth)/activity/${selectedActivity.id}`);
+                    setSelectedActivity(null);
+                    selectionBoundsSpan.current = null;
+                    return;
+                  }
+                  setSelectedActivity(null);
+                  return;
+                }
                 setTappedPoint({ lng, lat });
               }}
               onBoundsChange={handleBoundsChange}

@@ -1,6 +1,7 @@
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { runOnJS } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -43,6 +44,10 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, o
 
   const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
 
+  const handleChange = useCallback((index: number) => {
+    if (onSheetChange) runOnJS(onSheetChange)(index);
+  }, [onSheetChange]);
+
   const sorted = useMemo(() => {
     return activities
       .map((a) => ({ ...a, distance: getDistanceKm(userLocation[1], userLocation[0], a.lat, a.lng) }))
@@ -56,7 +61,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, o
       snapPoints={snapPoints}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => <TabHandle count={sorted.length} label={t('search.results')} />}
-      onChange={onSheetChange}
+      onChange={handleChange}
     >
       <BottomSheetFlatList
         data={sorted}
