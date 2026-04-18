@@ -10,6 +10,7 @@ import { UserAvatar } from './user-avatar';
 import { ReliabilityRing } from './reliability-ring';
 import { getSportIcon } from '@/constants/sport-icons';
 import { haptic } from '@/lib/haptics';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 interface ParticipantListProps {
   activityId: string;
@@ -54,7 +55,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       await queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activityId] });
       Burnt.toast({ title: t('participants.penaltyWaived'), preset: 'done' });
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setLoadingId(null);
     }
@@ -77,7 +78,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
         : 'toast.participantRemoved';
       Burnt.toast({ title: t(toastKey), preset: action === 'accept' ? 'done' : undefined });
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setLoadingId(null);
     }

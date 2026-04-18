@@ -80,11 +80,11 @@ export default function ConversationScreen() {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : t('auth.unknownError');
+      const errMsg = err instanceof Error ? err.message : '';
       if (errMsg.includes('Operation not permitted')) {
         Burnt.toast({ title: t('messagerie.rateLimited') });
       } else {
-        Alert.alert(t('auth.error'), errMsg);
+        Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
       }
     } finally {
       setIsSending(false);

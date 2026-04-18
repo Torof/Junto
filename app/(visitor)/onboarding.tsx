@@ -7,6 +7,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
@@ -44,7 +45,7 @@ export default function OnboardingScreen() {
       useAuthStore.getState().triggerRefresh();
       setTimeout(() => router.replace('/(auth)/(tabs)/carte'), 300);
     } catch (err) {
-      Alert.alert(t('onboarding.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('onboarding.error'), getFriendlyError(err, 'generic'));
     } finally {
       setIsLoading(false);
     }

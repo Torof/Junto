@@ -8,6 +8,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
 import { reliabilityService } from '@/services/reliability-service';
 import { UserAvatar } from '@/components/user-avatar';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 export default function ConfirmPresenceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,7 +44,7 @@ export default function ConfirmPresenceScreen() {
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
       router.back();
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : t('auth.unknownError'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setIsSaving(false);
     }
