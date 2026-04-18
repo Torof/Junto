@@ -84,6 +84,7 @@ export default function CarteScreen() {
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
   const initialSearchDone = useRef(false);
@@ -226,14 +227,18 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        <NotificationBell />
-        <AlertButton blink={tutorialStep === 'click_alert' && showAlertTooltip} />
-        <CreateButton />
-        <FilterButton onPress={() => setShowFilters(true)} />
-        <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+        {!sheetExpanded && (
+          <>
+            <NotificationBell />
+            <AlertButton blink={tutorialStep === 'click_alert' && showAlertTooltip} />
+            <CreateButton />
+            <FilterButton onPress={() => setShowFilters(true)} />
+            <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
+          </>
+        )}
 
         <>
-            {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
             <JuntoMapView
               center={center}
@@ -339,6 +344,7 @@ export default function CarteScreen() {
             setFlyOffset({ x: 0.1 });
             setFlyToKey((k) => k + 1);
           }}
+          onSheetChange={(index) => setSheetExpanded(index === 2)}
         />
 
         {tutorialStep === 'click_activity' && (

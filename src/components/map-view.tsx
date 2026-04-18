@@ -74,8 +74,6 @@ export function JuntoMapView({
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
-  const lastTap = useRef<{ id: string; time: number }>({ id: '', time: 0 });
-  const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Follow `center` prop updates (e.g. GPS resolved after initial mount).
   // Also: force a tiny camera bump on first mount so onCameraChanged fires
@@ -131,9 +129,9 @@ export function JuntoMapView({
       const offsetY = (flyTo.offsetRatio?.y ?? 0) * viewportLatSpan;
       cameraRef.current.setCamera({
         centerCoordinate: [flyTo.coordinate[0] + offsetX, flyTo.coordinate[1] + offsetY],
-        // Keep the current zoom if already zoomed in deeper than 13 (e.g. after expanding a cluster)
         zoomLevel: targetZoom,
-        animationDuration: 500,
+        animationDuration: 1000,
+        animationMode: 'flyTo',
       });
     }
   }, [flyTo?.key]);
@@ -277,23 +275,7 @@ export function JuntoMapView({
           >
             <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
               <Pressable onPress={() => {
-                const now = Date.now();
-                if (lastTap.current.id === activity.id && now - lastTap.current.time < 300) {
-                  if (tapTimeout.current) { clearTimeout(tapTimeout.current); tapTimeout.current = null; }
-                  cameraRef.current?.setCamera({
-                    centerCoordinate: [lng, lat],
-                    zoomLevel: Math.min(currentZoom + 3, 18),
-                    animationDuration: 400,
-                  });
-                  lastTap.current = { id: '', time: 0 };
-                } else {
-                  lastTap.current = { id: activity.id, time: now };
-                  if (tapTimeout.current) clearTimeout(tapTimeout.current);
-                  tapTimeout.current = setTimeout(() => {
-                    onActivityPress?.(activity);
-                    tapTimeout.current = null;
-                  }, 300);
-                }
+                onActivityPress?.(activity);
               }}>
                 <ActivityPin activity={activity} />
               </Pressable>

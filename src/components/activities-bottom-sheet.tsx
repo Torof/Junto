@@ -11,6 +11,7 @@ interface Props {
   activities: NearbyActivity[];
   userLocation: [number, number];
   onItemPress?: (activity: NearbyActivity) => void;
+  onSheetChange?: (index: number) => void;
 }
 
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -35,7 +36,7 @@ function TabHandle({ count, label }: { count: number; label: string }) {
   );
 }
 
-export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }: Props) {
+export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, onSheetChange }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
@@ -55,6 +56,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
       snapPoints={snapPoints}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => <TabHandle count={sorted.length} label={t('search.results')} />}
+      onChange={onSheetChange}
     >
       <BottomSheetFlatList
         data={sorted}
