@@ -60,23 +60,6 @@
     "transport": "Transport",
     "gear": "Gear",
     "comingSoon": "Coming soon",
-  "transport": {
-    "saved": "Transport saved",
-    "add": "Add",
-    "edit": "Edit",
-    "empty": "No one has shared their transport yet — be the first!",
-    "howAreYouGoing": "How are you getting there?",
-    "freeSeats": "Free seats",
-    "seats": "seats",
-    "type": {
-      "car": "Car",
-      "carpool": "Carpool",
-      "public_transport": "Public transport",
-      "bike": "Bike",
-      "on_foot": "On foot",
-      "other": "Other"
-    }
-  },
     "creator": "Organized by",
     "starts": "Starts",
     "at": "at",
@@ -197,6 +180,23 @@
     "rateParticipants": "Couldn't save your ratings. Try again.",
     "uploadAvatar": "Couldn't update your photo. Try again.",
     "sendReport": "Couldn't send the report. Try again."
+  },
+  "transport": {
+    "saved": "Transport saved",
+    "add": "Add",
+    "edit": "Edit",
+    "empty": "No one has shared their transport yet — be the first!",
+    "howAreYouGoing": "How are you getting there?",
+    "freeSeats": "Free seats",
+    "seats": "seats",
+    "type": {
+      "car": "Car",
+      "carpool": "Carpool",
+      "public_transport": "Public transport",
+      "bike": "Bike",
+      "on_foot": "On foot",
+      "other": "Other"
+    }
   },
   "reliability": {
     "label": "Reliability",
