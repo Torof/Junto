@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { runOnJS } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
@@ -12,7 +11,6 @@ interface Props {
   activities: NearbyActivity[];
   userLocation: [number, number];
   onItemPress?: (activity: NearbyActivity) => void;
-  onSheetChange?: (index: number) => void;
 }
 
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -37,16 +35,12 @@ function TabHandle({ count, label }: { count: number; label: string }) {
   );
 }
 
-export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, onSheetChange }: Props) {
+export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
 
   const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
-
-  const handleChange = useCallback((index: number) => {
-    if (onSheetChange) runOnJS(onSheetChange)(index);
-  }, [onSheetChange]);
 
   const sorted = useMemo(() => {
     return activities
@@ -61,7 +55,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, o
       snapPoints={snapPoints}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => <TabHandle count={sorted.length} label={t('search.results')} />}
-      onChange={handleChange}
+      containerStyle={styles.sheetContainer}
     >
       <BottomSheetFlatList
         data={sorted}
@@ -88,6 +82,9 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress, o
 }
 
 const styles = StyleSheet.create({
+  sheetContainer: {
+    zIndex: 20,
+  },
   sheetBackground: {
     backgroundColor: '#142D48',
     borderTopLeftRadius: 0,
