@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet, TextInput } from 'react-native';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -163,6 +163,18 @@ export function TransportSection({ activityId, currentUserId }: Props) {
               </View>
             )}
 
+            <View style={styles.fromRow}>
+              <Text style={styles.fromLabel}>{t('transport.from')}</Text>
+              <TextInput
+                style={styles.fromInput}
+                value={fromName}
+                onChangeText={setFromName}
+                placeholder={t('transport.fromPlaceholder')}
+                placeholderTextColor={colors.textSecondary}
+                maxLength={100}
+              />
+            </View>
+
             <Pressable
               style={[styles.saveButton, (!selectedType || isSaving) && { opacity: 0.4 }]}
               onPress={handleSave}
@@ -229,6 +241,12 @@ const styles = StyleSheet.create({
   },
   seatsBtnText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   seatsValue: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', minWidth: 24, textAlign: 'center' },
+  fromRow: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    padding: spacing.md, marginBottom: spacing.md,
+  },
+  fromLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
+  fromInput: { color: colors.textPrimary, fontSize: fontSizes.md },
   saveButton: {
     backgroundColor: colors.cta, borderRadius: radius.md,
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm,

@@ -187,6 +187,8 @@
     "edit": "Modifier",
     "empty": "Personne n'a encore partagé son transport — sois le premier !",
     "howAreYouGoing": "Comment tu y vas ?",
+    "from": "Départ depuis",
+    "fromPlaceholder": "Ville, commune...",
     "freeSeats": "Places disponibles",
     "seats": "places",
     "type": {
