@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, TextInput } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { userService } from '@/services/user-service';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { badgeService } from '@/services/badge-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
@@ -152,7 +153,7 @@ export default function PublicProfileScreen() {
   if (isLoading || !profile) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.cta} />
+        <LogoSpinner size={48} />
       </View>
     );
   }

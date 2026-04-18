@@ -1,7 +1,8 @@
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { colors } from '@/constants/theme';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 import { ActivityDetail } from '@/components/activity-detail';
 
@@ -18,7 +19,7 @@ export default function VisitorActivityScreen() {
   if (isLoading || !activity) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={colors.cta} />
+        <LogoSpinner size={48} />
       </View>
     );
   }

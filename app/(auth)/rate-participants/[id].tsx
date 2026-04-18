@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { participationService } from '@/services/participation-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES } from '@/services/badge-service';
 import { UserAvatar } from '@/components/user-avatar';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 
@@ -98,7 +99,7 @@ export default function RateParticipantsScreen() {
   if (isLoading || votesLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.cta} />
+        <LogoSpinner size={48} />
       </View>
     );
   }

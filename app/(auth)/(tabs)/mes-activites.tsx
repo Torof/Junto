@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { SlidersHorizontal } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from '@/components/activity-card';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { SportDropdown } from '@/components/sport-dropdown';
 
 type MainTab = 'created' | 'joined';
@@ -170,7 +171,7 @@ export default function MesActivitesScreen() {
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.cta} />
+          <LogoSpinner size={48} />
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>

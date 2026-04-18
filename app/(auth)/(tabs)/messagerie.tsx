@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Check, X, Car } from 'lucide-react-native';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService, type Conversation, type PendingRequest } from '@/services/conversation-service';
 import { transportService } from '@/services/transport-service';
 import { UserAvatar } from '@/components/user-avatar';
@@ -153,7 +154,7 @@ export default function MessagerieScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.cta} />
+        <LogoSpinner size={48} />
       </View>
     );
   }

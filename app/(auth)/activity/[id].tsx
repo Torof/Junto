@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { colors } from '@/constants/theme';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
 import { ActivityDetail } from '@/components/activity-detail';
@@ -46,7 +47,7 @@ export default function AuthActivityScreen() {
   if (activityLoading || participationLoading || userLoading || !activity) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={colors.cta} />
+        <LogoSpinner size={48} />
       </View>
     );
   }

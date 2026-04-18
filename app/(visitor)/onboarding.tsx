@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { LogoSpinner } from '@/components/logo-spinner';
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
@@ -89,7 +90,7 @@ export default function OnboardingScreen() {
           disabled={!dateOfBirth || !tosAccepted || isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color={colors.textPrimary} />
+            <LogoSpinner size={20} />
           ) : (
             <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
           )}

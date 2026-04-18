@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { useCreateStore } from '@/store/create-store';
+import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 
@@ -109,7 +110,7 @@ export default function CreateStep4() {
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color={colors.textPrimary} />
+          <LogoSpinner size={20} />
         ) : (
           <Text style={styles.publishText}>{t('create.publish')}</Text>
         )}
