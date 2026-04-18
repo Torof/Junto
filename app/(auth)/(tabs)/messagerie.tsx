@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ export default function MessagerieScreen() {
   const [activeTab, setActiveTab] = useState<Tab>(tab === 'requests' ? 'requests' : 'messages');
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
+  const [hidingConversationId, setHidingConversationId] = useState<string | null>(null);
 
   const { isConversationUnread } = useMessageStore();
 
@@ -69,6 +70,28 @@ export default function MessagerieScreen() {
     } finally {
       setLoadingRequestId(null);
     }
+  };
+
+  const handleHideConversation = (conversationId: string, name: string) => {
+    Alert.alert(
+      t('messagerie.hideTitle'),
+      t('messagerie.hideMessage', { name }),
+      [
+        { text: t('activity.no'), style: 'cancel' },
+        {
+          text: t('messagerie.hideConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await conversationService.hideConversation(conversationId);
+              await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            } catch {
+              Burnt.toast({ title: t('auth.unknownError') });
+            }
+          },
+        },
+      ]
+    );
   };
 
   const pendingCount = (pendingRequests ?? []).length;
@@ -130,6 +153,7 @@ export default function MessagerieScreen() {
                 <Pressable
                   style={styles.card}
                   onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
+                  onLongPress={() => handleHideConversation(item.id, item.other_user_name)}
                 >
                   <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={48} />
                   <View style={styles.cardContent}>

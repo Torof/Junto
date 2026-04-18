@@ -32,14 +32,23 @@ export const conversationService = {
 
     const { data, error } = await supabase
       .from('conversations' as 'users')
-      .select('id, user_1, user_2, status, last_message_at, created_at')
+      .select('id, user_1, user_2, status, last_message_at, created_at, hidden_by_user_1, hidden_by_user_2')
       .eq('status' as 'id', 'active')
-      .order('last_message_at', { ascending: false, nullsFirst: false }) as unknown as { data: { id: string; user_1: string; user_2: string; status: string; last_message_at: string | null; created_at: string }[] | null; error: Error | null };
+      .order('last_message_at', { ascending: false, nullsFirst: false }) as unknown as { data: { id: string; user_1: string; user_2: string; status: string; last_message_at: string | null; created_at: string; hidden_by_user_1: boolean; hidden_by_user_2: boolean }[] | null; error: Error | null };
     if (error) throw error;
 
     if (!data || data.length === 0) return [];
 
-    const otherUserIds = data.map((c) =>
+    // Filter out hidden conversations for this user
+    const visible = data.filter((c) => {
+      if (c.user_1 === userId && c.hidden_by_user_1) return false;
+      if (c.user_2 === userId && c.hidden_by_user_2) return false;
+      return true;
+    });
+
+    if (visible.length === 0) return [];
+
+    const otherUserIds = visible.map((c) =>
       c.user_1 === userId ? c.user_2 : c.user_1
     );
     const { data: profiles } = await supabase
@@ -51,7 +60,7 @@ export const conversationService = {
       (profiles ?? []).map((p) => [p.id, p])
     );
 
-    const conversationIds = data.map((c) => c.id);
+    const conversationIds = visible.map((c) => c.id);
     const { data: lastMessages } = await supabase
       .from('private_messages')
       .select('conversation_id, content, sender_id, created_at')
@@ -66,7 +75,7 @@ export const conversationService = {
       }
     }
 
-    return data.map((c) => {
+    return visible.map((c) => {
       const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
       const profile = profileMap.get(otherId);
       const lastMsg = lastMessageMap.get(c.id);
@@ -172,6 +181,13 @@ export const conversationService = {
     } as unknown as { p_activity_id: string });
     if (error) throw error;
     return data as unknown as string;
+  },
+
+  hideConversation: async (conversationId: string): Promise<void> => {
+    const { error } = await supabase.rpc('hide_conversation' as 'join_activity', {
+      p_conversation_id: conversationId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
   },
 
   getUnreadCount: async (): Promise<number> => {
