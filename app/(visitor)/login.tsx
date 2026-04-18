@@ -22,7 +22,7 @@ export default function LoginScreen() {
     if (m.includes('unable to validate email') || m.includes('invalid email')) return t('auth.errInvalidEmail');
     if (m.includes('rate limit') || m.includes('too many requests')) return t('auth.errRateLimit');
     if (m.includes('network')) return t('auth.errNetwork');
-    return raw;
+    return t('auth.unknownError');
   };
 
   const handleSubmit = async () => {
