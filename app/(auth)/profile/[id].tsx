@@ -281,8 +281,7 @@ export default function PublicProfileScreen() {
                 setShowRequestModal(false);
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
               } catch (err) {
-                const msg = err instanceof Error ? err.message : t('auth.unknownError');
-                Alert.alert(t('auth.error'), msg);
+                Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
               } finally {
                 setRequestSending(false);
               }

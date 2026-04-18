@@ -61,7 +61,7 @@ export function ActivityDetail({
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
-  const [fullMapFly, setFullMapFly] = useState<{ coordinate: [number, number]; key: number } | null>(null);
+  const [fullMapFly, setFullMapFly] = useState<{ coordinate: [number, number]; key: number; zoom?: number } | null>(null);
   const [isAtActivity, setIsAtActivity] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -396,16 +396,12 @@ export function ActivityDetail({
               <View style={styles.transportSummary}>
                 <Car size={16} color={colors.cta} strokeWidth={2} />
                 <Text style={styles.transportSummaryText}>
-                  : {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
+                  {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
                 </Text>
                 {allCities.length > 0 && (
-                  <>
-                    <Text style={{ color: colors.textSecondary }}> — </Text>
-                    <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} />
-                    <Text style={styles.transportSummaryText}>
-                      : {[...new Set(allCities)].join(', ')}
-                    </Text>
-                  </>
+                  <Text style={styles.transportCities} numberOfLines={1}>
+                    {[...new Set(allCities)].join(', ')}
+                  </Text>
                 )}
               </View>
             );
@@ -646,6 +642,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm, marginBottom: spacing.md,
   },
   transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, marginLeft: 'auto', flexShrink: 1 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
