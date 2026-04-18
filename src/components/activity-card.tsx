@@ -31,12 +31,12 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
       </Text>
 
       <View style={styles.bottom}>
-        <Text style={styles.level}>{activity.level}</Text>
-        <Text style={styles.places}>
+        <Text style={styles.level} numberOfLines={1}>{activity.level}</Text>
+        <Text style={styles.places} numberOfLines={1}>
           {t('activity.places', { remaining, max: activity.max_participants })}
         </Text>
         {distanceKm !== undefined && (
-          <Text style={styles.distance}>{distanceKm.toFixed(1)} km</Text>
+          <Text style={styles.distance} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
         )}
         <Text style={styles.creator} numberOfLines={1}>{activity.creator_name}</Text>
       </View>
@@ -66,11 +66,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     textTransform: 'capitalize',
+    flexShrink: 1,
   },
   time: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     marginLeft: 'auto',
+    flexShrink: 0,
   },
   title: {
     color: colors.textPrimary,
@@ -81,15 +83,17 @@ const styles = StyleSheet.create({
   bottom: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   level: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
+    flexShrink: 0,
   },
   places: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
+    flexShrink: 0,
   },
   distance: {
     color: colors.cta,
@@ -100,5 +104,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     marginLeft: 'auto',
+    flexShrink: 1,
   },
 });
