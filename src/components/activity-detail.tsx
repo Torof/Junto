@@ -391,8 +391,15 @@ export function ActivityDetail({
                 <Car size={16} color={colors.cta} strokeWidth={2} />
                 <Text style={styles.transportSummaryText}>
                   {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
-                  {allCities.length > 0 ? ` · ${[...new Set(allCities)].join(', ')}` : ''}
                 </Text>
+                {allCities.length > 0 && (
+                  <>
+                    <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} />
+                    <Text style={styles.transportSummaryText}>
+                      {[...new Set(allCities)].join(', ')}
+                    </Text>
+                  </>
+                )}
               </View>
             );
           })()}
