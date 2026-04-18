@@ -10,6 +10,7 @@ import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
 import { ActivitiesBottomSheet } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
+import { NotificationBell } from '@/components/notification-bell';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { AlertButton } from '@/components/alert-button';
@@ -225,6 +226,7 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
+        <NotificationBell />
         <AlertButton blink={tutorialStep === 'click_alert' && showAlertTooltip} />
         <CreateButton />
         <FilterButton onPress={() => setShowFilters(true)} />

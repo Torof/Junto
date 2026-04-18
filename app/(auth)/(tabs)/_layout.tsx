@@ -113,6 +113,7 @@ export default function TabsLayout() {
         name="notifications"
         options={{
           title: t('tabs.notifications'),
+          href: null,
           tabBarIcon: ({ focused }) => <NotificationTabIcon focused={focused} />,
         }}
       />
