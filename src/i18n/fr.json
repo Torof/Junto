@@ -45,6 +45,7 @@
   "activity": {
     "level": "Niveau",
     "places": "{{remaining}}/{{max}} places restantes",
+    "placesLabel": "Places restantes",
     "viewDetail": "Voir l'activité",
     "shareJoin": "Rejoins-moi sur Junto :",
     "join": "Rejoindre",

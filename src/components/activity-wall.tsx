@@ -82,20 +82,22 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
         <Text style={styles.emptyText}>{t('wall.empty')}</Text>
       ) : (
         <View style={styles.messageList}>
-          {messages.map((item) => (
-            <View key={item.id} style={styles.messageCard}>
-              <View style={styles.messageHeader}>
-                <Pressable
-                  style={styles.authorLink}
-                  onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
-                  disabled={!item.user_id}
-                >
-                  <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
-                  <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
-                </Pressable>
-                <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+          {messages.map((item, index) => (
+            <View key={item.id} style={[styles.messageRow, index % 2 === 0 ? styles.messageLeft : styles.messageRight]}>
+              <View style={styles.messageCard}>
+                <View style={styles.messageHeader}>
+                  <Pressable
+                    style={styles.authorLink}
+                    onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
+                    disabled={!item.user_id}
+                  >
+                    <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
+                    <Text style={styles.authorName}>{item.display_name ?? t('wall.deletedUser')}</Text>
+                  </Pressable>
+                  <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+                </View>
+                <Text style={styles.messageContent}>{item.content}</Text>
               </View>
-              <Text style={styles.messageContent}>{item.content}</Text>
             </View>
           ))}
         </View>
@@ -150,11 +152,21 @@ const styles = StyleSheet.create({
   messageList: {
     maxHeight: 300,
   },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.xs,
+  },
+  messageLeft: {
+    justifyContent: 'flex-start',
+  },
+  messageRight: {
+    justifyContent: 'flex-end',
+  },
   messageCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.sm,
-    marginBottom: spacing.xs,
+    maxWidth: '85%',
   },
   messageHeader: {
     flexDirection: 'row',

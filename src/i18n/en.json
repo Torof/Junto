@@ -45,6 +45,7 @@
   "activity": {
     "level": "Level",
     "places": "{{remaining}}/{{max}} places remaining",
+    "placesLabel": "Spots left",
     "viewDetail": "View activity",
     "shareJoin": "Join me on Junto:",
     "join": "Join",

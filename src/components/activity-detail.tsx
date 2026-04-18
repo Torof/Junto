@@ -381,8 +381,8 @@ export function ActivityDetail({
               <Text style={styles.infoValue}>{formatDuration(activity.duration)}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('activity.places', { remaining, max: activity.max_participants })}</Text>
-              <Text style={styles.infoValue}>{activity.participant_count}/{activity.max_participants}</Text>
+              <Text style={styles.infoLabel}>{t('activity.placesLabel')}</Text>
+              <Text style={styles.infoValue}>{remaining}</Text>
             </View>
           </View>
 
