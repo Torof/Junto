@@ -123,7 +123,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'flex-start',
     paddingTop: 4,
     gap: 4,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderColor: colors.border,
   },
   tabGrip: {
