@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
@@ -56,5 +56,3 @@ export default function AuthActivityScreen() {
     />
   );
 }
-
-const styles = StyleSheet.create({});

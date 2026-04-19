@@ -14,7 +14,7 @@ interface Props {
 function colorFor(score: number): string {
   if (score >= 75) return colors.success;
   if (score >= 50) return colors.warning;
-  if (score >= 25) return '#F97316';
+  if (score >= 25) return colors.warning;
   return colors.error;
 }
 

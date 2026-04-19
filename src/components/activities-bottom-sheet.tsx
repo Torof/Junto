@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   sheetBackground: {
-    backgroundColor: '#142D48',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#142D48',
+    backgroundColor: colors.surface,
   },
   tab: {
     position: 'absolute',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     left: spacing.sm,
     width: 120,
     height: 40,
-    backgroundColor: '#142D48',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     alignItems: 'center',

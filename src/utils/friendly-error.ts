@@ -1,6 +1,6 @@
 import i18n from '@/i18n';
 
-export type ErrorAction =
+type ErrorAction =
   | 'createActivity'
   | 'updateActivity'
   | 'joinActivity'

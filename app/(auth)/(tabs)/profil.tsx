@@ -56,7 +56,7 @@ export default function ProfilScreen() {
 
   useLayoutEffect(() => {
     const tier = user?.tier ?? 'free';
-    const badgeColor = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#F5A623' : null;
+    const badgeColor = tier === 'pro' ? colors.pinMeeting : tier === 'premium' ? colors.pinObjective : null;
     navigation.setOptions({
       headerTitle: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#6B7280',
+    backgroundColor: colors.textSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },

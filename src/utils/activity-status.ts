@@ -24,7 +24,7 @@ export function getStatusColor(timeStatus: ActivityTimeStatus): string {
     case 'soon':
       return colors.warning;
     case 'upcoming':
-      return '#3b82f6';
+      return colors.pinMeeting;
     case 'completed':
       return colors.textSecondary;
     case 'cancelled':

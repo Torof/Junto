@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   close: { position: 'absolute', top: 60, right: spacing.lg, padding: spacing.sm, zIndex: 10 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.xs },
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, textAlign: 'center', marginBottom: spacing.lg, paddingHorizontal: spacing.lg },
-  cameraWrap: { flex: 1, margin: spacing.lg, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#000' },
+  cameraWrap: { flex: 1, margin: spacing.lg, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.background },
   frame: {
     position: 'absolute', top: '20%', left: '15%', right: '15%', aspectRatio: 1,
     borderWidth: 3, borderColor: colors.cta, borderRadius: radius.lg,

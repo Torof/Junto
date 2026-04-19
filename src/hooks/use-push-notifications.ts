@@ -5,6 +5,7 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/services/supabase';
+import { colors } from '@/constants/theme';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -22,7 +23,7 @@ async function registerForPushAsync(): Promise<string | null> {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.DEFAULT,
-      lightColor: '#F4642A',
+      lightColor: colors.cta,
     });
   }
 

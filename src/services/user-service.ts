@@ -54,19 +54,16 @@ export const userService = {
       reliability_score: null,
     };
     if (!userId) {
-      console.warn('[getPublicStats] called with empty userId');
       return empty;
     }
     const { data, error } = await supabase.rpc('get_user_public_stats' as 'join_activity', {
       p_user_id: userId,
     } as unknown as { p_activity_id: string });
     if (error) {
-      console.warn('[getPublicStats] RPC error', error);
       return empty;
     }
     const rows = data as unknown as UserStats[];
     if (!Array.isArray(rows) || rows.length === 0) {
-      console.warn('[getPublicStats] empty response', data);
       return empty;
     }
     return rows[0] ?? empty;
@@ -74,14 +71,12 @@ export const userService = {
 
   getSportBreakdown: async (userId: string): Promise<SportBreakdownRow[]> => {
     if (!userId) {
-      console.warn('[getSportBreakdown] called with empty userId');
       return [];
     }
     const { data, error } = await supabase.rpc('get_user_sport_breakdown' as 'join_activity', {
       p_user_id: userId,
     } as unknown as { p_activity_id: string });
     if (error) {
-      console.warn('[getSportBreakdown] RPC error', error);
       return [];
     }
     return (data as unknown as SportBreakdownRow[]) ?? [];

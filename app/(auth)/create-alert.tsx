@@ -126,7 +126,7 @@ export default function CreateAlertScreen() {
           <JuntoMapView
             center={location ? [location.lng, location.lat] : center}
             zoom={10}
-            pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: '#F4642A' }] : []}
+            pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}
           />
           {/* Overlay blocks map touches, shows hint */}
           <View style={styles.mapPreviewOverlay}>
@@ -257,7 +257,7 @@ export default function CreateAlertScreen() {
           <JuntoMapView
             center={location ? [location.lng, location.lat] : center}
             zoom={10}
-            pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: '#F4642A' }] : []}
+            pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}
             onMapPress={(lng, lat) => setLocation({ lng, lat })}
           />
 

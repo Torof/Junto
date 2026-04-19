@@ -19,7 +19,7 @@ export const NEGATIVE_BADGES = [
 export const ALL_BADGES = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
 
 // Trophy badges
-export const PROGRESSION_TROPHIES = [
+const PROGRESSION_TROPHIES = [
   { key: 'newcomer', icon: '🌱', min: 0, max: 4 },
   { key: 'confirmed', icon: '✅', min: 10, max: 29 },
   { key: 'experienced', icon: '🏅', min: 30, max: 74 },

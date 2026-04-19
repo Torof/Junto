@@ -12,7 +12,7 @@ interface Props {
 
 const LEVEL_COLORS: Record<string, string> = {
   'débutant': colors.success,
-  'intermédiaire': '#3b82f6',
+  'intermédiaire': colors.pinMeeting,
   'avancé': colors.warning,
   'expert': colors.error,
 };
