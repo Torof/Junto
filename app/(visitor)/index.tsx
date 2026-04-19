@@ -1,32 +1,22 @@
 import { useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
-import { ActivitySearch } from '@/components/activity-search';
-import { ViewToggle } from '@/components/view-toggle';
-import { FilterButton } from '@/components/filter-bar';
-import { FilterSheet } from '@/components/filter-sheet';
 import { SearchAreaButton } from '@/components/search-area-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
-import { useFilteredActivities } from '@/hooks/use-filtered-activities';
-import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 
 export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { center } = useInitialLocation();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const { viewMode } = useMapStore();
 
-  // Bounds-based fetching
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
@@ -34,7 +24,6 @@ export default function VisitorMapScreen() {
   const initialSearchDone = useRef(false);
 
   const { data: activities } = useNearbyActivities(searchBounds);
-  const filtered = useFilteredActivities(activities ?? []);
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -80,44 +69,33 @@ export default function VisitorMapScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.statusBar} />
-      <FilterButton onPress={() => setShowFilters(true)} />
-      <ViewToggle />
 
-      {viewMode === 'map' ? (
-        <>
-          {/* Sign in banner */}
-          <View style={styles.banner}>
-            <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
-            <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
-              <Text style={styles.signInText}>{t('auth.signIn')}</Text>
-            </Pressable>
-          </View>
+      <View style={styles.banner}>
+        <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
+        <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
+          <Text style={styles.signInText}>{t('auth.signIn')}</Text>
+        </Pressable>
+      </View>
 
-          {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
+      {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
-          <JuntoMapView
-            center={center}
-            activities={filtered}
-            selectedActivity={selectedActivity}
-            popupContent={selectedActivity ? (
-              <ActivityPopup
-                activity={selectedActivity}
-                onPress={() => {
-                  router.push(`/(visitor)/activity/${selectedActivity.id}`);
-                  setSelectedActivity(null);
-                }}
-              />
-            ) : undefined}
-            onActivityPress={setSelectedActivity}
-            onMapPress={() => setSelectedActivity(null)}
-            onBoundsChange={handleBoundsChange}
+      <JuntoMapView
+        center={center}
+        activities={activities ?? []}
+        selectedActivity={selectedActivity}
+        popupContent={selectedActivity ? (
+          <ActivityPopup
+            activity={selectedActivity}
+            onPress={() => {
+              router.push(`/(visitor)/activity/${selectedActivity.id}`);
+              setSelectedActivity(null);
+            }}
           />
-        </>
-      ) : (
-        <ActivitySearch activities={activities ?? []} userLocation={center} routePrefix="/(visitor)" />
-      )}
-
-      <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
+        ) : undefined}
+        onActivityPress={setSelectedActivity}
+        onMapPress={() => setSelectedActivity(null)}
+        onBoundsChange={handleBoundsChange}
+      />
     </View>
   );
 }

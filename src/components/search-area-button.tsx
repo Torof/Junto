@@ -1,5 +1,6 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 
 interface SearchAreaButtonProps {
@@ -8,9 +9,10 @@ interface SearchAreaButtonProps {
 
 export function SearchAreaButton({ onPress }: SearchAreaButtonProps) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
-    <Pressable style={styles.pill} onPress={onPress}>
+    <Pressable style={[styles.pill, { top: insets.top + spacing.sm }]} onPress={onPress}>
       <Text style={styles.text}>{t('map.searchArea')}</Text>
     </Pressable>
   );
@@ -19,7 +21,6 @@ export function SearchAreaButton({ onPress }: SearchAreaButtonProps) {
 const styles = StyleSheet.create({
   pill: {
     position: 'absolute',
-    top: 12,
     alignSelf: 'center',
     backgroundColor: colors.cta,
     borderRadius: radius.full,
