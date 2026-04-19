@@ -65,6 +65,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: colors.border,
   },
 });

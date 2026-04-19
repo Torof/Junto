@@ -66,6 +66,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
     minWidth: 170,
     gap: spacing.xs,
   },

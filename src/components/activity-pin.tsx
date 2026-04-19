@@ -48,7 +48,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       ? colors.success
       : timeStatus === 'soon'
         ? colors.warning
-        : colors.textPrimary;
+        : colors.pinBackground;
 
   return (
     <View style={styles.wrapper}>
@@ -82,7 +82,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: PIN_SIZE,
     height: PIN_SIZE,
     borderRadius: radius.full,
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.pinBackground,
     borderWidth: 1.5,
     borderColor: colors.background,
     alignItems: 'center',

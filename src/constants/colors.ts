@@ -15,6 +15,8 @@ export const darkColors = {
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
 
+  pinBackground: '#F5F5F0',
+  border: 'transparent',
   overlay: 'rgba(0,0,0,0.5)',
 };
 
@@ -35,6 +37,8 @@ export const lightColors = {
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
 
+  pinBackground: '#E8E4DF',
+  border: '#C8C4BF',
   overlay: 'rgba(0,0,0,0.3)',
 };
 
