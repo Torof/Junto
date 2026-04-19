@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,14 +11,16 @@ import {
   Pencil, MapPinCheck, Star, AlertTriangle, MessageCircle,
   type LucideIcon,
 } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { notificationService, type Notification } from '@/services/notification-service';
 
 dayjs.extend(relativeTime);
 
 type IconMeta = { icon: LucideIcon; color: string };
 
-const NOTIFICATION_ICONS: Record<string, IconMeta> = {
+const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   join_request: { icon: UserPlus, color: colors.cta },
   participant_joined: { icon: UserCheck, color: colors.success },
   request_accepted: { icon: Check, color: colors.success },
@@ -31,11 +34,15 @@ const NOTIFICATION_ICONS: Record<string, IconMeta> = {
   rate_participants: { icon: Star, color: colors.warning },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
-};
+});
 
-const DEFAULT_ICON: IconMeta = { icon: Bell, color: colors.textSecondary };
+const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
 
 export default function NotificationsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const notificationIcons = useMemo(() => getNotificationIcons(colors), [colors]);
+  const defaultIcon = useMemo(() => getDefaultIcon(colors), [colors]);
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -98,7 +105,7 @@ export default function NotificationsScreen() {
           data={notifications}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            const meta = NOTIFICATION_ICONS[item.type] ?? DEFAULT_ICON;
+            const meta = notificationIcons[item.type] ?? defaultIcon;
             const IconComp = meta.icon;
             return (
             <Pressable
@@ -128,7 +135,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

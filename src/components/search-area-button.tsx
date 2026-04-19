@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface SearchAreaButtonProps {
   onPress: () => void;
@@ -10,6 +13,8 @@ interface SearchAreaButtonProps {
 export function SearchAreaButton({ onPress }: SearchAreaButtonProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Pressable style={[styles.pill, { top: insets.top + spacing.sm }]} onPress={onPress}>
@@ -18,7 +23,7 @@ export function SearchAreaButton({ onPress }: SearchAreaButtonProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   pill: {
     position: 'absolute',
     alignSelf: 'center',

@@ -7,7 +7,9 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Check, X, Car } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
 import { transportService } from '@/services/transport-service';
@@ -15,13 +17,15 @@ import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 dayjs.extend(relativeTime);
 
 type Tab = 'messages' | 'requests';
 
 export default function MessagerieScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
@@ -326,7 +330,7 @@ export default function MessagerieScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { padding: spacing.md },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },

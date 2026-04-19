@@ -1,11 +1,16 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Search, Map } from 'lucide-react-native';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
 import { useMapStore } from '@/store/map-store';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 export function ViewToggle() {
   const { viewMode, toggleViewMode } = useMapStore();
   const IconComponent = viewMode === 'map' ? Search : Map;
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Pressable style={styles.button} onPress={toggleViewMode}>
@@ -14,7 +19,7 @@ export function ViewToggle() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   button: {
     position: 'absolute',
     bottom: spacing.xl + 32,

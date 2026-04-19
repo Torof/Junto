@@ -1,9 +1,11 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
 import { SearchAreaButton } from '@/components/search-area-button';
@@ -12,6 +14,8 @@ import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-
 import { type NearbyActivity } from '@/services/activity-service';
 
 export default function VisitorMapScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
   const { center } = useInitialLocation();
@@ -100,7 +104,7 @@ export default function VisitorMapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

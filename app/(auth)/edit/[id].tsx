@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,9 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { supabase } from '@/services/supabase';
 import { LEVELS } from '@/types/activity-form';
@@ -15,6 +17,8 @@ import { getFriendlyError } from '@/utils/friendly-error';
 const VISIBILITIES = ['public', 'approval', 'private_link', 'private_link_approval'] as const;
 
 export default function EditActivityScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const router = useRouter();
@@ -236,7 +240,7 @@ export default function EditActivityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },

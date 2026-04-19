@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -13,7 +15,9 @@ interface Props {
 
 export function LeaveActivityModal({ visible, isLate, isSubmitting, onCancel, onConfirm }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
   const [reason, setReason] = useState('');
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
@@ -52,7 +56,7 @@ export function LeaveActivityModal({ visible, isLate, isSubmitting, onCancel, on
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   sheet: {
     width: '100%', maxWidth: 360, backgroundColor: colors.surface,

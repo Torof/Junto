@@ -1,10 +1,13 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, ListChecks, Bell, MessageCircle, User, type LucideIcon } from 'lucide-react-native';
-import { colors, fontSizes } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
 import { useMapStore } from '@/store/map-store';
 import { conversationService } from '@/services/conversation-service';
@@ -12,6 +15,7 @@ import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 
 function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: boolean }) {
+  const colors = useColors();
   return (
     <IconComponent
       size={26}
@@ -22,6 +26,8 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
 }
 
 function NotificationTabIcon({ focused }: { focused: boolean }) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: count } = useQuery({
     queryKey: ['notifications-count'],
     queryFn: () => notificationService.getUnreadCount(),
@@ -41,6 +47,8 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
 }
 
 function MessageTabIcon({ focused }: { focused: boolean }) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { isConversationUnread } = useMessageStore();
 
   const { data: currentUserId } = useQuery({
@@ -67,6 +75,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
 }
 
 export default function TabsLayout() {
+  const colors = useColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -135,7 +144,7 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   bellContainer: {
     width: 28,
     height: 28,

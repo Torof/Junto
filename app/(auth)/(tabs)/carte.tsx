@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -24,7 +24,9 @@ import { useCreateStore } from '@/store/create-store';
 import { useTutorialStore } from '@/store/tutorial-store';
 import { TutorialTooltip } from '@/components/tutorial-tooltip';
 import { supabase } from '@/services/supabase';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 
 const BUFFER = 0.5; // 50% buffer around viewport
 
@@ -65,6 +67,8 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 export default function CarteScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -403,7 +407,7 @@ export default function CarteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -461,3 +465,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+

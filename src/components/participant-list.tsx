@@ -1,15 +1,17 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 import { ReliabilityRing } from './reliability-ring';
 import { haptic } from '@/lib/haptics';
 import { getFriendlyError } from '@/utils/friendly-error';
+import type { AppColors } from '@/constants/colors';
 
 interface ParticipantListProps {
   activityId: string;
@@ -23,9 +25,11 @@ interface ParticipantListProps {
 
 export function ParticipantList({ activityId, activityTitle, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
   const { t } = useTranslation();
+  const colors = useColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: accepted } = useQuery({
     queryKey: ['participants', activityId],
@@ -173,7 +177,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { marginTop: spacing.md },
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },

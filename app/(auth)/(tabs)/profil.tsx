@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState, useMemo } from 'react';
 import { useNavigation } from 'expo-router';
 import { Menu } from 'lucide-react-native';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
@@ -7,7 +7,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
@@ -23,6 +25,8 @@ import { SettingsDrawer } from '@/components/settings-drawer';
 const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.pickAndUploadAvatar());
 
 export default function ProfilScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -78,7 +82,7 @@ export default function ProfilScreen() {
         </Pressable>
       ),
     });
-  }, [navigation, user?.display_name, user?.tier]);
+  }, [navigation, user?.display_name, user?.tier, colors]);
 
   const { data: stats } = useQuery({
     queryKey: ['user-stats', userId],
@@ -210,7 +214,7 @@ export default function ProfilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   heroRow: {

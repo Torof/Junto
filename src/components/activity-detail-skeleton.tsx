@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 
 function Bone({ width, height, style }: { width: number | `${number}%`; height: number; style?: object }) {
+  const colors = useColors();
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -27,6 +30,8 @@ function Bone({ width, height, style }: { width: number | `${number}%`; height: 
 }
 
 export function ActivityDetailSkeleton() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -87,7 +92,7 @@ export function ActivityDetailSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

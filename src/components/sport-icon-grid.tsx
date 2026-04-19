@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Pencil } from 'lucide-react-native';
-import { colors, fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, spacing } from '@/constants/theme';
 import { getSportIcon } from '@/constants/sport-icons';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 import type { SportBreakdownRow } from '@/services/user-service';
 
 interface Props {
@@ -10,12 +13,7 @@ interface Props {
   onEdit?: () => void;
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  'débutant': colors.success,
-  'intermédiaire': colors.pinMeeting,
-  'avancé': colors.warning,
-  'expert': colors.error,
-};
+const LEVEL_KEYS = ['débutant', 'intermédiaire', 'avancé', 'expert'] as const;
 
 const LEVEL_PRIORITY: Record<string, number> = {
   'expert': 4,
@@ -33,10 +31,22 @@ function sortByLevelThenCount(rows: SportBreakdownRow[]): SportBreakdownRow[] {
   });
 }
 
+function getLevelColors(colors: AppColors): Record<string, string> {
+  return {
+    'débutant': colors.success,
+    'intermédiaire': colors.pinMeeting,
+    'avancé': colors.warning,
+    'expert': colors.error,
+  };
+}
+
 const ICON_SIZE = 44;
 
 export function SportIconGrid({ rows, onEdit }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const levelColors = useMemo(() => getLevelColors(colors), [colors]);
 
   if (rows.length === 0 && !onEdit) return null;
 
@@ -58,7 +68,7 @@ export function SportIconGrid({ rows, onEdit }: Props) {
         <>
           <View style={styles.grid}>
             {sortByLevelThenCount(rows).map((row) => {
-              const borderColor = LEVEL_COLORS[row.level ?? ''] ?? colors.surface;
+              const borderColor = levelColors[row.level ?? ''] ?? colors.surface;
               return (
                 <View key={row.sport_key} style={styles.iconWrap}>
                   <View style={[styles.iconCircle, { borderColor }]}>
@@ -74,22 +84,12 @@ export function SportIconGrid({ rows, onEdit }: Props) {
             })}
           </View>
           <View style={styles.legend}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['débutant'] }]} />
-              <Text style={styles.legendText}>{t('profil.levelBeginner')}</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['intermédiaire'] }]} />
-              <Text style={styles.legendText}>{t('profil.levelIntermediate')}</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['avancé'] }]} />
-              <Text style={styles.legendText}>{t('profil.levelAdvanced')}</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: LEVEL_COLORS['expert'] }]} />
-              <Text style={styles.legendText}>{t('profil.levelExpert')}</Text>
-            </View>
+            {LEVEL_KEYS.map((level) => (
+              <View key={level} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: levelColors[level] }]} />
+                <Text style={styles.legendText}>{t(`profil.level${level === 'débutant' ? 'Beginner' : level === 'intermédiaire' ? 'Intermediate' : level === 'avancé' ? 'Advanced' : 'Expert'}`)}</Text>
+              </View>
+            ))}
           </View>
         </>
       )}
@@ -97,7 +97,7 @@ export function SportIconGrid({ rows, onEdit }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   section: { marginBottom: spacing.lg },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   sectionTitle: {

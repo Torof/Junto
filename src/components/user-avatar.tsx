@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface UserAvatarProps {
   name: string;
@@ -8,6 +10,8 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ name, avatarUrl, size = 40 }: UserAvatarProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const borderRadius = size / 2;
   const fontSize = size * 0.4;
 
@@ -29,7 +33,7 @@ export function UserAvatar({ name, avatarUrl, size = 40 }: UserAvatarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   image: {
     backgroundColor: colors.surface,
   },

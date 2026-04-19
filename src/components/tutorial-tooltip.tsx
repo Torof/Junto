@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   text: string;
@@ -10,6 +13,9 @@ interface Props {
 }
 
 export function TutorialTooltip({ text, position, anchor, arrowAlign = 'center', onDismiss }: Props) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const arrowAlignStyle =
     arrowAlign === 'left' ? styles.arrowLeft : arrowAlign === 'right' ? styles.arrowRight : styles.arrowCenter;
 
@@ -29,7 +35,7 @@ export function TutorialTooltip({ text, position, anchor, arrowAlign = 'center',
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1000,

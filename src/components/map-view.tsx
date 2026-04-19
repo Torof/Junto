@@ -6,7 +6,8 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon } from './map-pin';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -74,10 +75,12 @@ export function JuntoMapView({
   onBoundsChange,
   flyTo,
 }: MapViewProps) {
+  const colors = useColors();
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Follow `center` prop updates (e.g. GPS resolved after initial mount).
   // Also: force a tiny camera bump on first mount so onCameraChanged fires
@@ -324,7 +327,7 @@ export function JuntoMapView({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   map: {
     flex: 1,
   },

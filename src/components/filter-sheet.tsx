@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { useMapStore } from '@/store/map-store';
 import { SportDropdown } from './sport-dropdown';
+import type { AppColors } from '@/constants/colors';
 
 const QUICK_OPTIONS = ['all', 'today'] as const;
 
@@ -17,10 +19,12 @@ interface FilterSheetProps {
 
 export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
+  const colors = useColors();
   const { filters, toggleSportFilter, setDateMode, setSpecificDate, setDateRange, resetFilters } = useMapStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRangeFrom, setShowRangeFrom] = useState(false);
   const [showRangeTo, setShowRangeTo] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -126,7 +130,7 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,

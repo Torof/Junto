@@ -1,11 +1,16 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, fontSizes, radius } from '@/constants/theme';
+import { fontSizes, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 
 interface ClusterPinProps {
   count: number;
 }
 
 export function ClusterPin({ count }: ClusterPinProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.cluster}>
       <Text style={styles.count}>{count}</Text>
@@ -13,7 +18,7 @@ export function ClusterPin({ count }: ClusterPinProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   cluster: {
     width: 48,
     height: 48,

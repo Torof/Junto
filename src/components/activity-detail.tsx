@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,9 @@ import { PresenceQrModal } from './presence-qr-modal';
 import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { supabase } from '@/services/supabase';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { participationService, type Participation } from '@/services/participation-service';
@@ -48,6 +50,8 @@ export function ActivityDetail({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: transportSummary } = useQuery({
     queryKey: ['transport-summary', activity.id],
     queryFn: () => transportService.getSummary(activity.id),
@@ -619,7 +623,7 @@ export function ActivityDetail({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   tabBar: {

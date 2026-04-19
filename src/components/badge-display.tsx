@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import {
   badgeService,
   POSITIVE_BADGES,
@@ -17,6 +20,8 @@ interface BadgeDisplayProps {
 
 export function BadgeDisplay({ reputation, trophies }: BadgeDisplayProps) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Progression trophy
   const progressionTrophy = trophies.find((tr) => tr.trophy_key === 'progression');
@@ -95,7 +100,7 @@ export function BadgeDisplay({ reputation, trophies }: BadgeDisplayProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { marginBottom: spacing.lg },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.xs },
   badge: {

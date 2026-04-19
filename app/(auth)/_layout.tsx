@@ -1,15 +1,17 @@
+import { useMemo } from 'react';
 import { Stack } from 'expo-router';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 
 export default function AuthLayout() {
+  const colors = useColors();
+  const screenOptions = useMemo(() => ({
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.textPrimary,
+    contentStyle: { backgroundColor: colors.background },
+  }), [colors]);
+
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.textPrimary,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    >
+    <Stack screenOptions={screenOptions}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="create/step1" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="create/step2" options={{ headerShown: false, presentation: 'modal' }} />

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { SportDropdown } from './sport-dropdown';
 import { getSportIcon } from '@/constants/sport-icons';
 import { LEVELS } from '@/types/activity-form';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -19,6 +21,8 @@ export function SportsLevelEditor({ visible, sports, levelsPerSport, onSave, onC
   const { t } = useTranslation();
   const [selectedSports, setSelectedSports] = useState<string[]>(sports);
   const [levels, setLevels] = useState<Record<string, string>>(levelsPerSport);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     if (visible) {
@@ -97,7 +101,7 @@ export function SportsLevelEditor({ visible, sports, levelsPerSport, onSave, onC
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background,

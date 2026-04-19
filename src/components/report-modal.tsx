@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { reportService } from '@/services/report-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import type { AppColors } from '@/constants/colors';
 
 interface ReportModalProps {
   visible: boolean;
@@ -15,8 +17,10 @@ interface ReportModalProps {
 
 export function ReportModal({ visible, targetType, targetId, onClose }: ReportModalProps) {
   const { t } = useTranslation();
+  const colors = useColors();
   const [reason, setReason] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleSubmit = async () => {
     if (reason.trim().length < 10) {
@@ -69,7 +73,7 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },

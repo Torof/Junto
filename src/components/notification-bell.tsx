@@ -1,14 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { Animated, Pressable, View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Bell } from 'lucide-react-native';
-import { colors, fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, spacing } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { notificationService } from '@/services/notification-service';
+import type { AppColors } from '@/constants/colors';
 
 export function NotificationBell() {
   const router = useRouter();
+  const colors = useColors();
   const rotation = useRef(new Animated.Value(0)).current;
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: count } = useQuery({
     queryKey: ['notifications-count'],
@@ -62,7 +66,7 @@ export function NotificationBell() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     position: 'absolute',
     top: spacing.md,

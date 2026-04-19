@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
-function Bone({ width, height, style }: { width: number | `${number}%`; height: number; style?: object }) {
+function Bone({ width, height, style, color }: { width: number | `${number}%`; height: number; style?: object; color: string }) {
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -19,7 +21,7 @@ function Bone({ width, height, style }: { width: number | `${number}%`; height: 
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: 4, backgroundColor: colors.surface, opacity },
+        { width, height, borderRadius: 4, backgroundColor: color, opacity },
         style,
       ]}
     />
@@ -27,58 +29,61 @@ function Bone({ width, height, style }: { width: number | `${number}%`; height: 
 }
 
 export function ProfileSkeleton() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         {/* Hero row: avatar ring + stats card */}
         <View style={styles.heroRow}>
           {/* Circular avatar placeholder */}
-          <Bone width={110} height={110} style={{ borderRadius: 55 }} />
+          <Bone width={110} height={110} style={{ borderRadius: 55 }} color={colors.surface} />
 
           {/* Stats column */}
           <View style={styles.statsColumn}>
             {/* Stats card title */}
-            <Bone width={70} height={10} style={{ alignSelf: 'center', marginBottom: spacing.xs }} />
+            <Bone width={70} height={10} style={{ alignSelf: 'center', marginBottom: spacing.xs }} color={colors.surface} />
             {/* Stats card */}
             <View style={styles.statsCard}>
               <View style={styles.statsRow}>
                 <View style={styles.stat}>
-                  <Bone width={24} height={18} style={{ marginBottom: 4 }} />
-                  <Bone width={44} height={10} />
+                  <Bone width={24} height={18} style={{ marginBottom: 4 }} color={colors.surface} />
+                  <Bone width={44} height={10} color={colors.surface} />
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.stat}>
-                  <Bone width={24} height={18} style={{ marginBottom: 4 }} />
-                  <Bone width={40} height={10} />
+                  <Bone width={24} height={18} style={{ marginBottom: 4 }} color={colors.surface} />
+                  <Bone width={40} height={10} color={colors.surface} />
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.stat}>
-                  <Bone width={24} height={18} style={{ marginBottom: 4 }} />
-                  <Bone width={36} height={10} />
+                  <Bone width={24} height={18} style={{ marginBottom: 4 }} color={colors.surface} />
+                  <Bone width={36} height={10} color={colors.surface} />
                 </View>
               </View>
             </View>
             {/* Member since */}
-            <Bone width={100} height={9} style={{ alignSelf: 'center', marginTop: spacing.xs }} />
+            <Bone width={100} height={9} style={{ alignSelf: 'center', marginTop: spacing.xs }} color={colors.surface} />
           </View>
         </View>
 
         {/* Sport icon grid section */}
         <View style={styles.section}>
-          <Bone width={80} height={10} style={{ marginBottom: spacing.sm }} />
+          <Bone width={80} height={10} style={{ marginBottom: spacing.sm }} color={colors.surface} />
           <View style={styles.sportGrid}>
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <Bone key={i} width={48} height={48} style={{ borderRadius: radius.md }} />
+              <Bone key={i} width={48} height={48} style={{ borderRadius: radius.md }} color={colors.surface} />
             ))}
           </View>
         </View>
 
         {/* Badges section */}
         <View style={styles.section}>
-          <Bone width={60} height={10} style={{ marginBottom: spacing.md }} />
+          <Bone width={60} height={10} style={{ marginBottom: spacing.md }} color={colors.surface} />
           <View style={styles.badgeRow}>
             {[0, 1, 2].map((i) => (
-              <Bone key={i} width={56} height={56} style={{ borderRadius: 28 }} />
+              <Bone key={i} width={56} height={56} style={{ borderRadius: 28 }} color={colors.surface} />
             ))}
           </View>
         </View>
@@ -87,7 +92,7 @@ export function ProfileSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

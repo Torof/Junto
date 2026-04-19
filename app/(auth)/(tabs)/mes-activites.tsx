@@ -5,7 +5,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { SlidersHorizontal } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from '@/components/activity-card';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -16,6 +18,8 @@ type TimeFilter = 'upcoming' | 'finished';
 type DateRange = 'all' | 'today' | 'week';
 
 export default function MesActivitesScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -211,7 +215,7 @@ export default function MesActivitesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

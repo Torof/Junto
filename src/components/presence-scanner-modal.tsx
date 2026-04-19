@@ -1,13 +1,15 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { View, Text, Modal, Pressable, StyleSheet, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import { X } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { reliabilityService } from '@/services/reliability-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -16,10 +18,12 @@ interface Props {
 
 export function PresenceScannerModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
   const queryClient = useQueryClient();
   const [permission, requestPermission] = useCameraPermissions();
   const [submitting, setSubmitting] = useState(false);
   const lockRef = useRef(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     if (visible && permission && !permission.granted) {
@@ -87,7 +91,7 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },
   close: { position: 'absolute', top: 60, right: spacing.lg, padding: spacing.sm, zIndex: 10 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.xs },

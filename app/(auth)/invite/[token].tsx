@@ -1,13 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
 
 export default function InviteScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -43,7 +47,7 @@ export default function InviteScreen() {
   return null;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   center: {
     flex: 1,
     backgroundColor: colors.background,

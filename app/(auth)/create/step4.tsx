@@ -1,12 +1,14 @@
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
@@ -14,6 +16,8 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
 export default function CreateStep4() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -122,15 +126,17 @@ export default function CreateStep4() {
 }
 
 function RecapRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const rs = useMemo(() => createRecapStyles(colors), [colors]);
   return (
-    <View style={recapStyles.row}>
-      <Text style={recapStyles.label}>{label}</Text>
-      <Text style={recapStyles.value}>{value}</Text>
+    <View style={rs.row}>
+      <Text style={rs.label}>{label}</Text>
+      <Text style={rs.value}>{value}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
@@ -144,7 +150,7 @@ const styles = StyleSheet.create({
   publishText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
 });
 
-const recapStyles = StyleSheet.create({
+const createRecapStyles = (colors: AppColors) => StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { color: colors.textSecondary, fontSize: fontSizes.sm },
   value: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },

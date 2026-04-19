@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from './activity-card';
 import { SportDropdown } from './sport-dropdown';
@@ -29,6 +31,8 @@ function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): 
 export function ActivitySearch({ activities, userLocation, routePrefix }: ActivitySearchProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [sportFilters, setSportFilters] = useState<string[]>([]);
   const [maxDistance, setMaxDistance] = useState<number>(25);
@@ -182,7 +186,7 @@ export function ActivitySearch({ activities, userLocation, routePrefix }: Activi
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   screenTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingTop: spacing.md },
   filters: { padding: spacing.md, paddingBottom: 0 },

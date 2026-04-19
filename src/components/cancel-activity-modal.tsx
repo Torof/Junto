@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 
 interface Props {
   visible: boolean;
@@ -19,6 +21,8 @@ const CATEGORIES: Array<{ key: string; icon: string }> = [
 
 export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [category, setCategory] = useState<string | null>(null);
   const [details, setDetails] = useState('');
 
@@ -82,7 +86,7 @@ export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   sheet: {
     width: '100%', maxWidth: 360, backgroundColor: colors.surface,

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react-native';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 
 type IconProps = {
   icon: LucideIcon;
@@ -8,6 +8,7 @@ type IconProps = {
   strokeWidth?: number;
 };
 
-export function Icon({ icon: LucideIconComponent, size = 22, color = colors.textPrimary, strokeWidth = 2 }: IconProps) {
-  return <LucideIconComponent size={size} color={color} strokeWidth={strokeWidth} />;
+export function Icon({ icon: LucideIconComponent, size = 22, color, strokeWidth = 2 }: IconProps) {
+  const colors = useColors();
+  return <LucideIconComponent size={size} color={color ?? colors.textPrimary} strokeWidth={strokeWidth} />;
 }

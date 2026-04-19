@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { getSportIcon } from '@/constants/sport-icons';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface SportDropdownProps {
   selected: string | string[];
@@ -16,6 +18,8 @@ interface SportDropdownProps {
 export function SportDropdown({ selected, onSelect, multiSelect = false, label }: SportDropdownProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: sports } = useQuery({
     queryKey: ['sports'],
@@ -92,7 +96,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   trigger: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     backgroundColor: colors.surface, borderRadius: radius.md,

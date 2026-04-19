@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 const NOTIFICATION_TYPES = [
   'join_request',
@@ -36,6 +38,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [newName, setNewName] = useState('');
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -262,7 +266,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,

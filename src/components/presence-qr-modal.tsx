@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { View, Text, Modal, Pressable, StyleSheet, Alert } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import { reliabilityService } from '@/services/reliability-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -15,8 +17,10 @@ interface Props {
 
 export function PresenceQrModal({ visible, activityId, onClose }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     if (!visible) {
@@ -62,7 +66,7 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   sheet: {
     width: '100%', maxWidth: 340, backgroundColor: colors.surface, borderRadius: radius.lg,

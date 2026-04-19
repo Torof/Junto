@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Radar } from 'lucide-react-native';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 
 interface Props {
   blink?: boolean;
@@ -12,6 +14,8 @@ interface Props {
 export function AlertButton({ blink = false }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -46,7 +50,7 @@ export function AlertButton({ blink = false }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   wrapper: {
     position: 'absolute',
     bottom: 140,

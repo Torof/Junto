@@ -1,13 +1,15 @@
 import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, X } from 'lucide-react-native';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { transportService, type ParticipantTransport } from '@/services/transport-service';
 import { supabase } from '@/services/supabase';
 import { UserAvatar } from './user-avatar';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   activityId: string;
@@ -33,6 +35,8 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   const [seats, setSeats] = useState(0);
   const [fromName, setFromName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: participants } = useQuery({
     queryKey: ['transport', activityId],
@@ -279,7 +283,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   section: { marginBottom: spacing.lg },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   sectionTitle: {

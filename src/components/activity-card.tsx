@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 
@@ -14,6 +17,8 @@ interface ActivityCardProps {
 
 export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProps) {
   const { t, i18n } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
@@ -44,7 +49,7 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,

@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes } from '@/constants/theme';
+import { fontSizes } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   score: number | null;
@@ -11,7 +14,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-function colorFor(score: number): string {
+function colorFor(score: number, colors: AppColors): string {
   if (score >= 75) return colors.success;
   if (score >= 50) return colors.warning;
   if (score >= 25) return colors.warning;
@@ -24,6 +27,7 @@ const ARC_FRACTION = (360 - GAP_DEGREES) / 360;
 
 export function ReliabilityRing({ score, size, strokeWidth = 10, showLabel = true, children }: Props) {
   const { t } = useTranslation();
+  const colors = useColors();
   const outerSize = size + strokeWidth * 2 + 6;
   const center = outerSize / 2;
   const svgRadius = (size + strokeWidth) / 2;
@@ -33,11 +37,13 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, showLabel = tru
   const clamped = score !== null ? Math.max(0, Math.min(100, score)) : 0;
   const progress = clamped / 100;
   const filledLength = arcLength * progress;
-  const ringColor = score !== null ? colorFor(clamped) : colors.surface;
+  const ringColor = score !== null ? colorFor(clamped, colors) : colors.surface;
 
   // Gap is on the right side (3-o'clock position). Arc starts just after
   // the gap and goes clockwise around to just before the gap.
   const startRotation = GAP_DEGREES / 2;
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={[styles.container, { width: outerSize, height: outerSize }]}>
@@ -87,7 +93,7 @@ export function ReliabilityRing({ score, size, strokeWidth = 10, showLabel = tru
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',

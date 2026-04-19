@@ -3,7 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from './activity-card';
 
@@ -24,6 +26,8 @@ function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): 
 }
 
 function TabHandle({ count, label }: { count: number; label: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
       <View style={styles.hairline} />
@@ -39,6 +43,8 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
   const { t } = useTranslation();
   const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
 
@@ -81,7 +87,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetContainer: {
     zIndex: 20,
   },

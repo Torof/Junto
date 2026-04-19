@@ -4,7 +4,7 @@ initSentry();
 import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AppState, View, StyleSheet } from 'react-native';
+import { AppState, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,7 +13,6 @@ import { useNetworkAwareness } from '@/hooks/use-network';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
-import { colors } from '@/constants/theme';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { useColors } from '@/hooks/use-theme';
@@ -108,7 +107,13 @@ function AuthGate() {
       <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Slot />
       {(isLoading || !isReady) && (
-        <View style={[styles.loading, { backgroundColor: themeColors.background }]} pointerEvents="auto">
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: themeColors.background,
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10,
+        }} pointerEvents="auto">
           <LogoSpinner size={64} />
         </View>
       )}
@@ -131,13 +136,3 @@ function RootLayout() {
 }
 
 export default wrap(RootLayout);
-
-const styles = StyleSheet.create({
-  loading: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-});

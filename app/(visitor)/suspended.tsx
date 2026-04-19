@@ -1,11 +1,16 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 
 const SUPPORT_EMAIL = 'support@junto.app';
 
 export default function SuspendedScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
 
   const handleLogout = async () => {
@@ -64,7 +69,7 @@ export default function SuspendedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { colors, fontSizes, radius } from '@/constants/theme';
+import { fontSizes, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -28,6 +31,8 @@ const TOTAL_HEIGHT = TAIL_BOTTOM_Y + 2;
 export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: TAIL_BOTTOM_Y / TOTAL_HEIGHT };
 
 export function ActivityPin({ activity }: ActivityPinProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const joined = activity.participant_count;
   const isFull = joined >= activity.max_participants;
   const dotColor = isFull ? colors.error : colors.success;
@@ -67,7 +72,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   wrapper: {
     width: PIN_SIZE,
     height: TOTAL_HEIGHT,

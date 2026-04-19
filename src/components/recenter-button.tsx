@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { LocateFixed } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import type { AppColors } from '@/constants/colors';
 
 interface RecenterButtonProps {
   onPress: () => void;
@@ -9,6 +12,9 @@ interface RecenterButtonProps {
 
 export function RecenterButton({ onPress }: RecenterButtonProps) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.recenter')}>
       <LocateFixed size={22} color={colors.textPrimary} strokeWidth={2.2} />
@@ -16,7 +22,7 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   button: {
     position: 'absolute',
     bottom: 40,

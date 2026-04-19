@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, Modal, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,9 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
 
 dayjs.extend(relativeTime);
@@ -14,6 +16,8 @@ dayjs.extend(relativeTime);
 type FilterTab = 'pending' | 'resolved';
 
 export default function ModerationScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<FilterTab>('pending');
@@ -183,7 +187,7 @@ export default function ModerationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   tabs: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
   tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: radius.md, backgroundColor: colors.surface },

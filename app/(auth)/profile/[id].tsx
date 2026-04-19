@@ -6,14 +6,16 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
 import { userService } from '@/services/user-service';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
@@ -23,6 +25,8 @@ import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id, participation: participationId, activityTitle } = useLocalSearchParams<{ id: string; participation?: string; activityTitle?: string }>();
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -106,7 +110,7 @@ export default function PublicProfileScreen() {
           </Pressable>
         ),
     });
-  }, [navigation, isOwnProfile, profile?.display_name]);
+  }, [navigation, isOwnProfile, profile?.display_name, colors]);
 
   const handleBlock = () => {
     Alert.alert(t('publicProfile.blockConfirmTitle'), t('publicProfile.blockConfirmMessage'), [
@@ -318,7 +322,7 @@ export default function PublicProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },

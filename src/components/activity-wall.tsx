@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { wallService } from '@/services/wall-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
@@ -19,6 +21,8 @@ interface ActivityWallProps {
 
 export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
@@ -137,7 +141,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     marginTop: spacing.lg,
   },

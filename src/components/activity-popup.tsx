@@ -1,9 +1,12 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { Calendar, BarChart2 } from 'lucide-react-native';
-import { colors, fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
+import { type AppColors } from '@/constants/colors';
+import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { getRemainingPlaces } from '@/utils/activity-status';
@@ -15,6 +18,8 @@ interface ActivityPopupProps {
 
 export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const { t, i18n } = useTranslation();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   return (
@@ -49,7 +54,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
