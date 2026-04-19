@@ -66,7 +66,7 @@ export const participationService = {
     const { error } = await supabase.rpc('cancel_activity', {
       p_activity_id: activityId,
       p_reason: reason,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 

@@ -4,7 +4,7 @@ import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 interface Props {
   text: string;
   position: 'top' | 'bottom';
-  anchor: { top?: number | string; bottom?: number | string; left?: number | string; right?: number | string };
+  anchor: { top?: number; bottom?: number; left?: number; right?: number };
   arrowAlign?: 'left' | 'center' | 'right';
   onDismiss?: () => void;
 }

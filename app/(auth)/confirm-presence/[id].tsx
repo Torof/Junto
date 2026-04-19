@@ -39,7 +39,7 @@ export default function ConfirmPresenceScreen() {
     if (!id) return;
     setIsSaving(true);
     try {
-      await reliabilityService.confirmPresence(id, [...presentIds]);
+      await reliabilityService.creatorOverridePresence(id, [...presentIds]);
       await queryClient.invalidateQueries({ queryKey: ['participants', id] });
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
       router.back();

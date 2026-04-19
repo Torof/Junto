@@ -99,8 +99,8 @@ export const activityService = {
       p_requires_presence: form.requires_presence ?? true,
       p_objective_lng: form.location_objective?.lng,
       p_objective_lat: form.location_objective?.lat,
-      p_objective_name: form.objective_name ?? null,
-    } as unknown as { p_sport_id: string });
+      p_objective_name: form.objective_name || undefined,
+    });
     if (error) throw error;
     return data as string;
   },
