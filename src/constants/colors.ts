@@ -37,8 +37,8 @@ export const lightColors = {
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
 
-  pinBackground: '#E8E4DF',
-  border: '#C8C4BF',
+  pinBackground: '#C8C4BF',
+  border: '#9E9A95',
   overlay: 'rgba(0,0,0,0.3)',
 };
 

@@ -59,7 +59,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         <Path
           d={`M ${PIN_SIZE / 2 - TAIL_HALF_WIDTH} ${TAIL_TOP_Y} L ${PIN_SIZE / 2} ${TAIL_BOTTOM_Y} L ${PIN_SIZE / 2 + TAIL_HALF_WIDTH} ${TAIL_TOP_Y}`}
           fill={tailFill}
-          stroke={colors.background}
+          stroke={colors.border}
           strokeWidth={1.5}
           strokeLinejoin="miter"
           strokeLinecap="butt"
@@ -84,7 +84,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: colors.pinBackground,
     borderWidth: 1.5,
-    borderColor: colors.background,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
