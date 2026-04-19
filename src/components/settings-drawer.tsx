@@ -7,6 +7,7 @@ import * as Burnt from 'burnt';
 import { colors, fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
+import { useThemeStore, type ThemePreference } from '@/store/theme-store';
 
 const NOTIFICATION_TYPES = [
   'join_request',
@@ -33,6 +34,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
+  const themePreference = useThemeStore((s) => s.preference);
+  const setThemePreference = useThemeStore((s) => s.setPreference);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -158,6 +161,24 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 ))}
               </View>
             )}
+
+            {/* Theme selector */}
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>{t('drawer.theme')}</Text>
+              <View style={styles.themeRow}>
+                {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => (
+                  <Pressable
+                    key={opt}
+                    style={[styles.themeChip, themePreference === opt && styles.themeChipActive]}
+                    onPress={() => setThemePreference(opt)}
+                  >
+                    <Text style={[styles.themeChipText, themePreference === opt && styles.themeChipTextActive]}>
+                      {t(`drawer.themeOption.${opt}`)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
 
             {/* Alerts (Premium) */}
             {(user?.tier === 'premium' || user?.tier === 'pro') ? (
@@ -313,4 +334,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },
   logoutText: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  themeRow: {
+    flexDirection: 'row', gap: spacing.xs,
+  },
+  themeChip: {
+    backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
+  },
+  themeChipActive: { backgroundColor: colors.cta },
+  themeChipText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  themeChipTextActive: { color: colors.textPrimary, fontWeight: 'bold' as const },
 });

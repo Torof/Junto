@@ -389,6 +389,12 @@
     "pseudo": "Display name",
     "subscription": "Subscription",
     "preferences": "Preferences",
+    "theme": "Theme",
+    "themeOption": {
+      "system": "Auto",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "legal": "Legal"
   },
   "legal": {

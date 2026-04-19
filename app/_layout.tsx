@@ -15,6 +15,8 @@ import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
 import { colors } from '@/constants/theme';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
+import { useColors } from '@/hooks/use-theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,12 +100,15 @@ function AuthGate() {
   // Always render Slot so expo-router can populate segments; overlay the
   // loading screen on top until we're sure we're on the correct route.
   // This avoids the flash of default visitor content on cold start.
+  const resolvedTheme = useResolvedTheme();
+  const themeColors = useColors();
+
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Slot />
       {(isLoading || !isReady) && (
-        <View style={styles.loading} pointerEvents="auto">
+        <View style={[styles.loading, { backgroundColor: themeColors.background }]} pointerEvents="auto">
           <LogoSpinner size={64} />
         </View>
       )}
@@ -115,9 +120,11 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthGate />
-        </QueryClientProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthGate />
+          </QueryClientProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

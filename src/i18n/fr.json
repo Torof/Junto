@@ -389,6 +389,12 @@
     "pseudo": "Pseudo",
     "subscription": "Abonnement",
     "preferences": "Préférences",
+    "theme": "Thème",
+    "themeOption": {
+      "system": "Auto",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
     "legal": "Juridique"
   },
   "legal": {

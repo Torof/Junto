@@ -1,24 +1,44 @@
-export const colors = {
-  // Couleurs principales
+export const darkColors = {
   background: '#0D1B2A',
   surface: '#1B3A5C',
   cta: '#F4642A',
 
-  // Couleurs neutres
   textPrimary: '#F5F5F0',
   textSecondary: '#8A9BB0',
 
-  // Couleurs sémantiques
   success: '#2ECC71',
   error: '#E74C3C',
   warning: '#F39C12',
 
-  // Pins carte
   pinStart: '#22c55e',
   pinMeeting: '#3b82f6',
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
 
-  // Overlay
   overlay: 'rgba(0,0,0,0.5)',
-} as const;
+};
+
+export const lightColors = {
+  background: '#F5F5F0',
+  surface: '#E0DDD8',
+  cta: '#F4642A',
+
+  textPrimary: '#1A1A1A',
+  textSecondary: '#6B7280',
+
+  success: '#2ECC71',
+  error: '#E74C3C',
+  warning: '#F39C12',
+
+  pinStart: '#22c55e',
+  pinMeeting: '#3b82f6',
+  pinEnd: '#ef4444',
+  pinObjective: '#F5A623',
+
+  overlay: 'rgba(0,0,0,0.3)',
+};
+
+export type AppColors = typeof darkColors;
+
+// Static fallback for files not yet migrated to useColors()
+export const colors = darkColors;
