@@ -92,7 +92,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 20,
   },
   sheetBackground: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderTopWidth: 1,
@@ -108,7 +108,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   tab: {
     position: 'absolute',
@@ -116,7 +116,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     left: spacing.sm,
     width: 120,
     height: 40,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     alignItems: 'center',

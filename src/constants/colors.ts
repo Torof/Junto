@@ -1,6 +1,7 @@
 export const darkColors = {
   background: '#0D1B2A',
   surface: '#1B3A5C',
+  surfaceAlt: '#142D48',
   cta: '#F4642A',
 
   textPrimary: '#F5F5F0',
@@ -24,6 +25,7 @@ export const darkColors = {
 export const lightColors = {
   background: '#F5F5F0',
   surface: '#E0DDD8',
+  surfaceAlt: '#D4D0CB',
   cta: '#F4642A',
 
   textPrimary: '#1A1A1A',
