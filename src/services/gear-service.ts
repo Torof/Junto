@@ -57,7 +57,7 @@ export const gearService = {
   setGear: async (activityId: string, items: { name: string; quantity: number }[]): Promise<void> => {
     const { error } = await supabase.rpc('set_activity_gear' as 'join_activity', {
       p_activity_id: activityId,
-      p_items: JSON.stringify(items),
+      p_items: items,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
