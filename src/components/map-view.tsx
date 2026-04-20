@@ -92,14 +92,25 @@ export function JuntoMapView({
     const isFirst = centerApplied.current === '';
     centerApplied.current = key;
     if (isFirst && !onBoundsChange) return;
-    const timer = setTimeout(() => {
-      cameraRef.current?.setCamera({
-        centerCoordinate: isFirst ? [center[0] + 0.00001, center[1]] : center,
-        zoomLevel: zoom,
-        animationDuration: isFirst ? 0 : 300,
-      });
-    }, isFirst ? 250 : 0);
-    return () => clearTimeout(timer);
+
+    // Sometimes Mapbox skips the first onCameraChanged event, which leaves
+    // bounds stale and blocks the initial activity fetch. Bump the camera
+    // multiple times at increasing delays to maximize the chance one of them
+    // fires the event.
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const delays = isFirst ? [250, 1000, 2500] : [0];
+    for (const delay of delays) {
+      timers.push(setTimeout(() => {
+        cameraRef.current?.setCamera({
+          centerCoordinate: isFirst
+            ? [center[0] + (delay / 100000), center[1]]
+            : center,
+          zoomLevel: zoom,
+          animationDuration: isFirst ? 0 : 300,
+        });
+      }, delay));
+    }
+    return () => timers.forEach(clearTimeout);
   }, [center, zoom, onBoundsChange]);
 
   const activityMap = useMemo(

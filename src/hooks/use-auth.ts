@@ -42,29 +42,51 @@ export function useAuth(): AuthState {
   const refreshTick = useAuthStore((s) => s.refreshTick);
 
   useEffect(() => {
-    authService.getSession().then(async (s) => {
-      setSession(s);
-      if (s) {
-        await checkUserStatus(s.user.id);
-        setSentryUser(s.user.id);
+    // Safety timeout — if something hangs (slow network, failed RPC), unblock
+    // the app after 8s so it doesn't stay on the loading screen forever.
+    const timeout = setTimeout(() => setIsLoading(false), 8000);
+
+    (async () => {
+      try {
+        const s = await authService.getSession();
+        setSession(s);
+        if (s) {
+          try {
+            await checkUserStatus(s.user.id);
+            setSentryUser(s.user.id);
+          } catch {
+            // Swallow — we still know there's a session, render the app
+          }
+        }
+      } catch {
+        // Swallow — render the visitor screen
+      } finally {
+        clearTimeout(timeout);
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    })();
 
     const { data: { subscription } } = authService.onAuthStateChange(async (_event, s) => {
-      if (s) {
-        await checkUserStatus(s.user.id);
-        setSession(s);
-        setSentryUser(s.user.id);
-      } else {
-        setNeedsOnboarding(false);
-        setIsSuspended(false);
-        setSession(null);
-        setSentryUser(null);
+      try {
+        if (s) {
+          await checkUserStatus(s.user.id);
+          setSession(s);
+          setSentryUser(s.user.id);
+        } else {
+          setNeedsOnboarding(false);
+          setIsSuspended(false);
+          setSession(null);
+          setSentryUser(null);
+        }
+      } catch {
+        // Network blip — keep current state
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [checkUserStatus]);
 
   useEffect(() => {
