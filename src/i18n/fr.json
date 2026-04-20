@@ -405,7 +405,10 @@
   },
   "legal": {
     "terms": "Conditions d'utilisation",
-    "privacy": "Politique de confidentialité"
+    "privacy": "Politique de confidentialité",
+    "licenses": "Licences open source",
+    "licensesTitle": "Licences open source",
+    "licensesIntro": "Junto est construit grâce à ces bibliothèques open source. Merci à leurs auteurs."
   },
   "edit": {
     "title": "Modifier l'activité",

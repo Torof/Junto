@@ -215,6 +215,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Text style={styles.rowLabel}>{t('legal.privacy')}</Text>
               <Text style={styles.arrow}>›</Text>
             </Pressable>
+            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/licenses'); }}>
+              <Text style={styles.rowLabel}>{t('legal.licenses')}</Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
 
             {/* Logout */}
             <Pressable style={styles.logoutButton} onPress={handleLogout}>

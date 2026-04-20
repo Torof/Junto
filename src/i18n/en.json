@@ -405,7 +405,10 @@
   },
   "legal": {
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "licenses": "Open source licenses",
+    "licensesTitle": "Open source licenses",
+    "licensesIntro": "Junto is built with these open source libraries. Thanks to their authors."
   },
   "edit": {
     "title": "Edit activity",
