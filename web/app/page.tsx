@@ -76,28 +76,32 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Screenshots */}
+      {/* Screenshots — horizontal scroll on mobile, centered row on desktop */}
       <section style={{ padding: '32px 0 48px' }}>
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          display: 'flex',
           gap: 16,
-          maxWidth: 900,
-          margin: '0 auto',
+          overflowX: 'auto',
+          paddingBottom: 8,
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          justifyContent: 'flex-start',
         }}>
-          {['map', 'activity', 'organization', 'profile'].map((name) => (
-            <div key={name} style={{
+          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+            <div key={n} style={{
+              flex: '0 0 auto',
+              width: 240,
               background: 'var(--surface-2)',
               borderRadius: 24,
               padding: 8,
-              aspectRatio: '9/18',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              scrollSnapAlign: 'center',
               overflow: 'hidden',
-              position: 'relative',
             }}>
-              <Screenshot name={name} />
+              <img
+                src={`/screenshots/screen-${n}.jpeg`}
+                alt={`Junto screenshot ${n}`}
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 16 }}
+              />
             </div>
           ))}
         </div>
@@ -172,16 +176,3 @@ function Step({ number, title, body }: { number: string; title: string; body: st
   );
 }
 
-function Screenshot({ name }: { name: string }) {
-  // Drop screenshots in web/public/screenshots/{name}.png
-  return (
-    <img
-      src={`/screenshots/${name}.png`}
-      alt={name}
-      style={{
-        width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16,
-        display: 'block',
-      }}
-    />
-  );
-}
