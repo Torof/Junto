@@ -27,6 +27,7 @@ import { ParticipantList } from './participant-list';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
+import { GearSection } from './gear-section';
 import { transportService } from '@/services/transport-service';
 import { Car } from 'lucide-react-native';
 
@@ -532,11 +533,13 @@ export function ActivityDetail({
           {/* Transport */}
           <TransportSection activityId={activity.id} currentUserId={currentUserId ?? null} />
 
-          {/* Gear placeholder */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('activity.gear')}</Text>
-            <Text style={styles.comingSoon}>{t('activity.comingSoon')}</Text>
-          </View>
+          {/* Gear */}
+          <GearSection
+            activityId={activity.id}
+            sportKey={activity.sport_key}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+          />
         </ScrollView>
       )}
 

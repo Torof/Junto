@@ -203,6 +203,12 @@
       "other": "Autre"
     }
   },
+  "gear": {
+    "saved": "Matériel enregistré",
+    "empty": "Personne n'a encore indiqué son matériel",
+    "whatAreYouBringing": "Qu'est-ce que tu apportes ?",
+    "customPlaceholder": "Autre matériel..."
+  },
   "reliability": {
     "label": "Fiabilité",
     "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité"

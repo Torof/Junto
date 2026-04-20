@@ -203,6 +203,12 @@
       "other": "Other"
     }
   },
+  "gear": {
+    "saved": "Gear saved",
+    "empty": "No one has listed their gear yet",
+    "whatAreYouBringing": "What are you bringing?",
+    "customPlaceholder": "Other gear..."
+  },
   "reliability": {
     "label": "Reliability",
     "notEnoughData": "Not enough activities yet to rate reliability"
