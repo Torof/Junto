@@ -1,61 +1,144 @@
-// Landing page — front door for new testers
+import Image from 'next/image';
+import QRCode from 'qrcode';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
+const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? 'https://junto.app';
+const CONTACT_EMAIL = 'scottpanam@protonmail.com';
 
-export default function Home() {
+async function getQrCode(url: string): Promise<string> {
+  return QRCode.toDataURL(url, {
+    width: 400,
+    margin: 2,
+    color: { dark: '#0D1B2A', light: '#F5F5F0' },
+    errorCorrectionLevel: 'H',
+  });
+}
+
+export default async function Home() {
+  const qrDataUrl = await getQrCode(APK_DOWNLOAD_URL);
+
   return (
-    <main style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      textAlign: 'center',
-      maxWidth: '720px',
-      margin: '0 auto',
-    }}>
-      <div style={{ width: 96, height: 96, borderRadius: 24, background: 'var(--cta)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, fontSize: 48 }}>
-        🏔️
-      </div>
+    <main style={{ minHeight: '100vh', padding: '24px 16px', maxWidth: 960, margin: '0 auto' }}>
+      {/* Hero */}
+      <section style={{ textAlign: 'center', paddingTop: 40, paddingBottom: 48 }}>
+        <Image
+          src="/junto-logo.png"
+          alt="Junto"
+          width={96}
+          height={96}
+          style={{ borderRadius: 20, marginBottom: 24 }}
+          priority
+        />
+        <h1 style={{ fontSize: 'clamp(32px, 7vw, 52px)', fontWeight: 800, marginBottom: 12, letterSpacing: '-0.02em' }}>
+          Junto
+        </h1>
+        <p style={{ fontSize: 'clamp(17px, 3vw, 22px)', color: 'var(--text-secondary)', maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.5 }}>
+          Rejoins des sorties outdoor près de chez toi.
+          <br />
+          Escalade, rando, parapente, canyon, ski de rando…
+        </p>
 
-      <h1 style={{ fontSize: 'clamp(28px, 6vw, 44px)', fontWeight: 800, marginBottom: 12 }}>
-        Junto
-      </h1>
+        {/* QR + Button side by side on desktop, stacked on mobile */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 32,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <div style={{
+            background: 'var(--text)',
+            padding: 16,
+            borderRadius: 20,
+            display: 'inline-block',
+          }}>
+            <img src={qrDataUrl} alt="Scanner pour télécharger" width={220} height={220} style={{ display: 'block' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 200, textAlign: 'center' }}>
+              Scanne ce QR code avec ton téléphone
+            </p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>— ou —</p>
+            <a
+              href={APK_DOWNLOAD_URL}
+              style={{
+                display: 'inline-block',
+                background: 'var(--cta)',
+                color: 'var(--text)',
+                padding: '14px 28px',
+                borderRadius: 999,
+                fontSize: 17,
+                fontWeight: 700,
+              }}
+            >
+              Télécharger (Android)
+            </a>
+          </div>
+        </div>
+      </section>
 
-      <p style={{ fontSize: 'clamp(16px, 3vw, 20px)', color: 'var(--text-secondary)', maxWidth: 480, lineHeight: 1.5, marginBottom: 40 }}>
-        Trouve des partenaires d'activités outdoor près de chez toi.
-        <br />
-        Escalade, rando, parapente, canyon, ski de rando…
-      </p>
+      {/* Screenshots */}
+      <section style={{ padding: '32px 0 48px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 16,
+          maxWidth: 900,
+          margin: '0 auto',
+        }}>
+          {['map', 'activity', 'organization', 'profile'].map((name) => (
+            <div key={name} style={{
+              background: 'var(--surface-2)',
+              borderRadius: 24,
+              padding: 8,
+              aspectRatio: '9/18',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+            }}>
+              <Screenshot name={name} />
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <a
-        href={APK_DOWNLOAD_URL}
-        style={{
-          display: 'inline-block',
-          background: 'var(--cta)',
-          color: 'var(--text)',
-          padding: '16px 32px',
-          borderRadius: 999,
-          fontSize: 18,
-          fontWeight: 700,
-          marginBottom: 16,
-        }}
-      >
-        Télécharger Junto (Android)
-      </a>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 380 }}>
-        Beta privée · iOS bientôt disponible.
-      </p>
+      {/* Features */}
+      <section style={{ padding: '32px 0' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 16,
+        }}>
+          <Feature icon="📍" title="Géolocalisé" body="Les activités autour de toi, en un coup d'œil." />
+          <Feature icon="🚗" title="Transport" body="Organise le covoiturage avec les autres participants." />
+          <Feature icon="🤝" title="Confiance" body="Score de fiabilité, présence vérifiée, badges." />
+        </div>
+      </section>
 
-      <div style={{ marginTop: 64, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24, width: '100%', maxWidth: 640 }}>
-        <Feature icon="📍" title="Géolocalisé" body="Vois en un coup d'œil les activités autour de toi." />
-        <Feature icon="🔔" title="Alertes perso" body="Reçois une notif dès qu'une activité matche tes critères." />
-        <Feature icon="🤝" title="Confiance" body="Score de fiabilité, présence vérifiée, badges réputation." />
-      </div>
+      {/* How it works */}
+      <section style={{ padding: '48px 0' }}>
+        <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 32, textAlign: 'center' }}>Comment ça marche</h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 24,
+        }}>
+          <Step number="1" title="Trouve une sortie" body="Parcours la carte des activités près de chez toi." />
+          <Step number="2" title="Rejoins" body="Demande à participer ou rejoins directement." />
+          <Step number="3" title="Coordonne" body="Chat, transport, matériel — tout au même endroit." />
+        </div>
+      </section>
 
-      <footer style={{ marginTop: 80, color: 'var(--text-secondary)', fontSize: 12 }}>
-        © Junto 2026
+      {/* Footer */}
+      <footer style={{ padding: '48px 0 32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+        <p style={{ marginBottom: 12 }}>
+          Une idée, un bug, un retour ?{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'var(--cta)', textDecoration: 'underline' }}>
+            {CONTACT_EMAIL}
+          </a>
+        </p>
+        <p style={{ fontSize: 12, opacity: 0.6 }}>© Junto 2026</p>
       </footer>
     </main>
   );
@@ -63,10 +146,42 @@ export default function Home() {
 
 function Feature({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
-    <div style={{ background: 'var(--surface-2)', borderRadius: 16, padding: 24, textAlign: 'left' }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{body}</div>
+    <div style={{ background: 'var(--surface-2)', borderRadius: 16, padding: 24 }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
+      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{body}</div>
     </div>
+  );
+}
+
+function Step({ number, title, body }: { number: string; title: string; body: string }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        background: 'var(--cta)', color: 'var(--text)',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 20, fontWeight: 800,
+        marginBottom: 16,
+      }}>
+        {number}
+      </div>
+      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: 240, margin: '0 auto' }}>{body}</div>
+    </div>
+  );
+}
+
+function Screenshot({ name }: { name: string }) {
+  // Drop screenshots in web/public/screenshots/{name}.png
+  return (
+    <img
+      src={`/screenshots/${name}.png`}
+      alt={name}
+      style={{
+        width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16,
+        display: 'block',
+      }}
+    />
   );
 }
