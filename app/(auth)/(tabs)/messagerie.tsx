@@ -60,10 +60,10 @@ export default function MessagerieScreen() {
       if (!userId) return [];
       const { data } = await supabase
         .from('seat_requests' as 'participations')
-        .select('id, activity_id, requester_id, driver_id, status, created_at')
+        .select('id, activity_id, requester_id, driver_id, status, created_at, pickup_from, message')
         .eq('driver_id' as 'user_id', userId)
         .eq('status' as 'user_id', 'pending')
-        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string }[] | null };
+        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string; pickup_from: string | null; message: string | null }[] | null };
       if (!data || data.length === 0) return [];
       const requesterIds = data.map((r) => r.requester_id);
       const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
@@ -260,12 +260,20 @@ export default function MessagerieScreen() {
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
             {/* Seat requests */}
-            {(seatRequests ?? []).map((sr) => (
+            {(seatRequests ?? []).map((sr) => {
+              const srTyped = sr as typeof sr & { requester_name: string; pickup_from: string | null; message: string | null };
+              return (
               <View key={sr.id} style={styles.requestCard}>
                 <Car size={28} color={colors.cta} strokeWidth={2} />
                 <View style={styles.requestInfo}>
-                  <Text style={styles.requestName} numberOfLines={1}>{(sr as { requester_name: string }).requester_name}</Text>
-                  <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>
+                  <Text style={styles.requestName} numberOfLines={1}>
+                    {srTyped.requester_name}{srTyped.pickup_from ? ` · ${srTyped.pickup_from}` : ''}
+                  </Text>
+                  {srTyped.message ? (
+                    <Text style={styles.requestSource} numberOfLines={2}>{srTyped.message}</Text>
+                  ) : (
+                    <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>
+                  )}
                 </View>
                 <View style={styles.requestActions}>
                   <Pressable
@@ -284,7 +292,8 @@ export default function MessagerieScreen() {
                   </Pressable>
                 </View>
               </View>
-            ))}
+            );
+            })}
 
             {/* Contact requests */}
             {(pendingRequests ?? []).map((req) => (

@@ -35,6 +35,10 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   const [seats, setSeats] = useState(0);
   const [fromName, setFromName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [requestingFromDriver, setRequestingFromDriver] = useState<string | null>(null);
+  const [requestPickup, setRequestPickup] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
+  const [requestSending, setRequestSending] = useState(false);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -163,14 +167,10 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && canRequestSeats && !hasPendingRequest(p.user_id) && !hasAcceptedSeat(p.user_id) && (
                     <Pressable
                       style={styles.requestSeatBtn}
-                      onPress={async () => {
-                        try {
-                          await transportService.requestSeat(activityId, p.user_id);
-                          await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
-                          Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
-                        } catch {
-                          Burnt.toast({ title: t('auth.unknownError') });
-                        }
+                      onPress={() => {
+                        setRequestingFromDriver(p.user_id);
+                        setRequestPickup(myTransport?.transport_from_name ?? '');
+                        setRequestMessage('');
                       }}
                     >
                       <Text style={styles.requestSeatText}>{t('transport.requestSeat')}</Text>
@@ -277,6 +277,71 @@ export function TransportSection({ activityId, currentUserId }: Props) {
           </Pressable>
           </ScrollView>
         </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Seat request modal */}
+      <Modal visible={requestingFromDriver !== null} animationType="slide" transparent onRequestClose={() => setRequestingFromDriver(null)}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Pressable style={styles.backdrop} onPress={() => setRequestingFromDriver(null)}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
+              <Pressable style={styles.sheet} onPress={() => {}}>
+                <View style={styles.handle} />
+                <Text style={styles.sheetTitle}>{t('transport.requestSeatTitle')}</Text>
+
+                <View style={styles.fromRow}>
+                  <Text style={styles.fromLabel}>{t('transport.pickupFrom')}</Text>
+                  <TextInput
+                    style={styles.fromInput}
+                    value={requestPickup}
+                    onChangeText={setRequestPickup}
+                    placeholder={t('transport.fromPlaceholder')}
+                    placeholderTextColor={colors.textSecondary}
+                    maxLength={100}
+                  />
+                </View>
+
+                <View style={styles.fromRow}>
+                  <Text style={styles.fromLabel}>{t('transport.messageOptional')}</Text>
+                  <TextInput
+                    style={[styles.fromInput, { minHeight: 60, textAlignVertical: 'top' }]}
+                    value={requestMessage}
+                    onChangeText={setRequestMessage}
+                    placeholder={t('transport.messagePlaceholder')}
+                    placeholderTextColor={colors.textSecondary}
+                    maxLength={500}
+                    multiline
+                  />
+                </View>
+
+                <Pressable
+                  style={[styles.saveButton, requestSending && { opacity: 0.4 }]}
+                  disabled={requestSending}
+                  onPress={async () => {
+                    if (!requestingFromDriver) return;
+                    setRequestSending(true);
+                    try {
+                      await transportService.requestSeat(
+                        activityId,
+                        requestingFromDriver,
+                        requestPickup.trim() || undefined,
+                        requestMessage.trim() || undefined,
+                      );
+                      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+                      setRequestingFromDriver(null);
+                      Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
+                    } catch {
+                      Burnt.toast({ title: t('auth.unknownError') });
+                    } finally {
+                      setRequestSending(false);
+                    }
+                  }}
+                >
+                  <Text style={styles.saveText}>{t('transport.requestSeat')}</Text>
+                </Pressable>
+              </Pressable>
+            </ScrollView>
+          </Pressable>
         </KeyboardAvoidingView>
       </Modal>
     </View>

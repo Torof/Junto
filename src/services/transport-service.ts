@@ -40,10 +40,17 @@ export const transportService = {
     return (data as unknown as TransportSummary[]) ?? [];
   },
 
-  requestSeat: async (activityId: string, driverId: string): Promise<string> => {
+  requestSeat: async (
+    activityId: string,
+    driverId: string,
+    pickupFrom?: string,
+    message?: string,
+  ): Promise<string> => {
     const { data, error } = await supabase.rpc('request_seat' as 'join_activity', {
       p_activity_id: activityId,
       p_driver_id: driverId,
+      p_pickup_from: pickupFrom ?? null,
+      p_message: message ?? null,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
     return data as unknown as string;
