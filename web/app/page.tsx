@@ -87,8 +87,13 @@ export default async function Home() {
           WebkitOverflowScrolling: 'touch',
           justifyContent: 'flex-start',
         }}>
-          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-            <div key={n} style={{
+          {[
+            { file: '1-map.jpeg', alt: 'Carte des activités' },
+            { file: '2-popup.jpeg', alt: 'Aperçu d\'une activité' },
+            { file: '3-activity.jpeg', alt: 'Page d\'activité' },
+            { file: '4-profile.jpeg', alt: 'Profil utilisateur' },
+          ].map((s) => (
+            <div key={s.file} style={{
               flex: '0 0 auto',
               width: 240,
               background: 'var(--surface-2)',
@@ -98,8 +103,8 @@ export default async function Home() {
               overflow: 'hidden',
             }}>
               <img
-                src={`/screenshots/screen-${n}.jpeg`}
-                alt={`Junto screenshot ${n}`}
+                src={`/screenshots/${s.file}`}
+                alt={s.alt}
                 style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 16 }}
               />
             </div>
