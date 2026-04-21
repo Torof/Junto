@@ -112,7 +112,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tab: {
     position: 'absolute',
-    top: -36,
+    top: -34,
     left: spacing.sm,
     width: 120,
     height: 40,
