@@ -16,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#0D1B2A',
   },
   android: {
-    package: 'com.junto.app',
+    package: 'app.getjunto',
     versionCode: 3,
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     adaptiveIcon: {
@@ -29,8 +29,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         action: 'VIEW',
         autoVerify: true,
         data: [
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'junto-nine.vercel.app', pathPrefix: '/activity' },
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'junto-nine.vercel.app', pathPrefix: '/invite' },
+          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/activity' },
+          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/invite' },
         ],
         category: ['BROWSABLE', 'DEFAULT'],
       },
@@ -38,8 +38,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.junto.app',
-    associatedDomains: [`applinks:${process.env.JUNTO_WEB_HOST ?? 'junto-nine.vercel.app'}`],
+    bundleIdentifier: 'app.getjunto',
+    associatedDomains: [`applinks:${process.env.JUNTO_WEB_HOST ?? 'getjunto.app'}`],
   },
   runtimeVersion: {
     policy: 'appVersion',
