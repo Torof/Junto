@@ -46,6 +46,8 @@
     "level": "Level",
     "places": "{{remaining}}/{{max}} places remaining",
     "placesLabel": "Spots left",
+    "full": "Full",
+    "activityFull": "Activity full",
     "shareJoin": "Join me on Junto:",
     "join": "Join",
     "description": "Description",
@@ -412,7 +414,44 @@
     "privacy": "Privacy Policy",
     "licenses": "Open source licenses",
     "licensesTitle": "Open source licenses",
-    "licensesIntro": "Junto is built with these open source libraries. Thanks to their authors."
+    "licensesIntro": "Junto is built with these open source libraries. Thanks to their authors.",
+    "faq": "FAQ"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "intro": "Answers to common questions about Junto. Reach out if yours isn't here.",
+    "create": {
+      "q": "How do I create an activity?",
+      "a": "From the map, tap the + button at the bottom right. Fill in the sport, title, date, location and visibility. The activity shows up on the map and in the activity drawer once published."
+    },
+    "join": {
+      "q": "How do I join an activity?",
+      "a": "Tap a pin on the map, then the popup, then 'Join'. Depending on the visibility the creator chose, you'll either join directly or send a request to be approved."
+    },
+    "reliability": {
+      "q": "What is the reliability score?",
+      "a": "A 0-100% indicator based on your behavior: showing up, respectful cancellations, etc. New users start at a neutral level and it evolves with your participation. The more you take it seriously, the higher it goes."
+    },
+    "presence": {
+      "q": "How does presence verification work?",
+      "a": "On the day of the activity, once you're there, open the activity and confirm your presence in one tap (if you're in the zone). If geolocation isn't enough, you can scan the QR code shown by the creator. Confirmed presence positively impacts your reliability score."
+    },
+    "transport": {
+      "q": "How do I coordinate transport?",
+      "a": "In the Organization tab of an activity, declare your transport mode. If you offer car seats, other participants can request one. You can accept or decline. A private conversation opens automatically to finalize details."
+    },
+    "gear": {
+      "q": "How does the gear section work?",
+      "a": "Everyone can list what they bring from the sport catalog or as free text. The aggregated summary avoids duplicates, and the per-person view shows who brings what."
+    },
+    "report": {
+      "q": "How do I report inappropriate behavior?",
+      "a": "From a user's public profile, tap the three dots then 'Report'. Reports are confidential and reviewed by the team."
+    },
+    "delete": {
+      "q": "How do I delete my account?",
+      "a": "From settings, at the very bottom, tap 'Delete my account'. Deletion is permanent and erases all your personal data. Past activities remain visible but anonymized."
+    }
   },
   "edit": {
     "title": "Edit activity",

@@ -66,7 +66,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         />
       </Svg>
       <View style={[styles.dot, { backgroundColor: dotColor }]}>
-        <Text style={styles.dotText}>{joined}</Text>
+        <Text style={styles.dotText}>{isFull ? '🔒' : joined}</Text>
       </View>
     </View>
   );

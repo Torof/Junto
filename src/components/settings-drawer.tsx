@@ -207,6 +207,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
             {/* Legal */}
             <Text style={styles.sectionTitle}>{t('drawer.legal')}</Text>
+            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }}>
+              <Text style={styles.rowLabel}>{t('legal.faq')}</Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
             <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/terms'); }}>
               <Text style={styles.rowLabel}>{t('legal.terms')}</Text>
               <Text style={styles.arrow}>›</Text>

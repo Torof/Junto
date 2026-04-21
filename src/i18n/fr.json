@@ -46,6 +46,8 @@
     "level": "Niveau",
     "places": "{{remaining}}/{{max}} places restantes",
     "placesLabel": "Places restantes",
+    "full": "Complet",
+    "activityFull": "Activité complète",
     "shareJoin": "Rejoins-moi sur Junto :",
     "join": "Rejoindre",
     "description": "Description",
@@ -412,7 +414,44 @@
     "privacy": "Politique de confidentialité",
     "licenses": "Licences open source",
     "licensesTitle": "Licences open source",
-    "licensesIntro": "Junto est construit grâce à ces bibliothèques open source. Merci à leurs auteurs."
+    "licensesIntro": "Junto est construit grâce à ces bibliothèques open source. Merci à leurs auteurs.",
+    "faq": "Questions fréquentes"
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "intro": "Les réponses aux questions courantes sur Junto. Contacte-nous si la tienne n'est pas ici.",
+    "create": {
+      "q": "Comment créer une activité ?",
+      "a": "Depuis la carte, touche le bouton + en bas à droite. Renseigne le sport, le titre, la date, le lieu et la visibilité. L'activité apparaît sur la carte et dans le tiroir des activités une fois publiée."
+    },
+    "join": {
+      "q": "Comment rejoindre une activité ?",
+      "a": "Touche le pin d'une activité sur la carte, puis la pop-up, puis 'Rejoindre'. Selon la visibilité choisie par le créateur, tu rejoins directement ou envoies une demande qui devra être validée."
+    },
+    "reliability": {
+      "q": "Qu'est-ce que le score de fiabilité ?",
+      "a": "Un indicateur entre 0 et 100% basé sur ton comportement : présence aux activités, annulations respectueuses, etc. Il démarre à un niveau neutre pour les nouveaux et évolue avec tes participations. Plus tu participes sérieusement, plus il monte."
+    },
+    "presence": {
+      "q": "Comment fonctionne la vérification de présence ?",
+      "a": "Le jour de l'activité, une fois sur place, ouvre l'activité et valide ta présence en un clic (si tu es dans la zone). Si la géolocalisation ne suffit pas, tu peux scanner le QR code affiché par le créateur. La présence confirmée impacte ton score de fiabilité positivement."
+    },
+    "transport": {
+      "q": "Comment coordonner le transport ?",
+      "a": "Dans l'onglet Organisation d'une activité, indique ton mode de transport. Si tu proposes des places en voiture, les autres participants pourront te demander une place. Tu peux accepter ou refuser. La conversation privée s'ouvre automatiquement pour finaliser les détails."
+    },
+    "gear": {
+      "q": "Comment fonctionne la section matériel ?",
+      "a": "Chacun peut indiquer ce qu'il apporte depuis le catalogue du sport ou en texte libre. Le résumé agrégé évite les doublons, et la vue par personne permet de voir qui apporte quoi."
+    },
+    "report": {
+      "q": "Comment signaler un comportement inapproprié ?",
+      "a": "Depuis le profil public d'un utilisateur, touche les trois points puis 'Signaler'. Le signalement est confidentiel et examiné par l'équipe."
+    },
+    "delete": {
+      "q": "Comment supprimer mon compte ?",
+      "a": "Depuis les paramètres, tout en bas, le lien 'Supprimer mon compte'. La suppression est définitive et efface toutes tes données personnelles. Tes activités passées restent visibles mais anonymisées."
+    }
   },
   "edit": {
     "title": "Modifier l'activité",

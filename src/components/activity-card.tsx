@@ -22,12 +22,18 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
+  const isFull = remaining <= 0;
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable style={[styles.card, isFull && styles.cardFull]} onPress={onPress}>
       <View style={styles.top}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
         <Text style={styles.sport} numberOfLines={1}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+        {isFull && (
+          <View style={styles.fullPill}>
+            <Text style={styles.fullPillText}>{t('activity.full')}</Text>
+          </View>
+        )}
         <Text style={styles.time}>{dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}</Text>
       </View>
 
@@ -38,7 +44,7 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
       <View style={styles.bottom}>
         <Text style={styles.level} numberOfLines={1}>{activity.level}</Text>
         <Text style={styles.places} numberOfLines={1}>
-          {t('activity.places', { remaining, max: activity.max_participants })}
+          {isFull ? t('activity.full') : t('activity.places', { remaining, max: activity.max_participants })}
         </Text>
         {distanceKm !== undefined && (
           <Text style={styles.distance} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
@@ -55,6 +61,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
+  },
+  cardFull: {
+    opacity: 0.6,
+  },
+  fullPill: {
+    backgroundColor: colors.error,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+  },
+  fullPillText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs - 2,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   top: {
     flexDirection: 'row',

@@ -275,7 +275,9 @@ export function ActivityDetail({
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
+  const isFull = remaining <= 0;
   const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && activity.status === 'published';
+  const showFullButton = !isCreator && (!participation || canRejoin) && isFull && activity.status === 'published';
   const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status) && isActive;
   const showCancelButton = isCreator && isActive;
   const isPending = participation?.status === 'pending';
@@ -465,6 +467,12 @@ export function ActivityDetail({
             >
               <Text style={styles.buttonText}>{isLoading ? '...' : joinLabel}</Text>
             </Pressable>
+          )}
+
+          {showFullButton && (
+            <View style={styles.fullButton}>
+              <Text style={styles.fullButtonText}>🔒 {t('activity.activityFull')}</Text>
+            </View>
           )}
 
           {showLeaveButton && (
@@ -727,6 +735,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
   joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  fullButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.error },
+  fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: 'bold' },
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
