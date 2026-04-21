@@ -111,8 +111,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     right: -(DOT_SIZE / 2) + 6,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.background,
+    borderWidth: 1.5,
+    borderColor: colors.pinBorder,
   },
   dotText: {
     color: colors.textPrimary,

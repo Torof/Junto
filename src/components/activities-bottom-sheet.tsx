@@ -96,7 +96,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.pinBorder,
   },
   handleContainer: {
     height: 12,
@@ -126,7 +126,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.pinBorder,
   },
   tabGrip: {
     width: 40,
