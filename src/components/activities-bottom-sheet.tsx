@@ -30,7 +30,7 @@ function TabHandle({ count, label }: { count: number; label: string }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
-      <View style={styles.hairline} />
+      <View style={styles.topBorder} />
       <View style={styles.tab}>
         <View style={styles.tabGrip} />
         <Text style={styles.tabCount}>{count} {label}</Text>
@@ -102,13 +102,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 12,
     justifyContent: 'flex-start',
   },
-  hairline: {
+  topBorder: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 2,
-    backgroundColor: colors.surfaceAlt,
+    height: 1,
+    backgroundColor: colors.pinBorder,
   },
   tab: {
     position: 'absolute',
