@@ -218,7 +218,7 @@
     "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité"
   },
   "tutorial": {
-    "clickActivity": "👋 Bienvenue ! Appuie sur une activité pour la découvrir",
+    "clickActivity": "👋 Bienvenue ! Les pins oranges sont des activités imminentes, les verts en cours. Appuie sur un pin pour le découvrir",
     "openPopup": "Appuie sur le pop-up pour ouvrir l'activité",
     "clickAlert": "Super ! Maintenant crée une alerte pour être notifié des nouvelles activités près de chez toi",
     "setRadius": "Fais glisser le curseur jusqu'à 200 km",

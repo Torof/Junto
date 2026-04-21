@@ -218,7 +218,7 @@
     "notEnoughData": "Not enough activities yet to rate reliability"
   },
   "tutorial": {
-    "clickActivity": "👋 Welcome! Tap an activity to check it out",
+    "clickActivity": "👋 Welcome! Orange pins are activities starting soon, green ones are in progress. Tap a pin to check it out",
     "openPopup": "Tap the popup to open the activity",
     "clickAlert": "Great! Now create an alert to get notified of new activities near you",
     "setRadius": "Slide the cursor up to 200 km",

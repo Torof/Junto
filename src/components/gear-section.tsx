@@ -31,6 +31,7 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
   const [selections, setSelections] = useState<GearSelection[]>([]);
   const [customText, setCustomText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   const { data: activityGear } = useQuery({
     queryKey: ['activity-gear', activityId],
@@ -148,15 +149,24 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
 
           {byUser.length > 0 && (
             <View style={styles.byUserBox}>
-              {byUser.map((user) => (
-                <View key={user.display_name} style={styles.userRow}>
-                  <UserAvatar name={user.display_name} avatarUrl={user.avatar_url} size={24} />
-                  <Text style={styles.userName} numberOfLines={1}>{user.display_name}</Text>
-                  <Text style={styles.userGear} numberOfLines={1}>
-                    {user.items.map((i) => i.quantity > 1 ? `${i.name} ×${i.quantity}` : i.name).join(', ')}
-                  </Text>
-                </View>
-              ))}
+              {byUser.map((user) => {
+                const isExpanded = expandedUser === user.display_name;
+                const itemsText = user.items.map((i) => i.quantity > 1 ? `${i.name} ×${i.quantity}` : i.name).join(', ');
+                return (
+                  <Pressable
+                    key={user.display_name}
+                    onPress={() => setExpandedUser(isExpanded ? null : user.display_name)}
+                  >
+                    <View style={styles.userRow}>
+                      <UserAvatar name={user.display_name} avatarUrl={user.avatar_url} size={24} />
+                      <Text style={styles.userName} numberOfLines={1}>{user.display_name}</Text>
+                      <Text style={styles.userGear} numberOfLines={isExpanded ? undefined : 1}>
+                        {itemsText}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
         </>
