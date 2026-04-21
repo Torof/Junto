@@ -68,7 +68,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       </Svg>
       <View style={[styles.dot, { backgroundColor: dotColor }]}>
         {isFull ? (
-          <Lock size={10} color={colors.textPrimary} strokeWidth={3} />
+          <Lock size={10} color={colors.pinBorder} strokeWidth={3} />
         ) : (
           <Text style={styles.dotText}>{joined}</Text>
         )}
@@ -115,7 +115,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.pinBorder,
   },
   dotText: {
-    color: colors.textPrimary,
+    color: colors.pinBorder,
     fontSize: fontSizes.xs - 3,
     fontWeight: 'bold',
   },
