@@ -2,7 +2,7 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 
 const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? 'https://junto.app';
-const CONTACT_EMAIL = 'scottpanam@protonmail.com';
+const CONTACT_EMAIL = 'contact@getjunto.app';
 
 async function getQrCode(url: string): Promise<string> {
   return QRCode.toDataURL(url, {
@@ -136,11 +136,15 @@ export default async function Home() {
 
       {/* Footer */}
       <footer style={{ padding: '48px 0 32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
-        <p style={{ marginBottom: 12 }}>
+        <p style={{ marginBottom: 16 }}>
           Une idée, un bug, un retour ?{' '}
           <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'var(--cta)', textDecoration: 'underline' }}>
             {CONTACT_EMAIL}
           </a>
+        </p>
+        <p style={{ marginBottom: 12, display: 'flex', gap: 16, justifyContent: 'center', fontSize: 13 }}>
+          <a href="/legal/privacy" style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Confidentialité</a>
+          <a href="/legal/terms" style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Conditions</a>
         </p>
         <p style={{ fontSize: 12, opacity: 0.6 }}>© Junto 2026</p>
       </footer>
