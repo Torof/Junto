@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { Lock } from 'lucide-react-native';
 import { fontSizes, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -66,7 +67,11 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         />
       </Svg>
       <View style={[styles.dot, { backgroundColor: dotColor }]}>
-        <Text style={styles.dotText}>{isFull ? '🔒' : joined}</Text>
+        {isFull ? (
+          <Lock size={10} color={colors.textPrimary} strokeWidth={3} />
+        ) : (
+          <Text style={styles.dotText}>{joined}</Text>
+        )}
       </View>
     </View>
   );

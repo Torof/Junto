@@ -528,7 +528,8 @@ export function ActivityDetail({
 
           {showFullButton && (
             <View style={styles.fullButton}>
-              <Text style={styles.fullButtonText}>🔒 {t('activity.activityFull')}</Text>
+              <Lock size={16} color={colors.error} strokeWidth={2.5} />
+              <Text style={styles.fullButtonText}>{t('activity.activityFull')}</Text>
             </View>
           )}
 
@@ -792,7 +793,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
   joinButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  fullButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.error },
+  fullButton: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.md, borderWidth: 1, borderColor: colors.error },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: 'bold' },
   leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.textSecondary },
   buttonDisabled: { opacity: 0.4 },
