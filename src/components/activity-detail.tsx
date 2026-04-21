@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import { haptic } from '@/lib/haptics';
 import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
@@ -138,17 +140,49 @@ export function ActivityDetail({
   const alreadyConfirmed = !!participation?.confirmed_present;
   const canCheckIn = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInPresenceWindow;
 
-  // Passive geo detection: silently check if the user is at the activity location
+  // Remind participant once when the activity has started without their presence confirmed
+  useEffect(() => {
+    if (isCreator || alreadyConfirmed) return;
+    if (participation?.status !== 'accepted') return;
+    if (activity.status !== 'in_progress') return;
+
+    const notifiedKey = `presence-started-${activity.id}`;
+    (async () => {
+      try {
+        const already = await supabase.auth.getSession();
+        if (!already) return;
+        // Use Burnt as a soft visual reminder in-app; schedule a native notif for emphasis
+        haptic.medium();
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: t('presence.startedTitle'),
+            body: t('presence.startedBody', { title: activity.title }),
+            sound: true,
+            data: { key: notifiedKey },
+          },
+          trigger: null,
+        });
+      } catch {
+        // ignore
+      }
+    })();
+  }, [activity.status, activity.id, activity.title, alreadyConfirmed, isCreator, participation?.status, t]);
+
+  // Passive geo detection: periodically check if the user is at the activity location.
+  // Fires a local notification + haptic on the transition from "not at" to "at" so the
+  // user doesn't have to remember to open the app and validate.
   useEffect(() => {
     if (!canCheckIn) return;
     let cancelled = false;
-    (async () => {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        const req = await Location.requestForegroundPermissionsAsync();
-        if (req.status !== 'granted') return;
-      }
+    let alertedAt = false;
+
+    const checkPosition = async () => {
       try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          const req = await Location.requestForegroundPermissionsAsync();
+          if (req.status !== 'granted') return;
+        }
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
         const R = 6371000;
@@ -170,13 +204,36 @@ export function ActivityDetail({
           candidates.push(distFromTo(pos.coords.latitude, pos.coords.longitude, activity.end_lat, activity.end_lng));
         }
         const minDist = Math.min(...candidates);
-        if (!cancelled) setIsAtActivity(minDist <= 150);
+        const nowAt = minDist <= 150;
+        if (cancelled) return;
+        setIsAtActivity(nowAt);
+
+        // Fire once when the user enters the zone (transition false → true)
+        if (nowAt && !alertedAt) {
+          alertedAt = true;
+          haptic.success();
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: t('presence.arrivedTitle'),
+              body: t('presence.arrivedBody', { title: activity.title }),
+              sound: true,
+            },
+            trigger: null,
+          }).catch(() => {});
+        }
       } catch {
         // ignore
       }
-    })();
-    return () => { cancelled = true; };
-  }, [canCheckIn, activity.lat, activity.lng]);
+    };
+
+    checkPosition();
+    const interval = setInterval(checkPosition, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [canCheckIn, activity.lat, activity.lng, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, activity.title, t]);
 
   const handleCheckIn = async () => {
     setIsConfirming(true);
