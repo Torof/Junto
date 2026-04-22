@@ -6,12 +6,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'junto',
   version: '0.1.1',
   orientation: 'portrait',
-  icon: './assets/Junto_logo.png',
+  icon: './assets/junto_icon_square.png',
   userInterfaceStyle: 'dark',
   scheme: 'junto',
   newArchEnabled: true,
   splash: {
-    image: './assets/Junto_logo.png',
+    image: './assets/junto_icon_square.png',
     resizeMode: 'contain',
     backgroundColor: '#0D1B2A',
   },
@@ -20,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     versionCode: 3,
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     adaptiveIcon: {
-      foregroundImage: './assets/Junto_logo.png',
+      foregroundImage: './assets/junto_icon_round.png',
       backgroundColor: '#0D1B2A',
     },
     edgeToEdgeEnabled: true,
@@ -62,7 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './assets/Junto_logo.png',
+        icon: './assets/junto_icon_square.png',
         color: '#F4642A',
       },
     ],

@@ -53,7 +53,7 @@ export default function LoginScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
       keyboardShouldPersistTaps="handled"
     >
-      <Image source={require('../../assets/Junto_logo.png')} style={styles.logo} />
+      <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
       <Text style={styles.title}>{t('app.name')}</Text>
       <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
 
