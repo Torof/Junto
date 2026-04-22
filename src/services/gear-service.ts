@@ -1,10 +1,15 @@
 import { supabase } from './supabase';
 
+export type GearCategoryKey = 'safety' | 'technical' | 'water' | 'personal';
+
 export interface GearCatalogItem {
   id: string;
   name_key: string;
   sport_keys: string[];
   display_order: number;
+  category_key: GearCategoryKey;
+  per_person: boolean;
+  shared_recommended_qty: number | null;
 }
 
 export interface ActivityGearItem {
@@ -24,7 +29,7 @@ export const gearService = {
   getCatalog: async (sportKey: string): Promise<GearCatalogItem[]> => {
     const { data, error } = await supabase
       .from('gear_catalog' as 'sports')
-      .select('id, name_key, sport_keys, display_order')
+      .select('id, name_key, sport_keys, display_order, category_key, per_person, shared_recommended_qty')
       .contains('sport_keys' as 'key', [sportKey])
       .order('display_order' as 'key') as unknown as { data: GearCatalogItem[] | null; error: Error | null };
     if (error) return [];

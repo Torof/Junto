@@ -658,6 +658,7 @@ export function ActivityDetail({
               sportKey={activity.sport_key}
               currentUserId={currentUserId ?? null}
               isParticipant={isCreator || isAccepted}
+              participantCount={activity.participant_count}
             />
           )}
         </ScrollView>

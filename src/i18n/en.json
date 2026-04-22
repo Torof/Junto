@@ -230,7 +230,36 @@
     "saved": "Gear saved",
     "empty": "No one has listed their gear yet",
     "whatAreYouBringing": "What are you bringing?",
-    "customPlaceholder": "Other gear..."
+    "customPlaceholder": "Other gear...",
+    "covered_one": "{{checked}}/{{total}} covered",
+    "covered_other": "{{checked}}/{{total}} covered",
+    "editList": "Edit list",
+    "addMine": "Add mine",
+    "missingWarning_one": "{{count}} item missing. Can you bring it?",
+    "missingWarning_other": "{{count}} items missing. Can you bring any?",
+    "broughtBy": "brought by",
+    "itemSheetTitle": "{{name}}",
+    "itemSheetStatusCovered": "Covered · {{have}}/{{required}}",
+    "itemSheetStatusPartial": "Partial · {{have}}/{{required}}",
+    "itemSheetStatusMissing": "Missing · 0/{{required}}",
+    "itemSheetStatusExtra": "Well covered · {{have}}",
+    "itemSheetStatusCustom": "Brought",
+    "itemSheetBringers": "Already brought by",
+    "itemSheetNoBringers": "No one brings it yet",
+    "itemSheetMyContribution": "My contribution",
+    "iBringThis": "I bring this",
+    "remove": "Remove",
+    "addCustom": "+ Other gear",
+    "customSheetTitle": "Add custom gear",
+    "customSheetNameLabel": "Name",
+    "customSheetQtyLabel": "Quantity",
+    "category": {
+      "safety": "Safety",
+      "technical": "Technical",
+      "water": "Water",
+      "personal": "Personal",
+      "custom": "Other"
+    }
   },
   "organisation": {
     "tabs": {

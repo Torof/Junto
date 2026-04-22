@@ -230,7 +230,36 @@
     "saved": "Matériel enregistré",
     "empty": "Personne n'a encore indiqué son matériel",
     "whatAreYouBringing": "Qu'est-ce que tu apportes ?",
-    "customPlaceholder": "Autre matériel..."
+    "customPlaceholder": "Autre matériel...",
+    "covered_one": "{{checked}}/{{total}} couvert",
+    "covered_other": "{{checked}}/{{total}} couverts",
+    "editList": "Modifier la liste",
+    "addMine": "Ajouter le mien",
+    "missingWarning_one": "{{count}} équipement manquant. Tu peux l'apporter ?",
+    "missingWarning_other": "{{count}} équipements manquants. Tu peux en apporter ?",
+    "broughtBy": "apporté par",
+    "itemSheetTitle": "{{name}}",
+    "itemSheetStatusCovered": "Complet · {{have}}/{{required}}",
+    "itemSheetStatusPartial": "Partiel · {{have}}/{{required}}",
+    "itemSheetStatusMissing": "Manquant · 0/{{required}}",
+    "itemSheetStatusExtra": "Bien couvert · {{have}}",
+    "itemSheetStatusCustom": "Apporté",
+    "itemSheetBringers": "Déjà apporté par",
+    "itemSheetNoBringers": "Personne ne l'apporte encore",
+    "itemSheetMyContribution": "Ma contribution",
+    "iBringThis": "J'apporte ça",
+    "remove": "Retirer",
+    "addCustom": "+ Autre matériel",
+    "customSheetTitle": "Ajouter un matériel",
+    "customSheetNameLabel": "Nom",
+    "customSheetQtyLabel": "Quantité",
+    "category": {
+      "safety": "Sécurité",
+      "technical": "Technique",
+      "water": "Nautique",
+      "personal": "Perso",
+      "custom": "Autres"
+    }
   },
   "organisation": {
     "tabs": {
