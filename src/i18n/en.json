@@ -565,6 +565,7 @@
     "setObjective": "Objective (optional)",
     "objectiveSet": "Objective",
     "objectiveName": "Objective name (e.g. Summit)",
+    "startName": "Starting from... (e.g. Briançon)",
     "tapObjective": "Tap the map for the objective",
     "dateTime": "Date and time",
     "selectDateTime": "Select",

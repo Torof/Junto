@@ -565,6 +565,7 @@
     "setObjective": "Objectif (optionnel)",
     "objectiveSet": "Objectif",
     "objectiveName": "Nom de l'objectif (ex: Puy Aillaud)",
+    "startName": "Départ depuis... (ex: Briançon)",
     "tapObjective": "Touche la carte pour l'objectif",
     "dateTime": "Date et heure",
     "selectDateTime": "Sélectionner",

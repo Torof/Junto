@@ -13,6 +13,7 @@ interface CreateFormState {
   location_end: { lng: number; lat: number } | null;
   location_objective: { lng: number; lat: number } | null;
   objective_name: string;
+  start_name: string;
   starts_at: Date | null;
   duration_hours: number;
   duration_minutes: number;
@@ -39,6 +40,7 @@ const DEFAULT_FORM: CreateFormState = {
   location_end: null,
   location_objective: null,
   objective_name: '',
+  start_name: '',
   starts_at: null,
   duration_hours: 2,
   duration_minutes: 0,

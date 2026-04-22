@@ -100,6 +100,16 @@ export default function CreateStep2() {
             </Text>
           </Pressable>
         </View>
+        {form.location_start && (
+          <TextInput
+            style={styles.objectiveNameInput}
+            placeholder={t('create.startName')}
+            placeholderTextColor={colors.textSecondary}
+            value={form.start_name}
+            onChangeText={(text) => updateForm({ start_name: text })}
+            maxLength={100}
+          />
+        )}
         <Pressable
           style={[styles.objectiveButton, form.location_objective && styles.objectiveSet]}
           onPress={() => setPlacingPin('objective')}

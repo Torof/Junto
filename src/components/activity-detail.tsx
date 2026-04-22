@@ -434,6 +434,12 @@ export function ActivityDetail({
               <Text style={styles.infoLabel}>{t('activity.level')}</Text>
               <Text style={styles.infoValue}>{activity.level}</Text>
             </View>
+            {activity.start_name && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('create.startPoint')}</Text>
+                <Text style={styles.infoValue}>{activity.start_name}</Text>
+              </View>
+            )}
             {activity.distance_km != null && activity.distance_km > 0 && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('create.distance')}</Text>

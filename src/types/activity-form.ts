@@ -33,6 +33,7 @@ export const activityFormSchema = z.object({
     })
     .optional(),
   objective_name: z.string().max(100).optional(),
+  start_name: z.string().max(100).optional(),
   starts_at: z.date().refine((d) => d > new Date(), 'Must be in the future'),
   duration_hours: z.number().min(0).max(24),
   duration_minutes: z.number().min(0).max(59),
