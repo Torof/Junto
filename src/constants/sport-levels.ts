@@ -112,3 +112,58 @@ export function getLevelDescription(sportKey: string, label: string): string | u
   const scale = getLevelScale(sportKey);
   return scale.find((l) => l.label === label)?.description;
 }
+
+/**
+ * Which sports use distance + D+ as their primary difficulty metrics.
+ * For these sports, cards show "25 km · D+ 1400m" instead of the generic level.
+ */
+export const SPORTS_WITH_DISTANCE = new Set<string>([
+  'hiking',
+  'trail-running',
+  'running',
+  'cycling',
+  'mountain-biking',
+  'cross-country-ski',
+]);
+
+export const SPORTS_WITH_ELEVATION = new Set<string>([
+  'hiking',
+  'trail-running',
+  'running',
+  'cycling',
+  'mountain-biking',
+  'ski-touring',
+  'cross-country-ski',
+  'mountaineering',
+]);
+
+export function sportHasDistance(sportKey: string): boolean {
+  return SPORTS_WITH_DISTANCE.has(sportKey);
+}
+
+export function sportHasElevation(sportKey: string): boolean {
+  return SPORTS_WITH_ELEVATION.has(sportKey);
+}
+
+/**
+ * Format the primary difficulty signal for a card.
+ * Priority:
+ *   1. distance + D+ (if sport uses them AND at least one is set)
+ *   2. level (fallback)
+ */
+export function formatDifficultySignal(
+  sportKey: string,
+  level: string | null | undefined,
+  distanceKm: number | null | undefined,
+  elevationGainM: number | null | undefined,
+): string {
+  const parts: string[] = [];
+  if (sportHasDistance(sportKey) && distanceKm != null && distanceKm > 0) {
+    parts.push(`${Number(distanceKm).toLocaleString('fr-FR')} km`);
+  }
+  if (sportHasElevation(sportKey) && elevationGainM != null && elevationGainM > 0) {
+    parts.push(`D+ ${elevationGainM.toLocaleString('fr-FR')} m`);
+  }
+  if (parts.length > 0) return parts.join(' · ');
+  return level || '';
+}

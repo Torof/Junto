@@ -8,6 +8,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
+import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 
 interface ActivityCardProps {
@@ -47,8 +48,16 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
           <Text style={styles.sport} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
-          <Text style={styles.levelSep}> · </Text>
-          <Text style={styles.level} numberOfLines={1}>{activity.level}</Text>
+          {(() => {
+            const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
+            if (!signal) return null;
+            return (
+              <>
+                <Text style={styles.levelSep}> · </Text>
+                <Text style={styles.level} numberOfLines={1}>{signal}</Text>
+              </>
+            );
+          })()}
           {isFull && (
             <View style={styles.fullPill}>
               <Text style={styles.fullPillText}>{t('activity.full')}</Text>

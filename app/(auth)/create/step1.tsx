@@ -9,7 +9,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { getLevelScale } from '@/constants/sport-levels';
+import { getLevelScale, sportHasDistance, sportHasElevation } from '@/constants/sport-levels';
 
 export default function CreateStep1() {
   const colors = useColors();
@@ -32,6 +32,8 @@ export default function CreateStep1() {
 
   const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
   const levelScale = useMemo(() => getLevelScale(selectedSportKey), [selectedSportKey]);
+  const showDistance = sportHasDistance(selectedSportKey);
+  const showElevation = sportHasElevation(selectedSportKey);
   const isValid = form.sport_id && form.title.length >= 3 && form.level && form.max_participants >= 2;
 
   return (
@@ -44,7 +46,7 @@ export default function CreateStep1() {
         selected={selectedSportKey}
         onSelect={(key) => {
           const sport = sports?.find((s) => s.key === key);
-          if (sport) updateForm({ sport_id: sport.id, level: '' });
+          if (sport) updateForm({ sport_id: sport.id, level: '', distance_km: null, elevation_gain_m: null });
         }}
         label={t('create.sport')}
       />
@@ -89,6 +91,47 @@ export default function CreateStep1() {
           </Pressable>
         ))}
       </View>
+
+      {(showDistance || showElevation) && (
+        <View style={styles.metricRow}>
+          {showDistance && (
+            <View style={styles.metricField}>
+              <Text style={styles.label}>{t('create.distance')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="25"
+                placeholderTextColor={colors.textSecondary}
+                value={form.distance_km != null ? String(form.distance_km) : ''}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(',', '.').replace(/[^0-9.]/g, '');
+                  const num = cleaned === '' ? null : Number(cleaned);
+                  updateForm({ distance_km: num && !isNaN(num) && num > 0 ? num : null });
+                }}
+                keyboardType="decimal-pad"
+                maxLength={6}
+              />
+            </View>
+          )}
+          {showElevation && (
+            <View style={styles.metricField}>
+              <Text style={styles.label}>{t('create.elevation')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="1400"
+                placeholderTextColor={colors.textSecondary}
+                value={form.elevation_gain_m != null ? String(form.elevation_gain_m) : ''}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^0-9]/g, '');
+                  const num = cleaned === '' ? null : Number(cleaned);
+                  updateForm({ elevation_gain_m: num && !isNaN(num) && num > 0 ? num : null });
+                }}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+            </View>
+          )}
+        </View>
+      )}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
       <View style={styles.counterRow}>
@@ -136,6 +179,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   chipHint: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 2 },
   chipHintActive: { color: colors.textPrimary, opacity: 0.85 },
+  metricRow: { flexDirection: 'row', gap: spacing.md },
+  metricField: { flex: 1 },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   counterButton: { backgroundColor: colors.surface, borderRadius: radius.full, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },

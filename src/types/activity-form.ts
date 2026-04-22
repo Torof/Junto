@@ -6,6 +6,8 @@ export const activityFormSchema = z.object({
   title: z.string().min(3).max(100),
   description: z.string().max(2000).optional(),
   level: z.string().min(1),
+  distance_km: z.number().positive().max(9999).nullable().optional(),
+  elevation_gain_m: z.number().int().positive().max(99999).nullable().optional(),
   max_participants: z.number().int().min(2).max(50),
   // Step 2
   location_start: z

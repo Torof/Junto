@@ -434,6 +434,18 @@ export function ActivityDetail({
               <Text style={styles.infoLabel}>{t('activity.level')}</Text>
               <Text style={styles.infoValue}>{activity.level}</Text>
             </View>
+            {activity.distance_km != null && activity.distance_km > 0 && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('create.distance')}</Text>
+                <Text style={styles.infoValue}>{Number(activity.distance_km).toLocaleString('fr-FR')} km</Text>
+              </View>
+            )}
+            {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('create.elevation')}</Text>
+                <Text style={styles.infoValue}>{activity.elevation_gain_m.toLocaleString('fr-FR')} m</Text>
+              </View>
+            )}
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('activity.starts')}</Text>
               <Text style={styles.infoValue}>

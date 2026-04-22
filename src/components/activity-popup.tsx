@@ -9,6 +9,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
+import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
 
 interface ActivityPopupProps {
@@ -40,11 +41,17 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
         </Text>
       </View>
 
-      {/* Level */}
-      <View style={styles.row}>
-        <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
-        <Text style={styles.value}>{activity.level}</Text>
-      </View>
+      {/* Difficulty signal — sport-adaptive */}
+      {(() => {
+        const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
+        if (!signal) return null;
+        return (
+          <View style={styles.row}>
+            <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
+            <Text style={styles.value}>{signal}</Text>
+          </View>
+        );
+      })()}
 
       {/* Sport icon — bottom right */}
       <View style={styles.sportCircle}>

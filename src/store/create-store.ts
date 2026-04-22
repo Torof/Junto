@@ -5,6 +5,8 @@ interface CreateFormState {
   title: string;
   description: string;
   level: string;
+  distance_km: number | null;
+  elevation_gain_m: number | null;
   max_participants: number;
   location_start: { lng: number; lat: number } | null;
   location_meeting: { lng: number; lat: number } | null;
@@ -29,6 +31,8 @@ const DEFAULT_FORM: CreateFormState = {
   title: '',
   description: '',
   level: '',
+  distance_km: null,
+  elevation_gain_m: null,
   max_participants: 4,
   location_start: null,
   location_meeting: null,

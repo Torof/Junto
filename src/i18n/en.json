@@ -549,6 +549,8 @@
     "description": "Description",
     "descriptionPlaceholder": "Describe your activity...",
     "level": "Level",
+    "distance": "Distance (km)",
+    "elevation": "Elevation gain (m)",
     "maxParticipants": "Max participants",
     "next": "Next",
     "tapStart": "Tap the map for the start point",
