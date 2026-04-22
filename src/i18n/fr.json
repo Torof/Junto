@@ -216,6 +216,19 @@
     "whatAreYouBringing": "Qu'est-ce que tu apportes ?",
     "customPlaceholder": "Autre matériel..."
   },
+  "organisation": {
+    "tabs": {
+      "transport": "Transport",
+      "gear": "Matériel",
+      "transportCount_one": "{{count}} voiture",
+      "transportCount_other": "{{count}} voitures",
+      "transportEmpty": "aucune voiture",
+      "gearMissing_one": "{{count}} manquant",
+      "gearMissing_other": "{{count}} manquants",
+      "gearComplete": "complet",
+      "gearEmpty": "aucun matériel"
+    }
+  },
   "reliability": {
     "label": "Fiabilité",
     "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité"

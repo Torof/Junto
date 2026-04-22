@@ -216,6 +216,19 @@
     "whatAreYouBringing": "What are you bringing?",
     "customPlaceholder": "Other gear..."
   },
+  "organisation": {
+    "tabs": {
+      "transport": "Transport",
+      "gear": "Gear",
+      "transportCount_one": "{{count}} car",
+      "transportCount_other": "{{count}} cars",
+      "transportEmpty": "no cars",
+      "gearMissing_one": "{{count}} missing",
+      "gearMissing_other": "{{count}} missing",
+      "gearComplete": "complete",
+      "gearEmpty": "no gear"
+    }
+  },
   "reliability": {
     "label": "Reliability",
     "notEnoughData": "Not enough activities yet to rate reliability"

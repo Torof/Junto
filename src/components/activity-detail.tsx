@@ -30,7 +30,9 @@ import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
 import { GearSection } from './gear-section';
+import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
+import { gearService } from '@/services/gear-service';
 import { Car } from 'lucide-react-native';
 
 interface ActivityDetailProps {
@@ -58,6 +60,18 @@ export function ActivityDetail({
   const { data: transportSummary } = useQuery({
     queryKey: ['transport-summary', activity.id],
     queryFn: () => transportService.getSummary(activity.id),
+  });
+  const { data: orgTransportParticipants } = useQuery({
+    queryKey: ['transport', activity.id],
+    queryFn: () => transportService.getForActivity(activity.id),
+  });
+  const { data: orgGearDeclared } = useQuery({
+    queryKey: ['activity-gear', activity.id],
+    queryFn: () => gearService.getForActivity(activity.id),
+  });
+  const { data: orgGearCatalog } = useQuery({
+    queryKey: ['gear-catalog', activity.sport_key],
+    queryFn: () => gearService.getCatalog(activity.sport_key),
   });
 
   const { data: currentUserId } = useQuery({
@@ -330,6 +344,7 @@ export function ActivityDetail({
   };
 
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
+  const [orgSubTab, setOrgSubTab] = useState<OrganisationSubTab>('transport');
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
   const isFull = remaining <= 0;
@@ -614,16 +629,37 @@ export function ActivityDetail({
             </View>
           )}
 
-          {/* Transport */}
-          <TransportSection activityId={activity.id} currentUserId={currentUserId ?? null} />
-
-          {/* Gear */}
-          <GearSection
-            activityId={activity.id}
-            sportKey={activity.sport_key}
-            currentUserId={currentUserId ?? null}
-            isParticipant={isCreator || isAccepted}
+          {/* Sub-tabs: Transport | Matériel */}
+          <OrganisationSubTabs
+            active={orgSubTab}
+            onChange={setOrgSubTab}
+            carCount={(orgTransportParticipants ?? []).filter(
+              (p) => p.transport_type != null
+                && ['car', 'carpool'].includes(p.transport_type)
+                && (p.transport_seats ?? 0) > 0,
+            ).length}
+            gearMissingCount={
+              orgGearCatalog == null || orgGearCatalog.length === 0
+                ? null
+                : (() => {
+                    const covered = new Set((orgGearDeclared ?? []).map((g) => g.gear_name));
+                    return orgGearCatalog.filter((c) => !covered.has(c.name_key)).length;
+                  })()
+            }
           />
+
+          {orgSubTab === 'transport' && (
+            <TransportSection activityId={activity.id} currentUserId={currentUserId ?? null} />
+          )}
+
+          {orgSubTab === 'gear' && (
+            <GearSection
+              activityId={activity.id}
+              sportKey={activity.sport_key}
+              currentUserId={currentUserId ?? null}
+              isParticipant={isCreator || isAccepted}
+            />
+          )}
         </ScrollView>
       )}
 
