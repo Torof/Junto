@@ -3,6 +3,7 @@ import { JuntoMark, NAVY_DEEP, ORANGE_SOFT } from './shared';
 export default function Footer() {
   return (
     <footer
+      className="junto-footer"
       style={{
         padding: '56px 40px 40px',
         background: NAVY_DEEP,

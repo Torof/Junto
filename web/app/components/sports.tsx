@@ -59,6 +59,7 @@ export default function Sports() {
 
   return (
     <section
+      className="junto-sports"
       style={{
         padding: '140px 40px',
         background: 'var(--cream)',
@@ -71,7 +72,7 @@ export default function Sports() {
         <div style={{ marginBottom: 72, maxWidth: 820 }}>
           <SectionLabel>Catalogue</SectionLabel>
           <h2
-            className="display"
+            className="display junto-sports-title"
             style={{
               fontSize: 'clamp(40px, 6vw, 64px)',
               lineHeight: 0.98,
@@ -97,6 +98,7 @@ export default function Sports() {
           {CATEGORIES.map((cat, i) => (
             <div
               key={i}
+              className="junto-sports-row"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(180px, 200px) minmax(0, 1fr)',
@@ -136,6 +138,7 @@ export default function Sports() {
               </div>
 
               <div
+                className="junto-sports-list"
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',

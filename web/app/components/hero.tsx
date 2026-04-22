@@ -114,6 +114,7 @@ export default function Hero() {
 
   return (
     <section
+      className="junto-hero"
       style={{
         position: 'relative',
         minHeight: 760,
@@ -123,6 +124,7 @@ export default function Hero() {
       }}
     >
       <nav
+        className="junto-hero-nav"
         style={{
           position: 'relative',
           zIndex: 10,
@@ -143,6 +145,7 @@ export default function Hero() {
           </span>
         </div>
         <div
+          className="junto-hero-nav-links"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -152,13 +155,14 @@ export default function Hero() {
             flexWrap: 'wrap',
           }}
         >
-          <a href="#comment" style={{ textDecoration: 'none', opacity: 0.85 }}>
+          <a className="junto-hero-nav-link" href="#comment" style={{ textDecoration: 'none', opacity: 0.85 }}>
             Comment ça marche
           </a>
-          <a href="#sorties" style={{ textDecoration: 'none', opacity: 0.85 }}>
+          <a className="junto-hero-nav-link" href="#sorties" style={{ textDecoration: 'none', opacity: 0.85 }}>
             Sorties
           </a>
           <a
+            className="junto-hero-nav-cta"
             href="#beta"
             style={{
               background: '#FFF',
@@ -186,6 +190,7 @@ export default function Hero() {
       </div>
 
       <div
+        className="junto-hero-grid"
         style={{
           position: 'relative',
           zIndex: 5,
@@ -201,7 +206,7 @@ export default function Hero() {
       >
         <div>
           <h1
-            className="display"
+            className="display junto-hero-title"
             style={{
               fontSize: 'clamp(48px, 8vw, 88px)',
               lineHeight: 0.95,
@@ -218,6 +223,7 @@ export default function Hero() {
           </h1>
 
           <p
+            className="junto-hero-lead"
             style={{
               fontSize: 19,
               lineHeight: 1.5,
@@ -231,6 +237,7 @@ export default function Hero() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             <a
+              className="junto-hero-cta"
               href="#beta"
               style={{
                 display: 'inline-flex',

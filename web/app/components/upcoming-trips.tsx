@@ -55,6 +55,7 @@ export default function UpcomingTrips() {
   return (
     <section
       id="sorties"
+      className="junto-trips"
       style={{
         padding: '140px 40px',
         background: 'var(--cream-soft)',
@@ -67,7 +68,7 @@ export default function UpcomingTrips() {
         <div style={{ marginBottom: 64, maxWidth: 720 }}>
           <SectionLabel>Cette semaine</SectionLabel>
           <h2
-            className="display"
+            className="display junto-trips-title"
             style={{
               fontSize: 'clamp(40px, 6vw, 64px)',
               lineHeight: 0.98,
@@ -83,6 +84,7 @@ export default function UpcomingTrips() {
         </div>
 
         <div
+          className="junto-trips-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
@@ -92,6 +94,7 @@ export default function UpcomingTrips() {
           {TRIPS.map((t, i) => (
             <div
               key={i}
+              className="junto-trips-card"
               style={{
                 background: '#FFF',
                 border: '1px solid var(--line)',
@@ -104,6 +107,7 @@ export default function UpcomingTrips() {
               }}
             >
               <div
+                className="junto-trips-emoji"
                 style={{
                   width: 64,
                   height: 64,
@@ -159,7 +163,7 @@ export default function UpcomingTrips() {
                   <span style={{ fontSize: 13, color: 'var(--muted)' }}>{t.detail}</span>
                 </div>
                 <h3
-                  className="display"
+                  className="display junto-trips-card-title"
                   style={{
                     fontSize: 22,
                     margin: '0 0 6px',

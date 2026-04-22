@@ -48,3 +48,219 @@ img { display: block; max-width: 100%; }
 
 .display { font-family: 'Archivo', sans-serif; font-stretch: 125%; }
 .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Hide mobile-only steps by default (HowItWorks alternative) */
+.junto-hiw-steps-mobile { display: none; }
+
+/* ---------------------------------------------------------------- */
+/* Responsive overrides                                             */
+/* Inline styles have infinite specificity, so we use !important    */
+/* to override dimension/layout rules at mobile breakpoints.        */
+/* ---------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  /* ---------- Hero ---------- */
+  .junto-hero-nav {
+    padding: 20px 20px !important;
+    gap: 12px !important;
+  }
+  .junto-hero-nav-links {
+    gap: 12px !important;
+  }
+  .junto-hero-nav-link {
+    display: none !important;
+  }
+  .junto-hero-nav-cta {
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+  }
+  .junto-hero-grid {
+    grid-template-columns: 1fr !important;
+    padding: 48px 20px 80px !important;
+    gap: 24px !important;
+    min-height: 0 !important;
+  }
+  .junto-hero-title {
+    font-size: 48px !important;
+  }
+  .junto-hero-lead {
+    font-size: 16px !important;
+    margin: 24px 0 32px !important;
+  }
+  .junto-hero-cta {
+    padding: 14px 22px !important;
+    font-size: 15px !important;
+  }
+
+  /* ---------- Pillars ---------- */
+  .junto-pillars {
+    padding: 80px 20px !important;
+  }
+  .junto-pillars-header {
+    margin-bottom: 40px !important;
+  }
+  .junto-pillars-title {
+    font-size: 36px !important;
+  }
+  .junto-pillars-list {
+    gap: 16px !important;
+  }
+  .junto-pillars-card {
+    grid-template-columns: 1fr !important;
+    padding: 28px 20px !important;
+    gap: 24px !important;
+  }
+  .junto-pillars-number {
+    font-size: 40px !important;
+  }
+  .junto-pillars-kicker {
+    font-size: 22px !important;
+  }
+  .junto-pillars-card-title {
+    font-size: 24px !important;
+  }
+  .junto-pillars-art {
+    height: 180px !important;
+  }
+
+  /* ---------- How it works ---------- */
+  .junto-hiw {
+    padding: 80px 20px !important;
+  }
+  .junto-hiw-title {
+    font-size: 36px !important;
+  }
+  .junto-hiw-map {
+    display: none !important;
+  }
+  .junto-hiw-steps-mobile {
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .junto-hiw-step-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+  }
+  .junto-hiw-step-pin {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .junto-hiw-step-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ---------- Upcoming trips ---------- */
+  .junto-trips {
+    padding: 80px 20px !important;
+  }
+  .junto-trips-title {
+    font-size: 36px !important;
+  }
+  .junto-trips-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .junto-trips-card {
+    padding: 20px !important;
+    grid-template-columns: 52px minmax(0, 1fr) auto !important;
+    gap: 14px !important;
+  }
+  .junto-trips-emoji {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 26px !important;
+  }
+  .junto-trips-card-title {
+    font-size: 18px !important;
+  }
+
+  /* ---------- Screenshots ---------- */
+  .junto-shots {
+    padding: 60px 20px !important;
+  }
+  .junto-shots-title {
+    font-size: 36px !important;
+  }
+  .junto-shots-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .junto-shots-frame-odd {
+    transform: translateY(0) !important;
+  }
+
+  /* ---------- Sports ---------- */
+  .junto-sports {
+    padding: 80px 20px !important;
+  }
+  .junto-sports-title {
+    font-size: 36px !important;
+  }
+  .junto-sports-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 24px 0 !important;
+  }
+  .junto-sports-list {
+    font-size: 15px !important;
+  }
+
+  /* ---------- Final CTA ---------- */
+  .junto-cta {
+    padding: 60px 20px !important;
+  }
+  .junto-cta-title {
+    font-size: 40px !important;
+  }
+  .junto-cta-row {
+    flex-direction: column !important;
+    gap: 28px !important;
+    margin-top: 40px !important;
+  }
+  .junto-cta-download {
+    text-align: center !important;
+  }
+  .junto-cta-button {
+    padding: 14px 22px !important;
+    font-size: 15px !important;
+  }
+  .junto-cta-scan {
+    display: none !important;
+  }
+  .junto-cta-qr {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  /* ---------- Footer ---------- */
+  .junto-footer {
+    padding: 40px 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .junto-hero-title {
+    font-size: 40px !important;
+  }
+  .junto-pillars-title,
+  .junto-hiw-title,
+  .junto-trips-title,
+  .junto-shots-title,
+  .junto-sports-title {
+    font-size: 30px !important;
+  }
+  .junto-cta-title {
+    font-size: 34px !important;
+  }
+  .junto-shots-grid {
+    gap: 10px !important;
+  }
+}

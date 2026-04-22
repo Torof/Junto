@@ -264,6 +264,7 @@ function PillarArt({ kind }: { kind: ArtKind }) {
 export default function Pillars() {
   return (
     <section
+      className="junto-pillars"
       style={{
         padding: '140px 40px',
         background: 'var(--cream-soft)',
@@ -273,10 +274,10 @@ export default function Pillars() {
     >
       <TopoLines opacity={0.05} color={NAVY} count={10} />
       <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
-        <div style={{ marginBottom: 80, maxWidth: 820 }}>
+        <div className="junto-pillars-header" style={{ marginBottom: 80, maxWidth: 820 }}>
           <SectionLabel>Ce que tu fais avec Junto</SectionLabel>
           <h2
-            className="display"
+            className="display junto-pillars-title"
             style={{
               fontSize: 'clamp(40px, 6vw, 64px)',
               lineHeight: 0.98,
@@ -292,10 +293,11 @@ export default function Pillars() {
           </h2>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="junto-pillars-list" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {ITEMS.map((it, i) => (
             <div
               key={i}
+              className="junto-pillars-card"
               style={{
                 background: '#FFF',
                 border: '1px solid var(--line)',
@@ -317,7 +319,7 @@ export default function Pillars() {
                   }}
                 >
                   <span
-                    className="display"
+                    className="display junto-pillars-number"
                     style={{
                       fontSize: 56,
                       fontWeight: 800,
@@ -329,7 +331,7 @@ export default function Pillars() {
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span
-                    className="display"
+                    className="display junto-pillars-kicker"
                     style={{
                       fontSize: 28,
                       fontWeight: 800,
@@ -341,7 +343,7 @@ export default function Pillars() {
                   </span>
                 </div>
                 <h3
-                  className="display"
+                  className="display junto-pillars-card-title"
                   style={{
                     fontSize: 36,
                     margin: '0 0 16px',
@@ -368,6 +370,7 @@ export default function Pillars() {
               </div>
 
               <div
+                className="junto-pillars-art"
                 style={{
                   height: 220,
                   background:

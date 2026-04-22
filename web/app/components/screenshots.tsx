@@ -10,6 +10,7 @@ const SCREENS = [
 export default function Screenshots() {
   return (
     <section
+      className="junto-shots"
       style={{
         padding: '140px 40px',
         background: NAVY_DEEP,
@@ -23,7 +24,7 @@ export default function Screenshots() {
         <div style={{ marginBottom: 80, maxWidth: 720 }}>
           <SectionLabel color={ORANGE_SOFT}>L&apos;app</SectionLabel>
           <h2
-            className="display"
+            className="display junto-shots-title"
             style={{
               fontSize: 'clamp(40px, 6vw, 64px)',
               lineHeight: 0.98,
@@ -38,6 +39,7 @@ export default function Screenshots() {
         </div>
 
         <div
+          className="junto-shots-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -47,6 +49,7 @@ export default function Screenshots() {
           {SCREENS.map((s, i) => (
             <div key={s.src}>
               <div
+                className={`junto-shots-frame ${i % 2 === 0 ? 'junto-shots-frame-even' : 'junto-shots-frame-odd'}`}
                 style={{
                   borderRadius: 32,
                   padding: 8,

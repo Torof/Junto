@@ -18,6 +18,7 @@ export default async function FinalCTA() {
   return (
     <section
       id="beta"
+      className="junto-cta"
       style={{
         padding: '140px 40px',
         background: NAVY,
@@ -41,7 +42,7 @@ export default async function FinalCTA() {
           <SectionLabel color={ORANGE_SOFT}>Rejoins la bêta</SectionLabel>
         </div>
         <h2
-          className="display"
+          className="display junto-cta-title"
           style={{
             fontSize: 'clamp(48px, 8vw, 84px)',
             lineHeight: 0.96,
@@ -57,6 +58,7 @@ export default async function FinalCTA() {
         </h2>
 
         <div
+          className="junto-cta-row"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -66,8 +68,9 @@ export default async function FinalCTA() {
             marginTop: 56,
           }}
         >
-          <div style={{ textAlign: 'right' }}>
+          <div className="junto-cta-download" style={{ textAlign: 'right' }}>
             <a
+              className="junto-cta-button"
               href={APK_DOWNLOAD_URL}
               style={{
                 display: 'inline-flex',
@@ -96,9 +99,9 @@ export default async function FinalCTA() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="junto-cta-qrwrap" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div
-              className="mono"
+              className="mono junto-cta-scan"
               style={{
                 fontSize: 11,
                 opacity: 0.5,
@@ -110,6 +113,7 @@ export default async function FinalCTA() {
               OU SCANNE →
             </div>
             <div
+              className="junto-cta-qr"
               style={{
                 width: 140,
                 height: 140,

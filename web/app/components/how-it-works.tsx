@@ -16,6 +16,7 @@ export default function HowItWorks() {
   return (
     <section
       id="comment"
+      className="junto-hiw"
       style={{
         padding: '140px 40px',
         background: NAVY,
@@ -28,7 +29,7 @@ export default function HowItWorks() {
         <div style={{ marginBottom: 60, maxWidth: 720 }}>
           <SectionLabel color={ORANGE_SOFT}>Comment ça marche</SectionLabel>
           <h2
-            className="display"
+            className="display junto-hiw-title"
             style={{
               fontSize: 'clamp(40px, 6vw, 64px)',
               lineHeight: 0.98,
@@ -45,6 +46,7 @@ export default function HowItWorks() {
         </div>
 
         <div
+          className="junto-hiw-map"
           style={{
             position: 'relative',
             borderRadius: 24,
@@ -199,6 +201,64 @@ export default function HowItWorks() {
                   {i + 1}
                 </text>
               </svg>
+            </div>
+          ))}
+        </div>
+
+        <div className="junto-hiw-steps-mobile">
+          {STEPS.map((step, i) => (
+            <div key={i} className="junto-hiw-step-card">
+              <div className="junto-hiw-step-pin">
+                <svg width="44" height="56" viewBox="0 0 44 56">
+                  <path
+                    d="M 22 54 L 13 40 Q 2 40 2 22 Q 2 2 22 2 Q 42 2 42 22 Q 42 40 31 40 Z"
+                    fill={ORANGE}
+                    stroke={NAVY_DEEP}
+                    strokeWidth="2.5"
+                  />
+                  <circle cx="22" cy="21" r="9" fill="#FFF" />
+                  <text
+                    x="22"
+                    y="25"
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight="800"
+                    fill={NAVY}
+                    fontFamily="Archivo, sans-serif"
+                  >
+                    {i + 1}
+                  </text>
+                </svg>
+              </div>
+              <div className="junto-hiw-step-body">
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    color: ORANGE,
+                    letterSpacing: '0.15em',
+                    marginBottom: 4,
+                  }}
+                >
+                  ÉTAPE {step.n}
+                </div>
+                <div
+                  className="display"
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                    marginBottom: 6,
+                    color: '#FFF',
+                  }}
+                >
+                  {step.title}
+                </div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                  {step.body}
+                </div>
+              </div>
             </div>
           ))}
         </div>
