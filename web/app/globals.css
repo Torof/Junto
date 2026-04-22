@@ -1,6 +1,21 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  /* Junto design tokens */
+  --navy: #1E2F4D;
+  --navy-deep: #14223B;
+  --navy-dark: #0F1828;
+  --orange: #F26B2E;
+  --orange-soft: #F4A373;
+  --cream: #F4E9D3;
+  --cream-soft: #FBF5E6;
+  --mint: #7EC8A3;
+  --sky: #4B7CB8;
+  --ink: #1E2F4D;
+  --muted: #5B6B85;
+  --line: #E8E2D1;
+
+  /* Legacy tokens kept for other routes (legal pages, invite, etc.) */
   --bg: #0D1B2A;
   --surface: #1B3A5C;
   --surface-2: #142D48;
@@ -13,10 +28,11 @@
 }
 
 html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--cream-soft);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100vh;
 }
 
@@ -27,3 +43,8 @@ button, .btn {
   border: none;
   font: inherit;
 }
+
+img { display: block; max-width: 100%; }
+
+.display { font-family: 'Archivo', sans-serif; font-stretch: 125%; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
