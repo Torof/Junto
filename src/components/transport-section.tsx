@@ -1,15 +1,19 @@
-import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useState, useMemo } from 'react';
+import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, LayoutAnimation, UIManager } from 'react-native';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, X } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, ChevronDown, Plus } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
-import { transportService, type ParticipantTransport } from '@/services/transport-service';
+import { transportService, type ParticipantTransport, type SeatAssignment } from '@/services/transport-service';
 import { supabase } from '@/services/supabase';
 import { UserAvatar } from './user-avatar';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface Props {
   activityId: string;
@@ -17,6 +21,7 @@ interface Props {
 }
 
 const TRANSPORT_TYPES = ['car', 'carpool', 'public_transport', 'bike', 'on_foot', 'other'] as const;
+const CAR_TYPES = ['car', 'carpool'] as const;
 
 const TRANSPORT_ICONS: Record<string, typeof Car> = {
   car: Car,
@@ -27,20 +32,26 @@ const TRANSPORT_ICONS: Record<string, typeof Car> = {
   other: HelpCircle,
 };
 
+
 export function TransportSection({ activityId, currentUserId }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [showEditor, setShowEditor] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
   const [fromName, setFromName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
   const [requestingFromDriver, setRequestingFromDriver] = useState<string | null>(null);
   const [requestPickup, setRequestPickup] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
   const [requestSending, setRequestSending] = useState(false);
-  const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
+  const [cityFilter, setCityFilter] = useState<string>('all');
 
   const { data: participants } = useQuery({
     queryKey: ['transport', activityId],
@@ -54,57 +65,70 @@ export function TransportSection({ activityId, currentUserId }: Props) {
 
   const { data: acceptedSeatRequests } = useQuery({
     queryKey: ['seat-requests-accepted', activityId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('seat_requests' as 'participations')
-        .select('id, requester_id, driver_id')
-        .eq('activity_id', activityId)
-        .eq('status' as 'user_id', 'accepted') as unknown as { data: { id: string; requester_id: string; driver_id: string }[] | null };
-      if (!data || data.length === 0) return [];
-      const requesterIds = data.map((r) => r.requester_id);
-      const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
-      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return data.map((r) => ({
-        ...r,
-        display_name: profileMap.get(r.requester_id)?.display_name ?? '?',
-        avatar_url: profileMap.get(r.requester_id)?.avatar_url ?? null,
-      }));
-    },
+    queryFn: () => transportService.getSeatAssignments(activityId),
   });
+
+  const acceptedCountByDriver = useMemo(() => {
+    const map = new Map<string, number>();
+    (acceptedSeatRequests ?? []).forEach((r) => {
+      map.set(r.driver_id, (map.get(r.driver_id) ?? 0) + 1);
+    });
+    return map;
+  }, [acceptedSeatRequests]);
+
+  const cars = useMemo(
+    () => (participants ?? []).filter((p) => {
+      if (!p.transport_type || !(CAR_TYPES as readonly string[]).includes(p.transport_type)) return false;
+      const free = p.transport_seats ?? 0;
+      const accepted = acceptedCountByDriver.get(p.user_id) ?? 0;
+      return free + accepted > 0;
+    }),
+    [participants, acceptedCountByDriver],
+  );
+
+  const others = useMemo(
+    () => (participants ?? []).filter((p) => {
+      if (!p.transport_type) return false;
+      if (!(CAR_TYPES as readonly string[]).includes(p.transport_type)) return true;
+      const free = p.transport_seats ?? 0;
+      const accepted = acceptedCountByDriver.get(p.user_id) ?? 0;
+      return free + accepted === 0;
+    }),
+    [participants, acceptedCountByDriver],
+  );
+
+  const uniqueCities = useMemo(() => {
+    const set = new Set<string>();
+    cars.forEach((c) => { if (c.transport_from_name) set.add(c.transport_from_name); });
+    return Array.from(set).sort();
+  }, [cars]);
+
+  const filteredCars = useMemo(() => {
+    if (cityFilter === 'all') return cars;
+    return cars.filter((c) => c.transport_from_name === cityFilter);
+  }, [cars, cityFilter]);
+
+  const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
+  const hasSetTransport = !!myTransport;
+  const isDriver = myTransport
+    && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')
+    && (myTransport.transport_seats ?? 0) > 0;
+  const myAcceptedSeat = (acceptedSeatRequests ?? []).find((r) => r.requester_id === currentUserId);
+
+  const totalFreeSeats = useMemo(
+    () => cars.reduce((sum, c) => sum + (c.transport_seats ?? 0), 0),
+    [cars],
+  );
 
   const hasPendingRequest = (driverId: string) =>
     (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
 
-  const hasAcceptedSeat = (driverId: string) =>
-    (acceptedSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
-
-  const getPassengers = (driverId: string) =>
+  const getPassengersFor = (driverId: string) =>
     (acceptedSeatRequests ?? []).filter((r) => r.driver_id === driverId);
 
-  const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
-  const hasSetTransport = !!myTransport;
-  const isDriver = myTransport && ['car', 'carpool'].includes(myTransport.transport_type ?? '') && (myTransport.transport_seats ?? 0) > 0;
-  const myAcceptedSeat = (acceptedSeatRequests ?? []).find((r) => r.requester_id === currentUserId);
-  const canRequestSeats = !isDriver && !myAcceptedSeat;
-
-  const handleSave = async () => {
-    if (!selectedType) return;
-    setIsSaving(true);
-    try {
-      await transportService.setTransport(
-        activityId,
-        selectedType,
-        ['car', 'carpool'].includes(selectedType) ? seats : null,
-        fromName.trim() || null,
-      );
-      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
-      setShowEditor(false);
-      Burnt.toast({ title: t('transport.saved'), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
-    } finally {
-      setIsSaving(false);
-    }
+  const toggleCar = (carId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedCarId(expandedCarId === carId ? null : carId);
   };
 
   const openEditor = () => {
@@ -120,163 +144,231 @@ export function TransportSection({ activityId, currentUserId }: Props) {
     setShowEditor(true);
   };
 
-  const grouped = TRANSPORT_TYPES.reduce((acc, type) => {
-    const items = (participants ?? []).filter((p) => p.transport_type === type);
-    if (items.length > 0) acc.push({ type, items });
-    return acc;
-  }, [] as { type: string; items: ParticipantTransport[] }[]);
+  const handleSave = async () => {
+    if (!selectedType) return;
+    setIsSaving(true);
+    try {
+      await transportService.setTransport(
+        activityId,
+        selectedType,
+        (CAR_TYPES as readonly string[]).includes(selectedType) ? seats : null,
+        fromName.trim() || null,
+      );
+      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      setShowEditor(false);
+      Burnt.toast({ title: t('transport.saved'), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRequestSeat = async () => {
+    if (!requestingFromDriver) return;
+    setRequestSending(true);
+    try {
+      await transportService.requestSeat(
+        activityId,
+        requestingFromDriver,
+        requestPickup.trim() || undefined,
+        requestMessage.trim() || undefined,
+      );
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      setRequestingFromDriver(null);
+      Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setRequestSending(false);
+    }
+  };
+
+  const handleCancelSeat = async () => {
+    if (!myAcceptedSeat) return;
+    try {
+      await transportService.cancelAcceptedSeat(myAcceptedSeat.id);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      Burnt.toast({ title: t('transport.seatCancelled'), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    }
+  };
+
+  // Collapse any expanded car that disappears from the filtered view
+  useEffect(() => {
+    if (expandedCarId && !filteredCars.some((c) => c.user_id === expandedCarId)) {
+      setExpandedCarId(null);
+    }
+  }, [expandedCarId, filteredCars]);
 
   return (
     <View style={styles.section}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>{t('activity.transport')}</Text>
-        <Pressable onPress={openEditor}>
-          <Text style={styles.editLink}>
-            {hasSetTransport ? t('transport.edit') : t('transport.add')}
+        <Text style={styles.freeSeatsLabel}>
+          {totalFreeSeats === 0 ? t('transport.noFreeSeats') : t('transport.freeSeatsTotal', { count: totalFreeSeats })}
+        </Text>
+        <Pressable onPress={openEditor} hitSlop={8} style={styles.headerCta}>
+          {!hasSetTransport && <Plus size={12} color={colors.cta} strokeWidth={2.5} />}
+          <Text style={styles.headerCtaText}>
+            {hasSetTransport ? t('transport.edit') : t('transport.propose')}
           </Text>
         </Pressable>
       </View>
 
-      {grouped.length === 0 ? (
-        <Pressable onPress={openEditor}>
-          <Text style={styles.emptyText}>{t('transport.empty')}</Text>
-        </Pressable>
+      {uniqueCities.length >= 2 && (
+        <View style={styles.filterRow}>
+          <FilterPill
+            label={t('transport.filterAll')}
+            isActive={cityFilter === 'all'}
+            onPress={() => setCityFilter('all')}
+            styles={styles}
+          />
+          {uniqueCities.map((city) => (
+            <FilterPill
+              key={city}
+              label={city}
+              isActive={cityFilter === city}
+              onPress={() => setCityFilter(city)}
+              styles={styles}
+            />
+          ))}
+        </View>
+      )}
+
+      {cars.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>{t('transport.noCars')}</Text>
+        </View>
+      ) : filteredCars.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>—</Text>
+        </View>
       ) : (
-        grouped.map(({ type, items }) => {
-          const IconComp = TRANSPORT_ICONS[type] ?? HelpCircle;
+        filteredCars.map((car) => {
+          const passengers = getPassengersFor(car.user_id);
+          const used = passengers.length;
+          const free = car.transport_seats ?? 0;
+          const offered = used + free;
+          const isMyCar = car.user_id === currentUserId;
+          const hasMySeatHere = myAcceptedSeat?.driver_id === car.user_id;
+          const hasPendingHere = hasPendingRequest(car.user_id);
           return (
-            <View key={type} style={styles.group}>
-              <View style={styles.groupHeader}>
-                <IconComp size={16} color={colors.textSecondary} strokeWidth={2} />
-                <Text style={styles.groupLabel}>{t(`transport.type.${type}`)}</Text>
-                <Text style={styles.groupCount}>{items.length}</Text>
-              </View>
-              {items.map((p) => (
-                <View key={p.user_id}><View style={styles.participantRow}>
-                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={28} />
-                  <Text style={styles.participantName} numberOfLines={1}>{p.display_name}</Text>
-                  {p.transport_from_name && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                      <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
-                      <Text style={styles.fromCity} numberOfLines={1}>{p.transport_from_name}</Text>
-                    </View>
-                  )}
-                  {p.transport_seats != null && p.transport_seats > 0 && (
-                    <Text style={styles.seatsBadge}>{p.transport_seats} {t('transport.seats')}</Text>
-                  )}
-                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.transport_seats != null && p.transport_seats > 0 && p.user_id !== currentUserId && canRequestSeats && !hasPendingRequest(p.user_id) && !hasAcceptedSeat(p.user_id) && (
-                    <Pressable
-                      style={styles.requestSeatBtn}
-                      onPress={() => {
-                        setRequestingFromDriver(p.user_id);
-                        setRequestPickup(myTransport?.transport_from_name ?? '');
-                        setRequestMessage('');
-                      }}
-                    >
-                      <Text style={styles.requestSeatText}>{t('transport.requestSeat')}</Text>
-                    </Pressable>
-                  )}
-                  {p.transport_type != null && ['car', 'carpool'].includes(p.transport_type) && p.user_id !== currentUserId && hasPendingRequest(p.user_id) && (
-                    <Text style={styles.requestSentLabel}>{t('transport.seatRequested')}</Text>
-                  )}
-                  {hasAcceptedSeat(p.user_id) && myAcceptedSeat && (
-                    <Pressable
-                      style={styles.cancelSeatBtn}
-                      onPress={async () => {
-                        try {
-                          await transportService.cancelAcceptedSeat(myAcceptedSeat.id);
-                          await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
-                          await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
-                          Burnt.toast({ title: t('transport.seatCancelled'), preset: 'done' });
-                        } catch {
-                          Burnt.toast({ title: t('auth.unknownError') });
-                        }
-                      }}
-                    >
-                      <X size={14} color={colors.error} strokeWidth={2.5} />
-                    </Pressable>
-                  )}
-                </View>
-                {/* Passengers nested under this driver */}
-                {['car', 'carpool'].includes(type) && getPassengers(p.user_id).map((passenger) => (
-                  <View key={passenger.requester_id} style={styles.passengerRow}>
-                    <View style={styles.passengerLine} />
-                    <UserAvatar name={(passenger as { display_name: string }).display_name} avatarUrl={(passenger as { avatar_url: string | null }).avatar_url} size={22} />
-                    <Text style={styles.passengerName} numberOfLines={1}>{(passenger as { display_name: string }).display_name}</Text>
-                  </View>
-                ))}
-                </View>
-              ))}
-            </View>
+            <CarRow
+              key={car.user_id}
+              car={car}
+              capacity={offered}
+              used={used}
+              free={free}
+              passengers={passengers}
+              isExpanded={expandedCarId === car.user_id}
+              onToggle={() => toggleCar(car.user_id)}
+              isMyCar={isMyCar}
+              hasMySeatHere={hasMySeatHere}
+              hasPendingHere={hasPendingHere}
+              hasAnyReservation={!!myAcceptedSeat}
+              canRequest={!isDriver && !myAcceptedSeat && !hasPendingHere && !isMyCar && free > 0}
+              onRequestPress={() => {
+                setRequestingFromDriver(car.user_id);
+                setRequestPickup(myTransport?.transport_from_name ?? '');
+                setRequestMessage('');
+              }}
+              onCancelSeatPress={handleCancelSeat}
+              onEditMyCar={openEditor}
+              t={t}
+              styles={styles}
+              colors={colors}
+            />
           );
         })
+      )}
+
+      {others.length > 0 && (
+        <View style={styles.othersSection}>
+          <Text style={styles.othersTitle}>{t('transport.otherTransports')}</Text>
+          {others.map((p) => {
+            const Icon = TRANSPORT_ICONS[p.transport_type ?? 'other'] ?? HelpCircle;
+            return (
+              <View key={p.user_id} style={styles.otherRow}>
+                <Icon size={14} color={colors.textMuted} strokeWidth={2} />
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} />
+                <Text style={styles.otherName} numberOfLines={1}>{p.display_name}</Text>
+                <Text style={styles.otherType}>{t(`transport.type.${p.transport_type}`)}</Text>
+                {p.transport_from_name && (
+                  <Text style={styles.otherFrom} numberOfLines={1}>· {p.transport_from_name}</Text>
+                )}
+              </View>
+            );
+          })}
+        </View>
       )}
 
       {/* Transport editor modal */}
       <Modal visible={showEditor} animationType="slide" transparent>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</Text>
+          <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
+              <Pressable style={styles.sheet} onPress={() => {}}>
+                <View style={styles.handle} />
+                <Text style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</Text>
 
-            <View style={styles.typeGrid}>
-              {TRANSPORT_TYPES.map((type) => {
-                const IconComp = TRANSPORT_ICONS[type] ?? HelpCircle;
-                const isSelected = selectedType === type;
-                return (
-                  <Pressable
-                    key={type}
-                    style={[styles.typeChip, isSelected && styles.typeChipActive]}
-                    onPress={() => setSelectedType(type)}
-                  >
-                    <IconComp size={18} color={isSelected ? colors.textPrimary : colors.textSecondary} strokeWidth={2} />
-                    <Text style={[styles.typeChipText, isSelected && styles.typeChipTextActive]}>
-                      {t(`transport.type.${type}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {selectedType && ['car', 'carpool'].includes(selectedType) && (
-              <View style={styles.seatsRow}>
-                <Text style={styles.seatsLabel}>{t('transport.freeSeats')}</Text>
-                <View style={styles.seatsPicker}>
-                  <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.max(0, seats - 1))}>
-                    <Text style={styles.seatsBtnText}>-</Text>
-                  </Pressable>
-                  <Text style={styles.seatsValue}>{seats}</Text>
-                  <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.min(8, seats + 1))}>
-                    <Text style={styles.seatsBtnText}>+</Text>
-                  </Pressable>
+                <View style={styles.typeGrid}>
+                  {TRANSPORT_TYPES.map((type) => {
+                    const IconComp = TRANSPORT_ICONS[type] ?? HelpCircle;
+                    const isSelected = selectedType === type;
+                    return (
+                      <Pressable
+                        key={type}
+                        style={[styles.typeChip, isSelected && styles.typeChipActive]}
+                        onPress={() => setSelectedType(type)}
+                      >
+                        <IconComp size={18} color={isSelected ? colors.textPrimary : colors.textSecondary} strokeWidth={2} />
+                        <Text style={[styles.typeChipText, isSelected && styles.typeChipTextActive]}>
+                          {t(`transport.type.${type}`)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
-              </View>
-            )}
 
-            <View style={styles.fromRow}>
-              <Text style={styles.fromLabel}>{t('transport.from')}</Text>
-              <TextInput
-                style={styles.fromInput}
-                value={fromName}
-                onChangeText={setFromName}
-                placeholder={t('transport.fromPlaceholder')}
-                placeholderTextColor={colors.textSecondary}
-                maxLength={100}
-              />
-            </View>
+                {selectedType && (CAR_TYPES as readonly string[]).includes(selectedType) && (
+                  <View style={styles.seatsRow}>
+                    <Text style={styles.seatsLabel}>{t('transport.freeSeats')}</Text>
+                    <View style={styles.seatsPicker}>
+                      <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.max(0, seats - 1))}>
+                        <Text style={styles.seatsBtnText}>-</Text>
+                      </Pressable>
+                      <Text style={styles.seatsValue}>{seats}</Text>
+                      <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.min(8, seats + 1))}>
+                        <Text style={styles.seatsBtnText}>+</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
 
-            <Pressable
-              style={[styles.saveButton, (!selectedType || isSaving) && { opacity: 0.4 }]}
-              onPress={handleSave}
-              disabled={!selectedType || isSaving}
-            >
-              <Text style={styles.saveText}>{t('profil.save')}</Text>
-            </Pressable>
+                <View style={styles.fromRow}>
+                  <Text style={styles.fromLabel}>{t('transport.from')}</Text>
+                  <TextInput
+                    style={styles.fromInput}
+                    value={fromName}
+                    onChangeText={setFromName}
+                    placeholder={t('transport.fromPlaceholder')}
+                    placeholderTextColor={colors.textSecondary}
+                    maxLength={100}
+                  />
+                </View>
+
+                <Pressable
+                  style={[styles.saveButton, (!selectedType || isSaving) && { opacity: 0.4 }]}
+                  onPress={handleSave}
+                  disabled={!selectedType || isSaving}
+                >
+                  <Text style={styles.saveText}>{t('profil.save')}</Text>
+                </Pressable>
+              </Pressable>
+            </ScrollView>
           </Pressable>
-          </ScrollView>
-        </Pressable>
         </KeyboardAvoidingView>
       </Modal>
 
@@ -317,25 +409,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                 <Pressable
                   style={[styles.saveButton, requestSending && { opacity: 0.4 }]}
                   disabled={requestSending}
-                  onPress={async () => {
-                    if (!requestingFromDriver) return;
-                    setRequestSending(true);
-                    try {
-                      await transportService.requestSeat(
-                        activityId,
-                        requestingFromDriver,
-                        requestPickup.trim() || undefined,
-                        requestMessage.trim() || undefined,
-                      );
-                      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
-                      setRequestingFromDriver(null);
-                      Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
-                    } catch {
-                      Burnt.toast({ title: t('auth.unknownError') });
-                    } finally {
-                      setRequestSending(false);
-                    }
-                  }}
+                  onPress={handleRequestSeat}
                 >
                   <Text style={styles.saveText}>{t('transport.requestSeat')}</Text>
                 </Pressable>
@@ -348,46 +422,263 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   );
 }
 
+interface FilterPillProps {
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+}
+
+function FilterPill({ label, isActive, onPress, styles }: FilterPillProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.filterPill, isActive && styles.filterPillActive]}
+      hitSlop={6}
+    >
+      <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+interface CarRowProps {
+  car: ParticipantTransport;
+  capacity: number;
+  used: number;
+  free: number;
+  passengers: SeatAssignment[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  isMyCar: boolean;
+  hasMySeatHere: boolean;
+  hasPendingHere: boolean;
+  hasAnyReservation: boolean;
+  canRequest: boolean;
+  onRequestPress: () => void;
+  onCancelSeatPress: () => void;
+  onEditMyCar: () => void;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+}
+
+function CarRow({
+  car, capacity, used, free, passengers,
+  isExpanded, onToggle,
+  isMyCar, hasMySeatHere, hasPendingHere, canRequest,
+  onRequestPress, onCancelSeatPress, onEditMyCar,
+  t, styles, colors,
+}: CarRowProps) {
+  const isHighlighted = isMyCar || hasMySeatHere;
+
+  return (
+    <View style={[styles.carRow, isHighlighted && styles.carRowHighlighted]}>
+      <Pressable onPress={onToggle} style={styles.carHeader}>
+        <View style={styles.carAvatarWrap}>
+          <UserAvatar name={car.display_name} avatarUrl={car.avatar_url} size={36} />
+          <View style={styles.carBadge}>
+            <Car size={8} color={colors.textPrimary} strokeWidth={2.5} />
+          </View>
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View style={styles.carNameRow}>
+            <Text style={styles.carName} numberOfLines={1}>{car.display_name}</Text>
+            {isMyCar && (
+              <View style={styles.myTag}><Text style={styles.myTagText}>{t('transport.myCar')}</Text></View>
+            )}
+            {!isMyCar && hasMySeatHere && (
+              <View style={styles.myTag}><Text style={styles.myTagText}>{t('transport.myReservation')}</Text></View>
+            )}
+          </View>
+          {car.transport_from_name && (
+            <View style={styles.carMetaRow}>
+              <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
+              <Text style={styles.carFrom} numberOfLines={1}>{car.transport_from_name}</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.seatsCluster}>
+          <View style={styles.pipsRow}>
+            {Array.from({ length: capacity }).map((_, i) => (
+              <View
+                key={i}
+                style={[styles.pip, i < used ? styles.pipFilled : styles.pipEmpty]}
+              />
+            ))}
+          </View>
+          <Text style={styles.seatsCount}>{used}/{capacity}</Text>
+        </View>
+        <ChevronDown
+          size={16}
+          color={colors.textMuted}
+          strokeWidth={2}
+          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+        />
+      </Pressable>
+
+      {isExpanded && (
+        <View style={styles.carExpand}>
+          {passengers.length > 0 && (
+            <View style={{ marginBottom: spacing.sm }}>
+              {passengers.map((p) => (
+                <View key={p.id} style={styles.passengerRow}>
+                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} />
+                  <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
+                  <Text style={styles.passengerTag}>{t('transport.passenger')}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {isMyCar ? (
+            <Pressable style={styles.actionBtnSecondary} onPress={onEditMyCar}>
+              <Text style={styles.actionBtnSecondaryText}>{t('transport.edit')}</Text>
+            </Pressable>
+          ) : hasMySeatHere ? (
+            <Pressable style={styles.actionBtnDanger} onPress={onCancelSeatPress}>
+              <Text style={styles.actionBtnDangerText}>{t('transport.cancelMySeat')}</Text>
+            </Pressable>
+          ) : hasPendingHere ? (
+            <View style={[styles.actionBtnSecondary, { opacity: 0.6 }]}>
+              <Text style={styles.actionBtnSecondaryText}>{t('transport.requestPending')}</Text>
+            </View>
+          ) : canRequest ? (
+            <Pressable style={styles.actionBtnPrimary} onPress={onRequestPress}>
+              <Text style={styles.actionBtnPrimaryText}>{t('transport.reserve', { count: free })}</Text>
+            </Pressable>
+          ) : free === 0 ? (
+            <View style={[styles.actionBtnSecondary, { opacity: 0.5 }]}>
+              <Text style={styles.actionBtnSecondaryText}>{t('transport.full')}</Text>
+            </View>
+          ) : null}
+        </View>
+      )}
+    </View>
+  );
+}
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
   section: { marginBottom: spacing.lg },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  sectionTitle: {
-    color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold',
-    letterSpacing: 0.8, textTransform: 'uppercase',
+
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
-  editLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600' },
+  freeSeatsLabel: {
+    color: colors.textSecondary, fontSize: fontSizes.xs - 2, fontWeight: 'bold',
+    letterSpacing: 1.4, textTransform: 'uppercase',
+  },
+  headerCta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  headerCtaText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '600' },
+
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.sm },
+  filterPill: {
+    backgroundColor: 'transparent',
+    borderWidth: 1, borderColor: colors.line,
+    borderRadius: radius.full,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  filterPillActive: { backgroundColor: colors.surfaceAlt, borderColor: colors.surfaceAlt },
+  filterPillText: { color: colors.textSecondary, fontSize: 11, fontWeight: '500' },
+  filterPillTextActive: { color: colors.textPrimary },
+
+  emptyBox: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    padding: spacing.md, alignItems: 'center',
+  },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
-  group: { marginBottom: spacing.sm },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
-  groupLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  groupCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  participantRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: spacing.xs, paddingLeft: spacing.lg,
+
+  carRow: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.line,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
   },
-  participantName: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
-  fromCity: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  seatsBadge: {
-    color: colors.cta, fontSize: fontSizes.xs, fontWeight: 'bold',
-    backgroundColor: colors.cta + '20', borderRadius: radius.full,
-    paddingHorizontal: spacing.xs, paddingVertical: 2,
+  carRowHighlighted: { borderColor: colors.cta, borderWidth: 1.5 },
+
+  carHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm + 4,
   },
-  requestSeatBtn: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
-    paddingHorizontal: spacing.sm, paddingVertical: 4,
+  carAvatarWrap: { position: 'relative' },
+  carBadge: {
+    position: 'absolute', bottom: -2, right: -2,
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: colors.cta,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: colors.background,
   },
-  requestSeatText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
-  requestSentLabel: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontStyle: 'italic' },
-  cancelSeatBtn: {
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: colors.error + '20', alignItems: 'center', justifyContent: 'center',
+  carNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  carName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  myTag: {
+    backgroundColor: colors.cta,
+    paddingHorizontal: 5, paddingVertical: 1,
+    borderRadius: 3,
+  },
+  myTagText: {
+    color: '#FFFFFF', fontSize: 9, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 0.6,
+  },
+  carMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  carFrom: { color: colors.textSecondary, fontSize: 11 },
+
+  seatsCluster: { alignItems: 'flex-end', gap: 3 },
+  pipsRow: { flexDirection: 'row', gap: 3 },
+  pip: { width: 7, height: 7, borderRadius: 3.5 },
+  pipFilled: { backgroundColor: colors.cta },
+  pipEmpty: { backgroundColor: colors.line },
+  seatsCount: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
+
+  carExpand: {
+    paddingHorizontal: spacing.sm + 4, paddingTop: spacing.sm, paddingBottom: spacing.sm + 4,
+    borderTopWidth: 1, borderTopColor: colors.line, borderStyle: 'dashed',
   },
   passengerRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-    paddingLeft: spacing.lg + spacing.md, paddingVertical: 2,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: 4, paddingLeft: spacing.sm,
   },
-  passengerLine: { width: 1, height: 16, backgroundColor: colors.textSecondary, opacity: 0.3, marginRight: spacing.xs },
-  passengerName: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  passengerName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, flex: 1 },
+  passengerTag: { color: colors.textMuted, fontSize: 10 },
+
+  actionBtnPrimary: {
+    backgroundColor: colors.cta, borderRadius: radius.sm,
+    height: 36, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
+
+  actionBtnDanger: {
+    backgroundColor: 'transparent', borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.error,
+    height: 36, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBtnDangerText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
+
+  actionBtnSecondary: {
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.line,
+    height: 36, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBtnSecondaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+
+  othersSection: {
+    marginTop: spacing.md, paddingTop: spacing.sm,
+    borderTopWidth: 1, borderTopColor: colors.line, borderStyle: 'dashed',
+  },
+  othersTitle: {
+    color: colors.textMuted, fontSize: fontSizes.xs - 2, fontWeight: 'bold',
+    letterSpacing: 1.4, textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
+  otherRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,
+    paddingVertical: 5,
+  },
+  otherName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1 },
+  otherType: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  otherFrom: { color: colors.textMuted, fontSize: fontSizes.xs, flex: 1 },
+
+  // Modals (unchanged structure)
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,

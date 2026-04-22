@@ -16,6 +16,14 @@ export interface ParticipantTransport {
   transport_from_name: string | null;
 }
 
+export interface SeatAssignment {
+  id: string;
+  driver_id: string;
+  requester_id: string;
+  display_name: string;
+  avatar_url: string | null;
+}
+
 export const transportService = {
   setTransport: async (
     activityId: string,
@@ -98,5 +106,27 @@ export const transportService = {
       .order('transport_type' as 'created_at');
     if (error) return [];
     return (data ?? []) as unknown as ParticipantTransport[];
+  },
+
+  getSeatAssignments: async (activityId: string): Promise<SeatAssignment[]> => {
+    const { data: rows } = await supabase
+      .from('seat_requests' as 'participations')
+      .select('id, requester_id, driver_id')
+      .eq('activity_id', activityId)
+      .eq('status' as 'user_id', 'accepted') as unknown as { data: { id: string; requester_id: string; driver_id: string }[] | null };
+    if (!rows || rows.length === 0) return [];
+    const requesterIds = rows.map((r) => r.requester_id);
+    const { data: profiles } = await supabase
+      .from('public_profiles')
+      .select('id, display_name, avatar_url')
+      .in('id', requesterIds);
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+    return rows.map((r) => ({
+      id: r.id,
+      driver_id: r.driver_id,
+      requester_id: r.requester_id,
+      display_name: profileMap.get(r.requester_id)?.display_name ?? '?',
+      avatar_url: profileMap.get(r.requester_id)?.avatar_url ?? null,
+    }));
   },
 };
