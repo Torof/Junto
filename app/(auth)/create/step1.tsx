@@ -9,7 +9,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { LEVELS } from '@/types/activity-form';
+import { getLevelScale } from '@/constants/sport-levels';
 
 export default function CreateStep1() {
   const colors = useColors();
@@ -31,6 +31,7 @@ export default function CreateStep1() {
   });
 
   const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
+  const levelScale = useMemo(() => getLevelScale(selectedSportKey), [selectedSportKey]);
   const isValid = form.sport_id && form.title.length >= 3 && form.level && form.max_participants >= 2;
 
   return (
@@ -43,7 +44,7 @@ export default function CreateStep1() {
         selected={selectedSportKey}
         onSelect={(key) => {
           const sport = sports?.find((s) => s.key === key);
-          if (sport) updateForm({ sport_id: sport.id });
+          if (sport) updateForm({ sport_id: sport.id, level: '' });
         }}
         label={t('create.sport')}
       />
@@ -71,15 +72,20 @@ export default function CreateStep1() {
 
       <Text style={styles.label}>{t('create.level')}</Text>
       <View style={styles.chipRow}>
-        {LEVELS.map((level) => (
+        {levelScale.map((opt) => (
           <Pressable
-            key={level}
-            style={[styles.chip, form.level === level && styles.chipActive]}
-            onPress={() => updateForm({ level })}
+            key={opt.label}
+            style={[styles.chip, form.level === opt.label && styles.chipActive]}
+            onPress={() => updateForm({ level: opt.label })}
           >
-            <Text style={[styles.chipText, form.level === level && styles.chipTextActive]}>
-              {level}
+            <Text style={[styles.chipText, form.level === opt.label && styles.chipTextActive]}>
+              {opt.label}
             </Text>
+            {opt.description && (
+              <Text style={[styles.chipHint, form.level === opt.label && styles.chipHintActive]}>
+                {opt.description}
+              </Text>
+            )}
           </Pressable>
         ))}
       </View>
@@ -124,10 +130,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  chip: { backgroundColor: colors.surface, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, alignItems: 'center' },
   chipActive: { backgroundColor: colors.cta },
-  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   chipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
+  chipHint: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 2 },
+  chipHintActive: { color: colors.textPrimary, opacity: 0.85 },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   counterButton: { backgroundColor: colors.surface, borderRadius: radius.full, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
