@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { wallService } from '@/services/wall-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { useMessageStore } from '@/store/message-store';
 import { UserAvatar } from './user-avatar';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
@@ -27,12 +28,24 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const markWallRead = useMessageStore((s) => s.markWallRead);
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['wall', activityId],
     queryFn: () => wallService.getMessages(activityId),
     refetchInterval: 15000,
   });
+
+  // Auto-scroll to bottom when messages arrive + mark wall as read whenever
+  // the user is on the chat tab (this component only mounts when active).
+  useEffect(() => {
+    if (messages !== undefined) {
+      markWallRead(activityId);
+      const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+      return () => clearTimeout(t);
+    }
+  }, [messages, activityId, markWallRead]);
 
   // Supabase Realtime subscription
   useEffect(() => {
@@ -80,41 +93,45 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>{t('wall.title')}</Text>
-
-      {isLoading ? (
-        <Text style={styles.loadingText}>...</Text>
-      ) : !messages || messages.length === 0 ? (
-        <Text style={styles.emptyText}>{t('wall.empty')}</Text>
-      ) : (
-        <View style={styles.messageList}>
-          {(() => {
+      <ScrollView
+        ref={scrollRef}
+        style={styles.messageScroll}
+        contentContainerStyle={styles.messageScrollContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+      >
+        {isLoading ? (
+          <Text style={styles.loadingText}>...</Text>
+        ) : !messages || messages.length === 0 ? (
+          <Text style={styles.emptyText}>{t('wall.empty')}</Text>
+        ) : (
+          (() => {
             const sides: ('left' | 'right')[] = [];
             messages.forEach((item, i) => {
               if (i === 0) { sides.push('left'); return; }
               sides.push(item.user_id !== messages[i - 1]?.user_id ? (sides[i - 1] === 'left' ? 'right' : 'left') : sides[i - 1]!);
             });
             return messages.map((item, index) => (
-            <View key={item.id} style={[styles.messageRow, sides[index] === 'left' ? styles.messageLeft : styles.messageRight]}>
-              <View style={styles.messageCard}>
-                <View style={styles.messageHeader}>
-                  <Pressable
-                    style={styles.authorLink}
-                    onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
-                    disabled={!item.user_id}
-                  >
-                    <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
-                    <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
-                  </Pressable>
-                  <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+              <View key={item.id} style={[styles.messageRow, sides[index] === 'left' ? styles.messageLeft : styles.messageRight]}>
+                <View style={styles.messageCard}>
+                  <View style={styles.messageHeader}>
+                    <Pressable
+                      style={styles.authorLink}
+                      onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
+                      disabled={!item.user_id}
+                    >
+                      <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
+                      <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
+                    </Pressable>
+                    <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+                  </View>
+                  <Text style={styles.messageContent}>{item.content}</Text>
                 </View>
-                <Text style={styles.messageContent}>{item.content}</Text>
               </View>
-            </View>
-          ));
-          })()}
-        </View>
-      )}
+            ));
+          })()
+        )}
+      </ScrollView>
 
       {isActive && (
         <View style={styles.inputRow}>
@@ -143,7 +160,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
-    marginTop: spacing.lg,
+    flex: 1,
   },
   sectionTitle: {
     color: colors.textSecondary,
@@ -163,8 +180,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textAlign: 'center',
     paddingVertical: spacing.lg,
   },
-  messageList: {
-    maxHeight: 300,
+  messageScroll: {
+    flex: 1,
+  },
+  messageScrollContent: {
+    paddingBottom: spacing.sm,
+    flexGrow: 1,
   },
   messageRow: {
     flexDirection: 'row',
@@ -225,8 +246,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
     gap: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
   input: {
     flex: 1,

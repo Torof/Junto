@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { Animated, View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -28,16 +28,50 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
 function NotificationTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const rotation = useRef(new Animated.Value(0)).current;
+
   const { data: count } = useQuery({
     queryKey: ['notifications-count'],
     queryFn: () => notificationService.getUnreadCount(),
     refetchInterval: 30000,
   });
 
+  const hasUnread = (count ?? 0) > 0;
+
+  useEffect(() => {
+    if (!hasUnread || focused) {
+      rotation.setValue(0);
+      return;
+    }
+    const wiggle = () => {
+      Animated.sequence([
+        Animated.timing(rotation, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotation, { toValue: -1, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotation, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotation, { toValue: -1, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotation, { toValue: 0, duration: 80, useNativeDriver: true }),
+      ]).start();
+    };
+    wiggle();
+    const interval = setInterval(wiggle, 4000);
+    return () => clearInterval(interval);
+  }, [hasUnread, focused, rotation]);
+
+  const rotate = rotation.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ['-15deg', '0deg', '15deg'],
+  });
+
   return (
     <View style={styles.bellContainer}>
-      <Bell size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
-      {(count ?? 0) > 0 && (
+      <Animated.View style={{ transform: [{ rotate }] }}>
+        <Bell
+          size={26}
+          color={focused ? colors.cta : (hasUnread ? colors.cta : colors.textSecondary)}
+          strokeWidth={focused ? 2.4 : 2}
+        />
+      </Animated.View>
+      {hasUnread && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count! > 99 ? '99+' : count}</Text>
         </View>
@@ -122,7 +156,6 @@ export default function TabsLayout() {
         name="notifications"
         options={{
           title: t('tabs.notifications'),
-          href: null,
           tabBarIcon: ({ focused }) => <NotificationTabIcon focused={focused} />,
         }}
       />

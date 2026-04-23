@@ -9,7 +9,11 @@ interface MessageStore {
   loadReadState: () => Promise<void>;
   markConversationRead: (conversationId: string) => void;
   isConversationUnread: (conversationId: string, lastMessageAt: string | null, lastSenderId: string | null, currentUserId: string | undefined) => boolean;
+  markWallRead: (activityId: string) => void;
+  getWallReadAt: (activityId: string) => string | null;
 }
+
+const wallKey = (activityId: string) => `wall:${activityId}`;
 
 export const useMessageStore = create<MessageStore>((set, get) => ({
   readAt: {},
@@ -40,5 +44,15 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     const readTime = get().readAt[conversationId];
     if (!readTime) return true;
     return lastMessageAt > readTime;
+  },
+
+  markWallRead: (activityId) => {
+    const updated = { ...get().readAt, [wallKey(activityId)]: new Date().toISOString() };
+    set({ readAt: updated });
+    SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(updated)).catch(() => {});
+  },
+
+  getWallReadAt: (activityId) => {
+    return get().readAt[wallKey(activityId)] ?? null;
   },
 }));

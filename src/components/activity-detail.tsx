@@ -29,6 +29,8 @@ import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
 import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
 import { ActivityWall } from './activity-wall';
+import { wallService } from '@/services/wall-service';
+import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
 import { GearSection } from './gear-section';
@@ -75,11 +77,25 @@ export function ActivityDetail({
     queryKey: ['gear-catalog', activity.sport_key],
     queryFn: () => gearService.getCatalog(activity.sport_key),
   });
+  const { data: wallMessages } = useQuery({
+    queryKey: ['wall', activity.id],
+    queryFn: () => wallService.getMessages(activity.id),
+    refetchInterval: 30000,
+  });
+  const wallReadAt = useMessageStore((s) => s.getWallReadAt(activity.id));
 
   const { data: currentUserId } = useQuery({
     queryKey: ['auth-user-id'],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
   });
+
+  const wallUnreadCount = useMemo(() => {
+    if (!wallMessages || !currentUserId) return 0;
+    return wallMessages.filter((m) =>
+      m.user_id !== currentUserId
+      && (!wallReadAt || m.created_at > wallReadAt),
+    ).length;
+  }, [wallMessages, wallReadAt, currentUserId]);
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -404,6 +420,11 @@ export function ActivityDetail({
               {tab === 'organization' && (canCheckIn || (isCreator && isQrAvailable)) && (
                 <View style={styles.tabDot} />
               )}
+              {tab === 'chat' && wallUnreadCount > 0 && activeTab !== 'chat' && (
+                <View style={styles.tabBadge}>
+                  <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
+                </View>
+              )}
             </Pressable>
           ))}
         </View>
@@ -464,9 +485,9 @@ export function ActivityDetail({
               : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
 
             const chips: MetaChip[] = [
+              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('HH:mm')}`, span: 'full' },
               { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
               startChip,
-              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('HH:mm')}`, span: 'full' },
               { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
               { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: `${remaining}/${activity.max_participants}` },
             ];
@@ -653,7 +674,12 @@ export function ActivityDetail({
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={100}>
-          <View style={{ flex: 1, padding: spacing.lg }}>
+          <View style={{
+            flex: 1,
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.lg,
+            paddingBottom: Math.max(spacing.lg, insets.bottom + spacing.xs),
+          }}>
             <ActivityWall
               activityId={activity.id}
               isActive={['published', 'in_progress'].includes(activity.status)}
@@ -776,6 +802,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   tabDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.cta },
+  tabBadge: {
+    backgroundColor: colors.cta, borderRadius: 999,
+    minWidth: 18, height: 18, paddingHorizontal: 5,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  tabBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   presenceReminder: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.cta + '15', borderRadius: radius.md,

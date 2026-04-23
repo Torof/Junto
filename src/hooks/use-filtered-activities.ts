@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useMapStore } from '@/store/map-store';
+import { getLevelScale } from '@/constants/sport-levels';
+
+const OPEN_LEVEL = 'Tous niveaux';
 
 export function useFilteredActivities(activities: NearbyActivity[]): NearbyActivity[] {
   const { filters } = useMapStore();
@@ -31,6 +34,28 @@ export function useFilteredActivities(activities: NearbyActivity[]): NearbyActiv
       });
     }
 
+    // Level tier filter (soft-fail: activities whose level can't be mapped to any
+    // scale option pass through — prevents accidentally hiding activities with
+    // free-form or missing level data)
+    if (filters.levelTiers.length > 0) {
+      filtered = filtered.filter((a) => {
+        if (!a.level || a.level === OPEN_LEVEL) return true;
+        const scale = getLevelScale(a.sport_key);
+        const option = scale.find((o) => o.label === a.level);
+        if (!option?.description) return true; // soft-fail
+        return filters.levelTiers.includes(option.description as typeof filters.levelTiers[number]);
+      });
+    }
+
+    // Visibility filter
+    if (filters.visibilities.length > 0) {
+      filtered = filtered.filter((a) => {
+        if (a.visibility === 'public') return filters.visibilities.includes('public');
+        if (a.visibility === 'approval') return filters.visibilities.includes('approval');
+        return true; // private_link/private_link_approval: not controlled by this filter
+      });
+    }
+
     return filtered;
-  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo]);
+  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities]);
 }

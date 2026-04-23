@@ -331,6 +331,35 @@
     },
     "dateLabel": "Quand",
     "sportLabel": "Sport",
+    "levelLabel": "Niveau",
+    "levelTier": {
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "advanced": "Avancé",
+      "expert": "Expert"
+    },
+    "visibilityLabel": "Visibilité",
+    "visibility": {
+      "public": "Public",
+      "approval": "Sur acceptation"
+    },
+    "tabs": {
+      "filters": "Filtres",
+      "alerts": "Alertes"
+    },
+    "alerts": {
+      "none": "Aucune alerte configurée",
+      "new": "+ Nouvelle alerte",
+      "radius": "Rayon {{km}} km",
+      "sport": "Sport",
+      "allSports": "Tous sports",
+      "deleteConfirm": "Supprimer cette alerte ?",
+      "deleteConfirmText": "Tu ne recevras plus de notifications pour les activités correspondantes.",
+      "deleteConfirmCancel": "Annuler",
+      "deleteConfirmOk": "Supprimer",
+      "deleted": "Alerte supprimée",
+      "premiumOnly": "Les alertes sont une fonctionnalité Premium"
+    },
     "resetFilters": "Réinitialiser",
     "apply": "Appliquer",
     "searchArea": "Rechercher dans cette zone",

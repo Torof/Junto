@@ -28,7 +28,7 @@ export function MetaChipsGrid({ chips }: Props) {
         const Icon = chip.icon;
         return (
           <View key={chip.id} style={[styles.chip, chip.span === 'full' && styles.chipFull]}>
-            <View style={[styles.iconBox, { backgroundColor: chip.accent + '26' }]}>
+            <View style={[styles.iconBox, { backgroundColor: chip.accent + '33' }]}>
               <Icon size={16} color={chip.accent} strokeWidth={2.4} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -62,7 +62,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   label: {
-    color: colors.textMuted, fontSize: 10, fontWeight: '700',
+    color: colors.textSecondary, fontSize: 10, fontWeight: '700',
     textTransform: 'uppercase', letterSpacing: 1,
   },
   value: {

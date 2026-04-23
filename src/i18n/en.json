@@ -331,6 +331,35 @@
     },
     "dateLabel": "When",
     "sportLabel": "Sport",
+    "levelLabel": "Level",
+    "levelTier": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "expert": "Expert"
+    },
+    "visibilityLabel": "Visibility",
+    "visibility": {
+      "public": "Public",
+      "approval": "On approval"
+    },
+    "tabs": {
+      "filters": "Filters",
+      "alerts": "Alerts"
+    },
+    "alerts": {
+      "none": "No alerts configured",
+      "new": "+ New alert",
+      "radius": "Radius {{km}} km",
+      "sport": "Sport",
+      "allSports": "All sports",
+      "deleteConfirm": "Delete this alert?",
+      "deleteConfirmText": "You won't receive notifications for matching activities anymore.",
+      "deleteConfirmCancel": "Cancel",
+      "deleteConfirmOk": "Delete",
+      "deleted": "Alert deleted",
+      "premiumOnly": "Alerts are a Premium feature"
+    },
     "resetFilters": "Reset",
     "apply": "Apply",
     "searchArea": "Search this area",
