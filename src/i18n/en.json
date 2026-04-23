@@ -261,6 +261,29 @@
       "custom": "Other"
     }
   },
+  "organizer": {
+    "badge": "Organizer",
+    "viewAll": "View all",
+    "participantsCount_one": "{{count}} participant",
+    "participantsCount_other": "{{count}} participants",
+    "freeSlots_one": "{{count}} free slot",
+    "freeSlots_other": "{{count}} free slots",
+    "full": "full",
+    "activitiesCreated_one": "{{count}} activity organized",
+    "activitiesCreated_other": "{{count}} activities organized",
+    "noParticipantsYet": "Be the first to join",
+    "modalTitle": "Participants"
+  },
+  "meta": {
+    "level": "Level",
+    "when": "When",
+    "duration": "Duration",
+    "places": "Places",
+    "distance": "Distance",
+    "elevation": "Elev.",
+    "startPoint": "Start",
+    "objective": "Objective"
+  },
   "organisation": {
     "tabs": {
       "transport": "Transport",

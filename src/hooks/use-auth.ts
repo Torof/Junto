@@ -51,12 +51,11 @@ export function useAuth(): AuthState {
         const s = await authService.getSession();
         setSession(s);
         if (s) {
-          try {
-            await checkUserStatus(s.user.id);
-            setSentryUser(s.user.id);
-          } catch {
-            // Swallow — we still know there's a session, render the app
-          }
+          setSentryUser(s.user.id);
+          // Don't block initial render on user-status check — let AuthGate
+          // route based on session, status will arrive shortly and redirect
+          // again if needed.
+          checkUserStatus(s.user.id).catch(() => {});
         }
       } catch {
         // Swallow — render the visitor screen
@@ -67,19 +66,18 @@ export function useAuth(): AuthState {
     })();
 
     const { data: { subscription } } = authService.onAuthStateChange(async (_event, s) => {
-      try {
-        if (s) {
-          await checkUserStatus(s.user.id);
-          setSession(s);
-          setSentryUser(s.user.id);
-        } else {
-          setNeedsOnboarding(false);
-          setIsSuspended(false);
-          setSession(null);
-          setSentryUser(null);
-        }
-      } catch {
-        // Network blip — keep current state
+      if (s) {
+        // Propagate the session synchronously so AuthGate re-renders + routes
+        // immediately. Status check runs in the background and may flip
+        // needsOnboarding/isSuspended, triggering another route evaluation.
+        setSession(s);
+        setSentryUser(s.user.id);
+        checkUserStatus(s.user.id).catch(() => {});
+      } else {
+        setNeedsOnboarding(false);
+        setIsSuspended(false);
+        setSession(null);
+        setSentryUser(null);
       }
     });
 

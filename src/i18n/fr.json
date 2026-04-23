@@ -261,6 +261,29 @@
       "custom": "Autres"
     }
   },
+  "organizer": {
+    "badge": "Organisateur",
+    "viewAll": "Voir tous",
+    "participantsCount_one": "{{count}} participant",
+    "participantsCount_other": "{{count}} participants",
+    "freeSlots_one": "{{count}} place libre",
+    "freeSlots_other": "{{count}} places libres",
+    "full": "complet",
+    "activitiesCreated_one": "{{count}} sortie organisée",
+    "activitiesCreated_other": "{{count}} sorties organisées",
+    "noParticipantsYet": "Soyez le premier à rejoindre",
+    "modalTitle": "Participants"
+  },
+  "meta": {
+    "level": "Niveau",
+    "when": "Quand",
+    "duration": "Durée",
+    "places": "Places",
+    "distance": "Distance",
+    "elevation": "D+",
+    "startPoint": "Départ",
+    "objective": "Objectif"
+  },
   "organisation": {
     "tabs": {
       "transport": "Transport",

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import { Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/use-theme';
@@ -48,52 +48,61 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
-      <Text style={styles.title}>{t('app.name')}</Text>
-      <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.email')}
-        placeholderTextColor={colors.textSecondary}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.password')}
-        placeholderTextColor={colors.textSecondary}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoComplete={isRegister ? 'new-password' : 'current-password'}
-      />
-
-      <Pressable
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={isLoading}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
-        <Text style={styles.buttonText}>
-          {isLoading ? '...' : isRegister ? t('auth.register') : t('auth.login')}
-        </Text>
-      </Pressable>
+        <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
+        <Text style={styles.title}>{t('app.name')}</Text>
+        <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
 
-      <Pressable onPress={() => setIsRegister(!isRegister)}>
-        <Text style={styles.toggleText}>
-          {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
-        </Text>
-      </Pressable>
-    </ScrollView>
+        <TextInput
+          style={styles.input}
+          placeholder={t('auth.email')}
+          placeholderTextColor={colors.textSecondary}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          returnKeyType="next"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder={t('auth.password')}
+          placeholderTextColor={colors.textSecondary}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete={isRegister ? 'new-password' : 'current-password'}
+          returnKeyType="done"
+          onSubmitEditing={handleSubmit}
+        />
+
+        <Pressable
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? '...' : isRegister ? t('auth.register') : t('auth.login')}
+          </Text>
+        </Pressable>
+
+        <Pressable onPress={() => setIsRegister(!isRegister)}>
+          <Text style={styles.toggleText}>
+            {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

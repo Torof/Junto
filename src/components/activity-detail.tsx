@@ -9,7 +9,7 @@ import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -26,6 +26,8 @@ import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/uti
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView, type MapPin } from './map-view';
 import { ParticipantList } from './participant-list';
+import { OrganizerCard } from './organizer-card';
+import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
 import { ActivityWall } from './activity-wall';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
@@ -345,6 +347,7 @@ export function ActivityDetail({
 
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const [orgSubTab, setOrgSubTab] = useState<OrganisationSubTab>('transport');
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
   const isFull = remaining <= 0;
@@ -409,24 +412,24 @@ export function ActivityDetail({
       {/* ===== INFO TAB ===== */}
       {(!showTabs || activeTab === 'info') && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
-            <Text style={styles.sport}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-            <View style={styles.visibilityBadge}>
+          <View style={styles.headerPills}>
+            <View style={styles.sportPill}>
+              <Text style={styles.sportPillIcon}>{getSportIcon(activity.sport_key)}</Text>
+              <Text style={styles.sportPillText}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+            </View>
+            <View style={styles.visibilityPill}>
               {activity.visibility === 'public' ? (
-                <Globe size={12} color={colors.textSecondary} strokeWidth={2} />
+                <Globe size={11} color={colors.cta} strokeWidth={2.2} />
               ) : activity.visibility === 'approval' ? (
-                <Hand size={12} color={colors.textSecondary} strokeWidth={2} />
+                <Hand size={11} color={colors.cta} strokeWidth={2.2} />
               ) : (
-                <Lock size={12} color={colors.textSecondary} strokeWidth={2} />
+                <Lock size={11} color={colors.cta} strokeWidth={2.2} />
               )}
-              <Text style={styles.visibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
+              <Text style={styles.visibilityPillText}>{t(`create.visibility.${activity.visibility}`)}</Text>
             </View>
           </View>
 
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{activity.title}</Text>
-          </View>
+          <Text style={styles.titleLarge}>{activity.title}</Text>
 
           {!isActive && (
             <View style={styles.inactiveBanner}>
@@ -444,44 +447,37 @@ export function ActivityDetail({
             </View>
           )}
 
-          <View style={styles.infoGrid}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('activity.level')}</Text>
-              <Text style={styles.infoValue}>{activity.level}</Text>
-            </View>
-            {activity.start_name && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('create.startPoint')}</Text>
-                <Text style={styles.infoValue}>{activity.start_name}</Text>
-              </View>
-            )}
-            {activity.distance_km != null && activity.distance_km > 0 && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('create.distance')}</Text>
-                <Text style={styles.infoValue}>{Number(activity.distance_km).toLocaleString('fr-FR')} km</Text>
-              </View>
-            )}
-            {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('create.elevation')}</Text>
-                <Text style={styles.infoValue}>{activity.elevation_gain_m.toLocaleString('fr-FR')} m</Text>
-              </View>
-            )}
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('activity.starts')}</Text>
-              <Text style={styles.infoValue}>
-                {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} {t('activity.at')} {dayjs(activity.starts_at).format('HH:mm')}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('activity.duration')}</Text>
-              <Text style={styles.infoValue}>{formatDuration(activity.duration)}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('activity.placesLabel')}</Text>
-              <Text style={styles.infoValue}>{remaining}</Text>
-            </View>
-          </View>
+          <OrganizerCard
+            activityId={activity.id}
+            creatorId={activity.creator_id}
+            creatorName={activity.creator_name}
+            creatorAvatar={activity.creator_avatar}
+            maxParticipants={activity.max_participants}
+            onOpenAll={() => setShowParticipantsModal(true)}
+          />
+
+          {(() => {
+            const startChip: MetaChip = activity.start_name
+              ? { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: activity.start_name }
+              : activity.objective_name
+              ? { id: 'objective', icon: Flag, accent: '#F5A623', label: t('meta.objective'), value: activity.objective_name }
+              : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
+
+            const chips: MetaChip[] = [
+              { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
+              startChip,
+              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('HH:mm')}`, span: 'full' },
+              { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
+              { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: `${remaining}/${activity.max_participants}` },
+            ];
+            if (activity.distance_km != null && activity.distance_km > 0) {
+              chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
+            }
+            if (activity.elevation_gain_m != null && activity.elevation_gain_m > 0) {
+              chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
+            }
+            return <MetaChipsGrid chips={chips} />;
+          })()}
 
           {/* Transport summary — cars only, seats + cities */}
           {(() => {
@@ -523,16 +519,6 @@ export function ActivityDetail({
               </Pressable>
             </View>
           )}
-
-          <ParticipantList
-            activityId={activity.id}
-            activityTitle={activity.title}
-            isCreator={isCreator}
-            creatorId={activity.creator_id}
-            creatorName={activity.creator_name}
-            creatorAvatar={activity.creator_avatar}
-            onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
-          />
 
           {/* Presence reminder banner on Info tab */}
           {canCheckIn && !alreadyConfirmed && (
@@ -743,6 +729,34 @@ export function ActivityDetail({
           </Pressable>
         </Modal>
       )}
+
+      {/* Participants modal (from organizer card tap) */}
+      <Modal
+        visible={showParticipantsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowParticipantsModal(false)}
+      >
+        <SafeAreaView style={styles.participantsModalRoot}>
+          <View style={styles.participantsModalHeader}>
+            <Text style={styles.participantsModalTitle}>{t('organizer.modalTitle')}</Text>
+            <Pressable onPress={() => setShowParticipantsModal(false)} hitSlop={10}>
+              <XIcon size={22} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.lg }}>
+            <ParticipantList
+              activityId={activity.id}
+              activityTitle={activity.title}
+              isCreator={isCreator}
+              creatorId={activity.creator_id}
+              creatorName={activity.creator_name}
+              creatorAvatar={activity.creator_avatar}
+              onProfilePress={!isAuthenticated ? () => onJoinRedirect?.() : undefined}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
@@ -779,6 +793,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
+  headerPills: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,
+    marginBottom: spacing.sm + 2,
+  },
+  sportPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.line,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 2, paddingVertical: 5,
+  },
+  sportPillIcon: { fontSize: 14 },
+  sportPillText: {
+    color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  visibilityPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: colors.cta + '26',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm, paddingVertical: 4,
+  },
+  visibilityPillText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600' },
+  titleLarge: {
+    color: colors.textPrimary, fontSize: fontSizes.xxl - 4, fontWeight: '800',
+    letterSpacing: -0.5, lineHeight: 32,
+    marginBottom: spacing.md,
+  },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
   visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
@@ -786,6 +828,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   separator: { height: 1, backgroundColor: colors.surface, marginVertical: spacing.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
+  participantsModalRoot: { flex: 1, backgroundColor: colors.background },
+  participantsModalHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    borderBottomWidth: 1, borderBottomColor: colors.line,
+  },
+  participantsModalTitle: {
+    color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '700',
+  },
   inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
   pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
