@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, radius, spacing } from '@/constants/theme';
-import { useColors } from '@/hooks/use-theme';
+import { useColors, useResolvedTheme } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
 interface Props {
@@ -12,7 +12,8 @@ interface Props {
 export function ActivityDescription({ description }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const theme = useResolvedTheme();
+  const styles = useMemo(() => createStyles(colors, theme), [colors, theme]);
 
   if (!description) return null;
 
@@ -25,9 +26,9 @@ export function ActivityDescription({ description }: Props) {
   );
 }
 
-const createStyles = (colors: AppColors) => StyleSheet.create({
+const createStyles = (colors: AppColors, theme: 'dark' | 'light') => StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
+    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.line,
