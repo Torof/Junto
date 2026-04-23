@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, radius, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -26,7 +26,14 @@ export function ActivityDescription({ description }: Props) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: { marginBottom: spacing.lg },
+  container: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
   title: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
