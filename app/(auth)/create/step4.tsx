@@ -43,6 +43,7 @@ export default function CreateStep4() {
         location_objective: form.location_objective ?? undefined,
         objective_name: form.objective_name || undefined,
         start_name: form.start_name || undefined,
+        trace_geojson: form.trace_geojson ?? undefined,
         starts_at: form.starts_at,
         duration_hours: form.duration_hours,
         duration_minutes: form.duration_minutes,

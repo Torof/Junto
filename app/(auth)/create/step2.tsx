@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useColors } from '@/hooks/use-theme';
@@ -11,6 +13,7 @@ import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 
 export default function CreateStep2() {
   const colors = useColors();
@@ -22,6 +25,39 @@ export default function CreateStep2() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | 'objective' | null>('meeting');
+  const [isLoadingTrace, setIsLoadingTrace] = useState(false);
+
+  const handlePickTrace = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const file = result.assets[0];
+      if (!file) return;
+      if (file.size != null && file.size > 5 * 1024 * 1024) {
+        Alert.alert(t('create.traceTooLarge'));
+        return;
+      }
+      setIsLoadingTrace(true);
+      const xml = await new File(file.uri).text();
+      const geojson = parseGpxToGeoJson(xml);
+      updateForm({ trace_geojson: geojson });
+    } catch (err) {
+      if (err instanceof GpxParseError) {
+        Alert.alert(t('create.traceParseError'), err.message);
+      } else {
+        Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+      }
+    } finally {
+      setIsLoadingTrace(false);
+    }
+  };
+
+  const handleClearTrace = () => {
+    updateForm({ trace_geojson: null });
+  };
 
   const handleMapPress = (lng: number, lat: number) => {
     if (placingPin === 'start') {
@@ -57,6 +93,9 @@ export default function CreateStep2() {
           onMapPress={handleMapPress}
           pins={pins}
           routeLine={(() => {
+            if (form.trace_geojson) {
+              return form.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
+            }
             const start = form.location_start ?? form.location_meeting;
             if (start && form.location_end) return [[start.lng, start.lat], [form.location_end.lng, form.location_end.lat]] as [number, number][];
             return undefined;
@@ -127,6 +166,27 @@ export default function CreateStep2() {
             onChangeText={(text) => updateForm({ objective_name: text })}
             maxLength={100}
           />
+        )}
+
+        {form.trace_geojson ? (
+          <View style={styles.traceSetRow}>
+            <Text style={styles.traceSetText}>
+              {t('create.traceSet', { count: form.trace_geojson.coordinates.length })}
+            </Text>
+            <Pressable onPress={handleClearTrace} hitSlop={8}>
+              <Text style={styles.traceClearText}>{t('create.traceRemove')}</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.traceButton, isLoadingTrace && { opacity: 0.5 }]}
+            onPress={handlePickTrace}
+            disabled={isLoadingTrace}
+          >
+            <Text style={styles.traceButtonText}>
+              {isLoadingTrace ? t('create.traceLoading') : '📍 ' + t('create.traceImport')}
+            </Text>
+          </Pressable>
         )}
 
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
@@ -216,4 +276,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  traceButton: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    borderWidth: 1, borderStyle: 'dashed', borderColor: colors.cta,
+    paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md,
+  },
+  traceButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
+  traceSetRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.cta + '15',
+    borderWidth: 1, borderColor: colors.cta,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  traceSetText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  traceClearText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
 });

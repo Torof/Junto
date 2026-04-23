@@ -34,6 +34,13 @@ export const activityFormSchema = z.object({
     .optional(),
   objective_name: z.string().max(100).optional(),
   start_name: z.string().max(100).optional(),
+  trace_geojson: z
+    .object({
+      type: z.literal('LineString'),
+      coordinates: z.array(z.array(z.number()).min(2).max(3)).min(2).max(10000),
+    })
+    .nullable()
+    .optional(),
   starts_at: z.date().refine((d) => d > new Date(), 'Must be in the future'),
   duration_hours: z.number().min(0).max(24),
   duration_minutes: z.number().min(0).max(59),

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { GeoJsonLineString } from '@/services/activity-service';
 
 interface CreateFormState {
   sport_id: string;
@@ -14,6 +15,7 @@ interface CreateFormState {
   location_objective: { lng: number; lat: number } | null;
   objective_name: string;
   start_name: string;
+  trace_geojson: GeoJsonLineString | null;
   starts_at: Date | null;
   duration_hours: number;
   duration_minutes: number;
@@ -41,6 +43,7 @@ const DEFAULT_FORM: CreateFormState = {
   location_objective: null,
   objective_name: '',
   start_name: '',
+  trace_geojson: null,
   starts_at: null,
   duration_hours: 2,
   duration_minutes: 0,

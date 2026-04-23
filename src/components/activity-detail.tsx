@@ -34,6 +34,7 @@ import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { TransportSection } from './transport-section';
 import { GearSection } from './gear-section';
+import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
@@ -399,9 +400,11 @@ export function ActivityDetail({
   const mapCenter: [number, number] = [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2];
   const mapSpread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
   const mapZoom = mapSpread > 0.1 ? 10 : mapSpread > 0.01 ? 12 : 14;
-  const mapRouteLine = activity.end_lng && activity.end_lat && activity.start_lng && activity.start_lat
-    ? [[activity.start_lng, activity.start_lat], [activity.end_lng, activity.end_lat]] as [number, number][]
-    : undefined;
+  const mapRouteLine: [number, number][] | undefined = activity.trace_geojson
+    ? activity.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number])
+    : activity.end_lng && activity.end_lat && activity.start_lng && activity.start_lat
+      ? [[activity.start_lng, activity.start_lat], [activity.end_lng, activity.end_lat]]
+      : undefined;
 
   return (
     <View style={styles.container}>
@@ -524,12 +527,7 @@ export function ActivityDetail({
             );
           })()}
 
-          {activity.description ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t('activity.description')}</Text>
-              <Text style={styles.description}>{activity.description}</Text>
-            </View>
-          ) : null}
+          <ActivityDescription description={activity.description} />
 
           {showTabs && (
             <View style={styles.section}>
@@ -884,7 +882,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
-  description: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   mapContainer: {
     height: 200, borderRadius: radius.lg, overflow: 'hidden',
     elevation: 3, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,

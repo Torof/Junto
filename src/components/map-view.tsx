@@ -210,12 +210,9 @@ export function JuntoMapView({
         >
           <Mapbox.LineLayer
             id="route-line-layer"
-            style={{
-              lineColor: '#FFFFFF',
-              lineWidth: 2,
-              lineDasharray: [4, 3],
-              lineOpacity: 0.7,
-            }}
+            style={routeLine.length > 2
+              ? { lineColor: '#F4642A', lineWidth: 3.5, lineOpacity: 0.9, lineJoin: 'round', lineCap: 'round' }
+              : { lineColor: '#FFFFFF', lineWidth: 2, lineDasharray: [4, 3], lineOpacity: 0.7 }}
           />
         </Mapbox.ShapeSource>
       )}
