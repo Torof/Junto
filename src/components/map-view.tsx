@@ -18,7 +18,7 @@ if (!MAPBOX_TOKEN) {
 Mapbox.setAccessToken(MAPBOX_TOKEN);
 Mapbox.setTelemetryEnabled(false);
 
-const OUTDOORS_STYLE = 'mapbox://styles/mapbox/outdoors-v12';
+import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
 
@@ -76,10 +76,12 @@ export function JuntoMapView({
   flyTo,
 }: MapViewProps) {
   const colors = useColors();
+  const mapStyleKey = useMapStyleStore((s) => s.style);
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
+  const lastCamera = useRef<{ center: [number, number]; zoom: number } | null>(null);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Follow `center` prop updates (e.g. GPS resolved after initial mount).
@@ -165,17 +167,44 @@ export function JuntoMapView({
     const neLat = ne[1] ?? 90;
     setBounds([swLng, swLat, neLng, neLat]);
     const center = state.properties.center;
+    const cLng = center[0] ?? 0;
+    const cLat = center[1] ?? 0;
+    lastCamera.current = { center: [cLng, cLat], zoom: state.properties.zoom };
     onBoundsChange?.({
       swLng, swLat, neLng, neLat,
-      centerLng: center[0] ?? 0,
-      centerLat: center[1] ?? 0,
+      centerLng: cLng,
+      centerLat: cLat,
     });
   }, [onBoundsChange]);
 
-  return (
+  // Keep the latest user GPS / center / zoom in a ref so the style-change
+  // effect below can read them without firing on every location update.
+  const fallbackRef = useRef<{ center: [number, number]; zoom: number }>({ center, zoom });
+  useEffect(() => {
+    fallbackRef.current = { center: userLocation ?? center, zoom };
+  }, [userLocation, center, zoom]);
+
+  // On style change, the underlying GL context reloads and the camera may
+  // snap back to defaults (lat/lng 0 = gulf of Guinea). Restore the last
+  // known camera; if we never moved the camera yet, fall back to the user's
+  // GPS location (or the initial center prop).
+  useEffect(() => {
+    const saved = lastCamera.current ?? fallbackRef.current;
+    const t = setTimeout(() => {
+      cameraRef.current?.setCamera({
+        centerCoordinate: saved.center,
+        zoomLevel: saved.zoom,
+        animationDuration: 0,
+      });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [mapStyleKey]);
+
+  const mapView = (
     <Mapbox.MapView
       style={styles.map}
-      styleURL={OUTDOORS_STYLE}
+      styleURL={MAP_STYLE_JSONS[mapStyleKey] ? undefined : MAP_STYLE_URLS[mapStyleKey]}
+      styleJSON={MAP_STYLE_JSONS[mapStyleKey]}
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled
@@ -333,11 +362,37 @@ export function JuntoMapView({
       })()}
     </Mapbox.MapView>
   );
+
+  const attribution = MAP_STYLE_ATTRIBUTIONS[mapStyleKey];
+  if (attribution) {
+    return (
+      <View style={styles.mapWrapper}>
+        {mapView}
+        <View style={styles.attributionPill} pointerEvents="none">
+          <Text style={styles.attributionText}>{attribution}</Text>
+        </View>
+      </View>
+    );
+  }
+  return mapView;
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   map: {
     flex: 1,
+  },
+  mapWrapper: { flex: 1 },
+  attributionPill: {
+    position: 'absolute',
+    bottom: 4, left: 4,
+    paddingHorizontal: 6, paddingVertical: 2,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 4,
+  },
+  attributionText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '500',
   },
   tapMarker: {
     color: colors.error,

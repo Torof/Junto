@@ -12,13 +12,13 @@ import type { AppColors } from '@/constants/colors';
 import { userService } from '@/services/user-service';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
+import { endorsementService } from '@/services/endorsement-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useLayoutEffect, useState, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { UserAvatar } from '@/components/user-avatar';
-import { ReliabilityRing } from '@/components/reliability-ring';
+import { ProfileHero } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportIconGrid } from '@/components/sport-icon-grid';
 import { ReportModal } from '@/components/report-modal';
@@ -81,6 +81,12 @@ export default function PublicProfileScreen() {
   const { data: trophies } = useQuery({
     queryKey: ['trophies', id],
     queryFn: () => badgeService.getUserTrophies(id ?? ''),
+    enabled: !!id,
+  });
+
+  const { data: sportEndorsements } = useQuery({
+    queryKey: ['sport-endorsements', id],
+    queryFn: () => endorsementService.getForUser(id ?? ''),
     enabled: !!id,
   });
 
@@ -161,48 +167,23 @@ export default function PublicProfileScreen() {
   return (
     <View style={{ flex: 1 }}>
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, participationId && !requestHandled && { paddingBottom: 120 }]}>
-      {/* Hero row: avatar with ring + stats */}
-      <View style={styles.heroRow}>
-        <ReliabilityRing score={stats?.reliability_score ?? null} size={110}>
-          <UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} size={110} />
-        </ReliabilityRing>
+      <ProfileHero
+        displayName={profile.display_name}
+        avatarUrl={profile.avatar_url}
+        reliabilityPct={stats?.reliability_score ?? null}
+        stats={stats ?? null}
+        joinedAt={profile.created_at ?? null}
+      />
 
-        <View style={styles.statsColumn}>
-          <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
-          <View style={styles.statsCard}>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.completed')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.created')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
-                <Text style={styles.statLabel}>{t('profil.joined')}</Text>
-              </View>
-            </View>
-          </View>
-          {profile.created_at && (
-            <Text style={styles.memberSince}>
-              {t('profil.memberSince', { date: dayjs(profile.created_at).locale(i18n.language).format('MMM YYYY') })}
-            </Text>
-          )}
-        </View>
-      </View>
+      <BadgeDisplay
+        reputation={reputation ?? []}
+        trophies={trophies ?? []}
+        completedCount={stats?.completed_activities}
+        createdCount={stats?.created_activities}
+        showLocked={false}
+      />
 
-      {/* Sports icon grid */}
-      <SportIconGrid rows={sportBreakdown ?? []} />
-
-      {/* Badges */}
-      <View style={styles.badgesSection}>
-        <Text style={[styles.sectionTitle, { marginBottom: spacing.md }]}>{t('profil.badgesSection')}</Text>
-        <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
-      </View>
+      <SportIconGrid rows={sportBreakdown ?? []} endorsements={sportEndorsements ?? []} />
 
       {/* Primary action — send message (on other people's profile) */}
       {!isOwnProfile && (
@@ -326,56 +307,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
-  heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  statsColumn: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  statsCardTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  statsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xs,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  stat: { alignItems: 'center', flex: 1 },
-  statDivider: { width: 1, height: 28, backgroundColor: colors.textSecondary, opacity: 0.2 },
-  statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  memberSince: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs - 1,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    opacity: 0.7,
-  },
-  sectionTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  badgesSection: { marginBottom: spacing.lg, marginTop: -spacing.xs },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
     backgroundColor: colors.cta, borderRadius: radius.full,

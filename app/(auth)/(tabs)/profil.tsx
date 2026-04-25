@@ -13,12 +13,12 @@ import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
-import { ReliabilityRing } from '@/components/reliability-ring';
-import { UserAvatar } from '@/components/user-avatar';
+import { endorsementService } from '@/services/endorsement-service';
+import { ProfileHero } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportIconGrid } from '@/components/sport-icon-grid';
 import { SportsLevelEditor } from '@/components/sports-level-editor';
-import { Camera, Plus, BadgeCheck, Pencil } from 'lucide-react-native';
+import { BadgeCheck, Pencil } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
 // Lazy import — native module not available until dev build
@@ -108,6 +108,12 @@ export default function ProfilScreen() {
     enabled: !!userId,
   });
 
+  const { data: sportEndorsements } = useQuery({
+    queryKey: ['sport-endorsements', userId],
+    queryFn: () => endorsementService.getForUser(userId ?? ''),
+    enabled: !!userId,
+  });
+
   const handleSaveSports = async (sports: string[], levelsPerSport: Record<string, string>) => {
     setIsSavingSports(true);
     try {
@@ -142,62 +148,28 @@ export default function ProfilScreen() {
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Hero row: avatar + stats */}
-        <View style={styles.heroRow}>
-          <Pressable onPress={handleAvatarPress} disabled={uploading} style={uploading && styles.uploading}>
-            <ReliabilityRing score={user?.reliability_score ?? null} size={110}>
-              {user?.avatar_url ? (
-                <UserAvatar name={user?.display_name ?? '?'} avatarUrl={user.avatar_url} size={110} />
-              ) : (
-                <View style={styles.uploadPlaceholder}>
-                  <Camera size={36} color={colors.textSecondary} strokeWidth={2} />
-                  <View style={styles.plusBadge}>
-                    <Plus size={14} color={colors.textPrimary} strokeWidth={3} />
-                  </View>
-                </View>
-              )}
-            </ReliabilityRing>
-          </Pressable>
+        <ProfileHero
+          displayName={user?.display_name ?? ''}
+          avatarUrl={user?.avatar_url ?? null}
+          reliabilityPct={user?.reliability_score ?? null}
+          stats={stats ?? null}
+          joinedAt={user?.created_at ?? null}
+          onAvatarPress={handleAvatarPress}
+          isUploading={uploading}
+        />
 
-          <View style={styles.statsColumn}>
-            <Text style={styles.statsCardTitle}>{t('profil.activities')}</Text>
-            <View style={styles.statsCard}>
-              <View style={styles.statsRow}>
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{stats?.completed_activities ?? 0}</Text>
-                  <Text style={styles.statLabel}>{t('profil.completed')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{stats?.created_activities ?? 0}</Text>
-                  <Text style={styles.statLabel}>{t('profil.created')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{stats?.joined_activities ?? 0}</Text>
-                  <Text style={styles.statLabel}>{t('profil.joined')}</Text>
-                </View>
-              </View>
-            </View>
-            {user?.created_at && (
-              <Text style={styles.memberSince}>
-                {t('profil.memberSince', { date: dayjs(user.created_at).locale(i18n.language).format('MMM YYYY') })}
-              </Text>
-            )}
-          </View>
-        </View>
+        <BadgeDisplay
+          reputation={reputation ?? []}
+          trophies={trophies ?? []}
+          completedCount={stats?.completed_activities}
+          createdCount={stats?.created_activities}
+        />
 
-        {/* Sports icon grid */}
         <SportIconGrid
           rows={sportBreakdown ?? []}
           onEdit={() => setSportsEditorOpen(true)}
+          endorsements={sportEndorsements ?? []}
         />
-
-        {/* Badges */}
-        <View style={styles.badgesSection}>
-          <Text style={[styles.sectionTitle, { marginBottom: spacing.md }]}>{t('profil.badgesSection')}</Text>
-          <BadgeDisplay reputation={reputation ?? []} trophies={trophies ?? []} />
-        </View>
 
       </ScrollView>
 
@@ -216,78 +188,5 @@ export default function ProfilScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  uploading: { opacity: 0.5 },
-  uploadPlaceholder: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: colors.textSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  plusBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.cta,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
-  statsColumn: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  sectionTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: spacing.xs,
-  },
-  statsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xs,
-  },
-  statsCardTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  stat: { alignItems: 'center', flex: 1 },
-  statDivider: { width: 1, height: 28, backgroundColor: colors.textSecondary, opacity: 0.2 },
-  statNumber: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  statLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  badgesSection: { marginBottom: spacing.lg, marginTop: -spacing.xs },
-  memberSince: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs - 1,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    opacity: 0.7,
-  },
+  content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
 });

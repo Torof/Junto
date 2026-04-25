@@ -1,19 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Pencil } from 'lucide-react-native';
+import { Pencil, Check, AlertTriangle } from 'lucide-react-native';
 import { fontSizes, spacing } from '@/constants/theme';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import type { SportBreakdownRow } from '@/services/user-service';
+import type { SportEndorsement } from '@/services/endorsement-service';
 
 interface Props {
   rows: SportBreakdownRow[];
   onEdit?: () => void;
+  endorsements?: SportEndorsement[];
 }
-
-const LEVEL_KEYS = ['débutant', 'intermédiaire', 'avancé', 'expert'] as const;
 
 const LEVEL_PRIORITY: Record<string, number> = {
   'expert': 4,
@@ -22,152 +22,310 @@ const LEVEL_PRIORITY: Record<string, number> = {
   'débutant': 1,
 };
 
-function sortByLevelThenCount(rows: SportBreakdownRow[]): SportBreakdownRow[] {
-  return [...rows].sort((a, b) => {
-    const levelA = LEVEL_PRIORITY[a.level ?? ''] ?? 0;
-    const levelB = LEVEL_PRIORITY[b.level ?? ''] ?? 0;
-    if (levelB !== levelA) return levelB - levelA;
-    return b.completed_count - a.completed_count;
-  });
+const LEVEL_COLORS: Record<string, string> = {
+  'débutant': '#7EC8A3',
+  'intermédiaire': '#F4A373',
+  'avancé': '#E5524E',
+  'expert': '#9B6BD6',
+};
+
+function sortByCount(rows: SportBreakdownRow[]): SportBreakdownRow[] {
+  return [...rows].sort((a, b) => b.completed_count - a.completed_count);
 }
 
-function getLevelColors(colors: AppColors): Record<string, string> {
-  return {
-    'débutant': colors.success,
-    'intermédiaire': colors.pinMeeting,
-    'avancé': colors.warning,
-    'expert': colors.error,
-  };
-}
-
-const ICON_SIZE = 44;
-
-export function SportIconGrid({ rows, onEdit }: Props) {
+export function SportIconGrid({ rows, onEdit, endorsements = [] }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const levelColors = useMemo(() => getLevelColors(colors), [colors]);
+  const [showAll, setShowAll] = useState(false);
+
+  const endorsementMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    endorsements.forEach((e) => { m[e.sport_key] = e.net_count; });
+    return m;
+  }, [endorsements]);
 
   if (rows.length === 0 && !onEdit) return null;
 
+  const practiced = sortByCount(rows.filter((r) => r.completed_count > 0));
+  const declared = sortByCount(rows.filter((r) => r.completed_count === 0));
+  const visible = showAll ? [...practiced, ...declared] : practiced;
+
   return (
-    <View style={styles.section}>
+    <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>{t('profil.sportsSection')}</Text>
+        <Text style={styles.title}>
+          {t('profil.sportsSection').toUpperCase()} · {rows.length}
+        </Text>
         {onEdit && (
           <Pressable onPress={onEdit} hitSlop={12}>
-            <Pencil size={16} color={colors.textSecondary} strokeWidth={2} />
+            <Pencil size={14} color={colors.textMuted} strokeWidth={2} />
           </Pressable>
         )}
       </View>
+
+
       {rows.length === 0 ? (
-        <Pressable onPress={onEdit}>
+        <Pressable onPress={onEdit} style={styles.emptyWrap}>
           <Text style={styles.emptyText}>{t('profil.noSportsYet')}</Text>
         </Pressable>
       ) : (
         <>
-          <View style={styles.grid}>
-            {sortByLevelThenCount(rows).map((row) => {
-              const borderColor = levelColors[row.level ?? ''] ?? colors.surface;
-              return (
-                <View key={row.sport_key} style={styles.iconWrap}>
-                  <View style={[styles.iconCircle, { borderColor }]}>
-                    <Text style={styles.icon}>{getSportIcon(row.sport_key)}</Text>
-                    {row.completed_count > 0 && (
-                      <View style={styles.countBadge}>
-                        <Text style={styles.countText}>{row.completed_count}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-          <View style={styles.legend}>
-            {LEVEL_KEYS.map((level) => (
-              <View key={level} style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: levelColors[level] }]} />
-                <Text style={styles.legendText}>{t(`profil.level${level === 'débutant' ? 'Beginner' : level === 'intermédiaire' ? 'Intermediate' : level === 'avancé' ? 'Advanced' : 'Expert'}`)}</Text>
-              </View>
-            ))}
-          </View>
+          {visible.length === 0 ? (
+            <Pressable onPress={() => setShowAll(true)} style={styles.emptyWrap}>
+              <Text style={styles.emptyText}>{t('profil.noPracticedYet')}</Text>
+            </Pressable>
+          ) : (
+            visible.map((row, idx) => (
+              <SportRow
+                key={row.sport_key}
+                row={row}
+                endorsementNet={endorsementMap[row.sport_key] ?? 0}
+                isLast={idx === visible.length - 1}
+                styles={styles}
+                colors={colors}
+                t={t}
+              />
+            ))
+          )}
+
+          {declared.length > 0 && (
+            <Pressable onPress={() => setShowAll((v) => !v)} style={styles.moreRow}>
+              <Text style={styles.moreText}>
+                {showAll
+                  ? t('profil.showLess')
+                  : t('profil.seeOtherSports', { count: declared.length, defaultValue: `Voir les ${declared.length} autres →` })}
+              </Text>
+            </Pressable>
+          )}
         </>
       )}
     </View>
   );
 }
 
+function LevelGauge({ level, styles }: { level: string | null | undefined; styles: ReturnType<typeof createStyles> }) {
+  const filled = LEVEL_PRIORITY[level ?? ''] ?? 0;
+  const color = LEVEL_COLORS[level ?? ''] ?? '#7EC8A3';
+  return (
+    <View style={styles.gauge}>
+      {[3, 2, 1, 0].map((idx) => {
+        const isFilled = idx < filled;
+        return (
+          <View
+            key={idx}
+            style={[
+              styles.gaugeSeg,
+              isFilled ? { backgroundColor: color } : styles.gaugeSegEmpty,
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+function SportRow({
+  row, endorsementNet, isLast, styles, colors, t,
+}: {
+  row: SportBreakdownRow;
+  endorsementNet: number;
+  isLast: boolean;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const dimmed = row.completed_count === 0;
+  const showEndorsement = endorsementNet !== 0;
+  const positiveEndorsement = endorsementNet > 0;
+  const endorsementMagnitude = Math.abs(endorsementNet);
+  return (
+    <View style={[styles.sportRow, !isLast && styles.sportRowBorder]}>
+      <LevelGauge level={row.level} styles={styles} />
+      <Text style={styles.emoji}>{getSportIcon(row.sport_key)}</Text>
+      <Text style={styles.sportName} numberOfLines={1}>
+        {t(`sports.${row.sport_key}`, { defaultValue: row.sport_key })}
+      </Text>
+      {showEndorsement && (
+        <View style={[
+          styles.endorsePill,
+          positiveEndorsement ? styles.endorsePillPos : styles.endorsePillNeg,
+        ]}>
+          {positiveEndorsement
+            ? <Check size={10} color="#7EC8A3" strokeWidth={3} />
+            : <AlertTriangle size={10} color="#E5524E" strokeWidth={2.4} />}
+          <Text style={[
+            styles.endorseText,
+            { color: positiveEndorsement ? '#7EC8A3' : '#E5524E' },
+          ]}>×{endorsementMagnitude}</Text>
+        </View>
+      )}
+      <View style={[styles.countPill, dimmed && styles.countPillDimmed]}>
+        <Text style={[styles.countNumber, dimmed && { color: colors.textMuted }]}>
+          {row.completed_count}
+        </Text>
+        <Text style={[styles.countUnit, dimmed && { color: colors.textMuted }]}>
+          {t('profil.activitiesCount', { count: row.completed_count })}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  section: { marginBottom: spacing.lg },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  sectionTitle: {
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    borderWidth: 1, borderColor: colors.line,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: 4,
+    marginBottom: spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: 10,
+    marginBottom: 4,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+
+  emptyWrap: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  emptyText: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
+    fontSize: fontSizes.sm,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+
+  sportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+  },
+  sportRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+    borderStyle: 'dashed',
+  },
+
+  gauge: {
+    width: 5,
+    height: 22,
+    gap: 2,
+    justifyContent: 'flex-end',
+    flexShrink: 0,
+  },
+  gaugeSeg: {
+    height: 4,
+    borderRadius: 1.5,
+  },
+  gaugeSegEmpty: {
+    backgroundColor: colors.line,
+  },
+
+  emoji: {
+    fontSize: 20,
+    lineHeight: 22,
+    width: 24,
+    textAlign: 'center',
+  },
+  sportName: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: 13.5,
+    fontWeight: '700',
+    letterSpacing: -0.01,
+    textTransform: 'capitalize',
+  },
+  endorsePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  endorsePillPos: {
+    backgroundColor: '#7EC8A3' + '18',
+    borderColor: '#7EC8A3' + '4D',
+  },
+  endorsePillNeg: {
+    backgroundColor: '#E5524E' + '18',
+    borderColor: '#E5524E' + '4D',
+  },
+  endorseText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: -0.02,
+  },
+
+  countPill: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+    backgroundColor: colors.cta + '1A',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  countPillDimmed: {
+    backgroundColor: colors.textMuted + '1A',
+    opacity: 0.6,
+  },
+  countNumber: {
+    color: colors.cta,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: -0.02,
+  },
+  countUnit: {
+    color: colors.cta,
+    fontSize: 10.5,
+    fontWeight: '600',
+  },
+
+  legend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  legendGauges: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  legendText: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  emptyText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  iconWrap: {
+
+  moreRow: {
+    paddingVertical: 10,
     alignItems: 'center',
   },
-  iconCircle: {
-    width: ICON_SIZE,
-    height: ICON_SIZE,
-    borderRadius: ICON_SIZE / 2,
-    borderWidth: 2,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    fontSize: 20,
-  },
-  countBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.textPrimary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-    borderWidth: 1.5,
-    borderColor: colors.background,
-  },
-  countText: {
-    color: colors.background,
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  legend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    marginBottom: -spacing.xs,
-    justifyContent: 'flex-start',
-    opacity: 0.8,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
+  moreText: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs - 2,
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
 });

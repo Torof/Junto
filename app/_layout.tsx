@@ -13,6 +13,7 @@ import { useNetworkAwareness } from '@/hooks/use-network';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
+import { useMapStyleStore } from '@/store/map-style-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { useColors } from '@/hooks/use-theme';
@@ -35,10 +36,12 @@ function AuthGate() {
   const [isReady, setIsReady] = useState(false);
   const transitionRan = useRef(false);
   const { loadReadState } = useMessageStore();
+  const loadMapStyle = useMapStyleStore((s) => s.load);
 
   useEffect(() => {
     loadReadState();
-  }, [loadReadState]);
+    loadMapStyle();
+  }, [loadReadState, loadMapStyle]);
 
   useEffect(() => {
     if (isLoading) return;

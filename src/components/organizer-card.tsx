@@ -109,9 +109,9 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cta + '14',
     borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.line,
+    borderWidth: 1, borderColor: colors.cta + '40',
     padding: spacing.md,
     marginBottom: spacing.md,
   },

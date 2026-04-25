@@ -9,12 +9,15 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { participationService } from '@/services/participation-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES } from '@/services/badge-service';
+import { endorsementService } from '@/services/endorsement-service';
+import { activityService } from '@/services/activity-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-const ALL_BADGES = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
+// level_accurate is replaced by per-sport endorsements — hide from the rating flow.
+const DISPLAYED_POSITIVE_BADGES = POSITIVE_BADGES.filter((b) => b.key !== 'level_accurate');
 
 export default function RateParticipantsScreen() {
   const colors = useColors();
@@ -26,6 +29,8 @@ export default function RateParticipantsScreen() {
 
   // Selected badges per user: { [userId]: Set<badgeKey> }
   const [selections, setSelections] = useState<Record<string, Set<string>>>({});
+  // Sport level endorsement per user: true=confirm, false=contest, undefined=skip
+  const [endorsements, setEndorsements] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: currentUserId } = useQuery({
@@ -36,6 +41,18 @@ export default function RateParticipantsScreen() {
   const { data: participants, isLoading } = useQuery({
     queryKey: ['participants', activityId],
     queryFn: () => participationService.getForActivity(activityId ?? ''),
+    enabled: !!activityId,
+  });
+
+  const { data: activity } = useQuery({
+    queryKey: ['activity', activityId],
+    queryFn: () => activityService.getById(activityId ?? ''),
+    enabled: !!activityId,
+  });
+
+  const { data: myEndorsements } = useQuery({
+    queryKey: ['my-endorsements', activityId],
+    queryFn: () => endorsementService.getMyVotesForActivity(activityId ?? ''),
     enabled: !!activityId,
   });
 
@@ -67,12 +84,29 @@ export default function RateParticipantsScreen() {
     }
   }, [isLoading, votesLoading, participants, others.length, router]);
 
+  // Pre-fill endorsements from existing votes
+  useEffect(() => {
+    if (!myEndorsements || myEndorsements.length === 0) return;
+    const initial: Record<string, boolean> = {};
+    for (const e of myEndorsements) initial[e.target_id] = e.is_confirmation;
+    setEndorsements(initial);
+  }, [myEndorsements]);
+
   const toggleBadge = (userId: string, badgeKey: string) => {
     setSelections((prev) => {
       const userSet = new Set(prev[userId] ?? []);
       if (userSet.has(badgeKey)) userSet.delete(badgeKey);
       else userSet.add(badgeKey);
       return { ...prev, [userId]: userSet };
+    });
+  };
+
+  const setEndorsement = (userId: string, value: boolean | null) => {
+    setEndorsements((prev) => {
+      const next = { ...prev };
+      if (value === null) delete next[userId];
+      else next[userId] = value;
+      return next;
     });
   };
 
@@ -86,9 +120,16 @@ export default function RateParticipantsScreen() {
           promises.push(badgeService.giveReputationBadge(userId, activityId, badgeKey));
         }
       }
+      if (activity?.sport_key) {
+        for (const [userId, isConfirmation] of Object.entries(endorsements)) {
+          promises.push(endorsementService.submit(userId, activityId, activity.sport_key, isConfirmation));
+        }
+      }
       await Promise.all(promises);
       await queryClient.invalidateQueries({ queryKey: ['reputation'] });
       await queryClient.invalidateQueries({ queryKey: ['my-votes', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['my-endorsements', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['sport-endorsements'] });
       Burnt.toast({ title: t('rate.submitted'), preset: 'done' });
       router.back();
     } catch (err) {
@@ -98,7 +139,9 @@ export default function RateParticipantsScreen() {
     }
   };
 
-  const hasSelections = Object.values(selections).some((s) => s.size > 0);
+  const hasSelections =
+    Object.values(selections).some((s) => s.size > 0)
+    || Object.keys(endorsements).length > 0;
 
   if (isLoading || votesLoading) {
     return (
@@ -130,9 +173,38 @@ export default function RateParticipantsScreen() {
               <Text style={styles.participantName}>{p.display_name}</Text>
             </View>
 
+            {activity?.sport_key && p.levels_per_sport?.[activity.sport_key] && (
+              <>
+                <Text style={styles.badgeGroupLabel}>
+                  {t('rate.sportLevelTitle', {
+                    sport: t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key }),
+                    level: p.levels_per_sport[activity.sport_key],
+                  })}
+                </Text>
+                <View style={styles.badgeRow}>
+                  <Pressable
+                    style={[styles.badgeChip, endorsements[p.user_id] === true && styles.badgeChipSelected]}
+                    onPress={() => setEndorsement(p.user_id, endorsements[p.user_id] === true ? null : true)}
+                  >
+                    <Text style={[styles.badgeLabel, endorsements[p.user_id] === true && styles.badgeLabelSelected]}>
+                      ✓ {t('rate.sportLevelConfirm')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.badgeChip, endorsements[p.user_id] === false && styles.badgeChipNegSelected]}
+                    onPress={() => setEndorsement(p.user_id, endorsements[p.user_id] === false ? null : false)}
+                  >
+                    <Text style={[styles.badgeLabel, endorsements[p.user_id] === false && styles.badgeLabelNegSelected]}>
+                      ✗ {t('rate.sportLevelContest')}
+                    </Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+
             <Text style={styles.badgeGroupLabel}>{t('rate.positive')}</Text>
             <View style={styles.badgeRow}>
-              {POSITIVE_BADGES.map((badge) => (
+              {DISPLAYED_POSITIVE_BADGES.map((badge) => (
                 <Pressable
                   key={badge.key}
                   style={[styles.badgeChip, userBadges.has(badge.key) && styles.badgeChipSelected]}

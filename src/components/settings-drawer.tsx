@@ -8,6 +8,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
+import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey } from '@/store/map-style-store';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -38,6 +39,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [newName, setNewName] = useState('');
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
+  const mapStyle = useMapStyleStore((s) => s.style);
+  const setMapStyle = useMapStyleStore((s) => s.setStyle);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -178,6 +181,24 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   >
                     <Text style={[styles.themeChipText, themePreference === opt && styles.themeChipTextActive]}>
                       {t(`drawer.themeOption.${opt}`)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Map style selector */}
+            <View style={[styles.row, styles.rowColumn]}>
+              <Text style={styles.rowLabel}>{t('drawer.mapStyle')}</Text>
+              <View style={styles.mapStyleGrid}>
+                {MAP_STYLE_ORDER.map((opt: MapStyleKey) => (
+                  <Pressable
+                    key={opt}
+                    style={[styles.themeChip, mapStyle === opt && styles.themeChipActive]}
+                    onPress={() => setMapStyle(opt)}
+                  >
+                    <Text style={[styles.themeChipText, mapStyle === opt && styles.themeChipTextActive]}>
+                      {t(`drawer.mapStyleOption.${opt}`)}
                     </Text>
                   </Pressable>
                 ))}
@@ -346,8 +367,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },
   logoutText: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  rowColumn: {
+    flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm,
+  },
   themeRow: {
     flexDirection: 'row', gap: spacing.xs,
+  },
+  mapStyleGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs,
   },
   themeChip: {
     backgroundColor: colors.surface, borderRadius: radius.full,

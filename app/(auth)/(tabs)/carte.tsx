@@ -12,6 +12,7 @@ import { ActivitiesBottomSheet } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
+import { MapStyleButton } from '@/components/map-style-button';
 import { SearchAreaButton } from '@/components/search-area-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -229,6 +230,7 @@ export default function CarteScreen() {
 
       <View style={styles.content}>
         <CreateButton />
+        <MapStyleButton />
         <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
         <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
         {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}

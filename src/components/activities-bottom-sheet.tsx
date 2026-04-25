@@ -1,8 +1,9 @@
 import { useMemo, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { ChevronUp } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -25,17 +26,27 @@ function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function TabHandle({ count, label }: { count: number; label: string }) {
+function CollapsedDrawerHandle({ count, onExpand, height }: { count: number; onExpand: () => void; height: number }) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
-    <View style={styles.handleContainer} pointerEvents="box-none">
-      <View style={styles.topBorder} />
-      <View style={styles.tab}>
-        <View style={styles.tabGrip} />
-        <Text style={styles.tabCount}>{count} {label}</Text>
+    <Pressable onPress={onExpand} style={[styles.handleWrapper, { height }]}>
+      <View style={styles.grip} />
+      <View style={styles.titleRow}>
+        <Text style={[styles.title, count === 0 && styles.titleMuted]}>
+          {t('map.resultsCount', { count })}
+        </Text>
+        {count > 0 && (
+          <View style={styles.chip}>
+            <Text style={styles.chipLabel}>{t('map.seeList')}</Text>
+            <ChevronUp size={12} color={colors.cta} strokeWidth={2.5} />
+          </View>
+        )}
       </View>
-    </View>
+      <View style={{ flex: 1 }} />
+    </Pressable>
   );
 }
 
@@ -45,8 +56,13 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
   const sheetRef = useRef<BottomSheet>(null);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { height: windowHeight } = useWindowDimensions();
 
-  const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
+  const snapPoints = useMemo(() => ['10%', '50%', '92%'], []);
+  // The handle wrapper must fill the collapsed snap height exactly, otherwise
+  // the flatlist content shows through underneath. 10% of the window height
+  // matches the first snap point.
+  const collapsedHeight = Math.round(windowHeight * 0.10);
 
   const sorted = useMemo(() => {
     return activities
@@ -60,7 +76,13 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
       index={0}
       snapPoints={snapPoints}
       backgroundStyle={styles.sheetBackground}
-      handleComponent={() => <TabHandle count={sorted.length} label={t('search.results')} />}
+      handleComponent={() => (
+        <CollapsedDrawerHandle
+          count={sorted.length}
+          onExpand={() => sheetRef.current?.snapToIndex(2)}
+          height={collapsedHeight}
+        />
+      )}
       containerStyle={styles.sheetContainer}
     >
       <BottomSheetFlatList
@@ -88,57 +110,72 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  sheetContainer: {
-    zIndex: 20,
-  },
+  sheetContainer: { zIndex: 20 },
   sheetBackground: {
-    backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.pinBorder,
+    borderTopColor: colors.line,
   },
-  handleContainer: {
-    height: 12,
-    justifyContent: 'flex-start',
-  },
-  topBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.pinBorder,
-  },
-  tab: {
-    position: 'absolute',
-    top: -38,
-    left: spacing.sm,
-    width: 120,
-    height: 40,
-    backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 4,
-    gap: 4,
+
+  handleWrapper: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.pinBorder,
+    borderTopColor: colors.line,
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  tabGrip: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+  grip: {
+    width: 48,
+    height: 4.5,
+    borderRadius: 3,
     backgroundColor: colors.textSecondary,
+    opacity: 0.7,
+    alignSelf: 'center',
+    marginBottom: 8,
   },
-  tabCount: {
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  title: {
     color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.4,
   },
+  titleMuted: {
+    color: colors.textSecondary,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  chipLabel: {
+    color: colors.cta,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+
   list: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,

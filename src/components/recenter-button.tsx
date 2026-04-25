@@ -25,7 +25,7 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 90,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
