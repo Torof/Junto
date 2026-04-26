@@ -170,7 +170,7 @@ export default function EditActivityScreen() {
         disabled={hasParticipants}
       >
         <Text style={styles.dateValue}>
-          {startsAt ? dayjs(startsAt).format('ddd D MMM · HH:mm') : '-'}
+          {startsAt ? dayjs(startsAt).format('ddd D MMM · H[h]mm') : '-'}
         </Text>
       </Pressable>
 

@@ -123,7 +123,7 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                       <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
                       <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
                     </Pressable>
-                    <Text style={styles.messageTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+                    <Text style={styles.messageTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
                   </View>
                   <Text style={styles.messageContent}>{item.content}</Text>
                 </View>

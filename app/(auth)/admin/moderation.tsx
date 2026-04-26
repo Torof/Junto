@@ -116,7 +116,7 @@ export default function ModerationScreen() {
             {selectedReport && (
               <>
                 <Text style={styles.sheetTitle}>{getTargetLabel(selectedReport)}</Text>
-                <Text style={styles.sheetTime}>{dayjs(selectedReport.created_at).locale(i18n.language).format('D MMM YYYY · HH:mm')}</Text>
+                <Text style={styles.sheetTime}>{dayjs(selectedReport.created_at).locale(i18n.language).format('D MMM YYYY · H[h]mm')}</Text>
 
                 <Text style={styles.sectionLabel}>{t('admin.reason')}</Text>
                 <Text style={styles.reasonFull}>{selectedReport.reason}</Text>

@@ -66,52 +66,50 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
         </View>
       </View>
 
-      <View style={styles.stackRow}>
-        <View style={styles.stack}>
-          {visible.length === 0 ? null : (
-            <>
-              {visible.map((p, i) => (
-                <View key={p.user_id} style={[styles.stackAvatarWrap, { marginLeft: i === 0 ? 0 : -8, zIndex: AVATAR_STACK_SIZE - i }]}>
-                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={26} />
-                </View>
-              ))}
-              {extra > 0 && (
-                <View style={[styles.extraBadge, { marginLeft: -8 }]}>
-                  <Text style={styles.extraBadgeText}>+{extra}</Text>
-                </View>
-              )}
-            </>
-          )}
+      {otherParticipants.length === 0 ? (
+        <View style={styles.emptyRow}>
+          <Text style={styles.emptyCallout}>
+            {t('organizer.emptyCallout', { count: freeSlots })}
+          </Text>
         </View>
-        <View style={styles.countBlock}>
-          {totalParticipants === 0 ? (
-            <Text style={styles.noParticipants}>{t('organizer.noParticipantsYet')}</Text>
-          ) : (
-            <>
-              <Text style={styles.participantsCountText}>
-                {t('organizer.participantsCount', { count: totalParticipants })}
-              </Text>
-              <Text style={[styles.freeSlotsText, freeSlots === 0 && styles.freeSlotsTextFull]}>
-                {freeSlots === 0
-                  ? t('organizer.full')
-                  : t('organizer.freeSlots', { count: freeSlots })}
-              </Text>
-            </>
-          )}
+      ) : (
+        <View style={styles.stackRow}>
+          <View style={styles.stack}>
+            {visible.map((p, i) => (
+              <View key={p.user_id} style={[styles.stackAvatarWrap, { marginLeft: i === 0 ? 0 : -8, zIndex: AVATAR_STACK_SIZE - i }]}>
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={26} />
+              </View>
+            ))}
+            {extra > 0 && (
+              <View style={[styles.extraBadge, { marginLeft: -8 }]}>
+                <Text style={styles.extraBadgeText}>+{extra}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.countBlock}>
+            <Text style={styles.participantsCountText}>
+              {t('organizer.participantsCount', { count: totalParticipants })}
+            </Text>
+            <Text style={[styles.freeSlotsText, freeSlots === 0 && styles.freeSlotsTextFull]}>
+              {freeSlots === 0
+                ? t('organizer.full')
+                : t('organizer.freeSlots', { count: freeSlots })}
+            </Text>
+          </View>
+          <View style={styles.viewAllBtn}>
+            <Text style={styles.viewAllText}>{t('organizer.viewAll')}</Text>
+          </View>
         </View>
-        <View style={styles.viewAllBtn}>
-          <Text style={styles.viewAllText}>{t('organizer.viewAll')}</Text>
-        </View>
-      </View>
+      )}
     </Pressable>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
-    backgroundColor: colors.cta + '14',
+    backgroundColor: colors.cta + '2E',
     borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.cta + '40',
+    borderWidth: 1, borderColor: colors.cta + '66',
     padding: spacing.md,
     marginBottom: spacing.md,
   },
@@ -139,8 +137,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1, borderTopColor: colors.line,
   },
   stack: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
-  noParticipants: {
-    color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic',
+  emptyRow: {
+    marginTop: spacing.sm + 2,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1, borderTopColor: colors.line,
+    alignItems: 'center',
+  },
+  emptyCallout: {
+    color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600',
     textAlign: 'center',
   },
   countBlock: { flex: 1, alignItems: 'center' },

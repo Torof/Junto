@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
+import { Calendar, MapPin, User } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -27,18 +28,15 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
   const joined = activity.participant_count;
   const isFull = remaining <= 0;
 
-  const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm');
-  const metaLine = [
-    datePart,
-    distanceKm !== undefined ? `${distanceKm.toFixed(1)} km` : null,
-    activity.creator_name,
-  ].filter(Boolean).join(' · ');
+  const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
 
   return (
     <Pressable style={[styles.card, isFull && styles.cardFull]} onPress={onPress}>
-      {/* Left: sport emoji */}
-      <View style={styles.emojiCol}>
-        <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
+      {/* Left: sport emoji in circle, status dot half on the border */}
+      <View style={styles.avatarWrap}>
+        <View style={styles.avatarCircle}>
+          <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
+        </View>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
       </View>
 
@@ -65,7 +63,22 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
           )}
         </View>
         <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
-        <Text style={styles.meta} numberOfLines={1}>{metaLine}</Text>
+        <View style={styles.metaRow}>
+          <View style={styles.metaItem}>
+            <Calendar size={11} color={colors.cta} strokeWidth={2.4} />
+            <Text style={styles.metaDate} numberOfLines={1}>{datePart}</Text>
+          </View>
+          {distanceKm !== undefined && (
+            <View style={styles.metaItem}>
+              <MapPin size={11} color={colors.pinMeeting} strokeWidth={2.4} />
+              <Text style={styles.metaSecondary} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
+            </View>
+          )}
+          <View style={[styles.metaItem, { flexShrink: 1 }]}>
+            <User size={11} color={colors.pinStart} strokeWidth={2.4} />
+            <Text style={styles.metaSecondary} numberOfLines={1}>{activity.creator_name}</Text>
+          </View>
+        </View>
       </View>
 
       {/* Right: partants count */}
@@ -85,30 +98,44 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md + 4,
     marginBottom: spacing.sm,
     gap: spacing.md,
   },
   cardFull: {
     opacity: 0.6,
   },
-  emojiCol: {
+  avatarWrap: {
+    width: 44,
+    height: 44,
+    position: 'relative',
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
   },
   emoji: {
-    fontSize: 32,
+    fontSize: 22,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
   middleCol: {
     flex: 1,
     justifyContent: 'center',
-    gap: 2,
+    gap: 5,
   },
   sportRow: {
     flexDirection: 'row',
@@ -148,12 +175,32 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: 'bold',
+    fontSize: fontSizes.lg,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
-  meta: {
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    flexShrink: 0,
+  },
+  metaDate: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
+  metaSecondary: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
+    fontWeight: '500',
   },
   countCol: {
     alignItems: 'center',

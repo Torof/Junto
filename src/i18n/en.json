@@ -50,6 +50,10 @@
     "activityFull": "Activity full",
     "partants": "going",
     "shareJoin": "Join me on Junto:",
+    "shareTitle": "Share activity",
+    "shareNoConversations": "No conversations to share with yet. Use one of the apps below.",
+    "shareExternal": "Share via…",
+    "shared": "Activity shared",
     "join": "Join",
     "description": "Description",
     "duration": "Duration",
@@ -271,7 +275,8 @@
     "full": "full",
     "activitiesCreated_one": "{{count}} activity organized",
     "activitiesCreated_other": "{{count}} activities organized",
-    "noParticipantsYet": "Be the first to join",
+    "emptyCallout_one": "{{count}} spot · be the 1st to join",
+    "emptyCallout_other": "{{count}} spots · be the 1st to join",
     "modalTitle": "Participants"
   },
   "meta": {
@@ -454,6 +459,7 @@
     "deleteConfirm": "Delete this message?",
     "messageEdited": "Message edited",
     "messageDeleted": "Message deleted",
+    "viewActivity": "View activity",
     "messagesTab": "Messages",
     "requestsTab": "Requests",
     "requests": "Contact requests",
@@ -544,13 +550,9 @@
     "mapStyleOption": {
       "outdoors": "Outdoor",
       "streets": "Streets",
-      "satellite": "Satellite",
       "satellite-streets": "Satellite + streets",
       "opentopomap": "Topo (OSM)",
-      "ign-plan": "IGN Plan",
-      "ign-ortho": "IGN Ortho",
-      "light": "Light",
-      "dark": "Dark"
+      "ign-plan": "IGN Plan"
     },
     "legal": "Legal"
   },

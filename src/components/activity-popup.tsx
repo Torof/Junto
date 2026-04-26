@@ -8,7 +8,6 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
-import { getSportIcon } from '@/constants/sport-icons';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
 
@@ -26,9 +25,17 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {/* Title */}
-      <Text style={styles.title} numberOfLines={1}>
-        {activity.title.length > 14 ? activity.title.slice(0, 14) + '...' : activity.title}
+      <Text style={styles.title} numberOfLines={2}>
+        {activity.title}
       </Text>
+
+      {/* Sport label — small colored chip below title */}
+      <View style={styles.sportChip}>
+        <Text style={styles.sportChipText}>
+          {t(`sports.${activity.sport_key}`, activity.sport_key)}
+        </Text>
+      </View>
+
       {activity.objective_name && (
         <Text style={styles.objectiveName} numberOfLines={1}>📍 {activity.objective_name}</Text>
       )}
@@ -37,7 +44,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
       <View style={styles.row}>
         <Calendar size={12} color={colors.textSecondary} strokeWidth={2} />
         <Text style={styles.value}>
-          {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm')}
+          {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
         </Text>
       </View>
 
@@ -46,17 +53,15 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
         const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
         if (!signal) return null;
         return (
-          <View style={styles.row}>
-            <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
-            <Text style={styles.value}>{signal}</Text>
-          </View>
+          <>
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
+              <Text style={styles.value}>{signal}</Text>
+            </View>
+          </>
         );
       })()}
-
-      {/* Sport icon — bottom right */}
-      <View style={styles.sportCircle}>
-        <Text style={styles.sportIcon}>{getSportIcon(activity.sport_key)}</Text>
-      </View>
     </Pressable>
   );
 }
@@ -66,8 +71,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
-    paddingLeft: spacing.md,
-    paddingRight: spacing.xl + spacing.md,
+    paddingHorizontal: spacing.md,
     elevation: 8,
     shadowColor: colors.background,
     shadowOffset: { width: 0, height: 4 },
@@ -78,6 +82,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     minWidth: 170,
     gap: spacing.xs,
   },
+  sportChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.cta + '1F',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    marginBottom: 2,
+  },
+  sportChipText: {
+    color: colors.cta,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
   title: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
@@ -85,7 +104,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: 2,
   },
   objectiveName: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fontSizes.xs,
     marginBottom: 2,
   },
@@ -98,8 +117,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: 10,
   },
   value: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fontSizes.xs,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.textSecondary,
+    opacity: 0.35,
+    marginVertical: 2,
   },
   spacer: {
     width: spacing.sm,
@@ -113,21 +138,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: 'bold',
-  },
-  sportCircle: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: colors.textSecondary,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sportIcon: {
-    fontSize: 12,
   },
 });

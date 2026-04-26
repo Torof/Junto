@@ -25,6 +25,7 @@ import { participationService, type Participation } from '@/services/participati
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView, type MapPin } from './map-view';
+import { MapLegend } from './map-legend';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
 import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
@@ -32,6 +33,7 @@ import { ActivityWall } from './activity-wall';
 import { wallService } from '@/services/wall-service';
 import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
+import { ShareActivitySheet } from './share-activity-sheet';
 import { TransportSection } from './transport-section';
 import { GearSection } from './gear-section';
 import { ActivityDescription } from './activity-description';
@@ -108,6 +110,7 @@ export function ActivityDetail({
   const [showScanner, setShowScanner] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
 
   const startsAtMs2 = new Date(activity.starts_at).getTime();
   const isLateLeave = activity.requires_presence !== false
@@ -127,7 +130,11 @@ export function ActivityDetail({
             <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
           </View>
           {canShare && (
-            <Pressable onPress={handleShare} hitSlop={10} style={{ paddingHorizontal: spacing.sm }}>
+            <Pressable
+              onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
+              hitSlop={10}
+              style={{ paddingHorizontal: spacing.sm }}
+            >
               <Share2 size={22} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           )}
@@ -139,7 +146,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, timeStatus, statusColor, t]);
+  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, t]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -354,7 +361,7 @@ export function ActivityDetail({
         link = `https://${webHost}/activity/${activity.id}`;
       }
       const sportLabel = t(`sports.${activity.sport_key}`, activity.sport_key);
-      const when = dayjs(activity.starts_at).format('ddd D MMM HH:mm');
+      const when = dayjs(activity.starts_at).format('ddd D MMM H[h]mm');
       const message = `${activity.title}\n${sportLabel} · ${when}\n\n${t('activity.shareJoin')}\n${link}`;
       await Share.share({ message });
     } catch (err) {
@@ -488,7 +495,7 @@ export function ActivityDetail({
               : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
 
             const chips: MetaChip[] = [
-              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('HH:mm')}`, span: 'full' },
+              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('H[h]mm')}`, span: 'full' },
               { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
               startChip,
               { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
@@ -533,7 +540,7 @@ export function ActivityDetail({
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
               <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-                <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} />
+                <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                 <View style={styles.mapTapOverlay} pointerEvents="box-only" />
               </Pressable>
             </View>
@@ -697,6 +704,9 @@ export function ActivityDetail({
             flyTo={fullMapFly}
             onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now(), zoom: 16 })}
           />
+          <View style={styles.fullMapLegendWrapper} pointerEvents="box-none">
+            <MapLegend items={mapPins.map((p) => ({ color: p.color, label: p.label ?? '' })).filter((i) => i.label)} />
+          </View>
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <Text style={styles.closeMapText}>✕</Text>
           </Pressable>
@@ -733,6 +743,12 @@ export function ActivityDetail({
         targetType="activity"
         targetId={activity.id}
         onClose={() => setShowReport(false)}
+      />
+      <ShareActivitySheet
+        visible={showShareSheet}
+        activityId={activity.id}
+        onClose={() => setShowShareSheet(false)}
+        onExternalShare={handleShare}
       />
 
       {showMenu && (
@@ -888,6 +904,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, zIndex: 10 },
