@@ -81,6 +81,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
           <ActivityCard
             activity={item}
             distanceKm={item.distance}
+            showCreator={false}
             onPress={() => {
               if (onItemPress) onItemPress(item);
               router.push(`/(auth)/activity/${item.id}`);

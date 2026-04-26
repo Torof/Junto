@@ -16,9 +16,10 @@ interface ActivityCardProps {
   activity: NearbyActivity;
   onPress: () => void;
   distanceKm?: number;
+  showCreator?: boolean;
 }
 
-export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProps) {
+export function ActivityCard({ activity, onPress, distanceKm, showCreator = true }: ActivityCardProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -74,10 +75,12 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
               <Text style={styles.metaSecondary} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
             </View>
           )}
-          <View style={[styles.metaItem, { flexShrink: 1 }]}>
-            <User size={11} color={colors.pinStart} strokeWidth={2.4} />
-            <Text style={styles.metaSecondary} numberOfLines={1}>{activity.creator_name}</Text>
-          </View>
+          {showCreator && (
+            <View style={[styles.metaItem, { flexShrink: 1 }]}>
+              <User size={11} color={colors.pinStart} strokeWidth={2.4} />
+              <Text style={styles.metaSecondary} numberOfLines={1}>{activity.creator_name}</Text>
+            </View>
+          )}
         </View>
       </View>
 
