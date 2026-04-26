@@ -457,6 +457,14 @@
     "noResults": "Aucun résultat avec ces filtres",
     "filters": "Filtres"
   },
+  "peerReview": {
+    "subtitle": "Évalue tes co-participants — toggle un badge pour voter ou retirer ton vote.",
+    "empty": "Aucun co-participant à évaluer.",
+    "presenceVoteCta": "{{name}} était présent",
+    "presenceVoted": "Vote enregistré",
+    "presenceFlipped": "Présence validée",
+    "notAllowed": "Action impossible (fenêtre de 48h dépassée ou contraintes non remplies)."
+  },
   "messagerie": {
     "empty": "Aucune conversation",
     "noMessages": "Aucun message — commencez la conversation !",

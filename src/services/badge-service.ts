@@ -38,6 +38,16 @@ export interface Trophy {
   trophy_count: number;
 }
 
+export interface PeerReviewParticipant {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  confirmed_present: boolean | null;
+  peer_validation_count: number;
+  i_voted_presence: boolean;
+  my_badge_votes: string[];
+}
+
 export const badgeService = {
   giveReputationBadge: async (votedId: string, activityId: string, badgeKey: string): Promise<void> => {
     const { error } = await supabase.rpc('give_reputation_badge' as 'join_activity', {
@@ -46,6 +56,31 @@ export const badgeService = {
       p_badge_key: badgeKey,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
+  },
+
+  revokeReputationBadge: async (votedId: string, activityId: string, badgeKey: string): Promise<void> => {
+    const { error } = await supabase.rpc('revoke_reputation_badge' as 'join_activity', {
+      p_voted_id: votedId,
+      p_activity_id: activityId,
+      p_badge_key: badgeKey,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  peerValidatePresence: async (votedId: string, activityId: string): Promise<void> => {
+    const { error } = await supabase.rpc('peer_validate_presence' as 'join_activity', {
+      p_voted_id: votedId,
+      p_activity_id: activityId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  getPeerReviewState: async (activityId: string): Promise<PeerReviewParticipant[]> => {
+    const { data, error } = await supabase.rpc('get_activity_peer_review_state' as 'join_activity', {
+      p_activity_id: activityId,
+    } as unknown as { p_activity_id: string });
+    if (error) return [];
+    return (data as unknown as PeerReviewParticipant[]) ?? [];
   },
 
   getUserReputation: async (userId: string): Promise<ReputationBadge[]> => {

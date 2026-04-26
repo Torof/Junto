@@ -457,6 +457,14 @@
     "noResults": "No results with these filters",
     "filters": "Filters"
   },
+  "peerReview": {
+    "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
+    "empty": "No co-participants to rate.",
+    "presenceVoteCta": "{{name}} was there",
+    "presenceVoted": "Vote saved",
+    "presenceFlipped": "Presence confirmed",
+    "notAllowed": "Action not available (48h window passed or constraints unmet)."
+  },
   "messagerie": {
     "empty": "No conversations",
     "noMessages": "No messages yet — start the conversation!",
