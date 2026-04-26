@@ -588,23 +588,29 @@ export function ActivityDetail({
               <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
                 <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                 <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-              </Pressable>
-              {isCreator && (
-                <View style={styles.traceActions}>
-                  <Pressable style={styles.traceButton} onPress={handlePickTrace}>
-                    <Route size={14} color={colors.cta} strokeWidth={2.4} />
-                    <Text style={styles.traceButtonText}>
-                      {activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
-                    </Text>
-                  </Pressable>
-                  {activity.trace_geojson && (
-                    <Pressable style={styles.traceButtonGhost} onPress={handleClearTrace}>
-                      <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
-                      <Text style={styles.traceButtonGhostText}>{t('activity.traceRemove')}</Text>
+                {isCreator && (
+                  <View style={styles.traceIconRow} pointerEvents="box-none">
+                    <Pressable
+                      style={styles.traceIconButton}
+                      onPress={handlePickTrace}
+                      accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
+                      hitSlop={6}
+                    >
+                      <Route size={18} color={colors.cta} strokeWidth={2.4} />
                     </Pressable>
-                  )}
-                </View>
-              )}
+                    {activity.trace_geojson && (
+                      <Pressable
+                        style={styles.traceIconButton}
+                        onPress={handleClearTrace}
+                        accessibilityLabel={t('activity.traceRemove')}
+                        hitSlop={6}
+                      >
+                        <Trash2 size={18} color={colors.error} strokeWidth={2.4} />
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+              </Pressable>
             </View>
           )}
 
@@ -965,11 +971,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     elevation: 3, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
-  traceActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  traceButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: colors.cta + '1F' },
-  traceButtonText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 0.4 },
-  traceButtonGhost: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: colors.error + '1F' },
-  traceButtonGhostText: { color: colors.error, fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 0.4 },
+  traceIconRow: { position: 'absolute', top: spacing.sm, right: spacing.sm, flexDirection: 'row', gap: 6 },
+  traceIconButton: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: colors.background,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, shadowRadius: 2,
+    elevation: 3,
+  },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
