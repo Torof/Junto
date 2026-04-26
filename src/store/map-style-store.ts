@@ -4,21 +4,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type MapStyleKey =
   | 'outdoors'
   | 'streets'
-  | 'satellite'
   | 'satellite-streets'
-  | 'light'
-  | 'dark'
   | 'opentopomap'
-  | 'ign-plan'
-  | 'ign-ortho';
+  | 'ign-plan';
 
 export const MAP_STYLE_URLS: Partial<Record<MapStyleKey, string>> = {
   outdoors: 'mapbox://styles/mapbox/outdoors-v12',
   streets: 'mapbox://styles/mapbox/streets-v12',
-  satellite: 'mapbox://styles/mapbox/satellite-v9',
   'satellite-streets': 'mapbox://styles/mapbox/satellite-streets-v12',
-  light: 'mapbox://styles/mapbox/light-v11',
-  dark: 'mapbox://styles/mapbox/dark-v11',
 };
 
 // IGN Géoplateforme WMTS URL — tiles publiques Etalab, sans clé API.
@@ -75,31 +68,19 @@ export const MAP_STYLE_JSONS: Partial<Record<MapStyleKey, string>> = {
     '#F3F2EC',
     '© IGN-F / Géoplateforme',
   ),
-  'ign-ortho': rasterStyleJson(
-    'ign-ortho',
-    ignWmts('ORTHOIMAGERY.ORTHOPHOTOS', 'jpeg'),
-    19,
-    '#2A2A2A',
-    '© IGN-F / Géoplateforme',
-  ),
 };
 
 export const MAP_STYLE_ORDER: MapStyleKey[] = [
   'outdoors',
   'ign-plan',
-  'ign-ortho',
   'satellite-streets',
-  'satellite',
   'streets',
   'opentopomap',
-  'light',
-  'dark',
 ];
 
 export const MAP_STYLE_ATTRIBUTIONS: Partial<Record<MapStyleKey, string>> = {
   opentopomap: '© OpenTopoMap · OSM (CC-BY-SA)',
   'ign-plan': '© IGN-F / Géoplateforme',
-  'ign-ortho': '© IGN-F / Géoplateforme',
 };
 
 const STORAGE_KEY = 'junto_map_style';

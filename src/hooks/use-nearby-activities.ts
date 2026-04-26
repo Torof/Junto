@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { activityService } from '@/services/activity-service';
 
 export interface MapBounds {
@@ -13,5 +13,8 @@ export function useNearbyActivities(bounds?: MapBounds | null) {
     queryKey: ['activities', 'nearby', bounds],
     queryFn: () => activityService.getNearby(bounds ?? undefined),
     enabled: !!bounds,
+    // Keep the previous result visible while a new viewport fetch is in flight,
+    // otherwise pins blink off every time the user pans or zooms.
+    placeholderData: keepPreviousData,
   });
 }

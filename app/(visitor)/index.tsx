@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,7 +8,6 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
-import { SearchAreaButton } from '@/components/search-area-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -22,10 +21,10 @@ export default function VisitorMapScreen() {
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
-  const [showSearchButton, setShowSearchButton] = useState(false);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
   const initialSearchDone = useRef(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
 
@@ -39,7 +38,20 @@ export default function VisitorMapScreen() {
       neLng: bounds.neLng + lngSpan * 0.5,
       neLat: bounds.neLat + latSpan * 0.5,
     });
-    setShowSearchButton(false);
+  }, []);
+
+  const scheduleSearch = useCallback((bounds: MapBounds) => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    searchDebounce.current = setTimeout(() => {
+      doSearch(bounds);
+      searchDebounce.current = null;
+    }, 500);
+  }, [doSearch]);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    };
   }, []);
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
@@ -52,6 +64,10 @@ export default function VisitorMapScreen() {
     }
 
     if (searchBounds && !(bounds.swLng >= searchBounds.swLng && bounds.swLat >= searchBounds.swLat && bounds.neLng <= searchBounds.neLng && bounds.neLat <= searchBounds.neLat)) {
+      if (searchDebounce.current) {
+        clearTimeout(searchDebounce.current);
+        searchDebounce.current = null;
+      }
       doSearch(bounds);
       return;
     }
@@ -61,14 +77,10 @@ export default function VisitorMapScreen() {
       const dlat = bounds.centerLat - lastSearchCenter.current.lat;
       const dlng = bounds.centerLng - lastSearchCenter.current.lng;
       if (Math.sqrt(dlat * dlat + dlng * dlng) > viewportWidth * 0.3) {
-        setShowSearchButton(true);
+        scheduleSearch(bounds);
       }
     }
-  }, [searchBounds, doSearch]);
-
-  const handleSearchArea = useCallback(() => {
-    if (currentBounds.current) doSearch(currentBounds.current);
-  }, [doSearch]);
+  }, [searchBounds, doSearch, scheduleSearch]);
 
   return (
     <View style={styles.container}>
@@ -80,8 +92,6 @@ export default function VisitorMapScreen() {
           <Text style={styles.signInText}>{t('auth.signIn')}</Text>
         </Pressable>
       </View>
-
-      {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
       <JuntoMapView
         center={center}

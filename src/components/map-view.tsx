@@ -5,7 +5,7 @@ import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ClusterPin } from './cluster-pin';
-import { MapPinIcon } from './map-pin';
+import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -54,6 +54,7 @@ interface MapViewProps {
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
+  compassEnabled?: boolean;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -74,6 +75,7 @@ export function JuntoMapView({
   onMapPress,
   onBoundsChange,
   flyTo,
+  compassEnabled = true,
 }: MapViewProps) {
   const colors = useColors();
   const mapStyleKey = useMapStyleStore((s) => s.style);
@@ -207,7 +209,7 @@ export function JuntoMapView({
       styleJSON={MAP_STYLE_JSONS[mapStyleKey]}
       logoEnabled={false}
       attributionEnabled={false}
-      compassEnabled
+      compassEnabled={compassEnabled}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
       onPress={(feature) => {
@@ -261,16 +263,9 @@ export function JuntoMapView({
       )}
 
       {pins.map((pin) => (
-        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate}>
-          <Pressable onPress={() => onPinPress?.(pin)}>
-            <View style={styles.labeledPin}>
-              <MapPinIcon color={pin.color} />
-              {pin.label && (
-                <View style={[styles.pinLabel, { backgroundColor: pin.color }]}>
-                  <Text style={styles.pinLabelText}>{pin.label}</Text>
-                </View>
-              )}
-            </View>
+        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR}>
+          <Pressable onPress={() => onPinPress?.(pin)} hitSlop={10}>
+            <MapPinIcon color={pin.color} />
           </Pressable>
         </Mapbox.MarkerView>
       ))}
@@ -415,19 +410,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: '#4285F4',
     borderWidth: 2.5,
     borderColor: '#fff',
-  },
-  labeledPin: {
-    alignItems: 'center',
-  },
-  pinLabel: {
-    marginTop: -2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  pinLabelText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
   },
 });

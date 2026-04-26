@@ -13,7 +13,6 @@ import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
-import { SearchAreaButton } from '@/components/search-area-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
@@ -86,10 +85,10 @@ export default function CarteScreen() {
   const [showAlertTooltip, setShowAlertTooltip] = useState(false);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
-  const [showSearchButton, setShowSearchButton] = useState(false);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
   const initialSearchDone = useRef(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
   const filtered = useFilteredActivities(activities ?? []);
@@ -97,7 +96,20 @@ export default function CarteScreen() {
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
     setSearchBounds(addBuffer(bounds));
-    setShowSearchButton(false);
+  }, []);
+
+  const scheduleSearch = useCallback((bounds: MapBounds) => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    searchDebounce.current = setTimeout(() => {
+      doSearch(bounds);
+      searchDebounce.current = null;
+    }, 500);
+  }, [doSearch]);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    };
   }, []);
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
@@ -116,20 +128,25 @@ export default function CarteScreen() {
       }
     }
 
-    // First load — auto-search
+    // First load — auto-search immediately
     if (!initialSearchDone.current) {
       initialSearchDone.current = true;
       doSearch(bounds);
       return;
     }
 
-    // If viewport extends beyond fetched bounds (zoom out) — auto-refetch silently
+    // Viewport extends beyond fetched buffer (typically a zoom-out) — fetch immediately
+    // so newly-uncovered areas populate without waiting for the debounce window.
     if (searchBounds && !isWithinFetchedBounds(bounds, searchBounds)) {
+      if (searchDebounce.current) {
+        clearTimeout(searchDebounce.current);
+        searchDebounce.current = null;
+      }
       doSearch(bounds);
       return;
     }
 
-    // If user panned significantly — show search button (don't auto-fetch)
+    // Significant pan inside the buffered area — debounced refetch
     if (lastSearchCenter.current) {
       const viewportWidth = Math.abs(bounds.neLng - bounds.swLng);
       const dist = panDistance(
@@ -137,10 +154,10 @@ export default function CarteScreen() {
         bounds.centerLat, bounds.centerLng,
       );
       if (dist > viewportWidth * 0.3) {
-        setShowSearchButton(true);
+        scheduleSearch(bounds);
       }
     }
-  }, [searchBounds, doSearch]);
+  }, [searchBounds, doSearch, scheduleSearch]);
 
   // Tutorial bootstrap: first visit check
   useEffect(() => {
@@ -218,12 +235,6 @@ export default function CarteScreen() {
     }
   }, [tutorialStep, tappedPoint, setTutorialStep]);
 
-  const handleSearchArea = useCallback(() => {
-    if (currentBounds.current) {
-      doSearch(currentBounds.current);
-    }
-  }, [doSearch]);
-
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.statusBar} />
@@ -233,7 +244,6 @@ export default function CarteScreen() {
         <MapStyleButton />
         <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
         <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
-        {showSearchButton && <SearchAreaButton onPress={handleSearchArea} />}
 
         <>
 
