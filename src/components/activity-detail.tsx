@@ -135,21 +135,7 @@ export function ActivityDetail({
           </View>
           {canShare && (
             <Pressable
-              onPress={() => {
-                const proceed = () => isPrivateLink ? handleShare() : setShowShareSheet(true);
-                if (activity.trace_geojson) {
-                  Alert.alert(
-                    t('activity.tracePrivacyTitle'),
-                    t('activity.tracePrivacyMessage'),
-                    [
-                      { text: t('activity.no'), style: 'cancel' },
-                      { text: t('activity.tracePrivacyContinue'), onPress: proceed },
-                    ],
-                  );
-                } else {
-                  proceed();
-                }
-              }}
+              onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
               hitSlop={10}
               style={{ paddingHorizontal: spacing.sm }}
             >
@@ -164,7 +150,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, isPrivateLink, activity.trace_geojson, timeStatus, statusColor, t]);
+  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, t]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {

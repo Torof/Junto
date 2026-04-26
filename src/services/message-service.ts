@@ -1,8 +1,11 @@
 import { supabase } from './supabase';
+import type { GeoJsonLineString } from './activity-service';
 
 export interface MessageMetadata {
-  type?: 'seat_accepted' | 'shared_activity';
+  type?: 'seat_accepted' | 'shared_activity' | 'shared_trace';
   activity_id?: string;
+  name?: string;
+  trace_geojson?: GeoJsonLineString;
 }
 
 export interface PrivateMessage {
@@ -58,6 +61,16 @@ export const messageService = {
     const { data, error } = await supabase.rpc('share_activity_message' as 'join_activity', {
       p_conversation_id: conversationId,
       p_activity_id: activityId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+    return data as unknown as string;
+  },
+
+  shareTrace: async (conversationId: string, traceGeojson: GeoJsonLineString, name: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('share_trace_message' as 'join_activity', {
+      p_conversation_id: conversationId,
+      p_trace_geojson: traceGeojson,
+      p_name: name,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
     return data as unknown as string;
