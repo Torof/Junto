@@ -14,7 +14,9 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P0 — Bugs en cours
 
-- [ ] **Input messagerie caché par clavier sur Android** — bug edge-to-edge : ni `behavior="padding"`, ni `behavior="height"`, ni `behavior=undefined` (resize natif) ne fonctionnent côté Android via OTA. Hypothèse : `softwareKeyboardLayoutMode: 'resize'` à forcer dans `app.config.ts`, ce qui nécessite un `eas build` (pas juste OTA). Diff partiel pushé : `behavior="padding"` iOS / `"height"` Android (à compléter au prochain build natif). iOS marche.
+### Bloqués par le prochain `eas build`
+- [ ] **Input messagerie caché par clavier sur Android** — bug edge-to-edge. Diff partiel pushé : `behavior="padding"` iOS / `"height"` Android. À compléter : `android.softwareKeyboardLayoutMode: 'resize'` dans `app.config.ts`.
+- [ ] **Download direct GPX trace sur Android** — actuel : share sheet (Drive/Files/etc). Pour un vrai download "vers Téléchargements" sans intermédiaire : installer `expo-sharing` et utiliser `Sharing.shareAsync` qui sauvegarde directement. iOS reste sur Save to Files (limitation OS, pas l'app).
 
 ## P1 — Polish & easy wins
 
