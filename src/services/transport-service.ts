@@ -14,6 +14,7 @@ export interface ParticipantTransport {
   transport_type: string | null;
   transport_seats: number | null;
   transport_from_name: string | null;
+  transport_departs_at: string | null;
 }
 
 export interface SeatAssignment {
@@ -30,12 +31,14 @@ export const transportService = {
     transportType: string,
     seats?: number | null,
     fromName?: string | null,
+    departsAt?: string | null,
   ): Promise<void> => {
     const { error } = await supabase.rpc('set_participation_transport' as 'join_activity', {
       p_activity_id: activityId,
       p_transport_type: transportType,
       p_transport_seats: seats ?? null,
       p_transport_from_name: fromName ?? null,
+      p_transport_departs_at: departsAt ?? null,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
@@ -53,12 +56,14 @@ export const transportService = {
     driverId: string,
     pickupFrom?: string,
     message?: string,
+    requestedPickupAt?: string | null,
   ): Promise<string> => {
     const { data, error } = await supabase.rpc('request_seat' as 'join_activity', {
       p_activity_id: activityId,
       p_driver_id: driverId,
       p_pickup_from: pickupFrom ?? null,
       p_message: message ?? null,
+      p_requested_pickup_at: requestedPickupAt ?? null,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
     return data as unknown as string;
@@ -100,7 +105,7 @@ export const transportService = {
   getForActivity: async (activityId: string): Promise<ParticipantTransport[]> => {
     const { data, error } = await supabase
       .from('public_participants' as 'participations')
-      .select('user_id, display_name, avatar_url, transport_type, transport_seats, transport_from_name')
+      .select('user_id, display_name, avatar_url, transport_type, transport_seats, transport_from_name, transport_departs_at')
       .eq('activity_id', activityId)
       .not('transport_type' as 'user_id', 'is', null)
       .order('transport_type' as 'created_at');

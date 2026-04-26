@@ -2,7 +2,9 @@ import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingVi
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, ChevronDown, Plus } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, ChevronDown, Plus, Clock } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { transportService, type ParticipantTransport, type SeatAssignment } from '@/services/transport-service';
@@ -43,12 +45,26 @@ export function TransportSection({ activityId, currentUserId }: Props) {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
   const [fromName, setFromName] = useState('');
+  const [departsAt, setDepartsAt] = useState<Date | null>(null);
+  const [showDepartsPicker, setShowDepartsPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [requestingFromDriver, setRequestingFromDriver] = useState<string | null>(null);
   const [requestPickup, setRequestPickup] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
+  const [requestedPickupAt, setRequestedPickupAt] = useState<Date | null>(null);
+  const [showPickupPicker, setShowPickupPicker] = useState(false);
   const [requestSending, setRequestSending] = useState(false);
+
+  // Default times anchor on the activity's starts_at (-30min for driver default)
+  const { data: activityRow } = useQuery({
+    queryKey: ['activity-starts-at', activityId],
+    queryFn: async () => {
+      const { data } = await supabase.from('activities').select('starts_at').eq('id', activityId).single();
+      return data as { starts_at: string } | null;
+    },
+  });
+  const activityStartsAt = activityRow?.starts_at ? new Date(activityRow.starts_at) : null;
 
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState<string>('all');
@@ -136,23 +152,35 @@ export function TransportSection({ activityId, currentUserId }: Props) {
       setSelectedType(myTransport.transport_type);
       setSeats(myTransport.transport_seats ?? 0);
       setFromName(myTransport.transport_from_name ?? '');
+      setDepartsAt(myTransport.transport_departs_at ? new Date(myTransport.transport_departs_at) : null);
     } else {
       setSelectedType(null);
       setSeats(0);
       setFromName('');
+      // Default departs at 30min before activity start
+      setDepartsAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
     }
     setShowEditor(true);
   };
 
+  const openRequestSheet = (driverId: string) => {
+    setRequestingFromDriver(driverId);
+    setRequestPickup('');
+    setRequestMessage('');
+    setRequestedPickupAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
+  };
+
   const handleSave = async () => {
     if (!selectedType) return;
+    const isCar = (CAR_TYPES as readonly string[]).includes(selectedType);
     setIsSaving(true);
     try {
       await transportService.setTransport(
         activityId,
         selectedType,
-        (CAR_TYPES as readonly string[]).includes(selectedType) ? seats : null,
+        isCar ? seats : null,
         fromName.trim() || null,
+        isCar && departsAt ? departsAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       setShowEditor(false);
@@ -173,6 +201,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
         requestingFromDriver,
         requestPickup.trim() || undefined,
         requestMessage.trim() || undefined,
+        requestedPickupAt ? requestedPickupAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
       setRequestingFromDriver(null);
@@ -270,9 +299,8 @@ export function TransportSection({ activityId, currentUserId }: Props) {
               hasAnyReservation={!!myAcceptedSeat}
               canRequest={!isDriver && !myAcceptedSeat && !hasPendingHere && !isMyCar && free > 0}
               onRequestPress={() => {
-                setRequestingFromDriver(car.user_id);
+                openRequestSheet(car.user_id);
                 setRequestPickup(myTransport?.transport_from_name ?? '');
-                setRequestMessage('');
               }}
               onCancelSeatPress={handleCancelSeat}
               onEditMyCar={openEditor}
@@ -359,6 +387,34 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                   />
                 </View>
 
+                {selectedType && (CAR_TYPES as readonly string[]).includes(selectedType) && (
+                  <View style={styles.fromRow}>
+                    <Text style={styles.fromLabel}>{t('transport.departsAt')}</Text>
+                    <Pressable style={styles.timeButton} onPress={() => setShowDepartsPicker(true)}>
+                      <Clock size={14} color={colors.cta} strokeWidth={2.4} />
+                      <Text style={styles.timeButtonText}>
+                        {departsAt ? dayjs(departsAt).format('H[h]mm') : t('transport.pickTime')}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                {showDepartsPicker && (
+                  <DateTimePicker
+                    value={departsAt ?? activityStartsAt ?? new Date()}
+                    mode="time"
+                    is24Hour
+                    onChange={(_, d) => {
+                      setShowDepartsPicker(Platform.OS === 'ios');
+                      if (d) {
+                        const base = activityStartsAt ?? new Date();
+                        const merged = new Date(base);
+                        merged.setHours(d.getHours(), d.getMinutes(), 0, 0);
+                        setDepartsAt(merged);
+                      }
+                    }}
+                  />
+                )}
+
                 <Pressable
                   style={[styles.saveButton, (!selectedType || isSaving) && { opacity: 0.4 }]}
                   onPress={handleSave}
@@ -392,6 +448,32 @@ export function TransportSection({ activityId, currentUserId }: Props) {
                     maxLength={100}
                   />
                 </View>
+
+                <View style={styles.fromRow}>
+                  <Text style={styles.fromLabel}>{t('transport.pickupAt')}</Text>
+                  <Pressable style={styles.timeButton} onPress={() => setShowPickupPicker(true)}>
+                    <Clock size={14} color={colors.cta} strokeWidth={2.4} />
+                    <Text style={styles.timeButtonText}>
+                      {requestedPickupAt ? dayjs(requestedPickupAt).format('H[h]mm') : t('transport.pickTime')}
+                    </Text>
+                  </Pressable>
+                </View>
+                {showPickupPicker && (
+                  <DateTimePicker
+                    value={requestedPickupAt ?? activityStartsAt ?? new Date()}
+                    mode="time"
+                    is24Hour
+                    onChange={(_, d) => {
+                      setShowPickupPicker(Platform.OS === 'ios');
+                      if (d) {
+                        const base = activityStartsAt ?? new Date();
+                        const merged = new Date(base);
+                        merged.setHours(d.getHours(), d.getMinutes(), 0, 0);
+                        setRequestedPickupAt(merged);
+                      }
+                    }}
+                  />
+                )}
 
                 <View style={styles.fromRow}>
                   <Text style={styles.fromLabel}>{t('transport.messageOptional')}</Text>
@@ -713,6 +795,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fromLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   fromInput: { color: colors.textPrimary, fontSize: fontSizes.md },
+  timeButton: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.cta + '1F',
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    marginTop: 4,
+  },
+  timeButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', letterSpacing: 0.3 },
   saveButton: {
     backgroundColor: colors.cta, borderRadius: radius.md,
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm,
