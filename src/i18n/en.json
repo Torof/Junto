@@ -477,6 +477,8 @@
     "traceTooLarge": "File too large (max 5 MB)",
     "traceParseError": "Couldn't read the trace",
     "traceSent": "Trace sent",
+    "traceDownload": "Download",
+    "traceUseInActivity": "Create activity",
     "messagesTab": "Messages",
     "requestsTab": "Requests",
     "requests": "Contact requests",

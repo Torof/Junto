@@ -477,6 +477,8 @@
     "traceTooLarge": "Fichier trop volumineux (max 5 Mo)",
     "traceParseError": "Impossible de lire la trace",
     "traceSent": "Trace envoyée",
+    "traceDownload": "Télécharger",
+    "traceUseInActivity": "Créer une activité",
     "messagesTab": "Messages",
     "requestsTab": "Demandes",
     "requests": "Demandes de contact",

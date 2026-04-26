@@ -1,22 +1,25 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon } from 'lucide-react-native';
+import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
+import type { GeoJsonLineString } from '@/services/activity-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
+import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
+import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 
@@ -35,7 +38,7 @@ export default function ConversationScreen() {
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
   const { markConversationRead } = useMessageStore();
-  const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][] } | null>(null);
+  const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
 
   // Mark conversation as read when opened
@@ -80,6 +83,28 @@ export default function ConversationScreen() {
       supabase.removeChannel(channel);
     };
   }, [id, queryClient]);
+
+  const handleDownloadTrace = async () => {
+    if (!tracePreview) return;
+    try {
+      const gpxXml = geoJsonLineStringToGpx(tracePreview.geo, tracePreview.name);
+      const safeName = tracePreview.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.gpx$/i, '') + '.gpx';
+      const tmp = new File(Paths.cache, safeName);
+      tmp.create({ overwrite: true });
+      tmp.write(gpxXml);
+      await Share.share({ url: tmp.uri, title: tracePreview.name });
+    } catch (err) {
+      Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+
+  const handleUseInActivity = () => {
+    if (!tracePreview) return;
+    useCreateStore.getState().resetForm();
+    useCreateStore.getState().updateForm({ trace_geojson: tracePreview.geo });
+    setTracePreview(null);
+    router.push('/(auth)/create/step1');
+  };
 
   const handleAttachTrace = () => {
     Alert.alert(
@@ -222,7 +247,7 @@ export default function ConversationScreen() {
                     onPress={() => {
                       const geo = item.metadata!.trace_geojson!;
                       const coords = geo.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
-                      setTracePreview({ name: item.metadata!.name ?? 'trace.gpx', coords });
+                      setTracePreview({ name: item.metadata!.name ?? 'trace.gpx', coords, geo });
                     }}
                     hitSlop={4}
                   >
@@ -309,6 +334,16 @@ export default function ConversationScreen() {
                   <View style={styles.tracePreviewTitleWrap}>
                     <Text style={styles.tracePreviewTitle} numberOfLines={1}>{tracePreview.name}</Text>
                   </View>
+                </View>
+                <View style={[styles.tracePreviewActions, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+                  <Pressable style={styles.traceActionButton} onPress={handleDownloadTrace}>
+                    <Download size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                    <Text style={styles.traceActionText}>{t('messagerie.traceDownload')}</Text>
+                  </Pressable>
+                  <Pressable style={[styles.traceActionButton, styles.traceActionButtonPrimary]} onPress={handleUseInActivity}>
+                    <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                    <Text style={styles.traceActionText}>{t('messagerie.traceUseInActivity')}</Text>
+                  </Pressable>
                 </View>
               </>
             );
@@ -427,6 +462,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.md,
   },
   tracePreviewTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  tracePreviewActions: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row', gap: spacing.sm,
+    paddingHorizontal: spacing.md, paddingTop: spacing.md,
+    backgroundColor: colors.background + 'F2',
+  },
+  traceActionButton: {
+    flex: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.surface,
+    borderRadius: radius.full,
+    paddingVertical: spacing.md,
+  },
+  traceActionButtonPrimary: { backgroundColor: colors.cta },
+  traceActionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   sendText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   menuBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
