@@ -49,6 +49,9 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
     try {
       const activityId = await reliabilityService.confirmPresenceViaToken(token);
       await queryClient.invalidateQueries({ queryKey: ['participation', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants', activityId] });
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
       onClose();
     } catch (err) {

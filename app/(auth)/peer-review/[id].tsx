@@ -42,6 +42,9 @@ export default function PeerReviewScreen() {
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['peer-review-state', id] });
     queryClient.invalidateQueries({ queryKey: ['participants', id] });
+    // The voted user's reliability_score may have changed (peer threshold flip)
+    queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['public-profile'] });
   };
 
   const handleBadgeTap = async (target: PeerReviewParticipant, badgeKey: string) => {

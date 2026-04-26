@@ -293,6 +293,9 @@ export function ActivityDetail({
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -328,6 +331,8 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
       Burnt.toast({ title: t('toast.leftActivity') });
       setShowLeaveModal(false);
     } catch (err) {
