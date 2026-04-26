@@ -16,8 +16,6 @@ const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
 const PIN_WIDTH = 56;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-const PILL_WIDTH = 32;
-const PILL_HEIGHT = 16;
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
 
@@ -28,16 +26,9 @@ const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 38 27 62 27 62 C 27 62 50 38 50 25
 // sits exactly on the geographic point.
 export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 62 / VIEWBOX_H };
 
-// Badge centered on the top of the dome (north) — half inside the head, half outside above.
-const BADGE_CX_RATIO = 27 / VIEWBOX_W;
-const BADGE_CY_RATIO = 2 / VIEWBOX_H;
-
 export function ActivityPin({ activity }: ActivityPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const joined = activity.participant_count;
-  const isFull = joined >= activity.max_participants;
-  const pillColor = isFull ? colors.error : colors.success;
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const fillColor =
     timeStatus === 'in_progress'
@@ -45,9 +36,6 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       : timeStatus === 'soon'
         ? colors.warning
         : colors.pinBackground;
-
-  const pillLeft = BADGE_CX_RATIO * PIN_WIDTH - PILL_WIDTH / 2;
-  const pillTop = BADGE_CY_RATIO * PIN_HEIGHT - PILL_HEIGHT / 2;
 
   return (
     <View style={styles.wrapper}>
@@ -64,14 +52,11 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
       </View>
-      <View style={[styles.pill, { backgroundColor: pillColor, left: pillLeft, top: pillTop }]}>
-        <Text style={styles.pillText}>{joined}/{activity.max_participants}</Text>
-      </View>
     </View>
   );
 }
 
-const createStyles = (colors: AppColors) => StyleSheet.create({
+const createStyles = (_colors: AppColors) => StyleSheet.create({
   wrapper: {
     width: PIN_WIDTH,
     height: PIN_HEIGHT,
@@ -93,21 +78,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   icon: {
     fontSize: 16,
-  },
-  pill: {
-    width: PILL_WIDTH,
-    height: PILL_HEIGHT,
-    borderRadius: PILL_HEIGHT / 2,
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.pinBorder,
-  },
-  pillText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.2,
   },
 });

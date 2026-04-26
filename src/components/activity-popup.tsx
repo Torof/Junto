@@ -21,6 +21,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
+  const isFull = remaining <= 0;
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -29,11 +30,18 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
         {activity.title}
       </Text>
 
-      {/* Sport label — small colored chip below title */}
-      <View style={styles.sportChip}>
-        <Text style={styles.sportChipText}>
-          {t(`sports.${activity.sport_key}`, activity.sport_key)}
-        </Text>
+      {/* Sport + places chips on same row */}
+      <View style={styles.chipsRow}>
+        <View style={styles.sportChip}>
+          <Text style={styles.sportChipText}>
+            {t(`sports.${activity.sport_key}`, activity.sport_key)}
+          </Text>
+        </View>
+        <View style={[styles.placesChip, isFull && styles.placesChipFull]}>
+          <Text style={[styles.placesChipText, isFull && styles.placesChipTextFull]}>
+            {activity.participant_count}/{activity.max_participants}
+          </Text>
+        </View>
       </View>
 
       {activity.objective_name && (
@@ -82,13 +90,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     minWidth: 170,
     gap: spacing.xs,
   },
+  chipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
   sportChip: {
-    alignSelf: 'flex-start',
     backgroundColor: colors.cta + '1F',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
-    marginBottom: 2,
   },
   sportChipText: {
     color: colors.cta,
@@ -96,6 +108,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
+  },
+  placesChip: {
+    backgroundColor: colors.success + '1F',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  placesChipFull: {
+    backgroundColor: colors.error + '1F',
+  },
+  placesChipText: {
+    color: colors.success,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  placesChipTextFull: {
+    color: colors.error,
   },
   title: {
     color: colors.textPrimary,
