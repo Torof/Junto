@@ -116,7 +116,14 @@ export default function CreateStep2() {
         <View style={styles.pinButtons}>
           <Pressable
             style={[styles.pinButton, form.location_start && styles.pinSet]}
-            onPress={() => setPlacingPin('start')}
+            onPress={() => {
+              if (form.location_start) {
+                updateForm({ location_start: null });
+                if (placingPin === 'start') setPlacingPin(null);
+              } else {
+                setPlacingPin('start');
+              }
+            }}
           >
             <Text style={styles.pinText}>
               {form.location_start ? '✓ ' + t('create.startPoint') : t('create.setStart')}
@@ -124,7 +131,14 @@ export default function CreateStep2() {
           </Pressable>
           <Pressable
             style={[styles.pinButton, form.location_meeting && styles.pinSet]}
-            onPress={() => setPlacingPin('meeting')}
+            onPress={() => {
+              if (form.location_meeting) {
+                updateForm({ location_meeting: null });
+                if (placingPin === 'meeting') setPlacingPin(null);
+              } else {
+                setPlacingPin('meeting');
+              }
+            }}
           >
             <Text style={styles.pinText}>
               {form.location_meeting ? '✓ ' + t('create.meetingPoint') : t('create.setMeeting')}
@@ -132,7 +146,14 @@ export default function CreateStep2() {
           </Pressable>
           <Pressable
             style={[styles.pinButton, form.location_end && styles.pinSet]}
-            onPress={() => setPlacingPin('end')}
+            onPress={() => {
+              if (form.location_end) {
+                updateForm({ location_end: null });
+                if (placingPin === 'end') setPlacingPin(null);
+              } else {
+                setPlacingPin('end');
+              }
+            }}
           >
             <Text style={styles.pinText}>
               {form.location_end ? '✓ ' + t('create.endPoint') : t('create.setEnd')}
@@ -151,13 +172,20 @@ export default function CreateStep2() {
         )}
         <Pressable
           style={[styles.objectiveButton, form.location_objective && styles.objectiveSet]}
-          onPress={() => setPlacingPin('objective')}
+          onPress={() => {
+            if (form.location_objective) {
+              updateForm({ location_objective: null });
+              if (placingPin === 'objective') setPlacingPin(null);
+            } else {
+              setPlacingPin('objective');
+            }
+          }}
         >
           <Text style={styles.objectiveText}>
             {form.location_objective ? '🎯 ' + t('create.objectiveSet') : '🎯 ' + t('create.setObjective')}
           </Text>
         </Pressable>
-        {form.location_objective && (
+        {(placingPin === 'objective' || form.location_objective || (form.objective_name?.length ?? 0) > 0) && (
           <TextInput
             style={styles.objectiveNameInput}
             placeholder={t('create.objectiveName')}
@@ -192,7 +220,7 @@ export default function CreateStep2() {
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
           <Text style={styles.dateValue}>
-            {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · HH:mm') : t('create.selectDateTime')}
+            {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
           </Text>
         </Pressable>
 
