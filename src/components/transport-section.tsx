@@ -572,10 +572,23 @@ function CarRow({
               <View style={styles.myTag}><Text style={styles.myTagText}>{t('transport.myReservation')}</Text></View>
             )}
           </View>
-          {car.transport_from_name && (
+          {(car.transport_from_name || car.transport_departs_at) && (
             <View style={styles.carMetaRow}>
-              <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.carFrom} numberOfLines={1}>{car.transport_from_name}</Text>
+              {car.transport_from_name && (
+                <>
+                  <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                  <Text style={styles.carFrom} numberOfLines={1}>{car.transport_from_name}</Text>
+                </>
+              )}
+              {car.transport_from_name && car.transport_departs_at && (
+                <Text style={styles.carFrom}> · </Text>
+              )}
+              {car.transport_departs_at && (
+                <>
+                  <Clock size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                  <Text style={styles.carFrom}>{dayjs(car.transport_departs_at).format('H[h]mm')}</Text>
+                </>
+              )}
             </View>
           )}
         </View>
@@ -605,7 +618,16 @@ function CarRow({
               {passengers.map((p) => (
                 <View key={p.id} style={styles.passengerRow}>
                   <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} />
-                  <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
+                    {(p.pickup_from || p.requested_pickup_at) && (
+                      <Text style={styles.passengerSub} numberOfLines={1}>
+                        {p.pickup_from ?? ''}
+                        {p.pickup_from && p.requested_pickup_at ? ' · ' : ''}
+                        {p.requested_pickup_at ? dayjs(p.requested_pickup_at).format('H[h]mm') : ''}
+                      </Text>
+                    )}
+                  </View>
                   <Text style={styles.passengerTag}>{t('transport.passenger')}</Text>
                 </View>
               ))}
@@ -720,7 +742,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: 4, paddingLeft: spacing.sm,
   },
-  passengerName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, flex: 1 },
+  passengerName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1 },
+  passengerSub: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 1 },
   passengerTag: { color: colors.textMuted, fontSize: 10 },
 
   actionBtnPrimary: {

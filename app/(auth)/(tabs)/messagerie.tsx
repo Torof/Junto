@@ -97,10 +97,10 @@ export default function MessagerieScreen() {
       if (!userId) return [];
       const { data } = await supabase
         .from('seat_requests' as 'participations')
-        .select('id, activity_id, requester_id, driver_id, status, created_at, pickup_from, message')
+        .select('id, activity_id, requester_id, driver_id, status, created_at, pickup_from, message, requested_pickup_at')
         .eq('driver_id' as 'user_id', userId)
         .eq('status' as 'user_id', 'pending')
-        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string; pickup_from: string | null; message: string | null }[] | null };
+        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string; pickup_from: string | null; message: string | null; requested_pickup_at: string | null }[] | null };
       if (!data || data.length === 0) return [];
       const requesterIds = data.map((r) => r.requester_id);
       const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
@@ -304,13 +304,17 @@ export default function MessagerieScreen() {
           <ScrollView contentContainerStyle={styles.list}>
             {/* Seat requests */}
             {(seatRequests ?? []).map((sr) => {
-              const srTyped = sr as typeof sr & { requester_name: string; pickup_from: string | null; message: string | null };
+              const srTyped = sr as typeof sr & { requester_name: string; pickup_from: string | null; message: string | null; requested_pickup_at: string | null };
+              const subtitleParts = [
+                srTyped.pickup_from,
+                srTyped.requested_pickup_at ? dayjs(srTyped.requested_pickup_at).format('H[h]mm') : null,
+              ].filter(Boolean);
               return (
               <View key={sr.id} style={styles.requestCard}>
                 <Car size={28} color={colors.cta} strokeWidth={2} />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName} numberOfLines={1}>
-                    {srTyped.requester_name}{srTyped.pickup_from ? ` · ${srTyped.pickup_from}` : ''}
+                    {srTyped.requester_name}{subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
                   </Text>
                   {srTyped.message ? (
                     <Text style={styles.requestSource} numberOfLines={2}>{srTyped.message}</Text>
