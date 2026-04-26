@@ -83,6 +83,9 @@
     "traceClearTitle": "Supprimer la trace ?",
     "traceClearMessage": "La trace GPX sera retirée de l'activité.",
     "traceClearConfirm": "Supprimer",
+    "tracePrivacyTitle": "Attention aux données privées",
+    "tracePrivacyMessage": "Cette activité contient une trace GPX. Les traces peuvent révéler ton adresse de départ ou d'arrivée. Ne partage qu'avec des personnes de confiance.",
+    "tracePrivacyContinue": "Continuer",
     "yes": "Oui, annuler",
     "no": "Non",
     "status": {
