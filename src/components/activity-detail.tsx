@@ -24,6 +24,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { supabase } from '@/services/supabase';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -490,9 +491,9 @@ export function ActivityDetail({
       {(!showTabs || activeTab === 'info') && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.headerPills}>
-            <View style={styles.sportPill}>
+            <View style={[styles.sportPill, { backgroundColor: sportCategoryColor(activity.sport_category, colors.cta) + '1F', borderColor: sportCategoryColor(activity.sport_category, colors.cta) + '4D' }]}>
               <Text style={styles.sportPillIcon}>{getSportIcon(activity.sport_key)}</Text>
-              <Text style={styles.sportPillText}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
+              <Text style={[styles.sportPillText, { color: sportCategoryColor(activity.sport_category, colors.cta) }]}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
             </View>
             <View style={styles.visibilityPill}>
               {activity.visibility === 'public' ? (

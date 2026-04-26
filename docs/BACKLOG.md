@@ -25,7 +25,6 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
-- [ ] **Pill nom du sport — font + couleur** — option (a) palette par sport en accent doux (vélo bleu, escalade orange, etc., maintenance d'un mapping), option (b) garder neutre et retravailler poids/letterspacing/font. À discuter.
 - [ ] **Partage de trace GPX par message** — utile pour "regarde ce trace, chiche ?". Question tech : attacher le fichier brut (storage) ou référencer une activité existante ? **Risque privacy** : GPX révèlent souvent l'adresse domicile (départ/fin chez soi) — strip des 200 premiers/derniers mètres avant envoi.
 
 ## Reliability score — questions ouvertes

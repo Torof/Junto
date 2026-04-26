@@ -11,6 +11,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 
 interface ActivityCardProps {
   activity: NearbyActivity;
@@ -28,6 +29,7 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const joined = activity.participant_count;
   const isFull = remaining <= 0;
+  const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
 
   const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
 
@@ -44,7 +46,7 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
       {/* Middle: sport + level, title, meta */}
       <View style={styles.middleCol}>
         <View style={styles.sportRow}>
-          <Text style={styles.sport} numberOfLines={1}>
+          <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
           {(() => {

@@ -10,6 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 
 interface ActivityPopupProps {
   activity: NearbyActivity;
@@ -23,6 +24,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const isFull = remaining <= 0;
   const isOpen = activity.max_participants === null;
+  const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -33,8 +35,8 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Sport + places chips on same row */}
       <View style={styles.chipsRow}>
-        <View style={styles.sportChip}>
-          <Text style={styles.sportChipText}>
+        <View style={[styles.sportChip, { backgroundColor: sportAccent + '1F' }]}>
+          <Text style={[styles.sportChipText, { color: sportAccent }]}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
         </View>
