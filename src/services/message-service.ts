@@ -1,5 +1,10 @@
 import { supabase } from './supabase';
 
+export interface MessageMetadata {
+  type?: 'seat_accepted' | 'shared_activity';
+  activity_id?: string;
+}
+
 export interface PrivateMessage {
   id: string;
   conversation_id: string;
@@ -9,13 +14,14 @@ export interface PrivateMessage {
   edited_at: string | null;
   deleted_at: string | null;
   created_at: string;
+  metadata: MessageMetadata | null;
 }
 
 export const messageService = {
   getMessages: async (conversationId: string): Promise<PrivateMessage[]> => {
     const { data, error } = await supabase
       .from('private_messages')
-      .select('id, conversation_id, sender_id, receiver_id, content, edited_at, deleted_at, created_at')
+      .select('id, conversation_id, sender_id, receiver_id, content, edited_at, deleted_at, created_at, metadata')
       .eq('conversation_id' as 'id', conversationId)
       .is('deleted_at', null)
       .order('created_at', { ascending: true });
@@ -46,5 +52,14 @@ export const messageService = {
       p_delete: true,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
+  },
+
+  shareActivity: async (conversationId: string, activityId: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('share_activity_message' as 'join_activity', {
+      p_conversation_id: conversationId,
+      p_activity_id: activityId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+    return data as unknown as string;
   },
 };

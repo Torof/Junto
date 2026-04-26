@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ExternalLink } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ export default function ConversationScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -142,7 +144,7 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
@@ -162,8 +164,20 @@ export default function ConversationScreen() {
               onLongPress={() => handleLongPress(item)}
             >
               <Text style={styles.bubbleText}>{item.content}</Text>
+              {item.metadata?.activity_id && (
+                <Pressable
+                  style={styles.activityLink}
+                  onPress={() => router.push(`/(auth)/activity/${item.metadata!.activity_id}`)}
+                  hitSlop={4}
+                >
+                  <ExternalLink size={12} color={isOwnMessage(item) ? colors.textPrimary : colors.cta} strokeWidth={2.4} />
+                  <Text style={[styles.activityLinkText, !isOwnMessage(item) && styles.activityLinkTextOther]}>
+                    {t('messagerie.viewActivity')}
+                  </Text>
+                </Pressable>
+              )}
               <View style={styles.bubbleFooter}>
-                <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('HH:mm')}</Text>
+                <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
                 {item.edited_at && <Text style={styles.editedTag}>{t('messagerie.edited')}</Text>}
               </View>
             </Pressable>
@@ -242,6 +256,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   bubbleOwn: { backgroundColor: colors.cta, alignSelf: 'flex-end' },
   bubbleOther: { backgroundColor: colors.surface, alignSelf: 'flex-start' },
+  activityLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    alignSelf: 'flex-start',
+  },
+  activityLinkText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  activityLinkTextOther: {
+    color: colors.cta,
+  },
   bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   bubbleFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 2 },
   bubbleTime: { color: colors.textSecondary, fontSize: fontSizes.xs - 2 },

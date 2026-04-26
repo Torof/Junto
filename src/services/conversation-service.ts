@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { MessageMetadata } from './message-service';
 
 export interface Conversation {
   id: string;
@@ -11,6 +12,7 @@ export interface Conversation {
   other_user_avatar: string | null;
   last_message_content: string | null;
   last_message_sender_id: string | null;
+  last_message_metadata: MessageMetadata | null;
 }
 
 export interface PendingRequest {
@@ -63,15 +65,15 @@ export const conversationService = {
     const conversationIds = visible.map((c) => c.id);
     const { data: lastMessages } = await supabase
       .from('private_messages')
-      .select('conversation_id, content, sender_id, created_at')
+      .select('conversation_id, content, sender_id, created_at, metadata')
       .in('conversation_id' as 'id', conversationIds)
       .is('deleted_at', null)
-      .order('created_at', { ascending: false }) as unknown as { data: { conversation_id: string; content: string; sender_id: string; created_at: string }[] | null };
+      .order('created_at', { ascending: false }) as unknown as { data: { conversation_id: string; content: string; sender_id: string; created_at: string; metadata: MessageMetadata | null }[] | null };
 
-    const lastMessageMap = new Map<string, { content: string; sender_id: string }>();
+    const lastMessageMap = new Map<string, { content: string; sender_id: string; metadata: MessageMetadata | null }>();
     for (const msg of lastMessages ?? []) {
       if (!lastMessageMap.has(msg.conversation_id)) {
-        lastMessageMap.set(msg.conversation_id, { content: msg.content, sender_id: msg.sender_id });
+        lastMessageMap.set(msg.conversation_id, { content: msg.content, sender_id: msg.sender_id, metadata: msg.metadata });
       }
     }
 
@@ -85,6 +87,7 @@ export const conversationService = {
         other_user_avatar: profile?.avatar_url ?? null,
         last_message_content: lastMsg?.content ?? null,
         last_message_sender_id: lastMsg?.sender_id ?? null,
+        last_message_metadata: lastMsg?.metadata ?? null,
       };
     });
   },

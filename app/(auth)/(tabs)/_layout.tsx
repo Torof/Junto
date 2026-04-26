@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, ListChecks, Bell, MessageCircle, User, type LucideIcon } from 'lucide-react-native';
+import { Map, ListChecks, Bell, MessageSquare, User, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -97,12 +97,12 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
   });
 
   const hasUnread = (conversations ?? []).some(
-    (c) => isConversationUnread(c.id, c.last_message_at, c.last_message_sender_id, currentUserId)
+    (c) => isConversationUnread(c.id, c.last_message_at, c.last_message_sender_id, c.last_message_metadata, currentUserId)
   );
 
   return (
     <View style={styles.bellContainer}>
-      <MessageCircle size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
+      <MessageSquare size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
       {hasUnread && <View style={styles.dot} />}
     </View>
   );

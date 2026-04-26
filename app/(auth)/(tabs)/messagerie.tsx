@@ -17,7 +17,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 dayjs.extend(relativeTime);
 
@@ -47,6 +47,43 @@ export default function MessagerieScreen() {
     queryKey: ['conversations'],
     queryFn: () => conversationService.getAll(),
   });
+
+  // Refresh the conversation list whenever a new private_message arrives for
+  // this user — covers seat-accept seeded messages and any other server-side
+  // INSERT that bypasses the local invalidation path.
+  useEffect(() => {
+    if (!currentUserId) return;
+    const channel = supabase
+      .channel(`messagerie-incoming:${currentUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'private_messages',
+          filter: `receiver_id=eq.${currentUserId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'seat_requests',
+          filter: `driver_id=eq.${currentUserId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, queryClient]);
 
   const { data: pendingRequests } = useQuery({
     queryKey: ['pending-requests'],
@@ -213,14 +250,20 @@ export default function MessagerieScreen() {
             data={conversations}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
-              const isUnread = isConversationUnread(item.id, item.last_message_at, item.last_message_sender_id, currentUserId);
+              const isUnread = isConversationUnread(item.id, item.last_message_at, item.last_message_sender_id, item.last_message_metadata, currentUserId);
+              const otherUserId = item.user_1 === currentUserId ? item.user_2 : item.user_1;
               return (
                 <Pressable
                   style={styles.card}
                   onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
                   onLongPress={() => handleHideConversation(item.id, item.other_user_name)}
                 >
-                  <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={48} />
+                  <Pressable
+                    onPress={() => router.push(`/(auth)/profile/${otherUserId}`)}
+                    hitSlop={4}
+                  >
+                    <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={48} />
+                  </Pressable>
                   <View style={styles.cardContent}>
                     <View style={styles.cardHeader}>
                       <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{item.other_user_name}</Text>
