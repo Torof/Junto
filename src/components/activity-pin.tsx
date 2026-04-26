@@ -34,7 +34,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
     timeStatus === 'in_progress'
       ? colors.success
       : timeStatus === 'soon'
-        ? colors.warning
+        ? '#FBBF24'
         : colors.pinBackground;
 
   return (
