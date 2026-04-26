@@ -6,9 +6,9 @@
 
 ## Statut actuel
 
-L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth Google + email, carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges), gear declaration system, presence validation V2 (QR + GPS), notifications push, reliability score Bayésien, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark, tutorial, badges reputation/trophées, web landing page, pages légales.
+L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth Google + email, carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges), gear declaration system, presence validation V2 (QR + GPS) avec auto-FALSE no-show + peer-review fallback, notifications push (presence reminder + last call), reliability score Bayésien complet, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark, tutorial, badges reputation/trophées, web landing page, pages légales.
 
-**Ce qui reste avant launch public** : items polish/bugs ci-dessous (P0/P1), Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), vérification que le calcul reliability tourne bien post-activité (item 21).
+**Ce qui reste avant launch public** : 1 P0 + 1 P1 (bloqués par eas build), Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), CGU finalisées, Play Store prep.
 
 ---
 
@@ -30,7 +30,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## Reliability score — questions ouvertes
 
-- [ ] **Cross-validation par les autres participants** (fallback si créateur passif) — actuellement seul le créateur peut override `confirmed_present`. Idée : 2+ autres participants confirmés peuvent voter pour valider un user qui n'a pas pu se valider lui-même. À discuter avec Scott — risque favoritisme à mitiger (log who-validated-whom, flag pattern suspect).
+(Vide pour l'instant — peer review livré, no-show capturé, formule Bayésienne validée.)
 
 ---
 
