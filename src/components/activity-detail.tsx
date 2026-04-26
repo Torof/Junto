@@ -176,7 +176,7 @@ export function ActivityDetail({
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
-  const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 12 * 3600 * 1000;
+  const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 10 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
   const isQrAvailable = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 2 * 3600 * 1000;
 
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
