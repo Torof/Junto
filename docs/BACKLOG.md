@@ -30,17 +30,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## Reliability score — questions ouvertes
 
-- [ ] **Vérifier le calcul du taux de fiabilité en fin d'activité** — vérifier que le score est recalculé et mis à jour dans le profil après une activité terminée (vérifier les fonctions Bayésiennes dans migrations 00064 et 00070). Redéfinir les pénalités si nécessaire :
-  - **No-show** (inscrit, pas venu, pas annulé) : barème proposé **-15 pts** (sévère, casse la planif)
-  - **Annulation tardive** (<12h avant) : **-5 pts** (gênant mais pardonnable)
-  - **Non-validation présence** (venu mais pas validé) : **-2 pts** (admin oversight)
-  - **Quand** : trigger à la transition `status` → `completed`, via SECURITY DEFINER function
-
-- [ ] **Pénalité no-show + garde-fou créateur** — si validation présence obligatoire et personne non validée à la fin, pénalité auto. **Reco : 2 couches** :
-  1. Créateur valide manuellement (premier recours, autorité légitime IRL)
-  2. Cross-validation par 2+ autres participants confirmés (fallback si créateur passif)
-  - **Risque** : favoritisme créateur. **Mitigation** : log de qui a validé qui, flag pour modération si pattern suspect (créateur valide systématiquement les mêmes 3 personnes).
-  - **Écarté** : grace period 24h via proximité GPS post-activité — marche mal en pratique (les gens rentrent chez eux).
+- [ ] **Cross-validation par les autres participants** (fallback si créateur passif) — actuellement seul le créateur peut override `confirmed_present`. Idée : 2+ autres participants confirmés peuvent voter pour valider un user qui n'a pas pu se valider lui-même. À discuter avec Scott — risque favoritisme à mitiger (log who-validated-whom, flag pattern suspect).
 
 ---
 
