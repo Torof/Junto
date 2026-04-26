@@ -49,7 +49,7 @@ export function MapStyleButton() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 190,
+    bottom: 170,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
@@ -67,7 +67,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
     paddingRight: spacing.md + 50,
-    paddingBottom: 190,
+    paddingBottom: 170,
   },
   panel: {
     backgroundColor: colors.surface,

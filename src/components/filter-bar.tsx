@@ -60,7 +60,7 @@ export function FilterButton({ onPress, blink = false }: Props) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 120,
     right: spacing.md,
     zIndex: 10,
   },
