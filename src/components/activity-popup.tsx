@@ -22,6 +22,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const isFull = remaining <= 0;
+  const isOpen = activity.max_participants === null;
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -39,7 +40,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
         </View>
         <View style={[styles.placesChip, isFull && styles.placesChipFull]}>
           <Text style={[styles.placesChipText, isFull && styles.placesChipTextFull]}>
-            {activity.participant_count}/{activity.max_participants}
+            {isOpen ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${activity.participant_count}/${activity.max_participants}`}
           </Text>
         </View>
       </View>

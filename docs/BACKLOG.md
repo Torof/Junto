@@ -22,7 +22,6 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P2 — UX clarifications & redesigns
 
-- [ ] **Création activité — checkbox "ouvert"** — option "pas de limite de participants". Tech : `max_participants` nullable, NULL = illimité ; pill affiche "X" sans `/Y`. Garde-fou : cap dur à 50 même en "ouvert" pour éviter abus.
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 

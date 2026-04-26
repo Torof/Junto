@@ -48,7 +48,7 @@ export default function EditActivityScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [level, setLevel] = useState('');
-  const [maxParticipants, setMaxParticipants] = useState(4);
+  const [maxParticipants, setMaxParticipants] = useState<number | null>(4);
   const [startsAt, setStartsAt] = useState<Date | null>(null);
   const [durationHours, setDurationHours] = useState(2);
   const [durationMinutes, setDurationMinutes] = useState(0);
@@ -145,23 +145,35 @@ export default function EditActivityScreen() {
       {hasParticipants && <Text style={styles.lockedHint}>{t('edit.lockedHint')}</Text>}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
-      <View style={[styles.counterRow, hasParticipants && styles.locked]}>
-        <Pressable
-          style={styles.counterButton}
-          onPress={() => !hasParticipants && setMaxParticipants(Math.max(2, maxParticipants - 1))}
-          disabled={hasParticipants}
-        >
-          <Text style={styles.counterText}>-</Text>
-        </Pressable>
-        <Text style={styles.counterValue}>{maxParticipants}</Text>
-        <Pressable
-          style={styles.counterButton}
-          onPress={() => !hasParticipants && setMaxParticipants(Math.min(50, maxParticipants + 1))}
-          disabled={hasParticipants}
-        >
-          <Text style={styles.counterText}>+</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        style={[styles.openToggle, hasParticipants && styles.locked]}
+        onPress={() => !hasParticipants && setMaxParticipants(maxParticipants === null ? 4 : null)}
+        disabled={hasParticipants}
+      >
+        <View style={[styles.openCheckbox, maxParticipants === null && styles.openCheckboxOn]}>
+          {maxParticipants === null && <Text style={styles.openCheckboxMark}>✓</Text>}
+        </View>
+        <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
+      </Pressable>
+      {maxParticipants !== null && (
+        <View style={[styles.counterRow, hasParticipants && styles.locked]}>
+          <Pressable
+            style={styles.counterButton}
+            onPress={() => !hasParticipants && setMaxParticipants(Math.max(2, (maxParticipants ?? 4) - 1))}
+            disabled={hasParticipants}
+          >
+            <Text style={styles.counterText}>-</Text>
+          </Pressable>
+          <Text style={styles.counterValue}>{maxParticipants}</Text>
+          <Pressable
+            style={styles.counterButton}
+            onPress={() => !hasParticipants && setMaxParticipants(Math.min(50, (maxParticipants ?? 4) + 1))}
+            disabled={hasParticipants}
+          >
+            <Text style={styles.counterText}>+</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Text style={styles.label}>{t('create.dateTime')}</Text>
       <Pressable
@@ -257,7 +269,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipActive: { backgroundColor: colors.cta },
   chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   chipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
-  counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
+  openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
+  openCheckbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  openCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  openCheckboxMark: { color: colors.textPrimary, fontSize: 14, fontWeight: 'bold' },
+  openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   counterButton: { backgroundColor: colors.surface, borderRadius: radius.full, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', minWidth: 40, textAlign: 'center' },

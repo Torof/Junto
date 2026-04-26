@@ -8,7 +8,7 @@ interface CreateFormState {
   level: string;
   distance_km: number | null;
   elevation_gain_m: number | null;
-  max_participants: number;
+  max_participants: number | null;
   location_start: { lng: number; lat: number } | null;
   location_meeting: { lng: number; lat: number } | null;
   location_end: { lng: number; lat: number } | null;

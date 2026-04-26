@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activities: {
@@ -21,7 +46,9 @@ export type Database = {
           creator_id: string
           deleted_at: string | null
           description: string | null
+          distance_km: number | null
           duration: string
+          elevation_gain_m: number | null
           id: string
           invite_token: string
           level: string
@@ -29,14 +56,16 @@ export type Database = {
           location_meeting: unknown
           location_objective: unknown
           location_start: unknown
-          max_participants: number
+          max_participants: number | null
           objective_name: string | null
           requires_presence: boolean
           route: unknown
           sport_id: string
+          start_name: string | null
           starts_at: string
           status: string
           title: string
+          trace_geojson: Json | null
           updated_at: string
           visibility: string
         }
@@ -46,7 +75,9 @@ export type Database = {
           creator_id: string
           deleted_at?: string | null
           description?: string | null
+          distance_km?: number | null
           duration: string
+          elevation_gain_m?: number | null
           id?: string
           invite_token?: string
           level: string
@@ -54,14 +85,16 @@ export type Database = {
           location_meeting?: unknown
           location_objective?: unknown
           location_start: unknown
-          max_participants: number
+          max_participants?: number | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
           sport_id: string
+          start_name?: string | null
           starts_at: string
           status?: string
           title: string
+          trace_geojson?: Json | null
           updated_at?: string
           visibility?: string
         }
@@ -71,7 +104,9 @@ export type Database = {
           creator_id?: string
           deleted_at?: string | null
           description?: string | null
+          distance_km?: number | null
           duration?: string
+          elevation_gain_m?: number | null
           id?: string
           invite_token?: string
           level?: string
@@ -79,14 +114,16 @@ export type Database = {
           location_meeting?: unknown
           location_objective?: unknown
           location_start?: unknown
-          max_participants?: number
+          max_participants?: number | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
           sport_id?: string
+          start_name?: string | null
           starts_at?: string
           status?: string
           title?: string
+          trace_geojson?: Json | null
           updated_at?: string
           visibility?: string
         }
@@ -158,6 +195,76 @@ export type Database = {
           },
           {
             foreignKeyName: "activity_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_gear: {
+        Row: {
+          activity_id: string
+          created_at: string
+          gear_name: string
+          id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          gear_name: string
+          id?: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          gear_name?: string
+          id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_gear_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -331,6 +438,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gear_catalog: {
+        Row: {
+          category_key: string
+          display_order: number
+          id: string
+          name_key: string
+          per_person: boolean
+          shared_recommended_qty: number | null
+          sport_keys: string[]
+        }
+        Insert: {
+          category_key?: string
+          display_order?: number
+          id?: string
+          name_key: string
+          per_person?: boolean
+          shared_recommended_qty?: number | null
+          sport_keys?: string[]
+        }
+        Update: {
+          category_key?: string
+          display_order?: number
+          id?: string
+          name_key?: string
+          per_person?: boolean
+          shared_recommended_qty?: number | null
+          sport_keys?: string[]
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -526,6 +663,7 @@ export type Database = {
           deleted_at: string | null
           edited_at: string | null
           id: string
+          metadata: Json | null
           receiver_id: string
           sender_id: string
         }
@@ -536,6 +674,7 @@ export type Database = {
           deleted_at?: string | null
           edited_at?: string | null
           id?: string
+          metadata?: Json | null
           receiver_id: string
           sender_id: string
         }
@@ -546,6 +685,7 @@ export type Database = {
           deleted_at?: string | null
           edited_at?: string | null
           id?: string
+          metadata?: Json | null
           receiver_id?: string
           sender_id?: string
         }
@@ -728,6 +868,8 @@ export type Database = {
           created_at: string
           driver_id: string
           id: string
+          message: string | null
+          pickup_from: string | null
           requester_id: string
           status: string
         }
@@ -736,6 +878,8 @@ export type Database = {
           created_at?: string
           driver_id: string
           id?: string
+          message?: string | null
+          pickup_from?: string | null
           requester_id: string
           status?: string
         }
@@ -744,6 +888,8 @@ export type Database = {
           created_at?: string
           driver_id?: string
           id?: string
+          message?: string | null
+          pickup_from?: string | null
           requester_id?: string
           status?: string
         }
@@ -829,6 +975,93 @@ export type Database = {
           srtext?: string | null
         }
         Relationships: []
+      }
+      sport_level_endorsements: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          is_confirmation: boolean
+          sport_key: string
+          target_id: string
+          voter_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          is_confirmation: boolean
+          sport_key: string
+          target_id: string
+          voter_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          is_confirmation?: boolean
+          sport_key?: string
+          target_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sport_level_endorsements_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sports: {
         Row: {
@@ -1015,7 +1248,9 @@ export type Database = {
           creator_name: string | null
           deleted_at: string | null
           description: string | null
+          distance_km: number | null
           duration: string | null
+          elevation_gain_m: number | null
           end_lat: number | null
           end_lng: number | null
           id: string | null
@@ -1036,9 +1271,11 @@ export type Database = {
           sport_key: string | null
           start_lat: number | null
           start_lng: number | null
+          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
+          trace_geojson: Json | null
           updated_at: string | null
           visibility: string | null
         }
@@ -1195,7 +1432,9 @@ export type Database = {
           creator_name: string | null
           deleted_at: string | null
           description: string | null
+          distance_km: number | null
           duration: string | null
+          elevation_gain_m: number | null
           end_lat: number | null
           end_lng: number | null
           id: string | null
@@ -1216,9 +1455,11 @@ export type Database = {
           sport_key: string | null
           start_lat: number | null
           start_lng: number | null
+          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
+          trace_geojson: Json | null
           updated_at: string | null
           visibility: string | null
         }
@@ -1254,7 +1495,9 @@ export type Database = {
           creator_name: string | null
           deleted_at: string | null
           description: string | null
+          distance_km: number | null
           duration: string | null
+          elevation_gain_m: number | null
           end_lat: number | null
           end_lng: number | null
           id: string | null
@@ -1275,9 +1518,11 @@ export type Database = {
           sport_key: string | null
           start_lat: number | null
           start_lng: number | null
+          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
+          trace_geojson: Json | null
           updated_at: string | null
           visibility: string | null
         }
@@ -1536,6 +1781,10 @@ export type Database = {
             }
             Returns: string
           }
+      cancel_accepted_seat: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
       cancel_activity: {
         Args: { p_activity_id: string; p_reason: string }
         Returns: undefined
@@ -1561,7 +1810,9 @@ export type Database = {
       create_activity: {
         Args: {
           p_description: string
+          p_distance_km?: number
           p_duration?: string
+          p_elevation_gain_m?: number
           p_end_lat?: number
           p_end_lng?: number
           p_level: string
@@ -1575,8 +1826,10 @@ export type Database = {
           p_sport_id: string
           p_start_lat: number
           p_start_lng: number
+          p_start_name?: string
           p_starts_at?: string
           p_title: string
+          p_trace_geojson?: Json
           p_visibility?: string
         }
         Returns: string
@@ -1830,6 +2083,13 @@ export type Database = {
           sport_key: string
         }[]
       }
+      get_user_sport_endorsements: {
+        Args: { p_user_id: string }
+        Returns: {
+          net_count: number
+          sport_key: string
+        }[]
+      }
       get_user_trophies: {
         Args: { p_user_id: string }
         Returns: {
@@ -1921,7 +2181,12 @@ export type Database = {
         Returns: undefined
       }
       request_seat: {
-        Args: { p_activity_id: string; p_driver_id: string }
+        Args: {
+          p_activity_id: string
+          p_driver_id: string
+          p_message?: string
+          p_pickup_from?: string
+        }
         Returns: string
       }
       send_contact_request: {
@@ -1936,6 +2201,10 @@ export type Database = {
         Args: { p_activity_id: string; p_content: string }
         Returns: string
       }
+      set_activity_gear: {
+        Args: { p_activity_id: string; p_items: Json }
+        Returns: undefined
+      }
       set_date_of_birth: {
         Args: { p_date_of_birth: string }
         Returns: undefined
@@ -1948,6 +2217,10 @@ export type Database = {
           p_transport_type: string
         }
         Returns: undefined
+      }
+      share_activity_message: {
+        Args: { p_activity_id: string; p_conversation_id: string }
+        Returns: string
       }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
@@ -2530,6 +2803,15 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      submit_sport_level_endorsement: {
+        Args: {
+          p_activity_id: string
+          p_is_confirmation: boolean
+          p_sport_key: string
+          p_target_id: string
+        }
+        Returns: undefined
+      }
       transition_activity_status: { Args: never; Returns: undefined }
       transition_single_activity: {
         Args: { p_activity_id: string }
@@ -2552,6 +2834,10 @@ export type Database = {
           p_title?: string
           p_visibility?: string
         }
+        Returns: undefined
+      }
+      update_activity_trace: {
+        Args: { p_activity_id: string; p_trace_geojson: Json }
         Returns: undefined
       }
       updategeometrysrid: {
@@ -2704,6 +2990,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

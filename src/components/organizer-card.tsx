@@ -14,7 +14,7 @@ interface Props {
   creatorId: string;
   creatorName: string;
   creatorAvatar: string | null;
-  maxParticipants: number;
+  maxParticipants: number | null;
   onOpenAll: () => void;
 }
 
@@ -45,7 +45,9 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
   const visible = otherParticipants.slice(0, AVATAR_STACK_SIZE);
   const extra = Math.max(0, otherParticipants.length - AVATAR_STACK_SIZE);
   const totalParticipants = (accepted ?? []).length;
-  const freeSlots = Math.max(0, maxParticipants - totalParticipants);
+  const isOpen = maxParticipants === null;
+  const freeSlots = isOpen ? Infinity : Math.max(0, (maxParticipants ?? 0) - totalParticipants);
+  const isFull = !isOpen && freeSlots === 0;
 
   return (
     <Pressable onPress={onOpenAll} style={styles.card}>
@@ -69,7 +71,9 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
       {otherParticipants.length === 0 ? (
         <View style={styles.emptyRow}>
           <Text style={styles.emptyCallout}>
-            {t('organizer.emptyCallout', { count: freeSlots })}
+            {isOpen
+              ? t('organizer.emptyCalloutOpen')
+              : t('organizer.emptyCallout', { count: freeSlots })}
           </Text>
         </View>
       ) : (
@@ -90,10 +94,12 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
             <Text style={styles.participantsCountText}>
               {t('organizer.participantsCount', { count: totalParticipants })}
             </Text>
-            <Text style={[styles.freeSlotsText, freeSlots === 0 && styles.freeSlotsTextFull]}>
-              {freeSlots === 0
-                ? t('organizer.full')
-                : t('organizer.freeSlots', { count: freeSlots })}
+            <Text style={[styles.freeSlotsText, isFull && styles.freeSlotsTextFull]}>
+              {isOpen
+                ? t('create.openActivityValue')
+                : isFull
+                  ? t('organizer.full')
+                  : t('organizer.freeSlots', { count: freeSlots })}
             </Text>
           </View>
           <View style={styles.viewAllBtn}>

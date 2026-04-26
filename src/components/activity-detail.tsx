@@ -499,7 +499,7 @@ export function ActivityDetail({
               { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
               startChip,
               { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
-              { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: `${remaining}/${activity.max_participants}` },
+              { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
             ];
             if (activity.distance_km != null && activity.distance_km > 0) {
               chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });

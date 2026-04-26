@@ -84,7 +84,7 @@ export function ActivityCard({ activity, onPress, distanceKm }: ActivityCardProp
       {/* Right: partants count */}
       <View style={styles.countCol}>
         <Text style={styles.countValue}>
-          {joined}<Text style={styles.countMax}>/{activity.max_participants}</Text>
+          {joined}{activity.max_participants !== null && (<Text style={styles.countMax}>/{activity.max_participants}</Text>)}
         </Text>
         <Text style={styles.countLabel}>{t('activity.partants')}</Text>
       </View>

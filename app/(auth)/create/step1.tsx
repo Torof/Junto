@@ -34,7 +34,7 @@ export default function CreateStep1() {
   const levelScale = useMemo(() => getLevelScale(selectedSportKey), [selectedSportKey]);
   const showDistance = sportHasDistance(selectedSportKey);
   const showElevation = sportHasElevation(selectedSportKey);
-  const isValid = form.sport_id && form.title.length >= 3 && form.level && form.max_participants >= 2;
+  const isValid = form.sport_id && form.title.length >= 3 && form.level && (form.max_participants === null || form.max_participants >= 2);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -134,21 +134,32 @@ export default function CreateStep1() {
       )}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
-      <View style={styles.counterRow}>
-        <Pressable
-          style={styles.counterButton}
-          onPress={() => updateForm({ max_participants: Math.max(2, form.max_participants - 1) })}
-        >
-          <Text style={styles.counterText}>-</Text>
-        </Pressable>
-        <Text style={styles.counterValue}>{form.max_participants}</Text>
-        <Pressable
-          style={styles.counterButton}
-          onPress={() => updateForm({ max_participants: Math.min(50, form.max_participants + 1) })}
-        >
-          <Text style={styles.counterText}>+</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        style={styles.openToggle}
+        onPress={() => updateForm({ max_participants: form.max_participants === null ? 4 : null })}
+      >
+        <View style={[styles.openCheckbox, form.max_participants === null && styles.openCheckboxOn]}>
+          {form.max_participants === null && <Text style={styles.openCheckboxMark}>✓</Text>}
+        </View>
+        <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
+      </Pressable>
+      {form.max_participants !== null && (
+        <View style={styles.counterRow}>
+          <Pressable
+            style={styles.counterButton}
+            onPress={() => updateForm({ max_participants: Math.max(2, (form.max_participants ?? 4) - 1) })}
+          >
+            <Text style={styles.counterText}>-</Text>
+          </Pressable>
+          <Text style={styles.counterValue}>{form.max_participants}</Text>
+          <Pressable
+            style={styles.counterButton}
+            onPress={() => updateForm({ max_participants: Math.min(50, (form.max_participants ?? 4) + 1) })}
+          >
+            <Text style={styles.counterText}>+</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Pressable
         style={[styles.nextButton, !isValid && styles.buttonDisabled]}
@@ -181,7 +192,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipHintActive: { color: colors.textPrimary, opacity: 0.85 },
   metricRow: { flexDirection: 'row', gap: spacing.md },
   metricField: { flex: 1 },
-  counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
+  openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
+  openCheckbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  openCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  openCheckboxMark: { color: colors.textPrimary, fontSize: 14, fontWeight: 'bold' },
+  openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   counterButton: { backgroundColor: colors.surface, borderRadius: radius.full, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', minWidth: 40, textAlign: 'center' },

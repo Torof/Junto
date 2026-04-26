@@ -277,6 +277,7 @@
     "activitiesCreated_other": "{{count}} activities organized",
     "emptyCallout_one": "{{count}} spot · be the 1st to join",
     "emptyCallout_other": "{{count}} spots · be the 1st to join",
+    "emptyCalloutOpen": "Open activity · be the 1st to join",
     "modalTitle": "Participants"
   },
   "meta": {
@@ -702,6 +703,8 @@
     "distance": "Distance (km)",
     "elevation": "Elevation gain (m)",
     "maxParticipants": "Max participants",
+    "openActivity": "Open (no cap)",
+    "openActivityValue": "Open",
     "next": "Next",
     "tapStart": "Tap the map for the start point",
     "tapMeeting": "Tap the map for the meeting point",

@@ -85,7 +85,7 @@ export default function CreateStep4() {
       <View style={styles.recap}>
         <RecapRow label={t('create.title')} value={form.title} />
         <RecapRow label={t('create.level')} value={form.level} />
-        <RecapRow label={t('create.maxParticipants')} value={`${form.max_participants}`} />
+        <RecapRow label={t('create.maxParticipants')} value={form.max_participants === null ? t('create.openActivityValue') : `${form.max_participants}`} />
         <RecapRow
           label={t('create.dateTime')}
           value={form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : '-'}

@@ -11,7 +11,7 @@ export interface NearbyActivity {
   title: string;
   description: string | null;
   level: string;
-  max_participants: number;
+  max_participants: number | null;
   starts_at: string;
   duration: string;
   status: string;
@@ -96,7 +96,7 @@ export const activityService = {
       p_title: form.title,
       p_description: form.description ?? '',
       p_level: form.level,
-      p_max_participants: form.max_participants,
+      p_max_participants: form.max_participants as number, // null = open activity (DB accepts NULL)
       p_start_lng: (form.location_start ?? form.location_meeting).lng,
       p_start_lat: (form.location_start ?? form.location_meeting).lat,
       p_meeting_lng: form.location_meeting.lng,
@@ -175,7 +175,7 @@ export const activityService = {
     title?: string;
     description?: string;
     level?: string;
-    max_participants?: number;
+    max_participants?: number | null;
     start_lng?: number;
     start_lat?: number;
     meeting_lng?: number;

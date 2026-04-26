@@ -277,6 +277,7 @@
     "activitiesCreated_other": "{{count}} sorties organisées",
     "emptyCallout_one": "{{count}} place · soyez le 1er à rejoindre",
     "emptyCallout_other": "{{count}} places · soyez le 1er à rejoindre",
+    "emptyCalloutOpen": "Activité ouverte · soyez le 1er à rejoindre",
     "modalTitle": "Participants"
   },
   "meta": {
@@ -702,6 +703,8 @@
     "distance": "Distance (km)",
     "elevation": "D+ (m)",
     "maxParticipants": "Participants max",
+    "openActivity": "Ouverte (sans limite)",
+    "openActivityValue": "Ouverte",
     "next": "Suivant",
     "tapStart": "Touche la carte pour le point de départ",
     "tapMeeting": "Touche la carte pour le point de RDV",

@@ -34,6 +34,13 @@ export function getStatusColor(timeStatus: ActivityTimeStatus): string {
   }
 }
 
-export function getRemainingPlaces(maxParticipants: number, participantCount: number): number {
+export function getRemainingPlaces(maxParticipants: number | null, participantCount: number): number {
+  // Open activities (max=null) are "never full" from the client's POV.
+  // The server enforces a hidden 50-cap to prevent abuse.
+  if (maxParticipants === null) return Infinity;
   return Math.max(0, maxParticipants - participantCount);
+}
+
+export function isActivityOpen(maxParticipants: number | null): boolean {
+  return maxParticipants === null;
 }
