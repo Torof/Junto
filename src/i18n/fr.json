@@ -478,6 +478,7 @@
     "traceParseError": "Impossible de lire la trace",
     "traceSent": "Trace envoyée",
     "traceDownload": "Télécharger",
+    "traceDownloaded": "Trace sauvegardée",
     "traceUseInActivity": "Créer une activité",
     "messagesTab": "Messages",
     "requestsTab": "Demandes",

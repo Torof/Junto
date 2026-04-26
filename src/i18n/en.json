@@ -478,6 +478,7 @@
     "traceParseError": "Couldn't read the trace",
     "traceSent": "Trace sent",
     "traceDownload": "Download",
+    "traceDownloaded": "Trace saved",
     "traceUseInActivity": "Create activity",
     "messagesTab": "Messages",
     "requestsTab": "Requests",
