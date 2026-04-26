@@ -8,6 +8,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
+import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
 import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -347,6 +350,49 @@ export function ActivityDetail({
     }
   };
 
+  const handlePickTrace = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+      if (result.canceled) return;
+      const file = result.assets[0];
+      if (!file) return;
+      if (file.size != null && file.size > 5 * 1024 * 1024) {
+        Alert.alert(t('create.traceTooLarge'));
+        return;
+      }
+      const xml = await new File(file.uri).text();
+      const geojson = parseGpxToGeoJson(xml);
+      await activityService.updateTrace(activity.id, geojson);
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
+    } catch (err) {
+      if (err instanceof GpxParseError) {
+        Alert.alert(t('create.traceParseError'), err.message);
+      } else {
+        Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+      }
+    }
+  };
+
+  const handleClearTrace = () => {
+    Alert.alert(t('activity.traceClearTitle'), t('activity.traceClearMessage'), [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('activity.traceClearConfirm'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await activityService.updateTrace(activity.id, null);
+            await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+            Burnt.toast({ title: t('activity.traceCleared'), preset: 'done' });
+          } catch (err) {
+            Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+          }
+        },
+      },
+    ]);
+  };
+
   const handleShare = async () => {
     try {
       const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
@@ -543,6 +589,22 @@ export function ActivityDetail({
                 <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                 <View style={styles.mapTapOverlay} pointerEvents="box-only" />
               </Pressable>
+              {isCreator && (
+                <View style={styles.traceActions}>
+                  <Pressable style={styles.traceButton} onPress={handlePickTrace}>
+                    <Route size={14} color={colors.cta} strokeWidth={2.4} />
+                    <Text style={styles.traceButtonText}>
+                      {activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
+                    </Text>
+                  </Pressable>
+                  {activity.trace_geojson && (
+                    <Pressable style={styles.traceButtonGhost} onPress={handleClearTrace}>
+                      <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
+                      <Text style={styles.traceButtonGhostText}>{t('activity.traceRemove')}</Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
             </View>
           )}
 
@@ -903,6 +965,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     elevation: 3, shadowColor: colors.background, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
+  traceActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
+  traceButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: colors.cta + '1F' },
+  traceButtonText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 0.4 },
+  traceButtonGhost: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: colors.error + '1F' },
+  traceButtonGhostText: { color: colors.error, fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 0.4 },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
