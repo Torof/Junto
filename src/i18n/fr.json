@@ -577,10 +577,10 @@
     "mapStyle": "Style de carte",
     "mapStyleOption": {
       "outdoors": "Outdoor",
-      "streets": "Rues",
-      "satellite-streets": "Satellite + rues",
-      "opentopomap": "Topo (OSM)",
-      "ign-plan": "Plan IGN"
+      "ign-plan": "Carte IGN",
+      "satellite-streets": "Satellite",
+      "streets": "Maps",
+      "opentopomap": "OSM"
     },
     "legal": "Juridique"
   },

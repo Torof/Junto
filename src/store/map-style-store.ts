@@ -71,11 +71,11 @@ export const MAP_STYLE_JSONS: Partial<Record<MapStyleKey, string>> = {
 };
 
 export const MAP_STYLE_ORDER: MapStyleKey[] = [
-  'outdoors',
-  'ign-plan',
-  'satellite-streets',
-  'streets',
-  'opentopomap',
+  'outdoors',       // Outdoor
+  'ign-plan',       // Carte IGN
+  'satellite-streets', // Satellite
+  'streets',        // Maps
+  'opentopomap',    // OSM
 ];
 
 export const MAP_STYLE_ATTRIBUTIONS: Partial<Record<MapStyleKey, string>> = {
