@@ -8,7 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
-  Pencil, MapPinCheck, Star, AlertTriangle, MessageCircle,
+  Pencil, Star, AlertTriangle, MessageCircle,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -30,7 +30,6 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   participant_left_late: { icon: AlertTriangle, color: colors.warning },
   activity_cancelled: { icon: Ban, color: colors.error },
   activity_updated: { icon: Pencil, color: colors.cta },
-  confirm_presence: { icon: MapPinCheck, color: colors.success },
   rate_participants: { icon: Star, color: colors.warning },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
@@ -59,10 +58,8 @@ export default function NotificationsScreen() {
       await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
     }
 
-    if (notification.type === 'confirm_presence' && notification.data?.activity_id) {
-      router.push(`/(auth)/confirm-presence/${notification.data.activity_id}`);
-    } else if (notification.type === 'rate_participants' && notification.data?.activity_id) {
-      router.push(`/(auth)/rate-participants/${notification.data.activity_id}`);
+    if (notification.type === 'rate_participants' && notification.data?.activity_id) {
+      router.push(`/(auth)/peer-review/${notification.data.activity_id}`);
     } else if (notification.type === 'contact_request' || notification.type === 'seat_request') {
       router.push('/(auth)/(tabs)/messagerie?tab=requests');
     } else if (notification.type === 'contact_request_accepted') {

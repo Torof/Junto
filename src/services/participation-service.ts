@@ -70,14 +70,6 @@ export const participationService = {
     if (error) throw error;
   },
 
-  creatorOverridePresence: async (activityId: string, userIds: string[]): Promise<void> => {
-    const { error } = await supabase.rpc('creator_override_presence' as 'join_activity', {
-      p_activity_id: activityId,
-      p_present_user_ids: userIds,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
   waivePenalty: async (participationId: string): Promise<void> => {
     const { error } = await supabase.rpc('waive_late_cancel_penalty' as 'join_activity', {
       p_participation_id: participationId,

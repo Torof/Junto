@@ -26,14 +26,6 @@ export const reliabilityService = {
     return data as unknown as string;
   },
 
-  creatorOverridePresence: async (activityId: string, presentUserIds: string[]): Promise<void> => {
-    const { error } = await supabase.rpc('creator_override_presence' as 'join_activity', {
-      p_activity_id: activityId,
-      p_present_user_ids: presentUserIds,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
   getReliabilityEmoji: (score: number | null): string => {
     if (score === null) return '⚪'; // Not enough data
     if (score >= 90) return '🟢';
