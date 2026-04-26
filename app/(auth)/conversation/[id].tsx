@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
-import { StorageAccessFramework } from 'expo-file-system/legacy';
+import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -91,20 +91,15 @@ export default function ConversationScreen() {
       const gpxXml = geoJsonLineStringToGpx(tracePreview.geo, tracePreview.name);
       const safeName = tracePreview.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.gpx$/i, '') + '.gpx';
 
-      if (Platform.OS === 'android') {
-        // Native picker so the user chooses where to save (e.g. Downloads).
-        const perms = await StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (!perms.granted) return;
-        const fileUri = await StorageAccessFramework.createFileAsync(perms.directoryUri, safeName, 'application/gpx+xml');
-        await StorageAccessFramework.writeAsStringAsync(fileUri, gpxXml);
-        Burnt.toast({ title: t('messagerie.traceDownloaded'), preset: 'done' });
-      } else {
-        // iOS: write to cache + Share so the user can pick "Save to Files".
-        const tmp = new File(Paths.cache, safeName);
-        tmp.create({ overwrite: true });
-        tmp.write(gpxXml);
-        await Share.share({ url: tmp.uri, title: tracePreview.name });
-      }
+      const tmp = new File(Paths.cache, safeName);
+      tmp.create({ overwrite: true });
+      tmp.write(gpxXml);
+
+      // Android needs a content:// URI to share files with other apps; iOS
+      // accepts the file:// URI directly. Either way the user picks the
+      // destination from the share sheet (Files / Drive / Downloads / etc.).
+      const url = Platform.OS === 'android' ? await getContentUriAsync(tmp.uri) : tmp.uri;
+      await Share.share({ url, title: tracePreview.name });
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
     }
