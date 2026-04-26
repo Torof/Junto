@@ -699,7 +699,11 @@
   },
   "notifications": {
     "empty": "No notifications",
-    "markAllRead": "Mark all as read"
+    "emptyAction": "No pending actions",
+    "emptyUpdates": "No recent updates",
+    "markAllRead": "Mark all as read",
+    "tabAction": "To do",
+    "tabUpdates": "Updates"
   },
   "toast": {
     "activityCreated": "Activity published!",

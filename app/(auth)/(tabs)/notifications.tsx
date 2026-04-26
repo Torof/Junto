@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -39,6 +39,17 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
 
+const ACTIONABLE_TYPES = new Set([
+  'join_request',
+  'seat_request',
+  'contact_request',
+  'presence_reminder',
+  'presence_last_call',
+  'rate_participants',
+]);
+
+type Tab = 'action' | 'updates';
+
 export default function NotificationsScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -48,10 +59,23 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState<Tab>('action');
+
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationService.getAll(),
   });
+
+  const actionable = useMemo(
+    () => (notifications ?? []).filter((n) => ACTIONABLE_TYPES.has(n.type)),
+    [notifications],
+  );
+  const updates = useMemo(
+    () => (notifications ?? []).filter((n) => !ACTIONABLE_TYPES.has(n.type)),
+    [notifications],
+  );
+  const visible = activeTab === 'action' ? actionable : updates;
+  const actionableUnread = actionable.filter((n) => !n.read_at).length;
 
   const handlePress = async (notification: Notification) => {
     if (!notification.read_at) {
@@ -85,6 +109,31 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Tab bar */}
+      <View style={styles.tabBar}>
+        <Pressable
+          style={[styles.tab, activeTab === 'action' && styles.tabActive]}
+          onPress={() => setActiveTab('action')}
+        >
+          <Text style={[styles.tabText, activeTab === 'action' && styles.tabTextActive]}>
+            {t('notifications.tabAction')}
+          </Text>
+          {actionableUnread > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{actionableUnread}</Text>
+            </View>
+          )}
+        </Pressable>
+        <Pressable
+          style={[styles.tab, activeTab === 'updates' && styles.tabActive]}
+          onPress={() => setActiveTab('updates')}
+        >
+          <Text style={[styles.tabText, activeTab === 'updates' && styles.tabTextActive]}>
+            {t('notifications.tabUpdates')}
+          </Text>
+        </Pressable>
+      </View>
+
       {hasUnread && (
         <Pressable style={styles.markAllButton} onPress={handleMarkAllRead}>
           <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
@@ -95,13 +144,15 @@ export default function NotificationsScreen() {
         <View style={styles.center}>
           <Text style={styles.loadingText}>...</Text>
         </View>
-      ) : !notifications || notifications.length === 0 ? (
+      ) : visible.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('notifications.empty')}</Text>
+          <Text style={styles.emptyText}>
+            {activeTab === 'action' ? t('notifications.emptyAction') : t('notifications.emptyUpdates')}
+          </Text>
         </View>
       ) : (
         <FlatList
-          data={notifications}
+          data={visible}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const meta = notificationIcons[item.type] ?? defaultIcon;
@@ -139,6 +190,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  tabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+  },
+  tabActive: { backgroundColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary },
+  badge: {
+    minWidth: 20, height: 20, borderRadius: 10,
+    backgroundColor: colors.error,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  badgeText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   markAllButton: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,

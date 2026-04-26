@@ -699,7 +699,11 @@
   },
   "notifications": {
     "empty": "Aucune notification",
-    "markAllRead": "Tout marquer comme lu"
+    "emptyAction": "Aucune action en attente",
+    "emptyUpdates": "Aucune mise à jour récente",
+    "markAllRead": "Tout marquer comme lu",
+    "tabAction": "À traiter",
+    "tabUpdates": "Mises à jour"
   },
   "toast": {
     "activityCreated": "Activité publiée !",
