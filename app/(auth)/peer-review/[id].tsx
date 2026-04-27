@@ -96,7 +96,6 @@ export default function PeerReviewScreen() {
           const presenceConfirmed = p.confirmed_present === true;
           return (
             <View key={p.user_id} style={styles.card}>
-              {/* Header: avatar + name + presence dot */}
               <View style={styles.cardHeader}>
                 <UserAvatar
                   name={p.display_name}
@@ -107,47 +106,50 @@ export default function PeerReviewScreen() {
                 <Text style={styles.cardName} numberOfLines={1}>{p.display_name}</Text>
               </View>
 
-              {/* Qualities */}
-              <Text style={styles.sectionLabel}>{t('peerReview.qualities')}</Text>
-              <View style={styles.badgeGrid}>
+              <View style={styles.metroPill}>
                 {POSITIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
                   return (
                     <Pressable
                       key={badge.key}
-                      style={[styles.badgePill, voted && styles.badgePillPositiveVoted]}
+                      style={[styles.metroCell, voted && styles.metroCellPositive]}
                       onPress={() => handleBadgeTap(p, badge.key)}
                     >
-                      <Text style={styles.badgePillEmoji}>{badge.icon}</Text>
-                      <Text style={[styles.badgePillLabel, voted && styles.badgePillLabelVoted]} numberOfLines={1}>
-                        {t(`badges.${badge.key}`)}
+                      <Text style={styles.metroEmoji}>{badge.icon}</Text>
+                      <Text
+                        style={[styles.metroLabel, voted && styles.metroLabelVotedPositive]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
+                      >
+                        {t(`badges.short.${badge.key}`)}
                       </Text>
                     </Pressable>
                   );
                 })}
-              </View>
-
-              {/* Concerns */}
-              <Text style={[styles.sectionLabel, styles.sectionLabelMuted]}>{t('peerReview.concerns')}</Text>
-              <View style={styles.badgeGrid}>
+                <View style={styles.metroDivider} />
                 {NEGATIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
                   return (
                     <Pressable
                       key={badge.key}
-                      style={[styles.badgePill, styles.badgePillNegative, voted && styles.badgePillNegativeVoted]}
+                      style={[styles.metroCell, voted && styles.metroCellNegative]}
                       onPress={() => handleBadgeTap(p, badge.key)}
                     >
-                      <Text style={styles.badgePillEmoji}>{badge.icon}</Text>
-                      <Text style={[styles.badgePillLabel, voted && styles.badgePillLabelVoted]} numberOfLines={1}>
-                        {t(`badges.${badge.key}`)}
+                      <Text style={styles.metroEmoji}>{badge.icon}</Text>
+                      <Text
+                        style={[styles.metroLabel, voted && styles.metroLabelVotedNegative]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
+                      >
+                        {t(`badges.short.${badge.key}`)}
                       </Text>
                     </Pressable>
                   );
                 })}
               </View>
 
-              {/* Presence vote — only when not yet confirmed */}
               {!presenceConfirmed && (
                 <Pressable
                   style={[styles.presencePill, p.i_voted_presence && styles.presencePillVoted]}
@@ -202,56 +204,37 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
   },
 
-  sectionLabel: {
+  metroPill: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: spacing.xs,
+  },
+  metroCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  metroDivider: {
+    width: 1,
+    backgroundColor: colors.line,
+    marginVertical: 6,
+  },
+  metroCellPositive: { backgroundColor: colors.success + '26' },
+  metroCellNegative: { backgroundColor: colors.error + '26' },
+  metroEmoji: { fontSize: 18, lineHeight: 20 },
+  metroLabel: {
     color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginTop: 4,
-    marginBottom: 2,
+    textAlign: 'center',
   },
-  sectionLabelMuted: {
-    opacity: 0.7,
-  },
-
-  badgeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  badgePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  badgePillNegative: {
-    opacity: 0.85,
-  },
-  badgePillPositiveVoted: {
-    backgroundColor: colors.success + '22',
-    borderColor: colors.success + '66',
-  },
-  badgePillNegativeVoted: {
-    backgroundColor: colors.error + '22',
-    borderColor: colors.error + '66',
-    opacity: 1,
-  },
-  badgePillEmoji: { fontSize: 14 },
-  badgePillLabel: {
-    color: colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  badgePillLabelVoted: {
-    fontWeight: '800',
-  },
+  metroLabelVotedPositive: { color: colors.success, fontWeight: '800' },
+  metroLabelVotedNegative: { color: colors.error, fontWeight: '800' },
 
   presencePill: {
     flexDirection: 'row',

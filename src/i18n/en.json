@@ -724,7 +724,17 @@
     "level_overestimated": "Level overestimated",
     "difficult_attitude": "Difficult attitude",
     "unreliable_field": "Unreliable",
-    "aggressive": "Aggressive"
+    "aggressive": "Aggressive",
+    "short": {
+      "trustworthy": "Trust",
+      "great_leader": "Leader",
+      "good_vibes": "Vibes",
+      "punctual": "On time",
+      "level_overestimated": "Level",
+      "difficult_attitude": "Attitude",
+      "unreliable_field": "Flaky",
+      "aggressive": "Aggressive"
+    }
   },
   "rate": {
     "title": "Rate your co-participants",
