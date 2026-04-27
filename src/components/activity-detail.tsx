@@ -186,7 +186,12 @@ export function ActivityDetail({
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   const alreadyConfirmed = !!participation?.confirmed_present;
-  const canConfirmGeo = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
+  // Creator can geo-self-validate only when at least one other participant
+  // is accepted (server enforces the same rule). They never need the QR
+  // scanner (they're the one generating it).
+  const hasOtherParticipants = (activity.participant_count ?? 0) > 1;
+  const canConfirmGeo = participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow
+    && (!isCreator || hasOtherParticipants);
   const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
   const canCheckIn = canConfirmGeo || canScanQr;
 
