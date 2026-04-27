@@ -176,11 +176,11 @@ export function ActivityDetail({
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
-  // Server-aligned windows (migrations 00109 + 00124):
-  //   geo:  T-10min  → T+30min          (location-only, narrower)
-  //   QR:   T-30min  → T+duration+1h    (creator-gated, wider)
-  const isInGeoWindow = requiresPresence && nowMs >= startsAtMs - 10 * 60 * 1000 && nowMs <= startsAtMs + 30 * 60 * 1000;
-  const isInQrWindow = requiresPresence && nowMs >= startsAtMs - 30 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
+  // Server-aligned windows (migration 00132):
+  //   geo: T-15min → T+30min
+  //   QR:  T-15min → T+duration+1h
+  const isInGeoWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + 30 * 60 * 1000;
+  const isInQrWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
   const isQrAvailable = isInQrWindow; // creator's QR generation uses the same gate
 
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);

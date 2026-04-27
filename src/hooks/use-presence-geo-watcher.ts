@@ -20,8 +20,8 @@ interface ActiveActivity {
 
 const POLL_MS = 30_000;
 const RADIUS_M = 150;
-const PRE_WINDOW_MS = 10 * 60 * 1000;       // T-10min
-const POST_WINDOW_MS = 30 * 60 * 1000;       // T+30min (geo window matches confirm_presence_via_geo)
+const PRE_WINDOW_MS = 15 * 60 * 1000;       // T-15min (matches confirm_presence_via_geo, mig 00132)
+const POST_WINDOW_MS = 30 * 60 * 1000;       // T+30min
 
 function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
