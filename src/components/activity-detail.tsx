@@ -283,7 +283,9 @@ export function ActivityDetail({
               if (cancelled) return;
               await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
               await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+              await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
               await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+              await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
               await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
               Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
             } catch {
@@ -326,7 +328,9 @@ export function ActivityDetail({
       await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
       await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
     } catch (err) {
@@ -364,7 +368,9 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
       await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       Burnt.toast({ title: t('toast.leftActivity') });
       setShowLeaveModal(false);
     } catch (err) {
