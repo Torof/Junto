@@ -14,7 +14,7 @@ import { supabase } from '@/services/supabase';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
 import { endorsementService } from '@/services/endorsement-service';
-import { ProfileHero } from '@/components/profile-hero';
+import { ProfileHero, reliabilityTierFromScore } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
 import { SportIconGrid } from '@/components/sport-icon-grid';
 import { SportsLevelEditor } from '@/components/sports-level-editor';
@@ -152,6 +152,7 @@ export default function ProfilScreen() {
           displayName={user?.display_name ?? ''}
           avatarUrl={user?.avatar_url ?? null}
           reliabilityPct={user?.reliability_score ?? null}
+          reliabilityTier={user?.reliability_score != null ? reliabilityTierFromScore(user.reliability_score) : null}
           stats={stats ?? null}
           joinedAt={user?.created_at ?? null}
           onAvatarPress={handleAvatarPress}

@@ -49,6 +49,14 @@ function tierToPct(tier: string): number | null {
   }
 }
 
+export function reliabilityTierFromScore(score: number | null): string {
+  if (score === null) return 'new';
+  if (score >= 90) return 'excellent';
+  if (score >= 75) return 'good';
+  if (score >= 50) return 'fair';
+  return 'poor';
+}
+
 export function ProfileHero({
   displayName, avatarUrl, reliabilityPct, reliabilityTier, stats,
   joinedAt, city, onAvatarPress, isUploading = false,
@@ -154,7 +162,9 @@ export function ProfileHero({
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.scoreRow}>
             {hasScore ? (
-              <Text style={[styles.scoreBig, { color }]}>{showRawPct ? `${pct}%` : tierLabel}</Text>
+              // Big label = tier name when available, else fall back to %.
+              // The pctPill on the avatar ring keeps the raw % when available.
+              <Text style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</Text>
             ) : (
               <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
             )}
