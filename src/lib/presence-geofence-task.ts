@@ -25,29 +25,30 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   const activityId = id.split(':')[1];
   if (!activityId) return;
 
+  // Heartbeat notification — fires regardless of RPC outcome. Lets us tell
+  // "OS didn't fire the event" from "OS fired but RPC failed" during testing.
+  Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Présence confirmée',
+      body: 'Tu es à proximité de ton activité.',
+      data: { activity_id: activityId, type: 'presence_confirmed' },
+      sound: true,
+    },
+    trigger: null,
+  }).catch(() => {});
+
   try {
-    // Refresh the session if necessary; supabase-js auto-handles token refresh
-    // on rpc() calls, so we just call directly.
-    const { error: rpcErr } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+    // Headless wakes can hit before supabase-js finishes restoring the
+    // session from SecureStore. Explicitly await so the RPC carries a token.
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) return;
+
+    await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
       p_activity_id: activityId,
       p_lng: region.longitude,
       p_lat: region.latitude,
     } as unknown as { p_activity_id: string });
-
-    // Either way (success or "already confirmed" / window closed), surface a
-    // local notification so the user knows their crossing was registered.
-    if (!rpcErr) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Présence confirmée',
-          body: 'Tu es à proximité de ton activité.',
-          data: { activity_id: activityId, type: 'presence_confirmed' },
-          sound: true,
-        },
-        trigger: null,
-      }).catch(() => {});
-    }
   } catch {
-    // Best-effort: failures are silent. The user still has the in-app paths.
+    // Best-effort.
   }
 });
