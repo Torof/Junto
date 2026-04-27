@@ -546,6 +546,12 @@ export function ActivityDetail({
               <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
             </View>
           )}
+          {alreadyConfirmed && !isCreator && (
+            <View style={styles.presenceDone}>
+              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
+              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
+            </View>
+          )}
 
           <OrganizerCard
             activityId={activity.id}
@@ -643,13 +649,6 @@ export function ActivityDetail({
               <MapPinCheck size={16} color={colors.cta} strokeWidth={2.4} />
               <Text style={styles.presenceReminderText}>{t('presence.confirmMyPresence')}</Text>
             </Pressable>
-          )}
-
-          {alreadyConfirmed && !isCreator && (
-            <View style={styles.presenceDone}>
-              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
-              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
-            </View>
           )}
 
           {showJoinButton && (
