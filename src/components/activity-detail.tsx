@@ -176,13 +176,19 @@ export function ActivityDetail({
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
-  const isInPresenceWindow = requiresPresence && nowMs >= startsAtMs - 10 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
-  const isQrAvailable = requiresPresence && nowMs >= startsAtMs - 2 * 3600 * 1000 && nowMs <= startsAtMs + durationMs + 2 * 3600 * 1000;
+  // Server-aligned windows (migrations 00109 + 00124):
+  //   geo:  T-10min  → T+30min          (location-only, narrower)
+  //   QR:   T-30min  → T+duration+1h    (creator-gated, wider)
+  const isInGeoWindow = requiresPresence && nowMs >= startsAtMs - 10 * 60 * 1000 && nowMs <= startsAtMs + 30 * 60 * 1000;
+  const isInQrWindow = requiresPresence && nowMs >= startsAtMs - 30 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
+  const isQrAvailable = isInQrWindow; // creator's QR generation uses the same gate
 
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   const alreadyConfirmed = !!participation?.confirmed_present;
-  const canCheckIn = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInPresenceWindow;
+  const canConfirmGeo = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
+  const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
+  const canCheckIn = canConfirmGeo || canScanQr;
 
   // Remind participant once when the activity has started without their presence confirmed
   useEffect(() => {
@@ -692,18 +698,22 @@ export function ActivityDetail({
                 {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
               </Text>
               <View style={styles.presenceActions}>
-                <Pressable
-                  style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
-                  onPress={handleCheckIn}
-                  disabled={isConfirming}
-                >
-                  <Text style={styles.presenceButtonText} numberOfLines={1}>
-                    {isConfirming ? '...' : t('presence.confirm')}
-                  </Text>
-                </Pressable>
-                <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
-                  <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
-                </Pressable>
+                {canConfirmGeo && (
+                  <Pressable
+                    style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
+                    onPress={handleCheckIn}
+                    disabled={isConfirming}
+                  >
+                    <Text style={styles.presenceButtonText} numberOfLines={1}>
+                      {isConfirming ? '...' : t('presence.confirm')}
+                    </Text>
+                  </Pressable>
+                )}
+                {canScanQr && (
+                  <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+                    <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           )}
