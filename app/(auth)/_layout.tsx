@@ -4,8 +4,6 @@ import { useColors } from '@/hooks/use-theme';
 import { usePresenceGeoWatcher } from '@/hooks/use-presence-geo-watcher';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from '@/components/background-location-prompt';
-// Side-effect import: registers the TaskManager task at app startup.
-import '@/lib/presence-geofence-task';
 
 export default function AuthLayout() {
   const colors = useColors();

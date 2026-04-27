@@ -1,4 +1,9 @@
 import '@/i18n';
+// Side-effect import: TaskManager.defineTask must run on every app boot
+// (including headless wakes from a geofence enter event), so the
+// presence-geofence task module loads from the root layout, not the
+// auth-only layout.
+import '@/lib/presence-geofence-task';
 import { initSentry, wrap } from '@/lib/sentry';
 initSentry();
 import { useEffect, useState, useRef } from 'react';
