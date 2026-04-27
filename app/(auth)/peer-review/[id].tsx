@@ -258,15 +258,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   presenceCount: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
 
   submitButton: {
+    alignSelf: 'center',
     marginTop: spacing.lg,
-    backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+    backgroundColor: colors.cta + '1F',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
   },
   submitText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '800',
+    color: colors.cta,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
 });
