@@ -514,6 +514,7 @@
     "empty": "Aucun co-participant à évaluer.",
     "qualities": "Qualités",
     "concerns": "Reproches",
+    "submit": "Terminé",
     "presenceVoteCta": "{{name}} était présent",
     "presenceVoted": "Vote enregistré",
     "presenceFlipped": "Présence validée",
@@ -732,7 +733,7 @@
       "punctual": "Ponctuel",
       "level_overestimated": "Niveau",
       "difficult_attitude": "Attitude",
-      "unreliable_field": "Bidon",
+      "unreliable_field": "Inconstant",
       "aggressive": "Agressif"
     }
   },

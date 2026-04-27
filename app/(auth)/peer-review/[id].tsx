@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
@@ -19,6 +19,7 @@ export default function PeerReviewScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data: currentUserId } = useQuery({
     queryKey: ['currentUser-id'],
@@ -170,6 +171,10 @@ export default function PeerReviewScreen() {
           );
         })}
       </View>
+
+      <Pressable style={styles.submitButton} onPress={() => router.back()}>
+        <Text style={styles.submitText}>{t('peerReview.submit')}</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -251,4 +256,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   presenceText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   presenceTextVoted: { color: colors.success },
   presenceCount: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
+
+  submitButton: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.cta,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  submitText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '800',
+  },
 });

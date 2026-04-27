@@ -514,6 +514,7 @@
     "empty": "No co-participants to rate.",
     "qualities": "Qualities",
     "concerns": "Concerns",
+    "submit": "Done",
     "presenceVoteCta": "{{name}} was there",
     "presenceVoted": "Vote saved",
     "presenceFlipped": "Presence confirmed",
