@@ -466,6 +466,7 @@
       "activity_cancelled": "Activity cancelled",
       "activity_updated": "Activity updated",
       "rate_participants": "Rate participants",
+      "presence_confirmed": "Presence confirmed",
       "alert_match": "New activity matches your alert",
       "peer_review_closing": "Peer review window closing",
       "seat_request": "Seat request",

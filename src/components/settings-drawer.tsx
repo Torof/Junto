@@ -26,6 +26,7 @@ const NOTIFICATION_TYPES = [
   'presence_pre_warning',
   'presence_reminder',
   'presence_last_call',
+  'presence_confirmed',
   'qr_create_reminder',
   'peer_review_closing',
   'seat_request',
