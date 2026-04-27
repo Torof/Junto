@@ -92,6 +92,11 @@ export function TransportSection({ activityId, currentUserId }: Props) {
     return map;
   }, [acceptedSeatRequests]);
 
+  const confirmedUserIds = useMemo(
+    () => new Set((participants ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
+    [participants],
+  );
+
   const cars = useMemo(
     () => (participants ?? []).filter((p) => {
       if (!p.transport_type || !(CAR_TYPES as readonly string[]).includes(p.transport_type)) return false;
@@ -291,6 +296,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
               used={used}
               free={free}
               passengers={passengers}
+              confirmedUserIds={confirmedUserIds}
               isExpanded={expandedCarId === car.user_id}
               onToggle={() => toggleCar(car.user_id)}
               isMyCar={isMyCar}
@@ -320,7 +326,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
             return (
               <View key={p.user_id} style={styles.otherRow}>
                 <Icon size={14} color={colors.textMuted} strokeWidth={2} />
-                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} />
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} confirmedPresent={p.confirmed_present === true} />
                 <Text style={styles.otherName} numberOfLines={1}>{p.display_name}</Text>
                 <Text style={styles.otherType}>{t(`transport.type.${p.transport_type}`)}</Text>
                 {p.transport_from_name && (
@@ -529,6 +535,7 @@ interface CarRowProps {
   used: number;
   free: number;
   passengers: SeatAssignment[];
+  confirmedUserIds: Set<string>;
   isExpanded: boolean;
   onToggle: () => void;
   isMyCar: boolean;
@@ -545,7 +552,7 @@ interface CarRowProps {
 }
 
 function CarRow({
-  car, capacity, used, free, passengers,
+  car, capacity, used, free, passengers, confirmedUserIds,
   isExpanded, onToggle,
   isMyCar, hasMySeatHere, hasPendingHere, canRequest,
   onRequestPress, onCancelSeatPress, onEditMyCar,
@@ -557,7 +564,7 @@ function CarRow({
     <View style={[styles.carRow, isHighlighted && styles.carRowHighlighted]}>
       <Pressable onPress={onToggle} style={styles.carHeader}>
         <View style={styles.carAvatarWrap}>
-          <UserAvatar name={car.display_name} avatarUrl={car.avatar_url} size={36} />
+          <UserAvatar name={car.display_name} avatarUrl={car.avatar_url} size={36} confirmedPresent={car.confirmed_present === true} />
           <View style={styles.carBadge}>
             <Car size={8} color={colors.textPrimary} strokeWidth={2.5} />
           </View>
@@ -617,7 +624,7 @@ function CarRow({
             <View style={{ marginBottom: spacing.sm }}>
               {passengers.map((p) => (
                 <View key={p.id} style={styles.passengerRow}>
-                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} />
+                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} confirmedPresent={confirmedUserIds.has(p.requester_id)} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
                     {(p.pickup_from || p.requested_pickup_at) && (

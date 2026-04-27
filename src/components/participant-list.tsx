@@ -97,14 +97,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       <View style={styles.avatarRow}>
         {/* Creator — always first */}
         <Pressable style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(creatorId) : router.push(`/(auth)/profile/${creatorId}`)}>
-          <View>
-            <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} />
-            {creatorPresent && (
-              <View style={styles.presentBadge}>
-                <Check size={11} color="#FFFFFF" strokeWidth={3.2} />
-              </View>
-            )}
-          </View>
+          <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} confirmedPresent={creatorPresent} />
           <View style={styles.organizerPill}>
             <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
           </View>
@@ -113,14 +106,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
         {/* Accepted participants (excluding creator) */}
         {otherAccepted.map((p) => (
           <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
-            <View>
-              <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
-              {p.confirmed_present === true && (
-                <View style={styles.presentBadge}>
-                  <Check size={11} color="#FFFFFF" strokeWidth={3.2} />
-                </View>
-              )}
-            </View>
+            <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} confirmedPresent={p.confirmed_present === true} />
           </Pressable>
         ))}
       </View>

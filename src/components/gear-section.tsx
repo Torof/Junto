@@ -8,6 +8,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { gearService, type GearCategoryKey } from '@/services/gear-service';
+import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 
 interface Props {
@@ -71,6 +72,18 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
     queryKey: ['gear-catalog', sportKey],
     queryFn: () => gearService.getCatalog(sportKey),
   });
+
+  // Shared queryKey with the participant list — TanStack dedupes the fetch.
+  const { data: participantsForPresence } = useQuery({
+    queryKey: ['participants', activityId],
+    queryFn: () => participationService.getForActivity(activityId),
+    staleTime: 15_000,
+  });
+
+  const confirmedUserIds = useMemo(
+    () => new Set((participantsForPresence ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
+    [participantsForPresence],
+  );
 
   const { grouped, checkedCatalog, totalCatalog, missingCount, items } = useMemo(() => {
     const itemMap = new Map<string, ItemView>();
@@ -285,6 +298,7 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
                   key={item.name}
                   item={item}
                   isLast={idx === group.items.length - 1}
+                  confirmedUserIds={confirmedUserIds}
                   onPress={() => openItemSheet(item)}
                   styles={styles}
                   colors={colors}
@@ -330,7 +344,7 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
                       <View style={styles.bringersList}>
                         {selectedItem.bringers.map((b) => (
                           <View key={b.user_id} style={styles.bringerRowSheet}>
-                            <UserAvatar name={b.display_name} avatarUrl={b.avatar_url} size={24} />
+                            <UserAvatar name={b.display_name} avatarUrl={b.avatar_url} size={24} confirmedPresent={confirmedUserIds.has(b.user_id)} />
                             <Text style={styles.bringerNameSheet} numberOfLines={1}>{b.display_name}</Text>
                             <Text style={styles.bringerQtySheet}>×{b.quantity}</Text>
                           </View>
@@ -457,13 +471,14 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
 interface ItemRowProps {
   item: ItemView;
   isLast: boolean;
+  confirmedUserIds: Set<string>;
   onPress: () => void;
   colors: AppColors;
   styles: ReturnType<typeof createStyles>;
   t: (k: string, opts?: Record<string, unknown>) => string;
 }
 
-function ItemRow({ item, isLast, onPress, colors, styles, t }: ItemRowProps) {
+function ItemRow({ item, isLast, confirmedUserIds, onPress, colors, styles, t }: ItemRowProps) {
   const firstBringer = item.bringers[0];
   const extraBringers = item.bringers.length - 1;
 
@@ -493,7 +508,7 @@ function ItemRow({ item, isLast, onPress, colors, styles, t }: ItemRowProps) {
         </Text>
         {item.bringers.length > 0 && firstBringer && (
           <View style={styles.bringerRow}>
-            <UserAvatar name={firstBringer.display_name} avatarUrl={firstBringer.avatar_url} size={14} />
+            <UserAvatar name={firstBringer.display_name} avatarUrl={firstBringer.avatar_url} size={14} confirmedPresent={confirmedUserIds.has(firstBringer.user_id)} />
             <Text style={styles.bringerText} numberOfLines={1}>
               {t('gear.broughtBy')} <Text style={styles.bringerName}>{firstBringer.display_name}</Text>
               {extraBringers > 0 && <Text style={styles.bringerExtra}> +{extraBringers}</Text>}

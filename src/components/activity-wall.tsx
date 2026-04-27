@@ -136,14 +136,12 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                       onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
                       disabled={!item.user_id}
                     >
-                      <View>
-                        <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
-                        {item.user_id && confirmedUserIds.has(item.user_id) && (
-                          <View style={styles.presentBadge}>
-                            <Check size={7} color="#FFFFFF" strokeWidth={3.5} />
-                          </View>
-                        )}
-                      </View>
+                      <UserAvatar
+                        name={item.display_name ?? '?'}
+                        avatarUrl={item.avatar_url}
+                        size={24}
+                        confirmedPresent={!!item.user_id && confirmedUserIds.has(item.user_id)}
+                      />
                       <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
                     </Pressable>
                     <Text style={styles.messageTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>

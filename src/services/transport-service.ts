@@ -15,6 +15,7 @@ export interface ParticipantTransport {
   transport_seats: number | null;
   transport_from_name: string | null;
   transport_departs_at: string | null;
+  confirmed_present?: boolean | null;
 }
 
 export interface SeatAssignment {

@@ -41,6 +41,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
     () => (accepted ?? []).filter((p) => p.user_id !== creatorId),
     [accepted, creatorId],
   );
+  const creatorPresent = (accepted ?? []).find((p) => p.user_id === creatorId)?.confirmed_present === true;
 
   const visible = otherParticipants.slice(0, AVATAR_STACK_SIZE);
   const extra = Math.max(0, otherParticipants.length - AVATAR_STACK_SIZE);
@@ -52,7 +53,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
   return (
     <Pressable onPress={onOpenAll} style={styles.card}>
       <View style={styles.topRow}>
-        <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={48} />
+        <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={48} confirmedPresent={creatorPresent} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{creatorName}</Text>
@@ -81,7 +82,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
           <View style={styles.stack}>
             {visible.map((p, i) => (
               <View key={p.user_id} style={[styles.stackAvatarWrap, { marginLeft: i === 0 ? 0 : -8, zIndex: AVATAR_STACK_SIZE - i }]}>
-                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={26} />
+                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={26} confirmedPresent={p.confirmed_present === true} />
               </View>
             ))}
             {extra > 0 && (
