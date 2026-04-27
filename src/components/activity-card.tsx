@@ -103,6 +103,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md + 4,
     marginBottom: spacing.sm,
