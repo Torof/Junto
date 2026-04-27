@@ -474,6 +474,7 @@
       "activity_updated": "Activity updated",
       "rate_participants": "Rate participants",
       "presence_confirmed": "Presence confirmed",
+      "badge_unlocked": "Badge unlocked",
       "alert_match": "New activity matches your alert",
       "peer_review_closing": "Peer review window closing",
       "seat_request": "Seat request",
@@ -687,11 +688,28 @@
   },
   "badges": {
     "newcomer": "Newcomer",
-    "confirmed": "Confirmed member",
-    "experienced": "Experienced member",
-    "veteran": "Veteran",
+    "joined": {
+      "t1": "Member",
+      "t2": "Active",
+      "t3": "Regular",
+      "t4": "Habitual",
+      "t5": "Pillar"
+    },
+    "created": {
+      "t1": "Initiator",
+      "t2": "Organizer",
+      "t3": "Host",
+      "t4": "Coordinator",
+      "t5": "Builder"
+    },
+    "sport": {
+      "t1": "Curious",
+      "t2": "Adept",
+      "t3": "Enthusiast",
+      "t4": "Passionate",
+      "t5": "Devoted"
+    },
     "trustworthy": "Trustworthy",
-    "level_accurate": "Accurate level",
     "great_leader": "Great leader",
     "good_vibes": "Good vibes",
     "punctual": "Punctual",

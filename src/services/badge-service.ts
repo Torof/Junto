@@ -18,15 +18,27 @@ export const NEGATIVE_BADGES = [
 
 export const ALL_BADGES = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
 
-// Trophy badges
-const PROGRESSION_TROPHIES = [
-  { key: 'newcomer', icon: '🌱', min: 0, max: 4 },
-  { key: 'confirmed', icon: '✅', min: 10, max: 29 },
-  { key: 'experienced', icon: '🏅', min: 30, max: 74 },
-  { key: 'veteran', icon: '🦅', min: 75, max: Infinity },
+// Tier ladder shared across joined / created / per-sport categories.
+// Mirror of SQL badge_tier_for() in migration 00135.
+export const TIERS = [
+  { key: 't1', min: 5,  max: 9 },
+  { key: 't2', min: 10, max: 19 },
+  { key: 't3', min: 20, max: 49 },
+  { key: 't4', min: 50, max: 74 },
+  { key: 't5', min: 75, max: Infinity },
 ] as const;
 
-export const SPORT_TROPHY_THRESHOLD = 20;
+export type TierKey = typeof TIERS[number]['key'];
+export type TrophyCategory = 'joined' | 'created' | 'sport';
+
+export function tierFor(count: number): TierKey | null {
+  if (count >= 75) return 't5';
+  if (count >= 50) return 't4';
+  if (count >= 20) return 't3';
+  if (count >= 10) return 't2';
+  if (count >= 5)  return 't1';
+  return null;
+}
 
 export interface ReputationBadge {
   badge_key: string;
@@ -34,8 +46,9 @@ export interface ReputationBadge {
 }
 
 export interface Trophy {
-  trophy_key: string;
-  trophy_count: number;
+  category: TrophyCategory;
+  sport_key: string | null;
+  count: number;
 }
 
 export interface PeerReviewParticipant {
@@ -97,10 +110,6 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as Trophy[]) ?? [];
-  },
-
-  getProgressionTrophy: (completedCount: number) => {
-    return PROGRESSION_TROPHIES.find((t) => completedCount >= t.min && completedCount <= t.max) ?? PROGRESSION_TROPHIES[0];
   },
 
   getBadgeInfo: (key: string) => {

@@ -9,7 +9,7 @@ import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock, Hourglass, QrCode,
-  Car, CarFront, Mail, MailCheck, MailX, Users, BadgeCheck,
+  Car, CarFront, Mail, MailCheck, MailX, Users, BadgeCheck, Trophy,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -37,6 +37,7 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   presence_reminder: { icon: MapPinCheck, color: colors.cta },
   presence_last_call: { icon: AlarmClock, color: colors.warning },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
+  badge_unlocked: { icon: Trophy, color: colors.cta },
   qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },

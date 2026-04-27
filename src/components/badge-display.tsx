@@ -2,20 +2,23 @@ import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
-  Check, ShieldCheck, Flag, Smile, Star, Clock, Trophy, Award, Lock,
+  Check, ShieldCheck, Smile, Star, Clock, Trophy, Lock, Sprout,
   Sparkles, Users, AlertTriangle, Frown, ShieldOff, AlertOctagon,
+  Mountain, Flag, Zap,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { getSportIcon } from '@/constants/sport-icons';
 import {
   badgeService,
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
-  SPORT_TROPHY_THRESHOLD,
+  tierFor,
   type ReputationBadge,
   type Trophy as ReputationTrophy,
+  type TierKey,
 } from '@/services/badge-service';
 
 interface BadgeDisplayProps {
@@ -43,6 +46,7 @@ const PEER_POSITIVE_VISUAL: Record<string, { Icon: LucideIcon; color: string }> 
   great_leader: { Icon: Star,        color: '#F26B2E' },
   good_vibes:   { Icon: Smile,       color: '#F4A373' },
   punctual:     { Icon: Clock,       color: '#9B6BD6' },
+  level_accurate: { Icon: Star, color: '#7EC8A3' }, // legacy, hidden
 };
 
 // Negative peer badges: uniform red (strong warning signal)
@@ -57,10 +61,23 @@ const PEER_NEGATIVE_ICON: Record<string, LucideIcon> = {
 // Hidden from display; backend data may still exist from before the switch.
 const DEPRECATED_PEER_KEYS = new Set(['level_accurate']);
 
-const PROGRESSION_VISUAL: Record<string, { Icon: LucideIcon; color: string }> = {
-  confirmed:    { Icon: Check,   color: '#F26B2E' },
-  experienced:  { Icon: Award,   color: '#F4A373' },
-  veteran:      { Icon: Trophy,  color: '#9B6BD6' },
+// Per-tier accent colors — same hue family across categories so users can
+// quickly read the *level* visually, with category icons distinguishing the
+// kind of badge.
+const TIER_COLOR: Record<TierKey, string> = {
+  t1: '#7EC8A3',
+  t2: '#4B7CB8',
+  t3: '#F26B2E',
+  t4: '#9B6BD6',
+  t5: '#F4A373',
+};
+
+const JOINED_ICON: Record<TierKey, LucideIcon> = {
+  t1: Check, t2: Star, t3: Zap, t4: Mountain, t5: Trophy,
+};
+
+const CREATED_ICON: Record<TierKey, LucideIcon> = {
+  t1: Flag, t2: Flag, t3: Star, t4: Trophy, t5: Trophy,
 };
 
 export function BadgeDisplay({ reputation, trophies, completedCount, createdCount, showLocked = true }: BadgeDisplayProps) {
@@ -73,48 +90,70 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
     const peerList: UIBadge[] = [];
     const lockedList: UIBadge[] = [];
 
-    // AUTO — Progression trophy
-    const progressionTrophy = trophies.find((tr) => tr.trophy_key === 'progression');
-    const progressionLevel = badgeService.getProgressionTrophy(progressionTrophy?.trophy_count ?? 0);
-    if (progressionLevel && progressionLevel.key !== 'newcomer') {
-      const visual = PROGRESSION_VISUAL[progressionLevel.key] ?? PROGRESSION_VISUAL.confirmed!;
+    const joinedTrophy = trophies.find((tr) => tr.category === 'joined');
+    const createdTrophy = trophies.find((tr) => tr.category === 'created');
+    const sportTrophies = trophies.filter((tr) => tr.category === 'sport');
+    const totalCompleted = (joinedTrophy?.count ?? 0) + (createdTrophy?.count ?? 0);
+
+    // AUTO — Newcomer (only when no completed activity at all)
+    if (totalCompleted === 0) {
       autoList.push({
-        id: `progression_${progressionLevel.key}`,
-        label: t(`badges.${progressionLevel.key}`),
-        Icon: visual.Icon,
-        color: visual.color,
+        id: 'newcomer',
+        label: t('badges.newcomer'),
+        Icon: Sprout,
+        color: '#7EC8A3',
         kind: 'auto',
         got: true,
       });
     }
 
-    // AUTO — Organizer active (≥20 created)
-    if (createdCount != null && createdCount >= 20) {
+    // AUTO — Joiner tier
+    const joinedTier = tierFor(joinedTrophy?.count ?? 0);
+    if (joinedTier) {
       autoList.push({
-        id: 'organizer_active',
-        label: t('badges.great_leader'),
-        Icon: Flag,
-        color: '#4B7CB8',
+        id: `joined_${joinedTier}`,
+        label: t(`badges.joined.${joinedTier}`),
+        Icon: JOINED_ICON[joinedTier],
+        color: TIER_COLOR[joinedTier],
         kind: 'auto',
         got: true,
+        count: joinedTrophy?.count,
       });
     }
 
-    // AUTO — Sport trophies
-    trophies
-      .filter((tr) => tr.trophy_key !== 'progression' && tr.trophy_count >= SPORT_TROPHY_THRESHOLD)
-      .forEach((tr) => {
-        autoList.push({
-          id: `sport_${tr.trophy_key}`,
-          label: t('profil.sportTrophyLabel', {
-            sport: t(`sports.${tr.trophy_key}`, { defaultValue: tr.trophy_key }),
-          }),
-          Icon: Trophy,
-          color: '#F4A373',
-          kind: 'auto',
-          got: true,
-        });
+    // AUTO — Organizer tier
+    const createdTier = tierFor(createdTrophy?.count ?? 0);
+    if (createdTier) {
+      autoList.push({
+        id: `created_${createdTier}`,
+        label: t(`badges.created.${createdTier}`),
+        Icon: CREATED_ICON[createdTier],
+        color: TIER_COLOR[createdTier],
+        kind: 'auto',
+        got: true,
+        count: createdTrophy?.count,
       });
+    }
+
+    // AUTO — Per-sport tiers (one per sport that crossed T1)
+    sportTrophies.forEach((tr) => {
+      const tier = tierFor(tr.count);
+      if (!tier || !tr.sport_key) return;
+      const sportEmoji = getSportIcon(tr.sport_key);
+      const sportLabel = t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key });
+      autoList.push({
+        id: `sport_${tr.sport_key}_${tier}`,
+        label: `${sportEmoji} ${t(`badges.sport.${tier}`)} · ${sportLabel}`,
+        Icon: Trophy,
+        color: TIER_COLOR[tier],
+        kind: 'auto',
+        got: true,
+        count: tr.count,
+      });
+    });
+
+    // Suppress unused-prop warning for createdCount (kept for backwards compat)
+    void createdCount;
 
     // PEER — Positive (per-trait color)
     POSITIVE_BADGES.forEach((def) => {

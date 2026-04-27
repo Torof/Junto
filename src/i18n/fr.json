@@ -474,6 +474,7 @@
       "activity_updated": "Activité modifiée",
       "rate_participants": "Évaluer les participants",
       "presence_confirmed": "Présence confirmée",
+      "badge_unlocked": "Badge débloqué",
       "alert_match": "Nouvelle activité correspondant à ton alerte",
       "peer_review_closing": "Fenêtre de validation qui se ferme",
       "seat_request": "Demande de covoiturage",
@@ -686,12 +687,29 @@
     "lockedHint": "Verrouillé — des participants ont rejoint"
   },
   "badges": {
-    "newcomer": "Nouveau membre",
-    "confirmed": "Membre confirmé",
-    "experienced": "Membre expérimenté",
-    "veteran": "Vétéran",
+    "newcomer": "Nouveau",
+    "joined": {
+      "t1": "Membre",
+      "t2": "Actif",
+      "t3": "Régulier",
+      "t4": "Habitué",
+      "t5": "Pilier"
+    },
+    "created": {
+      "t1": "Initiateur",
+      "t2": "Organisateur",
+      "t3": "Animateur",
+      "t4": "Coordinateur",
+      "t5": "Bâtisseur"
+    },
+    "sport": {
+      "t1": "Curieux",
+      "t2": "Adepte",
+      "t3": "Mordu",
+      "t4": "Passionné",
+      "t5": "Inconditionnel"
+    },
     "trustworthy": "De confiance",
-    "level_accurate": "Niveau conforme",
     "great_leader": "Super leader",
     "good_vibes": "Bonne ambiance",
     "punctual": "Ponctuel",

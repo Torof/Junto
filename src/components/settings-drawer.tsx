@@ -28,6 +28,7 @@ const NOTIFICATION_TYPES = [
   'presence_reminder',
   'presence_last_call',
   'presence_confirmed',
+  'badge_unlocked',
   'qr_create_reminder',
   'peer_review_closing',
   'seat_request',
