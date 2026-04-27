@@ -291,6 +291,12 @@ export function ActivityDetail({
         }
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      // Quick client-side guard: if our last-known distance says we're outside
+      // the 150m zone, don't even hit the server. Saves a generic-error round-trip.
+      if (!isAtActivity) {
+        Alert.alert(t('auth.error'), t('errors.confirmPresence'));
+        return;
+      }
       await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
@@ -298,7 +304,7 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
       Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
     } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'confirmPresence'));
     } finally {
       setIsConfirming(false);
     }

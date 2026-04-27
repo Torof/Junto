@@ -11,6 +11,7 @@ type ErrorAction =
   | 'createAlert'
   | 'deleteAlert'
   | 'rateParticipants'
+  | 'confirmPresence'
   | 'uploadAvatar'
   | 'sendReport'
   | 'generic';

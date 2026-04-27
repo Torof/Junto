@@ -192,6 +192,7 @@
     "createAlert": "Couldn't create the alert. Check the info and try again.",
     "deleteAlert": "Couldn't delete the alert. Try again.",
     "rateParticipants": "Couldn't save your ratings. Try again.",
+    "confirmPresence": "You're not in the activity zone yet (within 150m of the start, meeting or end point). Get closer and try again — or scan the creator's QR code.",
     "uploadAvatar": "Couldn't update your photo. Try again.",
     "sendReport": "Couldn't send the report. Try again."
   },
