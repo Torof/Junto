@@ -19,8 +19,22 @@ const NOTIFICATION_TYPES = [
   'request_refused',
   'participant_removed',
   'participant_left',
+  'participant_left_late',
   'activity_cancelled',
   'activity_updated',
+  'rate_participants',
+  'presence_pre_warning',
+  'presence_reminder',
+  'presence_last_call',
+  'qr_create_reminder',
+  'peer_review_closing',
+  'seat_request',
+  'seat_request_accepted',
+  'seat_request_declined',
+  'driver_left',
+  'contact_request',
+  'contact_request_accepted',
+  'alert_match',
 ] as const;
 
 type NotificationPreferences = Record<string, boolean>;
