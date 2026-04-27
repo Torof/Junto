@@ -561,7 +561,7 @@ export function ActivityDetail({
               <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
             </View>
           )}
-          {alreadyConfirmed && !isCreator && (
+          {alreadyConfirmed && (
             <View style={styles.presenceDone}>
               <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
               <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
@@ -743,7 +743,7 @@ export function ActivityDetail({
             </Pressable>
           )}
 
-          {alreadyConfirmed && !isCreator && (
+          {alreadyConfirmed && (
             <View style={styles.presenceDone}>
               <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
               <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
