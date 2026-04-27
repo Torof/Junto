@@ -8,7 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
-  Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock,
+  Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock, Hourglass, QrCode,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -31,8 +31,10 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   activity_cancelled: { icon: Ban, color: colors.error },
   activity_updated: { icon: Pencil, color: colors.cta },
   rate_participants: { icon: Star, color: colors.warning },
+  presence_pre_warning: { icon: Hourglass, color: colors.cta },
   presence_reminder: { icon: MapPinCheck, color: colors.cta },
   presence_last_call: { icon: AlarmClock, color: colors.warning },
+  qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
 });
@@ -43,8 +45,10 @@ const ACTIONABLE_TYPES = new Set([
   'join_request',
   'seat_request',
   'contact_request',
+  'presence_pre_warning',
   'presence_reminder',
   'presence_last_call',
+  'qr_create_reminder',
   'rate_participants',
 ]);
 
