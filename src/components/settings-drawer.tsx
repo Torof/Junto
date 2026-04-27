@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { useState, useMemo, useEffect } from 'react';
+import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
+import * as Location from 'expo-location';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
@@ -50,6 +51,40 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
+  const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    (async () => {
+      const bg = await Location.getBackgroundPermissionsAsync();
+      if (!cancelled) setBgLocationGranted(bg.status === 'granted');
+    })();
+    return () => { cancelled = true; };
+  }, [visible]);
+
+  const handleToggleBgLocation = async () => {
+    if (bgLocationGranted) {
+      // Can't revoke programmatically — kick to OS settings.
+      Linking.openSettings().catch(() => {});
+      return;
+    }
+    // Need foreground first on iOS; Android will combine into one prompt.
+    const fg = await Location.getForegroundPermissionsAsync();
+    if (fg.status !== 'granted') {
+      const fgReq = await Location.requestForegroundPermissionsAsync();
+      if (fgReq.status !== 'granted') {
+        Alert.alert(t('auth.error'), t('bgLocation.foregroundFirst'));
+        return;
+      }
+    }
+    const res = await Location.requestBackgroundPermissionsAsync();
+    setBgLocationGranted(res.status === 'granted');
+    if (res.status !== 'granted' && Platform.OS === 'ios') {
+      // iOS won't re-prompt once denied; nudge to settings.
+      Linking.openSettings().catch(() => {});
+    }
+  };
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const themePreference = useThemeStore((s) => s.preference);
@@ -162,6 +197,16 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
             {/* Preferences section */}
             <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
+
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>{t('drawer.bgLocation')}</Text>
+              <Switch
+                value={bgLocationGranted ?? false}
+                onValueChange={handleToggleBgLocation}
+                trackColor={{ false: colors.surface, true: colors.cta }}
+                thumbColor="#fff"
+              />
+            </View>
 
             <Pressable style={styles.row} onPress={() => setShowNotifPrefs(!showNotifPrefs)}>
               <Text style={styles.rowLabel}>{t('profil.notificationPrefs')}</Text>

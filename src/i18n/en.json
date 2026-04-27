@@ -324,7 +324,8 @@
     "title": "Auto-validate when you arrive",
     "body": "Allow Junto to detect you arriving at the activity even when the app is closed. Your presence will be validated automatically.",
     "enable": "Enable",
-    "skip": "Not now"
+    "skip": "Not now",
+    "foregroundFirst": "Junto needs basic location access first."
   },
   "activityUpdated": {
     "title": "{{title}} was updated",
@@ -618,6 +619,7 @@
     "pseudo": "Display name",
     "subscription": "Subscription",
     "preferences": "Preferences",
+    "bgLocation": "Auto-validate presence (background)",
     "theme": "Theme",
     "themeOption": {
       "system": "Auto",
