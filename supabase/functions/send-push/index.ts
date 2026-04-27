@@ -13,6 +13,7 @@ interface Payload {
   title: string;
   body: string;
   data?: Record<string, unknown>;
+  collapseId?: string;
 }
 
 const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
   } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
-  const { user_id, title, body, data } = payload;
+  const { user_id, title, body, data, collapseId } = payload;
   if (!user_id || !title) {
     return new Response('Missing fields', { status: 400 });
   }
@@ -54,17 +55,25 @@ Deno.serve(async (req) => {
     return new Response('No token', { status: 204 });
   }
 
+  const expoBody: Record<string, unknown> = {
+    to: user.push_token,
+    title,
+    body,
+    data: data ?? {},
+    sound: 'default',
+    priority: 'high',
+  };
+  // collapseId replaces a prior visual notif with the same id (still buzzes per push).
+  // Used for participant_joined coalesce so the lock screen shows the latest count.
+  if (collapseId) {
+    expoBody.collapseId = collapseId;        // iOS apns-collapse-id
+    expoBody.androidCollapseKey = collapseId; // Android
+  }
+
   const expoRes = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      to: user.push_token,
-      title,
-      body,
-      data: data ?? {},
-      sound: 'default',
-      priority: 'high',
-    }),
+    body: JSON.stringify(expoBody),
   });
 
   if (!expoRes.ok) {
