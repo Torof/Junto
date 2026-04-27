@@ -8,7 +8,9 @@ import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { Check } from 'lucide-react-native';
 import { wallService } from '@/services/wall-service';
+import { participationService } from '@/services/participation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useMessageStore } from '@/store/message-store';
 import { UserAvatar } from './user-avatar';
@@ -36,6 +38,20 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
     queryFn: () => wallService.getMessages(activityId),
     refetchInterval: 15000,
   });
+
+  // Reuse the participants query so we can decorate message authors whose
+  // presence has been confirmed. This query is already populated by the
+  // ParticipantList that lives in the same activity screen.
+  const { data: participants } = useQuery({
+    queryKey: ['participants', activityId],
+    queryFn: () => participationService.getForActivity(activityId),
+    staleTime: 15_000,
+  });
+
+  const confirmedUserIds = useMemo(
+    () => new Set((participants ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
+    [participants],
+  );
 
   // Auto-scroll to bottom when messages arrive + mark wall as read whenever
   // the user is on the chat tab (this component only mounts when active).
@@ -120,7 +136,14 @@ export function ActivityWall({ activityId, isActive }: ActivityWallProps) {
                       onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
                       disabled={!item.user_id}
                     >
-                      <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
+                      <View>
+                        <UserAvatar name={item.display_name ?? '?'} avatarUrl={item.avatar_url} size={24} />
+                        {item.user_id && confirmedUserIds.has(item.user_id) && (
+                          <View style={styles.presentBadge}>
+                            <Check size={7} color="#FFFFFF" strokeWidth={3.5} />
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.authorName} numberOfLines={1}>{item.display_name ?? t('wall.deletedUser')}</Text>
                     </Pressable>
                     <Text style={styles.messageTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
@@ -233,6 +256,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: 'bold',
     flex: 1,
+  },
+  presentBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 11,
+    height: 11,
+    borderRadius: 5.5,
+    backgroundColor: colors.success,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   messageTime: {
     color: colors.textSecondary,
