@@ -154,7 +154,10 @@ export function ProfileHero({
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.scoreRow}>
             {hasScore ? (
-              <Text style={[styles.scoreBig, { color }]}>{showRawPct ? `${pct}%` : tierLabel}</Text>
+              // Big label always prefers the human-readable tier name when
+              // available; falls back to the percentage. Only the small
+              // pctPill on the ring keeps the raw % for the user's own view.
+              <Text style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</Text>
             ) : (
               <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
             )}

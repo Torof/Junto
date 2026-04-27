@@ -170,6 +170,7 @@ export default function PublicProfileScreen() {
       <ProfileHero
         displayName={profile.display_name}
         avatarUrl={profile.avatar_url}
+        reliabilityPct={stats?.reliability_score ?? null}
         reliabilityTier={stats?.reliability_tier ?? null}
         stats={stats ?? null}
         joinedAt={profile.created_at ?? null}
