@@ -16,6 +16,7 @@ interface Props {
   onItemPress?: (activity: NearbyActivity) => void;
   filterLabel?: string;
   onClearFilter?: () => void;
+  onCollapse?: () => void;
 }
 
 export interface ActivitiesBottomSheetHandle {
@@ -67,7 +68,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
 
 export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
   function ActivitiesBottomSheet(
-    { activities, userLocation, onItemPress, filterLabel, onClearFilter },
+    { activities, userLocation, onItemPress, filterLabel, onClearFilter, onCollapse },
     ref,
   ) {
   const { t } = useTranslation();
@@ -94,6 +95,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       ref={sheetRef}
       index={0}
       snapPoints={snapPoints}
+      onChange={(idx) => { if (idx === 0) onCollapse?.(); }}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => (
         <TabHandle

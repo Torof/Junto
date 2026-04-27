@@ -85,6 +85,7 @@ export default function CarteScreen() {
   const [showAlertTooltip, setShowAlertTooltip] = useState(false);
 
   const [clusterFilter, setClusterFilter] = useState<NearbyActivity[] | null>(null);
+  const clusterFilterAnchor = useRef<MapBounds | null>(null);
   const sheetRef = useRef<ActivitiesBottomSheetHandle>(null);
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
@@ -117,6 +118,23 @@ export default function CarteScreen() {
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
     setTappedPoint(null);
+
+    // Clear the cluster-filter drawer once the user starts navigating again
+    // (zoom or pan beyond a small threshold). Tapping the cluster doesn't move
+    // the camera, so the filter survives until the user actually moves on.
+    if (clusterFilter !== null && clusterFilterAnchor.current) {
+      const a = clusterFilterAnchor.current;
+      const oldSpan = Math.abs(a.neLng - a.swLng);
+      const newSpan = Math.abs(bounds.neLng - bounds.swLng);
+      const zoomChanged = Math.abs(newSpan - oldSpan) / oldSpan > 0.05;
+      const panMoved =
+        Math.abs(bounds.centerLng - a.centerLng) > oldSpan * 0.1 ||
+        Math.abs(bounds.centerLat - a.centerLat) > oldSpan * 0.1;
+      if (zoomChanged || panMoved) {
+        setClusterFilter(null);
+        clusterFilterAnchor.current = null;
+      }
+    }
 
     // Close the popup on zoom-out: track the smallest viewport span since selection,
     // close when the current viewport grows 30%+ above that minimum.
@@ -159,7 +177,7 @@ export default function CarteScreen() {
         scheduleSearch(bounds);
       }
     }
-  }, [searchBounds, doSearch, scheduleSearch]);
+  }, [searchBounds, doSearch, scheduleSearch, clusterFilter]);
 
   // Tutorial bootstrap: first visit check
   useEffect(() => {
@@ -359,6 +377,7 @@ export default function CarteScreen() {
               onStuckClusterPress={(stuck) => {
                 setSelectedActivity(null);
                 setClusterFilter(stuck);
+                clusterFilterAnchor.current = currentBounds.current;
                 // Defer one frame so the sheet sees the new activities list before expanding
                 requestAnimationFrame(() => sheetRef.current?.expand());
               }}
@@ -372,7 +391,8 @@ export default function CarteScreen() {
           activities={clusterFilter ?? filtered}
           userLocation={currentLocation ?? center}
           filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}
-          onClearFilter={() => setClusterFilter(null)}
+          onClearFilter={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
+          onCollapse={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
           onItemPress={(a) => {
             setFlyTarget([a.lng, a.lat]);
             setFlyOffset({ x: 0.1 });
