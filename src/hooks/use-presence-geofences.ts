@@ -53,6 +53,16 @@ async function buildRegions(): Promise<Location.LocationRegion[]> {
   return regions;
 }
 
+function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 async function refreshGeofences() {
   const { status } = await Location.getBackgroundPermissionsAsync();
   if (status !== 'granted') {
@@ -74,11 +84,34 @@ async function refreshGeofences() {
     return;
   }
 
-  // startGeofencingAsync replaces any prior region set for this task.
   try {
     await Location.startGeofencingAsync(PRESENCE_GEOFENCE_TASK, regions);
   } catch {
-    // Fail silently — manual paths still work.
+    return;
+  }
+
+  // Initial-state check: Android (and sometimes iOS) won't fire ENTER for a
+  // region the user is already inside at registration time. Pull a fresh
+  // position once and manually validate any matching region — server gates
+  // on T-15min so early calls are no-ops.
+  try {
+    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    for (const region of regions) {
+      const d = distanceMeters(pos.coords.latitude, pos.coords.longitude, region.latitude, region.longitude);
+      if (d <= region.radius) {
+        const activityId = String(region.identifier ?? '').split(':')[1];
+        if (!activityId) continue;
+        try {
+          await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+            p_activity_id: activityId,
+            p_lng: pos.coords.longitude,
+            p_lat: pos.coords.latitude,
+          } as unknown as { p_activity_id: string });
+        } catch { /* server gates anyway */ }
+      }
+    }
+  } catch {
+    // Best-effort — geofencing's own ENTER will catch later transitions.
   }
 }
 

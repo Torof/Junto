@@ -86,6 +86,15 @@ export function usePresenceGeoWatcher(enabled: boolean) {
           if (minDist <= RADIUS_M) {
             alertedRef.current.add(a.activity_id);
             haptic.success();
+            // Auto-confirm: foreground app + within 150m + inside the
+            // server-aligned T-15min→T+30min window proves enough.
+            try {
+              await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+                p_activity_id: a.activity_id,
+                p_lng: pos.coords.longitude,
+                p_lat: pos.coords.latitude,
+              } as unknown as { p_activity_id: string });
+            } catch { /* server gates anyway */ }
             Notifications.scheduleNotificationAsync({
               content: {
                 title: t('presence.arrivedTitle'),
