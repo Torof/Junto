@@ -90,10 +90,11 @@ Deno.serve(async (req) => {
     body: JSON.stringify(messages),
   });
 
-  if (!expoRes.ok) {
-    const text = await expoRes.text();
-    return new Response(`Expo error: ${text}`, { status: 502 });
-  }
-
-  return new Response('ok', { status: 200 });
+  // Pass Expo's body through so per-message statuses are visible in
+  // net._http_response.content (DeviceNotRegistered, MismatchSenderId, etc).
+  const expoBody = await expoRes.text();
+  return new Response(expoBody, {
+    status: expoRes.ok ? 200 : 502,
+    headers: { 'Content-Type': 'application/json' },
+  });
 });
