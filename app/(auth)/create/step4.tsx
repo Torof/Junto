@@ -27,6 +27,11 @@ export default function CreateStep4() {
   const handlePublish = async () => {
     if (!form.location_meeting || !form.starts_at) return;
 
+    if (form.starts_at <= new Date()) {
+      Alert.alert(t('auth.error'), t('create.startsAtPast'));
+      return;
+    }
+
     setIsLoading(true);
     try {
       const activityId = await activityService.create({

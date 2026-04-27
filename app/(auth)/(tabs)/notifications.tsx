@@ -104,6 +104,7 @@ export default function NotificationsScreen() {
   );
   const visible = activeTab === 'action' ? actionable : updates;
   const actionableUnread = actionable.filter((n) => !n.read_at).length;
+  const updatesUnread = updates.filter((n) => !n.read_at).length;
 
   const handlePress = async (notification: Notification) => {
     if (!notification.read_at) {
@@ -160,6 +161,11 @@ export default function NotificationsScreen() {
           <Text style={[styles.tabText, activeTab === 'updates' && styles.tabTextActive]}>
             {t('notifications.tabUpdates')}
           </Text>
+          {updatesUnread > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{updatesUnread}</Text>
+            </View>
+          )}
         </Pressable>
       </View>
 

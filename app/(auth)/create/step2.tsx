@@ -82,7 +82,11 @@ export default function CreateStep2() {
     form.location_objective && { id: 'objective', coordinate: [form.location_objective.lng, form.location_objective.lat] as [number, number], color: colors.pinObjective },
   ].filter(Boolean) as { id: string; coordinate: [number, number]; color: string }[];
 
-  const isValid = form.location_meeting && form.starts_at && (form.duration_hours > 0 || form.duration_minutes >= 15);
+  const startsAtInPast = form.starts_at !== null && form.starts_at <= new Date();
+  const isValid = form.location_meeting
+    && form.starts_at
+    && !startsAtInPast
+    && (form.duration_hours > 0 || form.duration_minutes >= 15);
 
   return (
     <View style={styles.container}>
@@ -223,6 +227,9 @@ export default function CreateStep2() {
             {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
           </Text>
         </Pressable>
+        {startsAtInPast && (
+          <Text style={styles.dateError}>{t('create.startsAtPast')}</Text>
+        )}
 
         {showDatePicker && (
           <DateTimePicker
@@ -296,6 +303,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dateButton: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   dateLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },
+  dateError: { color: colors.error, fontSize: fontSizes.xs, marginTop: -spacing.sm, marginBottom: spacing.md },
   durationRow: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   durationPickers: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
   durationButton: { backgroundColor: colors.background, borderRadius: radius.full, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },

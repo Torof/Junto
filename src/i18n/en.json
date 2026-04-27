@@ -801,6 +801,7 @@
     "traceParseError": "Could not read the trace",
     "dateTime": "Date and time",
     "selectDateTime": "Select",
+    "startsAtPast": "Start time must be in the future",
     "duration": "Duration",
     "publish": "Publish",
     "visibility": {
