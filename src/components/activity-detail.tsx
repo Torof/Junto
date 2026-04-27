@@ -186,12 +186,10 @@ export function ActivityDetail({
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
 
   const alreadyConfirmed = !!participation?.confirmed_present;
-  // Creator can geo-self-validate only when at least one other participant
-  // is accepted (server enforces the same rule). They never need the QR
-  // scanner (they're the one generating it).
-  const hasOtherParticipants = (activity.participant_count ?? 0) > 1;
-  const canConfirmGeo = participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow
-    && (!isCreator || hasOtherParticipants);
+  // Creator can always geo-self-validate; the server records it but
+  // recalculate_reliability_score ignores the row until another accepted
+  // participant exists (see migration 00128).
+  const canConfirmGeo = participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
   const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
   const canCheckIn = canConfirmGeo || canScanQr;
 
@@ -275,6 +273,23 @@ export function ActivityDetail({
             },
             trigger: null,
           }).catch(() => {});
+
+          // Auto-confirm: app open + within 150m + inside geo window already
+          // proves enough. Saves the user a tap. The manual button stays as
+          // a fallback if this call fails (network, etc.).
+          if (canConfirmGeo) {
+            try {
+              await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
+              if (cancelled) return;
+              await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+              await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+              await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+              await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+              Burnt.toast({ title: t('presence.confirmed'), preset: 'done' });
+            } catch {
+              // Silent: the manual button still works as a fallback.
+            }
+          }
         }
       } catch {
         // ignore
