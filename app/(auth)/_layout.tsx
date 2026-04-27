@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Stack } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
+import { usePresenceGeoWatcher } from '@/hooks/use-presence-geo-watcher';
 
 export default function AuthLayout() {
   const colors = useColors();
@@ -9,6 +10,8 @@ export default function AuthLayout() {
     headerTintColor: colors.textPrimary,
     contentStyle: { backgroundColor: colors.background },
   }), [colors]);
+
+  usePresenceGeoWatcher(true);
 
   return (
     <Stack screenOptions={screenOptions}>
