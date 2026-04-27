@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
+import { Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { participationService } from '@/services/participation-service';
@@ -66,6 +67,8 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
 
   // Filter out creator from accepted list (shown separately above)
   const otherAccepted = (accepted ?? []).filter((p) => p.user_id !== creatorId);
+  const creatorRow = (accepted ?? []).find((p) => p.user_id === creatorId);
+  const creatorPresent = creatorRow?.confirmed_present === true;
 
   const handleAction = async (participationId: string, action: 'accept' | 'refuse' | 'remove') => {
     setLoadingId(participationId);
@@ -94,7 +97,14 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       <View style={styles.avatarRow}>
         {/* Creator — always first */}
         <Pressable style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(creatorId) : router.push(`/(auth)/profile/${creatorId}`)}>
-          <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} />
+          <View>
+            <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} />
+            {creatorPresent && (
+              <View style={styles.presentBadge}>
+                <Check size={11} color="#FFFFFF" strokeWidth={3.2} />
+              </View>
+            )}
+          </View>
           <View style={styles.organizerPill}>
             <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
           </View>
@@ -103,7 +113,14 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
         {/* Accepted participants (excluding creator) */}
         {otherAccepted.map((p) => (
           <Pressable key={p.participation_id} style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}`)}>
-            <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
+            <View>
+              <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
+              {p.confirmed_present === true && (
+                <View style={styles.presentBadge}>
+                  <Check size={11} color="#FFFFFF" strokeWidth={3.2} />
+                </View>
+              )}
+            </View>
           </Pressable>
         ))}
       </View>
@@ -183,6 +200,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
   organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
+  presentBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.success,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   organizerPillText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingRow: {

@@ -9,6 +9,7 @@ export interface ParticipantInfo {
   left_at: string | null;
   display_name: string;
   avatar_url: string | null;
+  confirmed_present?: boolean | null;
   reliability_tier?: string | null;
   sports?: string[];
   levels_per_sport?: Record<string, string> | null;
@@ -94,7 +95,7 @@ export const participationService = {
   getForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
     const { data, error } = await supabase
       .from('public_participants' as 'participations')
-      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url')
+      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url, confirmed_present')
       .eq('activity_id', activityId)
       .order('created_at');
     if (error) throw error;
