@@ -45,35 +45,49 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('push_token')
-    .eq('id', user_id)
-    .single();
+  // Fan out to every device the user is signed into. Falls back to
+  // users.push_token only if push_tokens has no rows yet (first-run / unmigrated).
+  const { data: tokenRows, error } = await supabase
+    .from('push_tokens')
+    .select('token')
+    .eq('user_id', user_id);
 
-  if (error || !user?.push_token) {
+  let tokens = (tokenRows ?? []).map((r) => r.token).filter(Boolean);
+
+  if (tokens.length === 0 && !error) {
+    const { data: legacy } = await supabase
+      .from('users')
+      .select('push_token')
+      .eq('id', user_id)
+      .single();
+    if (legacy?.push_token) tokens = [legacy.push_token];
+  }
+
+  if (tokens.length === 0) {
     return new Response('No token', { status: 204 });
   }
 
-  const expoBody: Record<string, unknown> = {
-    to: user.push_token,
-    title,
-    body,
-    data: data ?? {},
-    sound: 'default',
-    priority: 'high',
-  };
-  // collapseId replaces a prior visual notif with the same id (still buzzes per push).
-  // Used for participant_joined coalesce so the lock screen shows the latest count.
-  if (collapseId) {
-    expoBody.collapseId = collapseId;        // iOS apns-collapse-id
-    expoBody.androidCollapseKey = collapseId; // Android
-  }
+  // Expo Push API accepts an array of messages in a single request (up to 100).
+  const messages = tokens.map((to) => {
+    const msg: Record<string, unknown> = {
+      to,
+      title,
+      body,
+      data: data ?? {},
+      sound: 'default',
+      priority: 'high',
+    };
+    if (collapseId) {
+      msg.collapseId = collapseId;
+      msg.androidCollapseKey = collapseId;
+    }
+    return msg;
+  });
 
   const expoRes = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(expoBody),
+    body: JSON.stringify(messages),
   });
 
   if (!expoRes.ok) {
