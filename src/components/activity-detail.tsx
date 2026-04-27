@@ -118,6 +118,23 @@ export function ActivityDetail({
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [showBgLocationPrompt, setShowBgLocationPrompt] = useState(false);
 
+  // Background-location opt-in: surface the modal whenever the user is on
+  // an activity that needs presence (creator OR accepted participant) and
+  // we've never asked. Once-per-install (persisted via SecureStore inside
+  // the prompt component).
+  useEffect(() => {
+    if (!activity.id) return;
+    const requires = activity.requires_presence !== false;
+    const isCreatorOrAccepted = participation?.status === 'accepted' || activity.creator_id === currentUserId;
+    if (!requires || !isCreatorOrAccepted) return;
+    let cancelled = false;
+    (async () => {
+      const should = await shouldAskForBackgroundLocation();
+      if (!cancelled && should) setShowBgLocationPrompt(true);
+    })();
+    return () => { cancelled = true; };
+  }, [activity.id, activity.requires_presence, activity.creator_id, participation?.status, currentUserId]);
+
   const startsAtMs2 = new Date(activity.starts_at).getTime();
   const isLateLeave = activity.requires_presence !== false
     && Date.now() > startsAtMs2 - 12 * 3600 * 1000;
@@ -355,13 +372,6 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       const isApproval = activity.visibility === 'approval' || activity.visibility === 'private_link_approval';
       Burnt.toast({ title: t(isApproval ? 'toast.requestSent' : 'toast.joinedActivity'), preset: 'done' });
-
-      // Lazy opt-in: if the user just joined a presence-required activity
-      // and we've never asked for "Always" location permission, surface the
-      // background-geofence prompt now (only once per install).
-      if (requiresPresence && (await shouldAskForBackgroundLocation())) {
-        setShowBgLocationPrompt(true);
-      }
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'joinActivity'));
     } finally {
