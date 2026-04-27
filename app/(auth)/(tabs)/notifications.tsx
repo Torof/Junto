@@ -112,7 +112,7 @@ export default function NotificationsScreen() {
       await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
     }
 
-    if (notification.type === 'rate_participants' && notification.data?.activity_id) {
+    if ((notification.type === 'rate_participants' || notification.type === 'peer_review_closing') && notification.data?.activity_id) {
       router.push(`/(auth)/peer-review/${notification.data.activity_id}`);
     } else if (notification.type === 'contact_request' || notification.type === 'seat_request') {
       router.push('/(auth)/(tabs)/messagerie?tab=requests');
