@@ -1,9 +1,9 @@
-import { useMemo, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronUpCircle } from 'lucide-react-native';
+import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -14,6 +14,13 @@ interface Props {
   activities: NearbyActivity[];
   userLocation: [number, number];
   onItemPress?: (activity: NearbyActivity) => void;
+  filterLabel?: string;
+  onClearFilter?: () => void;
+}
+
+export interface ActivitiesBottomSheetHandle {
+  expand: () => void;
+  collapse: () => void;
 }
 
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -26,7 +33,13 @@ function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function TabHandle({ count, label, onExpand }: { count: number; label: string; onExpand: () => void }) {
+function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
+  count: number;
+  label: string;
+  onExpand: () => void;
+  filterLabel?: string;
+  onClearFilter?: () => void;
+}) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
@@ -36,14 +49,27 @@ function TabHandle({ count, label, onExpand }: { count: number; label: string; o
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
           <ChevronUpCircle size={15} color={colors.textPrimary} strokeWidth={2.2} />
-          <Text style={styles.tabText}>{label} · {count}</Text>
+          <Text style={styles.tabText}>{filterLabel ?? `${label} · ${count}`}</Text>
+          {filterLabel && onClearFilter && (
+            <Pressable
+              onPress={(e) => { e.stopPropagation(); onClearFilter(); }}
+              hitSlop={10}
+              style={styles.clearBtn}
+            >
+              <X size={13} color={colors.textPrimary} strokeWidth={2.4} />
+            </Pressable>
+          )}
         </View>
       </Pressable>
     </View>
   );
 }
 
-export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }: Props) {
+export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
+  function ActivitiesBottomSheet(
+    { activities, userLocation, onItemPress, filterLabel, onClearFilter },
+    ref,
+  ) {
   const { t } = useTranslation();
   const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
@@ -51,6 +77,11 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
+
+  useImperativeHandle(ref, () => ({
+    expand: () => sheetRef.current?.snapToIndex(1),
+    collapse: () => sheetRef.current?.snapToIndex(0),
+  }), []);
 
   const sorted = useMemo(() => {
     return activities
@@ -69,6 +100,8 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
           count={sorted.length}
           label={t('map.seeList')}
           onExpand={() => sheetRef.current?.snapToIndex(2)}
+          filterLabel={filterLabel}
+          onClearFilter={onClearFilter}
         />
       )}
       containerStyle={styles.sheetContainer}
@@ -96,7 +129,7 @@ export function ActivitiesBottomSheet({ activities, userLocation, onItemPress }:
       />
     </BottomSheet>
   );
-}
+});
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetContainer: {
@@ -154,6 +187,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
     fontWeight: 'bold',
+  },
+  clearBtn: {
+    marginLeft: 4,
+    padding: 2,
   },
   list: {
     paddingHorizontal: spacing.md,

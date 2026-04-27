@@ -53,6 +53,7 @@ interface MapViewProps {
   onPinPress?: (pin: MapPin) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
+  onStuckClusterPress?: (activities: NearbyActivity[]) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
   compassEnabled?: boolean;
 }
@@ -74,6 +75,7 @@ export function JuntoMapView({
   onPinPress,
   onMapPress,
   onBoundsChange,
+  onStuckClusterPress,
   flyTo,
   compassEnabled = true,
 }: MapViewProps) {
@@ -294,10 +296,21 @@ export function JuntoMapView({
               coordinate={[lng, lat]}
             >
               <Pressable onPress={() => {
-                const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId) + 1, 20);
+                const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
+                const targetZoom = Math.min(expansionZoom + 1, 20);
+                // Stuck cluster: zooming further wouldn't break it apart.
+                // Fall through to the drawer with just the leaf activities.
+                if (targetZoom <= currentZoom + 0.1 && onStuckClusterPress) {
+                  const leaves = cluster.getLeaves(clusterId, Infinity);
+                  const stuckActivities = leaves
+                    .map((leaf) => activityMap.get((leaf.properties as { id: string }).id))
+                    .filter((a): a is NearbyActivity => a !== undefined);
+                  onStuckClusterPress(stuckActivities);
+                  return;
+                }
                 cameraRef.current?.setCamera({
                   centerCoordinate: [lng, lat],
-                  zoomLevel: expansionZoom,
+                  zoomLevel: targetZoom,
                   animationDuration: 300,
                 });
               }}>

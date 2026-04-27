@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
-import { ActivitiesBottomSheet } from '@/components/activities-bottom-sheet';
+import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
@@ -84,6 +84,8 @@ export default function CarteScreen() {
   const tutorialChecked = useRef(false);
   const [showAlertTooltip, setShowAlertTooltip] = useState(false);
 
+  const [clusterFilter, setClusterFilter] = useState<NearbyActivity[] | null>(null);
+  const sheetRef = useRef<ActivitiesBottomSheetHandle>(null);
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
@@ -354,14 +356,23 @@ export default function CarteScreen() {
                 setTappedPoint({ lng, lat });
               }}
               onBoundsChange={handleBoundsChange}
+              onStuckClusterPress={(stuck) => {
+                setSelectedActivity(null);
+                setClusterFilter(stuck);
+                // Defer one frame so the sheet sees the new activities list before expanding
+                requestAnimationFrame(() => sheetRef.current?.expand());
+              }}
             />
 
 
         </>
 
         <ActivitiesBottomSheet
-          activities={filtered}
+          ref={sheetRef}
+          activities={clusterFilter ?? filtered}
           userLocation={currentLocation ?? center}
+          filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}
+          onClearFilter={() => setClusterFilter(null)}
           onItemPress={(a) => {
             setFlyTarget([a.lng, a.lat]);
             setFlyOffset({ x: 0.1 });

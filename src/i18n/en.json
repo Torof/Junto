@@ -370,6 +370,8 @@
     "resultsCount_one": "1 result",
     "resultsCount_other": "{{count}} results",
     "seeList": "See list",
+    "activitiesAtPoint_one": "{{count}} activity at this spot",
+    "activitiesAtPoint_other": "{{count}} activities at this spot",
     "date": {
       "all": "All",
       "today": "Today",
