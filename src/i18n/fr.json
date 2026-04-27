@@ -316,7 +316,14 @@
   },
   "reliability": {
     "label": "Fiabilité",
-    "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité"
+    "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité",
+    "tier": {
+      "excellent": "Excellente",
+      "good": "Bonne",
+      "fair": "Correcte",
+      "poor": "Faible",
+      "new": "Nouveau"
+    }
   },
   "tutorial": {
     "clickActivity": "👋 Bienvenue ! Les pins oranges sont des activités imminentes, les verts en cours. Appuie sur un pin pour le découvrir",

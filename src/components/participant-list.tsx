@@ -118,7 +118,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
               style={styles.pendingRow}
               onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}&activityTitle=${encodeURIComponent(activityTitle ?? '')}`)}
             >
-              <ReliabilityRing score={p.reliability_score ?? null} size={36} strokeWidth={3} showLabel={false}>
+              <ReliabilityRing tier={p.reliability_tier ?? null} size={36} strokeWidth={3} showLabel={false}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={36} />
               </ReliabilityRing>
               <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>

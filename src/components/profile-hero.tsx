@@ -19,7 +19,11 @@ export interface ProfileHeroStats {
 interface Props {
   displayName: string;
   avatarUrl: string | null;
-  reliabilityPct: number | null;
+  // Pass `reliabilityPct` only on own profile (raw value is private).
+  // For other users, pass `reliabilityTier` — the ring fills to the band
+  // midpoint and the label shows the tier name instead of a percentage.
+  reliabilityPct?: number | null;
+  reliabilityTier?: string | null;
   stats: ProfileHeroStats | null;
   joinedAt: string | null;
   city?: string | null;
@@ -35,21 +39,36 @@ function ringColorFor(pct: number): string {
   return '#E5524E';
 }
 
+function tierToPct(tier: string): number | null {
+  switch (tier) {
+    case 'excellent': return 95;
+    case 'good': return 82;
+    case 'fair': return 62;
+    case 'poor': return 30;
+    default: return null;
+  }
+}
+
 export function ProfileHero({
-  displayName, avatarUrl, reliabilityPct, stats,
+  displayName, avatarUrl, reliabilityPct, reliabilityTier, stats,
   joinedAt, city, onAvatarPress, isUploading = false,
 }: Props) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const hasScore = reliabilityPct != null;
-  const color = hasScore ? ringColorFor(reliabilityPct) : colors.textMuted;
+  const effectivePct = reliabilityPct ?? (reliabilityTier ? tierToPct(reliabilityTier) : null);
+  const hasScore = effectivePct != null;
+  const color = hasScore ? ringColorFor(effectivePct) : colors.textMuted;
 
   const r = (RING_SIZE - 8) / 2;
   const c = 2 * Math.PI * r;
-  const pct = hasScore ? Math.max(0, Math.min(100, reliabilityPct)) : 0;
+  const pct = hasScore ? Math.max(0, Math.min(100, effectivePct)) : 0;
   const dashOffset = c * (1 - pct / 100);
+
+  // When showing tier (other users), display the tier label instead of a precise %
+  const showRawPct = reliabilityPct != null;
+  const tierLabel = reliabilityTier ? t(`reliability.tier.${reliabilityTier}`) : null;
 
   const memberLine = joinedAt
     ? `${t('profil.memberSince', { date: dayjs(joinedAt).locale(i18n.language).format('MMM YYYY') })}${city ? ` · ${city}` : ''}`
@@ -126,7 +145,7 @@ export function ProfileHero({
           {/* % pill at bottom */}
           {hasScore && (
             <View style={[styles.pctPill, { backgroundColor: color, shadowColor: color }]}>
-              <Text style={styles.pctPillText}>{pct}%</Text>
+              <Text style={styles.pctPillText}>{showRawPct ? `${pct}%` : tierLabel}</Text>
             </View>
           )}
         </Pressable>
@@ -135,7 +154,7 @@ export function ProfileHero({
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.scoreRow}>
             {hasScore ? (
-              <Text style={[styles.scoreBig, { color }]}>{pct}%</Text>
+              <Text style={[styles.scoreBig, { color }]}>{showRawPct ? `${pct}%` : tierLabel}</Text>
             ) : (
               <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
             )}

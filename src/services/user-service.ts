@@ -14,7 +14,7 @@ export interface UserStats {
   created_activities: number;
   joined_activities: number;
   sports_count: number;
-  reliability_score: number | null;
+  reliability_tier: string | null;
 }
 
 export interface SportBreakdownRow {
@@ -51,7 +51,7 @@ export const userService = {
       created_activities: 0,
       joined_activities: 0,
       sports_count: 0,
-      reliability_score: null,
+      reliability_tier: null,
     };
     if (!userId) {
       return empty;

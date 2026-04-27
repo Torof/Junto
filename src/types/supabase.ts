@@ -526,7 +526,9 @@ export type Database = {
           left_at: string | null
           left_reason: string | null
           penalty_waived: boolean
+          refused_at: string | null
           status: string
+          transport_departs_at: string | null
           transport_from_name: string | null
           transport_seats: number | null
           transport_type: string | null
@@ -540,7 +542,9 @@ export type Database = {
           left_at?: string | null
           left_reason?: string | null
           penalty_waived?: boolean
+          refused_at?: string | null
           status?: string
+          transport_departs_at?: string | null
           transport_from_name?: string | null
           transport_seats?: number | null
           transport_type?: string | null
@@ -554,7 +558,9 @@ export type Database = {
           left_at?: string | null
           left_reason?: string | null
           penalty_waived?: boolean
+          refused_at?: string | null
           status?: string
+          transport_departs_at?: string | null
           transport_from_name?: string | null
           transport_seats?: number | null
           transport_type?: string | null
@@ -599,6 +605,87 @@ export type Database = {
           {
             foreignKeyName: "participations_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      peer_validations: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          voted_id: string
+          voter_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          voted_id: string
+          voter_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          voted_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_validations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_voted_id_fkey"
+            columns: ["voted_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_voted_id_fkey"
+            columns: ["voted_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_voter_id_fkey"
+            columns: ["voter_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -870,6 +957,7 @@ export type Database = {
           id: string
           message: string | null
           pickup_from: string | null
+          requested_pickup_at: string | null
           requester_id: string
           status: string
         }
@@ -880,6 +968,7 @@ export type Database = {
           id?: string
           message?: string | null
           pickup_from?: string | null
+          requested_pickup_at?: string | null
           requester_id: string
           status?: string
         }
@@ -890,6 +979,7 @@ export type Database = {
           id?: string
           message?: string | null
           pickup_from?: string | null
+          requested_pickup_at?: string | null
           requester_id?: string
           status?: string
         }
@@ -1315,9 +1405,10 @@ export type Database = {
           levels_per_sport: Json | null
           participation_id: string | null
           penalty_waived: boolean | null
-          reliability_score: number | null
+          reliability_tier: string | null
           sports: Json | null
           status: string | null
+          transport_departs_at: string | null
           transport_from_name: string | null
           transport_seats: number | null
           transport_type: string | null
@@ -1556,8 +1647,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           display_name: string | null
+          left_at: string | null
           participation_id: string | null
           status: string | null
+          transport_departs_at: string | null
           transport_from_name: string | null
           transport_seats: number | null
           transport_type: string | null
@@ -1798,6 +1891,11 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      close_due_presence_windows: { Args: never; Returns: undefined }
+      close_presence_window_for: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       confirm_presence: {
         Args: { p_activity_id: string; p_present_user_ids: string[] }
         Returns: undefined
@@ -1867,10 +1965,6 @@ export type Database = {
       create_report: {
         Args: { p_reason: string; p_target_id: string; p_target_type: string }
         Returns: string
-      }
-      creator_override_presence: {
-        Args: { p_activity_id: string; p_present_user_ids: string[] }
-        Returns: undefined
       }
       decline_contact_request: {
         Args: { p_conversation_id: string }
@@ -2046,6 +2140,33 @@ export type Database = {
           visibility: string
         }[]
       }
+      get_activity_peer_review_state: {
+        Args: { p_activity_id: string }
+        Returns: {
+          avatar_url: string
+          confirmed_present: boolean
+          display_name: string
+          i_voted_presence: boolean
+          my_badge_votes: string[]
+          peer_validation_count: number
+          user_id: string
+        }[]
+      }
+      get_my_active_presence_activities: {
+        Args: never
+        Returns: {
+          activity_id: string
+          duration: string
+          end_lat: number
+          end_lng: number
+          meeting_lat: number
+          meeting_lng: number
+          start_lat: number
+          start_lng: number
+          starts_at: string
+          title: string
+        }[]
+      }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
       get_transport_summary: {
         Args: { p_activity_id: string }
@@ -2062,7 +2183,7 @@ export type Database = {
           completed_activities: number
           created_activities: number
           joined_activities: number
-          reliability_score: number
+          reliability_tier: string
           sports_count: number
           total_activities: number
         }[]
@@ -2127,6 +2248,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_creator_qr_reminder: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_presence_last_call: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_presence_pre_warning: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_presence_reminders: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      peer_validate_presence: {
+        Args: { p_activity_id: string; p_voted_id: string }
+        Returns: undefined
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -2176,6 +2317,7 @@ export type Database = {
         Returns: undefined
       }
       register_push_token: { Args: { p_token: string }; Returns: undefined }
+      reliability_tier: { Args: { p_score: number }; Returns: string }
       remove_participant: {
         Args: { p_participation_id: string }
         Returns: undefined
@@ -2186,8 +2328,13 @@ export type Database = {
           p_driver_id: string
           p_message?: string
           p_pickup_from?: string
+          p_requested_pickup_at?: string
         }
         Returns: string
+      }
+      revoke_reputation_badge: {
+        Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
+        Returns: undefined
       }
       send_contact_request: {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
@@ -2212,6 +2359,7 @@ export type Database = {
       set_participation_transport: {
         Args: {
           p_activity_id: string
+          p_transport_departs_at?: string
           p_transport_from_name?: string
           p_transport_seats?: number
           p_transport_type: string
@@ -2220,6 +2368,14 @@ export type Database = {
       }
       share_activity_message: {
         Args: { p_activity_id: string; p_conversation_id: string }
+        Returns: string
+      }
+      share_trace_message: {
+        Args: {
+          p_conversation_id: string
+          p_name: string
+          p_trace_geojson: Json
+        }
         Returns: string
       }
       st_3dclosestpoint: {

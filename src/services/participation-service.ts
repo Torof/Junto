@@ -9,7 +9,7 @@ export interface ParticipantInfo {
   left_at: string | null;
   display_name: string;
   avatar_url: string | null;
-  reliability_score?: number | null;
+  reliability_tier?: string | null;
   sports?: string[];
   levels_per_sport?: Record<string, string> | null;
 }
@@ -143,7 +143,7 @@ export const participationService = {
   getPendingForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
     const { data, error } = await supabase
       .from('activity_participants' as 'participations')
-      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url, reliability_score, sports, levels_per_sport')
+      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url, reliability_tier, sports, levels_per_sport')
       .eq('activity_id', activityId)
       .eq('status' as 'user_id', 'pending')
       .order('created_at');

@@ -316,7 +316,14 @@
   },
   "reliability": {
     "label": "Reliability",
-    "notEnoughData": "Not enough activities yet to rate reliability"
+    "notEnoughData": "Not enough activities yet to rate reliability",
+    "tier": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Low",
+      "new": "New"
+    }
   },
   "tutorial": {
     "clickActivity": "👋 Welcome! Orange pins are activities starting soon, green ones are in progress. Tap a pin to check it out",
