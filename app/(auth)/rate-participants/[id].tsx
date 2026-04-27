@@ -16,9 +16,6 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-// level_accurate is replaced by per-sport endorsements — hide from the rating flow.
-const DISPLAYED_POSITIVE_BADGES = POSITIVE_BADGES.filter((b) => b.key !== 'level_accurate');
-
 export default function RateParticipantsScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -204,7 +201,7 @@ export default function RateParticipantsScreen() {
 
             <Text style={styles.badgeGroupLabel}>{t('rate.positive')}</Text>
             <View style={styles.badgeRow}>
-              {DISPLAYED_POSITIVE_BADGES.map((badge) => (
+              {POSITIVE_BADGES.map((badge) => (
                 <Pressable
                   key={badge.key}
                   style={[styles.badgeChip, userBadges.has(badge.key) && styles.badgeChipSelected]}

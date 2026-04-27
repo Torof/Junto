@@ -512,6 +512,8 @@
   "peerReview": {
     "subtitle": "Évalue tes co-participants — toggle un badge pour voter ou retirer ton vote.",
     "empty": "Aucun co-participant à évaluer.",
+    "qualities": "Qualités",
+    "concerns": "Reproches",
     "presenceVoteCta": "{{name}} était présent",
     "presenceVoted": "Vote enregistré",
     "presenceFlipped": "Présence validée",

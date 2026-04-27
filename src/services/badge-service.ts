@@ -3,7 +3,6 @@ import { supabase } from './supabase';
 // Reputation badges
 export const POSITIVE_BADGES = [
   { key: 'trustworthy', icon: '🤝', threshold: 5 },
-  { key: 'level_accurate', icon: '🧗', threshold: 5 },
   { key: 'great_leader', icon: '⭐', threshold: 5 },
   { key: 'good_vibes', icon: '😊', threshold: 5 },
   { key: 'punctual', icon: '⏱️', threshold: 5 },

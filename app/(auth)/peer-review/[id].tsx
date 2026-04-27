@@ -91,45 +91,66 @@ export default function PeerReviewScreen() {
       <Text style={styles.title}>{activity.title}</Text>
       <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
 
-      <View style={styles.grid}>
+      <View style={styles.list}>
         {state.map((p) => {
           const presenceConfirmed = p.confirmed_present === true;
           return (
-            <View key={p.user_id} style={styles.tile}>
-              <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={44} />
-              <Text style={styles.name} numberOfLines={1}>{p.display_name}</Text>
+            <View key={p.user_id} style={styles.card}>
+              {/* Header: avatar + name + presence dot */}
+              <View style={styles.cardHeader}>
+                <UserAvatar
+                  name={p.display_name}
+                  avatarUrl={p.avatar_url}
+                  size={44}
+                  confirmedPresent={presenceConfirmed}
+                />
+                <Text style={styles.cardName} numberOfLines={1}>{p.display_name}</Text>
+              </View>
 
-              {/* Metro pill — all 9 badges separated by | */}
-              <View style={styles.metroPill}>
-                {[...POSITIVE_BADGES, ...NEGATIVE_BADGES].map((badge, i) => {
+              {/* Qualities */}
+              <Text style={styles.sectionLabel}>{t('peerReview.qualities')}</Text>
+              <View style={styles.badgeGrid}>
+                {POSITIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
-                  const isPositive = i < POSITIVE_BADGES.length;
-                  const showSep = i > 0;
                   return (
-                    <View key={badge.key} style={styles.metroCellWrap}>
-                      {showSep && <Text style={styles.metroSep}>|</Text>}
-                      <Pressable
-                        style={[
-                          styles.metroCell,
-                          voted && (isPositive ? styles.metroCellPositive : styles.metroCellNegative),
-                        ]}
-                        onPress={() => handleBadgeTap(p, badge.key)}
-                        hitSlop={2}
-                      >
-                        <Text style={styles.metroIcon}>{badge.icon}</Text>
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      key={badge.key}
+                      style={[styles.badgePill, voted && styles.badgePillPositiveVoted]}
+                      onPress={() => handleBadgeTap(p, badge.key)}
+                    >
+                      <Text style={styles.badgePillEmoji}>{badge.icon}</Text>
+                      <Text style={[styles.badgePillLabel, voted && styles.badgePillLabelVoted]} numberOfLines={1}>
+                        {t(`badges.${badge.key}`)}
+                      </Text>
+                    </Pressable>
                   );
                 })}
               </View>
 
-              {/* Presence pill — only when not yet confirmed */}
+              {/* Concerns */}
+              <Text style={[styles.sectionLabel, styles.sectionLabelMuted]}>{t('peerReview.concerns')}</Text>
+              <View style={styles.badgeGrid}>
+                {NEGATIVE_BADGES.map((badge) => {
+                  const voted = p.my_badge_votes.includes(badge.key);
+                  return (
+                    <Pressable
+                      key={badge.key}
+                      style={[styles.badgePill, styles.badgePillNegative, voted && styles.badgePillNegativeVoted]}
+                      onPress={() => handleBadgeTap(p, badge.key)}
+                    >
+                      <Text style={styles.badgePillEmoji}>{badge.icon}</Text>
+                      <Text style={[styles.badgePillLabel, voted && styles.badgePillLabelVoted]} numberOfLines={1}>
+                        {t(`badges.${badge.key}`)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {/* Presence vote — only when not yet confirmed */}
               {!presenceConfirmed && (
                 <Pressable
-                  style={[
-                    styles.presencePill,
-                    p.i_voted_presence && styles.presencePillVoted,
-                  ]}
+                  style={[styles.presencePill, p.i_voted_presence && styles.presencePillVoted]}
                   onPress={() => handlePresenceTap(p)}
                   disabled={p.i_voted_presence && !isCreator}
                 >
@@ -139,7 +160,7 @@ export default function PeerReviewScreen() {
                       : t('peerReview.presenceVoteCta', { name: p.display_name })}
                   </Text>
                   {p.peer_validation_count > 0 && (
-                    <Text style={styles.presenceCount}>{p.peer_validation_count}/2</Text>
+                    <Text style={styles.presenceCount}>×{p.peer_validation_count}</Text>
                   )}
                 </Pressable>
               )}
@@ -151,8 +172,6 @@ export default function PeerReviewScreen() {
   );
 }
 
-const TILE_GAP = 12;
-
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 16 },
@@ -161,51 +180,92 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: 4 },
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: TILE_GAP },
-  tile: {
-    width: '47%',
-    flexGrow: 1,
-    minWidth: 150,
-    alignItems: 'center',
+  list: { gap: spacing.md },
+  card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.sm,
-    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
-  name: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', maxWidth: '100%' },
-
-  metroPill: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  cardName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '800',
+    flex: 1,
+  },
+
+  sectionLabel: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  sectionLabelMuted: {
+    opacity: 0.7,
+  },
+
+  badgeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  badgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: colors.surfaceAlt,
     borderRadius: 999,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    gap: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  metroCellWrap: { flexDirection: 'row', alignItems: 'center' },
-  metroSep: { color: colors.textSecondary, fontSize: 11, marginHorizontal: 1, opacity: 0.5 },
-  metroCell: {
-    paddingHorizontal: 3,
-    paddingVertical: 2,
-    borderRadius: 4,
+  badgePillNegative: {
+    opacity: 0.85,
   },
-  metroCellPositive: { backgroundColor: colors.success + '40' },
-  metroCellNegative: { backgroundColor: colors.error + '40' },
-  metroIcon: { fontSize: 14 },
+  badgePillPositiveVoted: {
+    backgroundColor: colors.success + '22',
+    borderColor: colors.success + '66',
+  },
+  badgePillNegativeVoted: {
+    backgroundColor: colors.error + '22',
+    borderColor: colors.error + '66',
+    opacity: 1,
+  },
+  badgePillEmoji: { fontSize: 14 },
+  badgePillLabel: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  badgePillLabelVoted: {
+    fontWeight: '800',
+  },
 
   presencePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: 6,
     backgroundColor: colors.cta + '1F',
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginTop: 2,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    marginTop: spacing.xs,
   },
   presencePillVoted: { backgroundColor: colors.success + '33' },
-  presenceText: { color: colors.cta, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+  presenceText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   presenceTextVoted: { color: colors.success },
-  presenceCount: { color: colors.textSecondary, fontSize: 10, fontWeight: '600' },
+  presenceCount: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
 });

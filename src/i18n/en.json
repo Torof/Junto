@@ -512,6 +512,8 @@
   "peerReview": {
     "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
     "empty": "No co-participants to rate.",
+    "qualities": "Qualities",
+    "concerns": "Concerns",
     "presenceVoteCta": "{{name}} was there",
     "presenceVoted": "Vote saved",
     "presenceFlipped": "Presence confirmed",
