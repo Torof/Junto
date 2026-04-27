@@ -92,7 +92,12 @@ export const badgeService = {
     const { data, error } = await supabase.rpc('get_activity_peer_review_state' as 'join_activity', {
       p_activity_id: activityId,
     } as unknown as { p_activity_id: string });
-    if (error) return [];
+    if (error) {
+      // Surface the error so the screen can display it. The previous version
+      // silently returned [] which made auth/permission failures look like
+      // "no co-participants" — making the bug invisible.
+      throw new Error(`peer-review:${error.code ?? '?'}:${error.message}`);
+    }
     return (data as unknown as PeerReviewParticipant[]) ?? [];
   },
 

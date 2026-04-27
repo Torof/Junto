@@ -31,7 +31,7 @@ export default function PeerReviewScreen() {
     enabled: !!id,
   });
 
-  const { data: state, isLoading } = useQuery({
+  const { data: state, isLoading, error: stateError } = useQuery({
     queryKey: ['peer-review-state', id],
     queryFn: () => badgeService.getPeerReviewState(id ?? ''),
     enabled: !!id,
@@ -82,8 +82,25 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
 
+  if (stateError) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.empty}>RPC error</Text>
+        <Text style={[styles.empty, { fontSize: 11, marginTop: 8, paddingHorizontal: 24, textAlign: 'center' }]}>
+          {stateError instanceof Error ? stateError.message : String(stateError)}
+        </Text>
+      </View>
+    );
+  }
   if (!state || state.length === 0) {
-    return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
+    return (
+      <View style={styles.center}>
+        <Text style={styles.empty}>{t('peerReview.empty')}</Text>
+        <Text style={[styles.empty, { fontSize: 11, marginTop: 8 }]}>
+          (debug: id={id?.slice(0, 8)}…, rows={state?.length ?? 'undefined'})
+        </Text>
+      </View>
+    );
   }
 
   return (
