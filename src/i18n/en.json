@@ -688,6 +688,12 @@
   },
   "badges": {
     "newcomer": "Newcomer",
+    "categoryTitle": {
+      "joined": "Activities joined",
+      "created": "Activities created"
+    },
+    "categoryCount_one": "{{count}} activity",
+    "categoryCount_other": "{{count}} activities",
     "joined": {
       "t1": "Member",
       "t2": "Active",

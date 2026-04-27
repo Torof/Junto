@@ -29,15 +29,23 @@ interface BadgeDisplayProps {
   showLocked?: boolean;
 }
 
+type BadgeCategory = 'newcomer' | 'joined' | 'created' | 'sport' | 'peer-positive' | 'peer-negative';
+
 interface UIBadge {
   id: string;
   label: string;
   Icon: LucideIcon;
-  color: string;          // main accent (auto badges: varied; peer: green/red)
+  color: string;
   kind: 'auto' | 'peer-positive' | 'peer-negative';
   got: boolean;
-  count?: number;         // vote count (peer) — shown as ×N
-  progress?: string;      // for locked: "3/5"
+  count?: number;
+  progress?: string;
+  // Category lets the detail modal render the right ladder (or single info).
+  category: BadgeCategory;
+  tier?: TierKey;          // current tier for joined/created/sport
+  sportKey?: string;       // for sport badges: the emoji + the localized name
+  badgeKey?: string;       // for peer badges: the underlying key (trustworthy, etc.)
+  threshold?: number;      // peer threshold (locked or unlocked)
 }
 
 // Positive peer badges: per-trait color + icon (distinguishes qualities)
@@ -105,6 +113,7 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
         color: '#7EC8A3',
         kind: 'auto',
         got: true,
+        category: 'newcomer',
       });
     }
 
@@ -119,6 +128,8 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
         kind: 'auto',
         got: true,
         count: joinedTrophy?.count,
+        category: 'joined',
+        tier: joinedTier,
       });
     }
 
@@ -133,6 +144,8 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
         kind: 'auto',
         got: true,
         count: createdTrophy?.count,
+        category: 'created',
+        tier: createdTier,
       });
     }
 
@@ -140,16 +153,17 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
     sportTrophies.forEach((tr) => {
       const tier = tierFor(tr.count);
       if (!tier || !tr.sport_key) return;
-      const sportEmoji = getSportIcon(tr.sport_key);
-      const sportLabel = t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key });
       autoList.push({
         id: `sport_${tr.sport_key}_${tier}`,
-        label: `${sportEmoji} ${t(`badges.sport.${tier}`)} · ${sportLabel}`,
-        Icon: Trophy,
+        label: t(`badges.sport.${tier}`),
+        Icon: Trophy, // unused for sport badges — emoji rendered instead
         color: TIER_COLOR[tier],
         kind: 'auto',
         got: true,
         count: tr.count,
+        category: 'sport',
+        tier,
+        sportKey: tr.sport_key,
       });
     });
 
@@ -171,6 +185,9 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           kind: 'peer-positive',
           got: true,
           count: votes,
+          category: 'peer-positive',
+          badgeKey: def.key,
+          threshold: def.threshold,
         });
       } else {
         lockedList.push({
@@ -181,6 +198,10 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           kind: 'peer-positive',
           got: false,
           progress: `${votes}/${def.threshold}`,
+          category: 'peer-positive',
+          badgeKey: def.key,
+          threshold: def.threshold,
+          count: votes,
         });
       }
     });
@@ -199,6 +220,9 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
         kind: 'peer-negative',
         got: true,
         count: votes,
+        category: 'peer-negative',
+        badgeKey: def.key,
+        threshold: def.threshold,
       });
     });
 
@@ -298,18 +322,38 @@ function BadgeIcon({ badge, styles, colors, onPress }: {
 }) {
   const { Icon } = badge;
   const isLocked = !badge.got;
+  const isSport = badge.category === 'sport' && badge.sportKey;
 
   return (
-    <Pressable onPress={onPress} hitSlop={6}>
-      <View
-        style={[
-          styles.iconBadge,
-          isLocked
-            ? styles.iconBadgeLocked
-            : { backgroundColor: badge.color, borderColor: badge.color },
-        ]}
-      >
-        <Icon size={18} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2.2} />
+    <Pressable onPress={onPress} hitSlop={4} style={styles.badgeCell}>
+      <View style={styles.iconWrap}>
+        <View
+          style={[
+            styles.iconBadge,
+            isLocked
+              ? styles.iconBadgeLocked
+              : { backgroundColor: badge.color, borderColor: badge.color },
+          ]}
+        >
+          {isSport ? (
+            <Text style={styles.sportEmoji}>{getSportIcon(badge.sportKey!)}</Text>
+          ) : (
+            <Icon size={18} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2.2} />
+          )}
+        </View>
+        {badge.count != null && badge.count > 0 && (
+          <View style={[styles.countOverlay, isLocked ? styles.countOverlayLocked : { backgroundColor: colors.background }]}>
+            <Text style={[styles.countOverlayText, { color: isLocked ? colors.textMuted : badge.color }]}>×{badge.count}</Text>
+          </View>
+        )}
+      </View>
+      <View style={[styles.tierPill, isLocked && styles.tierPillLocked]}>
+        <Text
+          style={[styles.tierPillText, isLocked && { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
+          {badge.label}
+        </Text>
       </View>
     </Pressable>
   );
@@ -332,27 +376,89 @@ function BadgeDetailSheet({
 }) {
   if (!badge) return null;
   const { Icon } = badge;
-  const isLocked = !badge.got;
+  const isAutoTiered = badge.category === 'joined' || badge.category === 'created' || badge.category === 'sport';
+  const currentCount = badge.count ?? 0;
+
+  // Title: category-level label.
+  let title = badge.label;
+  let subtitle: string | null = null;
+  if (badge.category === 'joined') {
+    title = t('badges.categoryTitle.joined');
+    subtitle = t('badges.categoryCount', { count: currentCount });
+  } else if (badge.category === 'created') {
+    title = t('badges.categoryTitle.created');
+    subtitle = t('badges.categoryCount', { count: currentCount });
+  } else if (badge.category === 'sport' && badge.sportKey) {
+    const sportEmoji = getSportIcon(badge.sportKey);
+    const sportLabel = t(`sports.${badge.sportKey}`, { defaultValue: badge.sportKey });
+    title = `${sportEmoji} ${sportLabel}`;
+    subtitle = t('badges.categoryCount', { count: currentCount });
+  }
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.detailBackdrop} onPress={onClose}>
         <Pressable style={styles.detailCard} onPress={(e) => e.stopPropagation()}>
-          <View
-            style={[
-              styles.detailIcon,
-              isLocked ? styles.iconBadgeLocked : { backgroundColor: badge.color, borderColor: badge.color },
-            ]}
-          >
-            <Icon size={32} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2} />
-          </View>
-          <Text style={styles.detailLabel}>{badge.label}</Text>
-          {badge.count != null && (
-            <Text style={[styles.detailCount, { color: badge.color }]}>×{badge.count}</Text>
+          <Text style={styles.detailTitle}>{title}</Text>
+          {subtitle && <Text style={styles.detailSubtitle}>{subtitle}</Text>}
+
+          {isAutoTiered ? (
+            <View style={styles.tierLadder}>
+              {(['t1','t2','t3','t4','t5'] as const).map((tier) => {
+                const min = TIERS_MIN[tier];
+                const unlocked = currentCount >= min;
+                const isCurrent = badge.tier === tier;
+                const tierColor = TIER_COLOR[tier];
+                const labelKey = badge.category === 'joined' ? `badges.joined.${tier}`
+                  : badge.category === 'created' ? `badges.created.${tier}`
+                  : `badges.sport.${tier}`;
+                return (
+                  <View
+                    key={tier}
+                    style={[
+                      styles.tierRow,
+                      isCurrent && [styles.tierRowCurrent, { borderColor: tierColor }],
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.tierDot,
+                        unlocked
+                          ? { backgroundColor: tierColor, borderColor: tierColor }
+                          : styles.tierDotLocked,
+                      ]}
+                    >
+                      {unlocked && <Text style={styles.tierDotMark}>✓</Text>}
+                    </View>
+                    <Text style={[styles.tierRowLabel, !unlocked && { color: colors.textMuted }]}>
+                      {t(labelKey)}
+                    </Text>
+                    <Text style={[styles.tierRowMin, !unlocked && { color: colors.textMuted }]}>
+                      ×{min}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <>
+              <View
+                style={[
+                  styles.detailIcon,
+                  badge.got ? { backgroundColor: badge.color, borderColor: badge.color } : styles.iconBadgeLocked,
+                ]}
+              >
+                <Icon size={32} color={badge.got ? '#FFFFFF' : colors.textMuted} strokeWidth={2} />
+              </View>
+              <Text style={styles.detailLabel}>{badge.label}</Text>
+              {badge.count != null && badge.threshold != null && (
+                <Text style={[styles.detailCount, { color: badge.color }]}>
+                  {badge.count} / {badge.threshold} votes
+                </Text>
+              )}
+            </>
           )}
-          {badge.progress && (
-            <Text style={styles.detailProgress}>{badge.progress}</Text>
-          )}
+
           <Pressable style={styles.detailClose} onPress={onClose}>
             <Text style={styles.detailCloseText}>{t('common.close', { defaultValue: 'OK' })}</Text>
           </Pressable>
@@ -361,6 +467,11 @@ function BadgeDetailSheet({
     </Modal>
   );
 }
+
+// Quick lookup table for the modal — must mirror the SQL ladder.
+const TIERS_MIN: Record<TierKey, number> = {
+  t1: 5, t2: 10, t3: 20, t4: 50, t5: 75,
+};
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
@@ -415,10 +526,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   iconsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
+  },
+  badgeCell: {
+    alignItems: 'center',
+    width: 64,
+  },
+  iconWrap: {
+    width: 40, height: 40,
+    position: 'relative',
   },
   iconBadge: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 40, height: 40, borderRadius: 20,
     borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -427,6 +546,107 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: colors.textMuted,
     opacity: 0.55,
+  },
+  sportEmoji: {
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  countOverlay: {
+    position: 'absolute',
+    top: -4, right: -8,
+    minWidth: 22,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1.2,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countOverlayLocked: {
+    backgroundColor: colors.background,
+  },
+  countOverlayText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: -0.02,
+  },
+  tierPill: {
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 999,
+    maxWidth: 64,
+  },
+  tierPillLocked: {
+    opacity: 0.55,
+  },
+  tierPillText: {
+    color: colors.textPrimary,
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: -0.01,
+    textAlign: 'center',
+  },
+  detailTitle: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  detailSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  tierLadder: {
+    width: '100%',
+    gap: 6,
+    marginBottom: 12,
+  },
+  tierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  tierRowCurrent: {
+    borderWidth: 1.5,
+    backgroundColor: colors.surfaceAlt,
+  },
+  tierDot: {
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  tierDotLocked: {
+    backgroundColor: 'transparent',
+    borderStyle: 'dashed',
+    borderColor: colors.textMuted,
+  },
+  tierDotMark: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  tierRowLabel: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  tierRowMin: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+    opacity: 0.7,
   },
   detailBackdrop: {
     flex: 1,
