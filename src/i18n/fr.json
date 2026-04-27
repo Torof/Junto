@@ -460,7 +460,14 @@
       "participant_removed": "Retiré d'une activité",
       "participant_left": "Participant parti",
       "activity_cancelled": "Activité annulée",
-      "activity_updated": "Activité modifiée"
+      "activity_updated": "Activité modifiée",
+      "peer_review_closing": "Fenêtre de validation qui se ferme",
+      "seat_request": "Demande de covoiturage",
+      "seat_request_accepted": "Place confirmée",
+      "seat_request_declined": "Demande refusée",
+      "driver_left": "Conducteur parti",
+      "contact_request": "Demande de contact",
+      "contact_request_accepted": "Contact accepté"
     }
   },
   "participants": {

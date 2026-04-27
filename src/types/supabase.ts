@@ -2252,6 +2252,19 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      notify_participant_joined: {
+        Args: {
+          p_activity_id: string
+          p_activity_title: string
+          p_creator_id: string
+          p_joiner_name: string
+        }
+        Returns: undefined
+      }
+      notify_peer_review_closing: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       notify_presence_last_call: {
         Args: { p_activity_id: string }
         Returns: undefined
@@ -2308,6 +2321,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      purge_old_notifications: { Args: never; Returns: undefined }
       recalculate_reliability_score: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -2336,6 +2350,7 @@ export type Database = {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
         Returns: undefined
       }
+      sanitize_notif_text: { Args: { p: string }; Returns: string }
       send_contact_request: {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
         Returns: string

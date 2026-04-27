@@ -460,7 +460,14 @@
       "participant_removed": "Removed from activity",
       "participant_left": "Participant left",
       "activity_cancelled": "Activity cancelled",
-      "activity_updated": "Activity updated"
+      "activity_updated": "Activity updated",
+      "peer_review_closing": "Peer review window closing",
+      "seat_request": "Seat request",
+      "seat_request_accepted": "Seat confirmed",
+      "seat_request_declined": "Seat declined",
+      "driver_left": "Driver left",
+      "contact_request": "Contact request",
+      "contact_request_accepted": "Contact accepted"
     }
   },
   "participants": {

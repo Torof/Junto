@@ -9,6 +9,7 @@ import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock, Hourglass, QrCode,
+  Car, CarFront, Mail, MailCheck, MailX, Users,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -38,6 +39,13 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
+  peer_review_closing: { icon: Users, color: colors.warning },
+  seat_request: { icon: Car, color: colors.cta },
+  seat_request_accepted: { icon: CarFront, color: colors.success },
+  seat_request_declined: { icon: Car, color: colors.error },
+  driver_left: { icon: Car, color: colors.warning },
+  contact_request: { icon: Mail, color: colors.cta },
+  contact_request_accepted: { icon: MailCheck, color: colors.success },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -51,6 +59,7 @@ const ACTIONABLE_TYPES = new Set([
   'presence_last_call',
   'qr_create_reminder',
   'rate_participants',
+  'peer_review_closing',
 ]);
 
 type Tab = 'action' | 'updates';
