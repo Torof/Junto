@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   Check, ShieldCheck, Smile, Star, Clock, Trophy, Lock, Sprout,
@@ -84,6 +84,7 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [selected, setSelected] = useState<UIBadge | null>(null);
 
   const { auto, peer, locked, totalGot } = useMemo(() => {
     const autoList: UIBadge[] = [];
@@ -227,6 +228,7 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           badges={peer}
           styles={styles}
           colors={colors}
+          onBadgePress={setSelected}
         />
       )}
 
@@ -237,6 +239,7 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           badges={auto}
           styles={styles}
           colors={colors}
+          onBadgePress={setSelected}
         />
       )}
 
@@ -248,8 +251,18 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           styles={styles}
           colors={colors}
           lastSection
+          onBadgePress={setSelected}
         />
       )}
+
+      <BadgeDetailSheet
+        badge={selected}
+        visible={selected !== null}
+        onClose={() => setSelected(null)}
+        styles={styles}
+        colors={colors}
+        t={t}
+      />
     </View>
   );
 }
@@ -263,50 +276,89 @@ interface SectionProps {
   lastSection?: boolean;
 }
 
-function Section({ icon: SectionIcon, label, badges, styles, colors, lastSection }: SectionProps) {
+function Section({ icon: SectionIcon, label, badges, styles, colors, lastSection, onBadgePress }: SectionProps & { onBadgePress: (b: UIBadge) => void }) {
   return (
     <View style={[styles.sectionBlock, lastSection && { marginBottom: 0 }]}>
       <View style={styles.sectionHeader}>
         <SectionIcon size={11} color={colors.textMuted} strokeWidth={2.2} />
         <Text style={styles.sectionLabel}>{label}</Text>
       </View>
-      <View style={styles.pillsRow}>
-        {badges.map((b) => <Pill key={b.id} badge={b} styles={styles} colors={colors} />)}
+      <View style={styles.iconsRow}>
+        {badges.map((b) => <BadgeIcon key={b.id} badge={b} styles={styles} colors={colors} onPress={() => onBadgePress(b)} />)}
       </View>
     </View>
   );
 }
 
-function Pill({ badge, styles, colors }: { badge: UIBadge; styles: ReturnType<typeof createStyles>; colors: AppColors }) {
+function BadgeIcon({ badge, styles, colors, onPress }: {
+  badge: UIBadge;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  onPress: () => void;
+}) {
   const { Icon } = badge;
-
-  if (!badge.got) {
-    return (
-      <View style={[styles.pill, styles.pillLocked]}>
-        <View style={[styles.pillIcon, styles.pillIconLocked]}>
-          <Icon size={13} color={colors.textMuted} strokeWidth={2} />
-        </View>
-        <Text style={styles.pillLabelLocked}>{badge.label}</Text>
-        {badge.progress && (
-          <Text style={styles.pillProgressLocked}>{badge.progress}</Text>
-        )}
-      </View>
-    );
-  }
+  const isLocked = !badge.got;
 
   return (
-    <View style={[
-      styles.pill,
-      { backgroundColor: badge.color + '18', borderColor: badge.color + '4D' },
-    ]}>
-      <View style={[styles.pillIcon, { backgroundColor: badge.color }]}>
-        <Icon size={14} color="#FFFFFF" strokeWidth={2} />
+    <Pressable onPress={onPress} hitSlop={6}>
+      <View
+        style={[
+          styles.iconBadge,
+          isLocked
+            ? styles.iconBadgeLocked
+            : { backgroundColor: badge.color, borderColor: badge.color },
+        ]}
+      >
+        <Icon size={18} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2.2} />
       </View>
-      <Text style={[styles.pillLabel, { color: colors.textPrimary }]}>{badge.label}</Text>
-      {badge.count != null && (
-        <Text style={[styles.pillCount, { color: badge.color }]}>×{badge.count}</Text>
-      )}
-    </View>
+    </Pressable>
+  );
+}
+
+function BadgeDetailSheet({
+  badge,
+  visible,
+  onClose,
+  styles,
+  colors,
+  t,
+}: {
+  badge: UIBadge | null;
+  visible: boolean;
+  onClose: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  if (!badge) return null;
+  const { Icon } = badge;
+  const isLocked = !badge.got;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.detailBackdrop} onPress={onClose}>
+        <Pressable style={styles.detailCard} onPress={(e) => e.stopPropagation()}>
+          <View
+            style={[
+              styles.detailIcon,
+              isLocked ? styles.iconBadgeLocked : { backgroundColor: badge.color, borderColor: badge.color },
+            ]}
+          >
+            <Icon size={32} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2} />
+          </View>
+          <Text style={styles.detailLabel}>{badge.label}</Text>
+          {badge.count != null && (
+            <Text style={[styles.detailCount, { color: badge.color }]}>×{badge.count}</Text>
+          )}
+          {badge.progress && (
+            <Text style={styles.detailProgress}>{badge.progress}</Text>
+          )}
+          <Pressable style={styles.detailClose} onPress={onClose}>
+            <Text style={styles.detailCloseText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -359,6 +411,72 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+  },
+  iconsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  iconBadge: {
+    width: 36, height: 36, borderRadius: 18,
+    borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  iconBadgeLocked: {
+    backgroundColor: colors.surfaceAlt,
+    borderStyle: 'dashed',
+    borderColor: colors.textMuted,
+    opacity: 0.55,
+  },
+  detailBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  detailCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  detailIcon: {
+    width: 64, height: 64, borderRadius: 32,
+    borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  detailLabel: {
+    color: colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  detailCount: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  detailProgress: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  detailClose: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.cta,
+    borderRadius: 999,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  detailCloseText: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
   },
 
   pill: {
