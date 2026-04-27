@@ -15,10 +15,6 @@ export async function shouldAskForBackgroundLocation(): Promise<boolean> {
     const asked = await SecureStore.getItemAsync(ASKED_KEY);
     if (asked) return false;
   } catch { /* fall through */ }
-  // Don't bother asking if foreground isn't even granted yet — the activity
-  // detail flow handles the foreground prompt; we layer "always" on top.
-  const fg = await Location.getForegroundPermissionsAsync();
-  if (fg.status !== 'granted') return false;
   const bg = await Location.getBackgroundPermissionsAsync();
   return bg.status !== 'granted' && bg.canAskAgain !== false;
 }
@@ -41,9 +37,14 @@ export function BackgroundLocationPrompt({ visible, onClose }: Props) {
   const handleEnable = async () => {
     setRequesting(true);
     try {
+      // Foreground first — iOS won't show the "Always" prompt without it.
+      const fg = await Location.getForegroundPermissionsAsync();
+      if (fg.status !== 'granted') {
+        const fgReq = await Location.requestForegroundPermissionsAsync();
+        if (fgReq.status !== 'granted') return;
+      }
       const res = await Location.requestBackgroundPermissionsAsync();
       if (res.status !== 'granted' && Platform.OS === 'ios') {
-        // iOS won't prompt twice if denied; nudge to settings.
         Linking.openSettings().catch(() => {});
       }
     } finally {

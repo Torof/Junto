@@ -17,7 +17,6 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
 import { PresenceScannerModal } from './presence-scanner-modal';
-import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from './background-location-prompt';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -116,24 +115,6 @@ export function ActivityDetail({
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
-  const [showBgLocationPrompt, setShowBgLocationPrompt] = useState(false);
-
-  // Background-location opt-in: surface the modal whenever the user is on
-  // an activity that needs presence (creator OR accepted participant) and
-  // we've never asked. Once-per-install (persisted via SecureStore inside
-  // the prompt component).
-  useEffect(() => {
-    if (!activity.id) return;
-    const requires = activity.requires_presence !== false;
-    const isCreatorOrAccepted = participation?.status === 'accepted' || activity.creator_id === currentUserId;
-    if (!requires || !isCreatorOrAccepted) return;
-    let cancelled = false;
-    (async () => {
-      const should = await shouldAskForBackgroundLocation();
-      if (!cancelled && should) setShowBgLocationPrompt(true);
-    })();
-    return () => { cancelled = true; };
-  }, [activity.id, activity.requires_presence, activity.creator_id, participation?.status, currentUserId]);
 
   const startsAtMs2 = new Date(activity.starts_at).getTime();
   const isLateLeave = activity.requires_presence !== false
@@ -859,7 +840,6 @@ export function ActivityDetail({
 
       <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
       <PresenceScannerModal visible={showScanner} onClose={() => setShowScanner(false)} />
-      <BackgroundLocationPrompt visible={showBgLocationPrompt} onClose={() => setShowBgLocationPrompt(false)} />
       <LeaveActivityModal
         visible={showLeaveModal}
         isLate={isLateLeave}
