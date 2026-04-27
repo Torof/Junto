@@ -314,6 +314,26 @@
       "gearEmpty": "aucun matériel"
     }
   },
+  "pushDenied": {
+    "title": "Notifications désactivées",
+    "body": "Tu vas rater les rappels, demandes et validations.",
+    "cta": "Réglages"
+  },
+  "activityUpdated": {
+    "title": "{{title}} a été modifiée",
+    "fields": {
+      "title": "titre",
+      "starts_at": "date",
+      "duration": "durée",
+      "location_meeting": "point de RDV",
+      "location_start": "point de départ",
+      "description": "description",
+      "level": "niveau",
+      "max_participants": "places",
+      "visibility": "visibilité"
+    },
+    "summary": "Modifié : {{fields}}"
+  },
   "reliability": {
     "label": "Fiabilité",
     "notEnoughData": "Pas encore assez d'activités pour évaluer la fiabilité",

@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService, type Notification } from '@/services/notification-service';
+import { PushDeniedBanner } from '@/components/push-denied-banner';
 
 dayjs.extend(relativeTime);
 
@@ -53,6 +54,20 @@ const ACTIONABLE_TYPES = new Set([
 ]);
 
 type Tab = 'action' | 'updates';
+
+function renderActivityUpdatedBody(
+  fallback: string,
+  changes: Record<string, boolean>,
+  t: (k: string, opts?: Record<string, unknown>) => string,
+): string {
+  const fields = Object.keys(changes).filter((k) => changes[k]);
+  if (fields.length === 0) return fallback;
+  const labels = fields
+    .map((f) => t(`activityUpdated.fields.${f}`))
+    .filter((label) => label && !label.startsWith('activityUpdated.'));
+  if (labels.length === 0) return fallback;
+  return t('activityUpdated.summary', { fields: labels.join(', ') });
+}
 
 export default function NotificationsScreen() {
   const colors = useColors();
@@ -113,6 +128,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
+      <PushDeniedBanner />
       {/* Tab bar */}
       <View style={styles.tabBar}>
         <Pressable
@@ -161,6 +177,9 @@ export default function NotificationsScreen() {
           renderItem={({ item }) => {
             const meta = notificationIcons[item.type] ?? defaultIcon;
             const IconComp = meta.icon;
+            const body = item.type === 'activity_updated' && item.data?.changes
+              ? renderActivityUpdatedBody(item.body, item.data.changes as Record<string, boolean>, t)
+              : item.body;
             return (
             <Pressable
               style={[styles.card, !item.read_at && styles.cardUnread]}
@@ -173,7 +192,7 @@ export default function NotificationsScreen() {
                 <Text style={[styles.cardTitle, !item.read_at && styles.cardTitleUnread]}>
                   {item.title}
                 </Text>
-                <Text style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
+                <Text style={styles.cardBody} numberOfLines={2}>{body}</Text>
                 <Text style={styles.cardTime}>
                   {dayjs(item.created_at).locale(i18n.language).fromNow()}
                 </Text>

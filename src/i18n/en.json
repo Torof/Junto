@@ -314,6 +314,26 @@
       "gearEmpty": "no gear"
     }
   },
+  "pushDenied": {
+    "title": "Notifications disabled",
+    "body": "You'll miss reminders, requests, and validation prompts.",
+    "cta": "Settings"
+  },
+  "activityUpdated": {
+    "title": "{{title}} was updated",
+    "fields": {
+      "title": "title",
+      "starts_at": "date",
+      "duration": "duration",
+      "location_meeting": "meeting point",
+      "location_start": "start point",
+      "description": "description",
+      "level": "level",
+      "max_participants": "capacity",
+      "visibility": "visibility"
+    },
+    "summary": "Changed: {{fields}}"
+  },
   "reliability": {
     "label": "Reliability",
     "notEnoughData": "Not enough activities yet to rate reliability",
