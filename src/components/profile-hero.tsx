@@ -161,6 +161,7 @@ export function ProfileHero({
         {/* Right side: score + stats */}
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.scoreRow}>
+            <Text style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</Text>
             {hasScore ? (
               // Big label = tier name when available, else fall back to %.
               // The pctPill on the avatar ring keeps the raw % when available.
@@ -168,7 +169,6 @@ export function ProfileHero({
             ) : (
               <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
             )}
-            <Text style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</Text>
           </View>
 
           {memberLine !== '' && (
