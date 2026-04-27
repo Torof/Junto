@@ -17,8 +17,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'app.getjunto',
-    versionCode: 3,
+    versionCode: 4,
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
+    softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
       foregroundImage: './assets/junto_icon_round.png',
       backgroundColor: '#0D1B2A',
@@ -40,6 +41,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     bundleIdentifier: 'app.getjunto',
     associatedDomains: [`applinks:${process.env.JUNTO_WEB_HOST ?? 'getjunto.app'}`],
+    infoPlist: {
+      // Required strings for "Always" location permission so background
+      // geofencing can fire when the app is closed.
+      NSLocationWhenInUseUsageDescription: 'Junto uses your location to validate your presence at activities.',
+      NSLocationAlwaysAndWhenInUseUsageDescription: 'Junto auto-validates your presence when you arrive at an activity, even when the app is closed.',
+      UIBackgroundModes: ['location', 'fetch'],
+    },
   },
   runtimeVersion: {
     policy: 'appVersion',
@@ -70,6 +78,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-camera',
       {
         cameraPermission: 'Junto needs camera access to scan presence QR codes.',
+      },
+    ],
+    [
+      'expo-location',
+      {
+        locationAlwaysAndWhenInUsePermission: 'Junto auto-validates your presence when you arrive at an activity, even when the app is closed.',
+        isAndroidBackgroundLocationEnabled: true,
+        isIosBackgroundLocationEnabled: true,
       },
     ],
     [

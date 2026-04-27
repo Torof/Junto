@@ -320,6 +320,12 @@
     "body": "You'll miss reminders, requests, and validation prompts.",
     "cta": "Settings"
   },
+  "bgLocation": {
+    "title": "Auto-validate when you arrive",
+    "body": "Allow Junto to detect you arriving at the activity even when the app is closed. Your presence will be validated automatically.",
+    "enable": "Enable",
+    "skip": "Not now"
+  },
   "activityUpdated": {
     "title": "{{title}} was updated",
     "fields": {

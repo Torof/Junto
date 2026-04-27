@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
@@ -95,11 +96,19 @@ export default function ConversationScreen() {
       tmp.create({ overwrite: true });
       tmp.write(gpxXml);
 
-      // Android needs a content:// URI to share files with other apps; iOS
-      // accepts the file:// URI directly. Either way the user picks the
-      // destination from the share sheet (Files / Drive / Downloads / etc.).
-      const url = Platform.OS === 'android' ? await getContentUriAsync(tmp.uri) : tmp.uri;
-      await Share.share({ url, title: tracePreview.name });
+      // expo-sharing surfaces an Android save-to-Downloads option directly.
+      // iOS still routes through the share sheet — pick "Save to Files".
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(tmp.uri, {
+          mimeType: 'application/gpx+xml',
+          dialogTitle: tracePreview.name,
+          UTI: 'com.topografix.gpx',
+        });
+      } else {
+        // Fallback for environments without share extensions.
+        const url = Platform.OS === 'android' ? await getContentUriAsync(tmp.uri) : tmp.uri;
+        await Share.share({ url, title: tracePreview.name });
+      }
     } catch (err) {
       Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
     }

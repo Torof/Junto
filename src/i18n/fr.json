@@ -320,6 +320,12 @@
     "body": "Tu vas rater les rappels, demandes et validations.",
     "cta": "Réglages"
   },
+  "bgLocation": {
+    "title": "Validation auto à ton arrivée",
+    "body": "Autorise Junto à détecter ton arrivée à l'activité même quand l'app est fermée. Ta présence sera validée automatiquement.",
+    "enable": "Activer",
+    "skip": "Pas maintenant"
+  },
   "activityUpdated": {
     "title": "{{title}} a été modifiée",
     "fields": {

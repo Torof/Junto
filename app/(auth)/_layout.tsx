@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import { Stack } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
 import { usePresenceGeoWatcher } from '@/hooks/use-presence-geo-watcher';
+import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
+// Side-effect import: registers the TaskManager task at app startup.
+import '@/lib/presence-geofence-task';
 
 export default function AuthLayout() {
   const colors = useColors();
@@ -12,6 +15,7 @@ export default function AuthLayout() {
   }), [colors]);
 
   usePresenceGeoWatcher(true);
+  usePresenceGeofences(true);
 
   return (
     <Stack screenOptions={screenOptions}>
