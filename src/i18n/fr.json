@@ -348,7 +348,14 @@
       "fair": "Correcte",
       "poor": "Faible",
       "new": "Nouveau"
-    }
+    },
+    "helpTitle": "Comment fonctionne ma fiabilité ?",
+    "helpIntro": "Ta fiabilité indique à quel point tu honores tes engagements quand tu rejoins une activité. Plus elle est élevée, plus les autres te font confiance.",
+    "helpHowHeading": "Comment elle est calculée",
+    "helpHow": "Chaque fois que tu valides ta présence sur place lors d'une activité que tu as rejointe, ton score monte. Si tu ne valides pas ta présence ou que tu annules au dernier moment, ça la fait baisser.",
+    "helpStartHeading": "Au début",
+    "helpStart": "Ton score n'a pas encore assez de données pour être précis, alors il démarre à un niveau neutre et s'affine au fil de tes sorties. Pas d'inquiétude si tu vois « Nouveau » sur ton profil — c'est normal pour un nouveau compte.",
+    "helpDismiss": "Compris"
   },
   "tutorial": {
     "clickActivity": "👋 Bienvenue ! Les pins oranges sont des activités imminentes, les verts en cours. Appuie sur un pin pour le découvrir",

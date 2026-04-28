@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import Svg, { Circle, Path, G, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import { Camera, Plus } from 'lucide-react-native';
+import { Camera, Plus, HelpCircle } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -64,6 +64,7 @@ export function ProfileHero({
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [showHelp, setShowHelp] = useState(false);
 
   const effectivePct = reliabilityPct ?? (reliabilityTier ? tierToPct(reliabilityTier) : null);
   const hasScore = effectivePct != null;
@@ -162,6 +163,9 @@ export function ProfileHero({
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={styles.scoreRow}>
             <Text style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</Text>
+            <Pressable onPress={() => setShowHelp(true)} hitSlop={8} style={styles.helpButton}>
+              <HelpCircle size={14} color={colors.textMuted} strokeWidth={2} />
+            </Pressable>
             {hasScore ? (
               // Big label = tier name when available, else fall back to %.
               // The pctPill on the avatar ring keeps the raw % when available.
@@ -184,6 +188,22 @@ export function ProfileHero({
           </View>
         </View>
       </View>
+
+      <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
+        <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
+          <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.helpTitle}>{t('reliability.helpTitle')}</Text>
+            <Text style={styles.helpBody}>{t('reliability.helpIntro')}</Text>
+            <Text style={styles.helpHeading}>{t('reliability.helpHowHeading')}</Text>
+            <Text style={styles.helpBody}>{t('reliability.helpHow')}</Text>
+            <Text style={styles.helpHeading}>{t('reliability.helpStartHeading')}</Text>
+            <Text style={styles.helpBody}>{t('reliability.helpStart')}</Text>
+            <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
+              <Text style={styles.helpDismissText}>{t('reliability.helpDismiss')}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -328,5 +348,59 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginTop: 3,
+  },
+
+  helpButton: {
+    paddingVertical: 2,
+    paddingHorizontal: 1,
+    alignSelf: 'center',
+  },
+
+  helpBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  helpCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: spacing.lg,
+    width: '100%',
+    maxWidth: 420,
+    gap: 8,
+  },
+  helpTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.lg,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  helpHeading: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  helpBody: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    lineHeight: 20,
+  },
+  helpDismiss: {
+    alignSelf: 'center',
+    marginTop: spacing.md,
+    backgroundColor: colors.cta + '1F',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+  },
+  helpDismissText: {
+    color: colors.cta,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
 });

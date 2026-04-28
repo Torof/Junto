@@ -348,7 +348,14 @@
       "fair": "Fair",
       "poor": "Low",
       "new": "New"
-    }
+    },
+    "helpTitle": "How does my reliability work?",
+    "helpIntro": "Your reliability shows how well you honor your commitments when you join an activity. The higher it is, the more others trust you.",
+    "helpHowHeading": "How it's calculated",
+    "helpHow": "Every time you validate your presence on-site at an activity you joined, your score goes up. If you don't validate your presence or cancel at the last minute, it goes down.",
+    "helpStartHeading": "At the start",
+    "helpStart": "Your score doesn't have enough data yet to be precise, so it starts at a neutral level and refines over your outings. Don't worry if you see “New” on your profile — that's normal for a fresh account.",
+    "helpDismiss": "Got it"
   },
   "tutorial": {
     "clickActivity": "👋 Welcome! Orange pins are activities starting soon, green ones are in progress. Tap a pin to check it out",
