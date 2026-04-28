@@ -9,7 +9,6 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, type PeerReviewParticipant } from '@/services/badge-service';
-import { supabase } from '@/services/supabase';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
 
@@ -20,11 +19,6 @@ export default function PeerReviewScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
   const router = useRouter();
-
-  const { data: currentUserId } = useQuery({
-    queryKey: ['currentUser-id'],
-    queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
-  });
 
   const { data: activity } = useQuery({
     queryKey: ['activity', id],
@@ -37,8 +31,6 @@ export default function PeerReviewScreen() {
     queryFn: () => badgeService.getPeerReviewState(id ?? ''),
     enabled: !!id,
   });
-
-  const isCreator = activity?.creator_id === currentUserId;
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['peer-review-state', id] });
@@ -66,12 +58,8 @@ export default function PeerReviewScreen() {
   const handlePresenceTap = async (target: PeerReviewParticipant) => {
     if (target.confirmed_present === true) return;
     try {
-      // peer_validate_presence routes itself: creator path = direct flip, peer path = threshold
       await badgeService.peerValidatePresence(target.user_id, id ?? '');
-      Burnt.toast({
-        title: isCreator ? t('peerReview.presenceFlipped') : t('peerReview.presenceVoted'),
-        preset: 'done',
-      });
+      Burnt.toast({ title: t('peerReview.presenceVoted'), preset: 'done' });
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
@@ -160,7 +148,7 @@ export default function PeerReviewScreen() {
                 <Pressable
                   style={[styles.presencePill, p.i_voted_presence && styles.presencePillVoted]}
                   onPress={() => handlePresenceTap(p)}
-                  disabled={p.i_voted_presence && !isCreator}
+                  disabled={p.i_voted_presence}
                 >
                   <Text style={[styles.presenceText, p.i_voted_presence && styles.presenceTextVoted]}>
                     {p.i_voted_presence
