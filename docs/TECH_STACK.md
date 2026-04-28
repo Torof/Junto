@@ -1,186 +1,234 @@
 # Junto — Stack Technique
 
-## Vue d'ensemble
-Stack orientée MVP rapide, maintenable et évolutive. Tous les choix favorisent la vitesse de développement sans sacrifier la capacité à scaler ensuite.
-
----
+À jour au 28 avril 2026. Stack orientée MVP rapide, maintenable et évolutive.
 
 ## Frontend
 
-### React Native + Expo
-- **Pourquoi :** Développeur familier avec React/TypeScript, MVP Android en priorité, Expo simplifie le setup et le testing
-- **Plateforme MVP :** Android uniquement
-- **Plateforme V2 :** iOS via Expo (même codebase)
-- **Build :** Expo custom dev build (requis pour Mapbox, Expo Go non compatible)
+### React Native + Expo (SDK 54)
+- Plateforme cible : Android (priorité), iOS (codebase identique)
+- Build : Expo custom dev build (`expo-dev-client`) — Mapbox + TaskManager + geofencing nécessitent du code natif
+- OTA via EAS Update (channel `preview` pour le dev, `production` pour le store)
 
-### TypeScript
-- Typage strict sur tout le projet
-- Pas de JavaScript pur, pas de `any`
+### TypeScript strict
+- Pas de `any`, pas de JavaScript pur
 
 ### Expo Router
-- **Pourquoi :** Routing file-based (comme Next.js), deep linking automatique depuis la structure de fichiers, routes typées nativement, solution officielle Expo
-- **Remplace :** Configuration manuelle de React Navigation, setup deep linking manuel, typage de routes manuel
+- File-based, deep linking automatique, routes typées
+- Custom scheme `junto://` + universal links sur `getjunto.app` (`/activity/*`, `/invite/*`)
 
 ---
 
 ## State Management
 
-### TanStack Query — Server State
-- **Pourquoi :** Gère automatiquement loading, error, caching, background refetching, pagination, cache invalidation
-- **Usage :** Toutes les données serveur (activities, users, messages, participations, sports, notifications)
-- **Avantage clé :** Élimine le boilerplate massif que Zustand seul imposerait pour chaque entité
+### TanStack Query — server state
+- Cache, refetch, invalidation automatiques
+- Toutes les données serveur (activities, users, messages, participations, sports, notifications)
 
-### Zustand — UI State
-- **Pourquoi :** Léger, simple, suffisant pour l'UI state
-- **Usage :** Filtres carte, vue active, toggles UI, région carte courante
-- **Règle :** Zustand ne contient JAMAIS de données serveur
+### Zustand — UI state uniquement
+- Filtres carte, sélections UI, état tutoriel, préférences thème
+- **Règle :** ne contient JAMAIS de données serveur
 
-### Architecture state
+### Architecture
 ```
 TanStack Query          Zustand
 (server state)          (UI state)
-├── activities          ├── map filters
-├── messages            ├── selected sport
-├── user profiles       ├── current map region
-├── participations      ├── active tab
-├── sports list         └── UI toggles
+├── activities          ├── map filters (sport, level, date, visibility)
+├── messages            ├── theme preference
+├── user profiles       ├── map style
+├── participations      ├── tutorial state
+├── reputation badges   └── (no server data)
+├── peer review state
 └── notifications
 ```
 
 ---
 
-## Formulaires
+## Validation
 
-### React Hook Form + Zod
-- **Pourquoi :** Flow création en 4 étapes, édition profil, paramètres — gérer ça avec useState serait chaotique
-- **React Hook Form :** Gestion multi-step native, performant, léger
-- **Zod :** Schémas de validation partagés entre formulaires client et cohérents avec les contraintes DB
-
-```typescript
-const activitySchema = z.object({
-  title: z.string().min(3).max(100),
-  maxParticipants: z.number().min(2).max(50),
-  startsAt: z.date().refine(d => d > new Date(), "Must be in the future"),
-  visibility: z.enum(['public', 'approval', 'private_link', 'private_link_approval']),
-})
-```
+### Zod (type derivation only)
+- Schéma `activityFormSchema` dans `src/types/activity-form.ts`
+- Sert exclusivement à dériver le type `ActivityFormData` via `z.infer<typeof activityFormSchema>`
+- **La validation runtime côté client est minimale** — toute validation business est appliquée côté serveur dans des fonctions SECURITY DEFINER (la couche client est bypassable via appel API direct)
+- React Hook Form retiré du stack (mig deps cleanup) — les formulaires utilisent du state inline + validation serveur
 
 ---
 
 ## Backend / BaaS
 
 ### Supabase
-- **Pourquoi :** Postgres + Auth + Realtime + Storage en un seul service
-- **PostGIS** intégré — crucial pour les requêtes géospatiales (recherche par rayon)
-- **Auth :** Google login, email/password, vérification téléphone
-- **Realtime :** Notifications et chat en temps réel
-- **Storage :** Photos profil (bucket public), documents Pro (bucket privé). Pas de stockage GPX — parsé côté client, coordonnées en PostGIS.
-- **Migrations :** Versionnées dans git (`/supabase/migrations/`)
-- **Types auto-générés :** `supabase gen types typescript` après chaque migration
+- Postgres 15 + PostGIS pour les requêtes géospatiales
+- Auth : email/password, reset password via deep link
+- Storage : `avatars` (public, path fixe `/avatars/{user_id}/avatar`), `pro-documents` (privé)
+- Migrations versionnées dans `supabase/migrations/` (currently 149 migrations)
+- Edge Functions dans `supabase/functions/` :
+  - `send-push` — envoi push via Expo Push API, secret partagé via header
+  - `delete-user` — suppression de compte avec service_role
+- Types auto-générés via `supabase gen types typescript`
 
 ---
 
 ## Cartes
 
 ### Mapbox (style "Outdoors")
-- **Pourquoi :** Meilleure customisation visuelle, style Outdoors avec relief et courbes de niveau, moins cher que Google Maps, offline mode, données OpenStreetMap riches en sentiers et chemins
-- **Usage :** Affichage carte principale, pins activités, tracés d'itinéraires, relief
-- **Library React Native :** `@rnmapbox/maps`
+- `@rnmapbox/maps`
+- Style Outdoors avec relief et courbes de niveau
+- Affichage carte principale, pins activités, tracés d'itinéraires (`trace_geojson`)
 
 ### Google Places API
-- **Pourquoi :** Base de données POI la plus complète au monde pour la recherche d'adresses
-- **Usage :** Recherche et autocomplétion d'adresses uniquement (lors de la création d'activité)
-- Pas utilisé pour l'affichage de carte
+- Recherche et autocomplétion d'adresses uniquement (création d'activité)
+
+---
+
+## Présence — modules dédiés
+
+Architecture multi-couches pour le flux de validation :
+
+| Module | Rôle |
+|---|---|
+| `src/lib/presence-geofence-task.ts` | TaskManager headless task — wake OS sur Enter event |
+| `src/hooks/use-presence-geofences.ts` | Enregistre les régions (T-2h..T+15min), initial-state check |
+| `src/hooks/use-presence-geo-watcher.ts` | Foreground polling watcher (30s) avec accuracy threshold |
+| `src/lib/presence-offline-cache.ts` | Queue AsyncStorage pour replay quand réseau revient |
+| `src/hooks/use-presence-offline-flusher.ts` | Drain la queue sur foreground / NetInfo reconnect |
+
+Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
+
+---
+
+## Notifications
+
+- **Expo Push** via FCM (Android) + APNs (iOS)
+- Table `push_tokens` (mig 00121) — multi-device aware, keyed sur `(user_id, device_id)` ; `device_id` persisté dans SecureStore
+- Routing par type dans le trigger `push_notification_to_device` (mig 00148) : collapse_id par activity_id, suppression de certains types (in-app only), pluralization (×N) sur le slot présence
+- Table `notifications` côté DB — persistance, badges, inbox
+
+---
+
+## Diagnostic
+
+### Sentry
+- `@sentry/react-native` — auto-consent en preview channel uniquement
+- DSN via `EXPO_PUBLIC_SENTRY_DSN`
+- Lat/lng exclus côté serveur (filtre `SENSITIVE_KEYS` dans `lib/sentry.ts`)
+- Helper `trace(category, message, data)` pour breadcrumbs (no-op en dev)
+- Catégories utilisées : `presence.geofence`, `presence.watcher`, `presence.offline`
 
 ---
 
 ## Dates
 
 ### day.js
-- **Pourquoi :** App internationale avec événements géolocalisés cross-timezone. JavaScript `Date` natif est peu fiable pour la gestion de fuseaux horaires.
-- **Taille :** 2KB, impact négligeable
-- **Usage :** Manipulation de dates, conversion timezone, affichage relatif ("dans 2h")
-- **Règle :** Toutes les dates en UTC dans la base, converties en local pour l'affichage
+- 2KB, timezone-safe
+- **Toutes les dates en UTC dans la base, converties en local pour l'affichage**
 
 ---
 
 ## Images
 
 ### expo-image
-- **Pourquoi :** Drop-in replacement de `Image` avec cache intégré, placeholders blur, transitions. Le composant `Image` natif n'a pas de cache — chaque scroll re-fetch les photos.
-- **Usage :** Partout où une image est affichée (avatars, photos activité, icônes sport)
-- **Règle :** Ne jamais utiliser le composant `Image` de React Native
+- Cache intégré, placeholders blur, transitions
+- Drop-in replacement de `Image` natif (qui n'a pas de cache)
 
 ---
 
 ## Internationalisation
 
 ### react-native-i18next
-- **Pourquoi :** Retrofitter l'i18n sur 30+ écrans coûte des semaines. Le setup initial coûte 5 min par écran.
-- **Langues MVP :** Français + Anglais
-- **Structure :** `/src/i18n/fr.json`, `/src/i18n/en.json`
-- **Règle :** Toute chaîne visible par l'utilisateur passe par `t('key')`
+- FR + EN
+- Fichiers `src/i18n/fr.json`, `src/i18n/en.json` (mirror structure)
+- Pluralization automatique via suffixes `_one` / `_other` quand `count` est passé en variable
+- Toute chaîne visible par l'utilisateur passe par `t('key')`
 
 ---
 
-## Notifications
-- **Expo Push Notifications** — natif, simple, gratuit
-- **Table `notifications` en base** — stockage persistant, inbox, read/unread
-- Cas d'usage : demande de participation, acceptation/refus, nouveau message
+## Geo helpers
+
+### `src/utils/geo.ts`
+- `distanceMeters(lat1, lng1, lat2, lng2)` — haversine en mètres
+- Utilisé partout sur le client (geofence checks, foreground watcher, sort des activités par distance)
+- PostGIS reste l'autorité côté serveur (`ST_Distance`, `ST_DWithin`, `ST_GeomFromGeoJSON`)
 
 ---
 
-## Besoins cartographiques détaillés
+## Architecture base de données
 
-### Affichage des activités
-- Carte Mapbox Outdoors comme fond
-- Pins géolocalisés par activité
-- Clustering sur zones denses
-- Distinction visuelle : en cours / bientôt / à venir
+### Tables principales
 
-### Création d'une activité
-- Poser un pin de point de départ
-- Poser un pin de point de rendez-vous
-- Tracer un itinéraire simple (points reliés)
-- Import GPX optionnel (Strava, Komoot, Garmin) — parsé côté client avec validation XML sécurisée, coordonnées stockées en PostGIS (pas de fichier GPX conservé)
-
-### Lecture d'une activité
-- Visualisation du tracé sur la carte
-- Pins départ et rendez-vous visibles
-- Relief lisible via style Outdoors
-
----
-
-## Architecture base de données (Supabase / Postgres + PostGIS)
-
-### Tables Sprint 1
-- `users` — profils utilisateurs (modèle complet dès Sprint 1)
-- `activities` — événements sportifs
-- `participations` — demandes et acceptations
-- `sports` — référentiel des sports (table de référence, pas de strings hardcodés)
-- `wall_messages` — messages du mur d'événement
-- `private_messages` — messagerie privée (table séparée pour RLS simple)
-- `notifications` — notifications persistantes (push + inbox)
-- `blocked_users` — utilisateurs bloqués (affecte les politiques RLS)
-
-### Géospatial
-- Colonnes `geometry` PostGIS sur les activités
-- Requêtes `ST_DWithin` pour la recherche par rayon (cap à 100km max)
-- Index spatial GIST pour les performances
+| Table | Usage |
+|---|---|
+| `users` | profils utilisateurs (privé, RLS strict) |
+| `public_profiles` (vue) | exposition publique des profils sans champs sensibles |
+| `activities` | événements sportifs avec `location_*` PostGIS + `trace_geojson` JSONB |
+| `participations` | inscriptions + `confirmed_present` + transport assignment |
+| `sports` | référentiel (anon read OK) |
+| `wall_messages` | messages du mur d'événement |
+| `private_messages` | messagerie privée (DM) |
+| `conversations` | métadonnées de conversation (status, request expiry) |
+| `notifications` | inbox + push routing |
+| `push_tokens` | multi-device push registration |
+| `peer_validations` | votes de présence post-activité |
+| `reputation_votes` | votes de badges réputation |
+| `presence_tokens` | QR tokens issus par les créateurs |
+| `seat_requests` | demandes de covoiturage |
+| `activity_alerts` | alertes (saved searches) |
+| `activity_gear` | matériel collaboratif |
+| `sport_level_endorsements` | confirmation/contestation de niveau annoncé |
+| `user_badge_progression` | tiers progression (joined/created/sport) |
+| `blocked_users` | bidirectionnel pour DM, unidirectionnel ailleurs |
+| `reports` | signalements de modération |
 
 ### Règles
 - Toutes les timestamps en UTC (`TIMESTAMPTZ`)
 - Contraintes sur chaque colonne (`NOT NULL`, `CHECK`, `UNIQUE`)
-- RLS sur chaque table, écrite à la création
-- Types auto-générés après chaque migration
-- Seed data script reproductible (`/supabase/seed.sql`)
+- RLS sur chaque table, écrite à la création (`ENABLE` + `FORCE`)
+- Types auto-générés via `supabase gen types`
+- Seed data dans `supabase/seed.sql`
+
+### Géospatial
+- Colonnes `geography(Point, 4326)` sur `activities.location_*`
+- `trace_geojson JSONB` pour les LineStrings (parsé côté client depuis GPX, validé via CHECK)
+- Requêtes `ST_DWithin` pour recherche par rayon (cap à 100km max)
+- Index GIST pour les performances
 
 ---
 
-## Paiement (futur — pas MVP)
-- Stripe — pour les abonnements Premium et Pro
-- `stripe_customer_id` ajouté au modèle user au Sprint 6
-- Pas implémenté dans le MVP
+## Paiement (futur)
+- Stripe pour Premium / Pro
+- Webhook idempotency : stocker `event_id` traités, traiter D'ABORD, stocker ENSUITE
+- `stripe_customer_id`, `subscription_status` privilégiées (Stripe webhook only)
+
+---
+
+## Web
+
+### Next.js (`web/`)
+- Site marketing + bridges pour deep links (auth callback, reset-password, activity public, invite)
+- Domaine : `getjunto.app`
+- Hébergé sur Vercel
+
+---
+
+## Dépendances clés (extraites de package.json)
+
+| Couche | Package |
+|---|---|
+| Mobile | `react-native@0.81.5`, `expo@~54.0.33` |
+| Routing | `expo-router@~6.0.23` |
+| State | `@tanstack/react-query@^5.97.0`, `zustand@^5.0.12` |
+| Validation | `zod@^4.3.6` |
+| Backend SDK | `@supabase/supabase-js@^2.103.0` |
+| Maps | `@rnmapbox/maps@^10.3.0`, `supercluster@^8.0.1` |
+| Localisation | `expo-location@~19.0.8`, `expo-task-manager@~14.0.9` |
+| Notifs | `expo-notifications@~0.32.16` |
+| Storage | `@react-native-async-storage/async-storage@2.2.0`, `expo-secure-store@~15.0.8` |
+| Network | `@react-native-community/netinfo@11.4.1` |
+| Diagnostic | `@sentry/react-native@~7.2.0` |
+| Camera (QR) | `expo-camera@~17.0.10` |
+| Files | `expo-file-system`, `expo-document-picker`, `expo-sharing`, `expo-image-manipulator`, `expo-image-picker` |
+| UI primitives | `@gorhom/bottom-sheet`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-reanimated`, `react-native-gesture-handler`, `lucide-react-native` |
+| Toasts | `burnt` |
+| Dates | `dayjs` |
+| i18n | `i18next`, `react-i18next` |
 
 ---
 
@@ -188,16 +236,16 @@ const activitySchema = z.object({
 
 | Couche | Techno | Raison |
 |--------|--------|--------|
-| Mobile | React Native + Expo | Familier, cross-platform, rapide |
+| Mobile | React Native + Expo SDK 54 | Cross-platform, build outils mature |
 | Langage | TypeScript strict | Typage, maintenabilité |
 | Routing | Expo Router | File-based, deep linking auto, typé |
-| Server State | TanStack Query | Cache, refetch, loading/error auto |
-| UI State | Zustand | Simple, léger, UI uniquement |
-| Forms | React Hook Form + Zod | Multi-step, validation, typé |
-| Backend | Supabase | All-in-one, PostGIS, gratuit MVP |
-| Carte | Mapbox Outdoors | Customisation, outdoor, prix |
-| Recherche lieu | Google Places API | POI database imbattable |
-| Images | expo-image | Cache, performance, drop-in |
+| Server state | TanStack Query | Cache, refetch, loading/error auto |
+| UI state | Zustand | Léger, UI uniquement |
+| Validation | Zod (type only) | Schema → type ; runtime validation côté serveur |
+| Backend | Supabase | Postgres + PostGIS + Auth + Storage + Edge Functions |
+| Maps | Mapbox Outdoors + Google Places | Outdoor visuel, POI search |
+| Présence | TaskManager + AsyncStorage offline cache | Geofence headless + replay |
+| Diagnostic | Sentry | Breadcrumbs, error tracking, opt-in PII filter |
+| Push | Expo Push (FCM + APNs) | Multi-device tokens table |
 | Dates | day.js | Timezone-safe, léger |
-| i18n | react-native-i18next | FR + EN dès le départ |
-| Notifications | Expo Push + table DB | Push + persistence |
+| i18n | react-native-i18next | FR + EN |
