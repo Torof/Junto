@@ -92,7 +92,7 @@ const TIER_COLOR: Record<TierKey, string> = {
 // reputation level at a glance. Negatives all share the same red ring.
 const PEER_TIER_RING: Record<PeerTier, string> = {
   bronze: '#B87333',
-  silver: '#B8C4CF',
+  silver: '#7C8FA1',
   gold: '#E8B547',
   negative: '#C0392B',
   locked: 'transparent',
@@ -341,10 +341,13 @@ function BadgeIcon({ badge, styles, colors, onPress }: {
     <Pressable onPress={onPress} hitSlop={4} style={styles.badgeCell}>
       <View style={styles.iconWrap}>
         {ringColor ? (
-          <View style={[styles.peerOuterRing, { borderColor: ringColor }]}>
-            <View style={[styles.peerInnerDisc, { backgroundColor: badge.color }]}>
-              <Icon size={16} color="#FFFFFF" strokeWidth={2.2} />
-            </View>
+          <View
+            style={[
+              styles.peerBadge,
+              { backgroundColor: badge.color, borderColor: ringColor },
+            ]}
+          >
+            <Icon size={18} color="#FFFFFF" strokeWidth={2.2} />
           </View>
         ) : (
           <View
@@ -362,9 +365,9 @@ function BadgeIcon({ badge, styles, colors, onPress }: {
             )}
           </View>
         )}
-        {badge.count != null && badge.count > 0 && (
+        {!ringColor && badge.count != null && badge.count > 0 && (
           <View style={[styles.countOverlay, isLocked ? styles.countOverlayLocked : { backgroundColor: colors.background }]}>
-            <Text style={[styles.countOverlayText, { color: isLocked ? colors.textMuted : (ringColor ?? badge.color) }]}>×{badge.count}</Text>
+            <Text style={[styles.countOverlayText, { color: isLocked ? colors.textMuted : badge.color }]}>×{badge.count}</Text>
           </View>
         )}
       </View>
@@ -520,10 +523,13 @@ function PeerBadgeDetail({
 
   return (
     <>
-      <View style={[styles.peerOuterRingLg, { borderColor: ringColor }]}>
-        <View style={[styles.peerInnerDiscLg, { backgroundColor: badge.color }]}>
-          <Icon size={28} color="#FFFFFF" strokeWidth={2} />
-        </View>
+      <View
+        style={[
+          styles.peerBadgeLg,
+          { backgroundColor: badge.color, borderColor: ringColor },
+        ]}
+      >
+        <Icon size={32} color="#FFFFFF" strokeWidth={2} />
       </View>
       <Text style={styles.detailTitle}>{badge.label}</Text>
       <View style={styles.peerHeaderRow}>
@@ -648,30 +654,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.textMuted,
     opacity: 0.55,
   },
-  peerOuterRing: {
+  peerBadge: {
     width: 40, height: 40, borderRadius: 20,
-    borderWidth: 2.5,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  peerInnerDisc: {
-    width: 30, height: 30, borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  peerOuterRingLg: {
-    width: 72, height: 72, borderRadius: 36,
     borderWidth: 3,
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  peerBadgeLg: {
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
-  },
-  peerInnerDiscLg: {
-    width: 56, height: 56, borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   peerHeaderRow: {
     flexDirection: 'row',
