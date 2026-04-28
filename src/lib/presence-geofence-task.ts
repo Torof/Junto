@@ -67,6 +67,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       p_activity_id: activityId,
       p_lng: region.longitude,
       p_lat: region.latitude,
+      p_skip_push: true,
     } as unknown as { p_activity_id: string });
 
     if (!error) {

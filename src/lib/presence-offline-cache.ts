@@ -70,6 +70,7 @@ export async function flushOfflineGeoQueue(): Promise<void> {
           p_lng: event.lng,
           p_lat: event.lat,
           p_captured_at: event.captured_at,
+          p_skip_push: true,
         } as unknown as { p_activity_id: string });
 
         if (!error) {
