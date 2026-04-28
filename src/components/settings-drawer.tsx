@@ -34,6 +34,7 @@ const NOTIFICATION_TYPES = [
   'seat_request',
   'seat_request_accepted',
   'seat_request_declined',
+  'seat_request_expired',
   'driver_left',
   'contact_request',
   'contact_request_accepted',

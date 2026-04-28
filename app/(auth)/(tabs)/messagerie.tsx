@@ -102,10 +102,27 @@ export default function MessagerieScreen() {
         .eq('status' as 'user_id', 'pending')
         .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string; pickup_from: string | null; message: string | null; requested_pickup_at: string | null }[] | null };
       if (!data || data.length === 0) return [];
-      const requesterIds = data.map((r) => r.requester_id);
+
+      // Defensive: hide pending requests for activities that are no longer
+      // active. The server-side trigger flips them to 'expired' on status
+      // change, but this guards against any in-flight state.
+      const activityIds = Array.from(new Set(data.map((r) => r.activity_id)));
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('id, status, deleted_at')
+        .in('id', activityIds);
+      const activeIds = new Set(
+        (activities ?? [])
+          .filter((a) => (a.status === 'published' || a.status === 'in_progress') && a.deleted_at === null)
+          .map((a) => a.id)
+      );
+      const filtered = data.filter((r) => activeIds.has(r.activity_id));
+      if (filtered.length === 0) return [];
+
+      const requesterIds = filtered.map((r) => r.requester_id);
       const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
       const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return data.map((r) => ({ ...r, requester_name: profileMap.get(r.requester_id)?.display_name ?? '?', requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null }));
+      return filtered.map((r) => ({ ...r, requester_name: profileMap.get(r.requester_id)?.display_name ?? '?', requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null }));
     },
   });
 

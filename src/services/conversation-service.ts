@@ -98,18 +98,28 @@ export const conversationService = {
 
     const { data, error } = await supabase
       .from('conversations' as 'users')
-      .select('id, user_1, user_2, request_sender_id, initiated_from, request_message, created_at')
+      .select('id, user_1, user_2, request_sender_id, initiated_from, request_message, created_at, request_expires_at')
       .eq('status' as 'id', 'pending_request')
       .order('created_at', { ascending: false }) as unknown as {
-        data: { id: string; user_1: string; user_2: string; request_sender_id: string; initiated_from: string | null; request_message: string | null; created_at: string }[] | null;
+        data: { id: string; user_1: string; user_2: string; request_sender_id: string; initiated_from: string | null; request_message: string | null; created_at: string; request_expires_at: string | null }[] | null;
         error: Error | null;
       };
     if (error) throw error;
 
     // Filter: only requests where I'm the RECIPIENT (not the sender)
+    // and skip rows that have already passed their expiry — the server
+    // cleanup runs on activity-transition checks, so there's a small window
+    // where stale rows still appear if the user opens the tab before the
+    // next transition tick fires.
+    const now = Date.now();
     const received = (data ?? []).filter(
-      (c) => (c.user_1 === userId || c.user_2 === userId) && c.request_sender_id !== userId
-    );
+      (c) =>
+        (c.user_1 === userId || c.user_2 === userId) &&
+        c.request_sender_id !== userId
+    ).filter((c) => {
+      const exp = (c as { request_expires_at?: string | null }).request_expires_at;
+      return !exp || new Date(exp).getTime() > now;
+    });
 
     if (received.length === 0) return [];
 

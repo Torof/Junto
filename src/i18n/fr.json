@@ -504,6 +504,7 @@
       "seat_request": "Demande de covoiturage",
       "seat_request_accepted": "Place confirmée",
       "seat_request_declined": "Demande refusée",
+      "seat_request_expired": "Demande de covoiturage expirée",
       "driver_left": "Conducteur parti",
       "contact_request": "Demande de contact",
       "contact_request_accepted": "Contact accepté"
