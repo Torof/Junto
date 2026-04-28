@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Check, ShieldCheck, Smile, Star, Clock, Trophy, Lock, Sprout,
   Sparkles, Users, AlertTriangle, Frown, ShieldOff, AlertOctagon,
-  Mountain, Flag, Zap,
+  Mountain, Flag, Zap, ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -300,19 +300,37 @@ interface SectionProps {
 }
 
 function Section({ icon: SectionIcon, label, badges, styles, colors, lastSection, onBadgePress }: SectionProps & { onBadgePress: (b: UIBadge) => void }) {
+  const [viewWidth, setViewWidth] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [scrollX, setScrollX] = useState(0);
+  // Show the chevron only while there's content beyond the right edge.
+  // 4px tolerance avoids flicker at the very end of the scroll.
+  const hasMore = contentWidth - viewWidth - scrollX > 4;
+
   return (
     <View style={[styles.sectionBlock, lastSection && { marginBottom: 0 }]}>
       <View style={styles.sectionHeader}>
         <SectionIcon size={11} color={colors.textMuted} strokeWidth={2.2} />
         <Text style={styles.sectionLabel}>{label}</Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.iconsRow}
-      >
-        {badges.map((b) => <BadgeIcon key={b.id} badge={b} styles={styles} colors={colors} onPress={() => onBadgePress(b)} />)}
-      </ScrollView>
+      <View style={styles.sectionScrollWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.iconsRow}
+          onLayout={(e) => setViewWidth(e.nativeEvent.layout.width)}
+          onContentSizeChange={(w) => setContentWidth(w)}
+          onScroll={(e) => setScrollX(e.nativeEvent.contentOffset.x)}
+          scrollEventThrottle={32}
+        >
+          {badges.map((b) => <BadgeIcon key={b.id} badge={b} styles={styles} colors={colors} onPress={() => onBadgePress(b)} />)}
+        </ScrollView>
+        {hasMore && (
+          <View pointerEvents="none" style={styles.scrollChevron}>
+            <ChevronRight size={16} color={colors.textMuted} strokeWidth={2.4} />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -526,11 +544,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
+  sectionScrollWrap: {
+    position: 'relative',
+  },
   iconsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    paddingRight: 4,
+    paddingTop: 6,
+    paddingRight: 22,
+  },
+  scrollChevron: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface + 'E6',
   },
   badgeCell: {
     alignItems: 'center',
