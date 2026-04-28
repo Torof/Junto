@@ -200,7 +200,14 @@ function StatCell({
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
-      <Text style={[styles.statLabel, { color: accent }]}>{t(labelKey)}</Text>
+      <Text
+        style={[styles.statLabel, { color: accent }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {t(labelKey)}
+      </Text>
     </View>
   );
 }
