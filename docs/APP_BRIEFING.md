@@ -2,8 +2,8 @@
 
 > A self-contained orientation document for any collaborator (human or AI) joining a Junto conversation fresh. This is not a spec or a roadmap — it's context. Repo: https://github.com/Torof/Junto
 
-**Last updated:** 2026-04-16
-**State:** Pre-launch, preview builds distributed via APK to a small dogfooding circle.
+**Last updated:** 2026-04-28
+**State:** Pre-launch, preview builds distributed via APK to a small dogfooding circle. Web companion deployed at `getjunto.app`.
 
 ---
 
@@ -19,16 +19,16 @@ The product is intentionally narrow at v1: outdoor sports, real-time coordinatio
 
 ---
 
-## 2. State of the app (2026-04-16)
+## 2. State of the app (2026-04-28)
 
-**Status:** All 8 planned sprints substantially shipped. The original `docs/BACKLOG.md` has every checkbox unticked — ignore that document as a progress signal; it describes requirements, not status. This briefing is the current truth.
+**Status:** All 8 planned sprints substantially shipped + several systems beyond (presence V3, badge progression V2, offline geo replay, contact/seat-request expiry, simplified notif spine). `docs/BACKLOG.md` was rewritten 2026-04-26 to reflect actual remaining work.
 
 **Distribution today:**
-- Android APK built with EAS (`preview` profile, channel `preview`), downloaded from a landing page at `junto-nine.vercel.app`.
-- Dev client build also exists on channel `development` for iteration.
-- iOS: not yet built or submitted.
+- Android APK built with EAS (`preview` profile, channel `preview`), distributed to dogfooding testers.
+- Web companion at `getjunto.app` — Vercel-hosted Next.js site for marketing + auth deep-link bridges (email confirm callback, reset-password) + share previews.
+- iOS: codebase ready, not yet built or submitted (deferred until user base meaningful).
 - Play Store: not yet submitted.
-- Supabase hosted (not local Docker). 68 migrations in [supabase/migrations/](https://github.com/Torof/Junto/tree/main/supabase/migrations).
+- Supabase hosted (not local Docker). 149 migrations in [supabase/migrations/](https://github.com/Torof/Junto/tree/main/supabase/migrations).
 
 **Audience today:** a handful of testers Scott knows personally. Not public.
 
@@ -67,12 +67,15 @@ Many thresholds (reputation badge at 5+ positive votes, 15+ negative; late-cance
 ## 4. What's shipped — feature by feature, with rationale
 
 ### Authentication
-- Google OAuth + email/password via Supabase Auth.
+- Email/password via Supabase Auth (Google OAuth deferred).
+- Login screen redesigned (topo SVG bg, sign-in / register tab pills, password show/hide, ToS checkbox at signup, inline errors).
 - Random display name generated on signup (modifiable later).
 - Date of birth capture + 18+ age gate.
 - ToS + Privacy Policy acceptance tracked as timestamps.
+- Reset password via deep link: web bridge at `getjunto.app/auth/reset-password` redirects to `junto://reset-password` ; AuthGate pins user to recovery screen.
+- Email templates Junto-branded (Bienvenue + Réinitialiser).
 
-**Why:** OAuth reduces signup friction; email/password required for users without Google accounts. Random name gets users into the app without forcing identity up front.
+**Why:** Email/password is the lowest-friction path with the broadest reach. Random name gets users into the app without forcing identity up front. Reset-password deep link avoids round-trip to a hosted Supabase form.
 
 ### Map & discovery
 - Mapbox Outdoors base layer + clustering + fly-to on pin tap.
@@ -84,12 +87,12 @@ Many thresholds (reputation badge at 5+ positive votes, 15+ negative; late-cance
 **Why Mapbox Outdoors:** trail visibility. Google Maps shows roads; outdoor practitioners need topo.
 
 ### Activity creation (4-step flow)
-1. Sport + title + description + level + max participants.
-2. Start / meeting / end location pins + date/time/duration.
+1. Sport + title + description + level + max participants (NULL = open activity, soft-cap 50) + distance/D+ when sport uses them.
+2. Start / meeting / end / objective pins + date/time/duration + optional GPX trace import.
 3. Visibility mode (public / approval / private-link / private-link-approval) + presence verification toggle.
 4. Review + publish.
 
-Built with React Hook Form + Zod. State persists in a Zustand store across steps.
+Built with inline state in a Zustand `create-store`. Zod schema in `src/types/activity-form.ts` derives the type via `z.infer` (runtime validation lives in DB SECURITY DEFINER functions).
 
 **Why 4 steps:** activity creation has 10+ fields; a single form overwhelms. Steps let the user commit progressively.
 
@@ -128,17 +131,42 @@ Built with React Hook Form + Zod. State persists in a Zustand store across steps
 
 ### Trust model
 A composite system:
-- **Reliability score**: `(confirmed_present_count / (total_activities + late_cancels)) * 100`. Displayed as 🟢🟡🔴 emoji on profile.
-- **Reputation badges** (9 types): great leader, punctual, trustworthy, level accurate, good vibes + 4 negatives (difficult, aggressive, unreliable, level overestimated). Co-participants vote in a 48h window post-activity. Thresholds: 5+ to show positive, 15+ to flag negative.
-- **Trophy badges**: automatic progression based on activity counts (newcomer 0-4, confirmed 10+, experienced 30+, veteran 75+). Sport-specific badges at 20+ in one sport.
+- **Reliability score**: Bayesian with PRIOR=3, recalculated on every `confirmed_present` flip. Stored in `users.reliability_score` (private). Public exposure as `reliability_tier` (excellent ≥ 90, good ≥ 75, fair ≥ 50, poor < 50). Displayed as ring + pill on profile (% private to self, tier label public).
+- **Reputation badges** (8 types peer-voted): trustworthy / great_leader / good_vibes / punctual + 4 negatives (level_overestimated / difficult_attitude / unreliable_field / aggressive). Co-participants vote in the peer-review window (end+15min..end+24h). Thresholds: 5+ to show positive, 15+ to flag negative.
+- **Progression badges** (mig 00135): tiered system across 3 categories (joined, created, sport-per-key) × 5 tiers (t1@5 / t2@10 / t3@20 / t4@50 / t5@75). Auto-attributed by trigger on activity completion. Notif `badge_unlocked` fires at each level-up. Display: icon-only chips with count overlay, tier pill below; tap → ladder modal.
+- **Sport-level endorsements** (mig 00097): peers can confirm or contest the level a user announced for a given sport.
 
-### Presence verification
-Three mechanisms (any one confirms):
-1. **Geo check-in**: user within 150m of start/meeting/end during the presence window (2h before start to 12h after).
-2. **QR scan**: creator generates a 30-min token, participants scan it.
-3. **Creator override**: escape hatch if geo/QR fails.
+### Presence verification — V3 (mig 00141..00149)
+Multi-path with offline graceful degradation. Voir `docs/DAY_OF_ACTIVITY.md` pour le détail complet.
+
+**Validation windows:**
+- Geo registration (OS geofence): T-2h → T+15min
+- Geo validation gate: T-15min → T+15min, distance ≤ 150m to start / meeting / end / route polyline
+- QR validation: T-15min → end + 3h
+- Offline replay arrival: ≤ end + 3h
+- Peer review: end + 15min → end + 24h
+
+**Paths (in fallback order):**
+1. Background geofence task wakes app on Enter event → "Présence détectée" → RPC → "Présence confirmée" (one OS slot, replaces in place)
+2. Foreground watcher (30s poll) auto-confirms when in zone (no local notif, in-app state covers)
+3. App-open initial-state check (fires when user is already inside on app foreground)
+4. Activity-detail page poll (focused on the active activity)
+5. Manual "I'm here" button
+6. QR scan (creator displays token, participant scans)
+7. Offline replay (cache while no network, drain on reconnect)
+8. Peer review (threshold 1 in 2-participant, threshold 2 in 3+ ; voter must be confirmed_present themselves except for 2-participant creator-direct case)
 
 Per-activity `requires_presence` toggle (default TRUE). Casual organisers can disable for gym climbing, coffee, slackline, etc.
+
+**Notification spine** (mig 00148):
+- T-2h: `presence_pre_warning`
+- T0: `presence_validate_now` (if not yet confirmed)
+- T0: `qr_create_reminder` (creator only)
+- T+duration/2: `presence_validate_warning` (escalation: "tu seras enregistré comme absent")
+- Validation: `presence_confirmed` push
+- end: `rate_participants` (in-app)
+- end+22h: `peer_review_closing` (push to non-voters)
+All `presence_*` types share a `collapse_id = 'presence-{activity_id}'` — single OS slot per activity.
 
 ### Cancellation flow
 - **Participant leaves**: `leave_activity(reason?)`. If `< 12h` before start AND `requires_presence=true`, counts as late cancel for reliability calculation.
@@ -156,9 +184,11 @@ Per-activity `requires_presence` toggle (default TRUE). Casual organisers can di
 - Rate-limited (10 reports/hour).
 
 ### Push notifications
-- Expo Push via a Supabase Edge Function with shared-secret authentication.
-- Events: join request, request accepted/refused, activity cancelled, wall mention, message received, alert match, rate-participants prompt post-activity.
-- Content designed to reveal nothing sensitive in the push preview (no message body, no activity title — just type).
+- Expo Push via a Supabase Edge Function (`send-push`) with shared-secret authentication.
+- Multi-device aware: `push_tokens` table (mig 00121) keyed on `(user_id, device_id)` ; device_id persisted in SecureStore.
+- Routing per type in the `push_notification_to_device` trigger (mig 00148): collapse_id by activity, in-app-only for some types (rate_participants, request_refused, participant_left_late), pluralization (×N) on the presence slot.
+- Events covered: join request, request accepted/refused, participant joined (collapsed), activity cancelled (gated push if <48h away), activity updated (gated to logistics changes), wall mention, message received, alert match (capped 3/day), rate-participants prompt, peer_review_closing, badge_unlocked, presence_* family, seat_request, contact_request, etc.
+- Content designed to reveal nothing sensitive in the push preview ; sanitization via `sanitize_notif_text` (HTML strip + control char + 200 char clip).
 
 ### Onboarding
 - IP-based country detection for initial map center (no permission needed).
@@ -166,13 +196,27 @@ Per-activity `requires_presence` toggle (default TRUE). Casual organisers can di
 - Transient demo activity so the map isn't empty for first-time users.
 
 ### Web companion
-- Next.js landing page at `junto-nine.vercel.app`.
-- OAuth callback handler for email verification + Google redirect.
+- Next.js landing page at `getjunto.app` (Vercel).
+- OAuth / email confirmation callback (`/auth/callback`).
+- Reset-password bridge (`/auth/reset-password`) — extracts token from URL (query or hash), redirects to `junto://reset-password` deep link.
 - Share previews for activities (`/activity/[id]`) and invite tokens (`/invite/[token]`).
+- Legal pages (FR + EN) — terms, privacy.
 - App Links verification (`/.well-known/assetlinks.json`).
 
-### Observability (in progress)
-- Sentry wired in `src/lib/sentry.ts`, gated to preview channel, heavy scrubbing (tokens, coords, message bodies). Requires native rebuild to activate.
+### Observability
+- Sentry wired in `src/lib/sentry.ts`, auto-consent on preview channel only (production awaits explicit consent UI).
+- Heavy scrubbing in `beforeSend`: `lat`, `lng`, `latitude`, `longitude`, `email`, `phone`, `body`, tokens, etc. all auto-redacted.
+- Helper `trace(category, message, data)` for diagnostic breadcrumbs ; no-op in dev.
+- Categories used: `presence.geofence` (Enter event, RPC outcome, enqueue), `presence.watcher` (in-zone detection, accuracy reject), `presence.offline` (replay outcomes).
+- Max 50 events per session ; `tracesSampleRate: 0` (no perf monitoring).
+
+### Settings drawer redesign
+- Pencil icon next to display name signals editable.
+- "Ma position" toggle — gates background location + geofencing.
+- Notif preferences expandable section, granular per type.
+- Theme as segmented pill (auto / clair / sombre) — single rounded pill with three sections.
+- Map style block dropped from drawer (already on the map screen).
+- Settings drawer + login + reset-password + profile-hero share the topo SVG visual signature.
 
 ---
 
@@ -222,10 +266,12 @@ Feature for drivers/passengers/lift-needed coordination on asymmetric activities
 - React Native + Expo SDK 54 + TypeScript (strict, no `any`).
 - Expo Router (file-based routing, auto deep linking, typed routes).
 - TanStack Query for server state, Zustand for UI state only.
-- React Hook Form + Zod for forms.
-- Supabase: Postgres 15 + PostGIS + Auth + Realtime + Storage. Hosted, not local.
+- Zod for type derivation (runtime validation lives in DB SECURITY DEFINER functions ; React Hook Form was dropped — forms use inline state).
+- Supabase: Postgres 15 + PostGIS + Auth + Realtime + Storage + Edge Functions. Hosted, not local.
 - Mapbox Outdoors + Google Places.
-- day.js, expo-image, react-native-i18next (FR + EN).
+- TaskManager + AsyncStorage + NetInfo for background geofencing + offline replay cache.
+- Sentry (preview-only auto-consent) for breadcrumbs + error tracking.
+- day.js, expo-image, react-native-i18next (FR + EN, pluralization via `_one`/`_other` suffixes).
 
 **Security model** (see [`docs/SECURITY.md`](https://github.com/Torof/Junto/blob/main/docs/SECURITY.md), ~1000 lines, comprehensive):
 - All writes go through SECURITY DEFINER Postgres functions. No direct client INSERT/UPDATE/DELETE on critical tables.
@@ -259,23 +305,25 @@ Main code:
 - [`src/constants/theme.ts`](https://github.com/Torof/Junto/blob/main/src/constants/theme.ts) — colors, spacing, typography. Never hardcode.
 
 Database:
-- [`supabase/migrations/`](https://github.com/Torof/Junto/tree/main/supabase/migrations) — 68 numbered migrations.
+- [`supabase/migrations/`](https://github.com/Torof/Junto/tree/main/supabase/migrations) — 149 numbered migrations.
 - [`supabase/functions/send-push/`](https://github.com/Torof/Junto/tree/main/supabase/functions/send-push) — Edge Function for Expo Push.
+- `supabase/functions/delete-user/` — Edge Function for account deletion (uses service_role).
 
 Web:
 - [`web/`](https://github.com/Torof/Junto/tree/main/web) — Next.js landing + share previews + OAuth callback.
 
-Docs:
+Docs (all refreshed 2026-04-28):
 - [`CLAUDE.md`](https://github.com/Torof/Junto/blob/main/CLAUDE.md) — working rules + checklists for new tables/functions/features.
 - [`docs/PRODUCT.md`](https://github.com/Torof/Junto/blob/main/docs/PRODUCT.md) — product definition (French).
 - [`docs/SECURITY.md`](https://github.com/Torof/Junto/blob/main/docs/SECURITY.md) — the security bible (French).
 - [`docs/TECH_STACK.md`](https://github.com/Torof/Junto/blob/main/docs/TECH_STACK.md) — stack details.
-- [`docs/DECISIONS.md`](https://github.com/Torof/Junto/blob/main/docs/DECISIONS.md) — why things are the way they are.
+- [`docs/DECISIONS.md`](https://github.com/Torof/Junto/blob/main/docs/DECISIONS.md) — why things are the way they are (append-only).
 - [`docs/VISION.md`](https://github.com/Torof/Junto/blob/main/docs/VISION.md) — long-term direction.
 - [`docs/UX_UI.md`](https://github.com/Torof/Junto/blob/main/docs/UX_UI.md) — design system.
-- [`docs/WORKING_MODE.md`](https://github.com/Torof/Junto/blob/main/docs/WORKING_MODE.md) — conventions (commits, branching).
+- [`docs/WORKING_MODE.md`](https://github.com/Torof/Junto/blob/main/docs/WORKING_MODE.md) — conventions (commits, branching, OTA channels).
 - [`docs/ACTIVITY_MANAGEMENT.md`](https://github.com/Torof/Junto/blob/main/docs/ACTIVITY_MANAGEMENT.md) + [`DAY_OF_ACTIVITY.md`](https://github.com/Torof/Junto/blob/main/docs/DAY_OF_ACTIVITY.md) + [`REPUTATION_BADGES.md`](https://github.com/Torof/Junto/blob/main/docs/REPUTATION_BADGES.md) — feature-specific specs.
-- [`docs/BACKLOG.md`](https://github.com/Torof/Junto/blob/main/docs/BACKLOG.md) — **stale; use as a requirements catalog, not a progress tracker.**
+- [`docs/BACKLOG.md`](https://github.com/Torof/Junto/blob/main/docs/BACKLOG.md) — current open items (refreshed 2026-04-26).
+- [`docs/sprint-discovery.md`](https://github.com/Torof/Junto/blob/main/docs/sprint-discovery.md) — Discovery feature spec (Phase B-E pending).
 
 ---
 
