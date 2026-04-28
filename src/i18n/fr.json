@@ -518,7 +518,13 @@
     "presenceVoteCta": "{{name}} était présent",
     "presenceVoted": "Vote enregistré",
     "presenceFlipped": "Présence validée",
-    "notAllowed": "Action impossible (fenêtre de 48h dépassée ou contraintes non remplies)."
+    "notAllowed": "Action impossible (fenêtre de 48h dépassée ou contraintes non remplies).",
+    "errors": {
+      "windowNotOpen": "Le vote ouvre 15 min après la fin de l'activité.",
+      "windowClosed": "La fenêtre de vote de 24h est fermée.",
+      "voterNotPresent": "Tu dois être confirmé présent toi-même avant de voter pour les autres.",
+      "alreadyValidated": "La présence de ce participant est déjà validée."
+    }
   },
   "messagerie": {
     "empty": "Aucune conversation",

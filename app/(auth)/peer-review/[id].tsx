@@ -66,7 +66,7 @@ export default function PeerReviewScreen() {
   const handlePresenceTap = async (target: PeerReviewParticipant) => {
     if (target.confirmed_present === true) return;
     try {
-      // peer_validate_presence routes itself: creator path = direct flip, peer path = 2-vote threshold
+      // peer_validate_presence routes itself: creator path = direct flip, peer path = threshold
       await badgeService.peerValidatePresence(target.user_id, id ?? '');
       Burnt.toast({
         title: isCreator ? t('peerReview.presenceFlipped') : t('peerReview.presenceVoted'),
@@ -75,7 +75,12 @@ export default function PeerReviewScreen() {
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : msg);
+      let userMsg = t('peerReview.notAllowed');
+      if (msg.includes('peer_review_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
+      else if (msg.includes('peer_review_window_closed')) userMsg = t('peerReview.errors.windowClosed');
+      else if (msg.includes('peer_voter_not_present')) userMsg = t('peerReview.errors.voterNotPresent');
+      else if (msg.includes('peer_already_validated')) userMsg = t('peerReview.errors.alreadyValidated');
+      Alert.alert(t('auth.error'), userMsg);
     }
   };
 

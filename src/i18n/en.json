@@ -518,7 +518,13 @@
     "presenceVoteCta": "{{name}} was there",
     "presenceVoted": "Vote saved",
     "presenceFlipped": "Presence confirmed",
-    "notAllowed": "Action not available (48h window passed or constraints unmet)."
+    "notAllowed": "Action not available (48h window passed or constraints unmet).",
+    "errors": {
+      "windowNotOpen": "Voting opens 15 min after the activity ends.",
+      "windowClosed": "The 24h voting window has closed.",
+      "voterNotPresent": "You must be confirmed present yourself before voting for others.",
+      "alreadyValidated": "This participant's presence is already validated."
+    }
   },
   "messagerie": {
     "empty": "No conversations",
