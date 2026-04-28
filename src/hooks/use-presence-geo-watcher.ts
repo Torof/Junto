@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 import { enqueueGeoEvent } from '@/lib/presence-offline-cache';
+import { trace } from '@/lib/sentry';
 
 interface ActiveActivity {
   activity_id: string;
@@ -71,6 +72,14 @@ export function usePresenceGeoWatcher(enabled: boolean) {
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
 
+        // Reject samples too imprecise to safely auto-confirm.
+        if (pos.coords.accuracy != null && pos.coords.accuracy > 50) {
+          trace('presence.watcher', 'sample rejected: accuracy too low', {
+            accuracy_m: Math.round(pos.coords.accuracy),
+          });
+          return;
+        }
+
         for (const a of inWindow) {
           if (alertedRef.current.has(a.activity_id)) continue;
           const points: [number, number][] = [];
@@ -86,18 +95,26 @@ export function usePresenceGeoWatcher(enabled: boolean) {
             alertedRef.current.add(a.activity_id);
             haptic.success();
             const capturedAt = new Date().toISOString();
+            trace('presence.watcher', 'in zone, calling RPC', {
+              distance_m: Math.round(minDist),
+            });
             // Auto-confirm: foreground app + within 150m + inside the
-            // server-aligned T-15min→T+30min window proves enough.
-            // No local notif: app is foreground, the in-app toast / state
-            // change covers the user-facing signal. The server-side
-            // presence_confirmed row provides history.
+            // server-aligned validation window. No local notif — app is
+            // foreground, the in-app toast / state change covers it.
             try {
               const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
                 p_activity_id: a.activity_id,
                 p_lng: pos.coords.longitude,
                 p_lat: pos.coords.latitude,
               } as unknown as { p_activity_id: string });
-              if (error && !(error.message ?? '').includes('Operation not permitted')) {
+              if (!error) {
+                trace('presence.watcher', 'RPC succeeded');
+              } else if ((error.message ?? '').includes('Operation not permitted')) {
+                trace('presence.watcher', 'RPC rejected (terminal)', { reason: error.message });
+              } else {
+                trace('presence.watcher', 'RPC failed (non-terminal), enqueue', {
+                  reason: error.message,
+                });
                 await enqueueGeoEvent({
                   activity_id: a.activity_id,
                   lng: pos.coords.longitude,
@@ -105,7 +122,10 @@ export function usePresenceGeoWatcher(enabled: boolean) {
                   captured_at: capturedAt,
                 });
               }
-            } catch {
+            } catch (err) {
+              trace('presence.watcher', 'RPC threw, enqueue', {
+                message: err instanceof Error ? err.message : String(err),
+              });
               await enqueueGeoEvent({
                 activity_id: a.activity_id,
                 lng: pos.coords.longitude,

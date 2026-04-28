@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
 import { enqueueGeoEvent } from './presence-offline-cache';
+import { trace } from './sentry';
 
 // Task name must be a constant defined at the top of a module that's imported
 // at app startup (see _layout). Expo TaskManager requires the task to be
@@ -17,7 +18,10 @@ interface GeofenceEvent {
 // Region identifier convention: `presence:<activity_id>:<lat>,<lng>`
 // We only act on Enter events.
 TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
-  if (error) return;
+  if (error) {
+    trace('presence.geofence', 'task fired with error', { message: String(error) });
+    return;
+  }
   const { eventType, region } = (data ?? {}) as GeofenceEvent;
   if (eventType !== Location.GeofencingEventType.Enter) return;
   const id = region?.identifier ?? '';
@@ -25,6 +29,8 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
 
   const activityId = id.split(':')[1];
   if (!activityId) return;
+
+  trace('presence.geofence', 'task: Enter event');
 
   // First state: "Présence détectée". Same identifier across both states so
   // the OS slot is updated in place — never two notifs at once.
@@ -47,6 +53,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     // session from SecureStore. Explicitly await so the RPC carries a token.
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
+      trace('presence.geofence', 'task: no session, enqueue for replay');
       await enqueueGeoEvent({
         activity_id: activityId,
         lng: region.longitude,
@@ -63,6 +70,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     } as unknown as { p_activity_id: string });
 
     if (!error) {
+      trace('presence.geofence', 'task: RPC succeeded, flipping slot to confirmée');
       // RPC succeeded → flip the slot to "Présence confirmée".
       Notifications.scheduleNotificationAsync({
         identifier: slotId,
@@ -77,19 +85,26 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       return;
     }
 
-    // Network/transport errors → cache for replay; the offline flusher
-    // updates the slot to "confirmée" once the replay succeeds.
-    // Server-side rejections ("Operation not permitted") are terminal —
-    // gate is the same on retry, slot stays at "détectée".
-    if (!(error.message ?? '').includes('Operation not permitted')) {
-      await enqueueGeoEvent({
-        activity_id: activityId,
-        lng: region.longitude,
-        lat: region.latitude,
-        captured_at: capturedAt,
+    if ((error.message ?? '').includes('Operation not permitted')) {
+      trace('presence.geofence', 'task: RPC rejected (terminal), slot stays at détectée', {
+        reason: error.message,
       });
+      return;
     }
-  } catch {
+
+    trace('presence.geofence', 'task: RPC failed (non-terminal), enqueue for replay', {
+      reason: error.message,
+    });
+    await enqueueGeoEvent({
+      activity_id: activityId,
+      lng: region.longitude,
+      lat: region.latitude,
+      captured_at: capturedAt,
+    });
+  } catch (err) {
+    trace('presence.geofence', 'task: RPC threw, enqueue for replay', {
+      message: err instanceof Error ? err.message : String(err),
+    });
     await enqueueGeoEvent({
       activity_id: activityId,
       lng: region.longitude,

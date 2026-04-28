@@ -102,4 +102,15 @@ export function setSentryUser(userId: string | null) {
   Sentry.setUser(userId ? { id: userId } : null);
 }
 
+// Lightweight breadcrumb helper for diagnostic trails (presence flow, geofence
+// events, RPC outcomes). No-op in dev so we don't ship breadcrumb churn.
+export function trace(
+  category: string,
+  message: string,
+  data?: Record<string, unknown>,
+): void {
+  if (__DEV__) return;
+  Sentry.addBreadcrumb({ category, message, level: 'info', data });
+}
+
 export const wrap = Sentry.wrap;
