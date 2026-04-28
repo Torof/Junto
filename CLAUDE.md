@@ -49,7 +49,7 @@
 - React Native + Expo + TypeScript
 - Expo Router (file-based routing, auto deep linking, typed routes)
 - TanStack Query (server state) + Zustand (UI state only)
-- React Hook Form + Zod (forms + validation)
+- Zod (form schema; type derivation only — runtime validation lives in DB SECURITY DEFINER functions)
 - Supabase (Postgres + PostGIS + Auth + Realtime + Storage)
 - Mapbox Outdoors + Google Places API
 - day.js (dates) + expo-image (images)
