@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   Check, ShieldCheck, Smile, Star, Clock, Trophy, Lock, Sprout,
@@ -306,9 +306,13 @@ function Section({ icon: SectionIcon, label, badges, styles, colors, lastSection
         <SectionIcon size={11} color={colors.textMuted} strokeWidth={2.2} />
         <Text style={styles.sectionLabel}>{label}</Text>
       </View>
-      <View style={styles.iconsRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.iconsRow}
+      >
         {badges.map((b) => <BadgeIcon key={b.id} badge={b} styles={styles} colors={colors} onPress={() => onBadgePress(b)} />)}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -524,8 +528,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   iconsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
     gap: 10,
+    paddingRight: 4,
   },
   badgeCell: {
     alignItems: 'center',
