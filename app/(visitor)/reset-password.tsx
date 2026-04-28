@@ -19,7 +19,12 @@ export default function ResetPasswordScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ token_hash?: string; type?: string }>();
+  const params = useLocalSearchParams<{
+    token_hash?: string;
+    access_token?: string;
+    refresh_token?: string;
+    type?: string;
+  }>();
 
   const [phase, setPhase] = useState<Phase>('verifying');
   const [password, setPassword] = useState('');
@@ -31,19 +36,25 @@ export default function ResetPasswordScreen() {
     let cancelled = false;
     (async () => {
       const tokenHash = typeof params.token_hash === 'string' ? params.token_hash : null;
-      if (!tokenHash) {
-        if (!cancelled) setPhase('invalid');
-        return;
-      }
+      const accessToken = typeof params.access_token === 'string' ? params.access_token : null;
+      const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null;
+
       try {
-        await authService.verifyRecoveryToken(tokenHash);
+        if (tokenHash) {
+          await authService.verifyRecoveryToken(tokenHash);
+        } else if (accessToken && refreshToken) {
+          await authService.setRecoverySession(accessToken, refreshToken);
+        } else {
+          if (!cancelled) setPhase('invalid');
+          return;
+        }
         if (!cancelled) setPhase('ready');
       } catch {
         if (!cancelled) setPhase('invalid');
       }
     })();
     return () => { cancelled = true; };
-  }, [params.token_hash]);
+  }, [params.token_hash, params.access_token, params.refresh_token]);
 
   const handleSubmit = async () => {
     setError(null);

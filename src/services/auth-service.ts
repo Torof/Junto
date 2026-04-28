@@ -42,6 +42,15 @@ export const authService = {
     return data;
   },
 
+  setRecoverySession: async (accessToken: string, refreshToken: string) => {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) throw error;
+    return data;
+  },
+
   updatePassword: async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;

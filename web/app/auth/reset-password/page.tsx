@@ -12,15 +12,31 @@ export default function ResetPasswordBridge() {
     if (typeof window === 'undefined') return;
 
     const url = new URL(window.location.href);
-    const tokenHash = url.searchParams.get('token_hash');
-    const type = url.searchParams.get('type') ?? 'recovery';
+    const hash = window.location.hash.startsWith('#')
+      ? new URLSearchParams(window.location.hash.slice(1))
+      : new URLSearchParams();
 
-    if (!tokenHash) {
+    // Two shapes Supabase can deliver:
+    //   a) query: ?token_hash=...&type=recovery  (template uses {{ .TokenHash }})
+    //   b) fragment: #access_token=...&refresh_token=...&type=recovery
+    //      (template uses {{ .ConfirmationURL }} → Supabase verify → redirect)
+    const tokenHash = url.searchParams.get('token_hash');
+    const accessToken = hash.get('access_token');
+    const refreshToken = hash.get('refresh_token');
+    const type = url.searchParams.get('type') ?? hash.get('type') ?? 'recovery';
+
+    let params: URLSearchParams | null = null;
+    if (tokenHash) {
+      params = new URLSearchParams({ token_hash: tokenHash, type });
+    } else if (accessToken && refreshToken) {
+      params = new URLSearchParams({ access_token: accessToken, refresh_token: refreshToken, type });
+    }
+
+    if (!params) {
       setDeepLink('');
       return;
     }
 
-    const params = new URLSearchParams({ token_hash: tokenHash, type });
     setDeepLink(`junto://reset-password?${params.toString()}`);
   }, []);
 
