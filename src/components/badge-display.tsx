@@ -341,13 +341,8 @@ function BadgeIcon({ badge, styles, colors, onPress }: {
     <Pressable onPress={onPress} hitSlop={4} style={styles.badgeCell}>
       <View style={styles.iconWrap}>
         {ringColor ? (
-          <View
-            style={[
-              styles.peerBadge,
-              { backgroundColor: badge.color, borderColor: ringColor },
-            ]}
-          >
-            <Icon size={18} color="#FFFFFF" strokeWidth={2.2} />
+          <View style={[styles.peerBadge, { borderColor: ringColor }]}>
+            <Icon size={20} color={ringColor} strokeWidth={2.4} />
           </View>
         ) : (
           <View
@@ -523,13 +518,8 @@ function PeerBadgeDetail({
 
   return (
     <>
-      <View
-        style={[
-          styles.peerBadgeLg,
-          { backgroundColor: badge.color, borderColor: ringColor },
-        ]}
-      >
-        <Icon size={32} color="#FFFFFF" strokeWidth={2} />
+      <View style={[styles.peerBadgeLg, { borderColor: ringColor }]}>
+        <Icon size={36} color={ringColor} strokeWidth={2.2} />
       </View>
       <Text style={styles.detailTitle}>{badge.label}</Text>
       <View style={styles.peerHeaderRow}>
