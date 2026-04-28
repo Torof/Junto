@@ -60,6 +60,15 @@ function AuthGate() {
     const inVisitorGroup = segments[0] === '(visitor)';
     const inOnboarding = inVisitorGroup && (segments as string[])[1] === 'onboarding';
     const inSuspended = inVisitorGroup && (segments as string[])[1] === 'suspended';
+    const inResetPassword = inVisitorGroup && (segments as string[])[1] === 'reset-password';
+
+    // Recovery flow: verifyOtp creates a real session, which would normally
+    // bounce an authenticated user into (auth). Pin them to the password
+    // form until they submit (which signs them out) or back out manually.
+    if (inResetPassword) {
+      setIsReady(true);
+      return;
+    }
 
     // Determine whether the user is already on the right route. If not, we
     // issue a redirect and keep the loading overlay up until the segments
