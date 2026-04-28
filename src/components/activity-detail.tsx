@@ -265,14 +265,10 @@ export function ActivityDetail({
         if (nowAt && !alertedAt) {
           alertedAt = true;
           haptic.success();
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: t('presence.arrivedTitle'),
-              body: t('presence.arrivedBody', { title: activity.title }),
-              sound: true,
-            },
-            trigger: null,
-          }).catch(() => {});
+          // No local OS notif here — user is foreground on this very page,
+          // the in-app toast + state change already signal the confirmation.
+          // The two visible OS notifs ("détectée" → "confirmée") are owned
+          // by the background geofence task only.
 
           // Auto-confirm: app open + within 150m + inside geo window already
           // proves enough. Saves the user a tap. The manual button stays as

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
 
 const STORAGE_KEY = '@junto/presence-offline-queue';
@@ -67,14 +68,28 @@ export async function flushOfflineGeoQueue(): Promise<void> {
           p_captured_at: event.captured_at,
         } as unknown as { p_activity_id: string });
 
-        // Success → drop. Server-side rejection ("Operation not permitted")
-        // also drops the entry: it means the captured_at is out of window,
-        // distance is wrong, presence is already set, or the user lost
-        // accepted status. None of those are recoverable by retrying.
-        if (!error || (error.message ?? '').includes('Operation not permitted')) {
+        if (!error) {
+          // Replay succeeded → flip the OS notif slot from "détectée" (set
+          // by the geofence task before going offline) to "confirmée".
+          // Same identifier so the existing notif is replaced in place.
+          Notifications.scheduleNotificationAsync({
+            identifier: `presence-${event.activity_id}`,
+            content: {
+              title: 'Présence confirmée',
+              body: 'Ta présence à cette activité est confirmée.',
+              data: { activity_id: event.activity_id, type: 'presence_confirmed' },
+              sound: true,
+            },
+            trigger: null,
+          }).catch(() => {});
+          await dropForActivity(event.activity_id);
+        } else if ((error.message ?? '').includes('Operation not permitted')) {
+          // Terminal server-side rejection (out of window, already
+          // confirmed, etc.) — drop the entry. Slot stays at "détectée"
+          // since we can't claim a confirmation that didn't happen.
           await dropForActivity(event.activity_id);
         }
-        // Any other error (network, 5xx) — leave it for the next flush.
+        // Any other error (network, 5xx) — leave entry for the next flush.
       } catch {
         // Network or transport error — leave entry in place.
       }

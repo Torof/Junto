@@ -26,17 +26,15 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   const activityId = id.split(':')[1];
   if (!activityId) return;
 
-  // Local notification on every Enter event. Stable identifier so a second
-  // Enter for the same activity REPLACES the existing OS notif rather than
-  // stacking a fresh modal. Fires regardless of RPC outcome — the user
-  // wants the visible signal even when they're offline (RPC will replay
-  // through presence-offline-cache once network returns).
+  // First state: "Présence détectée". Same identifier across both states so
+  // the OS slot is updated in place — never two notifs at once.
+  const slotId = `presence-${activityId}`;
   Notifications.scheduleNotificationAsync({
-    identifier: `presence-arrival-${activityId}`,
+    identifier: slotId,
     content: {
-      title: 'Présence confirmée',
-      body: 'Tu es à proximité de ton activité.',
-      data: { activity_id: activityId, type: 'presence_confirmed' },
+      title: 'Présence détectée',
+      body: "Tu es à portée de l'activité, valide ta présence.",
+      data: { activity_id: activityId, type: 'presence_detected' },
       sound: true,
     },
     trigger: null,
@@ -64,10 +62,26 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       p_lat: region.latitude,
     } as unknown as { p_activity_id: string });
 
-    // Network/transport errors → cache for replay. Server-side rejections
-    // ("Operation not permitted") are terminal — the gate will be the same
-    // on retry, so don't queue.
-    if (error && !(error.message ?? '').includes('Operation not permitted')) {
+    if (!error) {
+      // RPC succeeded → flip the slot to "Présence confirmée".
+      Notifications.scheduleNotificationAsync({
+        identifier: slotId,
+        content: {
+          title: 'Présence confirmée',
+          body: 'Ta présence à cette activité est confirmée.',
+          data: { activity_id: activityId, type: 'presence_confirmed' },
+          sound: true,
+        },
+        trigger: null,
+      }).catch(() => {});
+      return;
+    }
+
+    // Network/transport errors → cache for replay; the offline flusher
+    // updates the slot to "confirmée" once the replay succeeds.
+    // Server-side rejections ("Operation not permitted") are terminal —
+    // gate is the same on retry, slot stays at "détectée".
+    if (!(error.message ?? '').includes('Operation not permitted')) {
       await enqueueGeoEvent({
         activity_id: activityId,
         lng: region.longitude,
