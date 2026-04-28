@@ -25,6 +25,7 @@ import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
+import { distanceMeters } from '@/utils/geo';
 
 const BUFFER = 0.5; // 50% buffer around viewport
 
@@ -48,16 +49,9 @@ function isWithinFetchedBounds(current: MapBounds, fetched: QueryBounds): boolea
   );
 }
 
-function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
+// panDistance is a degree-space pythagorean used to compare to viewport
+// width; deliberately distinct from the geographic haversine in @/utils/geo
+// because the units cancel out in the ratio.
 function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const dlat = lat2 - lat1;
   const dlng = lng2 - lng1;
@@ -198,9 +192,9 @@ export default function CarteScreen() {
       const list = activities ?? [];
       if (list.length > 0) {
         let nearest = list[0]!;
-        let nearestDist = haversine(center[1], center[0], nearest.lat, nearest.lng);
+        let nearestDist = distanceMeters(center[1], center[0], nearest.lat, nearest.lng);
         for (const a of list) {
-          const d = haversine(center[1], center[0], a.lat, a.lng);
+          const d = distanceMeters(center[1], center[0], a.lat, a.lng);
           if (d < nearestDist) {
             nearest = a;
             nearestDist = d;

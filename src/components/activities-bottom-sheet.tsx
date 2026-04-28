@@ -8,6 +8,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { distanceMeters } from '@/utils/geo';
 import { ActivityCard } from './activity-card';
 
 interface Props {
@@ -24,15 +25,6 @@ export interface ActivitiesBottomSheetHandle {
   collapse: () => void;
 }
 
-function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   count: number;
@@ -86,7 +78,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
 
   const sorted = useMemo(() => {
     return activities
-      .map((a) => ({ ...a, distance: getDistanceKm(userLocation[1], userLocation[0], a.lat, a.lng) }))
+      .map((a) => ({ ...a, distance: distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) / 1000 }))
       .sort((a, b) => a.distance - b.distance);
   }, [activities, userLocation]);
 

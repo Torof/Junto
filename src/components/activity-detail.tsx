@@ -43,6 +43,7 @@ import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
+import { distanceMeters } from '@/utils/geo';
 import { Car } from 'lucide-react-native';
 
 interface ActivityDetailProps {
@@ -209,23 +210,14 @@ export function ActivityDetail({
         }
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
-        const R = 6371000;
-        const distFromTo = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-          const dLat = ((lat2 - lat1) * Math.PI) / 180;
-          const dLng = ((lng2 - lng1) * Math.PI) / 180;
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-          return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        };
         const candidates: number[] = [
-          distFromTo(pos.coords.latitude, pos.coords.longitude, activity.lat, activity.lng),
+          distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.lat, activity.lng),
         ];
         if (activity.meeting_lat != null && activity.meeting_lng != null) {
-          candidates.push(distFromTo(pos.coords.latitude, pos.coords.longitude, activity.meeting_lat, activity.meeting_lng));
+          candidates.push(distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.meeting_lat, activity.meeting_lng));
         }
         if (activity.end_lat != null && activity.end_lng != null) {
-          candidates.push(distFromTo(pos.coords.latitude, pos.coords.longitude, activity.end_lat, activity.end_lng));
+          candidates.push(distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.end_lat, activity.end_lng));
         }
         const minDist = Math.min(...candidates);
         const nowAt = minDist <= 150;
