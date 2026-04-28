@@ -93,12 +93,13 @@ export default function LoginScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         contentContainerStyle={[
-          styles.content,
+          styles.scroll,
           { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
         ]}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
+        keyboardDismissMode="on-drag"
       >
+        <View style={styles.content}>
         <Svg
           style={StyleSheet.absoluteFill}
           viewBox="0 0 600 1000"
@@ -224,6 +225,7 @@ export default function LoginScreen() {
             <Text style={styles.linkText}>{t('auth.backToLogin')}</Text>
           </Pressable>
         )}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -231,7 +233,8 @@ export default function LoginScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl },
+  content: { flex: 1, justifyContent: 'center' },
 
   header: { alignItems: 'center', marginBottom: spacing.xl },
   logo: { width: 76, height: 76, marginBottom: spacing.md, borderRadius: 18 },
