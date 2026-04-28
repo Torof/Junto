@@ -1,21 +1,35 @@
 import { useState, useMemo } from 'react';
-import { Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View, Text, TextInput, Pressable, ScrollView, StyleSheet,
+  Image, KeyboardAvoidingView, Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path, G, Rect } from 'react-native-svg';
+import { Eye, EyeOff, Check } from 'lucide-react-native';
+import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
 
+type Mode = 'login' | 'register' | 'forgot';
+
 export default function LoginScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [isRegister, setIsRegister] = useState(false);
+
+  const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [tosAccepted, setTosAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const friendlyAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
@@ -29,140 +43,265 @@ export default function LoginScreen() {
     return t('auth.unknownError');
   };
 
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError(null);
+    setPassword('');
+  };
+
   const handleSubmit = async () => {
-    if (!email.trim() || !password.trim()) return;
+    setError(null);
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError(t('auth.errInvalidEmail'));
+      return;
+    }
+    if (mode !== 'forgot' && !password.trim()) {
+      setError(t('auth.errPasswordTooShort'));
+      return;
+    }
+    if (mode === 'register' && !tosAccepted) {
+      setError(t('auth.errTosRequired'));
+      return;
+    }
     setIsLoading(true);
     try {
-      if (isRegister) {
-        await authService.signUpWithEmail(email.trim(), password);
-        Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+      if (mode === 'login') {
+        await authService.signInWithEmail(trimmedEmail, password);
+      } else if (mode === 'register') {
+        await authService.signUpWithEmail(trimmedEmail, password);
+        Burnt.toast({ title: t('auth.confirmationSent'), preset: 'done' });
       } else {
-        await authService.signInWithEmail(email.trim(), password);
+        await authService.requestPasswordReset(trimmedEmail);
+        Burnt.toast({ title: t('auth.resetEmailSent'), preset: 'done' });
+        switchMode('login');
       }
     } catch (err) {
       const raw = err instanceof Error ? err.message : t('auth.unknownError');
-      Alert.alert(t('auth.error'), friendlyAuthError(raw));
+      setError(friendlyAuthError(raw));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const ctaLabel =
+    mode === 'login' ? t('auth.login')
+    : mode === 'register' ? t('auth.register')
+    : t('auth.sendReset');
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+        ]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
       >
-        <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
-        <Text style={styles.title}>{t('app.name')}</Text>
-        <Text style={styles.subtitle}>{isRegister ? t('auth.createAccount') : t('auth.signIn')}</Text>
+        <Svg
+          style={StyleSheet.absoluteFill}
+          viewBox="0 0 600 1000"
+          preserveAspectRatio="xMidYMid slice"
+          pointerEvents="none"
+        >
+          <Rect width={600} height={1000} fill="transparent" />
+          <G fill="none" stroke={colors.textPrimary} strokeWidth={0.6} opacity={0.06}>
+            {Array.from({ length: 26 }).map((_, i) => (
+              <Path
+                key={i}
+                d={`M 0 ${30 + i * 38} Q 150 ${20 + i * 38} 300 ${33 + i * 38} T 600 ${27 + i * 38}`}
+              />
+            ))}
+          </G>
+        </Svg>
+
+        <View style={styles.header}>
+          <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
+          <Text style={styles.brand}>{t('app.name')}</Text>
+          <Text style={styles.tagline}>{t('auth.tagline')}</Text>
+        </View>
+
+        {mode !== 'forgot' && (
+          <View style={styles.tabs}>
+            <Pressable
+              style={[styles.tab, mode === 'login' && styles.tabActive]}
+              onPress={() => switchMode('login')}
+            >
+              <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>
+                {t('auth.signIn')}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tab, mode === 'register' && styles.tabActive]}
+              onPress={() => switchMode('register')}
+            >
+              <Text style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
+                {t('auth.createAccount')}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {mode === 'forgot' && (
+          <View style={styles.forgotHeader}>
+            <Text style={styles.forgotTitle}>{t('auth.forgotTitle')}</Text>
+            <Text style={styles.forgotSubtitle}>{t('auth.forgotSubtitle')}</Text>
+          </View>
+        )}
 
         <TextInput
           style={styles.input}
           placeholder={t('auth.email')}
           placeholderTextColor={colors.textSecondary}
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(v) => { setEmail(v); setError(null); }}
           keyboardType="email-address"
           autoCapitalize="none"
           autoComplete="email"
-          returnKeyType="next"
+          returnKeyType={mode === 'forgot' ? 'send' : 'next'}
+          onSubmitEditing={mode === 'forgot' ? handleSubmit : undefined}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.password')}
-          placeholderTextColor={colors.textSecondary}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete={isRegister ? 'new-password' : 'current-password'}
-          returnKeyType="done"
-          onSubmitEditing={handleSubmit}
-        />
+        {mode !== 'forgot' && (
+          <View style={styles.passwordRow}>
+            <TextInput
+              style={[styles.input, styles.inputFlex]}
+              placeholder={t('auth.password')}
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError(null); }}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
+            />
+            <Pressable style={styles.eyeButton} onPress={() => setShowPassword((s) => !s)}>
+              {showPassword
+                ? <EyeOff size={20} color={colors.textSecondary} />
+                : <Eye size={20} color={colors.textSecondary} />}
+            </Pressable>
+          </View>
+        )}
+
+        {mode === 'register' && (
+          <Pressable style={styles.tosRow} onPress={() => setTosAccepted((v) => !v)}>
+            <View style={[styles.checkbox, tosAccepted && styles.checkboxChecked]}>
+              {tosAccepted && <Check size={14} color={colors.textPrimary} strokeWidth={3} />}
+            </View>
+            <Text style={styles.tosText}>
+              {t('auth.tosPrefix')}{' '}
+              <Text style={styles.link} onPress={() => router.push('/(visitor)/legal/terms')}>
+                {t('auth.tosTerms')}
+              </Text>
+              {t('auth.tosAnd')}
+              <Text style={styles.link} onPress={() => router.push('/(visitor)/legal/privacy')}>
+                {t('auth.tosPrivacy')}
+              </Text>
+            </Text>
+          </Pressable>
+        )}
+
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         <Pressable
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
           onPress={handleSubmit}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? '...' : isRegister ? t('auth.register') : t('auth.login')}
-          </Text>
+          <Text style={styles.primaryButtonText}>{isLoading ? '...' : ctaLabel}</Text>
         </Pressable>
 
-        <Pressable onPress={() => setIsRegister(!isRegister)}>
-          <Text style={styles.toggleText}>
-            {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
-          </Text>
-        </Pressable>
+        {mode === 'login' && (
+          <Pressable onPress={() => switchMode('forgot')} style={styles.linkRow}>
+            <Text style={styles.linkText}>{t('auth.forgotPassword')}</Text>
+          </Pressable>
+        )}
+
+        {mode === 'forgot' && (
+          <Pressable onPress={() => switchMode('login')} style={styles.linkRow}>
+            <Text style={styles.linkText}>{t('auth.backToLogin')}</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xxl,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.lg,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  input: {
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
+
+  header: { alignItems: 'center', marginBottom: spacing.xl },
+  logo: { width: 76, height: 76, marginBottom: spacing.md, borderRadius: 18 },
+  brand: { color: colors.textPrimary, fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },
+  tagline: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 4 },
+
+  tabs: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: fontSizes.md,
-    marginBottom: spacing.md,
+    borderRadius: 999,
+    padding: 4,
+    marginBottom: spacing.lg,
+    borderWidth: 1, borderColor: colors.line,
   },
-  button: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.sm,
+  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 999 },
+  tabActive: { backgroundColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '800' },
+
+  forgotHeader: { marginBottom: spacing.lg, alignItems: 'center' },
+  forgotTitle: {
+    color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: 4,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  forgotSubtitle: {
+    color: colors.textSecondary, fontSize: fontSizes.sm, textAlign: 'center', lineHeight: 18,
   },
-  buttonText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: 'bold',
+
+  input: {
+    backgroundColor: colors.surface, color: colors.textPrimary,
+    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md,
+    fontSize: fontSizes.md, marginBottom: spacing.md,
+    borderWidth: 1, borderColor: colors.line,
   },
-  toggleText: {
-    color: colors.cta,
-    fontSize: fontSizes.sm,
-    textAlign: 'center',
-    marginTop: spacing.lg,
+  inputFlex: { flex: 1, marginBottom: 0, borderWidth: 0 },
+  passwordRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    paddingRight: spacing.sm, marginBottom: spacing.md,
+    borderWidth: 1, borderColor: colors.line,
   },
+  eyeButton: { padding: spacing.xs, paddingHorizontal: spacing.sm },
+
+  tosRow: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    gap: spacing.sm, marginBottom: spacing.md,
+  },
+  checkbox: {
+    width: 22, height: 22, borderRadius: 6,
+    borderWidth: 1.5, borderColor: colors.line,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.surface, marginTop: 1,
+  },
+  checkboxChecked: { backgroundColor: colors.cta, borderColor: colors.cta },
+  tosText: {
+    color: colors.textSecondary, fontSize: fontSizes.sm, flex: 1, lineHeight: 18,
+  },
+  link: { color: colors.cta, fontWeight: '700' },
+
+  errorText: {
+    color: colors.error, fontSize: fontSizes.sm,
+    textAlign: 'center', marginBottom: spacing.sm,
+  },
+
+  primaryButton: {
+    backgroundColor: colors.cta, borderRadius: radius.md,
+    paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xs,
+  },
+  buttonDisabled: { opacity: 0.6 },
+  primaryButtonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+
+  linkRow: { paddingVertical: spacing.md, alignItems: 'center' },
+  linkText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
 });
