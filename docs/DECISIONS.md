@@ -157,3 +157,76 @@ Signal déclencheur pour shipping : au moins 2 testeurs distincts demandant spon
 - **Hand-seeding de profils et d'activités avant chaque lancement régional** — complémentaire, à faire en plus de Discovery, pas à la place.
 
 **Déclencheur de validation Ship 2 (Annonces) :** après déploiement de Ship 1, si les users créent des activités à partir de leurs matches Discovery, on construit Annonces. Si Ship 1 ne génère pas d'activités, Annonces n'aidera pas — on abandonne.
+
+---
+
+## 2026-04-27 — Présence : modèle peer-testimony pour la validation
+
+**Décision :** La validation de présence post-activité est earned par peer testimony, pas accordée par le créateur. Threshold = 1 vote pour 2-participant (créateur direct flip — seul cas où il garde un privilège), 2 votes pour 3+ (créateur n'est qu'un voter parmi d'autres).
+
+**Pourquoi :** Avec geofencing, QR code et peer voting, le créateur fiat n'est plus nécessaire. L'autoriser en 3+ participants transformerait la présence en "le créateur dit que oui" plutôt qu'un signal earned. Le 2-participant case est un edge math : avec un seul peer (le créateur), le pool de pairs est trop petit pour appliquer un threshold.
+
+**Erreurs différenciées (mig 00139) :** `peer_review_window_not_open`, `peer_review_window_closed`, `peer_voter_not_present`, `peer_already_validated`. Ne révèlent pas d'implémentation, juste une catégorie d'état actionnable côté UI.
+
+**Alternative considérée :** Garder le créateur direct-flip universal — rejeté pour "earned vs given".
+
+---
+
+## 2026-04-27 — Offline geo replay : trust model "client bornes, pas signature"
+
+**Décision :** Les offline geo events (cachés en AsyncStorage côté client quand le réseau est absent) peuvent être rejoués via `confirm_presence_via_geo(.., p_captured_at)` jusqu'à end + 3h après l'activité. L'envelope n'est PAS signée server-side.
+
+**Pourquoi :** Le cas d'usage outdoor (alpinisme, ski de rando) impose souvent du réseau absent au meetup. Un replay non-signé est suffisant pour le moment :
+- `p_captured_at` doit être dans la fenêtre live (T-15min, T+15min) — empêche fabrication outside-window
+- Distance ≤ 150m vers start/meeting/end/route — empêche fabrication far-away
+- Single-shot (`confirmed_present IS NULL`) — pas d'abus répété
+- Replay arrival ≤ end + 3h — borne le délai
+- Accepted-only (vérifié à chaque appel)
+
+Le check social complémentaire est les badges réputation (`level_overestimated`, `unreliable_field`).
+
+**Alternative considérée :** Signed envelope (HMAC server-issued au join, signé client-side, vérifié server au replay). Repoussé jusqu'à observer un abus empirique. Coût non-trivial : secret management côté device, JWT lib, +1 RPC pour issue le secret.
+
+---
+
+## 2026-04-27 — Notif spine présence : T-2h / T0 / T+duration/2
+
+**Décision :** Trois notifications participant-facing pour la présence : `presence_pre_warning` (T-2h, informational), `presence_validate_now` (T0, action si non-confirmé), `presence_validate_warning` (T+duration/2, escalation "tu seras enregistré comme absent"). Toutes trois dans le même OS slot (`collapse_id = 'presence-{aid}'`) avec progression `(×N)` dans le titre.
+
+Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel précis) et `presence_last_call` (post-completion, redondant avec validate_warning).
+
+**Pourquoi :** Le flow original avait 5 notifications de relance qui généraient une expérience oppressante. Trois moments avec une logique claire (anticipation → action → escalation) suffisent. Le collapse_id partagé garantit un seul slot OS.
+
+**Alternative considérée :** Garder presence_reminder en le retimant à T-15min — rejetée car presence_validate_now au T0 est plus efficace : c'est le moment où l'action est réellement requise.
+
+---
+
+## 2026-04-28 — Forms : drop React Hook Form, garder Zod type-only
+
+**Décision :** Retirer `react-hook-form` et `@hookform/resolvers` du stack. Zod reste, utilisé uniquement pour dériver le type `ActivityFormData` via `z.infer`. La validation runtime est entièrement côté serveur (DB SECURITY DEFINER functions).
+
+**Pourquoi :** Audit de cleanup a révélé que RHF n'était importé nulle part dans le codebase ; les formulaires utilisent du state inline (useState). Le claim "React Hook Form + Zod" du stack original (DECISIONS 2026-04-09) ne s'est jamais matérialisé. Garder Zod purement pour le type derivation est l'usage actuel — pas de validation client meaningful.
+
+**Conséquence :** Si une feature future a besoin d'une form library, on ré-évaluera (RHF, Formik, ou inline state). Pour le scope MVP, inline state suffit.
+
+**Alternative considérée :** Wire RHF "pour quand on en aura besoin" — rejeté, on ajoute quand le besoin se présente.
+
+---
+
+## 2026-04-28 — Admin bypass sur rate limit `create_activity`
+
+**Décision :** Les utilisateurs `is_admin = TRUE` bypassent le rate limit 20/24h sur `create_activity`. Les non-admins gardent la limite.
+
+**Pourquoi :** En dev / test, créer 20+ activités test dans une session est commun. Les admins sont des accounts trustés (déjà capables de modérer / suspendre). Bumper la limite globale aurait affaibli la garde anti-spam pour tous les utilisateurs.
+
+**Alternative considérée :** Bumper à 100/24h pour tout le monde — rejeté, affaiblit le guard anti-spam.
+
+---
+
+## 2026-04-28 — Push notifications : pas de Apple-only features avant user base
+
+**Décision :** Ne pas proposer / shipper des features iOS-only (Sign in with Apple, App Store-driven entitlements, etc.) tant qu'il n'y a pas de user base meaningful. La codebase reste cross-platform identique.
+
+**Pourquoi :** Apple-platform-only work crée du coût réel (entitlements, Edge Functions, native rebuilds, App Store review) qui ne paie que quand il y a des users à servir. Pour un hobby app pre-launch, c'est de l'overhead.
+
+**Alternative considérée :** Ajouter Sign in with Apple "au cas où" — rejeté, on l'ajoutera quand un user le demande.

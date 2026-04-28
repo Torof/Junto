@@ -34,6 +34,7 @@ Le sportif de passage ou local qui cherche des partenaires spontanément — ran
 Commencer sport outdoor, élargir progressivement vers toutes activités (théâtre, cinéma, jeux, etc.) une fois la masse critique atteinte.
 
 ## Plateforme cible
-- MVP : Android (React Native)
-- V2 : iOS
-- International dès le départ
+- MVP : Android (React Native + Expo SDK 54, custom dev build)
+- iOS : codebase identique, prêt techniquement, ship reporté jusqu'à user base établie
+- International dès le départ (FR + EN au lancement)
+- Web : marketing + deep link bridges sur `getjunto.app` (Next.js, hosted Vercel)

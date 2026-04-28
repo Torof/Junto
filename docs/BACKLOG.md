@@ -1,26 +1,26 @@
 # Junto — Backlog
 
-> Réécrit le 2026-04-26. Le plan Sprint 1-8 d'origine a guidé le démarrage mais l'app a depuis dépassé largement ce cadre (~300 commits, 97 migrations, ~45 composants). Ce document reflète l'état réel et ce qu'il reste à faire. L'historique sprint complet est récupérable via `git log` si besoin.
+> Réécrit le 2026-04-26, refresh 2026-04-28. Le plan Sprint 1-8 d'origine a guidé le démarrage mais l'app a depuis dépassé largement ce cadre (~149 migrations). Ce document reflète l'état réel et ce qu'il reste à faire. L'historique sprint complet est récupérable via `git log`.
 
 ---
 
 ## Statut actuel
 
-L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth Google + email, carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges), gear declaration system, presence validation V2 (QR + GPS) avec auto-FALSE no-show + peer-review fallback, notifications push (presence reminder + last call), reliability score Bayésien complet, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark, tutorial, badges reputation/trophées, web landing page, pages légales.
+L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth email/password (avec reset password via deep link, login redesigné), carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority, activités open sans cap), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests (avec auto-expiry 30j) + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges + auto-expiry des demandes pending), gear declaration system, **présence V3** (geofencing background + foreground watcher + offline replay + QR + peer review threshold-based), **notif spine simplifié** (pre_warning T-2h / validate_now T0 / validate_warning T+duration/2 / peer_review_closing T+22h), reliability score Bayésien, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark + segmented pill, tutorial, **badges progression V2** (joined/created/sport × t1-t5), reputation badges peer-voted, web landing page (getjunto.app) avec auth callback + reset password bridges, pages légales, Sentry breadcrumbs sur le presence flow.
 
-**Ce qui reste avant launch public** : 1 P0 + 1 P1 (bloqués par eas build), Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), CGU finalisées, Play Store prep.
+**Ce qui reste avant launch public** : Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), CGU finalisées, Play Store prep, custom SMTP pour le sender email.
 
 ---
 
 ## P0 — Bugs en cours
 
-### Bloqués par le prochain `eas build`
-- [ ] **Input messagerie caché par clavier sur Android** — bug edge-to-edge. Diff partiel pushé : `behavior="padding"` iOS / `"height"` Android. À compléter : `android.softwareKeyboardLayoutMode: 'resize'` dans `app.config.ts`.
-- [ ] **Download direct GPX trace sur Android** — actuel : share sheet (Drive/Files/etc). Pour un vrai download "vers Téléchargements" sans intermédiaire : installer `expo-sharing` et utiliser `Sharing.shareAsync` qui sauvegarde directement. iOS reste sur Save to Files (limitation OS, pas l'app).
+(aucun bloquant connu)
 
 ## P1 — Polish & easy wins
 
 - [ ] **Ouvrir profil depuis l'INTÉRIEUR d'une conversation** — pour l'instant l'écran conversation a un header vide (`title: ''`), donc rien à taper. À faire : custom header avec avatar + nom du correspondant, tappable → profil. Côté liste des conversations, la nav avatar→profil est déjà en place.
+- [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
+- [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.
 
 ## P2 — UX clarifications & redesigns
 
@@ -37,11 +37,13 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 ## Avant launch public — non-polish
 
 - [ ] **Stripe / paiements** — intégration via Edge Function + webhook idempotency (cf. SECURITY.md). Tier Premium (création illimitée, activités privées par lien, badge Vérifié). Tier Pro (vitrine + mise en avant + badge Pro). Actuellement tous les nouveaux users sont auto-Premium pour faciliter le test (migration 00051) — à inverser avant launch.
-- [ ] **Discovery tab — Phase B-E** (cf. `docs/sprint-discovery.md`). Phase A figée, connection request system livré (migration 00072). Reste : RPCs `get_discovery_partners`, `update_discovery_settings`, écrans opt-in / settings / liste partenaires / inbox demandes, swap `BellPlus` → `Radar`. À vérifier : où en est-on précisément.
+- [ ] **Discovery tab — Phase B-E** (cf. `docs/sprint-discovery.md`). Phase A figée, connection request system livré (migration 00072). Reste : RPCs `get_discovery_partners`, `update_discovery_settings`, écrans opt-in / settings / liste partenaires / inbox demandes, swap `BellPlus` → `Radar`.
 - [ ] **API key restrictions** — Google Places + Mapbox (package signature), à faire avant tout test externe.
 - [ ] **Keystore backup sécurisé**.
-- [ ] **Android App Links** (deep links vérifiés par domaine, prévention phishing).
-- [ ] **CGU + Politique de confidentialité finalisées** — textes hébergés sur l'URL publique du Play Store (web landing déjà en place).
+- [ ] **Android App Links** vérifiés par domaine (universal links déjà configurés sur `getjunto.app/activity/*` et `/invite/*`, vérifier la digital asset link).
+- [ ] **CGU + Politique de confidentialité finalisées** — textes hébergés sur `getjunto.app/legal/*` (web landing en place, FR + EN à compléter).
+- [ ] **Custom SMTP pour le sender email** — actuellement "Supabase Auth" via shared SMTP. Setup Resend / Mailgun / etc. avec DNS records sur OVH pour avoir `Junto <noreply@getjunto.app>`. Décision attendue.
+- [ ] **Sentry consent UI** — toggle dans settings + ToS update. Preview channel auto-consent OK pour dogfooding ; production attend cette UI.
 - [ ] **Tests end-to-end** sur les flows critiques (création, join, presence validation, cancellation, suppression compte).
 - [ ] **Préparation Play Store** : screenshots refresh, description, content rating questionnaire, déclaration âge 18+.
 
@@ -50,11 +52,11 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 ## V2+ — Backlog futur
 
 ### V2 — post-launch
-- [ ] iOS (App Store)
+- [ ] iOS (App Store) — codebase prête, déclencheur = user base meaningful
+- [ ] Sign in with Apple (déclencheur = présence sur App Store)
 - [ ] Filtres avancés sur la carte (multi-sport, niveau, distance, prix futur)
 - [ ] Suggestions d'activités basées sur le profil
 - [ ] Mode hors ligne (carte Mapbox offline)
-- [ ] Sentry / error tracking
 - [ ] Analytics (Mixpanel ou équivalent)
 - [ ] Liste d'attente automatique quand activité complète
 - [ ] Vote d'annulation de groupe (2/3 pour annuler sans malus — voir ACTIVITY_MANAGEMENT.md)
@@ -63,8 +65,17 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 - [ ] Vérification d'identité avancée
 - [ ] API pour clubs et associations sportives
 - [ ] Tableau de bord analytics pour les Pros
+- [ ] Map clustering + "search this zone" button (différé à une session UI dédiée)
+- [ ] Live position partagée pendant l'activité
+
+### Présence — durcissements
+- [ ] **Signed geo-proof token** pour offline replay (envelope HMAC, secret server-issued au join). Déclencheur = abuse observé empiriquement.
+- [ ] **Mock-location detection** (Android `ALLOW_MOCK_LOCATION` flag).
+- [ ] **GPS spoofing detection** générique.
+- [ ] **Anti-collusion server-side** sur peer votes — pattern detection sur les votes croisés répétés.
+
+### Sécurité durcissement
 - [ ] Certificate pinning (protection MITM avancée)
-- [ ] GPS spoofing detection
 - [ ] CAPTCHA à l'inscription (anti-bot à grande échelle)
 
 ### Discovery V2 (parked)
