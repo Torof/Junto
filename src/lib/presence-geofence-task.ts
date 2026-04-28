@@ -26,9 +26,13 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   const activityId = id.split(':')[1];
   if (!activityId) return;
 
-  // Heartbeat notification — fires regardless of RPC outcome. Lets us tell
-  // "OS didn't fire the event" from "OS fired but RPC failed" during testing.
+  // Local notification on every Enter event. Stable identifier so a second
+  // Enter for the same activity REPLACES the existing OS notif rather than
+  // stacking a fresh modal. Fires regardless of RPC outcome — the user
+  // wants the visible signal even when they're offline (RPC will replay
+  // through presence-offline-cache once network returns).
   Notifications.scheduleNotificationAsync({
+    identifier: `presence-arrival-${activityId}`,
     content: {
       title: 'Présence confirmée',
       body: 'Tu es à proximité de ton activité.',

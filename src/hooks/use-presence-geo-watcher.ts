@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
-import { useTranslation } from 'react-i18next';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 import { enqueueGeoEvent } from '@/lib/presence-offline-cache';
@@ -43,7 +41,6 @@ function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number):
  * open elsewhere" case.
  */
 export function usePresenceGeoWatcher(enabled: boolean) {
-  const { t } = useTranslation();
   const alertedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -90,6 +87,9 @@ export function usePresenceGeoWatcher(enabled: boolean) {
             const capturedAt = new Date().toISOString();
             // Auto-confirm: foreground app + within 150m + inside the
             // server-aligned T-15min→T+30min window proves enough.
+            // No local notif: app is foreground, the in-app toast / state
+            // change covers the user-facing signal. The server-side
+            // presence_confirmed row provides history.
             try {
               const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
                 p_activity_id: a.activity_id,
@@ -112,15 +112,6 @@ export function usePresenceGeoWatcher(enabled: boolean) {
                 captured_at: capturedAt,
               });
             }
-            Notifications.scheduleNotificationAsync({
-              content: {
-                title: t('presence.arrivedTitle'),
-                body: t('presence.arrivedBody', { title: a.title }),
-                data: { activity_id: a.activity_id, type: 'presence_geo_arrived' },
-                sound: true,
-              },
-              trigger: null,
-            }).catch(() => {});
           }
         }
       } catch {
@@ -134,5 +125,5 @@ export function usePresenceGeoWatcher(enabled: boolean) {
       cancelled = true;
       if (interval) clearInterval(interval);
     };
-  }, [enabled, t]);
+  }, [enabled]);
 }
