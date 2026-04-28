@@ -88,6 +88,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         isIosBackgroundLocationEnabled: true,
       },
     ],
+    'expo-task-manager',
     [
       '@sentry/react-native/expo',
       {
