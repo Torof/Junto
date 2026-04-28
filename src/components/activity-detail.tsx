@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
@@ -192,34 +191,6 @@ export function ActivityDetail({
   const canConfirmGeo = participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
   const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
   const canCheckIn = canConfirmGeo || canScanQr;
-
-  // Remind participant once when the activity has started without their presence confirmed
-  useEffect(() => {
-    if (isCreator || alreadyConfirmed) return;
-    if (participation?.status !== 'accepted') return;
-    if (activity.status !== 'in_progress') return;
-
-    const notifiedKey = `presence-started-${activity.id}`;
-    (async () => {
-      try {
-        const already = await supabase.auth.getSession();
-        if (!already) return;
-        // Use Burnt as a soft visual reminder in-app; schedule a native notif for emphasis
-        haptic.medium();
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: t('presence.startedTitle'),
-            body: t('presence.startedBody', { title: activity.title }),
-            sound: true,
-            data: { key: notifiedKey },
-          },
-          trigger: null,
-        });
-      } catch {
-        // ignore
-      }
-    })();
-  }, [activity.status, activity.id, activity.title, alreadyConfirmed, isCreator, participation?.status, t]);
 
   // Passive geo detection: periodically check if the user is at the activity location.
   // Fires a local notification + haptic on the transition from "not at" to "at" so the
