@@ -40,6 +40,41 @@ export function tierFor(count: number): TierKey | null {
 export interface ReputationBadge {
   badge_key: string;
   vote_count: number;
+  /** Most recent vote timestamp for this badge — drives the popover meta. */
+  last_at: string | null;
+}
+
+// Peer badge tier — three positives + one negative + locked.
+// Derived from vote_count via peerTierFor() / peerNegativeTier().
+export type PeerTier = 'bronze' | 'silver' | 'gold' | 'negative' | 'locked';
+
+export const PEER_TIER_BANDS: Record<Exclude<PeerTier, 'negative' | 'locked'>, { min: number; max: number }> = {
+  bronze: { min: 1, max: 9 },
+  silver: { min: 10, max: 49 },
+  gold: { min: 50, max: Infinity },
+};
+
+/** Tier for a positive peer badge given total vote count. */
+export function peerPositiveTier(count: number): PeerTier {
+  if (count <= 0) return 'locked';
+  if (count < 10) return 'bronze';
+  if (count < 50) return 'silver';
+  return 'gold';
+}
+
+/** Negatives have a single 'negative' tier (red). Visible threshold = 5 active. */
+export const NEGATIVE_VISIBILITY_THRESHOLD = 5;
+
+/** Progression to the next tier — used by the popover progression bar.
+ * Returns null when already gold. */
+export function peerProgressToNext(count: number): { pct: number; nextThreshold: number; nextTier: PeerTier } | null {
+  if (count < 10) {
+    return { pct: (count / 10) * 100, nextThreshold: 10, nextTier: 'silver' };
+  }
+  if (count < 50) {
+    return { pct: ((count - 10) / 40) * 100, nextThreshold: 50, nextTier: 'gold' };
+  }
+  return null;
 }
 
 export interface Trophy {

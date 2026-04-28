@@ -12,14 +12,20 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
 import {
-  badgeService,
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
   tierFor,
+  peerPositiveTier,
+  peerProgressToNext,
+  NEGATIVE_VISIBILITY_THRESHOLD,
   type ReputationBadge,
   type Trophy as ReputationTrophy,
   type TierKey,
+  type PeerTier,
 } from '@/services/badge-service';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+import i18n from 'i18next';
 
 interface BadgeDisplayProps {
   reputation: ReputationBadge[];
@@ -43,9 +49,11 @@ interface UIBadge {
   // Category lets the detail modal render the right ladder (or single info).
   category: BadgeCategory;
   tier?: TierKey;          // current tier for joined/created/sport
+  peerTier?: PeerTier;     // bronze/silver/gold for peer-positive ; 'negative' for peer-negative
   sportKey?: string;       // for sport badges: the emoji + the localized name
   badgeKey?: string;       // for peer badges: the underlying key (trustworthy, etc.)
   threshold?: number;      // peer threshold (locked or unlocked)
+  lastAt?: string | null;  // for peer badges: most recent vote, drives popover meta
 }
 
 // Positive peer badges: per-trait color + icon (distinguishes qualities)
@@ -78,6 +86,16 @@ const TIER_COLOR: Record<TierKey, string> = {
   t3: '#F26B2E',
   t4: '#9B6BD6',
   t5: '#F4A373',
+};
+
+// Peer badge tier ring — wraps the trait-colored disc to communicate the
+// reputation level at a glance. Negatives all share the same red ring.
+const PEER_TIER_RING: Record<PeerTier, string> = {
+  bronze: '#B87333',
+  silver: '#B8C4CF',
+  gold: '#E8B547',
+  negative: '#C0392B',
+  locked: 'transparent',
 };
 
 const JOINED_ICON: Record<TierKey, LucideIcon> = {
@@ -170,13 +188,16 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
     // Suppress unused-prop warning for createdCount (kept for backwards compat)
     void createdCount;
 
-    // PEER — Positive (per-trait color)
+    // PEER — Positive : visible dès la 1re vote (tier bronze).
+    // Tier bronze 1-9 / silver 10-49 / gold 50+. Locked (count=0) → on
+    // n'affiche pas, pour ne pas exposer "Tu n'as aucun trustworthy".
     POSITIVE_BADGES.forEach((def) => {
       if (DEPRECATED_PEER_KEYS.has(def.key)) return;
       const rep = reputation.find((r) => r.badge_key === def.key);
       const votes = rep?.vote_count ?? 0;
       const visual = PEER_POSITIVE_VISUAL[def.key] ?? { Icon: Check, color: '#7EC8A3' };
-      if (votes >= def.threshold) {
+      const tier = peerPositiveTier(votes);
+      if (tier !== 'locked') {
         peerList.push({
           id: `peer_pos_${def.key}`,
           label: t(`badges.${def.key}`),
@@ -186,31 +207,20 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
           got: true,
           count: votes,
           category: 'peer-positive',
+          peerTier: tier,
           badgeKey: def.key,
-          threshold: def.threshold,
-        });
-      } else {
-        lockedList.push({
-          id: `peer_pos_${def.key}_locked`,
-          label: t(`badges.${def.key}`),
-          Icon: visual.Icon,
-          color: visual.color,
-          kind: 'peer-positive',
-          got: false,
-          progress: `${votes}/${def.threshold}`,
-          category: 'peer-positive',
-          badgeKey: def.key,
-          threshold: def.threshold,
-          count: votes,
+          lastAt: rep?.last_at ?? null,
         });
       }
     });
 
-    // PEER — Negative (red)
+    // PEER — Negative : seuil 5 votes actifs (le serveur applique déjà la
+    // décroissance 1/mois et ne renvoie que les badges avec compteur actif > 0).
+    // Tier "negative" unique (rouge), pas de bronze/silver/gold.
     NEGATIVE_BADGES.forEach((def) => {
       const rep = reputation.find((r) => r.badge_key === def.key);
       const votes = rep?.vote_count ?? 0;
-      if (votes < def.threshold) return;
+      if (votes < NEGATIVE_VISIBILITY_THRESHOLD) return;
       const Icon = PEER_NEGATIVE_ICON[def.key] ?? AlertTriangle;
       peerList.push({
         id: `peer_neg_${def.key}`,
@@ -221,8 +231,9 @@ export function BadgeDisplay({ reputation, trophies, completedCount, createdCoun
         got: true,
         count: votes,
         category: 'peer-negative',
+        peerTier: 'negative',
         badgeKey: def.key,
-        threshold: def.threshold,
+        lastAt: rep?.last_at ?? null,
       });
     });
 
@@ -323,27 +334,37 @@ function BadgeIcon({ badge, styles, colors, onPress }: {
   const { Icon } = badge;
   const isLocked = !badge.got;
   const isSport = badge.category === 'sport' && badge.sportKey;
+  const isPeer = (badge.kind === 'peer-positive' || badge.kind === 'peer-negative') && badge.peerTier;
+  const ringColor = isPeer && badge.peerTier ? PEER_TIER_RING[badge.peerTier] : null;
 
   return (
     <Pressable onPress={onPress} hitSlop={4} style={styles.badgeCell}>
       <View style={styles.iconWrap}>
-        <View
-          style={[
-            styles.iconBadge,
-            isLocked
-              ? styles.iconBadgeLocked
-              : { backgroundColor: badge.color, borderColor: badge.color },
-          ]}
-        >
-          {isSport ? (
-            <Text style={styles.sportEmoji}>{getSportIcon(badge.sportKey!)}</Text>
-          ) : (
-            <Icon size={18} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2.2} />
-          )}
-        </View>
+        {ringColor ? (
+          <View style={[styles.peerOuterRing, { borderColor: ringColor }]}>
+            <View style={[styles.peerInnerDisc, { backgroundColor: badge.color }]}>
+              <Icon size={16} color="#FFFFFF" strokeWidth={2.2} />
+            </View>
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.iconBadge,
+              isLocked
+                ? styles.iconBadgeLocked
+                : { backgroundColor: badge.color, borderColor: badge.color },
+            ]}
+          >
+            {isSport ? (
+              <Text style={styles.sportEmoji}>{getSportIcon(badge.sportKey!)}</Text>
+            ) : (
+              <Icon size={18} color={isLocked ? colors.textMuted : '#FFFFFF'} strokeWidth={2.2} />
+            )}
+          </View>
+        )}
         {badge.count != null && badge.count > 0 && (
           <View style={[styles.countOverlay, isLocked ? styles.countOverlayLocked : { backgroundColor: colors.background }]}>
-            <Text style={[styles.countOverlayText, { color: isLocked ? colors.textMuted : badge.color }]}>×{badge.count}</Text>
+            <Text style={[styles.countOverlayText, { color: isLocked ? colors.textMuted : (ringColor ?? badge.color) }]}>×{badge.count}</Text>
           </View>
         )}
       </View>
@@ -377,6 +398,7 @@ function BadgeDetailSheet({
   if (!badge) return null;
   const { Icon } = badge;
   const isAutoTiered = badge.category === 'joined' || badge.category === 'created' || badge.category === 'sport';
+  const isPeer = badge.kind === 'peer-positive' || badge.kind === 'peer-negative';
   const currentCount = badge.count ?? 0;
 
   // Title: category-level label.
@@ -399,62 +421,67 @@ function BadgeDetailSheet({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.detailBackdrop} onPress={onClose}>
         <Pressable style={styles.detailCard} onPress={(e) => e.stopPropagation()}>
-          <Text style={styles.detailTitle}>{title}</Text>
-          {subtitle && <Text style={styles.detailSubtitle}>{subtitle}</Text>}
-
-          {isAutoTiered ? (
-            <View style={styles.tierLadder}>
-              {(['t1','t2','t3','t4','t5'] as const).map((tier) => {
-                const min = TIERS_MIN[tier];
-                const unlocked = currentCount >= min;
-                const isCurrent = badge.tier === tier;
-                const tierColor = TIER_COLOR[tier];
-                const labelKey = badge.category === 'joined' ? `badges.joined.${tier}`
-                  : badge.category === 'created' ? `badges.created.${tier}`
-                  : `badges.sport.${tier}`;
-                return (
-                  <View
-                    key={tier}
-                    style={[
-                      styles.tierRow,
-                      isCurrent && [styles.tierRowCurrent, { borderColor: tierColor }],
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.tierDot,
-                        unlocked
-                          ? { backgroundColor: tierColor, borderColor: tierColor }
-                          : styles.tierDotLocked,
-                      ]}
-                    >
-                      {unlocked && <Text style={styles.tierDotMark}>✓</Text>}
-                    </View>
-                    <Text style={[styles.tierRowLabel, !unlocked && { color: colors.textMuted }]}>
-                      {t(labelKey)}
-                    </Text>
-                    <Text style={[styles.tierRowMin, !unlocked && { color: colors.textMuted }]}>
-                      ×{min}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
+          {isPeer && badge.peerTier ? (
+            <PeerBadgeDetail badge={badge} styles={styles} t={t} />
           ) : (
             <>
-              <View
-                style={[
-                  styles.detailIcon,
-                  badge.got ? { backgroundColor: badge.color, borderColor: badge.color } : styles.iconBadgeLocked,
-                ]}
-              >
-                <Icon size={32} color={badge.got ? '#FFFFFF' : colors.textMuted} strokeWidth={2} />
-              </View>
-              <Text style={styles.detailLabel}>{badge.label}</Text>
-              {badge.count != null && badge.threshold != null && (
-                <Text style={[styles.detailCount, { color: badge.color }]}>
-                  {badge.count} / {badge.threshold} votes
-                </Text>
+              <Text style={styles.detailTitle}>{title}</Text>
+              {subtitle && <Text style={styles.detailSubtitle}>{subtitle}</Text>}
+              {isAutoTiered ? (
+                <View style={styles.tierLadder}>
+                  {(['t1','t2','t3','t4','t5'] as const).map((tier) => {
+                    const min = TIERS_MIN[tier];
+                    const unlocked = currentCount >= min;
+                    const isCurrent = badge.tier === tier;
+                    const tierColor = TIER_COLOR[tier];
+                    const labelKey = badge.category === 'joined' ? `badges.joined.${tier}`
+                      : badge.category === 'created' ? `badges.created.${tier}`
+                      : `badges.sport.${tier}`;
+                    return (
+                      <View
+                        key={tier}
+                        style={[
+                          styles.tierRow,
+                          isCurrent && [styles.tierRowCurrent, { borderColor: tierColor }],
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.tierDot,
+                            unlocked
+                              ? { backgroundColor: tierColor, borderColor: tierColor }
+                              : styles.tierDotLocked,
+                          ]}
+                        >
+                          {unlocked && <Text style={styles.tierDotMark}>✓</Text>}
+                        </View>
+                        <Text style={[styles.tierRowLabel, !unlocked && { color: colors.textMuted }]}>
+                          {t(labelKey)}
+                        </Text>
+                        <Text style={[styles.tierRowMin, !unlocked && { color: colors.textMuted }]}>
+                          ×{min}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.detailIcon,
+                      badge.got ? { backgroundColor: badge.color, borderColor: badge.color } : styles.iconBadgeLocked,
+                    ]}
+                  >
+                    <Icon size={32} color={badge.got ? '#FFFFFF' : colors.textMuted} strokeWidth={2} />
+                  </View>
+                  <Text style={styles.detailLabel}>{badge.label}</Text>
+                  {badge.count != null && badge.threshold != null && (
+                    <Text style={[styles.detailCount, { color: badge.color }]}>
+                      {badge.count} / {badge.threshold} votes
+                    </Text>
+                  )}
+                </>
               )}
             </>
           )}
@@ -465,6 +492,80 @@ function BadgeDetailSheet({
         </Pressable>
       </Pressable>
     </Modal>
+  );
+}
+
+function PeerBadgeDetail({
+  badge,
+  styles,
+  t,
+}: {
+  badge: UIBadge;
+  styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const { Icon, peerTier, badgeKey, count = 0, lastAt } = badge;
+  if (!peerTier || peerTier === 'locked') return null;
+  const ringColor = PEER_TIER_RING[peerTier];
+  const isNegative = badge.kind === 'peer-negative';
+  const tierLabel = t(`badges.peerTier.${peerTier}`);
+  const description = badgeKey ? t(`badges.peerDesc.${badgeKey}`, { defaultValue: '' }) : '';
+  const progress = isNegative ? null : peerProgressToNext(count);
+  const lastAtLabel = lastAt
+    ? (isNegative ? 'badges.peerLastAtNegative' : 'badges.peerLastAt')
+    : null;
+  const lastAtFormatted = lastAt
+    ? dayjs(lastAt).locale(i18n.language).format('D MMM YYYY')
+    : null;
+
+  return (
+    <>
+      <View style={[styles.peerOuterRingLg, { borderColor: ringColor }]}>
+        <View style={[styles.peerInnerDiscLg, { backgroundColor: badge.color }]}>
+          <Icon size={28} color="#FFFFFF" strokeWidth={2} />
+        </View>
+      </View>
+      <Text style={styles.detailTitle}>{badge.label}</Text>
+      <View style={styles.peerHeaderRow}>
+        <View style={[styles.peerTierPill, { backgroundColor: ringColor + '22', borderColor: ringColor }]}>
+          <Text style={[styles.peerTierPillText, { color: ringColor }]}>{tierLabel}</Text>
+        </View>
+        <Text style={[styles.peerCount, { color: ringColor }]}>×{count}</Text>
+      </View>
+
+      {description !== '' && (
+        <Text style={styles.peerDescription}>{description}</Text>
+      )}
+
+      {lastAtLabel && lastAtFormatted && (
+        <Text style={styles.peerMeta}>{t(lastAtLabel, { when: lastAtFormatted })}</Text>
+      )}
+
+      {progress ? (
+        <View style={styles.peerProgressBlock}>
+          <View style={styles.peerProgressBarBg}>
+            <View
+              style={[
+                styles.peerProgressBarFill,
+                { width: `${Math.min(100, Math.max(0, progress.pct))}%`, backgroundColor: PEER_TIER_RING[progress.nextTier] },
+              ]}
+            />
+          </View>
+          <Text style={styles.peerProgressText}>
+            {t('badges.peerProgress', {
+              remaining: Math.max(0, progress.nextThreshold - count),
+              tier: t(`badges.peerTier.${progress.nextTier}`),
+            })}
+          </Text>
+        </View>
+      ) : !isNegative ? (
+        <Text style={styles.peerMeta}>{t('badges.peerGoldReached')}</Text>
+      ) : null}
+
+      {isNegative && (
+        <Text style={styles.peerHint}>{t('badges.peerNegativeHint')}</Text>
+      )}
+    </>
   );
 }
 
@@ -546,6 +647,99 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: colors.textMuted,
     opacity: 0.55,
+  },
+  peerOuterRing: {
+    width: 40, height: 40, borderRadius: 20,
+    borderWidth: 2.5,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  peerInnerDisc: {
+    width: 30, height: 30, borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  peerOuterRingLg: {
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 3,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  peerInnerDiscLg: {
+    width: 56, height: 56, borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  peerHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  peerTierPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  peerTierPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  peerCount: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.02,
+  },
+  peerDescription: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  peerMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  peerHint: {
+    color: colors.textMuted,
+    fontSize: 11.5,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  peerProgressBlock: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  peerProgressBarBg: {
+    width: '100%',
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
+  },
+  peerProgressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  peerProgressText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 6,
   },
   sportEmoji: {
     fontSize: 22,

@@ -722,7 +722,28 @@
       "difficult_attitude": "Attitude",
       "unreliable_field": "Flaky",
       "aggressive": "Aggressive"
-    }
+    },
+    "peerTier": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "negative": "Signal"
+    },
+    "peerDesc": {
+      "trustworthy": "Awarded by your fellow participants when you honor your commitments.",
+      "great_leader": "Awarded when you organize with clarity and everything runs smoothly.",
+      "good_vibes": "Awarded for the good vibes you bring to the group.",
+      "punctual": "Awarded when you show up on time, never keeping others waiting.",
+      "level_overestimated": "Flagged when your actual level doesn't match what you advertised.",
+      "difficult_attitude": "Flagged when your behavior spoils the group's experience.",
+      "unreliable_field": "Flagged when you cancel at the last minute or without notice.",
+      "aggressive": "Flagged for aggressive behavior toward others."
+    },
+    "peerLastAt": "Last received: {{when}}",
+    "peerLastAtNegative": "Last flagged: {{when}}",
+    "peerProgress": "{{remaining}} more to reach {{tier}}",
+    "peerGoldReached": "You're at the top of this badge.",
+    "peerNegativeHint": "This flag decays automatically (1 vote/month without a new flag)."
   },
   "presence": {
     "confirm": "Confirm my presence",

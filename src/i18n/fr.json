@@ -722,7 +722,28 @@
       "difficult_attitude": "Attitude",
       "unreliable_field": "Inconstant",
       "aggressive": "Agressif"
-    }
+    },
+    "peerTier": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or",
+      "negative": "Signal"
+    },
+    "peerDesc": {
+      "trustworthy": "Décerné par tes co-participants quand tu honores tes engagements.",
+      "great_leader": "Décerné quand tu organises avec clarté et que tout roule.",
+      "good_vibes": "Décerné pour la bonne ambiance que tu apportes au groupe.",
+      "punctual": "Décerné quand tu es à l'heure, sans faire attendre les autres.",
+      "level_overestimated": "Signalé quand ton niveau réel ne correspond pas à celui annoncé.",
+      "difficult_attitude": "Signalé quand ton comportement gâche l'expérience du groupe.",
+      "unreliable_field": "Signalé quand tu te désistes au dernier moment ou sans prévenir.",
+      "aggressive": "Signalé pour des comportements agressifs envers les autres."
+    },
+    "peerLastAt": "Dernière obtention : {{when}}",
+    "peerLastAtNegative": "Dernier signalement : {{when}}",
+    "peerProgress": "Encore {{remaining}} pour passer {{tier}}",
+    "peerGoldReached": "Tu es au sommet de ce badge.",
+    "peerNegativeHint": "Ce signalement décroît automatiquement (1 vote/mois sans nouveau signalement)."
   },
   "presence": {
     "confirm": "Confirmer ma présence",
