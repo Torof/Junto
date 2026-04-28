@@ -3,13 +3,13 @@ import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Pencil } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
-import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey } from '@/store/map-style-store';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -90,8 +90,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [newName, setNewName] = useState('');
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
-  const mapStyle = useMapStyleStore((s) => s.style);
-  const setMapStyle = useMapStyleStore((s) => s.setStyle);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -185,8 +183,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   </Pressable>
                 </View>
               ) : (
-                <Pressable onPress={handleEditName}>
+                <Pressable onPress={handleEditName} style={styles.editPseudoRow}>
                   <Text style={styles.rowValueEditable}>{user?.display_name ?? '...'}</Text>
+                  <Pencil size={14} color={colors.cta} strokeWidth={2.4} />
                 </Pressable>
               )}
             </View>
@@ -200,7 +199,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
 
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.bgLocation')}</Text>
+              <Text style={styles.rowLabel}>{t('drawer.myLocation')}</Text>
               <Switch
                 value={bgLocationGranted ?? false}
                 onValueChange={handleToggleBgLocation}
@@ -230,39 +229,24 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               </View>
             )}
 
-            {/* Theme selector */}
+            {/* Theme — segmented pill */}
             <View style={styles.row}>
               <Text style={styles.rowLabel}>{t('drawer.theme')}</Text>
-              <View style={styles.themeRow}>
-                {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => (
-                  <Pressable
-                    key={opt}
-                    style={[styles.themeChip, themePreference === opt && styles.themeChipActive]}
-                    onPress={() => setThemePreference(opt)}
-                  >
-                    <Text style={[styles.themeChipText, themePreference === opt && styles.themeChipTextActive]}>
-                      {t(`drawer.themeOption.${opt}`)}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            {/* Map style selector */}
-            <View style={[styles.row, styles.rowColumn]}>
-              <Text style={styles.rowLabel}>{t('drawer.mapStyle')}</Text>
-              <View style={styles.mapStyleGrid}>
-                {MAP_STYLE_ORDER.map((opt: MapStyleKey) => (
-                  <Pressable
-                    key={opt}
-                    style={[styles.themeChip, mapStyle === opt && styles.themeChipActive]}
-                    onPress={() => setMapStyle(opt)}
-                  >
-                    <Text style={[styles.themeChipText, mapStyle === opt && styles.themeChipTextActive]}>
-                      {t(`drawer.mapStyleOption.${opt}`)}
-                    </Text>
-                  </Pressable>
-                ))}
+              <View style={styles.segmentedPill}>
+                {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
+                  const active = themePreference === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      style={[styles.segment, active && styles.segmentActive]}
+                      onPress={() => setThemePreference(opt)}
+                    >
+                      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                        {t(`drawer.themeOption.${opt}`)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
 
@@ -428,20 +412,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },
   logoutText: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  rowColumn: {
-    flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm,
+  editPseudoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  segmentedPill: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    borderRadius: 999,
+    padding: 3,
+    borderWidth: 1, borderColor: colors.line,
   },
-  themeRow: {
-    flexDirection: 'row', gap: spacing.xs,
+  segment: {
+    paddingHorizontal: spacing.sm, paddingVertical: 4,
+    borderRadius: 999,
   },
-  mapStyleGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs,
-  },
-  themeChip: {
-    backgroundColor: colors.surface, borderRadius: radius.full,
-    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
-  },
-  themeChipActive: { backgroundColor: colors.cta },
-  themeChipText: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  themeChipTextActive: { color: colors.textPrimary, fontWeight: 'bold' as const },
+  segmentActive: { backgroundColor: colors.cta },
+  segmentText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
+  segmentTextActive: { color: colors.textPrimary, fontWeight: '800' },
 });
