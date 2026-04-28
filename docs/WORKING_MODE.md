@@ -85,31 +85,47 @@ Voir `CLAUDE.md` → "Before Any Feature" pour le checklist complet (lecture doc
 
 ### OTA Updates
 - EAS Update configuré dès le départ
-- Permet de pousser des correctifs JS sans passer par le Play Store
+- **Branches actives :** `preview` (Scott's dev device), `production` (store releases)
+- Default `eas update` push goes to `--branch preview`. Don't push to `production` unless Scott explicitly says we're shipping a release.
+- Cold-restart de l'app requis pour picker un nouveau bundle
 
 ### Build
-- Expo custom dev build (requis pour Mapbox)
-- Scott teste sur son téléphone Android via dev build
+- Expo custom dev build (requis pour Mapbox + TaskManager + geofencing)
+- Scott teste sur son téléphone Android via dev build (preview channel)
+- Native rebuild requis quand `app.config.ts` ou les permissions natives changent (background location, etc.)
+
+### Sentry
+- Auto-consent en preview channel uniquement (lib/sentry.ts)
+- Production attend une UI de consentement explicite (settings toggle + ToS)
+- DSN public via `EXPO_PUBLIC_SENTRY_DSN`
+- 50 events max par session ; lat/lng / tokens auto-redacted
 
 ---
 
 ## Structure du projet
 
 ```
-/app                — Expo Router : routes file-based (les fichiers = les écrans)
+/app                — Expo Router : routes file-based
+  /(visitor)        — public routes (login, reset-password, onboarding, suspended, public activity, legal)
+  /(auth)           — authenticated routes
+    /(tabs)         — tab routes (carte, mes-activites, messagerie, notifications, profil)
+    /activity/[id], /create/step{1..4}, /edit/[id], /peer-review/[id], /conversation/[id], /profile/[id], /invite/[token], /admin/moderation, /legal/*
 /src
-  /components       — composants réutilisables
+  /components       — composants réutilisables (badge-display, profile-hero, settings-drawer, etc.)
   /store            — Zustand stores (UI state uniquement)
-  /services         — appels Supabase et APIs externes
-  /hooks            — custom hooks
-  /types            — types TypeScript
-  /utils            — fonctions utilitaires
-  /constants        — couleurs, tailles, configs, design tokens
+  /services         — appels Supabase et APIs externes (un service par domaine)
+  /hooks            — custom hooks (use-auth, use-presence-*, etc.)
+  /lib              — modules side-effect / non-React (sentry, presence-geofence-task, presence-offline-cache, haptics)
+  /types            — types TypeScript (activity-form schema + supabase auto-generated)
+  /utils            — fonctions utilitaires pures (geo distanceMeters, friendly-error, parse-gpx, etc.)
+  /constants        — couleurs, tailles, design tokens
   /assets           — images, icônes, fonts
-  /i18n             — fichiers de traduction (fr.json, en.json)
+  /i18n             — fichiers de traduction (fr.json, en.json) — pluralization via _one/_other suffixes
 /supabase
-  /migrations       — fichiers SQL versionnés
+  /migrations       — fichiers SQL versionnés (currently 149)
+  /functions        — Edge Functions (send-push, delete-user)
   /seed.sql         — données de test
+/web                — Next.js (marketing + deep link bridges, hosted on Vercel at getjunto.app)
 ```
 
 ---

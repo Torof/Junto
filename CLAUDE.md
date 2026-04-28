@@ -32,6 +32,9 @@
 | Work on storage / upload | `docs/SECURITY.md` → "Storage" (buckets, policies, validation) |
 | Work on user deletion | `docs/SECURITY.md` → "Suppression de compte — Edge Function" + "Stratégie de suppression par table" |
 | Work on tier changes / Stripe | `docs/SECURITY.md` → "Changement de tier" + "Stripe webhook idempotency" |
+| Work on presence validation (geo, QR, peer review, offline replay) | `docs/DAY_OF_ACTIVITY.md` + `docs/SECURITY.md` → "Système de présence" |
+| Work on badges (progression, reputation, reliability) | `docs/REPUTATION_BADGES.md` + `docs/SECURITY.md` → "Système de badges" |
+| Work on push notifications routing / collapse | `docs/SECURITY.md` → "Push notifications" |
 | Set up Supabase config | `docs/SECURITY.md` → "Configuration Supabase" |
 | Make an architectural decision | `docs/DECISIONS.md` — check if already decided, log new ones |
 | Doubt how we work | `docs/WORKING_MODE.md` |
@@ -46,14 +49,17 @@
 - Technical decisions log → `docs/DECISIONS.md`
 
 ## Stack (quick reference)
-- React Native + Expo + TypeScript
+- React Native + Expo SDK 54 + TypeScript strict
 - Expo Router (file-based routing, auto deep linking, typed routes)
 - TanStack Query (server state) + Zustand (UI state only)
 - Zod (form schema; type derivation only — runtime validation lives in DB SECURITY DEFINER functions)
-- Supabase (Postgres + PostGIS + Auth + Realtime + Storage)
+- Supabase (Postgres + PostGIS + Auth + Realtime + Storage + Edge Functions)
 - Mapbox Outdoors + Google Places API
 - day.js (dates) + expo-image (images)
-- i18n: react-native-i18next (FR + EN)
+- Sentry (`@sentry/react-native`) — preview-only auto-consent ; use `trace(category, message, data)` from `lib/sentry` for diagnostic breadcrumbs (lat/lng auto-redacted)
+- AsyncStorage + NetInfo for offline presence cache (see `lib/presence-offline-cache`)
+- TaskManager for background geofencing (see `lib/presence-geofence-task`)
+- i18n: react-native-i18next (FR + EN, pluralization via `_one`/`_other` suffixes)
 
 ## Code Conventions (quick reference)
 - Files/folders: kebab-case
@@ -112,4 +118,12 @@ All operations via SECURITY DEFINER functions only:
 - `private_messages` (INSERT, UPDATE, DELETE)
 - `participations` (INSERT, UPDATE, DELETE)
 - `conversations` (INSERT, UPDATE, DELETE)
-- `reviews` (INSERT, UPDATE, DELETE)
+- `peer_validations` (INSERT, UPDATE, DELETE)
+- `reputation_votes` (INSERT, UPDATE, DELETE)
+- `presence_tokens` (INSERT, UPDATE, DELETE)
+- `push_tokens` (INSERT, UPDATE, DELETE)
+- `seat_requests` (INSERT, UPDATE)
+- `activity_alerts` (INSERT, UPDATE, DELETE)
+- `activity_gear` (INSERT, UPDATE, DELETE)
+- `sport_level_endorsements` (INSERT, UPDATE, DELETE)
+- `user_badge_progression` (INSERT, UPDATE) — auto-managed via trigger
