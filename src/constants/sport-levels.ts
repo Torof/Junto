@@ -104,15 +104,6 @@ export function getLevelScale(sportKey: string): LevelOption[] {
   return SPORT_LEVEL_SCALES[sportKey] ?? GENERIC;
 }
 
-/** Backwards-compat: the old flat generic list (used by existing code) */
-export const LEVELS = ['débutant', 'intermédiaire', 'avancé', 'expert'] as const;
-
-/** Lookup a level's description (for ⓘ tooltip) from its label */
-export function getLevelDescription(sportKey: string, label: string): string | undefined {
-  const scale = getLevelScale(sportKey);
-  return scale.find((l) => l.label === label)?.description;
-}
-
 /**
  * Which sports use distance + D+ as their primary difficulty metrics.
  * For these sports, cards show "25 km · D+ 1400m" instead of the generic level.

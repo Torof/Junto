@@ -15,8 +15,6 @@ export const NEGATIVE_BADGES = [
   { key: 'aggressive', icon: '😠', threshold: 15 },
 ] as const;
 
-export const ALL_BADGES = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
-
 // Tier ladder shared across joined / created / per-sport categories.
 // Mirror of SQL badge_tier_for() in migration 00135.
 export const TIERS = [
@@ -111,13 +109,5 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as Trophy[]) ?? [];
-  },
-
-  getBadgeInfo: (key: string) => {
-    return ALL_BADGES.find((b) => b.key === key);
-  },
-
-  isPositive: (key: string) => {
-    return POSITIVE_BADGES.some((b) => b.key === key);
   },
 };

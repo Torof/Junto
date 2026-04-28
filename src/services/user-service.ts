@@ -26,15 +26,6 @@ export interface SportBreakdownRow {
 }
 
 export const userService = {
-  getOwnProfile: async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, email, display_name, avatar_url, bio, sports, levels_per_sport, date_of_birth, phone_verified, tier, is_pro_verified, accepted_tos_at, accepted_privacy_at, created_at')
-      .single();
-    if (error) throw error;
-    return data;
-  },
-
   getPublicProfile: async (userId: string): Promise<PublicProfile | null> => {
     const { data, error } = await supabase
       .from('public_profiles')

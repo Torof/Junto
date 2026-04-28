@@ -10,7 +10,6 @@ type ErrorAction =
   | 'sendWallMessage'
   | 'createAlert'
   | 'deleteAlert'
-  | 'rateParticipants'
   | 'confirmPresence'
   | 'uploadAvatar'
   | 'sendReport'

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 
-type ViewMode = 'map' | 'list';
 type DateFilterMode = 'all' | 'today' | 'week' | 'date' | 'range';
 
 export type LevelTier = 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert';
@@ -17,10 +16,7 @@ interface MapFilters {
 }
 
 interface MapStore {
-  viewMode: ViewMode;
   filters: MapFilters;
-  setViewMode: (mode: ViewMode) => void;
-  toggleViewMode: () => void;
   toggleSportFilter: (sportKey: string) => void;
   setDateMode: (mode: DateFilterMode) => void;
   setSpecificDate: (date: string) => void;
@@ -41,11 +37,7 @@ const DEFAULT_FILTERS: MapFilters = {
 };
 
 export const useMapStore = create<MapStore>((set) => ({
-  viewMode: 'map',
   filters: DEFAULT_FILTERS,
-  setViewMode: (mode) => set({ viewMode: mode }),
-  toggleViewMode: () =>
-    set((state) => ({ viewMode: state.viewMode === 'map' ? 'list' : 'map' })),
   toggleSportFilter: (sportKey) =>
     set((state) => ({
       filters: {

@@ -45,7 +45,6 @@ export default function AuthLayout() {
         <Stack.Screen name="create-alert" />
         <Stack.Screen name="legal/terms" options={{ title: '' }} />
         <Stack.Screen name="legal/privacy" options={{ title: '' }} />
-        <Stack.Screen name="rate-participants/[id]" options={{ title: '' }} />
         <Stack.Screen name="peer-review/[id]" options={{ title: '' }} />
       </Stack>
       <BackgroundLocationPrompt visible={showBgLocationPrompt} onClose={() => setShowBgLocationPrompt(false)} />

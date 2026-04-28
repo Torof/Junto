@@ -25,16 +25,4 @@ export const reliabilityService = {
     if (error) throw error;
     return data as unknown as string;
   },
-
-  getReliabilityEmoji: (score: number | null): string => {
-    if (score === null) return '⚪'; // Not enough data
-    if (score >= 90) return '🟢';
-    if (score >= 70) return '🟡';
-    return '🔴';
-  },
-
-  getReliabilityLabel: (score: number | null): string => {
-    if (score === null) return '—';
-    return `${score}%`;
-  },
 };

@@ -167,13 +167,6 @@ export const conversationService = {
     if (error) throw error;
   },
 
-  cancelRequest: async (conversationId: string): Promise<void> => {
-    const { error } = await supabase.rpc('cancel_contact_request' as 'join_activity', {
-      p_conversation_id: conversationId,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
   getConversationStateWith: async (otherUserId: string): Promise<{ id: string; status: string } | null> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return null;
@@ -188,22 +181,10 @@ export const conversationService = {
     return data ?? null;
   },
 
-  createOrGet: async (otherUserId: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('create_or_get_conversation' as 'join_activity', {
-      p_other_user_id: otherUserId,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-    return data as unknown as string;
-  },
-
   hideConversation: async (conversationId: string): Promise<void> => {
     const { error } = await supabase.rpc('hide_conversation' as 'join_activity', {
       p_conversation_id: conversationId,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
-  },
-
-  getUnreadCount: async (): Promise<number> => {
-    return 0;
   },
 };

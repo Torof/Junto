@@ -198,7 +198,6 @@
     "sendWallMessage": "Message non publié sur le mur. Réessaie.",
     "createAlert": "Impossible de créer l'alerte. Vérifie les infos et réessaie.",
     "deleteAlert": "Impossible de supprimer l'alerte. Réessaie.",
-    "rateParticipants": "Impossible d'enregistrer tes évaluations. Réessaie.",
     "confirmPresence": "Tu n'es pas encore dans la zone de l'activité (rayon de 150m autour du point de départ, RDV ou arrivée). Approche-toi et réessaie — ou scanne le QR code du créateur.",
     "uploadAvatar": "Impossible de mettre à jour ta photo. Réessaie.",
     "sendReport": "Impossible d'envoyer le signalement. Réessaie."
@@ -717,19 +716,6 @@
       "unreliable_field": "Inconstant",
       "aggressive": "Agressif"
     }
-  },
-  "rate": {
-    "title": "Évalue tes co-participants",
-    "subtitle": "Sélectionne les badges pour chaque participant. C'est optionnel.",
-    "positive": "Positif",
-    "negative": "Négatif",
-    "sportLevelTitle": "Niveau en {{sport}} ({{level}})",
-    "sportLevelConfirm": "Juste",
-    "sportLevelContest": "À côté",
-    "submit": "Envoyer",
-    "skip": "Passer",
-    "submitted": "Évaluations envoyées !",
-    "alreadyDone": "Tu as déjà évalué tout le monde ✓"
   },
   "presence": {
     "confirm": "Confirmer ma présence",

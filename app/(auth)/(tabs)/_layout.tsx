@@ -9,7 +9,6 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
-import { useMapStore } from '@/store/map-store';
 import { conversationService } from '@/services/conversation-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
@@ -138,11 +137,6 @@ export default function TabsLayout() {
           title: t('tabs.carte'),
           headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon icon={Map} focused={focused} />,
-        }}
-        listeners={{
-          tabPress: () => {
-            useMapStore.getState().setViewMode('map');
-          },
         }}
       />
       <Tabs.Screen
