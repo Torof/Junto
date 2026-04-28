@@ -235,7 +235,7 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
