@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
 import { usePresenceGeoWatcher } from '@/hooks/use-presence-geo-watcher';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
+import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
 import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from '@/components/background-location-prompt';
 
 export default function AuthLayout() {
@@ -15,6 +16,7 @@ export default function AuthLayout() {
 
   usePresenceGeoWatcher(true);
   usePresenceGeofences(true);
+  usePresenceOfflineFlusher();
 
   const [showBgLocationPrompt, setShowBgLocationPrompt] = useState(false);
   useEffect(() => {

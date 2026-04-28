@@ -2,6 +2,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
+import { enqueueGeoEvent } from './presence-offline-cache';
 
 // Task name must be a constant defined at the top of a module that's imported
 // at app startup (see _layout). Expo TaskManager requires the task to be
@@ -37,18 +38,45 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     trigger: null,
   }).catch(() => {});
 
+  const capturedAt = new Date().toISOString();
+
   try {
     // Headless wakes can hit before supabase-js finishes restoring the
     // session from SecureStore. Explicitly await so the RPC carries a token.
     const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session) return;
+    if (!sessionData?.session) {
+      await enqueueGeoEvent({
+        activity_id: activityId,
+        lng: region.longitude,
+        lat: region.latitude,
+        captured_at: capturedAt,
+      });
+      return;
+    }
 
-    await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+    const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
       p_activity_id: activityId,
       p_lng: region.longitude,
       p_lat: region.latitude,
     } as unknown as { p_activity_id: string });
+
+    // Network/transport errors → cache for replay. Server-side rejections
+    // ("Operation not permitted") are terminal — the gate will be the same
+    // on retry, so don't queue.
+    if (error && !(error.message ?? '').includes('Operation not permitted')) {
+      await enqueueGeoEvent({
+        activity_id: activityId,
+        lng: region.longitude,
+        lat: region.latitude,
+        captured_at: capturedAt,
+      });
+    }
   } catch {
-    // Best-effort.
+    await enqueueGeoEvent({
+      activity_id: activityId,
+      lng: region.longitude,
+      lat: region.latitude,
+      captured_at: capturedAt,
+    });
   }
 });

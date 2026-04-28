@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
+import { enqueueGeoEvent } from '@/lib/presence-offline-cache';
 
 interface ActiveActivity {
   activity_id: string;
@@ -86,15 +87,31 @@ export function usePresenceGeoWatcher(enabled: boolean) {
           if (minDist <= RADIUS_M) {
             alertedRef.current.add(a.activity_id);
             haptic.success();
+            const capturedAt = new Date().toISOString();
             // Auto-confirm: foreground app + within 150m + inside the
             // server-aligned T-15min→T+30min window proves enough.
             try {
-              await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+              const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
                 p_activity_id: a.activity_id,
                 p_lng: pos.coords.longitude,
                 p_lat: pos.coords.latitude,
               } as unknown as { p_activity_id: string });
-            } catch { /* server gates anyway */ }
+              if (error && !(error.message ?? '').includes('Operation not permitted')) {
+                await enqueueGeoEvent({
+                  activity_id: a.activity_id,
+                  lng: pos.coords.longitude,
+                  lat: pos.coords.latitude,
+                  captured_at: capturedAt,
+                });
+              }
+            } catch {
+              await enqueueGeoEvent({
+                activity_id: a.activity_id,
+                lng: pos.coords.longitude,
+                lat: pos.coords.latitude,
+                captured_at: capturedAt,
+              });
+            }
             Notifications.scheduleNotificationAsync({
               content: {
                 title: t('presence.arrivedTitle'),
