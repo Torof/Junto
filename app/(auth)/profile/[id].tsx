@@ -12,7 +12,6 @@ import type { AppColors } from '@/constants/colors';
 import { userService } from '@/services/user-service';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
-import { endorsementService } from '@/services/endorsement-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -20,7 +19,6 @@ import { useLayoutEffect, useState, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileHero } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
-import { SportIconGrid } from '@/components/sport-icon-grid';
 import { ReportModal } from '@/components/report-modal';
 import { supabase } from '@/services/supabase';
 
@@ -60,12 +58,6 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
-  const { data: sportBreakdown } = useQuery({
-    queryKey: ['user-sport-breakdown', id],
-    queryFn: () => userService.getSportBreakdown(id ?? ''),
-    enabled: !!id,
-  });
-
   const { data: isBlocked } = useQuery({
     queryKey: ['is-blocked', id],
     queryFn: () => userService.isBlocked(id ?? ''),
@@ -87,12 +79,6 @@ export default function PublicProfileScreen() {
   const { data: sportLevels } = useQuery({
     queryKey: ['sport-levels', id],
     queryFn: () => badgeService.getUserSportLevels(id ?? ''),
-    enabled: !!id,
-  });
-
-  const { data: sportEndorsements } = useQuery({
-    queryKey: ['sport-endorsements', id],
-    queryFn: () => endorsementService.getForUser(id ?? ''),
     enabled: !!id,
   });
 
@@ -190,8 +176,6 @@ export default function PublicProfileScreen() {
         createdCount={stats?.created_activities}
         showLocked={false}
       />
-
-      <SportIconGrid rows={sportBreakdown ?? []} endorsements={sportEndorsements ?? []} />
 
       {/* Primary action — send message (on other people's profile) */}
       {!isOwnProfile && (

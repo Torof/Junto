@@ -13,11 +13,8 @@ import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
-import { endorsementService } from '@/services/endorsement-service';
 import { ProfileHero, reliabilityTierFromScore } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
-import { SportIconGrid } from '@/components/sport-icon-grid';
-import { SportsLevelEditor } from '@/components/sports-level-editor';
 import { BadgeCheck, Pencil } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
@@ -30,8 +27,6 @@ export default function ProfilScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [sportsEditorOpen, setSportsEditorOpen] = useState(false);
-  const [isSavingSports, setIsSavingSports] = useState(false);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -90,12 +85,6 @@ export default function ProfilScreen() {
     enabled: !!userId,
   });
 
-  const { data: sportBreakdown } = useQuery({
-    queryKey: ['user-sport-breakdown', userId],
-    queryFn: () => userService.getSportBreakdown(userId ?? ''),
-    enabled: !!userId,
-  });
-
   const { data: reputation } = useQuery({
     queryKey: ['reputation', userId],
     queryFn: () => badgeService.getUserReputation(userId ?? ''),
@@ -113,27 +102,6 @@ export default function ProfilScreen() {
     queryFn: () => badgeService.getUserSportLevels(userId ?? ''),
     enabled: !!userId,
   });
-
-  const { data: sportEndorsements } = useQuery({
-    queryKey: ['sport-endorsements', userId],
-    queryFn: () => endorsementService.getForUser(userId ?? ''),
-    enabled: !!userId,
-  });
-
-  const handleSaveSports = async (sports: string[], levelsPerSport: Record<string, string>) => {
-    setIsSavingSports(true);
-    try {
-      await userService.updateProfile({ sports, levels_per_sport: levelsPerSport });
-      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      await queryClient.invalidateQueries({ queryKey: ['user-sport-breakdown'] });
-      setSportsEditorOpen(false);
-      Burnt.toast({ title: t('profil.save'), preset: 'done' });
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setIsSavingSports(false);
-    }
-  };
 
   const handleAvatarPress = async () => {
     if (uploading) return;
@@ -173,22 +141,8 @@ export default function ProfilScreen() {
           createdCount={stats?.created_activities}
         />
 
-        <SportIconGrid
-          rows={sportBreakdown ?? []}
-          onEdit={() => setSportsEditorOpen(true)}
-          endorsements={sportEndorsements ?? []}
-        />
-
       </ScrollView>
 
-      <SportsLevelEditor
-        visible={sportsEditorOpen}
-        sports={user?.sports ?? []}
-        levelsPerSport={(user?.levels_per_sport ?? {}) as Record<string, string>}
-        onSave={handleSaveSports}
-        onClose={() => setSportsEditorOpen(false)}
-        isSaving={isSavingSports}
-      />
       <SettingsDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>
   );

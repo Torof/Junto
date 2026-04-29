@@ -4,9 +4,9 @@ import { useColors } from '@/hooks/use-theme';
 import { useMemo } from 'react';
 
 // Shared 4-segment vertical level gauge.
-// Used in:
-//   - SportIconGrid (declared sport breakdown rows)
-//   - BadgeDisplay (sport experience chips on the profile body)
+// Used in BadgeDisplay's sport popover. The matching LevelDot helper
+// renders a single colored dot of the same per-level palette for places
+// where space is tight.
 
 const LEVEL_PRIORITY: Record<string, number> = {
   expert: 4,
