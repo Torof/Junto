@@ -280,18 +280,10 @@ function SportRow({
           hitSlop={4}
           style={styles.sportChipPill}
         >
-          <View style={styles.sportChipTopRow}>
-            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
-            <View style={styles.sportCountDivider} />
-            <Text style={styles.sportCount}>{it.count}</Text>
+          <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+          <View style={styles.sportCountCircle}>
+            <Text style={styles.sportCountText}>{it.count}</Text>
           </View>
-          <Text
-            style={styles.sportLabel}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {it.label}
-          </Text>
         </Pressable>
       ))}
     </View>
@@ -452,49 +444,37 @@ const createStyles = (colors: AppColors) =>
       marginLeft: 3,
     },
 
-    // Sport chip pill — column layout. Top row holds gauge / emoji / count
-    // aligned horizontally; the label sits inside the same pill, below the
-    // top row, centered, wrapping to two lines max.
+    // Sport chip — compact pill with emoji + count circle, no label, no
+    // divider. Tap opens the popover for full detail (sport name, level,
+    // peer review breakdown).
     sportChipPill: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      backgroundColor: colors.surfaceAlt,
-      borderRadius: 8,
-      paddingVertical: 6,
-      paddingHorizontal: 8,
-      width: 88,
-    },
-    sportChipTopRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 5,
+      gap: 6,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 8,
+      paddingVertical: 5,
+      paddingLeft: 8,
+      paddingRight: 5,
     },
     sportEmoji: {
       fontSize: 16,
       lineHeight: 18,
     },
-    sportCountDivider: {
-      width: 1,
-      height: 14,
-      backgroundColor: colors.line,
-      marginHorizontal: 1,
+    sportCountCircle: {
+      minWidth: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 6,
     },
-    sportCount: {
+    sportCountText: {
       color: colors.textPrimary,
-      fontSize: 12.5,
+      fontSize: 11,
       fontWeight: '700',
       letterSpacing: -0.01,
-    },
-    sportLabel: {
-      color: colors.textMuted,
-      fontSize: 10.5,
-      fontWeight: '600',
-      marginTop: 4,
-      textAlign: 'center',
-      lineHeight: 13,
-      // Single-line label keeps chip height uniform; long names get an
-      // ellipsis ("Cascade de…") rather than wrapping.
-      maxWidth: '100%',
     },
 
     modalBackdrop: {
