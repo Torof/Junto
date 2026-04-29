@@ -286,14 +286,20 @@ function SportRow({
           key={it.sportKey}
           onPress={() => onPress(it)}
           hitSlop={4}
-          style={styles.sportChipPill}
+          style={styles.sportChipCell}
         >
-          <LevelGauge dots={it.dots} />
-          <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
-          <Text style={styles.sportLabel} numberOfLines={1} ellipsizeMode="tail">
+          <View style={styles.sportChipPill}>
+            <LevelGauge dots={it.dots} />
+            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+            <Text style={styles.sportCount}>{it.count}</Text>
+          </View>
+          <Text
+            style={styles.sportLabel}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
             {it.label}
           </Text>
-          <Text style={styles.sportCount}>{it.count}</Text>
         </Pressable>
       ))}
     </ScrollableLine>
@@ -497,34 +503,37 @@ const createStyles = (colors: AppColors) =>
       marginLeft: 3,
     },
 
+    sportChipCell: {
+      width: 76,
+      alignItems: 'center',
+      marginRight: 6,
+    },
     sportChipPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 5,
       backgroundColor: colors.surfaceAlt,
       borderRadius: 999,
-      paddingVertical: 5,
-      paddingLeft: 8,
-      paddingRight: 12,
-      marginRight: 6,
+      paddingVertical: 4,
+      paddingHorizontal: 10,
     },
     sportEmoji: {
-      fontSize: 18,
-      lineHeight: 20,
+      fontSize: 16,
+      lineHeight: 18,
     },
-    sportLabel: {
+    sportCount: {
       color: colors.textPrimary,
       fontSize: 12.5,
       fontWeight: '700',
       letterSpacing: -0.01,
-      maxWidth: 100,
-      textTransform: 'capitalize',
     },
-    sportCount: {
+    sportLabel: {
       color: colors.textMuted,
-      fontSize: 12.5,
-      fontWeight: '700',
-      letterSpacing: -0.01,
+      fontSize: 10.5,
+      fontWeight: '600',
+      marginTop: 4,
+      textAlign: 'center',
+      lineHeight: 13,
     },
 
     modalBackdrop: {
