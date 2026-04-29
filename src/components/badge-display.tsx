@@ -812,19 +812,19 @@ const createStyles = (colors: AppColors) =>
       lineHeight: 18,
     },
     sportCountCircle: {
-      minWidth: 22,
-      height: 22,
-      borderRadius: 11,
+      minWidth: 24,
+      height: 24,
+      borderRadius: 12,
       backgroundColor: colors.surface,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 6,
     },
     sportCountText: {
-      color: colors.textPrimary,
-      fontSize: 11,
-      fontWeight: '700',
-      letterSpacing: -0.01,
+      color: colors.cta,
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: -0.02,
     },
 
     tappedDim: {
