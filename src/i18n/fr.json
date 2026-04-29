@@ -751,7 +751,13 @@
     "vouchedFooter_one": "Validé {{count}} fois par la commu.",
     "vouchedFooter_other": "Validé {{count}} fois par la commu.",
     "sportFooter_one": "{{count}} activité complétée.",
-    "sportFooter_other": "{{count}} activités complétées."
+    "sportFooter_other": "{{count}} activités complétées.",
+    "sportDot": {
+      "1": "Niveau : Débutant",
+      "2": "Niveau : Intermédiaire",
+      "3": "Niveau : Avancé",
+      "4": "Niveau : Expert"
+    }
   },
   "presence": {
     "confirm": "Confirmer ma présence",

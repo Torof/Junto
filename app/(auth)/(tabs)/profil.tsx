@@ -108,6 +108,12 @@ export default function ProfilScreen() {
     enabled: !!userId,
   });
 
+  const { data: sportLevels } = useQuery({
+    queryKey: ['sport-levels', userId],
+    queryFn: () => badgeService.getUserSportLevels(userId ?? ''),
+    enabled: !!userId,
+  });
+
   const { data: sportEndorsements } = useQuery({
     queryKey: ['sport-endorsements', userId],
     queryFn: () => endorsementService.getForUser(userId ?? ''),
@@ -162,6 +168,7 @@ export default function ProfilScreen() {
         <BadgeDisplay
           reputation={reputation ?? []}
           trophies={trophies ?? []}
+          sportLevels={sportLevels ?? []}
           completedCount={stats?.completed_activities}
           createdCount={stats?.created_activities}
         />

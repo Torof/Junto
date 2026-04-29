@@ -751,7 +751,13 @@
     "vouchedFooter_one": "Vouched {{count}} time by the community.",
     "vouchedFooter_other": "Vouched {{count}} times by the community.",
     "sportFooter_one": "{{count}} activity completed.",
-    "sportFooter_other": "{{count}} activities completed."
+    "sportFooter_other": "{{count}} activities completed.",
+    "sportDot": {
+      "1": "Level: Beginner",
+      "2": "Level: Intermediate",
+      "3": "Level: Advanced",
+      "4": "Level: Expert"
+    }
   },
   "presence": {
     "confirm": "Confirm my presence",

@@ -84,6 +84,12 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
+  const { data: sportLevels } = useQuery({
+    queryKey: ['sport-levels', id],
+    queryFn: () => badgeService.getUserSportLevels(id ?? ''),
+    enabled: !!id,
+  });
+
   const { data: sportEndorsements } = useQuery({
     queryKey: ['sport-endorsements', id],
     queryFn: () => endorsementService.getForUser(id ?? ''),
@@ -179,6 +185,7 @@ export default function PublicProfileScreen() {
       <BadgeDisplay
         reputation={reputation ?? []}
         trophies={trophies ?? []}
+        sportLevels={sportLevels ?? []}
         completedCount={stats?.completed_activities}
         createdCount={stats?.created_activities}
         showLocked={false}

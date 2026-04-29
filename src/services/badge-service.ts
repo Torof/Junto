@@ -88,6 +88,11 @@ export interface Trophy {
   count: number;
 }
 
+export interface SportLevel {
+  sport_key: string;
+  dots: number;
+}
+
 export interface PeerReviewParticipant {
   user_id: string;
   display_name: string;
@@ -149,5 +154,13 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as Trophy[]) ?? [];
+  },
+
+  getUserSportLevels: async (userId: string): Promise<SportLevel[]> => {
+    const { data, error } = await supabase.rpc('get_user_sport_levels' as 'join_activity', {
+      p_user_id: userId,
+    } as unknown as { p_activity_id: string });
+    if (error) return [];
+    return (data as unknown as SportLevel[]) ?? [];
   },
 };

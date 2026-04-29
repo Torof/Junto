@@ -11,6 +11,7 @@ import {
   NEGATIVE_BADGES,
   type ReputationBadge,
   type Trophy as ReputationTrophy,
+  type SportLevel,
 } from '@/services/badge-service';
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
@@ -23,7 +24,8 @@ import {
 interface BadgeDisplayProps {
   reputation: ReputationBadge[];
   trophies: ReputationTrophy[];
-  // Kept for call-site compatibility — Phase 1 doesn't read them.
+  sportLevels?: SportLevel[];
+  // Kept for call-site compatibility — Phase 1+ ignores them.
   completedCount?: number;
   createdCount?: number;
   showLocked?: boolean;
@@ -53,6 +55,7 @@ interface SportItem {
   sportKey: string;
   count: number;
   label: string;
+  dots: number;
 }
 
 type DetailTarget =
@@ -60,7 +63,7 @@ type DetailTarget =
   | { kind: 'warning'; item: WarningItem }
   | { kind: 'sport'; item: SportItem };
 
-export function BadgeDisplay({ reputation, trophies }: BadgeDisplayProps) {
+export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDisplayProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -94,17 +97,22 @@ export function BadgeDisplay({ reputation, trophies }: BadgeDisplayProps) {
     // Show red warnings first so the strongest signal lands at the start of the row.
     warningList.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'red' ? -1 : 1));
 
+    const dotsByKey = new Map<string, number>(
+      sportLevels.map((sl) => [sl.sport_key, sl.dots])
+    );
+
     const sportList: SportItem[] = trophies
       .filter((tr) => tr.category === 'sport' && tr.sport_key && tr.count >= SPORT_THRESHOLD)
       .map((tr) => ({
         sportKey: tr.sport_key as string,
         count: tr.count,
         label: t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key as string }),
+        dots: dotsByKey.get(tr.sport_key as string) ?? 1,
       }))
       .sort((a, b) => b.count - a.count);
 
     return { vouched: vouchedList, warnings: warningList, sports: sportList };
-  }, [reputation, trophies, t]);
+  }, [reputation, trophies, sportLevels, t]);
 
   if (vouched.length === 0 && warnings.length === 0 && sports.length === 0) return null;
 
@@ -248,9 +256,34 @@ function SportRow({
         >
           <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
           <Text style={styles.sportCount}>{it.count}</Text>
+          <LevelDots dots={it.dots} styles={styles} colors={colors} />
         </Pressable>
       ))}
     </ScrollableLine>
+  );
+}
+
+function LevelDots({
+  dots,
+  styles,
+  colors,
+}: {
+  dots: number;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+}) {
+  return (
+    <View style={styles.levelDots}>
+      {[0, 1, 2, 3].map((i) => (
+        <View
+          key={i}
+          style={[
+            styles.levelDot,
+            { backgroundColor: i < dots ? colors.textPrimary : colors.line },
+          ]}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -336,6 +369,8 @@ function DetailModal({
       count: target.item.count,
       defaultValue: `${target.item.count} activités complétées`,
     });
+    const dotsLabel = t(`badges.sportDot.${target.item.dots}`, { defaultValue: '' });
+    if (dotsLabel !== '') footer = dotsLabel;
   }
 
   return (
@@ -448,6 +483,17 @@ const createStyles = (colors: AppColors) =>
       fontSize: 12.5,
       fontWeight: '700',
       letterSpacing: -0.01,
+    },
+    levelDots: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      marginLeft: 4,
+    },
+    levelDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
     },
 
     modalBackdrop: {
