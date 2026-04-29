@@ -1,18 +1,23 @@
 import { supabase } from './supabase';
 
-// Reputation badges
+// Reputation badges — Phase 2 taxonomy. Server-side whitelist in mig 00152.
+// 4 positives + 4 negatives, paired by trust dimension:
+//   presence     punctual ↔ late_canceller
+//   preparation  prepared ↔ level_overestimated
+//   group        conciliant ↔ aggressive
+//   safety       prudent ↔ reckless
 export const POSITIVE_BADGES = [
-  { key: 'trustworthy', icon: '🤝', threshold: 5 },
-  { key: 'great_leader', icon: '⭐', threshold: 5 },
-  { key: 'good_vibes', icon: '😊', threshold: 5 },
   { key: 'punctual', icon: '⏱️', threshold: 5 },
+  { key: 'prepared', icon: '🎒', threshold: 5 },
+  { key: 'conciliant', icon: '🤝', threshold: 5 },
+  { key: 'prudent', icon: '🛡️', threshold: 5 },
 ] as const;
 
 export const NEGATIVE_BADGES = [
-  { key: 'level_overestimated', icon: '⚠️', threshold: 15 },
-  { key: 'difficult_attitude', icon: '😤', threshold: 15 },
-  { key: 'unreliable_field', icon: '🎭', threshold: 15 },
-  { key: 'aggressive', icon: '😠', threshold: 15 },
+  { key: 'late_canceller', icon: '🎭', threshold: 5 },
+  { key: 'level_overestimated', icon: '⚠️', threshold: 5 },
+  { key: 'aggressive', icon: '😠', threshold: 5 },
+  { key: 'reckless', icon: '💥', threshold: 5 },
 ] as const;
 
 // Tier ladder shared across joined / created / per-sport categories.
