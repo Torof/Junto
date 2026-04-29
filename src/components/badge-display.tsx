@@ -283,6 +283,7 @@ function SportRow({
           <View style={styles.sportChipTopRow}>
             <LevelGauge dots={it.dots} />
             <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+            <View style={styles.sportCountDivider} />
             <Text style={styles.sportCount}>{it.count}</Text>
           </View>
           <Text
@@ -465,6 +466,12 @@ const createStyles = (colors: AppColors) =>
       fontSize: 16,
       lineHeight: 18,
     },
+    sportCountDivider: {
+      width: 1,
+      height: 14,
+      backgroundColor: colors.line,
+      marginHorizontal: 1,
+    },
     sportCount: {
       color: colors.textPrimary,
       fontSize: 12.5,
@@ -478,6 +485,9 @@ const createStyles = (colors: AppColors) =>
       marginTop: 4,
       textAlign: 'center',
       lineHeight: 13,
+      // Reserve room for two lines so chips align vertically regardless of
+      // whether the sport name fits on one line or wraps.
+      minHeight: 26,
     },
 
     modalBackdrop: {
