@@ -288,7 +288,7 @@ function SportRow({
           </View>
           <Text
             style={styles.sportLabel}
-            numberOfLines={2}
+            numberOfLines={1}
             ellipsizeMode="tail"
           >
             {it.label}
@@ -452,9 +452,9 @@ const createStyles = (colors: AppColors) =>
       flexDirection: 'column',
       alignItems: 'center',
       backgroundColor: colors.surfaceAlt,
-      borderRadius: 18,
+      borderRadius: 8,
       paddingVertical: 6,
-      paddingHorizontal: 10,
+      paddingHorizontal: 8,
       width: 88,
     },
     sportChipTopRow: {
@@ -485,9 +485,9 @@ const createStyles = (colors: AppColors) =>
       marginTop: 4,
       textAlign: 'center',
       lineHeight: 13,
-      // Reserve room for two lines so chips align vertically regardless of
-      // whether the sport name fits on one line or wraps.
-      minHeight: 26,
+      // Single-line label keeps chip height uniform; long names get an
+      // ellipsis ("Cascade de…") rather than wrapping.
+      maxWidth: '100%',
     },
 
     modalBackdrop: {
