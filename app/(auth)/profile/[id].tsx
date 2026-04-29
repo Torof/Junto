@@ -82,6 +82,12 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
+  const { data: sportLevelVotes } = useQuery({
+    queryKey: ['sport-level-votes', id],
+    queryFn: () => badgeService.getUserSportLevelVotes(id ?? ''),
+    enabled: !!id,
+  });
+
   const { data: conversationState } = useQuery({
     queryKey: ['conversation-state', id],
     queryFn: () => conversationService.getConversationStateWith(id ?? ''),
@@ -172,6 +178,7 @@ export default function PublicProfileScreen() {
         reputation={reputation ?? []}
         trophies={trophies ?? []}
         sportLevels={sportLevels ?? []}
+        sportLevelVotes={sportLevelVotes ?? []}
         completedCount={stats?.completed_activities}
         createdCount={stats?.created_activities}
         showLocked={false}

@@ -8,7 +8,8 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
-import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, type PeerReviewParticipant } from '@/services/badge-service';
+import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
+import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
 
@@ -47,6 +48,24 @@ export default function PeerReviewScreen() {
         await badgeService.revokeReputationBadge(target.user_id, id ?? '', badgeKey);
       } else {
         await badgeService.giveReputationBadge(target.user_id, id ?? '', badgeKey);
+      }
+      refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : msg);
+    }
+  };
+
+  // Level votes are mutually exclusive on the server side: casting a new
+  // level_* vote replaces any previous one from this voter for this target
+  // on this activity. Tapping the same key revokes (toggle off).
+  const handleLevelTap = async (target: PeerReviewParticipant, levelKey: string) => {
+    const alreadyVoted = target.my_badge_votes.includes(levelKey);
+    try {
+      if (alreadyVoted) {
+        await badgeService.revokeReputationBadge(target.user_id, id ?? '', levelKey);
+      } else {
+        await badgeService.giveReputationBadge(target.user_id, id ?? '', levelKey);
       }
       refresh();
     } catch (err) {
@@ -144,6 +163,32 @@ export default function PeerReviewScreen() {
                 })}
               </View>
 
+              {activity.sport_key && (
+                <View style={styles.levelPill}>
+                  <Text style={styles.levelSportIcon}>{getSportIcon(activity.sport_key)}</Text>
+                  <View style={styles.levelDivider} />
+                  {LEVEL_VOTE_KEYS.map((levelKey) => {
+                    const voted = p.my_badge_votes.includes(levelKey);
+                    return (
+                      <Pressable
+                        key={levelKey}
+                        style={[styles.levelCell, voted && styles.levelCellActive]}
+                        onPress={() => handleLevelTap(p, levelKey)}
+                      >
+                        <Text
+                          style={[styles.levelLabel, voted && styles.levelLabelActive]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.7}
+                        >
+                          {t(`badges.short.${levelKey}`)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+
               {!presenceConfirmed && (
                 <Pressable
                   style={[styles.presencePill, p.i_voted_presence && styles.presencePillVoted]}
@@ -233,6 +278,45 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   metroLabelVotedPositive: { color: colors.success, fontWeight: '800' },
   metroLabelVotedNegative: { color: colors.error, fontWeight: '800' },
+
+  levelPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: spacing.xs,
+  },
+  levelSportIcon: {
+    fontSize: 18,
+    lineHeight: 20,
+    paddingHorizontal: 10,
+  },
+  levelDivider: {
+    width: 1,
+    backgroundColor: colors.line,
+    marginVertical: 6,
+  },
+  levelCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  levelCellActive: {
+    backgroundColor: colors.cta + '26',
+  },
+  levelLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  levelLabelActive: {
+    color: colors.cta,
+    fontWeight: '800',
+  },
 
   presencePill: {
     flexDirection: 'row',

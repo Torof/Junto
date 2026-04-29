@@ -1,11 +1,8 @@
 import { supabase } from './supabase';
 
-// Reputation badges — Phase 2 taxonomy. Server-side whitelist in mig 00152.
-// 4 positives + 4 negatives, paired by trust dimension:
-//   presence     punctual ↔ late_canceller
-//   preparation  prepared ↔ level_overestimated
-//   group        conciliant ↔ aggressive
-//   safety       prudent ↔ reckless
+// Reputation badges — Phase 4 taxonomy. Server-side whitelist in mig 00154.
+// 4 positives + 3 negatives. Presence is covered by the reliability score
+// in the hero, level honesty by the per-sport 3-way vote in the popover.
 export const POSITIVE_BADGES = [
   { key: 'punctual', icon: '⏱️', threshold: 5 },
   { key: 'prepared', icon: '🎒', threshold: 5 },
@@ -14,11 +11,15 @@ export const POSITIVE_BADGES = [
 ] as const;
 
 export const NEGATIVE_BADGES = [
-  { key: 'late_canceller', icon: '🎭', threshold: 5 },
-  { key: 'level_overestimated', icon: '⚠️', threshold: 5 },
+  { key: 'unprepared', icon: '🎲', threshold: 5 },
   { key: 'aggressive', icon: '😠', threshold: 5 },
   { key: 'reckless', icon: '💥', threshold: 5 },
 ] as const;
+
+// Per-sport level vote — 3-way mutually exclusive per (voter, voted, activity).
+// Lives in the sport popover only, not in the global vouched / warning rows.
+export const LEVEL_VOTE_KEYS = ['level_over', 'level_right', 'level_under'] as const;
+export type LevelVoteKey = typeof LEVEL_VOTE_KEYS[number];
 
 // Tier ladder shared across joined / created / per-sport categories.
 // Mirror of SQL badge_tier_for() in migration 00135.
@@ -93,6 +94,13 @@ export interface SportLevel {
   dots: number;
 }
 
+export interface SportLevelVotes {
+  sport_key: string;
+  level_over: number;
+  level_right: number;
+  level_under: number;
+}
+
 export interface PeerReviewParticipant {
   user_id: string;
   display_name: string;
@@ -162,5 +170,13 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as SportLevel[]) ?? [];
+  },
+
+  getUserSportLevelVotes: async (userId: string): Promise<SportLevelVotes[]> => {
+    const { data, error } = await supabase.rpc('get_user_sport_level_votes' as 'join_activity', {
+      p_user_id: userId,
+    } as unknown as { p_activity_id: string });
+    if (error) return [];
+    return (data as unknown as SportLevelVotes[]) ?? [];
   },
 };

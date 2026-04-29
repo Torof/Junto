@@ -710,19 +710,23 @@
     "prepared": "Préparé",
     "conciliant": "Conciliant",
     "prudent": "Prudent",
-    "late_canceller": "Lâcheur",
-    "level_overestimated": "Surestimé",
+    "unprepared": "Mal préparé",
     "aggressive": "Agressif",
     "reckless": "Imprudent",
+    "level_over": "Surestime son niveau",
+    "level_right": "Niveau juste",
+    "level_under": "Sous-estime son niveau",
     "short": {
       "punctual": "Ponctuel",
       "prepared": "Préparé",
       "conciliant": "Conciliant",
       "prudent": "Prudent",
-      "late_canceller": "Lâcheur",
-      "level_overestimated": "Surestimé",
+      "unprepared": "Mal préparé",
       "aggressive": "Agressif",
-      "reckless": "Imprudent"
+      "reckless": "Imprudent",
+      "level_over": "Surestimé",
+      "level_right": "Juste",
+      "level_under": "Sous-estimé"
     },
     "peerTier": {
       "bronze": "Bronze",
@@ -735,10 +739,12 @@
       "prepared": "Tu avais le bon matériel et tu connaissais l'itinéraire — pas de scramble de dernière minute.",
       "conciliant": "Tu t'es adapté au rythme du groupe sans pinailler ni pousser, l'ambiance est restée fluide.",
       "prudent": "Tu as fait les bons appels en sécurité (faire demi-tour, météo, équipement) sans pousser au-delà du raisonnable.",
-      "late_canceller": "Désistement tardif qui a perturbé l'organisation du groupe.",
-      "level_overestimated": "Le niveau annoncé ne correspondait pas au niveau réel sur l'activité.",
+      "unprepared": "Arrivé sans le matériel ou la préparation nécessaire, le groupe a dû s'adapter.",
       "aggressive": "Comportement agressif ou irrespectueux envers les autres participants.",
-      "reckless": "Décisions imprudentes qui ont mis le groupe en danger ou ignoré les signaux de sécurité."
+      "reckless": "Décisions imprudentes qui ont mis le groupe en danger ou ignoré les signaux de sécurité.",
+      "level_over": "Le niveau annoncé était plus élevé que le niveau réel sur l'activité.",
+      "level_right": "Le niveau annoncé correspondait bien au niveau réel.",
+      "level_under": "Tu étais en réalité plus à l'aise que ton niveau annoncé."
     },
     "peerLastAt": "Dernière obtention : {{when}}",
     "peerLastAtNegative": "Dernier signalement : {{when}}",
@@ -758,7 +764,8 @@
       "2": "Niveau : Intermédiaire",
       "3": "Niveau : Avancé",
       "4": "Niveau : Expert"
-    }
+    },
+    "levelVotesHeader": "Niveau (avis communauté)"
   },
   "presence": {
     "confirm": "Confirmer ma présence",

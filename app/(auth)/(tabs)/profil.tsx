@@ -103,6 +103,12 @@ export default function ProfilScreen() {
     enabled: !!userId,
   });
 
+  const { data: sportLevelVotes } = useQuery({
+    queryKey: ['sport-level-votes', userId],
+    queryFn: () => badgeService.getUserSportLevelVotes(userId ?? ''),
+    enabled: !!userId,
+  });
+
   const handleAvatarPress = async () => {
     if (uploading) return;
     setUploading(true);
@@ -137,6 +143,7 @@ export default function ProfilScreen() {
           reputation={reputation ?? []}
           trophies={trophies ?? []}
           sportLevels={sportLevels ?? []}
+          sportLevelVotes={sportLevelVotes ?? []}
           completedCount={stats?.completed_activities}
           createdCount={stats?.created_activities}
         />

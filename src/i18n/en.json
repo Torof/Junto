@@ -710,19 +710,23 @@
     "prepared": "Prepared",
     "conciliant": "Easygoing",
     "prudent": "Cautious",
-    "late_canceller": "No-show",
-    "level_overestimated": "Overestimates",
+    "unprepared": "Unprepared",
     "aggressive": "Aggressive",
     "reckless": "Reckless",
+    "level_over": "Overestimates level",
+    "level_right": "Right level",
+    "level_under": "Underestimates level",
     "short": {
       "punctual": "On time",
       "prepared": "Prepared",
       "conciliant": "Easygoing",
       "prudent": "Cautious",
-      "late_canceller": "No-show",
-      "level_overestimated": "Overest.",
+      "unprepared": "Unprepared",
       "aggressive": "Aggressive",
-      "reckless": "Reckless"
+      "reckless": "Reckless",
+      "level_over": "Over",
+      "level_right": "Right",
+      "level_under": "Under"
     },
     "peerTier": {
       "bronze": "Bronze",
@@ -758,7 +762,8 @@
       "2": "Level: Intermediate",
       "3": "Level: Advanced",
       "4": "Level: Expert"
-    }
+    },
+    "levelVotesHeader": "Level (community feedback)"
   },
   "presence": {
     "confirm": "Confirm my presence",

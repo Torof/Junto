@@ -13,6 +13,7 @@ import {
   type ReputationBadge,
   type Trophy as ReputationTrophy,
   type SportLevel,
+  type SportLevelVotes,
 } from '@/services/badge-service';
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
@@ -26,6 +27,7 @@ interface BadgeDisplayProps {
   reputation: ReputationBadge[];
   trophies: ReputationTrophy[];
   sportLevels?: SportLevel[];
+  sportLevelVotes?: SportLevelVotes[];
   // Kept for call-site compatibility — Phase 1+ ignores them.
   completedCount?: number;
   createdCount?: number;
@@ -57,6 +59,7 @@ interface SportItem {
   count: number;
   label: string;
   dots: number;
+  levelVotes?: { over: number; right: number; under: number };
 }
 
 type DetailTarget =
@@ -64,7 +67,7 @@ type DetailTarget =
   | { kind: 'warning'; item: WarningItem }
   | { kind: 'sport'; item: SportItem };
 
-export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDisplayProps) {
+export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLevelVotes = [] }: BadgeDisplayProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -102,6 +105,13 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDi
       sportLevels.map((sl) => [sl.sport_key, sl.dots])
     );
 
+    const levelVotesByKey = new Map<string, { over: number; right: number; under: number }>(
+      sportLevelVotes.map((sv) => [
+        sv.sport_key,
+        { over: sv.level_over, right: sv.level_right, under: sv.level_under },
+      ])
+    );
+
     const sportList: SportItem[] = trophies
       .filter((tr) => tr.category === 'sport' && tr.sport_key && tr.count >= SPORT_THRESHOLD)
       .map((tr) => ({
@@ -109,11 +119,12 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDi
         count: tr.count,
         label: t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key as string }),
         dots: dotsByKey.get(tr.sport_key as string) ?? 1,
+        levelVotes: levelVotesByKey.get(tr.sport_key as string),
       }))
       .sort((a, b) => b.count - a.count);
 
     return { vouched: vouchedList, warnings: warningList, sports: sportList };
-  }, [reputation, trophies, sportLevels, t]);
+  }, [reputation, trophies, sportLevels, sportLevelVotes, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
   if (!hasPeer && sports.length === 0) return null;
@@ -334,6 +345,10 @@ function DetailModal({
   }
 
   const isSport = target.kind === 'sport';
+  const levelVotes = isSport ? target.item.levelVotes : undefined;
+  const totalLevelVotes = levelVotes
+    ? levelVotes.over + levelVotes.right + levelVotes.under
+    : 0;
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
@@ -348,6 +363,33 @@ function DetailModal({
           )}
           {body !== '' && <Text style={styles.modalBody}>{body}</Text>}
           {footer && !isSport && <Text style={styles.modalFooter}>{footer}</Text>}
+
+          {isSport && totalLevelVotes > 0 && levelVotes && (
+            <View style={styles.modalLevelVotes}>
+              <Text style={styles.modalLevelVotesHeader}>
+                {t('badges.levelVotesHeader', { defaultValue: 'Level (peer review)' })}
+              </Text>
+              <View style={styles.modalLevelVotesRow}>
+                <LevelVoteCounter
+                  label={t('badges.short.level_over')}
+                  count={levelVotes.over}
+                  styles={styles}
+                />
+                <LevelVoteCounter
+                  label={t('badges.short.level_right')}
+                  count={levelVotes.right}
+                  styles={styles}
+                  highlight
+                />
+                <LevelVoteCounter
+                  label={t('badges.short.level_under')}
+                  count={levelVotes.under}
+                  styles={styles}
+                />
+              </View>
+            </View>
+          )}
+
           <Pressable style={styles.modalDismiss} onPress={onClose}>
             <Text style={styles.modalDismissText}>
               {t('common.close', { defaultValue: 'OK' })}
@@ -356,6 +398,27 @@ function DetailModal({
         </Pressable>
       </Pressable>
     </Modal>
+  );
+}
+
+function LevelVoteCounter({
+  label,
+  count,
+  styles,
+  highlight,
+}: {
+  label: string;
+  count: number;
+  styles: ReturnType<typeof createStyles>;
+  highlight?: boolean;
+}) {
+  return (
+    <View style={styles.levelVoteCell}>
+      <Text style={[styles.levelVoteCount, highlight && styles.levelVoteCountHighlight]}>
+        {count}
+      </Text>
+      <Text style={styles.levelVoteLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -522,6 +585,47 @@ const createStyles = (colors: AppColors) =>
       color: colors.textPrimary,
       fontSize: 13,
       fontWeight: '700',
+    },
+    modalLevelVotes: {
+      marginTop: 10,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      borderStyle: 'dashed',
+    },
+    modalLevelVotesHeader: {
+      color: colors.textMuted,
+      fontSize: 9.5,
+      fontWeight: '600',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+    },
+    modalLevelVotesRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 10,
+      overflow: 'hidden',
+    },
+    levelVoteCell: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    levelVoteCount: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '800',
+      letterSpacing: -0.02,
+    },
+    levelVoteCountHighlight: {
+      color: '#7EC8A3',
+    },
+    levelVoteLabel: {
+      color: colors.textMuted,
+      fontSize: 10,
+      fontWeight: '600',
+      marginTop: 2,
     },
     modalDismiss: {
       alignSelf: 'center',
