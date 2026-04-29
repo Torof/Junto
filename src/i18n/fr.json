@@ -743,7 +743,15 @@
     "peerLastAtNegative": "Dernier signalement : {{when}}",
     "peerProgress": "Encore {{remaining}} pour passer {{tier}}",
     "peerGoldReached": "Tu es au sommet de ce badge.",
-    "peerNegativeHint": "Ce signalement décroît automatiquement (1 vote/mois sans nouveau signalement)."
+    "peerNegativeHint": "Ce signalement décroît automatiquement (1 vote/mois sans nouveau signalement).",
+    "warning": {
+      "signaled": "signalé",
+      "avoid": "à éviter"
+    },
+    "vouchedFooter_one": "Validé {{count}} fois par la commu.",
+    "vouchedFooter_other": "Validé {{count}} fois par la commu.",
+    "sportFooter_one": "{{count}} activité complétée.",
+    "sportFooter_other": "{{count}} activités complétées."
   },
   "presence": {
     "confirm": "Confirmer ma présence",

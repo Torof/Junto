@@ -743,7 +743,15 @@
     "peerLastAtNegative": "Last flagged: {{when}}",
     "peerProgress": "{{remaining}} more to reach {{tier}}",
     "peerGoldReached": "You're at the top of this badge.",
-    "peerNegativeHint": "This flag decays automatically (1 vote/month without a new flag)."
+    "peerNegativeHint": "This flag decays automatically (1 vote/month without a new flag).",
+    "warning": {
+      "signaled": "flagged",
+      "avoid": "to avoid"
+    },
+    "vouchedFooter_one": "Vouched {{count}} time by the community.",
+    "vouchedFooter_other": "Vouched {{count}} times by the community.",
+    "sportFooter_one": "{{count}} activity completed.",
+    "sportFooter_other": "{{count}} activities completed."
   },
   "presence": {
     "confirm": "Confirm my presence",
