@@ -764,6 +764,19 @@
       "4": "Level: Expert"
     },
     "levelVotesHeader": "Level (community feedback)",
+    "lastActivityAt": "Last activity: {{when}}",
+    "frequency": "{{rate}} outings/month on average",
+    "relTime": {
+      "today": "today",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "weeks_one": "{{count}} week",
+      "weeks_other": "{{count}} weeks",
+      "months_one": "{{count}} month",
+      "months_other": "{{count}} months",
+      "years_one": "{{count}} year",
+      "years_other": "{{count}} years"
+    },
     "awardTier": {
       "bronze": "Bronze",
       "silver": "Silver",

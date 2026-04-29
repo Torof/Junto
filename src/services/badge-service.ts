@@ -92,6 +92,8 @@ export interface Trophy {
 export interface SportLevel {
   sport_key: string;
   dots: number;
+  last_at: string | null;
+  first_at: string | null;
 }
 
 export interface SportLevelVotes {

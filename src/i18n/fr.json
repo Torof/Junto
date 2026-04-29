@@ -766,6 +766,19 @@
       "4": "Niveau : Expert"
     },
     "levelVotesHeader": "Niveau (avis communauté)",
+    "lastActivityAt": "Dernière sortie : {{when}}",
+    "frequency": "{{rate}} sortie/mois en moyenne",
+    "relTime": {
+      "today": "aujourd'hui",
+      "days_one": "{{count}} jour",
+      "days_other": "{{count}} jours",
+      "weeks_one": "{{count}} semaine",
+      "weeks_other": "{{count}} semaines",
+      "months_one": "{{count}} mois",
+      "months_other": "{{count}} mois",
+      "years_one": "{{count}} an",
+      "years_other": "{{count}} ans"
+    },
     "awardTier": {
       "bronze": "Bronze",
       "silver": "Argent",

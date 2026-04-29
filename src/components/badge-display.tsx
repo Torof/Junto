@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 import {
   Users, Mountain, Trophy, Award,
   AlertTriangle, OctagonAlert,
@@ -196,6 +197,8 @@ interface SportItem {
   count: number;
   label: string;
   dots: number;
+  lastAt: string | null;
+  firstAt: string | null;
   levelVotes?: { over: number; right: number; under: number };
 }
 
@@ -239,8 +242,8 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
     // Show red warnings first so the strongest signal lands at the start of the row.
     warningList.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'red' ? -1 : 1));
 
-    const dotsByKey = new Map<string, number>(
-      sportLevels.map((sl) => [sl.sport_key, sl.dots])
+    const sportMetaByKey = new Map<string, { dots: number; lastAt: string | null; firstAt: string | null }>(
+      sportLevels.map((sl) => [sl.sport_key, { dots: sl.dots, lastAt: sl.last_at, firstAt: sl.first_at }])
     );
 
     const levelVotesByKey = new Map<string, { over: number; right: number; under: number }>(
@@ -252,13 +255,18 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
 
     const sportList: SportItem[] = trophies
       .filter((tr) => tr.category === 'sport' && tr.sport_key && tr.count >= SPORT_THRESHOLD)
-      .map((tr) => ({
-        sportKey: tr.sport_key as string,
-        count: tr.count,
-        label: t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key as string }),
-        dots: dotsByKey.get(tr.sport_key as string) ?? 1,
-        levelVotes: levelVotesByKey.get(tr.sport_key as string),
-      }))
+      .map((tr) => {
+        const meta = sportMetaByKey.get(tr.sport_key as string);
+        return {
+          sportKey: tr.sport_key as string,
+          count: tr.count,
+          label: t(`sports.${tr.sport_key}`, { defaultValue: tr.sport_key as string }),
+          dots: meta?.dots ?? 1,
+          lastAt: meta?.lastAt ?? null,
+          firstAt: meta?.firstAt ?? null,
+          levelVotes: levelVotesByKey.get(tr.sport_key as string),
+        };
+      })
       .sort((a, b) => b.count - a.count);
 
     // Junto awards — iterate the data-driven AWARDS list, surface only the
@@ -587,6 +595,13 @@ function DetailModal({
     ? levelVotes.over + levelVotes.right + levelVotes.under
     : 0;
 
+  // Recency / cadence — only when we have an isSport target and at least
+  // one timestamp from the server.
+  const lastRelative = isSport && target.item.lastAt
+    ? formatRelativeFromNow(target.item.lastAt, t)
+    : null;
+  const frequency = isSport ? computeFrequency(target.item.count, target.item.firstAt) : null;
+
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
@@ -600,6 +615,24 @@ function DetailModal({
           )}
           {body !== '' && <Text style={styles.modalBody}>{body}</Text>}
           {footer && !isSport && <Text style={styles.modalFooter}>{footer}</Text>}
+
+          {isSport && (lastRelative || frequency != null) && (
+            <View style={styles.modalRecency}>
+              {lastRelative && (
+                <Text style={styles.modalRecencyLine}>
+                  {t('badges.lastActivityAt', { when: lastRelative, defaultValue: `Last activity: ${lastRelative}` })}
+                </Text>
+              )}
+              {frequency != null && (
+                <Text style={styles.modalRecencyLine}>
+                  {t('badges.frequency', {
+                    rate: frequency.toFixed(1),
+                    defaultValue: `${frequency.toFixed(1)} outings / month avg.`,
+                  })}
+                </Text>
+              )}
+            </View>
+          )}
 
           {isSport && totalLevelVotes > 0 && levelVotes && (
             <View style={styles.modalLevelVotes}>
@@ -636,6 +669,34 @@ function DetailModal({
       </Pressable>
     </Modal>
   );
+}
+
+// Lightweight relative-time formatter — avoids pulling in dayjs's
+// relativeTime plugin globally for one feature. Returns a localized
+// short string like "12 j", "3 sem", "5 mois", "2 ans".
+function formatRelativeFromNow(at: string, t: (k: string, opts?: Record<string, unknown>) => string): string {
+  const days = Math.max(0, dayjs().diff(dayjs(at), 'day'));
+  if (days < 1) return t('badges.relTime.today', { defaultValue: "aujourd'hui" });
+  if (days < 7) return t('badges.relTime.days', { count: days, defaultValue: `${days}j` });
+  if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return t('badges.relTime.weeks', { count: weeks, defaultValue: `${weeks} sem` });
+  }
+  if (days < 365) {
+    const months = Math.floor(days / 30);
+    return t('badges.relTime.months', { count: months, defaultValue: `${months} mois` });
+  }
+  const years = Math.floor(days / 365);
+  return t('badges.relTime.years', { count: years, defaultValue: `${years} an` });
+}
+
+// Average outings per month, computed from first completion to now.
+// Uses 1 month as the floor so a single-day burst doesn't read as
+// "30 outings/month".
+function computeFrequency(count: number, firstAt: string | null): number | null {
+  if (!firstAt || count <= 0) return null;
+  const months = Math.max(1, dayjs().diff(dayjs(firstAt), 'month'));
+  return count / months;
 }
 
 function LevelVoteCounter({
@@ -815,6 +876,15 @@ const createStyles = (colors: AppColors) =>
       color: colors.textPrimary,
       fontSize: 13,
       fontWeight: '700',
+    },
+    modalRecency: {
+      marginTop: 8,
+      gap: 2,
+    },
+    modalRecencyLine: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
     },
     modalLevelVotes: {
       marginTop: 10,
