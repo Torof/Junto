@@ -497,6 +497,7 @@
     "filters": "Filtres"
   },
   "peerReview": {
+    "headerTitle": "Évaluation",
     "subtitle": "Évalue tes co-participants — toggle un badge pour voter ou retirer ton vote.",
     "empty": "Aucun co-participant à évaluer.",
     "submit": "Terminé",
@@ -504,6 +505,9 @@
     "windowLeft_one": "{{hours}}h restante",
     "windowLeft_other": "{{hours}}h restantes",
     "windowClosed": "Fenêtre fermée",
+    "sectionPositives": "Points positifs",
+    "sectionNegatives": "Signalements",
+    "sectionLevel": "Niveau perçu",
     "presenceVoteCta": "{{name}} était présent",
     "presenceVoted": "Vote enregistré",
     "notAllowed": "Action impossible (fenêtre de 48h dépassée ou contraintes non remplies).",

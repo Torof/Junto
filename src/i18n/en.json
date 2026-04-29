@@ -497,6 +497,7 @@
     "filters": "Filters"
   },
   "peerReview": {
+    "headerTitle": "Peer review",
     "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
     "empty": "No co-participants to rate.",
     "submit": "Done",
@@ -504,6 +505,9 @@
     "windowLeft_one": "{{hours}}h left",
     "windowLeft_other": "{{hours}}h left",
     "windowClosed": "Window closed",
+    "sectionPositives": "Positives",
+    "sectionNegatives": "Flags",
+    "sectionLevel": "Perceived level",
     "presenceVoteCta": "{{name}} was there",
     "presenceVoted": "Vote saved",
     "notAllowed": "Action not available (48h window passed or constraints unmet).",

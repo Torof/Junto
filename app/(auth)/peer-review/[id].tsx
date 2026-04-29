@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useLayoutEffect } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
@@ -53,6 +53,7 @@ export default function PeerReviewScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const navigation = useNavigation();
 
   const { data: activity } = useQuery({
     queryKey: ['activity', id],
@@ -124,6 +125,33 @@ export default function PeerReviewScreen() {
     }
   };
 
+  // Window expires at activity end + 24h. Computed before useLayoutEffect
+  // so we can pass the urgency string to the navigation header.
+  const endsAt = activity ? dayjs(activity.starts_at).add(parseDurationMs(activity.duration), 'millisecond') : null;
+  const expiresAt = endsAt ? endsAt.add(24, 'hour') : null;
+  const hoursLeft = expiresAt ? Math.max(0, Math.round(expiresAt.diff(dayjs(), 'minute') / 60)) : 0;
+  const urgencyLabel = hoursLeft > 0
+    ? t('peerReview.windowLeft', { hours: hoursLeft, defaultValue: `${hoursLeft}h left` })
+    : t('peerReview.windowClosed', { defaultValue: 'Window closed' });
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ paddingLeft: spacing.md, gap: 1 }}>
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' }}>
+            {t('peerReview.headerTitle', { defaultValue: 'Peer review' })}
+          </Text>
+          {activity && (
+            <Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: '600' }} numberOfLines={1}>
+              {activity.title} · {urgencyLabel}
+            </Text>
+          )}
+        </View>
+      ),
+      headerTitleAlign: 'left' as const,
+    });
+  }, [navigation, activity, urgencyLabel, colors, t]);
+
   if (isLoading || !activity) {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
@@ -132,22 +160,9 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
   }
 
-  // Window expires at end + 24h. Show a discreet "X h restantes" cue so
-  // users know to act. Server still gates the writes either way.
-  const endsAt = dayjs(activity.starts_at).add(parseDurationMs(activity.duration), 'millisecond');
-  const expiresAt = endsAt.add(24, 'hour');
-  const hoursLeft = Math.max(0, Math.round(expiresAt.diff(dayjs(), 'minute') / 60));
-  const urgencyLabel = hoursLeft > 0
-    ? t('peerReview.windowLeft', { hours: hoursLeft, defaultValue: `${hoursLeft}h left` })
-    : t('peerReview.windowClosed', { defaultValue: 'Window closed' });
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{activity.title}</Text>
-      <View style={styles.subtitleRow}>
-        <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
-        <Text style={styles.urgency}>{urgencyLabel}</Text>
-      </View>
+      <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
 
       <View style={styles.list}>
         {state.map((p) => {
@@ -187,6 +202,7 @@ export default function PeerReviewScreen() {
               )}
 
               {/* Positives — own row so cell widths are uniform. */}
+              <Text style={styles.sectionLabel}>{t('peerReview.sectionPositives')}</Text>
               <View style={styles.metroPill}>
                 {POSITIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
@@ -222,6 +238,7 @@ export default function PeerReviewScreen() {
               </View>
 
               {/* Negatives — separate row, equal cell widths within. */}
+              <Text style={styles.sectionLabel}>{t('peerReview.sectionNegatives')}</Text>
               <View style={styles.metroPill}>
                 {NEGATIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
@@ -256,6 +273,9 @@ export default function PeerReviewScreen() {
                 })}
               </View>
 
+              {activity.sport_key && (
+                <Text style={styles.sectionLabel}>{t('peerReview.sectionLevel')}</Text>
+              )}
               {activity.sport_key && (
                 <View style={styles.levelPill}>
                   <Text style={styles.levelSportIcon}>{getSportIcon(activity.sport_key)}</Text>
@@ -305,23 +325,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { padding: spacing.md, paddingBottom: spacing.xl + 16 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md },
-  title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: 4 },
-  subtitleRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
+  subtitle: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
     marginBottom: spacing.lg,
   },
-  subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
-  urgency: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
   tappedDim: { opacity: 0.55 },
+  sectionLabel: {
+    color: colors.textMuted,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginTop: spacing.sm,
+    marginBottom: 4,
+  },
 
   list: { gap: spacing.md },
   card: {
