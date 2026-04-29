@@ -6,7 +6,7 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
-import { LevelGauge } from '@/components/level-gauge';
+import { LevelGauge, LevelDot } from '@/components/level-gauge';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
@@ -281,7 +281,7 @@ function SportRow({
           style={styles.sportChipPill}
         >
           <View style={styles.sportChipTopRow}>
-            <LevelGauge dots={it.dots} />
+            <LevelDot dots={it.dots} />
             <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
             <View style={styles.sportCountDivider} />
             <Text style={styles.sportCount}>{it.count}</Text>
@@ -342,13 +342,21 @@ function DetailModal({
     if (dotsLabel !== '') footer = dotsLabel;
   }
 
+  const isSport = target.kind === 'sport';
+
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
           <Text style={styles.modalTitle}>{title}</Text>
+          {isSport && (
+            <View style={styles.modalLevelRow}>
+              <LevelGauge dots={target.item.dots} />
+              {footer && <Text style={styles.modalLevelLabel}>{footer}</Text>}
+            </View>
+          )}
           {body !== '' && <Text style={styles.modalBody}>{body}</Text>}
-          {footer && <Text style={styles.modalFooter}>{footer}</Text>}
+          {footer && !isSport && <Text style={styles.modalFooter}>{footer}</Text>}
           <Pressable style={styles.modalDismiss} onPress={onClose}>
             <Text style={styles.modalDismissText}>
               {t('common.close', { defaultValue: 'OK' })}
@@ -523,6 +531,18 @@ const createStyles = (colors: AppColors) =>
       fontSize: 12,
       fontStyle: 'italic',
       marginTop: 4,
+    },
+    modalLevelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 6,
+      marginBottom: 4,
+    },
+    modalLevelLabel: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '700',
     },
     modalDismiss: {
       alignSelf: 'center',

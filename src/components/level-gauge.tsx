@@ -53,6 +53,25 @@ export function LevelGauge({ dots }: { dots: number }) {
   );
 }
 
+// Compact single-dot variant. Same per-level color as the full gauge —
+// used where space is tight and the gauge would be overkill (e.g. inside
+// the sport chips on the profile body). The full gauge stays available
+// for the chip's tap-popover.
+export function LevelDot({ dots }: { dots: number }) {
+  const filled = Math.max(0, Math.min(4, dots));
+  const color = LEVEL_COLORS_BY_DOTS[filled] ?? '#7EC8A3';
+  return (
+    <View
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: color,
+      }}
+    />
+  );
+}
+
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     gauge: {
