@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, OctagonAlert, Users, Mountain, type LucideIcon } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -202,7 +202,6 @@ function SectionHeader({
 function VouchedRow({
   items,
   styles,
-  colors,
   onPress,
 }: {
   items: VouchedItem[];
@@ -211,19 +210,15 @@ function VouchedRow({
   onPress: (item: VouchedItem) => void;
 }) {
   return (
-    <ScrollableLine
-      styles={styles}
-      colors={colors}
-      prefix={<Text style={[styles.linePrefix, styles.linePrefixVouched]}>✓</Text>}
-    >
-      {items.map((it, i) => (
+    <View style={styles.wrapRow}>
+      <Text style={[styles.linePrefix, styles.linePrefixVouched]}>✓</Text>
+      {items.map((it) => (
         <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
           <Text style={styles.lineTraitText}>{it.label}</Text>
           <Text style={styles.lineCountText}>·{it.count}</Text>
-          {i < items.length - 1 && <View style={styles.lineSpacer} />}
         </Pressable>
       ))}
-    </ScrollableLine>
+    </View>
   );
 }
 
@@ -234,7 +229,6 @@ function VouchedRow({
 function WarningRow({
   items,
   styles,
-  colors,
   onPress,
 }: {
   items: WarningItem[];
@@ -244,8 +238,8 @@ function WarningRow({
 }) {
   const { t } = useTranslation();
   return (
-    <ScrollableLine styles={styles} colors={colors}>
-      {items.map((it, i) => {
+    <View style={styles.wrapRow}>
+      {items.map((it) => {
         const isRed = it.severity === 'red';
         const Icon = isRed ? OctagonAlert : AlertTriangle;
         const color = isRed ? COLOR_RED : COLOR_AMBER;
@@ -256,11 +250,10 @@ function WarningRow({
             <Text style={[styles.lineTraitText, { color }]}>
               {' '}{it.label} {suffix}
             </Text>
-            {i < items.length - 1 && <View style={styles.lineSpacer} />}
           </Pressable>
         );
       })}
-    </ScrollableLine>
+    </View>
   );
 }
 
@@ -271,7 +264,6 @@ function WarningRow({
 function SportRow({
   items,
   styles,
-  colors,
   onPress,
 }: {
   items: SportItem[];
@@ -280,15 +272,15 @@ function SportRow({
   onPress: (item: SportItem) => void;
 }) {
   return (
-    <ScrollableLine styles={styles} colors={colors}>
+    <View style={styles.wrapRowChips}>
       {items.map((it) => (
         <Pressable
           key={it.sportKey}
           onPress={() => onPress(it)}
           hitSlop={4}
-          style={styles.sportChipCell}
+          style={styles.sportChipPill}
         >
-          <View style={styles.sportChipPill}>
+          <View style={styles.sportChipTopRow}>
             <LevelGauge dots={it.dots} />
             <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
             <Text style={styles.sportCount}>{it.count}</Text>
@@ -302,49 +294,6 @@ function SportRow({
           </Text>
         </Pressable>
       ))}
-    </ScrollableLine>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Generic horizontally-scrollable line wrapper. Tracks overflow so we can show
-// a chevron affordance on the right edge while there's content past the
-// visible area, matching the rest of the page.
-// ---------------------------------------------------------------------------
-
-function ScrollableLine({
-  children,
-  styles,
-  colors,
-  prefix,
-}: {
-  children: React.ReactNode;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-  prefix?: React.ReactNode;
-}) {
-  const [viewWidth, setViewWidth] = useState(0);
-  const [contentWidth, setContentWidth] = useState(0);
-  const [scrollX, setScrollX] = useState(0);
-  const hasMore = contentWidth - viewWidth - scrollX > 4;
-
-  return (
-    <View style={styles.scrollWrap}>
-      {prefix && <View style={styles.prefixWrap}>{prefix}</View>}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        onLayout={(e) => setViewWidth(e.nativeEvent.layout.width)}
-        onContentSizeChange={(w) => setContentWidth(w)}
-        onScroll={(e) => setScrollX(e.nativeEvent.contentOffset.x)}
-        scrollEventThrottle={32}
-      >
-        {children}
-      </ScrollView>
-      {hasMore && (
-        <View pointerEvents="none" style={[styles.fade, { backgroundColor: colors.surface + 'E6' }]} />
-      )}
     </View>
   );
 }
@@ -455,40 +404,32 @@ const createStyles = (colors: AppColors) =>
       marginTop: 6,
     },
 
-    scrollWrap: {
+    wrapRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
-      position: 'relative',
+      rowGap: 6,
+      columnGap: 14,
     },
-    prefixWrap: {
-      paddingRight: 8,
+    wrapRowChips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'flex-start',
+      rowGap: 6,
+      columnGap: 6,
     },
     linePrefix: {
       fontSize: 13,
       fontWeight: '700',
+      marginRight: -6,
     },
     linePrefixVouched: {
       color: '#7EC8A3',
-    },
-    scrollContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingRight: 24,
-    },
-    fade: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
-      bottom: 0,
-      width: 22,
     },
 
     lineItem: {
       flexDirection: 'row',
       alignItems: 'center',
-    },
-    lineSpacer: {
-      width: 14,
     },
     lineTraitText: {
       color: colors.textPrimary,
@@ -503,19 +444,22 @@ const createStyles = (colors: AppColors) =>
       marginLeft: 3,
     },
 
-    sportChipCell: {
-      width: 76,
-      alignItems: 'center',
-      marginRight: 6,
-    },
+    // Sport chip pill — column layout. Top row holds gauge / emoji / count
+    // aligned horizontally; the label sits inside the same pill, below the
+    // top row, centered, wrapping to two lines max.
     sportChipPill: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 18,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      width: 88,
+    },
+    sportChipTopRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
-      backgroundColor: colors.surfaceAlt,
-      borderRadius: 999,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
     },
     sportEmoji: {
       fontSize: 16,
