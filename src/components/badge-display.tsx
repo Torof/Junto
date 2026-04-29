@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, OctagonAlert, Users, Mountain, type LucideIcon } from 'lucide-react-native';
+import { Users, Mountain, Trophy, Award, type LucideIcon } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -38,6 +38,20 @@ const VOUCHED_THRESHOLD = 5;
 const WARNING_THRESHOLD = 5;
 const WARNING_RED_THRESHOLD = 15;
 const SPORT_THRESHOLD = 3;
+// Junto award tiers — derived from the raw trophy count. Cup color
+// communicates the tier, the count next to it carries the magnitude.
+const JUNTO_TIER_THRESHOLDS = { silver: 20, gold: 50 } as const;
+function juntoTier(count: number): 'bronze' | 'silver' | 'gold' | null {
+  if (count >= JUNTO_TIER_THRESHOLDS.gold) return 'gold';
+  if (count >= JUNTO_TIER_THRESHOLDS.silver) return 'silver';
+  if (count >= 5) return 'bronze';
+  return null;
+}
+const JUNTO_TIER_COLOR = {
+  bronze: '#B87333',
+  silver: '#9DA9B5',
+  gold: '#E0B040',
+} as const;
 
 const POSITIVE_KEYS = new Set<string>(POSITIVE_BADGES.map((b) => b.key));
 const NEGATIVE_KEYS = new Set<string>(NEGATIVE_BADGES.map((b) => b.key));
@@ -48,11 +62,18 @@ interface VouchedItem {
   key: string;
   label: string;
   count: number;
+  icon: string;
 }
 interface WarningItem {
   key: string;
   label: string;
   severity: 'amber' | 'red';
+  icon: string;
+}
+interface JuntoAward {
+  kind: 'joined' | 'created';
+  count: number;
+  tier: 'bronze' | 'silver' | 'gold';
 }
 interface SportItem {
   sportKey: string;
@@ -65,7 +86,8 @@ interface SportItem {
 type DetailTarget =
   | { kind: 'vouched'; item: VouchedItem }
   | { kind: 'warning'; item: WarningItem }
-  | { kind: 'sport'; item: SportItem };
+  | { kind: 'sport'; item: SportItem }
+  | { kind: 'award'; item: JuntoAward };
 
 export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLevelVotes = [] }: BadgeDisplayProps) {
   const { t } = useTranslation();
@@ -73,9 +95,16 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
 
-  const { vouched, warnings, sports } = useMemo(() => {
+  const { vouched, warnings, sports, awards } = useMemo(() => {
     const vouchedList: VouchedItem[] = [];
     const warningList: WarningItem[] = [];
+
+    const positiveIconByKey = new Map<string, string>(
+      POSITIVE_BADGES.map((b) => [b.key, b.icon])
+    );
+    const negativeIconByKey = new Map<string, string>(
+      NEGATIVE_BADGES.map((b) => [b.key, b.icon])
+    );
 
     for (const rep of reputation) {
       if (DEPRECATED_PEER_KEYS.has(rep.badge_key)) continue;
@@ -86,6 +115,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
           count,
+          icon: positiveIconByKey.get(rep.badge_key) ?? '',
         });
       } else if (NEGATIVE_KEYS.has(rep.badge_key)) {
         if (count < WARNING_THRESHOLD) continue;
@@ -93,6 +123,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
           severity: count >= WARNING_RED_THRESHOLD ? 'red' : 'amber',
+          icon: negativeIconByKey.get(rep.badge_key) ?? '',
         });
       }
     }
@@ -123,11 +154,21 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
       }))
       .sort((a, b) => b.count - a.count);
 
-    return { vouched: vouchedList, warnings: warningList, sports: sportList };
+    // Junto awards — bronze / silver / gold cup per category, derived from
+    // the existing trophy counts. Surface the user's *current* tier only.
+    const awardsList: JuntoAward[] = [];
+    const joinedTrophy = trophies.find((tr) => tr.category === 'joined');
+    const createdTrophy = trophies.find((tr) => tr.category === 'created');
+    const joinedTier = juntoTier(joinedTrophy?.count ?? 0);
+    const createdTier = juntoTier(createdTrophy?.count ?? 0);
+    if (joinedTier) awardsList.push({ kind: 'joined', count: joinedTrophy?.count ?? 0, tier: joinedTier });
+    if (createdTier) awardsList.push({ kind: 'created', count: createdTrophy?.count ?? 0, tier: createdTier });
+
+    return { vouched: vouchedList, warnings: warningList, sports: sportList, awards: awardsList };
   }, [reputation, trophies, sportLevels, sportLevelVotes, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
-  if (!hasPeer && sports.length === 0) return null;
+  if (!hasPeer && sports.length === 0 && awards.length === 0) return null;
 
   return (
     <View style={styles.card}>
@@ -177,6 +218,23 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
         </View>
       )}
 
+      {awards.length > 0 && (
+        <View style={[styles.section, (hasPeer || sports.length > 0) && styles.sectionGap]}>
+          <SectionHeader
+            Icon={Trophy}
+            label={t('profil.badgeSectionAuto')}
+            styles={styles}
+            colors={colors}
+          />
+          <AwardRow
+            items={awards}
+            styles={styles}
+            onPress={(item) => setSelected({ kind: 'award', item })}
+            t={t}
+          />
+        </View>
+      )}
+
       <DetailModal
         target={selected}
         onClose={() => setSelected(null)}
@@ -222,9 +280,9 @@ function VouchedRow({
 }) {
   return (
     <View style={styles.wrapRow}>
-      <Text style={[styles.linePrefix, styles.linePrefixVouched]}>✓</Text>
       {items.map((it) => (
         <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
+          {it.icon && <Text style={styles.lineEmoji}>{it.icon}</Text>}
           <Text style={styles.lineTraitText}>{it.label}</Text>
           <Text style={styles.lineCountText}>·{it.count}</Text>
         </Pressable>
@@ -252,14 +310,13 @@ function WarningRow({
     <View style={styles.wrapRow}>
       {items.map((it) => {
         const isRed = it.severity === 'red';
-        const Icon = isRed ? OctagonAlert : AlertTriangle;
         const color = isRed ? COLOR_RED : COLOR_AMBER;
         const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
         return (
           <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
-            <Icon size={13} color={color} strokeWidth={2.4} />
+            {it.icon && <Text style={styles.lineEmoji}>{it.icon}</Text>}
             <Text style={[styles.lineTraitText, { color }]}>
-              {' '}{it.label} {suffix}
+              {it.label} {suffix}
             </Text>
           </Pressable>
         );
@@ -302,6 +359,48 @@ function SportRow({
 }
 
 // ---------------------------------------------------------------------------
+// Award row — bronze / silver / gold cup per category (joined / created),
+// derived from raw trophy counts. Single cup per category.
+// ---------------------------------------------------------------------------
+
+function AwardRow({
+  items,
+  styles,
+  onPress,
+  t,
+}: {
+  items: JuntoAward[];
+  styles: ReturnType<typeof createStyles>;
+  onPress: (item: JuntoAward) => void;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  return (
+    <View style={styles.wrapRowChips}>
+      {items.map((it) => {
+        const tierColor = JUNTO_TIER_COLOR[it.tier];
+        const Icon = it.kind === 'created' ? Trophy : Award;
+        return (
+          <Pressable
+            key={it.kind}
+            onPress={() => onPress(it)}
+            hitSlop={4}
+            style={styles.awardChipPill}
+          >
+            <Icon size={18} color={tierColor} strokeWidth={2.2} />
+            <Text style={[styles.awardCount, { color: tierColor }]}>{it.count}</Text>
+            <Text style={styles.awardLabel} numberOfLines={1}>
+              {t(`badges.awardKind.${it.kind}`, {
+                defaultValue: it.kind === 'joined' ? 'Joined' : 'Created',
+              })}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Detail modal — single layout for all three section types. Reuses the
 // reliability help modal's typographic treatment.
 // ---------------------------------------------------------------------------
@@ -334,7 +433,7 @@ function DetailModal({
     title = target.item.label;
     body = t(`badges.peerDesc.${target.item.key}`, { defaultValue: '' });
     footer = t('badges.peerNegativeHint');
-  } else {
+  } else if (target.kind === 'sport') {
     title = `${getSportIcon(target.item.sportKey)}  ${target.item.label}`;
     body = t('badges.sportFooter', {
       count: target.item.count,
@@ -342,6 +441,17 @@ function DetailModal({
     });
     const dotsLabel = t(`badges.sportDot.${target.item.dots}`, { defaultValue: '' });
     if (dotsLabel !== '') footer = dotsLabel;
+  } else {
+    // award
+    const tierLabel = t(`badges.awardTier.${target.item.tier}`, { defaultValue: target.item.tier });
+    const kindLabel = t(`badges.awardKind.${target.item.kind}`, {
+      defaultValue: target.item.kind === 'joined' ? 'Joined' : 'Created',
+    });
+    title = `${kindLabel} · ${tierLabel}`;
+    body = t(`badges.awardDesc.${target.item.kind}`, {
+      count: target.item.count,
+      defaultValue: `${target.item.count} activités.`,
+    });
   }
 
   const isSport = target.kind === 'sport';
@@ -454,7 +564,7 @@ const createStyles = (colors: AppColors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      marginBottom: 8,
+      marginBottom: 14,
     },
     sectionLabel: {
       color: colors.textMuted,
@@ -493,6 +603,11 @@ const createStyles = (colors: AppColors) =>
     lineItem: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 4,
+    },
+    lineEmoji: {
+      fontSize: 13,
+      lineHeight: 15,
     },
     lineTraitText: {
       color: colors.textPrimary,
@@ -538,6 +653,29 @@ const createStyles = (colors: AppColors) =>
       fontSize: 11,
       fontWeight: '700',
       letterSpacing: -0.01,
+    },
+
+    // Junto award chip — colored cup icon + count + category label.
+    awardChipPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 8,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+    },
+    awardCount: {
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: -0.02,
+    },
+    awardLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
     },
 
     modalBackdrop: {

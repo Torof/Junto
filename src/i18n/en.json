@@ -763,7 +763,22 @@
       "3": "Level: Advanced",
       "4": "Level: Expert"
     },
-    "levelVotesHeader": "Level (community feedback)"
+    "levelVotesHeader": "Level (community feedback)",
+    "awardKind": {
+      "joined": "Joined",
+      "created": "Created"
+    },
+    "awardTier": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold"
+    },
+    "awardDesc": {
+      "joined_one": "{{count}} activity joined.",
+      "joined_other": "{{count}} activities joined.",
+      "created_one": "{{count}} activity created.",
+      "created_other": "{{count}} activities created."
+    }
   },
   "presence": {
     "confirm": "Confirm my presence",

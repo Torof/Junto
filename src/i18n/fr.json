@@ -765,7 +765,22 @@
       "3": "Niveau : Avancé",
       "4": "Niveau : Expert"
     },
-    "levelVotesHeader": "Niveau (avis communauté)"
+    "levelVotesHeader": "Niveau (avis communauté)",
+    "awardKind": {
+      "joined": "Rejointes",
+      "created": "Créées"
+    },
+    "awardTier": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or"
+    },
+    "awardDesc": {
+      "joined_one": "{{count}} activité rejointe.",
+      "joined_other": "{{count}} activités rejointes.",
+      "created_one": "{{count}} activité créée.",
+      "created_other": "{{count}} activités créées."
+    }
   },
   "presence": {
     "confirm": "Confirmer ma présence",
