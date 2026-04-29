@@ -205,25 +205,8 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
         </View>
       )}
 
-      {sports.length > 0 && (
-        <View style={[styles.section, hasPeer && styles.sectionGap]}>
-          <SectionHeader
-            Icon={Mountain}
-            label={t('profil.badgeSectionSports')}
-            styles={styles}
-            colors={colors}
-          />
-          <SportRow
-            items={sports}
-            styles={styles}
-            colors={colors}
-            onPress={(item) => setSelected({ kind: 'sport', item })}
-          />
-        </View>
-      )}
-
       {awards.length > 0 && (
-        <View style={[styles.section, (hasPeer || sports.length > 0) && styles.sectionGap]}>
+        <View style={[styles.section, hasPeer && styles.sectionGap]}>
           <SectionHeader
             Icon={Trophy}
             label={t('profil.badgeSectionAuto')}
@@ -235,6 +218,23 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
             styles={styles}
             onPress={(item) => setSelected({ kind: 'award', item })}
             t={t}
+          />
+        </View>
+      )}
+
+      {sports.length > 0 && (
+        <View style={[styles.section, (hasPeer || awards.length > 0) && styles.sectionGap]}>
+          <SectionHeader
+            Icon={Mountain}
+            label={t('profil.badgeSectionSports')}
+            styles={styles}
+            colors={colors}
+          />
+          <SportRow
+            items={sports}
+            styles={styles}
+            colors={colors}
+            onPress={(item) => setSelected({ kind: 'sport', item })}
           />
         </View>
       )}
@@ -288,7 +288,12 @@ function VouchedRow({
       {items.map((it) => {
         const Icon = POSITIVE_TRAIT_ICON[it.key];
         return (
-          <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
+          <Pressable
+            key={it.key}
+            onPress={() => onPress(it)}
+            hitSlop={6}
+            style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
+          >
             {Icon && <Icon size={13} color={colors.textPrimary} strokeWidth={2.2} />}
             <Text style={styles.lineTraitText}>{it.label}</Text>
             <Text style={styles.lineCountText}>·{it.count}</Text>
@@ -322,7 +327,12 @@ function WarningRow({
         const color = isRed ? COLOR_RED : COLOR_AMBER;
         const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
         return (
-          <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
+          <Pressable
+            key={it.key}
+            onPress={() => onPress(it)}
+            hitSlop={6}
+            style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
+          >
             <Icon size={13} color={color} strokeWidth={2.4} />
             <Text style={[styles.lineTraitText, { color }]}>
               {it.label} {suffix}
@@ -355,7 +365,7 @@ function SportRow({
           key={it.sportKey}
           onPress={() => onPress(it)}
           hitSlop={4}
-          style={styles.sportChipPill}
+          style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
         >
           <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
           <View style={styles.sportCountCircle}>
@@ -388,20 +398,21 @@ function AwardRow({
       {items.map((it) => {
         const tierColor = JUNTO_TIER_COLOR[it.tier];
         const Icon = it.kind === 'created' ? Trophy : Award;
+        const label = t(`badges.awardKind.${it.kind}`, {
+          defaultValue: it.kind === 'joined' ? 'Joined' : 'Created',
+        });
         return (
           <Pressable
             key={it.kind}
             onPress={() => onPress(it)}
             hitSlop={4}
-            style={styles.awardChipPill}
+            style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
           >
-            <Icon size={18} color={tierColor} strokeWidth={2.2} />
-            <Text style={[styles.awardCount, { color: tierColor }]}>{it.count}</Text>
-            <Text style={styles.awardLabel} numberOfLines={1}>
-              {t(`badges.awardKind.${it.kind}`, {
-                defaultValue: it.kind === 'joined' ? 'Joined' : 'Created',
-              })}
-            </Text>
+            <Icon size={16} color={tierColor} strokeWidth={2.2} />
+            <Text style={styles.awardLabel} numberOfLines={1}>{label}</Text>
+            <View style={styles.sportCountCircle}>
+              <Text style={[styles.sportCountText, { color: tierColor }]}>{it.count}</Text>
+            </View>
           </Pressable>
         );
       })}
@@ -560,26 +571,23 @@ const createStyles = (colors: AppColors) =>
       marginBottom: spacing.md,
     },
     section: {
-      // Each section group (peer / sports) is its own block.
+      // Each section group (peer / awards / sports) is its own block.
     },
     sectionGap: {
-      marginTop: spacing.md - 2,
-      paddingTop: spacing.md - 2,
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
-      borderStyle: 'dashed',
+      // Section rhythm comes from spacing alone — no divider line.
+      marginTop: 22,
     },
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      marginBottom: 14,
+      marginBottom: 12,
     },
     sectionLabel: {
-      color: colors.textMuted,
-      fontSize: 9.5,
-      fontWeight: '600',
-      letterSpacing: 1.2,
+      color: colors.textSecondary,
+      fontSize: 10.5,
+      fontWeight: '700',
+      letterSpacing: 1.4,
       textTransform: 'uppercase',
     },
     warningSpacer: {
@@ -664,27 +672,16 @@ const createStyles = (colors: AppColors) =>
       letterSpacing: -0.01,
     },
 
-    // Junto award chip — colored cup icon + count + category label.
-    awardChipPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      backgroundColor: colors.surfaceAlt,
-      borderRadius: 8,
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-    },
-    awardCount: {
-      fontSize: 13,
-      fontWeight: '800',
-      letterSpacing: -0.02,
-    },
+    // Junto award chip reuses the sport pill skeleton — same padding,
+    // same radius, same surfaceAlt — only the inner content differs.
     awardLabel: {
-      color: colors.textMuted,
-      fontSize: 11,
-      fontWeight: '600',
-      textTransform: 'uppercase',
-      letterSpacing: 0.4,
+      color: colors.textPrimary,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: -0.01,
+    },
+    tappedDim: {
+      opacity: 0.55,
     },
 
     modalBackdrop: {
