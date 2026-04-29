@@ -8,26 +8,13 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import type { SportBreakdownRow } from '@/services/user-service';
 import type { SportEndorsement } from '@/services/endorsement-service';
+import { LevelGauge, levelStringToDots } from '@/components/level-gauge';
 
 interface Props {
   rows: SportBreakdownRow[];
   onEdit?: () => void;
   endorsements?: SportEndorsement[];
 }
-
-const LEVEL_PRIORITY: Record<string, number> = {
-  'expert': 4,
-  'avancé': 3,
-  'intermédiaire': 2,
-  'débutant': 1,
-};
-
-const LEVEL_COLORS: Record<string, string> = {
-  'débutant': '#7EC8A3',
-  'intermédiaire': '#F4A373',
-  'avancé': '#E5524E',
-  'expert': '#9B6BD6',
-};
 
 function sortByCount(rows: SportBreakdownRow[]): SportBreakdownRow[] {
   return [...rows].sort((a, b) => b.completed_count - a.completed_count);
@@ -104,27 +91,6 @@ export function SportIconGrid({ rows, onEdit, endorsements = [] }: Props) {
   );
 }
 
-function LevelGauge({ level, styles }: { level: string | null | undefined; styles: ReturnType<typeof createStyles> }) {
-  const filled = LEVEL_PRIORITY[level ?? ''] ?? 0;
-  const color = LEVEL_COLORS[level ?? ''] ?? '#7EC8A3';
-  return (
-    <View style={styles.gauge}>
-      {[3, 2, 1, 0].map((idx) => {
-        const isFilled = idx < filled;
-        return (
-          <View
-            key={idx}
-            style={[
-              styles.gaugeSeg,
-              isFilled ? { backgroundColor: color } : styles.gaugeSegEmpty,
-            ]}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
 function SportRow({
   row, endorsementNet, isLast, styles, colors, t,
 }: {
@@ -141,7 +107,7 @@ function SportRow({
   const endorsementMagnitude = Math.abs(endorsementNet);
   return (
     <View style={[styles.sportRow, !isLast && styles.sportRowBorder]}>
-      <LevelGauge level={row.level} styles={styles} />
+      <LevelGauge dots={levelStringToDots(row.level)} />
       <Text style={styles.emoji}>{getSportIcon(row.sport_key)}</Text>
       <Text style={styles.sportName} numberOfLines={1}>
         {t(`sports.${row.sport_key}`, { defaultValue: row.sport_key })}
@@ -218,21 +184,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
     borderStyle: 'dashed',
-  },
-
-  gauge: {
-    width: 5,
-    height: 22,
-    gap: 2,
-    justifyContent: 'flex-end',
-    flexShrink: 0,
-  },
-  gaugeSeg: {
-    height: 4,
-    borderRadius: 1.5,
-  },
-  gaugeSegEmpty: {
-    backgroundColor: colors.line,
   },
 
   emoji: {

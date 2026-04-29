@@ -6,6 +6,7 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
+import { LevelGauge } from '@/components/level-gauge';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
@@ -285,47 +286,17 @@ function SportRow({
           key={it.sportKey}
           onPress={() => onPress(it)}
           hitSlop={4}
-          style={styles.sportChipCell}
+          style={styles.sportChipPill}
         >
-          <View style={styles.sportChipPill}>
-            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
-            <Text style={styles.sportCount}>{it.count}</Text>
-            <LevelDots dots={it.dots} styles={styles} colors={colors} />
-          </View>
-          <Text
-            style={styles.sportLabel}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
+          <LevelGauge dots={it.dots} />
+          <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+          <Text style={styles.sportLabel} numberOfLines={1} ellipsizeMode="tail">
             {it.label}
           </Text>
+          <Text style={styles.sportCount}>{it.count}</Text>
         </Pressable>
       ))}
     </ScrollableLine>
-  );
-}
-
-function LevelDots({
-  dots,
-  styles,
-  colors,
-}: {
-  dots: number;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-}) {
-  return (
-    <View style={styles.levelDots}>
-      {[0, 1, 2, 3].map((i) => (
-        <View
-          key={i}
-          style={[
-            styles.levelDot,
-            { backgroundColor: i < dots ? colors.textPrimary : colors.line },
-          ]}
-        />
-      ))}
-    </View>
   );
 }
 
@@ -526,50 +497,34 @@ const createStyles = (colors: AppColors) =>
       marginLeft: 3,
     },
 
-    sportChipCell: {
-      width: 76,
-      alignItems: 'center',
-      marginRight: 6,
-    },
     sportChipPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 5,
+      gap: 6,
       backgroundColor: colors.surfaceAlt,
       borderRadius: 999,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
+      paddingVertical: 5,
+      paddingLeft: 8,
+      paddingRight: 12,
+      marginRight: 6,
     },
     sportEmoji: {
-      fontSize: 16,
-      lineHeight: 18,
+      fontSize: 18,
+      lineHeight: 20,
     },
-    sportCount: {
+    sportLabel: {
       color: colors.textPrimary,
       fontSize: 12.5,
       fontWeight: '700',
       letterSpacing: -0.01,
+      maxWidth: 100,
+      textTransform: 'capitalize',
     },
-    sportLabel: {
+    sportCount: {
       color: colors.textMuted,
-      fontSize: 10.5,
-      fontWeight: '600',
-      marginTop: 4,
-      textAlign: 'center',
-      lineHeight: 13,
-    },
-    levelDots: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 2,
-      marginLeft: 3,
-      // Match emoji height so the column sits centered next to the count.
-      paddingVertical: 1,
-    },
-    levelDot: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
+      fontSize: 12.5,
+      fontWeight: '700',
+      letterSpacing: -0.01,
     },
 
     modalBackdrop: {
