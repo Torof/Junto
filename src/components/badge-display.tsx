@@ -415,7 +415,7 @@ function VouchedRow({
           >
             {Icon && <Icon size={13} color={tierColor} strokeWidth={2.2} />}
             <Text style={styles.lineTraitText}>{it.label}</Text>
-            <Text style={[styles.lineCountText, { color: tierColor }]}>·{it.count}</Text>
+            <Text style={[styles.lineCountText, { color: tierColor }]}>{it.count}</Text>
           </Pressable>
         );
       })}
@@ -527,7 +527,7 @@ function AwardRow({
           >
             <Icon size={13} color={tierColor} strokeWidth={2.2} />
             <Text style={styles.lineTraitText}>{label}</Text>
-            <Text style={[styles.lineCountText, { color: tierColor }]}>·{it.count}</Text>
+            <Text style={[styles.lineCountText, { color: tierColor }]}>{it.count}</Text>
           </Pressable>
         );
       })}
