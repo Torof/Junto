@@ -4,6 +4,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
+import dayjs from 'dayjs';
+import {
+  Clock, Backpack, Handshake, ShieldCheck,
+  HelpCircle, Frown, Zap,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -12,6 +18,33 @@ import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type P
 import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
+
+// Per-trait Lucide icons — match the profile's vouched line for the
+// positives, distinct shapes for the negatives that don't collide with
+// the warning-severity icons (AlertTriangle / OctagonAlert) used on the
+// profile body.
+const POSITIVE_TRAIT_ICON: Record<string, LucideIcon> = {
+  punctual: Clock,
+  prepared: Backpack,
+  conciliant: Handshake,
+  prudent: ShieldCheck,
+};
+const NEGATIVE_TRAIT_ICON: Record<string, LucideIcon> = {
+  unprepared: HelpCircle,
+  aggressive: Frown,
+  reckless: Zap,
+};
+
+// Peer review window — server gates anyway, this is the client-side
+// urgency cue for the header. Activity end + 24h.
+function parseDurationMs(d: string): number {
+  if (d.includes(':')) {
+    const [h, m, s] = d.split(':').map(Number);
+    return ((h ?? 0) * 3600 + (m ?? 0) * 60 + (s ?? 0)) * 1000;
+  }
+  const match = d.match(/(\d+)\s*hour/);
+  return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
+}
 
 export default function PeerReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -99,10 +132,22 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
   }
 
+  // Window expires at end + 24h. Show a discreet "X h restantes" cue so
+  // users know to act. Server still gates the writes either way.
+  const endsAt = dayjs(activity.starts_at).add(parseDurationMs(activity.duration), 'millisecond');
+  const expiresAt = endsAt.add(24, 'hour');
+  const hoursLeft = Math.max(0, Math.round(expiresAt.diff(dayjs(), 'minute') / 60));
+  const urgencyLabel = hoursLeft > 0
+    ? t('peerReview.windowLeft', { hours: hoursLeft, defaultValue: `${hoursLeft}h left` })
+    : t('peerReview.windowClosed', { defaultValue: 'Window closed' });
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{activity.title}</Text>
-      <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
+      <View style={styles.subtitleRow}>
+        <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
+        <Text style={styles.urgency}>{urgencyLabel}</Text>
+      </View>
 
       <View style={styles.list}>
         {state.map((p) => {
@@ -119,16 +164,50 @@ export default function PeerReviewScreen() {
                 <Text style={styles.cardName} numberOfLines={1}>{p.display_name}</Text>
               </View>
 
+              {/* Presence above the trait pills — it's the gate, not a nuance. */}
+              {!presenceConfirmed && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.presencePill,
+                    p.i_voted_presence && styles.presencePillVoted,
+                    pressed && !p.i_voted_presence && styles.tappedDim,
+                  ]}
+                  onPress={() => handlePresenceTap(p)}
+                  disabled={p.i_voted_presence}
+                >
+                  <Text style={[styles.presenceText, p.i_voted_presence && styles.presenceTextVoted]}>
+                    {p.i_voted_presence
+                      ? t('peerReview.presenceVoted')
+                      : t('peerReview.presenceVoteCta', { name: p.display_name })}
+                  </Text>
+                  {p.peer_validation_count > 0 && (
+                    <Text style={styles.presenceCount}>×{p.peer_validation_count}</Text>
+                  )}
+                </Pressable>
+              )}
+
+              {/* Positives — own row so cell widths are uniform. */}
               <View style={styles.metroPill}>
                 {POSITIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
+                  const Icon = POSITIVE_TRAIT_ICON[badge.key];
                   return (
                     <Pressable
                       key={badge.key}
-                      style={[styles.metroCell, voted && styles.metroCellPositive]}
+                      style={({ pressed }) => [
+                        styles.metroCell,
+                        voted && styles.metroCellPositive,
+                        pressed && styles.tappedDim,
+                      ]}
                       onPress={() => handleBadgeTap(p, badge.key)}
                     >
-                      <Text style={styles.metroEmoji}>{badge.icon}</Text>
+                      {Icon && (
+                        <Icon
+                          size={16}
+                          color={voted ? colors.success : colors.textSecondary}
+                          strokeWidth={2.2}
+                        />
+                      )}
                       <Text
                         style={[styles.metroLabel, voted && styles.metroLabelVotedPositive]}
                         numberOfLines={1}
@@ -140,16 +219,30 @@ export default function PeerReviewScreen() {
                     </Pressable>
                   );
                 })}
-                <View style={styles.metroDivider} />
+              </View>
+
+              {/* Negatives — separate row, equal cell widths within. */}
+              <View style={styles.metroPill}>
                 {NEGATIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
+                  const Icon = NEGATIVE_TRAIT_ICON[badge.key];
                   return (
                     <Pressable
                       key={badge.key}
-                      style={[styles.metroCell, voted && styles.metroCellNegative]}
+                      style={({ pressed }) => [
+                        styles.metroCell,
+                        voted && styles.metroCellNegative,
+                        pressed && styles.tappedDim,
+                      ]}
                       onPress={() => handleBadgeTap(p, badge.key)}
                     >
-                      <Text style={styles.metroEmoji}>{badge.icon}</Text>
+                      {Icon && (
+                        <Icon
+                          size={16}
+                          color={voted ? colors.error : colors.textSecondary}
+                          strokeWidth={2.2}
+                        />
+                      )}
                       <Text
                         style={[styles.metroLabel, voted && styles.metroLabelVotedNegative]}
                         numberOfLines={1}
@@ -172,7 +265,11 @@ export default function PeerReviewScreen() {
                     return (
                       <Pressable
                         key={levelKey}
-                        style={[styles.levelCell, voted && styles.levelCellActive]}
+                        style={({ pressed }) => [
+                          styles.levelCell,
+                          voted && styles.levelCellActive,
+                          pressed && styles.tappedDim,
+                        ]}
                         onPress={() => handleLevelTap(p, levelKey)}
                       >
                         <Text
@@ -188,30 +285,16 @@ export default function PeerReviewScreen() {
                   })}
                 </View>
               )}
-
-              {!presenceConfirmed && (
-                <Pressable
-                  style={[styles.presencePill, p.i_voted_presence && styles.presencePillVoted]}
-                  onPress={() => handlePresenceTap(p)}
-                  disabled={p.i_voted_presence}
-                >
-                  <Text style={[styles.presenceText, p.i_voted_presence && styles.presenceTextVoted]}>
-                    {p.i_voted_presence
-                      ? t('peerReview.presenceVoted')
-                      : t('peerReview.presenceVoteCta', { name: p.display_name })}
-                  </Text>
-                  {p.peer_validation_count > 0 && (
-                    <Text style={styles.presenceCount}>×{p.peer_validation_count}</Text>
-                  )}
-                </Pressable>
-              )}
             </View>
           );
         })}
       </View>
 
-      <Pressable style={styles.submitButton} onPress={() => router.back()}>
-        <Text style={styles.submitText}>{t('peerReview.submit')}</Text>
+      <Pressable
+        style={({ pressed }) => [styles.submitButton, pressed && styles.tappedDim]}
+        onPress={() => router.back()}
+      >
+        <Text style={styles.submitText}>{t('peerReview.close', { defaultValue: 'Fermer' })}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -223,7 +306,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: 4 },
-  subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
+  urgency: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  tappedDim: { opacity: 0.55 },
 
   list: { gap: spacing.md },
   card: {
@@ -260,19 +358,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-  },
-  metroDivider: {
-    width: 1,
-    backgroundColor: colors.line,
-    marginVertical: 6,
+    gap: 3,
   },
   metroCellPositive: { backgroundColor: colors.success + '26' },
   metroCellNegative: { backgroundColor: colors.error + '26' },
-  metroEmoji: { fontSize: 18, lineHeight: 20 },
   metroLabel: {
     color: colors.textSecondary,
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
     textAlign: 'center',
   },
