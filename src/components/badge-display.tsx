@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, OctagonAlert } from 'lucide-react-native';
+import { AlertTriangle, OctagonAlert, Users, Mountain, type LucideIcon } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -114,41 +114,55 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDi
     return { vouched: vouchedList, warnings: warningList, sports: sportList };
   }, [reputation, trophies, sportLevels, t]);
 
-  if (vouched.length === 0 && warnings.length === 0 && sports.length === 0) return null;
+  const hasPeer = vouched.length > 0 || warnings.length > 0;
+  if (!hasPeer && sports.length === 0) return null;
 
   return (
     <View style={styles.card}>
-      {vouched.length > 0 && (
-        <VouchedRow
-          items={vouched}
-          styles={styles}
-          colors={colors}
-          onPress={(item) => setSelected({ kind: 'vouched', item })}
-        />
-      )}
-
-      {warnings.length > 0 && (
-        <>
-          {vouched.length > 0 && <View style={styles.divider} />}
-          <WarningRow
-            items={warnings}
+      {hasPeer && (
+        <View style={styles.section}>
+          <SectionHeader
+            Icon={Users}
+            label={t('profil.badgeSectionPeer')}
             styles={styles}
             colors={colors}
-            onPress={(item) => setSelected({ kind: 'warning', item })}
           />
-        </>
+          {vouched.length > 0 && (
+            <VouchedRow
+              items={vouched}
+              styles={styles}
+              colors={colors}
+              onPress={(item) => setSelected({ kind: 'vouched', item })}
+            />
+          )}
+          {warnings.length > 0 && (
+            <View style={vouched.length > 0 ? styles.warningSpacer : undefined}>
+              <WarningRow
+                items={warnings}
+                styles={styles}
+                colors={colors}
+                onPress={(item) => setSelected({ kind: 'warning', item })}
+              />
+            </View>
+          )}
+        </View>
       )}
 
       {sports.length > 0 && (
-        <>
-          {(vouched.length > 0 || warnings.length > 0) && <View style={styles.divider} />}
+        <View style={[styles.section, hasPeer && styles.sectionGap]}>
+          <SectionHeader
+            Icon={Mountain}
+            label={t('profil.badgeSectionSports')}
+            styles={styles}
+            colors={colors}
+          />
           <SportRow
             items={sports}
             styles={styles}
             colors={colors}
             onPress={(item) => setSelected({ kind: 'sport', item })}
           />
-        </>
+        </View>
       )}
 
       <DetailModal
@@ -157,6 +171,25 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [] }: BadgeDi
         styles={styles}
         t={t}
       />
+    </View>
+  );
+}
+
+function SectionHeader({
+  Icon,
+  label,
+  styles,
+  colors,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+}) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Icon size={11} color={colors.textMuted} strokeWidth={2.2} />
+      <Text style={styles.sectionLabel}>{label}</Text>
     </View>
   );
 }
@@ -252,11 +285,20 @@ function SportRow({
           key={it.sportKey}
           onPress={() => onPress(it)}
           hitSlop={4}
-          style={styles.sportChip}
+          style={styles.sportChipCell}
         >
-          <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
-          <Text style={styles.sportCount}>{it.count}</Text>
-          <LevelDots dots={it.dots} styles={styles} colors={colors} />
+          <View style={styles.sportChipPill}>
+            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+            <Text style={styles.sportCount}>{it.count}</Text>
+            <LevelDots dots={it.dots} styles={styles} colors={colors} />
+          </View>
+          <Text
+            style={styles.sportLabel}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {it.label}
+          </Text>
         </Pressable>
       ))}
     </ScrollableLine>
@@ -409,11 +451,31 @@ const createStyles = (colors: AppColors) =>
       paddingHorizontal: spacing.md,
       marginBottom: spacing.md,
     },
-    divider: {
-      borderBottomWidth: 1,
-      borderBottomColor: colors.line,
+    section: {
+      // Each section group (peer / sports) is its own block.
+    },
+    sectionGap: {
+      marginTop: spacing.md - 2,
+      paddingTop: spacing.md - 2,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
       borderStyle: 'dashed',
-      marginVertical: spacing.sm,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 8,
+    },
+    sectionLabel: {
+      color: colors.textMuted,
+      fontSize: 9.5,
+      fontWeight: '600',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    warningSpacer: {
+      marginTop: 6,
     },
 
     scrollWrap: {
@@ -464,7 +526,12 @@ const createStyles = (colors: AppColors) =>
       marginLeft: 3,
     },
 
-    sportChip: {
+    sportChipCell: {
+      width: 76,
+      alignItems: 'center',
+      marginRight: 6,
+    },
+    sportChipPill: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
@@ -472,7 +539,6 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 999,
       paddingVertical: 4,
       paddingHorizontal: 10,
-      marginRight: 6,
     },
     sportEmoji: {
       fontSize: 16,
@@ -484,11 +550,21 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '700',
       letterSpacing: -0.01,
     },
+    sportLabel: {
+      color: colors.textMuted,
+      fontSize: 10.5,
+      fontWeight: '600',
+      marginTop: 4,
+      textAlign: 'center',
+      lineHeight: 13,
+    },
     levelDots: {
-      flexDirection: 'row',
+      flexDirection: 'column',
       alignItems: 'center',
       gap: 2,
-      marginLeft: 4,
+      marginLeft: 3,
+      // Match emoji height so the column sits centered next to the count.
+      paddingVertical: 1,
     },
     levelDot: {
       width: 4,
