@@ -1,4 +1,4 @@
-import { useMemo, useLayoutEffect } from 'react';
+import { useMemo, useLayoutEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import {
   Clock, Backpack, Handshake, ShieldCheck,
   HelpCircle, Frown, Zap,
+  ChevronDown, ChevronUp,
   type LucideIcon,
 } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -54,6 +55,12 @@ export default function PeerReviewScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const navigation = useNavigation();
+  // Collapse state per participant. Default to expanded so unrated cards
+  // are immediately actionable; user collapses by tapping the header
+  // when they're done with a person.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const toggleCollapse = (userId: string) =>
+    setCollapsed((prev) => ({ ...prev, [userId]: !prev[userId] }));
 
   const { data: activity } = useQuery({
     queryKey: ['activity', id],
@@ -167,9 +174,17 @@ export default function PeerReviewScreen() {
       <View style={styles.list}>
         {state.map((p) => {
           const presenceConfirmed = p.confirmed_present === true;
+          const isCollapsed = collapsed[p.user_id] === true;
+          // Quick "completion" cue while collapsed: how many trait votes
+          // the user has cast for this person (presence + traits + level).
+          const voteCount = p.my_badge_votes.length + (p.i_voted_presence ? 1 : 0);
           return (
             <View key={p.user_id} style={styles.card}>
-              <View style={styles.cardHeader}>
+              <Pressable
+                onPress={() => toggleCollapse(p.user_id)}
+                style={({ pressed }) => [styles.cardHeader, pressed && styles.tappedDim]}
+                hitSlop={6}
+              >
                 <UserAvatar
                   name={p.display_name}
                   avatarUrl={p.avatar_url}
@@ -177,8 +192,16 @@ export default function PeerReviewScreen() {
                   confirmedPresent={presenceConfirmed}
                 />
                 <Text style={styles.cardName} numberOfLines={1}>{p.display_name}</Text>
-              </View>
+                {voteCount > 0 && isCollapsed && (
+                  <Text style={styles.cardVoteCount}>·{voteCount}</Text>
+                )}
+                {isCollapsed
+                  ? <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />
+                  : <ChevronUp size={18} color={colors.textMuted} strokeWidth={2.2} />}
+              </Pressable>
 
+              {!isCollapsed && (
+                <>
               {/* Presence above the trait pills — it's the gate, not a nuance. */}
               {!presenceConfirmed && (
                 <Pressable
@@ -305,6 +328,8 @@ export default function PeerReviewScreen() {
                   })}
                 </View>
               )}
+                </>
+              )}
             </View>
           );
         })}
@@ -361,6 +386,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: '800',
     flex: 1,
+  },
+  cardVoteCount: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: -0.01,
   },
 
   metroPill: {
