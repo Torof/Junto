@@ -394,7 +394,7 @@ function AwardRow({
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   return (
-    <View style={styles.wrapRowChips}>
+    <View style={styles.wrapRow}>
       {items.map((it) => {
         const tierColor = JUNTO_TIER_COLOR[it.tier];
         const Icon = it.kind === 'created' ? Trophy : Award;
@@ -405,14 +405,12 @@ function AwardRow({
           <Pressable
             key={it.kind}
             onPress={() => onPress(it)}
-            hitSlop={4}
-            style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
+            hitSlop={6}
+            style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
           >
-            <Icon size={16} color={tierColor} strokeWidth={2.2} />
-            <Text style={styles.awardLabel} numberOfLines={1}>{label}</Text>
-            <View style={styles.sportCountCircle}>
-              <Text style={[styles.sportCountText, { color: tierColor }]}>{it.count}</Text>
-            </View>
+            <Icon size={13} color={tierColor} strokeWidth={2.2} />
+            <Text style={styles.lineTraitText}>{label}</Text>
+            <Text style={styles.lineCountText}>·{it.count}</Text>
           </Pressable>
         );
       })}
@@ -672,14 +670,6 @@ const createStyles = (colors: AppColors) =>
       letterSpacing: -0.01,
     },
 
-    // Junto award chip reuses the sport pill skeleton — same padding,
-    // same radius, same surfaceAlt — only the inner content differs.
-    awardLabel: {
-      color: colors.textPrimary,
-      fontSize: 12,
-      fontWeight: '700',
-      letterSpacing: -0.01,
-    },
     tappedDim: {
       opacity: 0.55,
     },
