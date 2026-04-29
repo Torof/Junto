@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Users, Mountain, Trophy, Award, type LucideIcon } from 'lucide-react-native';
+import {
+  Users, Mountain, Trophy, Award,
+  AlertTriangle, OctagonAlert,
+  Clock, Backpack, Handshake, ShieldCheck,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -55,6 +60,16 @@ const JUNTO_TIER_COLOR = {
 
 const POSITIVE_KEYS = new Set<string>(POSITIVE_BADGES.map((b) => b.key));
 const NEGATIVE_KEYS = new Set<string>(NEGATIVE_BADGES.map((b) => b.key));
+
+// Per-trait Lucide icons for the vouched row. Lucide icons render in the
+// same family as the rest of the UI — cleaner than the colored emojis the
+// peer-review screen uses for tap targets.
+const POSITIVE_TRAIT_ICON: Record<string, LucideIcon> = {
+  punctual: Clock,
+  prepared: Backpack,
+  conciliant: Handshake,
+  prudent: ShieldCheck,
+};
 // level_accurate is deprecated. Hidden everywhere.
 const DEPRECATED_PEER_KEYS = new Set(['level_accurate']);
 
@@ -62,13 +77,11 @@ interface VouchedItem {
   key: string;
   label: string;
   count: number;
-  icon: string;
 }
 interface WarningItem {
   key: string;
   label: string;
   severity: 'amber' | 'red';
-  icon: string;
 }
 interface JuntoAward {
   kind: 'joined' | 'created';
@@ -99,13 +112,6 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
     const vouchedList: VouchedItem[] = [];
     const warningList: WarningItem[] = [];
 
-    const positiveIconByKey = new Map<string, string>(
-      POSITIVE_BADGES.map((b) => [b.key, b.icon])
-    );
-    const negativeIconByKey = new Map<string, string>(
-      NEGATIVE_BADGES.map((b) => [b.key, b.icon])
-    );
-
     for (const rep of reputation) {
       if (DEPRECATED_PEER_KEYS.has(rep.badge_key)) continue;
       const count = rep.vote_count ?? 0;
@@ -115,7 +121,6 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
           count,
-          icon: positiveIconByKey.get(rep.badge_key) ?? '',
         });
       } else if (NEGATIVE_KEYS.has(rep.badge_key)) {
         if (count < WARNING_THRESHOLD) continue;
@@ -123,7 +128,6 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
           severity: count >= WARNING_RED_THRESHOLD ? 'red' : 'amber',
-          icon: negativeIconByKey.get(rep.badge_key) ?? '',
         });
       }
     }
@@ -271,6 +275,7 @@ function SectionHeader({
 function VouchedRow({
   items,
   styles,
+  colors,
   onPress,
 }: {
   items: VouchedItem[];
@@ -280,13 +285,16 @@ function VouchedRow({
 }) {
   return (
     <View style={styles.wrapRow}>
-      {items.map((it) => (
-        <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
-          {it.icon && <Text style={styles.lineEmoji}>{it.icon}</Text>}
-          <Text style={styles.lineTraitText}>{it.label}</Text>
-          <Text style={styles.lineCountText}>·{it.count}</Text>
-        </Pressable>
-      ))}
+      {items.map((it) => {
+        const Icon = POSITIVE_TRAIT_ICON[it.key];
+        return (
+          <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
+            {Icon && <Icon size={13} color={colors.textPrimary} strokeWidth={2.2} />}
+            <Text style={styles.lineTraitText}>{it.label}</Text>
+            <Text style={styles.lineCountText}>·{it.count}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -310,11 +318,12 @@ function WarningRow({
     <View style={styles.wrapRow}>
       {items.map((it) => {
         const isRed = it.severity === 'red';
+        const Icon = isRed ? OctagonAlert : AlertTriangle;
         const color = isRed ? COLOR_RED : COLOR_AMBER;
         const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
         return (
           <Pressable key={it.key} onPress={() => onPress(it)} hitSlop={6} style={styles.lineItem}>
-            {it.icon && <Text style={styles.lineEmoji}>{it.icon}</Text>}
+            <Icon size={13} color={color} strokeWidth={2.4} />
             <Text style={[styles.lineTraitText, { color }]}>
               {it.label} {suffix}
             </Text>
