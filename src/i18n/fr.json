@@ -766,20 +766,70 @@
       "4": "Niveau : Expert"
     },
     "levelVotesHeader": "Niveau (avis communauté)",
-    "awardKind": {
-      "joined": "Rejointes",
-      "created": "Créées"
-    },
     "awardTier": {
       "bronze": "Bronze",
       "silver": "Argent",
       "gold": "Or"
     },
+    "awardLabel": {
+      "joined": {
+        "bronze": "Membre",
+        "silver": "Régulier",
+        "gold": "Pilier"
+      },
+      "created": {
+        "bronze": "Initiateur",
+        "silver": "Animateur",
+        "gold": "Bâtisseur"
+      },
+      "polyvalent": {
+        "bronze": "Curieux",
+        "silver": "Explorateur",
+        "gold": "Polyvalent"
+      },
+      "aventurier": {
+        "bronze": "Bivouac",
+        "silver": "Trekkeur",
+        "gold": "Aventurier"
+      },
+      "aquatique": {
+        "bronze": "Marin",
+        "silver": "Capitaine",
+        "gold": "Créature des mers"
+      },
+      "montagne": {
+        "bronze": "Marcheur",
+        "silver": "Montagnard",
+        "gold": "Golem des montagnes"
+      },
+      "route": {
+        "bronze": "Coureur",
+        "silver": "Marathonien",
+        "gold": "Cardio sans fin"
+      },
+      "air": {
+        "bronze": "Voltigeur",
+        "silver": "Pilote",
+        "gold": "Roi des airs"
+      }
+    },
     "awardDesc": {
       "joined_one": "{{count}} activité rejointe.",
       "joined_other": "{{count}} activités rejointes.",
       "created_one": "{{count}} activité créée.",
-      "created_other": "{{count}} activités créées."
+      "created_other": "{{count}} activités créées.",
+      "polyvalent_one": "{{count}} sport pratiqué.",
+      "polyvalent_other": "{{count}} sports pratiqués.",
+      "aventurier_one": "{{count}} aventure de plus d'un jour.",
+      "aventurier_other": "{{count}} aventures de plus d'un jour.",
+      "aquatique_one": "{{count}} sortie aquatique.",
+      "aquatique_other": "{{count}} sorties aquatiques.",
+      "montagne_one": "{{count}} sortie en montagne.",
+      "montagne_other": "{{count}} sorties en montagne.",
+      "route_one": "{{count}} sortie sur route.",
+      "route_other": "{{count}} sorties sur route.",
+      "air_one": "{{count}} sortie aérienne.",
+      "air_other": "{{count}} sorties aériennes."
     }
   },
   "presence": {

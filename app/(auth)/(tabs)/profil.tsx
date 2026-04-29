@@ -109,6 +109,12 @@ export default function ProfilScreen() {
     enabled: !!userId,
   });
 
+  const { data: awardAggregates } = useQuery({
+    queryKey: ['award-aggregates', userId],
+    queryFn: () => badgeService.getUserAwardAggregates(userId ?? ''),
+    enabled: !!userId,
+  });
+
   const handleAvatarPress = async () => {
     if (uploading) return;
     setUploading(true);
@@ -144,6 +150,7 @@ export default function ProfilScreen() {
           trophies={trophies ?? []}
           sportLevels={sportLevels ?? []}
           sportLevelVotes={sportLevelVotes ?? []}
+          awardAggregates={awardAggregates}
           completedCount={stats?.completed_activities}
           createdCount={stats?.created_activities}
         />

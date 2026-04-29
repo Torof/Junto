@@ -88,6 +88,12 @@ export default function PublicProfileScreen() {
     enabled: !!id,
   });
 
+  const { data: awardAggregates } = useQuery({
+    queryKey: ['award-aggregates', id],
+    queryFn: () => badgeService.getUserAwardAggregates(id ?? ''),
+    enabled: !!id,
+  });
+
   const { data: conversationState } = useQuery({
     queryKey: ['conversation-state', id],
     queryFn: () => conversationService.getConversationStateWith(id ?? ''),
@@ -179,6 +185,7 @@ export default function PublicProfileScreen() {
         trophies={trophies ?? []}
         sportLevels={sportLevels ?? []}
         sportLevelVotes={sportLevelVotes ?? []}
+        awardAggregates={awardAggregates}
         completedCount={stats?.completed_activities}
         createdCount={stats?.created_activities}
         showLocked={false}

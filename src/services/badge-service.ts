@@ -101,6 +101,16 @@ export interface SportLevelVotes {
   level_under: number;
 }
 
+// Aggregates fed into the data-driven Junto award definitions on the client.
+// Server returns one JSONB blob; client decides which awards earn which tier.
+export interface AwardAggregates {
+  joined: number;
+  created: number;
+  distinct_sports: number;
+  multi_day_count: number;
+  by_category: Record<string, { outings: number; distinct_sports: number }>;
+}
+
 export interface PeerReviewParticipant {
   user_id: string;
   display_name: string;
@@ -178,5 +188,20 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as SportLevelVotes[]) ?? [];
+  },
+
+  getUserAwardAggregates: async (userId: string): Promise<AwardAggregates> => {
+    const empty: AwardAggregates = {
+      joined: 0,
+      created: 0,
+      distinct_sports: 0,
+      multi_day_count: 0,
+      by_category: {},
+    };
+    const { data, error } = await supabase.rpc('get_user_award_aggregates' as 'join_activity', {
+      p_user_id: userId,
+    } as unknown as { p_activity_id: string });
+    if (error || !data) return empty;
+    return data as unknown as AwardAggregates;
   },
 };

@@ -764,20 +764,70 @@
       "4": "Level: Expert"
     },
     "levelVotesHeader": "Level (community feedback)",
-    "awardKind": {
-      "joined": "Joined",
-      "created": "Created"
-    },
     "awardTier": {
       "bronze": "Bronze",
       "silver": "Silver",
       "gold": "Gold"
     },
+    "awardLabel": {
+      "joined": {
+        "bronze": "Member",
+        "silver": "Regular",
+        "gold": "Pillar"
+      },
+      "created": {
+        "bronze": "Initiator",
+        "silver": "Host",
+        "gold": "Builder"
+      },
+      "polyvalent": {
+        "bronze": "Curious",
+        "silver": "Explorer",
+        "gold": "All-rounder"
+      },
+      "aventurier": {
+        "bronze": "Bivouac",
+        "silver": "Trekker",
+        "gold": "Adventurer"
+      },
+      "aquatique": {
+        "bronze": "Sailor",
+        "silver": "Captain",
+        "gold": "Sea Creature"
+      },
+      "montagne": {
+        "bronze": "Walker",
+        "silver": "Mountaineer",
+        "gold": "Mountain Golem"
+      },
+      "route": {
+        "bronze": "Runner",
+        "silver": "Marathoner",
+        "gold": "Endless Cardio"
+      },
+      "air": {
+        "bronze": "Flyer",
+        "silver": "Pilot",
+        "gold": "Sky King"
+      }
+    },
     "awardDesc": {
       "joined_one": "{{count}} activity joined.",
       "joined_other": "{{count}} activities joined.",
       "created_one": "{{count}} activity created.",
-      "created_other": "{{count}} activities created."
+      "created_other": "{{count}} activities created.",
+      "polyvalent_one": "{{count}} sport practiced.",
+      "polyvalent_other": "{{count}} sports practiced.",
+      "aventurier_one": "{{count}} multi-day adventure.",
+      "aventurier_other": "{{count}} multi-day adventures.",
+      "aquatique_one": "{{count}} water outing.",
+      "aquatique_other": "{{count}} water outings.",
+      "montagne_one": "{{count}} mountain outing.",
+      "montagne_other": "{{count}} mountain outings.",
+      "route_one": "{{count}} road outing.",
+      "route_other": "{{count}} road outings.",
+      "air_one": "{{count}} air outing.",
+      "air_other": "{{count}} air outings."
     }
   },
   "presence": {

@@ -5,6 +5,7 @@ import {
   Users, Mountain, Trophy, Award,
   AlertTriangle, OctagonAlert,
   Clock, Backpack, Handshake, ShieldCheck,
+  Compass, Tent, Waves, Bike, Plane,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -19,6 +20,7 @@ import {
   type Trophy as ReputationTrophy,
   type SportLevel,
   type SportLevelVotes,
+  type AwardAggregates,
 } from '@/services/badge-service';
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
@@ -33,6 +35,7 @@ interface BadgeDisplayProps {
   trophies: ReputationTrophy[];
   sportLevels?: SportLevel[];
   sportLevelVotes?: SportLevelVotes[];
+  awardAggregates?: AwardAggregates;
   // Kept for call-site compatibility — Phase 1+ ignores them.
   completedCount?: number;
   createdCount?: number;
@@ -43,15 +46,6 @@ const VOUCHED_THRESHOLD = 5;
 const WARNING_THRESHOLD = 5;
 const WARNING_RED_THRESHOLD = 15;
 const SPORT_THRESHOLD = 3;
-// Junto award tiers — derived from the raw trophy count. Cup color
-// communicates the tier, the count next to it carries the magnitude.
-const JUNTO_TIER_THRESHOLDS = { silver: 20, gold: 50 } as const;
-function juntoTier(count: number): 'bronze' | 'silver' | 'gold' | null {
-  if (count >= JUNTO_TIER_THRESHOLDS.gold) return 'gold';
-  if (count >= JUNTO_TIER_THRESHOLDS.silver) return 'silver';
-  if (count >= 5) return 'bronze';
-  return null;
-}
 // Peer-vouched tier — same color palette as Junto so the eye learns one
 // rank language across the card. Visibility threshold is 5 so the bronze
 // floor is never "missing".
@@ -65,7 +59,6 @@ const TIER_COLOR = {
   silver: '#9DA9B5',
   gold: '#E0B040',
 } as const;
-const JUNTO_TIER_COLOR = TIER_COLOR;
 
 const POSITIVE_KEYS = new Set<string>(POSITIVE_BADGES.map((b) => b.key));
 const NEGATIVE_KEYS = new Set<string>(NEGATIVE_BADGES.map((b) => b.key));
@@ -93,9 +86,110 @@ interface WarningItem {
   severity: 'amber' | 'red';
 }
 interface JuntoAward {
-  kind: 'joined' | 'created';
+  id: string;
+  Icon: LucideIcon;
   count: number;
   tier: 'bronze' | 'silver' | 'gold';
+}
+
+// Data-driven Junto award definitions. Adding / removing / tuning a badge
+// is just an entry change here + an i18n entry under badges.awardLabel.{id}.
+//
+// `outings` — main count threshold (joined / created / multi-day / outings in category)
+// `minDistinct` — extra threshold for themed badges (distinct sports of this kind)
+// `evaluate` — pulls (count, distinctSports) from the server aggregates.
+type AwardEval = { count: number; distinctSports?: number };
+interface AwardDef {
+  id: string;
+  Icon: LucideIcon;
+  outings: [number, number, number];     // bronze / silver / gold
+  minDistinct?: [number, number, number];
+  evaluate: (a: AwardAggregates) => AwardEval;
+}
+
+const AWARDS: AwardDef[] = [
+  {
+    id: 'joined',
+    Icon: Award,
+    outings: [5, 20, 50],
+    evaluate: (a) => ({ count: a.joined }),
+  },
+  {
+    id: 'created',
+    Icon: Trophy,
+    outings: [5, 20, 50],
+    evaluate: (a) => ({ count: a.created }),
+  },
+  {
+    id: 'polyvalent',
+    Icon: Compass,
+    outings: [3, 5, 8],
+    evaluate: (a) => ({ count: a.distinct_sports }),
+  },
+  {
+    id: 'aventurier',
+    Icon: Tent,
+    outings: [1, 3, 5],
+    evaluate: (a) => ({ count: a.multi_day_count }),
+  },
+  // Themed — by sports.category. The `minDistinct` floor stops a single sport
+  // from carrying the whole tier.
+  {
+    id: 'aquatique',
+    Icon: Waves,
+    outings: [25, 50, 100],
+    minDistinct: [3, 4, 5],
+    evaluate: (a) => {
+      const c = a.by_category?.water;
+      return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
+    },
+  },
+  {
+    id: 'montagne',
+    Icon: Mountain,
+    outings: [25, 50, 100],
+    minDistinct: [3, 4, 5],
+    evaluate: (a) => {
+      const c = a.by_category?.mountain;
+      return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
+    },
+  },
+  {
+    id: 'route',
+    Icon: Bike,
+    outings: [25, 50, 100],
+    minDistinct: [2, 3, 3], // road has fewer sports — relax distinct floor
+    evaluate: (a) => {
+      const c = a.by_category?.road;
+      return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
+    },
+  },
+  {
+    id: 'air',
+    Icon: Plane,
+    outings: [10, 25, 50],
+    minDistinct: [1, 1, 1], // air sports are inherently rare
+    evaluate: (a) => {
+      const c = a.by_category?.air;
+      return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
+    },
+  },
+];
+
+function evaluateAward(def: AwardDef, agg: AwardAggregates): { tier: 'bronze' | 'silver' | 'gold' | null; count: number } {
+  const result = def.evaluate(agg);
+  const distinct = result.distinctSports ?? Number.POSITIVE_INFINITY;
+  const tiers = [
+    { name: 'gold' as const,   threshold: def.outings[2], distinctFloor: def.minDistinct?.[2] ?? 0 },
+    { name: 'silver' as const, threshold: def.outings[1], distinctFloor: def.minDistinct?.[1] ?? 0 },
+    { name: 'bronze' as const, threshold: def.outings[0], distinctFloor: def.minDistinct?.[0] ?? 0 },
+  ];
+  for (const t of tiers) {
+    if (result.count >= t.threshold && distinct >= t.distinctFloor) {
+      return { tier: t.name, count: result.count };
+    }
+  }
+  return { tier: null, count: result.count };
 }
 interface SportItem {
   sportKey: string;
@@ -111,7 +205,7 @@ type DetailTarget =
   | { kind: 'sport'; item: SportItem }
   | { kind: 'award'; item: JuntoAward };
 
-export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLevelVotes = [] }: BadgeDisplayProps) {
+export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates }: BadgeDisplayProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -167,18 +261,25 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Junto awards — bronze / silver / gold cup per category, derived from
-    // the existing trophy counts. Surface the user's *current* tier only.
+    // Junto awards — iterate the data-driven AWARDS list, surface only the
+    // ones the user has earned at least bronze on.
     const awardsList: JuntoAward[] = [];
-    const joinedTrophy = trophies.find((tr) => tr.category === 'joined');
-    const createdTrophy = trophies.find((tr) => tr.category === 'created');
-    const joinedTier = juntoTier(joinedTrophy?.count ?? 0);
-    const createdTier = juntoTier(createdTrophy?.count ?? 0);
-    if (joinedTier) awardsList.push({ kind: 'joined', count: joinedTrophy?.count ?? 0, tier: joinedTier });
-    if (createdTier) awardsList.push({ kind: 'created', count: createdTrophy?.count ?? 0, tier: createdTier });
+    if (awardAggregates) {
+      for (const def of AWARDS) {
+        const evald = evaluateAward(def, awardAggregates);
+        if (evald.tier) {
+          awardsList.push({
+            id: def.id,
+            Icon: def.Icon,
+            count: evald.count,
+            tier: evald.tier,
+          });
+        }
+      }
+    }
 
     return { vouched: vouchedList, warnings: warningList, sports: sportList, awards: awardsList };
-  }, [reputation, trophies, sportLevels, sportLevelVotes, t]);
+  }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
   if (!hasPeer && sports.length === 0 && awards.length === 0) return null;
@@ -406,14 +507,12 @@ function AwardRow({
   return (
     <View style={styles.wrapRowChips}>
       {items.map((it) => {
-        const tierColor = JUNTO_TIER_COLOR[it.tier];
-        const Icon = it.kind === 'created' ? Trophy : Award;
-        const label = t(`badges.awardKind.${it.kind}`, {
-          defaultValue: it.kind === 'joined' ? 'Joined' : 'Created',
-        });
+        const tierColor = TIER_COLOR[it.tier];
+        const label = t(`badges.awardLabel.${it.id}.${it.tier}`, { defaultValue: it.id });
+        const Icon = it.Icon;
         return (
           <Pressable
-            key={it.kind}
+            key={it.id}
             onPress={() => onPress(it)}
             hitSlop={6}
             style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
@@ -472,11 +571,11 @@ function DetailModal({
   } else {
     // award
     const tierLabel = t(`badges.awardTier.${target.item.tier}`, { defaultValue: target.item.tier });
-    const kindLabel = t(`badges.awardKind.${target.item.kind}`, {
-      defaultValue: target.item.kind === 'joined' ? 'Joined' : 'Created',
+    const awardLabel = t(`badges.awardLabel.${target.item.id}.${target.item.tier}`, {
+      defaultValue: target.item.id,
     });
-    title = `${kindLabel} · ${tierLabel}`;
-    body = t(`badges.awardDesc.${target.item.kind}`, {
+    title = `${awardLabel} · ${tierLabel}`;
+    body = t(`badges.awardDesc.${target.item.id}`, {
       count: target.item.count,
       defaultValue: `${target.item.count} activités.`,
     });
