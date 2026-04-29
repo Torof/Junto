@@ -52,11 +52,20 @@ function juntoTier(count: number): 'bronze' | 'silver' | 'gold' | null {
   if (count >= 5) return 'bronze';
   return null;
 }
-const JUNTO_TIER_COLOR = {
+// Peer-vouched tier — same color palette as Junto so the eye learns one
+// rank language across the card. Visibility threshold is 5 so the bronze
+// floor is never "missing".
+function vouchedTier(count: number): 'bronze' | 'silver' | 'gold' {
+  if (count >= 50) return 'gold';
+  if (count >= 10) return 'silver';
+  return 'bronze';
+}
+const TIER_COLOR = {
   bronze: '#B87333',
   silver: '#9DA9B5',
   gold: '#E0B040',
 } as const;
+const JUNTO_TIER_COLOR = TIER_COLOR;
 
 const POSITIVE_KEYS = new Set<string>(POSITIVE_BADGES.map((b) => b.key));
 const NEGATIVE_KEYS = new Set<string>(NEGATIVE_BADGES.map((b) => b.key));
@@ -287,6 +296,7 @@ function VouchedRow({
     <View style={styles.wrapRowChips}>
       {items.map((it) => {
         const Icon = POSITIVE_TRAIT_ICON[it.key];
+        const tierColor = TIER_COLOR[vouchedTier(it.count)];
         return (
           <Pressable
             key={it.key}
@@ -294,9 +304,9 @@ function VouchedRow({
             hitSlop={6}
             style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
           >
-            {Icon && <Icon size={13} color={colors.textPrimary} strokeWidth={2.2} />}
+            {Icon && <Icon size={13} color={tierColor} strokeWidth={2.2} />}
             <Text style={styles.lineTraitText}>{it.label}</Text>
-            <Text style={styles.lineCountText}>·{it.count}</Text>
+            <Text style={[styles.lineCountText, { color: tierColor }]}>·{it.count}</Text>
           </Pressable>
         );
       })}
@@ -410,7 +420,7 @@ function AwardRow({
           >
             <Icon size={13} color={tierColor} strokeWidth={2.2} />
             <Text style={styles.lineTraitText}>{label}</Text>
-            <Text style={styles.lineCountText}>·{it.count}</Text>
+            <Text style={[styles.lineCountText, { color: tierColor }]}>·{it.count}</Text>
           </Pressable>
         );
       })}
