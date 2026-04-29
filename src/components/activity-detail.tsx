@@ -527,10 +527,23 @@ export function ActivityDetail({
             </View>
           )}
           {alreadyConfirmed && (
-            <View style={styles.presenceDone}>
+            <View style={[styles.presencePill, styles.presencePillConfirmed]}>
               <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
               <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
             </View>
+          )}
+          {!alreadyConfirmed && canCheckIn && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.presencePill,
+                styles.presencePillReminder,
+                pressed && { opacity: 0.7 },
+              ]}
+              onPress={() => setActiveTab('organization')}
+            >
+              <MapPinCheck size={16} color={colors.cta} strokeWidth={2.4} />
+              <Text style={styles.presenceReminderText}>{t('presence.confirmMyPresence')}</Text>
+            </Pressable>
           )}
 
           <OrganizerCard
@@ -621,14 +634,6 @@ export function ActivityDetail({
                 )}
               </Pressable>
             </View>
-          )}
-
-          {/* Presence reminder banner on Info tab */}
-          {canCheckIn && !alreadyConfirmed && (
-            <Pressable style={styles.presenceReminder} onPress={() => setActiveTab('organization')}>
-              <MapPinCheck size={16} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.presenceReminderText}>{t('presence.confirmMyPresence')}</Text>
-            </Pressable>
           )}
 
           {showJoinButton && (
@@ -896,11 +901,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   tabBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
-  presenceReminder: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.cta + '15', borderRadius: radius.md,
-    padding: spacing.md, marginTop: spacing.md,
+  // Unified presence pill — both states (à confirmer / confirmée) share the
+  // same shape, slot and spacing on the Info tab so one literally replaces
+  // the other when the user confirms.
+  presencePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
+  presencePillReminder: { backgroundColor: colors.cta + '15' },
+  presencePillConfirmed: { backgroundColor: colors.success + '15' },
   presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
   transportSummary: {
