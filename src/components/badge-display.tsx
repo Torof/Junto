@@ -6,7 +6,7 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
-import { LevelGauge, LevelDot } from '@/components/level-gauge';
+import { LevelGauge } from '@/components/level-gauge';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
@@ -281,7 +281,6 @@ function SportRow({
           style={styles.sportChipPill}
         >
           <View style={styles.sportChipTopRow}>
-            <LevelDot dots={it.dots} />
             <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
             <View style={styles.sportCountDivider} />
             <Text style={styles.sportCount}>{it.count}</Text>
