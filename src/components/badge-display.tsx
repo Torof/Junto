@@ -284,7 +284,7 @@ function VouchedRow({
   onPress: (item: VouchedItem) => void;
 }) {
   return (
-    <View style={styles.wrapRow}>
+    <View style={styles.wrapRowChips}>
       {items.map((it) => {
         const Icon = POSITIVE_TRAIT_ICON[it.key];
         return (
@@ -320,7 +320,7 @@ function WarningRow({
 }) {
   const { t } = useTranslation();
   return (
-    <View style={styles.wrapRow}>
+    <View style={styles.wrapRowChips}>
       {items.map((it) => {
         const isRed = it.severity === 'red';
         const Icon = isRed ? OctagonAlert : AlertTriangle;
@@ -394,7 +394,7 @@ function AwardRow({
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   return (
-    <View style={styles.wrapRow}>
+    <View style={styles.wrapRowChips}>
       {items.map((it) => {
         const tierColor = JUNTO_TIER_COLOR[it.tier];
         const Icon = it.kind === 'created' ? Trophy : Award;
@@ -592,13 +592,6 @@ const createStyles = (colors: AppColors) =>
       marginTop: 6,
     },
 
-    wrapRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      alignItems: 'center',
-      rowGap: 6,
-      columnGap: 14,
-    },
     wrapRowChips: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -606,23 +599,17 @@ const createStyles = (colors: AppColors) =>
       rowGap: 6,
       columnGap: 6,
     },
-    linePrefix: {
-      fontSize: 13,
-      fontWeight: '700',
-      marginRight: -6,
-    },
-    linePrefixVouched: {
-      color: '#7EC8A3',
-    },
 
+    // Each peer / award trait sits in its own pill — same surface family
+    // as the sport chips below for visual cohesion across the card.
     lineItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-    },
-    lineEmoji: {
-      fontSize: 13,
-      lineHeight: 15,
+      gap: 5,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 8,
+      paddingVertical: 5,
+      paddingHorizontal: 9,
     },
     lineTraitText: {
       color: colors.textPrimary,
