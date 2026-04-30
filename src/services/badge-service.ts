@@ -16,9 +16,12 @@ export const NEGATIVE_BADGES = [
   { key: 'reckless', icon: '💥', threshold: 5 },
 ] as const;
 
-// Per-sport level vote — 3-way mutually exclusive per (voter, voted, activity).
-// Lives in the sport popover only, not in the global vouched / warning rows.
-export const LEVEL_VOTE_KEYS = ['level_over', 'level_right', 'level_under'] as const;
+// Per-sport level vote — mutually exclusive per (voter, voted, activity).
+// Only over / right are castable from the client now; level_under is still
+// in the server whitelist (mig 00154) and historical rows still aggregate
+// in get_user_sport_level_votes, but no UI cast surfaces nor displays it
+// (sport popover computes net = right - over, ignoring under).
+export const LEVEL_VOTE_KEYS = ['level_over', 'level_right'] as const;
 export type LevelVoteKey = typeof LEVEL_VOTE_KEYS[number];
 
 // Tier ladder shared across joined / created / per-sport categories.
