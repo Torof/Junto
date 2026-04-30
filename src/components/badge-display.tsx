@@ -1002,7 +1002,9 @@ const createStyles = (colors: AppColors) =>
       paddingHorizontal: 6,
     },
     sportCountText: {
-      color: colors.cta,
+      // Same blue as the "joined" stat in the hero — informational, not
+      // call-to-action. CTA orange was reading as "tap me" pressure.
+      color: '#4B7CB8',
       fontSize: 13,
       fontWeight: '800',
       letterSpacing: -0.02,
