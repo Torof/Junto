@@ -776,21 +776,25 @@ function SportDetail({
     <>
       <Text style={styles.modalTitle}>
         {getSportIcon(item.sportKey)}  {item.label}
-        <Text style={styles.modalTitleCount}>  ×{item.count}</Text>
       </Text>
 
-      {(lastDate || frequencyLabel) && (
-        <View style={styles.modalRecency}>
-          {lastDate && (
-            <Text style={styles.modalRecencyLine}>
-              {t('badges.lastActivityAt', { when: lastDate, defaultValue: `Last activity: ${lastDate}` })}
-            </Text>
-          )}
-          {frequencyLabel && (
-            <Text style={styles.modalRecencyLine}>{frequencyLabel}</Text>
-          )}
-        </View>
-      )}
+      {/* Facts block — count + recency in one bordered unit. The bordered
+          box reads as "objective data"; the stamp below sits outside it
+          to read as "peer verdict" (different signal type, different
+          visual weight). */}
+      <View style={styles.factsBlock}>
+        <Text style={styles.factsLine}>
+          {t('badges.sportOutings', { count: item.count, defaultValue: `${item.count} sorties` })}
+        </Text>
+        {lastDate && (
+          <Text style={styles.factsLine}>
+            {t('badges.lastActivityAt', { when: lastDate, defaultValue: `Last activity: ${lastDate}` })}
+          </Text>
+        )}
+        {frequencyLabel && (
+          <Text style={styles.factsLine}>{frequencyLabel}</Text>
+        )}
+      </View>
 
       {net !== 0 && (() => {
         const isPositive = net > 0;
@@ -1069,14 +1073,22 @@ const createStyles = (colors: AppColors) =>
       marginTop: 8,
       textAlign: 'center',
     },
-    modalRecency: {
-      marginTop: 8,
-      gap: 2,
+    // Facts block — bordered card grouping the objective data lines
+    // (count, last activity, frequency). Visually separates them from
+    // the peer-validation stamp that sits beneath.
+    factsBlock: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.md,
+      marginTop: 10,
+      gap: 4,
       alignItems: 'center',
     },
-    modalRecencyLine: {
-      color: colors.textMuted,
-      fontSize: 12,
+    factsLine: {
+      color: colors.textPrimary,
+      fontSize: 13,
       fontWeight: '600',
       textAlign: 'center',
     },
@@ -1110,12 +1122,6 @@ const createStyles = (colors: AppColors) =>
     levelStampCount: {
       fontSize: 12,
       fontWeight: '800',
-      letterSpacing: -0.02,
-    },
-    modalTitleCount: {
-      color: colors.textMuted,
-      fontSize: 15,
-      fontWeight: '700',
       letterSpacing: -0.02,
     },
     modalLevelVotes: {
