@@ -62,18 +62,23 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
           isOrganizer
         />
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.name} numberOfLines={1}>{creatorName}</Text>
-          <View style={styles.metaRow}>
-            <ReliabilityTierChip tier={creatorStats?.reliability_tier ?? null} size="sm" />
-            {creatorStats && creatorStats.created_activities > 0 && (
-              <>
-                <Text style={styles.metaDot}>·</Text>
-                <Text style={styles.creatorStatText} numberOfLines={1}>
-                  {t('organizer.activitiesCreated', { count: creatorStats.created_activities })}
-                </Text>
-              </>
-            )}
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{creatorName}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{t('organizer.badge')}</Text>
+            </View>
           </View>
+          {creatorStats?.reliability_tier && (
+            <View style={styles.metaRow}>
+              <Text style={styles.reliabilityPrefix}>{t('organizer.reliability')}</Text>
+              <ReliabilityTierChip tier={creatorStats.reliability_tier} size="sm" />
+            </View>
+          )}
+          {creatorStats && creatorStats.created_activities > 0 && (
+            <Text style={styles.creatorStatText}>
+              {t('organizer.activitiesCreated', { count: creatorStats.created_activities })}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -129,18 +134,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
   name: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  badge: {
+    backgroundColor: colors.cta + '26',
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: 4,
+  },
+  badgeText: {
+    color: colors.cta, fontSize: 9, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 0.6,
+  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     marginTop: 2,
     flexWrap: 'wrap',
   },
-  metaDot: { color: colors.textMuted, fontSize: 11 },
+  reliabilityPrefix: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+  },
   creatorStatText: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs + 1,
+    marginTop: 2,
   },
   stackRow: {
     flexDirection: 'row', alignItems: 'center',

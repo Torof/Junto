@@ -278,6 +278,7 @@
   },
   "organizer": {
     "badge": "Organizer",
+    "reliability": "Reliability",
     "viewAll": "View all",
     "participantsCount_one": "{{count}} participant",
     "participantsCount_other": "{{count}} participants",
