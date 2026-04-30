@@ -800,9 +800,10 @@ function SportDetail({
         const isPositive = net > 0;
         const color = isPositive ? '#7EC8A3' : COLOR_AMBER;
         const StampIcon = isPositive ? Check : AlertTriangle;
+        const count = Math.abs(net);
         const verdict = isPositive
-          ? t('badges.levelStampRight', { defaultValue: 'Niveau confirmé' })
-          : t('badges.levelStampOver', { defaultValue: 'Niveau surestimé' });
+          ? t('badges.levelStampRight', { count, defaultValue: `Niveau confirmé par ${count}` })
+          : t('badges.levelStampOver', { count, defaultValue: `Niveau surestimé par ${count}` });
         return (
           <View
             style={[
@@ -814,7 +815,6 @@ function SportDetail({
             <Text style={[styles.levelStampText, { color }]} numberOfLines={1}>
               {verdict}
             </Text>
-            <Text style={[styles.levelStampCount, { color }]}>×{Math.abs(net)}</Text>
           </View>
         );
       })()}
@@ -1118,11 +1118,6 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: 1.2,
       textTransform: 'uppercase',
-    },
-    levelStampCount: {
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: -0.02,
     },
     modalLevelVotes: {
       marginTop: 10,
