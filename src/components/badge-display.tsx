@@ -7,6 +7,7 @@ import {
   AlertTriangle, OctagonAlert,
   Clock, Backpack, Handshake, ShieldCheck,
   Compass, Tent, Waves, Bike, Plane,
+  HelpCircle,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -213,6 +214,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   const { vouched, warnings, sports, awards } = useMemo(() => {
     const vouchedList: VouchedItem[] = [];
@@ -297,6 +299,14 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
 
   return (
     <View style={styles.card}>
+      <Pressable
+        style={styles.helpButton}
+        onPress={() => setShowHelp(true)}
+        hitSlop={10}
+      >
+        <HelpCircle size={16} color={colors.textMuted} strokeWidth={2} />
+      </Pressable>
+
       <View style={styles.section}>
         <SectionHeader
           Icon={Users}
@@ -374,6 +384,28 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
         styles={styles}
         t={t}
       />
+
+      <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
+        <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
+          <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.helpTitle}>{t('profil.badgeHelp.title')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
+
+            <Text style={styles.helpHeading}>{t('profil.badgeSectionPeer')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.peer')}</Text>
+
+            <Text style={styles.helpHeading}>{t('profil.badgeSectionAuto')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.junto')}</Text>
+
+            <Text style={styles.helpHeading}>{t('profil.badgeSectionSports')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.sports')}</Text>
+
+            <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
+              <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -953,6 +985,68 @@ const createStyles = (colors: AppColors) =>
       paddingVertical: 10,
     },
     modalDismissText: {
+      color: colors.cta,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+
+    // Help button (top-right ?) + its modal — same visual family as the
+    // reliability help modal in profile-hero.
+    helpButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      width: 28,
+      height: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1,
+    },
+    helpBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    helpCard: {
+      width: '100%',
+      maxWidth: 380,
+      backgroundColor: colors.surface,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.line,
+      padding: spacing.lg,
+      gap: 6,
+    },
+    helpTitle: {
+      color: colors.textPrimary,
+      fontSize: 17,
+      fontWeight: '800',
+      marginBottom: 2,
+    },
+    helpHeading: {
+      color: colors.textPrimary,
+      fontSize: 12,
+      fontWeight: '700',
+      marginTop: 10,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    helpBody: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 19,
+    },
+    helpDismiss: {
+      alignSelf: 'center',
+      marginTop: spacing.md,
+      backgroundColor: colors.cta + '1F',
+      borderRadius: 999,
+      paddingHorizontal: 28,
+      paddingVertical: 10,
+    },
+    helpDismissText: {
       color: colors.cta,
       fontSize: 13,
       fontWeight: '700',

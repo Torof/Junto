@@ -441,6 +441,13 @@
     "badgeEmptyPeer": "Your co-participants will rate how things went on the field here.",
     "badgeEmptyAwards": "Your Junto badges will appear here as you log activities.",
     "badgeEmptySports": "The sports you practice will show here, with your level and frequency.",
+    "badgeHelp": {
+      "title": "How to read this profile",
+      "intro": "Junto is logistical, not a social network. Three complementary reads to decide whether to do an activity together — no overall rating, no leaderboard.",
+      "peer": "Your co-participants rate how things went on the field (on time, prepared, easygoing, cautious…). No written comments — just specific badges. Negative signals fade over time if no new ones come in.",
+      "junto": "Automatic badges from your real activity: joined / created outings, versatility, multi-day adventures, themed badges (mountain, water, road, air…). Raw data, not a gift.",
+      "sports": "Your practiced sports with a level derived from your outings (never self-declared), your frequency and the date of your last activity in each sport. Tap a chip for details."
+    },
     "seeOtherSports_one": "See the other sport →",
     "seeOtherSports_other": "See {{count}} other sports →",
     "showLess": "Show less ↑",
