@@ -8,6 +8,9 @@ interface Props {
   tier: string | null;
   // Optional override style (e.g. compact text in a popup row).
   size?: 'sm' | 'md';
+  // Optional suffix appended after the tier label, in the same color/size —
+  // lets callers compose natural phrases like "Bonne fiabilité".
+  suffix?: string;
 }
 
 // Same color palette used by ProfileHero's score ring — kept here so the
@@ -20,13 +23,14 @@ const TIER_COLORS: Record<string, string> = {
   new: '#9DA9B5',
 };
 
-export function ReliabilityTierChip({ tier, size = 'md' }: Props) {
+export function ReliabilityTierChip({ tier, size = 'md', suffix }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   if (!tier) return null;
   const color = TIER_COLORS[tier] ?? colors.textMuted;
   const dotSize = size === 'sm' ? 6 : 7;
+  const tierLabel = t(`reliability.tier.${tier}`, { defaultValue: tier });
   return (
     <View style={styles.chip}>
       <View
@@ -39,7 +43,7 @@ export function ReliabilityTierChip({ tier, size = 'md' }: Props) {
         style={[styles.label, size === 'sm' && styles.labelSm, { color }]}
         numberOfLines={1}
       >
-        {t(`reliability.tier.${tier}`, { defaultValue: tier })}
+        {suffix ? `${tierLabel} ${suffix}` : tierLabel}
       </Text>
     </View>
   );

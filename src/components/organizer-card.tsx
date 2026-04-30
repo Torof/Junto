@@ -68,10 +68,13 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
               <Text style={styles.badgeText}>{t('organizer.badge')}</Text>
             </View>
           </View>
-          {creatorStats?.reliability_tier && (
+          {creatorStats?.reliability_tier && creatorStats.reliability_tier !== 'new' && (
             <View style={styles.metaRow}>
-              <Text style={styles.reliabilityPrefix}>{t('organizer.reliability')}</Text>
-              <ReliabilityTierChip tier={creatorStats.reliability_tier} size="sm" />
+              <ReliabilityTierChip
+                tier={creatorStats.reliability_tier}
+                size="sm"
+                suffix={t('organizer.reliability').toLowerCase()}
+              />
             </View>
           )}
           {creatorStats && creatorStats.created_activities > 0 && (
@@ -148,14 +151,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
     marginTop: 2,
     flexWrap: 'wrap',
-  },
-  reliabilityPrefix: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '600',
   },
   creatorStatText: {
     color: colors.textSecondary,
