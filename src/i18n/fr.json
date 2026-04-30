@@ -784,9 +784,25 @@
       "3": "Niveau : Avancé",
       "4": "Niveau : Expert"
     },
+    "sportMilestone": {
+      "1": "Premiers pas",
+      "2": "Habitué de ce sport",
+      "3": "Expérimenté",
+      "4": "Vétéran"
+    },
+    "sportOutings_one": "{{count}} sortie",
+    "sportOutings_other": "{{count}} sorties",
     "levelVotesHeader": "Niveau (avis communauté)",
+    "levelNetRight_one": "Jugé juste · {{count}}",
+    "levelNetRight_other": "Jugé juste · {{count}}",
+    "levelNetOver_one": "Surestimé · {{count}}",
+    "levelNetOver_other": "Surestimé · {{count}}",
     "lastActivityAt": "Dernière sortie : {{when}}",
     "frequency": "{{rate}} sortie/mois en moyenne",
+    "frequencyPerMonth_one": "{{count}} sortie/mois en moyenne",
+    "frequencyPerMonth_other": "{{count}} sorties/mois en moyenne",
+    "frequencyEveryMonths_one": "1 sortie tous les {{count}} mois",
+    "frequencyEveryMonths_other": "1 sortie tous les {{count}} mois",
     "relTime": {
       "today": "aujourd'hui",
       "days_one": "{{count}} jour",

@@ -616,7 +616,7 @@ function DetailModal({
           {target.kind === 'vouched' && <VouchedDetail item={target.item} styles={styles} t={t} />}
           {target.kind === 'warning' && <WarningDetail item={target.item} styles={styles} t={t} />}
           {target.kind === 'award' && <AwardDetail item={target.item} styles={styles} t={t} />}
-          {target.kind === 'sport' && <SportDetail item={target.item} styles={styles} t={t} />}
+          {target.kind === 'sport' && <SportDetail item={target.item} styles={styles} />}
 
           <Pressable style={styles.modalDismiss} onPress={onClose}>
             <Text style={styles.modalDismissText}>
@@ -756,60 +756,74 @@ function AwardDetail({
 function SportDetail({
   item,
   styles,
-  t,
 }: {
   item: SportItem;
   styles: ReturnType<typeof createStyles>;
-  t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
-  const lastRelative = item.lastAt ? formatRelativeFromNow(item.lastAt, t) : null;
-  const frequency = computeFrequency(item.count, item.firstAt);
-  const dotsLabel = t(`badges.sportDot.${item.dots}`, { defaultValue: '' });
-  const totalLevelVotes = item.levelVotes
-    ? item.levelVotes.over + item.levelVotes.right + item.levelVotes.under
-    : 0;
-  const description = t('badges.sportFooter', {
-    count: item.count,
-    defaultValue: `${item.count} activités complétées`,
-  });
+  const { t, i18n } = useTranslation();
+  const i18nLanguage = i18n.language;
+  const milestone = sportMilestone(item.count);
+  const milestoneLabel = milestone
+    ? t(`badges.sportMilestone.${milestone}`, { defaultValue: '' })
+    : null;
+  const lastDate = item.lastAt
+    ? dayjs(item.lastAt).locale(i18nLanguage).format('D MMM YYYY')
+    : null;
+  const frequencyLabel = formatFrequencyLabel(item.count, item.firstAt, t);
+
+  // Net level signal — drop "under" entirely, just compare right vs over.
+  // Positive net = community thinks the user is at the right level for
+  // this sport. Negative net = they think the user overestimates.
+  const lv = item.levelVotes;
+  const net = lv ? lv.right - lv.over : 0;
+
   return (
     <>
       <Text style={styles.modalTitle}>
         {getSportIcon(item.sportKey)}  {item.label}
       </Text>
-      <View style={styles.modalLevelRow}>
-        <LevelGauge dots={item.dots} />
-        {dotsLabel !== '' && <Text style={styles.modalLevelLabel}>{dotsLabel}</Text>}
+
+      {/* Big count up top — the activity volume is the headline number. */}
+      <View style={styles.sportBigCountWrap}>
+        <Text style={styles.sportBigCount}>{item.count}</Text>
+        <Text style={styles.sportBigCountLabel}>
+          {t('badges.sportOutings', {
+            count: item.count,
+            defaultValue: `${item.count} sorties`,
+          })}
+        </Text>
       </View>
-      <Text style={styles.modalBody}>{description}</Text>
-      {(lastRelative || frequency != null) && (
+
+      {/* Milestone gauge — count-based, not a skill claim. */}
+      {milestone && (
+        <View style={styles.modalLevelRow}>
+          <LevelGauge dots={milestone} />
+          {milestoneLabel !== '' && <Text style={styles.modalLevelLabel}>{milestoneLabel}</Text>}
+        </View>
+      )}
+
+      {(lastDate || frequencyLabel) && (
         <View style={styles.modalRecency}>
-          {lastRelative && (
+          {lastDate && (
             <Text style={styles.modalRecencyLine}>
-              {t('badges.lastActivityAt', { when: lastRelative, defaultValue: `Last activity: ${lastRelative}` })}
+              {t('badges.lastActivityAt', { when: lastDate, defaultValue: `Last activity: ${lastDate}` })}
             </Text>
           )}
-          {frequency != null && (
-            <Text style={styles.modalRecencyLine}>
-              {t('badges.frequency', {
-                rate: frequency.toFixed(1),
-                defaultValue: `${frequency.toFixed(1)} outings / month avg.`,
-              })}
-            </Text>
+          {frequencyLabel && (
+            <Text style={styles.modalRecencyLine}>{frequencyLabel}</Text>
           )}
         </View>
       )}
-      {totalLevelVotes > 0 && item.levelVotes && (
-        <View style={styles.modalLevelVotes}>
-          <Text style={styles.modalLevelVotesHeader}>
-            {t('badges.levelVotesHeader', { defaultValue: 'Level (peer review)' })}
-          </Text>
-          <View style={styles.modalLevelVotesRow}>
-            <LevelVoteCounter label={t('badges.short.level_over')} count={item.levelVotes.over} styles={styles} />
-            <LevelVoteCounter label={t('badges.short.level_right')} count={item.levelVotes.right} styles={styles} highlight />
-            <LevelVoteCounter label={t('badges.short.level_under')} count={item.levelVotes.under} styles={styles} />
-          </View>
-        </View>
+
+      {net !== 0 && (
+        <Text style={[
+          styles.modalLevelSignal,
+          { color: net > 0 ? '#7EC8A3' : COLOR_AMBER },
+        ]}>
+          {net > 0
+            ? t('badges.levelNetRight', { count: net, defaultValue: `Jugé juste · ${net}` })
+            : t('badges.levelNetOver', { count: Math.abs(net), defaultValue: `Surestimé · ${Math.abs(net)}` })}
+        </Text>
       )}
     </>
   );
@@ -841,6 +855,40 @@ function computeFrequency(count: number, firstAt: string | null): number | null 
   if (!firstAt || count <= 0) return null;
   const months = Math.max(1, dayjs().diff(dayjs(firstAt), 'month'));
   return count / months;
+}
+
+// Formats frequency as a whole-number phrase. Above ~0.75/mo, we round
+// to integer outings/month; below that we invert to "1 every X months".
+function formatFrequencyLabel(
+  count: number,
+  firstAt: string | null,
+  t: (k: string, opts?: Record<string, unknown>) => string,
+): string | null {
+  const freq = computeFrequency(count, firstAt);
+  if (freq == null) return null;
+  if (freq >= 0.75) {
+    const perMonth = Math.max(1, Math.round(freq));
+    return t('badges.frequencyPerMonth', {
+      count: perMonth,
+      defaultValue: `${perMonth} sortie/mois en moyenne`,
+    });
+  }
+  const monthsPer = Math.max(2, Math.round(1 / freq));
+  return t('badges.frequencyEveryMonths', {
+    count: monthsPer,
+    defaultValue: `1 sortie tous les ${monthsPer} mois`,
+  });
+}
+
+// Volume milestones — purely count-based, never a skill claim. The dot
+// gauge in the popover surfaces what milestone the user has crossed in
+// this sport, distinct from any peer-derived level signal.
+function sportMilestone(count: number): 1 | 2 | 3 | 4 | null {
+  if (count >= 50) return 4;
+  if (count >= 20) return 3;
+  if (count >= 5) return 2;
+  if (count >= 1) return 1;
+  return null;
 }
 
 function LevelVoteCounter({
@@ -1045,6 +1093,7 @@ const createStyles = (colors: AppColors) =>
     modalLevelRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 10,
       marginTop: 6,
       marginBottom: 4,
@@ -1057,11 +1106,40 @@ const createStyles = (colors: AppColors) =>
     modalRecency: {
       marginTop: 8,
       gap: 2,
+      alignItems: 'center',
     },
     modalRecencyLine: {
       color: colors.textMuted,
       fontSize: 12,
       fontWeight: '600',
+      textAlign: 'center',
+    },
+    modalLevelSignal: {
+      marginTop: 8,
+      fontSize: 12.5,
+      fontWeight: '700',
+      textAlign: 'center',
+      letterSpacing: -0.01,
+    },
+    sportBigCountWrap: {
+      alignItems: 'center',
+      marginTop: 8,
+      marginBottom: 6,
+    },
+    sportBigCount: {
+      color: colors.textPrimary,
+      fontSize: 36,
+      fontWeight: '800',
+      letterSpacing: -0.04,
+      lineHeight: 38,
+    },
+    sportBigCountLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      marginTop: 2,
     },
     modalLevelVotes: {
       marginTop: 10,

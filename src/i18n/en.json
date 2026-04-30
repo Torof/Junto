@@ -782,9 +782,25 @@
       "3": "Level: Advanced",
       "4": "Level: Expert"
     },
+    "sportMilestone": {
+      "1": "First steps",
+      "2": "Regular practitioner",
+      "3": "Experienced",
+      "4": "Veteran"
+    },
+    "sportOutings_one": "{{count}} outing",
+    "sportOutings_other": "{{count}} outings",
     "levelVotesHeader": "Level (community feedback)",
+    "levelNetRight_one": "Right level · {{count}}",
+    "levelNetRight_other": "Right level · {{count}}",
+    "levelNetOver_one": "Overestimates · {{count}}",
+    "levelNetOver_other": "Overestimates · {{count}}",
     "lastActivityAt": "Last activity: {{when}}",
     "frequency": "{{rate}} outings/month on average",
+    "frequencyPerMonth_one": "{{count}} outing/month on average",
+    "frequencyPerMonth_other": "{{count}} outings/month on average",
+    "frequencyEveryMonths_one": "1 outing every {{count}} months",
+    "frequencyEveryMonths_other": "1 outing every {{count}} months",
     "relTime": {
       "today": "today",
       "days_one": "{{count}} day",
