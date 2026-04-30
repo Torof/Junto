@@ -290,72 +290,83 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
   }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
-  if (!hasPeer && sports.length === 0 && awards.length === 0) return null;
+
+  // Card now always renders — empty sections show a pedagogical placeholder
+  // so a brand-new user understands what each section will eventually hold,
+  // even before any data exists.
 
   return (
     <View style={styles.card}>
-      {hasPeer && (
-        <View style={styles.section}>
-          <SectionHeader
-            Icon={Users}
-            label={t('profil.badgeSectionPeer')}
-            styles={styles}
-            colors={colors}
-          />
-          {vouched.length > 0 && (
-            <VouchedRow
-              items={vouched}
-              styles={styles}
-              colors={colors}
-              onPress={(item) => setSelected({ kind: 'vouched', item })}
-            />
-          )}
-          {warnings.length > 0 && (
-            <View style={vouched.length > 0 ? styles.warningSpacer : undefined}>
-              <WarningRow
-                items={warnings}
+      <View style={styles.section}>
+        <SectionHeader
+          Icon={Users}
+          label={t('profil.badgeSectionPeer')}
+          styles={styles}
+          colors={colors}
+        />
+        {hasPeer ? (
+          <>
+            {vouched.length > 0 && (
+              <VouchedRow
+                items={vouched}
                 styles={styles}
                 colors={colors}
-                onPress={(item) => setSelected({ kind: 'warning', item })}
+                onPress={(item) => setSelected({ kind: 'vouched', item })}
               />
-            </View>
-          )}
-        </View>
-      )}
+            )}
+            {warnings.length > 0 && (
+              <View style={vouched.length > 0 ? styles.warningSpacer : undefined}>
+                <WarningRow
+                  items={warnings}
+                  styles={styles}
+                  colors={colors}
+                  onPress={(item) => setSelected({ kind: 'warning', item })}
+                />
+              </View>
+            )}
+          </>
+        ) : (
+          <Text style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</Text>
+        )}
+      </View>
 
-      {awards.length > 0 && (
-        <View style={[styles.section, hasPeer && styles.sectionGap]}>
-          <SectionHeader
-            Icon={Trophy}
-            label={t('profil.badgeSectionAuto')}
-            styles={styles}
-            colors={colors}
-          />
+      <View style={[styles.section, styles.sectionGap]}>
+        <SectionHeader
+          Icon={Trophy}
+          label={t('profil.badgeSectionAuto')}
+          styles={styles}
+          colors={colors}
+        />
+        {awards.length > 0 ? (
           <AwardRow
             items={awards}
             styles={styles}
             onPress={(item) => setSelected({ kind: 'award', item })}
             t={t}
           />
-        </View>
-      )}
+        ) : (
+          <Text style={styles.emptyHint}>{t('profil.badgeEmptyAwards')}</Text>
+        )}
+      </View>
 
-      {sports.length > 0 && (
-        <View style={[styles.section, (hasPeer || awards.length > 0) && styles.sectionGap]}>
-          <SectionHeader
-            Icon={Mountain}
-            label={t('profil.badgeSectionSports')}
-            styles={styles}
-            colors={colors}
-          />
+      <View style={[styles.section, styles.sectionGap]}>
+        <SectionHeader
+          Icon={Mountain}
+          label={t('profil.badgeSectionSports')}
+          styles={styles}
+          colors={colors}
+        />
+        {sports.length > 0 ? (
           <SportRow
             items={sports}
             styles={styles}
             colors={colors}
             onPress={(item) => setSelected({ kind: 'sport', item })}
           />
-        </View>
-      )}
+        ) : (
+          <Text style={styles.emptyHint}>{t('profil.badgeEmptySports')}</Text>
+        )}
+      </View>
 
       <DetailModal
         target={selected}
@@ -760,6 +771,12 @@ const createStyles = (colors: AppColors) =>
     },
     warningSpacer: {
       marginTop: 6,
+    },
+    emptyHint: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontStyle: 'italic',
+      lineHeight: 17,
     },
 
     wrapRowChips: {
