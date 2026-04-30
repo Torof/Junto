@@ -803,6 +803,8 @@
       "silver": "Argent",
       "gold": "Or"
     },
+    "awardNextTier_one": "Encore {{count}} pour passer {{tier}}",
+    "awardNextTier_other": "Encore {{count}} pour passer {{tier}}",
     "awardLabel": {
       "joined": {
         "bronze": "Membre",

@@ -81,6 +81,7 @@ interface VouchedItem {
   key: string;
   label: string;
   count: number;
+  lastAt: string | null;
 }
 interface WarningItem {
   key: string;
@@ -92,6 +93,11 @@ interface JuntoAward {
   Icon: LucideIcon;
   count: number;
   tier: 'bronze' | 'silver' | 'gold';
+  // Thresholds carried over from the AwardDef so the popover can compute
+  // a "next tier" hint without re-walking the AWARDS array.
+  outings: [number, number, number];
+  minDistinct?: [number, number, number];
+  distinctSports?: number;
 }
 
 // Data-driven Junto award definitions. Adding / removing / tuning a badge
@@ -229,6 +235,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
           count,
+          lastAt: rep.last_at ?? null,
         });
       } else if (NEGATIVE_KEYS.has(rep.badge_key)) {
         if (count < WARNING_THRESHOLD) continue;
@@ -272,17 +279,23 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
       .sort((a, b) => b.count - a.count);
 
     // Junto awards — iterate the data-driven AWARDS list, surface only the
-    // ones the user has earned at least bronze on.
+    // ones the user has earned at least bronze on. Carry the def's
+    // thresholds + distinctSports onto the item so the popover can compute
+    // a "next tier" hint.
     const awardsList: JuntoAward[] = [];
     if (awardAggregates) {
       for (const def of AWARDS) {
         const evald = evaluateAward(def, awardAggregates);
         if (evald.tier) {
+          const distinctSports = def.evaluate(awardAggregates).distinctSports;
           awardsList.push({
             id: def.id,
             Icon: def.Icon,
             count: evald.count,
             tier: evald.tier,
+            outings: def.outings,
+            minDistinct: def.minDistinct,
+            distinctSports,
           });
         }
       }
@@ -596,112 +609,14 @@ function DetailModal({
 }) {
   if (!target) return null;
 
-  let title = '';
-  let body = '';
-  let footer: string | null = null;
-
-  if (target.kind === 'vouched') {
-    title = target.item.label;
-    body = t(`badges.peerDesc.${target.item.key}`, { defaultValue: '' });
-    footer = t('badges.vouchedFooter', {
-      count: target.item.count,
-      defaultValue: '',
-    });
-  } else if (target.kind === 'warning') {
-    title = target.item.label;
-    body = t(`badges.peerDesc.${target.item.key}`, { defaultValue: '' });
-    footer = t('badges.peerNegativeHint');
-  } else if (target.kind === 'sport') {
-    title = `${getSportIcon(target.item.sportKey)}  ${target.item.label}`;
-    body = t('badges.sportFooter', {
-      count: target.item.count,
-      defaultValue: `${target.item.count} activités complétées`,
-    });
-    const dotsLabel = t(`badges.sportDot.${target.item.dots}`, { defaultValue: '' });
-    if (dotsLabel !== '') footer = dotsLabel;
-  } else {
-    // award
-    const tierLabel = t(`badges.awardTier.${target.item.tier}`, { defaultValue: target.item.tier });
-    const awardLabel = t(`badges.awardLabel.${target.item.id}.${target.item.tier}`, {
-      defaultValue: target.item.id,
-    });
-    title = `${awardLabel} · ${tierLabel}`;
-    body = t(`badges.awardDesc.${target.item.id}`, {
-      count: target.item.count,
-      defaultValue: `${target.item.count} activités.`,
-    });
-  }
-
-  const isSport = target.kind === 'sport';
-  const levelVotes = isSport ? target.item.levelVotes : undefined;
-  const totalLevelVotes = levelVotes
-    ? levelVotes.over + levelVotes.right + levelVotes.under
-    : 0;
-
-  // Recency / cadence — only when we have an isSport target and at least
-  // one timestamp from the server.
-  const lastRelative = isSport && target.item.lastAt
-    ? formatRelativeFromNow(target.item.lastAt, t)
-    : null;
-  const frequency = isSport ? computeFrequency(target.item.count, target.item.firstAt) : null;
-
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-          <Text style={styles.modalTitle}>{title}</Text>
-          {isSport && (
-            <View style={styles.modalLevelRow}>
-              <LevelGauge dots={target.item.dots} />
-              {footer && <Text style={styles.modalLevelLabel}>{footer}</Text>}
-            </View>
-          )}
-          {body !== '' && <Text style={styles.modalBody}>{body}</Text>}
-          {footer && !isSport && <Text style={styles.modalFooter}>{footer}</Text>}
-
-          {isSport && (lastRelative || frequency != null) && (
-            <View style={styles.modalRecency}>
-              {lastRelative && (
-                <Text style={styles.modalRecencyLine}>
-                  {t('badges.lastActivityAt', { when: lastRelative, defaultValue: `Last activity: ${lastRelative}` })}
-                </Text>
-              )}
-              {frequency != null && (
-                <Text style={styles.modalRecencyLine}>
-                  {t('badges.frequency', {
-                    rate: frequency.toFixed(1),
-                    defaultValue: `${frequency.toFixed(1)} outings / month avg.`,
-                  })}
-                </Text>
-              )}
-            </View>
-          )}
-
-          {isSport && totalLevelVotes > 0 && levelVotes && (
-            <View style={styles.modalLevelVotes}>
-              <Text style={styles.modalLevelVotesHeader}>
-                {t('badges.levelVotesHeader', { defaultValue: 'Level (peer review)' })}
-              </Text>
-              <View style={styles.modalLevelVotesRow}>
-                <LevelVoteCounter
-                  label={t('badges.short.level_over')}
-                  count={levelVotes.over}
-                  styles={styles}
-                />
-                <LevelVoteCounter
-                  label={t('badges.short.level_right')}
-                  count={levelVotes.right}
-                  styles={styles}
-                  highlight
-                />
-                <LevelVoteCounter
-                  label={t('badges.short.level_under')}
-                  count={levelVotes.under}
-                  styles={styles}
-                />
-              </View>
-            </View>
-          )}
+          {target.kind === 'vouched' && <VouchedDetail item={target.item} styles={styles} t={t} />}
+          {target.kind === 'warning' && <WarningDetail item={target.item} styles={styles} t={t} />}
+          {target.kind === 'award' && <AwardDetail item={target.item} styles={styles} t={t} />}
+          {target.kind === 'sport' && <SportDetail item={target.item} styles={styles} t={t} />}
 
           <Pressable style={styles.modalDismiss} onPress={onClose}>
             <Text style={styles.modalDismissText}>
@@ -711,6 +626,192 @@ function DetailModal({
         </Pressable>
       </Pressable>
     </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Per-kind detail bodies. All four share the same shape:
+//   [hero icon, large, in tier color]
+//   [title]
+//   [tier/severity pill]
+//   [description]
+//   [context-specific footer]
+// ---------------------------------------------------------------------------
+
+function VouchedDetail({
+  item,
+  styles,
+  t,
+}: {
+  item: VouchedItem;
+  styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const Icon = POSITIVE_TRAIT_ICON[item.key];
+  const tierColor = TIER_COLOR[vouchedTier(item.count)];
+  const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
+  const lastRelative = item.lastAt ? formatRelativeFromNow(item.lastAt, t) : null;
+  return (
+    <>
+      <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
+        {Icon && <Icon size={28} color={tierColor} strokeWidth={2.2} />}
+      </View>
+      <Text style={styles.modalTitle}>{item.label}</Text>
+      <View style={[styles.modalChip, { backgroundColor: tierColor + '1F' }]}>
+        <Text style={[styles.modalChipText, { color: tierColor }]}>
+          {t('badges.vouchedFooter', { count: item.count, defaultValue: `${item.count}` })}
+        </Text>
+      </View>
+      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
+      {lastRelative && (
+        <Text style={styles.modalFooter}>
+          {t('badges.peerLastAt', { when: lastRelative, defaultValue: `Last: ${lastRelative}` })}
+        </Text>
+      )}
+    </>
+  );
+}
+
+function WarningDetail({
+  item,
+  styles,
+  t,
+}: {
+  item: WarningItem;
+  styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const isRed = item.severity === 'red';
+  const Icon = isRed ? OctagonAlert : AlertTriangle;
+  const color = isRed ? COLOR_RED : COLOR_AMBER;
+  const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
+  const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
+  return (
+    <>
+      <View style={[styles.modalHeroIcon, { backgroundColor: color + '22', borderColor: color }]}>
+        <Icon size={28} color={color} strokeWidth={2.4} />
+      </View>
+      <Text style={styles.modalTitle}>{item.label}</Text>
+      <View style={[styles.modalChip, { backgroundColor: color + '1F' }]}>
+        <Text style={[styles.modalChipText, { color }]}>{suffix}</Text>
+      </View>
+      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
+      <Text style={styles.modalFooter}>{t('badges.peerNegativeHint')}</Text>
+    </>
+  );
+}
+
+function AwardDetail({
+  item,
+  styles,
+  t,
+}: {
+  item: JuntoAward;
+  styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const tierColor = TIER_COLOR[item.tier];
+  const Icon = item.Icon;
+  const tierLabel = t(`badges.awardTier.${item.tier}`, { defaultValue: item.tier });
+  const awardLabel = t(`badges.awardLabel.${item.id}.${item.tier}`, { defaultValue: item.id });
+  const description = t(`badges.awardDesc.${item.id}`, {
+    count: item.count,
+    defaultValue: `${item.count} activités.`,
+  });
+
+  // Next-tier hint — only when there's a higher tier to chase.
+  const nextTierKey: 'silver' | 'gold' | null =
+    item.tier === 'bronze' ? 'silver' : item.tier === 'silver' ? 'gold' : null;
+  const nextThreshold = nextTierKey
+    ? item.outings[nextTierKey === 'silver' ? 1 : 2]
+    : null;
+  const remaining = nextThreshold != null ? Math.max(0, nextThreshold - item.count) : null;
+  const nextLabel = nextTierKey
+    ? t(`badges.awardTier.${nextTierKey}`, { defaultValue: nextTierKey })
+    : null;
+
+  return (
+    <>
+      <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
+        <Icon size={28} color={tierColor} strokeWidth={2.2} />
+      </View>
+      <Text style={styles.modalTitle}>{awardLabel}</Text>
+      <View style={[styles.modalChip, { backgroundColor: tierColor + '1F' }]}>
+        <Text style={[styles.modalChipText, { color: tierColor }]}>{tierLabel}</Text>
+      </View>
+      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
+      {remaining != null && remaining > 0 && nextLabel && (
+        <Text style={styles.modalFooter}>
+          {t('badges.awardNextTier', {
+            count: remaining,
+            tier: nextLabel,
+            defaultValue: `${remaining} more to reach ${nextLabel}`,
+          })}
+        </Text>
+      )}
+    </>
+  );
+}
+
+function SportDetail({
+  item,
+  styles,
+  t,
+}: {
+  item: SportItem;
+  styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const lastRelative = item.lastAt ? formatRelativeFromNow(item.lastAt, t) : null;
+  const frequency = computeFrequency(item.count, item.firstAt);
+  const dotsLabel = t(`badges.sportDot.${item.dots}`, { defaultValue: '' });
+  const totalLevelVotes = item.levelVotes
+    ? item.levelVotes.over + item.levelVotes.right + item.levelVotes.under
+    : 0;
+  const description = t('badges.sportFooter', {
+    count: item.count,
+    defaultValue: `${item.count} activités complétées`,
+  });
+  return (
+    <>
+      <Text style={styles.modalTitle}>
+        {getSportIcon(item.sportKey)}  {item.label}
+      </Text>
+      <View style={styles.modalLevelRow}>
+        <LevelGauge dots={item.dots} />
+        {dotsLabel !== '' && <Text style={styles.modalLevelLabel}>{dotsLabel}</Text>}
+      </View>
+      <Text style={styles.modalBody}>{description}</Text>
+      {(lastRelative || frequency != null) && (
+        <View style={styles.modalRecency}>
+          {lastRelative && (
+            <Text style={styles.modalRecencyLine}>
+              {t('badges.lastActivityAt', { when: lastRelative, defaultValue: `Last activity: ${lastRelative}` })}
+            </Text>
+          )}
+          {frequency != null && (
+            <Text style={styles.modalRecencyLine}>
+              {t('badges.frequency', {
+                rate: frequency.toFixed(1),
+                defaultValue: `${frequency.toFixed(1)} outings / month avg.`,
+              })}
+            </Text>
+          )}
+        </View>
+      )}
+      {totalLevelVotes > 0 && item.levelVotes && (
+        <View style={styles.modalLevelVotes}>
+          <Text style={styles.modalLevelVotesHeader}>
+            {t('badges.levelVotesHeader', { defaultValue: 'Level (peer review)' })}
+          </Text>
+          <View style={styles.modalLevelVotesRow}>
+            <LevelVoteCounter label={t('badges.short.level_over')} count={item.levelVotes.over} styles={styles} />
+            <LevelVoteCounter label={t('badges.short.level_right')} count={item.levelVotes.right} styles={styles} highlight />
+            <LevelVoteCounter label={t('badges.short.level_under')} count={item.levelVotes.under} styles={styles} />
+          </View>
+        </View>
+      )}
+    </>
   );
 }
 
@@ -897,22 +998,49 @@ const createStyles = (colors: AppColors) =>
       borderWidth: 1,
       borderColor: colors.line,
     },
+    modalHeroIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignSelf: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      marginBottom: 6,
+    },
+    modalChip: {
+      alignSelf: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 999,
+      marginBottom: 4,
+    },
+    modalChipText: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+    },
     modalTitle: {
       color: colors.textPrimary,
       fontSize: 17,
       fontWeight: '800',
       marginBottom: 2,
+      textAlign: 'center',
     },
     modalBody: {
       color: colors.textSecondary,
       fontSize: 13,
       lineHeight: 19,
+      textAlign: 'center',
+      marginTop: 6,
     },
     modalFooter: {
       color: colors.textMuted,
       fontSize: 12,
       fontStyle: 'italic',
-      marginTop: 4,
+      marginTop: 8,
+      textAlign: 'center',
     },
     modalLevelRow: {
       flexDirection: 'row',
