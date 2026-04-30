@@ -7,7 +7,7 @@ import {
   AlertTriangle, OctagonAlert,
   Clock, Backpack, Handshake, ShieldCheck,
   Compass, Tent, Waves, Bike, Plane,
-  HelpCircle,
+  HelpCircle, Check,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -792,16 +792,28 @@ function SportDetail({
         </View>
       )}
 
-      {net !== 0 && (
-        <Text style={[
-          styles.modalLevelSignal,
-          { color: net > 0 ? '#7EC8A3' : COLOR_AMBER },
-        ]}>
-          {net > 0
-            ? t('badges.levelNetRight', { count: net, defaultValue: `Niveau perçu juste · ${net}` })
-            : t('badges.levelNetOver', { count: Math.abs(net), defaultValue: `Niveau perçu surestimé · ${Math.abs(net)}` })}
-        </Text>
-      )}
+      {net !== 0 && (() => {
+        const isPositive = net > 0;
+        const color = isPositive ? '#7EC8A3' : COLOR_AMBER;
+        const StampIcon = isPositive ? Check : AlertTriangle;
+        const verdict = isPositive
+          ? t('badges.levelStampRight', { defaultValue: 'Niveau confirmé' })
+          : t('badges.levelStampOver', { defaultValue: 'Niveau surestimé' });
+        return (
+          <View
+            style={[
+              styles.levelStamp,
+              { backgroundColor: color + '1F', borderColor: color },
+            ]}
+          >
+            <StampIcon size={14} color={color} strokeWidth={2.6} />
+            <Text style={[styles.levelStampText, { color }]} numberOfLines={1}>
+              {verdict}
+            </Text>
+            <Text style={[styles.levelStampCount, { color }]}>×{Math.abs(net)}</Text>
+          </View>
+        );
+      })()}
     </>
   );
 }
@@ -1074,6 +1086,31 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '700',
       textAlign: 'center',
       letterSpacing: -0.01,
+    },
+    // Peer-validation stamp — passport-stamp aesthetic. Tinted bg + colored
+    // border + uppercase verdict + count. Centered. Sits as a deliberate
+    // "this level has been certified" element, not just another text line.
+    levelStamp: {
+      alignSelf: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      borderWidth: 1.5,
+      borderRadius: 8,
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+      marginTop: 12,
+    },
+    levelStampText: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    levelStampCount: {
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: -0.02,
     },
     modalTitleCount: {
       color: colors.textMuted,

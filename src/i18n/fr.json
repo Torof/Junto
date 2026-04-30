@@ -797,6 +797,8 @@
     "levelNetRight_other": "Niveau jugé juste · {{count}}",
     "levelNetOver_one": "Niveau jugé surestimé · {{count}}",
     "levelNetOver_other": "Niveau jugé surestimé · {{count}}",
+    "levelStampRight": "Niveau confirmé",
+    "levelStampOver": "Niveau surestimé",
     "lastActivityAt": "Dernière sortie : {{when}}",
     "frequency": "{{rate}} sortie/mois en moyenne",
     "frequencyPerMonth_one": "{{count}} sortie/mois en moyenne",

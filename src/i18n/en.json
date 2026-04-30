@@ -795,6 +795,8 @@
     "levelNetRight_other": "Level judged right · {{count}}",
     "levelNetOver_one": "Level judged overestimated · {{count}}",
     "levelNetOver_other": "Level judged overestimated · {{count}}",
+    "levelStampRight": "Level confirmed",
+    "levelStampOver": "Level overestimated",
     "lastActivityAt": "Last activity: {{when}}",
     "frequency": "{{rate}} outings/month on average",
     "frequencyPerMonth_one": "{{count}} outing/month on average",
