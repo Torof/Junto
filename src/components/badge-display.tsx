@@ -14,7 +14,6 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
-import { LevelGauge } from '@/components/level-gauge';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
@@ -762,10 +761,6 @@ function SportDetail({
 }) {
   const { t, i18n } = useTranslation();
   const i18nLanguage = i18n.language;
-  const milestone = sportMilestone(item.count);
-  const milestoneLabel = milestone
-    ? t(`badges.sportMilestone.${milestone}`, { defaultValue: '' })
-    : null;
   const lastDate = item.lastAt
     ? dayjs(item.lastAt).locale(i18nLanguage).format('D MMM YYYY')
     : null;
@@ -781,26 +776,8 @@ function SportDetail({
     <>
       <Text style={styles.modalTitle}>
         {getSportIcon(item.sportKey)}  {item.label}
+        <Text style={styles.modalTitleCount}>  ×{item.count}</Text>
       </Text>
-
-      {/* Big count up top — the activity volume is the headline number. */}
-      <View style={styles.sportBigCountWrap}>
-        <Text style={styles.sportBigCount}>{item.count}</Text>
-        <Text style={styles.sportBigCountLabel}>
-          {t('badges.sportOutings', {
-            count: item.count,
-            defaultValue: `${item.count} sorties`,
-          })}
-        </Text>
-      </View>
-
-      {/* Milestone gauge — count-based, not a skill claim. */}
-      {milestone && (
-        <View style={styles.modalLevelRow}>
-          <LevelGauge dots={milestone} />
-          {milestoneLabel !== '' && <Text style={styles.modalLevelLabel}>{milestoneLabel}</Text>}
-        </View>
-      )}
 
       {(lastDate || frequencyLabel) && (
         <View style={styles.modalRecency}>
@@ -821,8 +798,8 @@ function SportDetail({
           { color: net > 0 ? '#7EC8A3' : COLOR_AMBER },
         ]}>
           {net > 0
-            ? t('badges.levelNetRight', { count: net, defaultValue: `Jugé juste · ${net}` })
-            : t('badges.levelNetOver', { count: Math.abs(net), defaultValue: `Surestimé · ${Math.abs(net)}` })}
+            ? t('badges.levelNetRight', { count: net, defaultValue: `Niveau perçu juste · ${net}` })
+            : t('badges.levelNetOver', { count: Math.abs(net), defaultValue: `Niveau perçu surestimé · ${Math.abs(net)}` })}
         </Text>
       )}
     </>
@@ -880,16 +857,6 @@ function formatFrequencyLabel(
   });
 }
 
-// Volume milestones — purely count-based, never a skill claim. The dot
-// gauge in the popover surfaces what milestone the user has crossed in
-// this sport, distinct from any peer-derived level signal.
-function sportMilestone(count: number): 1 | 2 | 3 | 4 | null {
-  if (count >= 50) return 4;
-  if (count >= 20) return 3;
-  if (count >= 5) return 2;
-  if (count >= 1) return 1;
-  return null;
-}
 
 function LevelVoteCounter({
   label,
@@ -1090,19 +1057,6 @@ const createStyles = (colors: AppColors) =>
       marginTop: 8,
       textAlign: 'center',
     },
-    modalLevelRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      marginTop: 6,
-      marginBottom: 4,
-    },
-    modalLevelLabel: {
-      color: colors.textPrimary,
-      fontSize: 13,
-      fontWeight: '700',
-    },
     modalRecency: {
       marginTop: 8,
       gap: 2,
@@ -1121,25 +1075,11 @@ const createStyles = (colors: AppColors) =>
       textAlign: 'center',
       letterSpacing: -0.01,
     },
-    sportBigCountWrap: {
-      alignItems: 'center',
-      marginTop: 8,
-      marginBottom: 6,
-    },
-    sportBigCount: {
-      color: colors.textPrimary,
-      fontSize: 36,
-      fontWeight: '800',
-      letterSpacing: -0.04,
-      lineHeight: 38,
-    },
-    sportBigCountLabel: {
+    modalTitleCount: {
       color: colors.textMuted,
-      fontSize: 11,
-      fontWeight: '600',
-      letterSpacing: 0.6,
-      textTransform: 'uppercase',
-      marginTop: 2,
+      fontSize: 15,
+      fontWeight: '700',
+      letterSpacing: -0.02,
     },
     modalLevelVotes: {
       marginTop: 10,
