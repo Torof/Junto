@@ -8,6 +8,7 @@ import type { AppColors } from '@/constants/colors';
 import { participationService } from '@/services/participation-service';
 import { userService } from '@/services/user-service';
 import { UserAvatar } from './user-avatar';
+import { ReliabilityTierChip } from './reliability-tier-chip';
 
 interface Props {
   activityId: string;
@@ -53,19 +54,26 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
   return (
     <Pressable onPress={onOpenAll} style={styles.card}>
       <View style={styles.topRow}>
-        <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={48} confirmedPresent={creatorPresent} />
+        <UserAvatar
+          name={creatorName}
+          avatarUrl={creatorAvatar}
+          size={48}
+          confirmedPresent={creatorPresent}
+          isOrganizer
+        />
         <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>{creatorName}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{t('organizer.badge')}</Text>
-            </View>
+          <Text style={styles.name} numberOfLines={1}>{creatorName}</Text>
+          <View style={styles.metaRow}>
+            <ReliabilityTierChip tier={creatorStats?.reliability_tier ?? null} size="sm" />
+            {creatorStats && creatorStats.created_activities > 0 && (
+              <>
+                <Text style={styles.metaDot}>·</Text>
+                <Text style={styles.creatorStatText} numberOfLines={1}>
+                  {t('organizer.activitiesCreated', { count: creatorStats.created_activities })}
+                </Text>
+              </>
+            )}
           </View>
-          {creatorStats && creatorStats.created_activities > 0 && (
-            <Text style={styles.creatorStatText}>
-              {t('organizer.activitiesCreated', { count: creatorStats.created_activities })}
-            </Text>
-          )}
         </View>
       </View>
 
@@ -121,20 +129,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
   name: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
-  badge: {
-    backgroundColor: colors.cta + '26',
-    paddingHorizontal: 7, paddingVertical: 2,
-    borderRadius: 4,
-  },
-  badgeText: {
-    color: colors.cta, fontSize: 9, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 0.6,
-  },
-  creatorStatText: {
-    color: colors.textSecondary, fontSize: fontSizes.xs + 1,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     marginTop: 2,
+    flexWrap: 'wrap',
+  },
+  metaDot: { color: colors.textMuted, fontSize: 11 },
+  creatorStatText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs + 1,
   },
   stackRow: {
     flexDirection: 'row', alignItems: 'center',

@@ -3,15 +3,18 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, MapPin, User } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { userService } from '@/services/user-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { ReliabilityTierChip } from './reliability-tier-chip';
 
 interface ActivityCardProps {
   activity: NearbyActivity;
@@ -32,6 +35,14 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
   const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
 
   const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
+
+  // Creator reliability tier — TanStack dedupes the query across cards in a list.
+  const { data: creatorStats } = useQuery({
+    queryKey: ['user-public-stats', activity.creator_id],
+    queryFn: () => userService.getPublicStats(activity.creator_id),
+    staleTime: 1000 * 60 * 10,
+    enabled: showCreator && !!activity.creator_id,
+  });
 
   return (
     <Pressable style={[styles.card, isFull && styles.cardFull]} onPress={onPress}>
@@ -81,6 +92,9 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
             <View style={[styles.metaItem, { flexShrink: 1 }]}>
               <User size={11} color={colors.pinStart} strokeWidth={2.4} />
               <Text style={styles.metaSecondary} numberOfLines={1}>{activity.creator_name}</Text>
+              {creatorStats?.reliability_tier && (
+                <ReliabilityTierChip tier={creatorStats.reliability_tier} size="sm" />
+              )}
             </View>
           )}
         </View>

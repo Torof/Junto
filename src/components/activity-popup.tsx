@@ -3,14 +3,17 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, BarChart2 } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { userService } from '@/services/user-service';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { ReliabilityTierChip } from './reliability-tier-chip';
 
 interface ActivityPopupProps {
   activity: NearbyActivity;
@@ -26,12 +29,32 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   const isOpen = activity.max_participants === null;
   const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
 
+  // Fetch creator's reliability tier — TanStack dedupes across other
+  // queries that hit user-public-stats for the same id (e.g. OrganizerCard).
+  const { data: creatorStats } = useQuery({
+    queryKey: ['user-public-stats', activity.creator_id],
+    queryFn: () => userService.getPublicStats(activity.creator_id),
+    staleTime: 1000 * 60 * 10,
+    enabled: !!activity.creator_id,
+  });
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {/* Title */}
       <Text style={styles.title} numberOfLines={2}>
         {activity.title}
       </Text>
+
+      {/* Creator + reliability — the trust signal at the moment of decision */}
+      <View style={styles.creatorRow}>
+        <Text style={styles.creatorName} numberOfLines={1}>{activity.creator_name}</Text>
+        {creatorStats?.reliability_tier && (
+          <>
+            <Text style={styles.creatorDot}>·</Text>
+            <ReliabilityTierChip tier={creatorStats.reliability_tier} size="sm" />
+          </>
+        )}
+      </View>
 
       {/* Sport + places chips on same row */}
       <View style={styles.chipsRow}>
@@ -98,6 +121,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginBottom: 2,
+  },
+  creatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  creatorName: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  creatorDot: {
+    color: colors.textMuted,
+    fontSize: 11,
   },
   sportChip: {
     backgroundColor: colors.cta + '1F',
