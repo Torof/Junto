@@ -70,14 +70,28 @@ export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm
 
           <View style={styles.actions}>
             <Pressable style={styles.secondaryButton} onPress={onCancel}>
-              <Text style={styles.secondaryText}>{t('cancel.keep')}</Text>
+              <Text
+                style={styles.secondaryText}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {t('cancel.keep')}
+              </Text>
             </Pressable>
             <Pressable
               style={[styles.primaryButton, !canSubmit && styles.disabled]}
               onPress={() => canSubmit && onConfirm(finalReason)}
               disabled={!canSubmit}
             >
-              <Text style={styles.primaryText}>{isSubmitting ? '...' : t('cancel.cancelConfirm')}</Text>
+              <Text
+                style={styles.primaryText}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {isSubmitting ? '...' : t('cancel.cancelConfirm')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -115,11 +129,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1, paddingVertical: spacing.sm, borderRadius: radius.full,
     alignItems: 'center', borderWidth: 1, borderColor: colors.textSecondary,
   },
-  secondaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  primaryButton: {
-    flex: 1, paddingVertical: spacing.sm, borderRadius: radius.full,
-    alignItems: 'center', backgroundColor: colors.error,
+  secondaryText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
-  primaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  primaryButton: {
+    flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.xs,
+    borderRadius: radius.full,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.error,
+  },
+  primaryText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   disabled: { opacity: 0.5 },
 });

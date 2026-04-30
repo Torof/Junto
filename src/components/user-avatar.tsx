@@ -8,12 +8,16 @@ interface UserAvatarProps {
   name: string;
   avatarUrl?: string | null;
   size?: number;
-  // When true, overlays a small green tick badge at the bottom-right
-  // indicating presence has been confirmed for this user on a given activity.
+  // When true, overlays a small green tick at the bottom-right indicating
+  // presence has been confirmed for this user on a given activity.
   confirmedPresent?: boolean;
+  // When true, overlays a small orange tick at the top-right indicating
+  // this user is the activity's creator/organizer. Coexists with
+  // `confirmedPresent` (different corner).
+  isOrganizer?: boolean;
 }
 
-export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = false }: UserAvatarProps) {
+export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = false, isOrganizer = false }: UserAvatarProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const borderRadius = size / 2;
@@ -37,26 +41,47 @@ export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = fals
     </View>
   );
 
-  if (!confirmedPresent) return inner;
+  if (!confirmedPresent && !isOrganizer) return inner;
 
   return (
     <View style={{ width: size, height: size }}>
       {inner}
-      <View
-        style={[
-          styles.badge,
-          {
-            width: badgeSize,
-            height: badgeSize,
-            borderRadius: badgeSize / 2,
-            borderWidth,
-            bottom: -borderWidth,
-            right: -borderWidth,
-          },
-        ]}
-      >
-        <Check size={iconSize} color="#FFFFFF" strokeWidth={3.2} />
-      </View>
+      {confirmedPresent && (
+        <View
+          style={[
+            styles.badge,
+            styles.badgePresence,
+            {
+              width: badgeSize,
+              height: badgeSize,
+              borderRadius: badgeSize / 2,
+              borderWidth,
+              bottom: -borderWidth,
+              right: -borderWidth,
+            },
+          ]}
+        >
+          <Check size={iconSize} color="#FFFFFF" strokeWidth={3.2} />
+        </View>
+      )}
+      {isOrganizer && (
+        <View
+          style={[
+            styles.badge,
+            styles.badgeOrganizer,
+            {
+              width: badgeSize,
+              height: badgeSize,
+              borderRadius: badgeSize / 2,
+              borderWidth,
+              top: -borderWidth,
+              right: -borderWidth,
+            },
+          ]}
+        >
+          <Check size={iconSize} color="#FFFFFF" strokeWidth={3.2} />
+        </View>
+      )}
     </View>
   );
 }
@@ -76,9 +101,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    backgroundColor: colors.success,
     borderColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  badgePresence: { backgroundColor: colors.success },
+  badgeOrganizer: { backgroundColor: colors.cta },
 });

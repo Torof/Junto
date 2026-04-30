@@ -95,12 +95,15 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       <Text style={styles.sectionTitle}>{t('participants.title')}</Text>
 
       <View style={styles.avatarRow}>
-        {/* Creator — always first */}
+        {/* Creator — always first, marked with the orange organizer tick. */}
         <Pressable style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(creatorId) : router.push(`/(auth)/profile/${creatorId}`)}>
-          <UserAvatar name={creatorName} avatarUrl={creatorAvatar} size={44} confirmedPresent={creatorPresent} />
-          <View style={styles.organizerPill}>
-            <Text style={styles.organizerPillText}>{t('participants.organizer')}</Text>
-          </View>
+          <UserAvatar
+            name={creatorName}
+            avatarUrl={creatorAvatar}
+            size={44}
+            confirmedPresent={creatorPresent}
+            isOrganizer
+          />
         </Pressable>
 
         {/* Accepted participants (excluding creator) */}
