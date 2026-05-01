@@ -18,6 +18,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P1 — Polish & easy wins
 
+- [ ] **Wire `revoke_push_token` into push-perm-denied + sign-out paths.** RPC existe (mig 00076) mais n'est jamais appelée. Quand l'utilisateur désactive les notifs (toggle, deny système, sign-out), ses tokens restent dans `push_tokens` et la edge function `send-push` continue de les cibler. Touche `use-push-notifications.ts` (déjà gère `register_push_token`), le flow auth (sign-out), et le toggle perm UI. Audit notif round 2 (2026-05-01).
 - [ ] **Ouvrir profil depuis l'INTÉRIEUR d'une conversation** — pour l'instant l'écran conversation a un header vide (`title: ''`), donc rien à taper. À faire : custom header avec avatar + nom du correspondant, tappable → profil. Côté liste des conversations, la nav avatar→profil est déjà en place.
 - [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
 - [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.

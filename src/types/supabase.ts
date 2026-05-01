@@ -1884,10 +1884,6 @@ export type Database = {
         Args: { p_activity_id: string; p_reason: string }
         Returns: undefined
       }
-      cancel_contact_request: {
-        Args: { p_conversation_id: string }
-        Returns: undefined
-      }
       check_activity_transitions: { Args: never; Returns: undefined }
       check_alerts_for_activity: {
         Args: { p_activity_id: string }
@@ -1896,10 +1892,6 @@ export type Database = {
       close_due_presence_windows: { Args: never; Returns: undefined }
       close_presence_window_for: {
         Args: { p_activity_id: string }
-        Returns: undefined
-      }
-      confirm_presence: {
-        Args: { p_activity_id: string; p_present_user_ids: string[] }
         Returns: undefined
       }
       confirm_presence_via_geo: {
@@ -1962,10 +1954,6 @@ export type Database = {
         }
         Returns: string
       }
-      create_or_get_conversation: {
-        Args: { p_other_user_id: string }
-        Returns: string
-      }
       create_presence_token: {
         Args: { p_activity_id: string }
         Returns: string
@@ -2015,10 +2003,6 @@ export type Database = {
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
       edit_private_message: {
-        Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
-        Returns: undefined
-      }
-      edit_wall_message: {
         Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
         Returns: undefined
       }
@@ -2244,11 +2228,6 @@ export type Database = {
         Returns: undefined
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
-      mark_all_notifications_read: { Args: never; Returns: undefined }
-      mark_notification_read: {
-        Args: { p_notification_id: string }
-        Returns: undefined
-      }
       mark_tutorial_seen: { Args: never; Returns: undefined }
       moderate_report: {
         Args: {
