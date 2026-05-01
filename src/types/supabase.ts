@@ -814,6 +814,42 @@ export type Database = {
           },
         ]
       }
+      push_tokens: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           admin_note: string | null
@@ -1066,93 +1102,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sport_level_endorsements: {
-        Row: {
-          activity_id: string
-          created_at: string
-          id: string
-          is_confirmation: boolean
-          sport_key: string
-          target_id: string
-          voter_id: string
-        }
-        Insert: {
-          activity_id: string
-          created_at?: string
-          id?: string
-          is_confirmation: boolean
-          sport_key: string
-          target_id: string
-          voter_id: string
-        }
-        Update: {
-          activity_id?: string
-          created_at?: string
-          id?: string
-          is_confirmation?: boolean
-          sport_key?: string
-          target_id?: string
-          voter_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities_with_coords"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_joined_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_target_id_fkey"
-            columns: ["target_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_target_id_fkey"
-            columns: ["target_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sport_level_endorsements_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sports: {
         Row: {
           category: string
@@ -1176,6 +1125,48 @@ export type Database = {
           key?: string
         }
         Relationships: []
+      }
+      user_badge_progression: {
+        Row: {
+          awarded_at: string
+          category: string
+          id: string
+          sport_key: string | null
+          tier_key: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          category: string
+          id?: string
+          sport_key?: string | null
+          tier_key: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          category?: string
+          id?: string
+          sport_key?: string | null
+          tier_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badge_progression_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badge_progression_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -1397,6 +1388,7 @@ export type Database = {
         Row: {
           activity_id: string | null
           avatar_url: string | null
+          confirmed_present: boolean | null
           created_at: string | null
           creator_id: string | null
           display_name: string | null
@@ -1645,6 +1637,7 @@ export type Database = {
         Row: {
           activity_id: string | null
           avatar_url: string | null
+          confirmed_present: boolean | null
           created_at: string | null
           display_name: string | null
           left_at: string | null
@@ -1874,6 +1867,15 @@ export type Database = {
             }
             Returns: string
           }
+      award_badge_progression: {
+        Args: { p_silent?: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      badge_label_fr: {
+        Args: { p_category: string; p_tier: string }
+        Returns: string
+      }
+      badge_tier_for: { Args: { p_count: number }; Returns: string }
       cancel_accepted_seat: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -1901,7 +1903,13 @@ export type Database = {
         Returns: undefined
       }
       confirm_presence_via_geo: {
-        Args: { p_activity_id: string; p_lat: number; p_lng: number }
+        Args: {
+          p_activity_id: string
+          p_captured_at?: string
+          p_lat: number
+          p_lng: number
+          p_skip_push?: boolean
+        }
         Returns: undefined
       }
       confirm_presence_via_token: { Args: { p_token: string }; Returns: string }
@@ -2017,6 +2025,7 @@ export type Database = {
       enablelongtransactions: { Args: never; Returns: string }
       ensure_user_row: { Args: never; Returns: undefined }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_stale_contact_requests: { Args: never; Returns: undefined }
       generate_random_name: { Args: never; Returns: string }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
@@ -2116,6 +2125,10 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_active_negative_count: {
+        Args: { p_badge_key: string; p_voted_id: string }
+        Returns: number
+      }
       get_activity_by_invite_token: {
         Args: { p_token: string }
         Returns: {
@@ -2142,15 +2155,7 @@ export type Database = {
       }
       get_activity_peer_review_state: {
         Args: { p_activity_id: string }
-        Returns: {
-          avatar_url: string
-          confirmed_present: boolean
-          display_name: string
-          i_voted_presence: boolean
-          my_badge_votes: string[]
-          peer_validation_count: number
-          user_id: string
-        }[]
+        Returns: Json
       }
       get_my_active_presence_activities: {
         Args: never
@@ -2177,12 +2182,14 @@ export type Database = {
           transport_type: string
         }[]
       }
+      get_user_award_aggregates: { Args: { p_user_id: string }; Returns: Json }
       get_user_public_stats: {
         Args: { p_user_id: string }
         Returns: {
           completed_activities: number
           created_activities: number
           joined_activities: number
+          reliability_score: number
           reliability_tier: string
           sports_count: number
           total_activities: number
@@ -2192,30 +2199,34 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           badge_key: string
+          last_at: string
           vote_count: number
         }[]
       }
-      get_user_sport_breakdown: {
+      get_user_sport_level_votes: {
         Args: { p_user_id: string }
         Returns: {
-          completed_count: number
-          level: string
-          sport_icon: string
+          level_over: number
+          level_right: number
+          level_under: number
           sport_key: string
         }[]
       }
-      get_user_sport_endorsements: {
+      get_user_sport_levels: {
         Args: { p_user_id: string }
         Returns: {
-          net_count: number
+          dots: number
+          first_at: string
+          last_at: string
           sport_key: string
         }[]
       }
       get_user_trophies: {
         Args: { p_user_id: string }
         Returns: {
-          trophy_count: number
-          trophy_key: string
+          category: string
+          count: number
+          sport_key: string
         }[]
       }
       gettransactionid: { Args: never; Returns: unknown }
@@ -2265,15 +2276,23 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
-      notify_presence_last_call: {
-        Args: { p_activity_id: string }
+      notify_presence_confirmed: {
+        Args: {
+          p_activity_id: string
+          p_skip_push?: boolean
+          p_user_id: string
+        }
         Returns: undefined
       }
       notify_presence_pre_warning: {
         Args: { p_activity_id: string }
         Returns: undefined
       }
-      notify_presence_reminders: {
+      notify_presence_validate_now: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_presence_validate_warning: {
         Args: { p_activity_id: string }
         Returns: undefined
       }
@@ -2330,7 +2349,10 @@ export type Database = {
         Args: { p_participation_id: string }
         Returns: undefined
       }
-      register_push_token: { Args: { p_token: string }; Returns: undefined }
+      register_push_token: {
+        Args: { p_device_id?: string; p_token: string }
+        Returns: undefined
+      }
       reliability_tier: { Args: { p_score: number }; Returns: string }
       remove_participant: {
         Args: { p_participation_id: string }
@@ -2346,6 +2368,7 @@ export type Database = {
         }
         Returns: string
       }
+      revoke_push_token: { Args: { p_token: string }; Returns: undefined }
       revoke_reputation_badge: {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
         Returns: undefined
@@ -2973,15 +2996,6 @@ export type Database = {
       st_wrapx: {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
-      }
-      submit_sport_level_endorsement: {
-        Args: {
-          p_activity_id: string
-          p_is_confirmation: boolean
-          p_sport_key: string
-          p_target_id: string
-        }
-        Returns: undefined
       }
       transition_activity_status: { Args: never; Returns: undefined }
       transition_single_activity: {

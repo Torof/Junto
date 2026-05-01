@@ -18,13 +18,6 @@ export interface UserStats {
   reliability_tier: string | null;
 }
 
-export interface SportBreakdownRow {
-  sport_key: string;
-  sport_icon: string;
-  level: string | null;
-  completed_count: number;
-}
-
 export const userService = {
   getPublicProfile: async (userId: string): Promise<PublicProfile | null> => {
     const { data, error } = await supabase
@@ -60,19 +53,6 @@ export const userService = {
       return empty;
     }
     return rows[0] ?? empty;
-  },
-
-  getSportBreakdown: async (userId: string): Promise<SportBreakdownRow[]> => {
-    if (!userId) {
-      return [];
-    }
-    const { data, error } = await supabase.rpc('get_user_sport_breakdown' as 'join_activity', {
-      p_user_id: userId,
-    } as unknown as { p_activity_id: string });
-    if (error) {
-      return [];
-    }
-    return (data as unknown as SportBreakdownRow[]) ?? [];
   },
 
   updateProfile: async (updates: {

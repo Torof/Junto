@@ -49,10 +49,6 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   driver_left: { icon: Car, color: colors.warning },
   contact_request: { icon: Mail, color: colors.cta },
   contact_request_accepted: { icon: MailCheck, color: colors.success },
-  // Historical types — server stopped emitting (mig 00148) but old rows
-  // may still exist; keeping the icons so they render correctly.
-  presence_reminder: { icon: MapPinCheck, color: colors.cta },
-  presence_last_call: { icon: AlarmClock, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -62,8 +58,6 @@ const ACTIONABLE_TYPES = new Set([
   'seat_request',
   'contact_request',
   'presence_pre_warning',
-  'presence_reminder',
-  'presence_last_call',
   'qr_create_reminder',
   'rate_participants',
   'peer_review_closing',
