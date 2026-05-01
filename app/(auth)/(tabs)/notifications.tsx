@@ -9,7 +9,7 @@ import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock, Hourglass, QrCode,
-  Car, CarFront, Mail, MailCheck, MailX, Users, BadgeCheck, Trophy,
+  Car, CarFront, CarTaxiFront, Mail, MailCheck, MailX, Users, BadgeCheck, Trophy,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -34,8 +34,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   activity_updated: { icon: Pencil, color: colors.cta },
   rate_participants: { icon: Star, color: colors.warning },
   presence_pre_warning: { icon: Hourglass, color: colors.cta },
-  presence_reminder: { icon: MapPinCheck, color: colors.cta },
-  presence_last_call: { icon: AlarmClock, color: colors.warning },
+  presence_validate_now: { icon: MapPinCheck, color: colors.cta },
+  presence_validate_warning: { icon: AlarmClock, color: colors.warning },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
   badge_unlocked: { icon: Trophy, color: colors.cta },
   qr_create_reminder: { icon: QrCode, color: colors.cta },
@@ -45,9 +45,14 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   seat_request: { icon: Car, color: colors.cta },
   seat_request_accepted: { icon: CarFront, color: colors.success },
   seat_request_declined: { icon: Car, color: colors.error },
+  seat_request_expired: { icon: CarTaxiFront, color: colors.textMuted },
   driver_left: { icon: Car, color: colors.warning },
   contact_request: { icon: Mail, color: colors.cta },
   contact_request_accepted: { icon: MailCheck, color: colors.success },
+  // Historical types — server stopped emitting (mig 00148) but old rows
+  // may still exist; keeping the icons so they render correctly.
+  presence_reminder: { icon: MapPinCheck, color: colors.cta },
+  presence_last_call: { icon: AlarmClock, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
