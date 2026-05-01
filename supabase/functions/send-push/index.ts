@@ -16,7 +16,23 @@ interface Payload {
   collapseId?: string;
 }
 
+interface ExpoTicket {
+  status: 'ok' | 'error';
+  id?: string;
+  message?: string;
+  details?: { error?: string };
+}
+
 const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
+
+// Expo errors that mean "this token is permanently dead" — delete the row
+// so we stop targeting it. Other transient errors (e.g. MessageRateExceeded)
+// are not on this list and the token stays.
+const DEAD_TOKEN_ERRORS = new Set([
+  'DeviceNotRegistered',
+  'MismatchSenderId',
+  'InvalidCredentials',
+]);
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -90,9 +106,43 @@ Deno.serve(async (req) => {
     body: JSON.stringify(messages),
   });
 
+  const expoBody = await expoRes.text();
+
+  // Best-effort token cleanup. Expo returns one ticket per submitted message,
+  // in the same order. Tickets with status=error and a permanent-dead error
+  // code mean the token will never deliver again — drop the row so we stop
+  // burning fan-out time and potentially hitting rate limits on bad tokens.
+  if (expoRes.ok) {
+    try {
+      const parsed = JSON.parse(expoBody);
+      const tickets: ExpoTicket[] = Array.isArray(parsed?.data) ? parsed.data : [];
+      const deadTokens: string[] = [];
+      tickets.forEach((ticket, i) => {
+        if (
+          ticket?.status === 'error' &&
+          ticket.details?.error &&
+          DEAD_TOKEN_ERRORS.has(ticket.details.error) &&
+          tokens[i]
+        ) {
+          deadTokens.push(tokens[i]!);
+        }
+      });
+      if (deadTokens.length > 0) {
+        const { error: delErr } = await supabase
+          .from('push_tokens')
+          .delete()
+          .in('token', deadTokens);
+        if (delErr) {
+          console.warn('push_tokens delete failed', delErr.message);
+        }
+      }
+    } catch (e) {
+      console.warn('expo response parse failed', e);
+    }
+  }
+
   // Pass Expo's body through so per-message statuses are visible in
   // net._http_response.content (DeviceNotRegistered, MismatchSenderId, etc).
-  const expoBody = await expoRes.text();
   return new Response(expoBody, {
     status: expoRes.ok ? 200 : 502,
     headers: { 'Content-Type': 'application/json' },
