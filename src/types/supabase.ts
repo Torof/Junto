@@ -1904,7 +1904,10 @@ export type Database = {
         }
         Returns: undefined
       }
-      confirm_presence_via_token: { Args: { p_token: string }; Returns: string }
+      confirm_presence_via_token: {
+        Args: { p_skip_push?: boolean; p_token: string }
+        Returns: string
+      }
       create_activity: {
         Args: {
           p_description: string
