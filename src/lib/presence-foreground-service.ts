@@ -4,17 +4,16 @@ import { trace, captureInfo, captureWarning } from './sentry';
 import {
   PRESENCE_LOCATION_TASK,
   setLocationTaskCandidates,
-  getLocationTaskCandidates,
   clearLocationTaskCandidates,
-  clearValidatedFor,
+  setOnAllValidated,
   type PresenceCandidate,
 } from './presence-location-task';
 
 // Window mirrors the foreground watcher and the server-side gate on
 // confirm_presence_via_geo: only fire when the activity is in
 // T-15min..T+15min of starts_at.
-export const WINDOW_BEFORE_MS = 15 * 60_000;
-export const WINDOW_AFTER_MS = 15 * 60_000;
+const WINDOW_BEFORE_MS = 15 * 60_000;
+const WINDOW_AFTER_MS = 15 * 60_000;
 
 interface ActiveActivity {
   activity_id: string;
@@ -49,9 +48,7 @@ async function fetchInWindowCandidates(): Promise<PresenceCandidate[]> {
   return result;
 }
 
-// stopTimer is module state we own; running-state is read from the OS so
-// it reflects reality even when the location task self-stopped via
-// Location.stopLocationUpdatesAsync without going through this module.
+let serviceRunning = false;
 let stopTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
@@ -67,35 +64,27 @@ let stopTimer: ReturnType<typeof setTimeout> | null = null;
  * Returns whether the service is actually running after this call.
  */
 export async function startPresenceForegroundService(): Promise<boolean> {
-  // Source of truth is the OS, not a module-level flag. The location
-  // task can call Location.stopLocationUpdatesAsync directly (when it
-  // detects all candidates validated), in which case a module flag
-  // would go stale and we'd refuse to restart on a future window.
-  const alreadyRunning = await Location.hasStartedLocationUpdatesAsync(
-    PRESENCE_LOCATION_TASK,
-  ).catch(() => false);
-  if (alreadyRunning) {
-    captureInfo('presence.fgservice', 'already running, no-op');
+  if (serviceRunning) {
+    trace('presence.fgservice', 'already running, no-op');
     return true;
   }
 
   const bg = await Location.getBackgroundPermissionsAsync();
   if (bg.status !== 'granted') {
-    captureInfo('presence.fgservice', 'no background permission, skipping');
+    trace('presence.fgservice', 'no background permission, skipping');
     return false;
   }
 
   const candidates = await fetchInWindowCandidates();
   if (candidates.length === 0) {
-    captureInfo('presence.fgservice', 'no in-window candidates, skipping');
+    trace('presence.fgservice', 'no in-window candidates, skipping');
     return false;
   }
 
-  // Clear any stale validated flags from a prior session for these
-  // activities — a re-joined activity or a re-tested one needs to be
-  // treated as fresh.
-  await clearValidatedFor(candidates.map((c) => c.activity_id));
   setLocationTaskCandidates(candidates);
+  setOnAllValidated(() => {
+    void stopPresenceForegroundService('all candidates validated');
+  });
 
   try {
     await Location.startLocationUpdatesAsync(PRESENCE_LOCATION_TASK, {
@@ -111,6 +100,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
         notificationColor: '#F4642A',
       },
     });
+    serviceRunning = true;
     captureInfo('presence.fgservice', 'started', { candidate_count: candidates.length });
 
     // Schedule auto-stop at T+15min of the latest candidate. After that,
@@ -136,6 +126,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
 }
 
 export async function stopPresenceForegroundService(reason: string): Promise<void> {
+  if (!serviceRunning) return;
   if (stopTimer) {
     clearTimeout(stopTimer);
     stopTimer = null;
@@ -152,10 +143,8 @@ export async function stopPresenceForegroundService(reason: string): Promise<voi
       message: err instanceof Error ? err.message : String(err),
     });
   }
-  // Clear AsyncStorage for the candidates we were tracking — next session
-  // (or a different activity later) starts fresh.
-  const ids = getLocationTaskCandidates().map((c) => c.activity_id);
-  await clearValidatedFor(ids);
+  setOnAllValidated(null);
   clearLocationTaskCandidates();
+  serviceRunning = false;
   trace('presence.fgservice', 'stopped', { reason });
 }

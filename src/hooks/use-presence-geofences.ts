@@ -6,7 +6,6 @@ import { PRESENCE_GEOFENCE_TASK } from '@/lib/presence-geofence-task';
 import {
   startPresenceForegroundService,
   stopPresenceForegroundService,
-  WINDOW_BEFORE_MS as FG_WINDOW_BEFORE_MS,
 } from '@/lib/presence-foreground-service';
 import { trace, captureWarning } from '@/lib/sentry';
 import { distanceMeters } from '@/utils/geo';
@@ -42,48 +41,6 @@ const ACCURACY_THRESHOLD_M = 100;
 const WINDOW_BEFORE_MS = 15 * 60_000;
 const WINDOW_AFTER_MS = 15 * 60_000;
 const WATCHER_DURATION_MS = 60_000;
-
-// Timer-based self-trigger for backgrounded-but-alive apps: when the user
-// browses the app, backgrounds it, and the activity's window opens while
-// the app is in background — nothing else re-triggers refreshGeofences,
-// so the foreground service never starts. We schedule a setTimeout for
-// each upcoming candidate at exactly its T-FG_WINDOW_BEFORE_MS mark; the
-// timer wakes the JS layer enough to call refreshGeofences again.
-//
-// Doze caveat: Android suspends JS timers after ~15 min of backgrounding.
-// This fix is reliable for "user backgrounds shortly before the window"
-// (the common case). For longer waits the existing geofence Enter wake
-// is the canonical fallback.
-const MAX_SCHEDULE_AHEAD_MS = 2 * 60 * 60_000;
-const MAX_SCHEDULED_TIMERS = 5;
-let windowOpenTimers: ReturnType<typeof setTimeout>[] = [];
-
-function clearWindowOpenTimers(): void {
-  for (const t of windowOpenTimers) clearTimeout(t);
-  windowOpenTimers = [];
-}
-
-function scheduleWindowOpenTimers(candidates: ActiveActivity[]): void {
-  clearWindowOpenTimers();
-  const now = Date.now();
-  // Keep the soonest first so the cap picks the most relevant ones.
-  const upcoming = candidates
-    .map((a) => ({ a, ms: new Date(a.starts_at).getTime() - FG_WINDOW_BEFORE_MS - now }))
-    .filter((x) => x.ms > 0 && x.ms <= MAX_SCHEDULE_AHEAD_MS)
-    .sort((x, y) => x.ms - y.ms)
-    .slice(0, MAX_SCHEDULED_TIMERS);
-  for (const { ms } of upcoming) {
-    windowOpenTimers.push(setTimeout(() => {
-      void refreshGeofences();
-    }, ms));
-  }
-  if (upcoming.length > 0) {
-    trace('presence.geofence', 'scheduled window-open timers', {
-      count: upcoming.length,
-      next_ms: upcoming[0]?.ms ?? null,
-    });
-  }
-}
 
 async function fetchCandidates(): Promise<ActiveActivity[]> {
   const { data } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
@@ -277,12 +234,6 @@ async function refreshGeofences(): Promise<void> {
   const candidates = await fetchCandidates();
   const regions = toRegions(candidates);
 
-  // Re-arm window-open timers on every refresh. If we're called from
-  // mount, AppState change, or one of these timers itself, we want a
-  // fresh schedule that reflects the current candidate list (added /
-  // cancelled activities, server time skew, etc).
-  scheduleWindowOpenTimers(candidates);
-
   // Initial-state check needs only foreground permission. Run it before
   // anything else so users with "While Using" still get the on-app-open
   // auto-confirmation when they're already on-site.
@@ -364,7 +315,6 @@ export function usePresenceGeofences(enabled: boolean) {
         activeWatcher.remove();
         activeWatcher = null;
       }
-      clearWindowOpenTimers();
       Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
       void stopPresenceForegroundService('hook unmounted');
       trace('presence.geofence', 'stopped: hook unmounted');
