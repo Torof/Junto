@@ -66,19 +66,19 @@ let stopTimer: ReturnType<typeof setTimeout> | null = null;
  */
 export async function startPresenceForegroundService(): Promise<boolean> {
   if (serviceRunning) {
-    trace('presence.fgservice', 'already running, no-op');
+    captureInfo('presence.fgservice', 'already running, no-op');
     return true;
   }
 
   const bg = await Location.getBackgroundPermissionsAsync();
   if (bg.status !== 'granted') {
-    trace('presence.fgservice', 'no background permission, skipping');
+    captureInfo('presence.fgservice', 'no background permission, skipping');
     return false;
   }
 
   const candidates = await fetchInWindowCandidates();
   if (candidates.length === 0) {
-    trace('presence.fgservice', 'no in-window candidates, skipping');
+    captureInfo('presence.fgservice', 'no in-window candidates, skipping');
     return false;
   }
 
