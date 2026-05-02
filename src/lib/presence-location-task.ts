@@ -1,6 +1,7 @@
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/services/supabase';
 import { trace, captureInfo } from './sentry';
 import { distanceMeters } from '@/utils/geo';
@@ -9,6 +10,41 @@ import { distanceMeters } from '@/utils/geo';
 // the OS can find this task definition when it spawns the headless JS
 // runtime to deliver location updates.
 export const PRESENCE_LOCATION_TASK = 'junto.presence-location';
+
+// AsyncStorage keys. Module-level Set state was unreliable — Sentry
+// breadcrumbs showed the task firing every ~10s on the same candidate
+// after a successful RPC, which means the in-memory validated Set was
+// getting reset between callbacks. Persisting to disk is robust against
+// any JS runtime / process recycling the OS does to the foreground
+// service.
+const VALIDATED_KEY_PREFIX = 'presence:fg:validated:';
+const validatedKey = (id: string) => `${VALIDATED_KEY_PREFIX}${id}`;
+
+async function isValidated(activityId: string): Promise<boolean> {
+  try {
+    const v = await AsyncStorage.getItem(validatedKey(activityId));
+    return v === '1';
+  } catch {
+    return false;
+  }
+}
+
+async function markValidated(activityId: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(validatedKey(activityId), '1');
+  } catch {
+    // best-effort
+  }
+}
+
+export async function clearValidatedFor(activityIds: string[]): Promise<void> {
+  if (activityIds.length === 0) return;
+  try {
+    await AsyncStorage.multiRemove(activityIds.map(validatedKey));
+  } catch {
+    // best-effort
+  }
+}
 
 // Mirrors the geofence task / foreground watcher.
 const RADIUS_M = 300;
@@ -27,33 +63,21 @@ export interface PresenceCandidate {
   starts_at: string;
 }
 
-// Module-level state. Survives across location callbacks within a single
-// JS runtime session. If the OS resets the JS runtime mid-service (rare
-// for active foreground services, but possible), we'll re-seed from the
-// service module on next start.
+// Module-level candidate list. Set by the service when it starts. The
+// validated state is persisted separately to AsyncStorage (see above) so
+// it survives JS runtime resets between location callbacks.
 let candidates: PresenceCandidate[] = [];
-const validated = new Set<string>();
-let onAllValidated: (() => void) | null = null;
 
 export function setLocationTaskCandidates(next: PresenceCandidate[]): void {
   candidates = next.slice();
-  validated.clear();
+}
+
+export function getLocationTaskCandidates(): PresenceCandidate[] {
+  return candidates.slice();
 }
 
 export function clearLocationTaskCandidates(): void {
   candidates = [];
-  validated.clear();
-}
-
-export function hasOpenCandidates(): boolean {
-  return candidates.some((c) => !validated.has(c.activity_id));
-}
-
-// Registered by the foreground service module when it starts the service.
-// The location task calls this when every candidate is validated so the
-// service can stop itself instead of polling forever.
-export function setOnAllValidated(cb: (() => void) | null): void {
-  onAllValidated = cb;
 }
 
 interface LocationTaskPayload {
@@ -87,8 +111,13 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
     return;
   }
 
+  // Sentry confirmed the runtime can recycle between callbacks (validated
+  // set was empty after a successful RPC, causing perpetual re-validation
+  // and a foreground service that never stopped). Read validated flags
+  // from AsyncStorage on every fire, write them on RPC success.
+  let openCount = 0;
   for (const candidate of candidates) {
-    if (validated.has(candidate.activity_id)) continue;
+    if (await isValidated(candidate.activity_id)) continue;
 
     const d = distanceMeters(
       fix.coords.latitude,
@@ -96,7 +125,10 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
       candidate.lat,
       candidate.lng,
     );
-    if (d > RADIUS_M) continue;
+    if (d > RADIUS_M) {
+      openCount++;
+      continue;
+    }
 
     captureInfo('presence.location', 'in zone, calling RPC', {
       distance_m: Math.round(d),
@@ -112,7 +144,7 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
       } as unknown as { p_activity_id: string });
 
       if (!rpcError) {
-        validated.add(candidate.activity_id);
+        await markValidated(candidate.activity_id);
         // Local notif transition mirrors the geofence task path.
         const slotId = `presence-${candidate.activity_id}`;
         await Notifications.dismissNotificationAsync(slotId).catch(() => {});
@@ -132,28 +164,33 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
       // Server function is idempotent (mig 00163) so 'already confirmed'
       // returns success. Any other 'Operation not permitted' here means
       // we're outside the validation window or some auth chain rejected
-      // — terminal, mark validated locally so we stop checking.
+      // — terminal, mark validated so we stop checking.
       if ((rpcError.message ?? '').includes('Operation not permitted')) {
-        validated.add(candidate.activity_id);
+        await markValidated(candidate.activity_id);
         trace('presence.location', 'RPC rejected (terminal), skipping further checks', {
           reason: rpcError.message,
         });
       } else {
+        openCount++;
         trace('presence.location', 'RPC failed (transient), will retry on next sample', {
           reason: rpcError.message,
         });
       }
     } catch (err) {
+      openCount++;
       trace('presence.location', 'RPC threw, will retry on next sample', {
         message: err instanceof Error ? err.message : String(err),
       });
     }
   }
 
-  // All candidates settled — fire the stop callback if registered. The
-  // service module will tear down the location updates and clear the
-  // foreground notification.
-  if (!hasOpenCandidates() && onAllValidated) {
-    onAllValidated();
+  // All candidates settled — stop the foreground service ourselves. The
+  // service module's onAllValidated callback was unreliable in headless
+  // contexts (module-level closure may be cleared on runtime reset). The
+  // OS-level stop call from inside the task is robust and removes the
+  // persistent foregroundService notification.
+  if (openCount === 0 && candidates.length > 0) {
+    captureInfo('presence.location', 'all validated, stopping service');
+    await Location.stopLocationUpdatesAsync(PRESENCE_LOCATION_TASK).catch(() => {});
   }
 });

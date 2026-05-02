@@ -4,8 +4,9 @@ import { trace, captureInfo, captureWarning } from './sentry';
 import {
   PRESENCE_LOCATION_TASK,
   setLocationTaskCandidates,
+  getLocationTaskCandidates,
   clearLocationTaskCandidates,
-  setOnAllValidated,
+  clearValidatedFor,
   type PresenceCandidate,
 } from './presence-location-task';
 
@@ -81,10 +82,11 @@ export async function startPresenceForegroundService(): Promise<boolean> {
     return false;
   }
 
+  // Clear any stale validated flags from a prior session for these
+  // activities — a re-joined activity or a re-tested one needs to be
+  // treated as fresh.
+  await clearValidatedFor(candidates.map((c) => c.activity_id));
   setLocationTaskCandidates(candidates);
-  setOnAllValidated(() => {
-    void stopPresenceForegroundService('all candidates validated');
-  });
 
   try {
     await Location.startLocationUpdatesAsync(PRESENCE_LOCATION_TASK, {
@@ -143,7 +145,10 @@ export async function stopPresenceForegroundService(reason: string): Promise<voi
       message: err instanceof Error ? err.message : String(err),
     });
   }
-  setOnAllValidated(null);
+  // Clear AsyncStorage for the candidates we were tracking — next session
+  // (or a different activity later) starts fresh.
+  const ids = getLocationTaskCandidates().map((c) => c.activity_id);
+  await clearValidatedFor(ids);
   clearLocationTaskCandidates();
   serviceRunning = false;
   trace('presence.fgservice', 'stopped', { reason });
