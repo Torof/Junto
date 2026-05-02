@@ -13,8 +13,8 @@ import {
 // Window mirrors the foreground watcher and the server-side gate on
 // confirm_presence_via_geo: only fire when the activity is in
 // T-15min..T+15min of starts_at.
-const WINDOW_BEFORE_MS = 15 * 60_000;
-const WINDOW_AFTER_MS = 15 * 60_000;
+export const WINDOW_BEFORE_MS = 15 * 60_000;
+export const WINDOW_AFTER_MS = 15 * 60_000;
 
 interface ActiveActivity {
   activity_id: string;
