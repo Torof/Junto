@@ -32,7 +32,13 @@ function scrub(obj: unknown, depth = 0): unknown {
   if (typeof obj === 'object') {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
-      if (SENSITIVE_KEYS.some((s) => k.toLowerCase().includes(s))) {
+      // Exact match against the sensitive list. Substring matching
+      // over-redacted Sentry's own context fields (e.g. "simulator"
+      // contained "lat" → got redacted → Sentry discarded it as the
+      // wrong type). Snake_case compound names with sensitive
+      // suffixes (`user_email`, `auth_token`, etc.) should be added
+      // to the list explicitly when they appear.
+      if (SENSITIVE_KEYS.includes(k.toLowerCase())) {
         out[k] = '[REDACTED]';
       } else {
         out[k] = scrub(v, depth + 1);
