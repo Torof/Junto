@@ -95,6 +95,16 @@ export function initSentry() {
       return event;
     },
   });
+
+  // Sanity ping. If you can see this event in the Sentry dashboard within
+  // a minute of app start, wiring is working end-to-end (DSN bundled, JS
+  // init ran, native SDK accepted it). If nothing lands, the failure is
+  // upstream of this line — check that the APK includes the native module
+  // and that Updates.channel actually returns 'preview' on this build.
+  Sentry.captureMessage('[sentry.init] initialized', {
+    level: 'info',
+    extra: { channel, version, buildNumber },
+  });
 }
 
 export function setSentryUser(userId: string | null) {
