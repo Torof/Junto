@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
 import { enqueueGeoEvent } from './presence-offline-cache';
-import { trace } from './sentry';
+import { trace, captureInfo } from './sentry';
 
 // Task name must be a constant defined at the top of a module that's imported
 // at app startup (see _layout). Expo TaskManager requires the task to be
@@ -40,6 +40,16 @@ interface GeofenceEvent {
 // Region identifier convention: `presence:<activity_id>:<lat>,<lng>`
 // We only act on Enter events.
 TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
+  // Diagnostic: surface every task fire as a Sentry event so we can confirm
+  // the OS is actually delivering geofence wakes when the app is closed.
+  // Closed-app reliability on Android is OEM-dependent (Samsung/Xiaomi
+  // aggressive kill, Doze throttling) — without this we have no way to
+  // tell "OS never fired" from "fired but our code failed".
+  captureInfo('presence.geofence', 'task fired', {
+    has_error: !!error,
+    has_data: !!data,
+  });
+
   if (error) {
     trace('presence.geofence', 'task fired with error', { message: String(error) });
     return;

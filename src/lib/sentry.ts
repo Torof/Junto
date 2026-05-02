@@ -129,4 +129,21 @@ export function captureWarning(
   });
 }
 
+// Diagnostic-level event. Same shape as captureWarning but level='info' so
+// it stays out of the warning/error queues. Use for confirming a code path
+// reached a checkpoint we'd otherwise have no visibility into (e.g. the
+// headless geofence task firing on a closed app — we want to know it
+// happened, not flag it as a problem).
+export function captureInfo(
+  category: string,
+  message: string,
+  data?: Record<string, unknown>,
+): void {
+  if (__DEV__) return;
+  Sentry.captureMessage(`[${category}] ${message}`, {
+    level: 'info',
+    extra: data ? (scrub(data) as Record<string, unknown>) : undefined,
+  });
+}
+
 export const wrap = Sentry.wrap;
