@@ -126,10 +126,15 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     } as unknown as { p_activity_id: string });
 
     if (!error) {
-      trace('presence.geofence', 'task: RPC succeeded, flipping slot to confirmée');
-      // RPC succeeded → flip the slot to "Présence confirmée".
+      trace('presence.geofence', 'task: RPC succeeded, replacing détectée with confirmée');
+      // Dismiss the détectée notif and schedule confirmée under a DISTINCT
+      // identifier. Re-scheduling on the same identifier is treated as an
+      // update on Android — silent, no sound, sometimes invisible if the
+      // user already dismissed the first. Distinct id = fresh delivery
+      // with sound, so the user actually perceives the validation step.
+      await Notifications.dismissNotificationAsync(slotId).catch(() => {});
       Notifications.scheduleNotificationAsync({
-        identifier: slotId,
+        identifier: `${slotId}-confirmed`,
         content: {
           title: 'Présence confirmée',
           body: 'Ta présence à cette activité est confirmée.',
