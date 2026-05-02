@@ -49,7 +49,9 @@ async function fetchInWindowCandidates(): Promise<PresenceCandidate[]> {
   return result;
 }
 
-let serviceRunning = false;
+// stopTimer is module state we own; running-state is read from the OS so
+// it reflects reality even when the location task self-stopped via
+// Location.stopLocationUpdatesAsync without going through this module.
 let stopTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
@@ -65,7 +67,14 @@ let stopTimer: ReturnType<typeof setTimeout> | null = null;
  * Returns whether the service is actually running after this call.
  */
 export async function startPresenceForegroundService(): Promise<boolean> {
-  if (serviceRunning) {
+  // Source of truth is the OS, not a module-level flag. The location
+  // task can call Location.stopLocationUpdatesAsync directly (when it
+  // detects all candidates validated), in which case a module flag
+  // would go stale and we'd refuse to restart on a future window.
+  const alreadyRunning = await Location.hasStartedLocationUpdatesAsync(
+    PRESENCE_LOCATION_TASK,
+  ).catch(() => false);
+  if (alreadyRunning) {
     captureInfo('presence.fgservice', 'already running, no-op');
     return true;
   }
@@ -102,7 +111,6 @@ export async function startPresenceForegroundService(): Promise<boolean> {
         notificationColor: '#F4642A',
       },
     });
-    serviceRunning = true;
     captureInfo('presence.fgservice', 'started', { candidate_count: candidates.length });
 
     // Schedule auto-stop at T+15min of the latest candidate. After that,
@@ -128,7 +136,6 @@ export async function startPresenceForegroundService(): Promise<boolean> {
 }
 
 export async function stopPresenceForegroundService(reason: string): Promise<void> {
-  if (!serviceRunning) return;
   if (stopTimer) {
     clearTimeout(stopTimer);
     stopTimer = null;
@@ -150,6 +157,5 @@ export async function stopPresenceForegroundService(reason: string): Promise<voi
   const ids = getLocationTaskCandidates().map((c) => c.activity_id);
   await clearValidatedFor(ids);
   clearLocationTaskCandidates();
-  serviceRunning = false;
   trace('presence.fgservice', 'stopped', { reason });
 }
