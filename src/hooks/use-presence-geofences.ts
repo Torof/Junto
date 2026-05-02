@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import { AppState } from 'react-native';
 import { supabase } from '@/services/supabase';
 import { PRESENCE_GEOFENCE_TASK } from '@/lib/presence-geofence-task';
-import { trace } from '@/lib/sentry';
+import { trace, captureWarning } from '@/lib/sentry';
 import { distanceMeters } from '@/utils/geo';
 
 interface ActiveActivity {
@@ -264,8 +264,13 @@ async function refreshGeofences(): Promise<void> {
     await Location.startGeofencingAsync(PRESENCE_GEOFENCE_TASK, regions);
     trace('presence.geofence', 'registered regions', { count: regions.length });
   } catch (err) {
-    trace('presence.geofence', 'registration threw', {
-      message: err instanceof Error ? err.message : String(err),
+    // Surface as a Sentry event, not just a breadcrumb. Registration failure
+    // means the user gets no auto-confirmation at all when the app is closed —
+    // we need to know about it without waiting for an unrelated crash to
+    // attach the breadcrumbs to.
+    captureWarning('presence.geofence', 'registration failed', {
+      reason: err instanceof Error ? err.message : String(err),
+      region_count: regions.length,
     });
   }
 }

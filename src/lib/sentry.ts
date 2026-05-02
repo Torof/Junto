@@ -113,4 +113,20 @@ export function trace(
   Sentry.addBreadcrumb({ category, message, level: 'info', data });
 }
 
+// Surface a real Sentry event (not just a breadcrumb) so silent failures in
+// the background flow are visible in the dashboard. Use sparingly — reserve
+// for paths where breadcrumbs alone wouldn't surface the issue (no parent
+// event to attach them to, e.g. headless task failures).
+export function captureWarning(
+  category: string,
+  message: string,
+  data?: Record<string, unknown>,
+): void {
+  if (__DEV__) return;
+  Sentry.captureMessage(`[${category}] ${message}`, {
+    level: 'warning',
+    extra: data ? (scrub(data) as Record<string, unknown>) : undefined,
+  });
+}
+
 export const wrap = Sentry.wrap;
