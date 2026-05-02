@@ -3,6 +3,10 @@ import * as Location from 'expo-location';
 import { AppState } from 'react-native';
 import { supabase } from '@/services/supabase';
 import { PRESENCE_GEOFENCE_TASK } from '@/lib/presence-geofence-task';
+import {
+  startPresenceForegroundService,
+  stopPresenceForegroundService,
+} from '@/lib/presence-foreground-service';
 import { trace, captureWarning } from '@/lib/sentry';
 import { distanceMeters } from '@/utils/geo';
 
@@ -240,6 +244,15 @@ async function refreshGeofences(): Promise<void> {
   // locks. Runs in parallel with the OS-level region monitor below.
   runForegroundWatcher(candidates, regions);
 
+  // Foreground service: when a presence window is active, start a
+  // long-running foreground service that polls high-accuracy GPS and
+  // validates as soon as the user enters the zone. This is the closed-
+  // app path on aggressive Android OEMs (Samsung, Xiaomi, etc.) where
+  // passive geofence Enter events aren't reliably delivered. Idempotent
+  // — no-ops if already running. The service module fetches its own
+  // candidate list, so we don't pass anything here.
+  void startPresenceForegroundService();
+
   // OS-level region monitoring requires "Always" / background permission.
   const bg = await Location.getBackgroundPermissionsAsync();
   if (bg.status !== 'granted') {
@@ -303,6 +316,7 @@ export function usePresenceGeofences(enabled: boolean) {
         activeWatcher = null;
       }
       Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
+      void stopPresenceForegroundService('hook unmounted');
       trace('presence.geofence', 'stopped: hook unmounted');
     };
   }, [enabled]);
