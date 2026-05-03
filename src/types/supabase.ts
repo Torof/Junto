@@ -2270,7 +2270,15 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      notify_presence_pre_warning_10min: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       notify_presence_validate_now: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_presence_validate_overdue: {
         Args: { p_activity_id: string }
         Returns: undefined
       }
