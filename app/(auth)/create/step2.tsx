@@ -186,7 +186,7 @@ export default function CreateStep2() {
             }}
           />
         </View>
-        {form.location_start && (
+        {(placingPin === 'start' || form.location_start || (form.start_name?.length ?? 0) > 0) && (
           <TextInput
             style={styles.objectiveNameInput}
             placeholder={t('create.startName')}
@@ -404,7 +404,7 @@ const createPinButtonStyles = (colors: AppColors, tint: string, isPlacing: boole
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  mapContainer: { flex: 3 },
+  mapContainer: { flex: 1 },
   mapOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.md, right: spacing.md, alignItems: 'center' },
   mapHintPill: {
     paddingHorizontal: spacing.md + 2,
@@ -422,7 +422,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.2,
   },
-  controls: { flex: 2 },
+  controls: { flex: 1 },
   controlsContent: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.md },
   sectionLabel: {
