@@ -38,15 +38,16 @@ Seuil 150m. Le check polyline ferme le faux-négatif des longues approches (alpi
 
 | Moment | Type | Audience | Push ? |
 |--------|------|----------|--------|
-| T-2h | `presence_pre_warning` | Participants | Oui |
-| T0 | `presence_validate_now` | Participants non confirmés | Oui |
-| T0 | `qr_create_reminder` | Créateur | Oui |
+| T-2h | `presence_pre_warning` | Participants non confirmés | Oui |
+| T-10min | `presence_pre_warning_10min` | Participants non confirmés | Oui |
+| T-10min | `qr_create_reminder` | Créateur (QR button live dès T-15min) | Oui |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés | Oui |
-| Validation succès | `presence_confirmed` | User validé | Oui |
+| Validation succès | `presence_confirmed` | User validé | Conditionnel (skip_push=TRUE par défaut) |
 | End | `rate_participants` | Participants | Non (in-app) |
-| End+22h | `peer_review_closing` | Non-voteurs confirmés | Oui |
+| End + 1h | `presence_validate_overdue` | Participants non confirmés | Oui |
+| End + 22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter | Oui |
 
-Tous les types `presence_*` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Les variantes intermédiaires (`validate_now`, `validate_warning`) ajoutent un suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché.
+Tous les types `presence_*` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.
 
 ## Détection geofence — flow à deux états
 
@@ -59,41 +60,48 @@ Si l'RPC échoue sur transport (réseau coupé), le slot reste à "détectée" e
 
 Si l'RPC est rejetée pour cause serveur (window pas ouverte, distance > 150m), le slot reste à "détectée" — on ne ment pas en affichant "confirmée" si la validation n'est pas passée.
 
-## Les 5 paths de validation
+## Les paths de validation (post mig 00166)
 
-### 1. Foreground watcher (`use-presence-geo-watcher`)
-- Poll position toutes les 30s pendant que l'app est ouverte
-- Filtre client : `now()` dans [T-15min, T+15min]
-- Reject si accuracy GPS > 50m (canyon / forêt)
-- Si distance ≤ 150m, appelle `confirm_presence_via_geo`
-- Pas de notif locale (l'app est déjà ouverte, le toast/state suffit)
+Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gated : auth, suspension, status ∈ published/in_progress/completed, deleted_at IS NULL, T-15..T+15, participation accepted, distance ≤ 150m, idempotent). Le path QR appelle `confirm_presence_via_token`.
 
-### 2. Background geofence task (`presence-geofence-task`)
-- Permission "Always" requise
-- OS wake l'app sur Enter event
-- Fire la notif locale "Présence détectée"
-- Tente `confirm_presence_via_geo` ; si succès flip à "Présence confirmée"
-- Si pas de session restaurée ou échec transport → enqueue offline
+### 1. Foreground watcher (`use-presence-geofences` — `runForegroundWatcher`)
+- Démarre quand au moins une activité est dans T-15..T+15 et l'app est foreground
+- `Location.watchPositionAsync(Accuracy.High, 5s)` jusqu'à 60s
+- Reject si accuracy > 100m
+- Sur fix in-zone (rayon 300m), appelle `confirm_presence_via_geo` avec `p_skip_push: true`
 
-### 3. App-open initial-state check (`use-presence-geofences`)
-- Permission foreground suffit (background non requise pour ce path — décorrélé en cleanup mig client)
-- Au foreground de l'app, lit la position courante et compare aux régions enregistrées
-- Si déjà dans une zone, appelle `confirm_presence_via_geo` — gère le cas où l'utilisateur arrive avant le check Enter
+### 2. Initial-state check (`use-presence-geofences` — `initialStateCheck`)
+- Au foreground de l'app, prend une fix `Accuracy.High` immédiate
+- Si déjà dans la zone (≤300m), appelle `confirm_presence_via_geo`
+- Couvre le cas "user déjà sur place avant que l'OS fire Enter"
 
-### 4. Activity-detail page poll
-- Quand l'utilisateur est sur la page de l'activité
-- Poll similaire au foreground watcher mais focused sur cette activité
-- Toast in-app sur succès, pas de notif OS
+### 3. Background geofence task (`presence-geofence-task`)
+- Permission "Always" requise — `Location.startGeofencingAsync` enregistre les régions
+- OS wake l'app sur Enter event → schedule notif locale "Présence détectée"
+- Demande une fix fraîche (`getCurrentPositionAsync(Accuracy.High)`, budget 8s) plutôt que d'utiliser le centre de la région (évite les false positives de fused-location stale)
+- Sur succès RPC → dismiss "détectée", schedule "Présence confirmée" sous identifier `${slotId}-confirmed` (sound)
+- Sur échec transport / fix coarse → enqueue offline
 
-### 5. Manuel — bouton "I'm here"
-- Visible quand l'utilisateur est dans la fenêtre de validation
-- Appelle le même `confirm_presence_via_geo`
-- Server gate filtre comme partout (distance, window, etc.)
+### 4. Foreground service location task (`presence-foreground-service` + `presence-location-task`)
+- Démarre quand l'app est foregroundée pendant T-15..T+15 (kické par `usePresenceGeofences`)
+- `Location.startLocationUpdatesAsync` avec `foregroundService` config (notif Android persistante "Junto valide ta présence")
+- Stream GPS Accuracy.High en continu — survit au backgrounding initial mais ne démarre pas si l'app n'a jamais été ouverte pendant la fenêtre (limite OEM, hors v1)
+- Sur succès RPC → schedule "Présence confirmée" + auto-stop le service
 
-### 5b. QR scan (fallback)
-- Le créateur affiche son QR depuis l'écran d'activité
-- Le participant scanne via la caméra
-- `confirm_presence_via_token` valide le token + fenêtre ; pas de check distance (le token suffit)
+### 5. Offline replay (`presence-offline-cache`)
+- Queue AsyncStorage : enqueue chaque échec transport / no-session des paths #3, #4
+- Drain au foreground / NetInfo reconnect (`use-presence-offline-flusher`)
+- Replay envoie le `captured_at` original ; serveur accepte jusqu'à T+duration+3h
+
+### 6. QR scan (`confirm_presence_via_token`)
+- Le créateur affiche son QR depuis activity-detail (bouton visible T-15min..T+duration+1h)
+- Le participant scan via caméra → token validé + fenêtre serveur (T-15..T+duration+3h)
+- Pas de check distance (la possession physique du QR suffit)
+- Auto-flip du créateur à `confirmed_present = TRUE` si pas encore validé (couvre le cas 2-participants)
+
+### 7. Peer testimony (`peer_validate_presence`)
+- Pas un path GPS, mais une 3ème voie : 2 votes de participants `confirmed_present = TRUE` flip un peer non-confirmé à TRUE
+- Émission post-event : tous les confirmed reçoivent `rate_participants` ; à T+22h les voters avec ≥1 peer non-confirmé restant à voter reçoivent `peer_review_closing`
 - Side effect : si scanner ≠ créateur, le créateur est lui-même auto-validé (preuve qu'il était là)
 
 ## Replay offline

@@ -326,7 +326,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Flip published → in_progress (start atteint)
 - Flip in_progress → completed (end atteint)
 - Flip published → expired (start + 2h, aucun participant non-créateur)
-- Émet `presence_pre_warning` (T-2h), `presence_validate_now` (T0), `presence_validate_warning` (T+duration/2), `qr_create_reminder` (T0 créateur), `peer_review_closing` (end+22h..end+24h)
+- Émet (post mig 00165 + 00166) : `presence_pre_warning` (T-2h), `presence_pre_warning_10min` (T-10min), `qr_create_reminder` (T-10min, créateur), `presence_validate_warning` (T+duration/2), `presence_validate_overdue` (end+1h), `peer_review_closing` (end+22h..end+24h, voters avec ≥1 peer non-confirmé restant)
 - Appelle `close_due_presence_windows()`
 
 **`check_activity_transitions()`** (mig 00142) — appelé par client en foreground :
@@ -670,16 +670,17 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 
 | Moment | Type | Audience |
 |--------|------|----------|
-| T-2h | `presence_pre_warning` | Participants |
-| T0 | `presence_validate_now` | Participants non confirmés |
-| T0 | `qr_create_reminder` | Créateur |
+| T-2h | `presence_pre_warning` | Participants non confirmés |
+| T-10min | `presence_pre_warning_10min` | Participants non confirmés |
+| T-10min | `qr_create_reminder` | Créateur (QR live dès T-15min) |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés |
-| Validation | `presence_confirmed` | User validé |
-| End | `rate_participants` | Participants |
-| End+22h | `peer_review_closing` | Non-voteurs confirmés |
+| Validation | `presence_confirmed` | User validé (push gated par skip_push, défaut TRUE) |
+| End | `rate_participants` | Participants (in-app uniquement) |
+| End+1h | `presence_validate_overdue` | Participants non confirmés |
+| End+22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter |
 | Détection geofence (BG) | "Présence détectée" → "Présence confirmée" (local notif) | Participant |
 
-Les types `presence_pre_warning`, `presence_validate_now`, `presence_validate_warning`, `presence_confirmed` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé.
+Les types `presence_pre_warning`, `presence_pre_warning_10min`, `presence_validate_warning`, `presence_validate_overdue`, `presence_confirmed` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.
 
 ---
 
@@ -724,13 +725,17 @@ Bayesian avec PRIOR = 3. Recalculé sur chaque flip de `confirmed_present`. Stoc
 
 ```sql
 CASE NEW.type
-  WHEN 'rate_participants', 'request_refused', 'participant_left_late' THEN
+  WHEN 'rate_participants', 'request_refused' THEN
     v_should_push := FALSE;          -- in-app only
 
   WHEN 'participant_joined' THEN
     v_collapse_id := 'joined-' || activity_id;  -- coalesce N joins → 1 visible
 
-  WHEN 'presence_pre_warning', 'presence_validate_now', 'presence_validate_warning' THEN
+  WHEN 'badge_unlocked' THEN
+    v_collapse_id := 'badge-' || user_id || '-' || created_at::date;  -- same-day collapse
+
+  WHEN 'presence_pre_warning', 'presence_pre_warning_10min',
+       'presence_validate_warning', 'presence_validate_overdue' THEN
     v_collapse_id := 'presence-' || activity_id;
     v_title := title || ' (×N)';     -- count progression dans la même slot
 

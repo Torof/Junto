@@ -86,8 +86,8 @@ Architecture multi-couches pour le flux de validation :
 | Module | Rôle |
 |---|---|
 | `src/lib/presence-geofence-task.ts` | TaskManager headless task — wake OS sur Enter event |
-| `src/hooks/use-presence-geofences.ts` | Enregistre les régions (T-2h..T+15min), initial-state check |
-| `src/hooks/use-presence-geo-watcher.ts` | Foreground polling watcher (30s) avec accuracy threshold |
+| `src/hooks/use-presence-geofences.ts` | Enregistre les régions, initial-state check, foreground watcher (intégré), kick le foreground service quand window ouverte |
+| `src/lib/presence-foreground-service.ts` + `presence-location-task.ts` | Foreground service Android (notif persistante) qui stream GPS pendant T-15..T+15 |
 | `src/lib/presence-offline-cache.ts` | Queue AsyncStorage pour replay quand réseau revient |
 | `src/hooks/use-presence-offline-flusher.ts` | Drain la queue sur foreground / NetInfo reconnect |
 

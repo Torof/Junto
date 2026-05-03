@@ -158,15 +158,16 @@ Multi-path with offline graceful degradation. Voir `docs/DAY_OF_ACTIVITY.md` pou
 
 Per-activity `requires_presence` toggle (default TRUE). Casual organisers can disable for gym climbing, coffee, slackline, etc.
 
-**Notification spine** (mig 00148):
-- T-2h: `presence_pre_warning`
-- T0: `presence_validate_now` (if not yet confirmed)
-- T0: `qr_create_reminder` (creator only)
-- T+duration/2: `presence_validate_warning` (escalation: "tu seras enregistré comme absent")
-- Validation: `presence_confirmed` push
+**Notification spine** (post mig 00165 + 00166):
+- T-2h: `presence_pre_warning` (informational, all participants)
+- T-10min: `presence_pre_warning_10min` (CTA, only unconfirmed)
+- T-10min: `qr_create_reminder` (creator only — QR button is live from T-15min)
+- T+duration/2: `presence_validate_warning` (CTA, only unconfirmed)
+- T+duration+1h: `presence_validate_overdue` (CTA, only unconfirmed)
+- Validation: `presence_confirmed` push (skip_push=TRUE by default; client paths suppress to avoid duplicating local notifs)
 - end: `rate_participants` (in-app)
-- end+22h: `peer_review_closing` (push to non-voters)
-All `presence_*` types share a `collapse_id = 'presence-{activity_id}'` — single OS slot per activity.
+- end+22h: `peer_review_closing` (push, only voters with ≥1 unconfirmed peer they can still help flip via the 2-vote threshold)
+All `presence_*` types share a `collapse_id = 'presence-{activity_id}'` — single OS slot per activity, with `(×N)` suffix counting hits in the 24h window.
 
 ### Cancellation flow
 - **Participant leaves**: `leave_activity(reason?)`. If `< 12h` before start AND `requires_presence=true`, counts as late cancel for reliability calculation.

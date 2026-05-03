@@ -230,3 +230,21 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Pourquoi :** Apple-platform-only work crée du coût réel (entitlements, Edge Functions, native rebuilds, App Store review) qui ne paie que quand il y a des users à servir. Pour un hobby app pre-launch, c'est de l'overhead.
 
 **Alternative considérée :** Ajouter Sign in with Apple "au cas où" — rejeté, on l'ajoutera quand un user le demande.
+
+---
+
+## 2026-05-03 — Présence : reminder spine v2 (T-2h / T-10 / T+dur/2 / T+1h end)
+
+**Décision :** Pivot du spine de 2026-04-27 vers une échelle escalante de 4 reminders :
+- T-2h: `presence_pre_warning` (informational, all participants)
+- T-10min: `presence_pre_warning_10min` (CTA, only unconfirmed)
+- T+duration/2: `presence_validate_warning` (CTA, only unconfirmed)
+- T+duration+1h: `presence_validate_overdue` (CTA, only unconfirmed)
+
+`presence_validate_now` (T0) supprimé — trop proche de T-10min, créait du bruit. `qr_create_reminder` déplacé de T0 à T-10min (le bouton QR du créateur est live dès T-15min côté UI). `peer_review_closing` regaté pour ne fire que si le voter a ≥1 peer non-confirmé restant à voter (le 2-vote model rend le vote utile uniquement sur les non-confirmés).
+
+**Pourquoi :** L'auto-validation closed-app est OEM-bound (Samsung kill FCM aux apps stopped state) — testé exhaustivement, aucune solution code-only. À la place, on lean sur les paths qui marchent (foreground watcher, geofence task quand l'app est en mémoire, QR scan, peer testimony) et on ajoute des reminders pour pousser l'utilisateur à valider via ces paths. Le T-10min remplace T0 parce qu'il atterrit avant que l'utilisateur soit déjà arrivé sur place et a un buffer de 10min pour vérifier que tout est bon.
+
+**Alternative considérée :** Foreground service permanent type Strava — rejeté, batterie + UX (notif persistante 24/7) trop coûteux pour une app sociale logistique pre-launch.
+
+**Migrations :** 00165 (spine v2 + helpers), 00166 (cleanup + qr_reminder timing + peer_review_closing gate), 00167 (status + deleted_at gates sur confirm fns), 00168 (notif_preferences DEFAULT sync).

@@ -216,13 +216,15 @@ Quand une activité matchant l'alerte est créée, `check_alerts_for_activity` e
 
 Voir `docs/SECURITY.md` section "Push notifications" pour le routing complet.
 
-Types principaux côté participant :
-- `presence_pre_warning` (T-2h)
-- `presence_validate_now` (T0 si non confirmé)
-- `presence_validate_warning` (T+duration/2 si non confirmé)
+Types principaux côté participant (post mig 00165 + 00166) :
+- `presence_pre_warning` (T-2h, informational)
+- `presence_pre_warning_10min` (T-10min, CTA si non confirmé)
+- `presence_validate_warning` (T+duration/2, CTA si non confirmé)
+- `presence_validate_overdue` (T+duration+1h, CTA si non confirmé)
 - `presence_confirmed` (validation succès)
+- `qr_create_reminder` (T-10min, créateur uniquement)
 - `rate_participants` (end)
-- `peer_review_closing` (end+22h)
+- `peer_review_closing` (end+22h, voters avec ≥1 peer non-confirmé à voter)
 - `participant_joined`, `request_accepted`, `request_refused`
 - `activity_cancelled`, `activity_updated`
 - `seat_request`, `seat_request_accepted`, `seat_request_declined`, `seat_request_expired`
