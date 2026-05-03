@@ -824,6 +824,7 @@
     },
     "awardNextTier_one": "{{count}} more to reach {{tier}}",
     "awardNextTier_other": "{{count}} more to reach {{tier}}",
+    "awardTopRank": "Top rank reached",
     "awardLabel": {
       "joined": {
         "bronze": "Member",

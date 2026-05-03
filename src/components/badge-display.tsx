@@ -394,6 +394,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
         target={selected}
         onClose={() => setSelected(null)}
         styles={styles}
+        colors={colors}
         t={t}
       />
 
@@ -578,11 +579,17 @@ function AwardRow({
             key={it.id}
             onPress={() => onPress(it)}
             hitSlop={6}
-            style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
+            style={({ pressed }) => [
+              styles.lineItem,
+              styles.awardItem,
+              it.tier === 'gold' && styles.awardItemGold,
+              pressed && styles.tappedDim,
+            ]}
           >
-            <Icon size={13} color={tierColor} strokeWidth={2.2} />
+            <Icon size={16} color={tierColor} strokeWidth={2.2} />
             <Text style={styles.lineTraitText}>{label}</Text>
             <Text style={[styles.lineCountText, { color: tierColor }]}>{it.count}</Text>
+            <RankDots tier={it.tier} color={tierColor} />
           </Pressable>
         );
       })}
@@ -599,11 +606,13 @@ function DetailModal({
   target,
   onClose,
   styles,
+  colors,
   t,
 }: {
   target: DetailTarget | null;
   onClose: () => void;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   if (!target) return null;
@@ -614,7 +623,7 @@ function DetailModal({
         <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
           {target.kind === 'vouched' && <VouchedDetail item={target.item} styles={styles} t={t} />}
           {target.kind === 'warning' && <WarningDetail item={target.item} styles={styles} t={t} />}
-          {target.kind === 'award' && <AwardDetail item={target.item} styles={styles} t={t} />}
+          {target.kind === 'award' && <AwardDetail item={target.item} styles={styles} colors={colors} t={t} />}
           {target.kind === 'sport' && <SportDetail item={target.item} styles={styles} />}
 
           <Pressable style={styles.modalDismiss} onPress={onClose}>
@@ -703,10 +712,12 @@ function WarningDetail({
 function AwardDetail({
   item,
   styles,
+  colors,
   t,
 }: {
   item: JuntoAward;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   const tierColor = TIER_COLOR[item.tier];
@@ -729,25 +740,66 @@ function AwardDetail({
     ? t(`badges.awardTier.${nextTierKey}`, { defaultValue: nextTierKey })
     : null;
 
+  // Tier-specific border + glow. Gold gets a soft outer halo so top tier
+  // reads as an accomplishment rather than just-another-color.
+  const heroBorderWidth = item.tier === 'gold' ? 2.5 : item.tier === 'silver' ? 2 : 1.5;
+  const heroExtraStyle = item.tier === 'gold' ? {
+    shadowColor: tierColor,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 6,
+  } : null;
+
+  // Progress bar values: target the next tier (or gold threshold if at gold).
+  const progressMax = nextThreshold ?? item.outings[2];
+  const progressValue = Math.min(item.count, progressMax);
+
   return (
     <>
-      <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
-        <Icon size={28} color={tierColor} strokeWidth={2.2} />
+      <View style={[
+        styles.modalHeroIcon,
+        styles.modalHeroIconLarge,
+        { backgroundColor: tierColor + '22', borderColor: tierColor, borderWidth: heroBorderWidth },
+        heroExtraStyle,
+      ]}>
+        <Icon size={32} color={tierColor} strokeWidth={2.2} />
       </View>
       <Text style={styles.modalTitle}>{awardLabel}</Text>
-      <View style={[styles.modalChip, { backgroundColor: tierColor + '1F' }]}>
-        <Text style={[styles.modalChipText, { color: tierColor }]}>{tierLabel}</Text>
+      <View style={[styles.tierStamp, { backgroundColor: tierColor }]}>
+        <Text style={styles.tierStampText}>{tierLabel}</Text>
       </View>
       {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
-      {remaining != null && remaining > 0 && nextLabel && (
-        <Text style={styles.modalFooter}>
-          {t('badges.awardNextTier', {
-            count: remaining,
-            tier: nextLabel,
-            defaultValue: `${remaining} more to reach ${nextLabel}`,
-          })}
-        </Text>
-      )}
+
+      {/* Progress strip — shows where the user is between current count and
+          the next tier threshold. At gold the bar reads full as a "max
+          rank" signal. */}
+      <View style={styles.progressBlock}>
+        <View style={styles.progressLabelRow}>
+          <Text style={styles.progressLabel}>
+            {item.count} / {progressMax}
+          </Text>
+          {nextLabel && remaining != null && remaining > 0 ? (
+            <Text style={styles.progressLabelMuted}>
+              {t('badges.awardNextTier', {
+                count: remaining,
+                tier: nextLabel,
+                defaultValue: `${remaining} de plus pour ${nextLabel}`,
+              })}
+            </Text>
+          ) : (
+            <Text style={[styles.progressLabelMuted, { color: tierColor }]}>
+              {t('badges.awardTopRank', { defaultValue: 'Rang max atteint' })}
+            </Text>
+          )}
+        </View>
+        <ProgressBar
+          value={progressValue}
+          max={progressMax}
+          color={tierColor}
+          trackColor={colors.surfaceAlt}
+        />
+      </View>
     </>
   );
 }
@@ -874,6 +926,42 @@ function formatFrequencyLabel(
 }
 
 
+// Three-dot rank indicator. 1 filled = bronze, 2 = silver, 3 = gold. The
+// unfilled dots stay outlined so the "rank ceiling" is always visible
+// (you see the journey, not just the current state).
+function RankDots({ tier, color, size = 5 }: { tier: 'bronze' | 'silver' | 'gold'; color: string; size?: number }) {
+  const filled = tier === 'gold' ? 3 : tier === 'silver' ? 2 : 1;
+  return (
+    <View style={{ flexDirection: 'row', gap: 2.5, alignItems: 'center' }}>
+      {[0, 1, 2].map((i) => (
+        <View
+          key={i}
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: i < filled ? color : 'transparent',
+            borderWidth: i < filled ? 0 : 1,
+            borderColor: color,
+            opacity: i < filled ? 1 : 0.45,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+// Thin tier-colored progress bar. Shows the user's count relative to the
+// next tier threshold (or the gold threshold once gold is reached).
+function ProgressBar({ value, max, color, trackColor }: { value: number; max: number; color: string; trackColor: string }) {
+  const pct = max <= 0 ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
+  return (
+    <View style={{ width: '100%', height: 5, backgroundColor: trackColor, borderRadius: 3, overflow: 'hidden' }}>
+      <View style={{ width: `${pct}%`, height: 5, backgroundColor: color, borderRadius: 3 }} />
+    </View>
+  );
+}
+
 function LevelVoteCounter({
   label,
   count,
@@ -974,6 +1062,21 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '700',
       marginLeft: 3,
     },
+    // Award-specific tweaks on top of lineItem: a touch more breathing
+    // room for the icon + dots cluster, and a soft gold halo on the
+    // top-tier pill so it visibly stands apart from bronze/silver.
+    awardItem: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      gap: 6,
+    },
+    awardItemGold: {
+      shadowColor: '#E0B040',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4,
+      shadowRadius: 5,
+      elevation: 3,
+    },
 
     // Sport chip — compact pill with emoji + count circle, no label, no
     // divider. Tap opens the popover for full detail (sport name, level,
@@ -1041,6 +1144,14 @@ const createStyles = (colors: AppColors) =>
       borderWidth: 1.5,
       marginBottom: 6,
     },
+    // Award hero gets a slightly larger footprint than the peer/warning
+    // heros — rank deserves extra weight.
+    modalHeroIconLarge: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      marginBottom: 8,
+    },
     modalChip: {
       alignSelf: 'center',
       paddingHorizontal: 10,
@@ -1053,6 +1164,46 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: 0.6,
       textTransform: 'uppercase',
+    },
+    // Tier stamp — solid color rectangle reads as a rank seal rather than
+    // a label. Used for the award tier (BRONZE / ARGENT / OR) inside the
+    // detail modal.
+    tierStamp: {
+      alignSelf: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 4,
+      borderRadius: 6,
+      marginBottom: 4,
+    },
+    tierStampText: {
+      color: '#FFFFFF',
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1.4,
+      textTransform: 'uppercase',
+    },
+    // Progress block — count vs next-tier threshold, with a thin
+    // tier-colored bar showing the journey at a glance.
+    progressBlock: {
+      marginTop: 14,
+      gap: 6,
+    },
+    progressLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    progressLabel: {
+      color: colors.textPrimary,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    progressLabelMuted: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.2,
     },
     modalTitle: {
       color: colors.textPrimary,
