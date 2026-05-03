@@ -968,6 +968,8 @@
     "objectiveName": "Nom de l'objectif (ex: Puy Aillaud)",
     "startName": "Départ depuis... (ex: Briançon)",
     "tapObjective": "Touche la carte pour l'objectif",
+    "sectionLocations": "Lieux",
+    "sectionTiming": "Quand",
     "traceImport": "Importer une trace GPX",
     "traceLoading": "Chargement...",
     "traceSet": "Trace GPX · {{count}} points",

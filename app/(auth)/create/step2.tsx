@@ -7,6 +7,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import {
+  Flag, MapPin, Goal, Trophy, Route, Calendar, Clock, Check, Plus, Minus,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -106,10 +110,20 @@ export default function CreateStep2() {
           })()}
         />
         {placingPin && (
-          <View style={styles.mapOverlay}>
-            <Text style={styles.mapHint}>
-              {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
-            </Text>
+          <View style={styles.mapOverlay} pointerEvents="none">
+            <View style={[
+              styles.mapHintPill,
+              { backgroundColor:
+                  placingPin === 'start' ? colors.pinStart :
+                  placingPin === 'meeting' ? colors.pinMeeting :
+                  placingPin === 'end' ? colors.pinEnd :
+                  colors.pinObjective
+              },
+            ]}>
+              <Text style={styles.mapHintText}>
+                {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
+              </Text>
+            </View>
           </View>
         )}
       </View>
@@ -117,9 +131,17 @@ export default function CreateStep2() {
       <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
         <Text style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</Text>
 
+        <Text style={styles.sectionLabel}>{t('create.sectionLocations')}</Text>
+
         <View style={styles.pinButtons}>
-          <Pressable
-            style={[styles.pinButton, form.location_start && styles.pinSet]}
+          <PinButton
+            kind="start"
+            icon={Flag}
+            label={t('create.startPoint')}
+            isPlacing={placingPin === 'start'}
+            isSet={!!form.location_start}
+            tint={colors.pinStart}
+            colors={colors}
             onPress={() => {
               if (form.location_start) {
                 updateForm({ location_start: null });
@@ -128,13 +150,15 @@ export default function CreateStep2() {
                 setPlacingPin('start');
               }
             }}
-          >
-            <Text style={styles.pinText}>
-              {form.location_start ? '✓ ' + t('create.startPoint') : t('create.setStart')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.pinButton, form.location_meeting && styles.pinSet]}
+          />
+          <PinButton
+            kind="meeting"
+            icon={MapPin}
+            label={t('create.meetingPoint')}
+            isPlacing={placingPin === 'meeting'}
+            isSet={!!form.location_meeting}
+            tint={colors.pinMeeting}
+            colors={colors}
             onPress={() => {
               if (form.location_meeting) {
                 updateForm({ location_meeting: null });
@@ -143,13 +167,15 @@ export default function CreateStep2() {
                 setPlacingPin('meeting');
               }
             }}
-          >
-            <Text style={styles.pinText}>
-              {form.location_meeting ? '✓ ' + t('create.meetingPoint') : t('create.setMeeting')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.pinButton, form.location_end && styles.pinSet]}
+          />
+          <PinButton
+            kind="end"
+            icon={Goal}
+            label={t('create.endPoint')}
+            isPlacing={placingPin === 'end'}
+            isSet={!!form.location_end}
+            tint={colors.pinEnd}
+            colors={colors}
             onPress={() => {
               if (form.location_end) {
                 updateForm({ location_end: null });
@@ -158,11 +184,7 @@ export default function CreateStep2() {
                 setPlacingPin('end');
               }
             }}
-          >
-            <Text style={styles.pinText}>
-              {form.location_end ? '✓ ' + t('create.endPoint') : t('create.setEnd')}
-            </Text>
-          </Pressable>
+          />
         </View>
         {form.location_start && (
           <TextInput
@@ -175,7 +197,12 @@ export default function CreateStep2() {
           />
         )}
         <Pressable
-          style={[styles.objectiveButton, form.location_objective && styles.objectiveSet]}
+          style={[
+            styles.objectiveButton,
+            { borderLeftColor: colors.pinObjective },
+            placingPin === 'objective' && { backgroundColor: colors.pinObjective },
+            form.location_objective && !placingPin && { borderColor: colors.pinObjective, borderWidth: 1 },
+          ]}
           onPress={() => {
             if (form.location_objective) {
               updateForm({ location_objective: null });
@@ -185,9 +212,20 @@ export default function CreateStep2() {
             }
           }}
         >
-          <Text style={styles.objectiveText}>
-            {form.location_objective ? '🎯 ' + t('create.objectiveSet') : '🎯 ' + t('create.setObjective')}
+          <Trophy
+            size={16}
+            color={placingPin === 'objective' ? colors.background : colors.pinObjective}
+            strokeWidth={2.2}
+          />
+          <Text style={[
+            styles.objectiveText,
+            placingPin === 'objective' && { color: colors.background },
+          ]}>
+            {form.location_objective ? t('create.objectiveSet') : t('create.setObjective')}
           </Text>
+          {form.location_objective && placingPin !== 'objective' && (
+            <Check size={14} color={colors.pinObjective} strokeWidth={2.4} />
+          )}
         </Pressable>
         {(placingPin === 'objective' || form.location_objective || (form.objective_name?.length ?? 0) > 0) && (
           <TextInput
@@ -202,6 +240,7 @@ export default function CreateStep2() {
 
         {form.trace_geojson ? (
           <View style={styles.traceSetRow}>
+            <Route size={16} color={colors.cta} strokeWidth={2.2} />
             <Text style={styles.traceSetText}>
               {t('create.traceSet', { count: form.trace_geojson.coordinates.length })}
             </Text>
@@ -215,17 +254,23 @@ export default function CreateStep2() {
             onPress={handlePickTrace}
             disabled={isLoadingTrace}
           >
+            <Route size={16} color={colors.cta} strokeWidth={2.2} />
             <Text style={styles.traceButtonText}>
-              {isLoadingTrace ? t('create.traceLoading') : '📍 ' + t('create.traceImport')}
+              {isLoadingTrace ? t('create.traceLoading') : t('create.traceImport')}
             </Text>
           </Pressable>
         )}
 
+        <Text style={styles.sectionLabel}>{t('create.sectionTiming')}</Text>
+
         <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
-          <Text style={styles.dateValue}>
-            {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
-          </Text>
+          <Calendar size={18} color={colors.textSecondary} strokeWidth={2.2} />
+          <View style={styles.dateContent}>
+            <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
+            <Text style={styles.dateValue}>
+              {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
+            </Text>
+          </View>
         </Pressable>
         {startsAtInPast && (
           <Text style={styles.dateError}>{t('create.startsAtPast')}</Text>
@@ -269,14 +314,25 @@ export default function CreateStep2() {
         )}
 
         <View style={styles.durationRow}>
-          <Text style={styles.dateLabel}>{t('create.duration')}</Text>
+          <View style={styles.durationHeader}>
+            <Clock size={18} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.dateLabel}>{t('create.duration')}</Text>
+          </View>
           <View style={styles.durationPickers}>
-            <Pressable style={styles.durationButton} onPress={() => updateForm({ duration_hours: Math.max(0, form.duration_hours - 1) })}>
-              <Text style={styles.counterText}>-</Text>
+            <Pressable
+              style={styles.durationButton}
+              onPress={() => updateForm({ duration_hours: Math.max(0, form.duration_hours - 1) })}
+              hitSlop={8}
+            >
+              <Minus size={16} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
             <Text style={styles.durationValue}>{form.duration_hours}h{form.duration_minutes > 0 ? form.duration_minutes : ''}</Text>
-            <Pressable style={styles.durationButton} onPress={() => updateForm({ duration_hours: Math.min(24, form.duration_hours + 1) })}>
-              <Text style={styles.counterText}>+</Text>
+            <Pressable
+              style={styles.durationButton}
+              onPress={() => updateForm({ duration_hours: Math.min(24, form.duration_hours + 1) })}
+              hitSlop={8}
+            >
+              <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
           </View>
         </View>
@@ -293,48 +349,142 @@ export default function CreateStep2() {
   );
 }
 
+interface PinButtonProps {
+  kind: 'start' | 'meeting' | 'end';
+  icon: LucideIcon;
+  label: string;
+  isPlacing: boolean;
+  isSet: boolean;
+  tint: string;
+  colors: AppColors;
+  onPress: () => void;
+}
+
+function PinButton({ icon: Icon, label, isPlacing, isSet, tint, colors, onPress }: PinButtonProps) {
+  const styles = createPinButtonStyles(colors, tint, isPlacing, isSet);
+  const iconColor = isPlacing ? colors.background : tint;
+  const labelColor = isPlacing ? colors.background : (isSet ? tint : colors.textPrimary);
+  return (
+    <Pressable style={styles.button} onPress={onPress}>
+      <Icon size={18} color={iconColor} strokeWidth={2.2} />
+      <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
+        {label}
+      </Text>
+      {isSet && !isPlacing && <Check size={12} color={tint} strokeWidth={2.6} />}
+    </Pressable>
+  );
+}
+
+const createPinButtonStyles = (colors: AppColors, tint: string, isPlacing: boolean, isSet: boolean) =>
+  StyleSheet.create({
+    button: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.md,
+      borderLeftWidth: 4,
+      borderLeftColor: tint,
+      backgroundColor: isPlacing ? tint : colors.surface,
+      borderTopWidth: isSet && !isPlacing ? 1 : 0,
+      borderRightWidth: isSet && !isPlacing ? 1 : 0,
+      borderBottomWidth: isSet && !isPlacing ? 1 : 0,
+      borderTopColor: tint,
+      borderRightColor: tint,
+      borderBottomColor: tint,
+    },
+    label: {
+      fontSize: fontSizes.xs,
+      fontWeight: '600',
+    },
+  });
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  mapContainer: { flex: 1 },
+  mapContainer: { flex: 3 },
   mapOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.md, right: spacing.md, alignItems: 'center' },
-  mapHint: { backgroundColor: colors.background, color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full, borderWidth: 1, borderColor: colors.cta },
-  controls: { flex: 1 },
+  mapHintPill: {
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mapHintText: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  controls: { flex: 2 },
   controlsContent: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.md },
+  sectionLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   pinButtons: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  pinButton: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
-  pinSet: { borderColor: colors.success, borderWidth: 1 },
-  pinText: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  objectiveButton: { backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md },
-  objectiveSet: { borderColor: colors.pinObjective, borderWidth: 1 },
-  objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  objectiveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderLeftWidth: 4,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   objectiveNameInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: fontSizes.sm, marginBottom: spacing.md },
-  dateButton: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  dateContent: { flex: 1 },
   dateLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },
   dateError: { color: colors.error, fontSize: fontSizes.xs, marginTop: -spacing.sm, marginBottom: spacing.md },
   durationRow: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  durationHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   durationPickers: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
   durationButton: { backgroundColor: colors.background, borderRadius: radius.full, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   durationValue: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', minWidth: 50, textAlign: 'center' },
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   traceButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
     backgroundColor: colors.surface, borderRadius: radius.md,
     borderWidth: 1, borderStyle: 'dashed', borderColor: colors.cta,
-    paddingVertical: spacing.sm, alignItems: 'center', marginBottom: spacing.md,
+    paddingVertical: spacing.sm + 2, marginBottom: spacing.md,
   },
   traceButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   traceSetRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.cta + '15',
     borderWidth: 1, borderColor: colors.cta,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2,
     marginBottom: spacing.md,
   },
-  traceSetText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  traceSetText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
   traceClearText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
 });
