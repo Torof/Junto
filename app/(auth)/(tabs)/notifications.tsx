@@ -8,7 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import {
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
-  Pencil, Star, AlertTriangle, MessageCircle, MapPinCheck, AlarmClock, Hourglass, QrCode,
+  Pencil, Star, AlertTriangle, MessageCircle, AlarmClock, Hourglass, QrCode,
   Car, CarFront, CarTaxiFront, Mail, MailCheck, MailX, Users, BadgeCheck, Trophy,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -35,7 +35,6 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   rate_participants: { icon: Star, color: colors.warning },
   presence_pre_warning: { icon: Hourglass, color: colors.cta },
   presence_pre_warning_10min: { icon: AlarmClock, color: colors.cta },
-  presence_validate_now: { icon: MapPinCheck, color: colors.cta },
   presence_validate_warning: { icon: AlarmClock, color: colors.warning },
   presence_validate_overdue: { icon: AlertTriangle, color: colors.warning },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
