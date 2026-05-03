@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
@@ -269,46 +269,44 @@ export default function CarteScreen() {
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
                   <X size={22} color={colors.error} strokeWidth={3} />
-                  <View style={styles.createTooltipInline}>
-                    <Text style={styles.createTooltipTitle}>{t('map.createHere')}</Text>
-                    <View style={styles.createTooltipRow}>
-                      <Pressable
-                        style={styles.createTooltipOption}
-                        onPress={() => {
-                          useCreateStore.getState().resetForm();
-                          useCreateStore.getState().updateForm({ location_meeting: tappedPoint });
-                          setTappedPoint(null);
-                          router.push('/(auth)/create/step1');
-                        }}
-                      >
-                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinMeeting }]} />
-                        <Text style={styles.createTooltipOptionText}>{t('create.meetingPoint')}</Text>
-                      </Pressable>
-                      <Pressable
-                        style={styles.createTooltipOption}
-                        onPress={() => {
-                          useCreateStore.getState().resetForm();
-                          useCreateStore.getState().updateForm({ location_start: tappedPoint });
-                          setTappedPoint(null);
-                          router.push('/(auth)/create/step1');
-                        }}
-                      >
-                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinStart }]} />
-                        <Text style={styles.createTooltipOptionText}>{t('create.startPoint')}</Text>
-                      </Pressable>
-                      <Pressable
-                        style={styles.createTooltipOption}
-                        onPress={() => {
-                          useCreateStore.getState().resetForm();
-                          useCreateStore.getState().updateForm({ location_objective: tappedPoint });
-                          setTappedPoint(null);
-                          router.push('/(auth)/create/step1');
-                        }}
-                      >
-                        <View style={[styles.createTooltipDot, { backgroundColor: colors.pinObjective }]} />
-                        <Text style={styles.createTooltipOptionText}>{t('create.objectiveSet')}</Text>
-                      </Pressable>
-                    </View>
+                  <View style={styles.createTooltipCard}>
+                    <Text style={styles.createTooltipHeader}>{t('map.createHere')}</Text>
+                    <Pressable
+                      style={[styles.createTooltipRow, { borderLeftColor: colors.pinMeeting }]}
+                      onPress={() => {
+                        useCreateStore.getState().resetForm();
+                        useCreateStore.getState().updateForm({ location_meeting: tappedPoint });
+                        setTappedPoint(null);
+                        router.push('/(auth)/create/step1');
+                      }}
+                    >
+                      <MapPin size={18} color={colors.pinMeeting} strokeWidth={2.4} />
+                      <Text style={styles.createTooltipRowText}>{t('create.meetingPoint')}</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.createTooltipRow, { borderLeftColor: colors.pinStart }]}
+                      onPress={() => {
+                        useCreateStore.getState().resetForm();
+                        useCreateStore.getState().updateForm({ location_start: tappedPoint });
+                        setTappedPoint(null);
+                        router.push('/(auth)/create/step1');
+                      }}
+                    >
+                      <Flag size={18} color={colors.pinStart} strokeWidth={2.4} />
+                      <Text style={styles.createTooltipRowText}>{t('create.startPoint')}</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.createTooltipRow, { borderLeftColor: colors.pinObjective }]}
+                      onPress={() => {
+                        useCreateStore.getState().resetForm();
+                        useCreateStore.getState().updateForm({ location_objective: tappedPoint });
+                        setTappedPoint(null);
+                        router.push('/(auth)/create/step1');
+                      }}
+                    >
+                      <Trophy size={18} color={colors.pinObjective} strokeWidth={2.4} />
+                      <Text style={styles.createTooltipRowText}>{t('create.objectiveSet')}</Text>
+                    </Pressable>
                   </View>
                 </View>
               ) : undefined}
@@ -449,47 +447,44 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  createTooltipInline: {
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  createTooltipTitle: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.lg,
+  createTooltipCard: {
+    backgroundColor: colors.background,
+    borderRadius: radius.lg,
     paddingVertical: spacing.sm,
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
-    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    minWidth: 200,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    gap: spacing.xs,
+  },
+  createTooltipHeader: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
   },
   createTooltipRow: {
     flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  createTooltipOption: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.full,
+    borderRadius: radius.md,
+    borderLeftWidth: 4,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    elevation: 3,
-    shadowColor: colors.background,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    paddingVertical: spacing.sm + 2,
   },
-  createTooltipDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  createTooltipOptionText: {
+  createTooltipRowText: {
     color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    flex: 1,
   },
   statusBar: {
     backgroundColor: colors.background,
