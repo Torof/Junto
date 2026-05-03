@@ -252,9 +252,18 @@ export default function CreateStep2() {
           <DateTimePicker
             value={form.starts_at ?? new Date()}
             mode="time"
-            onChange={(_e, date) => {
+            onChange={(_e, time) => {
               setShowTimePicker(false);
-              if (date) updateForm({ starts_at: date });
+              if (time) {
+                // Mirror the date picker pattern: preserve the date
+                // portion of starts_at, only overwrite hours/minutes.
+                // On Android mode='time' returns a Date with today's
+                // date + the picked time, which would silently reset
+                // any future date the user already chose.
+                const next = new Date(form.starts_at ?? new Date());
+                next.setHours(time.getHours(), time.getMinutes(), 0, 0);
+                updateForm({ starts_at: next });
+              }
             }}
           />
         )}

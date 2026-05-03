@@ -42,6 +42,14 @@ const WINDOW_BEFORE_MS = 15 * 60_000;
 const WINDOW_AFTER_MS = 15 * 60_000;
 const WATCHER_DURATION_MS = 60_000;
 
+// Cache of currently-registered region identifiers. We compare this to
+// the freshly-computed region set on each refresh and skip the
+// startGeofencingAsync call if unchanged — avoids re-firing Enter events
+// for regions the user is already inside (Android default behavior is
+// INITIAL_TRIGGER_ENTER which would re-trigger our task on every
+// re-registration).
+let registeredRegionIds = new Set<string>();
+
 async function fetchCandidates(): Promise<ActiveActivity[]> {
   const { data } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
     data: ActiveActivity[] | null;
@@ -268,13 +276,32 @@ async function refreshGeofences(): Promise<void> {
     const running = await Location.hasStartedGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => false);
     if (running) {
       await Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
+      registeredRegionIds.clear();
       trace('presence.geofence', 'stopped: no candidate activities');
     }
     return;
   }
 
+  // Skip re-registration when the region set is unchanged. On Android
+  // startGeofencingAsync uses INITIAL_TRIGGER_ENTER by default, which
+  // fires Enter immediately for any region the user is currently inside —
+  // so re-registering the same regions on every AppState foreground (e.g.
+  // when the user taps a "Présence détectée" notif) re-fired the Enter
+  // event and re-scheduled the local notif on every tap.
+  const newIds = new Set(regions.map((r) => String(r.identifier ?? '')));
+  const unchanged =
+    newIds.size === registeredRegionIds.size &&
+    [...newIds].every((id) => registeredRegionIds.has(id));
+  if (unchanged) {
+    trace('presence.geofence', 'regions unchanged, skip re-register', {
+      count: regions.length,
+    });
+    return;
+  }
+
   try {
     await Location.startGeofencingAsync(PRESENCE_GEOFENCE_TASK, regions);
+    registeredRegionIds = newIds;
     trace('presence.geofence', 'registered regions', { count: regions.length });
   } catch (err) {
     // Surface as a Sentry event, not just a breadcrumb. Registration failure
@@ -316,6 +343,7 @@ export function usePresenceGeofences(enabled: boolean) {
         activeWatcher = null;
       }
       Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
+      registeredRegionIds.clear();
       void stopPresenceForegroundService('hook unmounted');
       trace('presence.geofence', 'stopped: hook unmounted');
     };

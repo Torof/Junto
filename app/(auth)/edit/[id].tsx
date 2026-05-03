@@ -207,9 +207,17 @@ export default function EditActivityScreen() {
         <DateTimePicker
           value={startsAt ?? new Date()}
           mode="time"
-          onChange={(_e, date) => {
+          onChange={(_e, time) => {
             setShowTimePicker(false);
-            if (date) setStartsAt(date);
+            if (time) {
+              // Preserve the date portion of startsAt; only overwrite
+              // hours/minutes. mode='time' on Android returns a Date
+              // with today's date, which would reset any future date
+              // the user previously picked.
+              const next = new Date(startsAt ?? new Date());
+              next.setHours(time.getHours(), time.getMinutes(), 0, 0);
+              setStartsAt(next);
+            }
           }}
         />
       )}
