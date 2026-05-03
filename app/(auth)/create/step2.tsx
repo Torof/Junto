@@ -28,7 +28,14 @@ export default function CreateStep2() {
   const { center } = useInitialLocation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | 'objective' | null>('meeting');
+  // Default to 'meeting' placement only if no meeting is prefilled — when the
+  // user came in via the on-map tap-to-create flow, the chosen pin is already
+  // set and we'd otherwise show the corresponding button as 'currently placing'
+  // (visual lie). Falling back to 'meeting' covers the cold-start case where
+  // meeting is the next required action.
+  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | 'objective' | null>(
+    () => form.location_meeting ? null : 'meeting',
+  );
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
 
   const handlePickTrace = async () => {
@@ -264,15 +271,41 @@ export default function CreateStep2() {
 
         <Text style={styles.sectionLabel}>{t('create.sectionTiming')}</Text>
 
-        <Pressable style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-          <Calendar size={18} color={colors.textSecondary} strokeWidth={2.2} />
-          <View style={styles.dateContent}>
-            <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
-            <Text style={styles.dateValue}>
-              {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
-            </Text>
+        <View style={styles.timingRow}>
+          <Pressable style={[styles.dateButton, styles.timingItem]} onPress={() => setShowDatePicker(true)}>
+            <Calendar size={18} color={colors.textSecondary} strokeWidth={2.2} />
+            <View style={styles.dateContent}>
+              <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
+              <Text style={styles.dateValue} numberOfLines={1}>
+                {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
+              </Text>
+            </View>
+          </Pressable>
+
+          <View style={[styles.durationRow, styles.timingItem]}>
+            <View style={styles.durationHeader}>
+              <Clock size={18} color={colors.textSecondary} strokeWidth={2.2} />
+              <Text style={styles.dateLabel}>{t('create.duration')}</Text>
+            </View>
+            <View style={styles.durationPickers}>
+              <Pressable
+                style={styles.durationButton}
+                onPress={() => updateForm({ duration_hours: Math.max(0, form.duration_hours - 1) })}
+                hitSlop={8}
+              >
+                <Minus size={16} color={colors.textPrimary} strokeWidth={2.4} />
+              </Pressable>
+              <Text style={styles.durationValue}>{form.duration_hours}h{form.duration_minutes > 0 ? form.duration_minutes : ''}</Text>
+              <Pressable
+                style={styles.durationButton}
+                onPress={() => updateForm({ duration_hours: Math.min(24, form.duration_hours + 1) })}
+                hitSlop={8}
+              >
+                <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
           </View>
-        </Pressable>
+        </View>
         {startsAtInPast && (
           <Text style={styles.dateError}>{t('create.startsAtPast')}</Text>
         )}
@@ -313,30 +346,6 @@ export default function CreateStep2() {
             }}
           />
         )}
-
-        <View style={styles.durationRow}>
-          <View style={styles.durationHeader}>
-            <Clock size={18} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.dateLabel}>{t('create.duration')}</Text>
-          </View>
-          <View style={styles.durationPickers}>
-            <Pressable
-              style={styles.durationButton}
-              onPress={() => updateForm({ duration_hours: Math.max(0, form.duration_hours - 1) })}
-              hitSlop={8}
-            >
-              <Minus size={16} color={colors.textPrimary} strokeWidth={2.4} />
-            </Pressable>
-            <Text style={styles.durationValue}>{form.duration_hours}h{form.duration_minutes > 0 ? form.duration_minutes : ''}</Text>
-            <Pressable
-              style={styles.durationButton}
-              onPress={() => updateForm({ duration_hours: Math.min(24, form.duration_hours + 1) })}
-              hitSlop={8}
-            >
-              <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
-            </Pressable>
-          </View>
-        </View>
 
         <Pressable
           style={[styles.nextButton, !isValid && styles.buttonDisabled]}
@@ -450,24 +459,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   objectiveNameInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: fontSizes.sm, marginBottom: spacing.md },
+  timingRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  timingItem: { flex: 1, marginBottom: 0 },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  dateContent: { flex: 1 },
+  dateContent: { flex: 1, minWidth: 0 },
   dateLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
-  dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },
+  dateValue: { color: colors.textPrimary, fontSize: fontSizes.sm },
   dateError: { color: colors.error, fontSize: fontSizes.xs, marginTop: -spacing.sm, marginBottom: spacing.md },
   durationRow: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   durationHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  durationPickers: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
-  durationButton: { backgroundColor: colors.background, borderRadius: radius.full, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  durationValue: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', minWidth: 50, textAlign: 'center' },
+  durationPickers: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
+  durationButton: { backgroundColor: colors.background, borderRadius: radius.full, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  durationValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textAlign: 'center', flex: 1 },
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
