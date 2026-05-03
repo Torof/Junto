@@ -227,16 +227,17 @@ export default function CreateStep2() {
             <Check size={14} color={colors.pinObjective} strokeWidth={2.4} />
           )}
         </Pressable>
-        {(placingPin === 'objective' || form.location_objective || (form.objective_name?.length ?? 0) > 0) && (
-          <TextInput
-            style={styles.objectiveNameInput}
-            placeholder={t('create.objectiveName')}
-            placeholderTextColor={colors.textSecondary}
-            value={form.objective_name}
-            onChangeText={(text) => updateForm({ objective_name: text })}
-            maxLength={100}
-          />
-        )}
+        <TextInput
+          style={styles.objectiveNameInput}
+          placeholder={t('create.objectiveName')}
+          placeholderTextColor={colors.textSecondary}
+          value={form.objective_name}
+          onChangeText={(text) => updateForm({ objective_name: text })}
+          maxLength={100}
+        />
+        {/* Objective label is independently useful (e.g. "Mont Blanc")
+            even without a pin on the map — keep the input always visible.
+            The Trophy button above adds an optional pin location for it. */}
 
         {form.trace_geojson ? (
           <View style={styles.traceSetRow}>
