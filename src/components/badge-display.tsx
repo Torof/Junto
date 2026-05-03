@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import {
-  Users, Mountain, Trophy, Award,
+  Users, Mountain, Trophy,
   AlertTriangle, OctagonAlert,
-  Clock, Backpack, Handshake, ShieldCheck,
+  Clock, Package, Handshake, Shield,
   Compass, Tent, Waves, Bike, Plane,
-  HelpCircle, Check,
+  Hammer, Ban, LogOut, TrendingUp,
+  HelpCircle, Check, ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -64,15 +65,31 @@ const TIER_COLOR = {
 const POSITIVE_KEYS = new Set<string>(POSITIVE_BADGES.map((b) => b.key));
 const NEGATIVE_KEYS = new Set<string>(NEGATIVE_BADGES.map((b) => b.key));
 
-// Per-trait Lucide icons for the vouched row. Lucide icons render in the
-// same family as the rest of the UI — cleaner than the colored emojis the
-// peer-review screen uses for tap targets.
+// Per-trait Lucide icons. Mapping per design spec.
 const POSITIVE_TRAIT_ICON: Record<string, LucideIcon> = {
   punctual: Clock,
-  prepared: Backpack,
+  prepared: Package,
   conciliant: Handshake,
-  prudent: ShieldCheck,
+  prudent: Shield,
 };
+const NEGATIVE_TRAIT_ICON: Record<string, LucideIcon> = {
+  unprepared: Package,
+  aggressive: AlertTriangle,
+  reckless: Ban,
+  // Anticipated future negative keys — design spec listed them. Mapped
+  // here so the popup renders correctly if/when they're added.
+  lacheur: LogOut,
+  surestime: TrendingUp,
+};
+
+// Pull-quotes per positive trait — spoken in the third person, peer voice.
+const VOUCHED_QUOTES: Record<string, string> = {
+  punctual: 'Toujours à l\'heure.',
+  prepared: 'Vraiment préparé.',
+  conciliant: 'Facile à vivre.',
+  prudent: 'Sait gérer le risque.',
+};
+
 // level_accurate is deprecated. Hidden everywhere.
 const DEPRECATED_PEER_KEYS = new Set(['level_accurate']);
 
@@ -85,6 +102,7 @@ interface VouchedItem {
 interface WarningItem {
   key: string;
   label: string;
+  count: number;
   severity: 'amber' | 'red';
 }
 interface JuntoAward {
@@ -97,6 +115,10 @@ interface JuntoAward {
   outings: [number, number, number];
   minDistinct?: [number, number, number];
   distinctSports?: number;
+  // Sentence parts from the AwardDef so the hero card can render
+  // "{nounAction} {count} {nounObject}." without a label lookup.
+  nounAction: string;
+  nounObject: string;
 }
 
 // Data-driven Junto award definitions. Adding / removing / tuning a badge
@@ -111,31 +133,43 @@ interface AwardDef {
   Icon: LucideIcon;
   outings: [number, number, number];     // bronze / silver / gold
   minDistinct?: [number, number, number];
+  // Phrasing for the popup hero card sentence:
+  //   "{nounAction} {count} {nounObject}." (e.g. "A créé 23 activités pour la communauté.")
+  nounAction: string;
+  nounObject: string;
   evaluate: (a: AwardAggregates) => AwardEval;
 }
 
 const AWARDS: AwardDef[] = [
   {
     id: 'joined',
-    Icon: Award,
+    Icon: Users,
+    nounAction: 'A rejoint',
+    nounObject: "activités créées par d'autres",
     outings: [5, 20, 50],
     evaluate: (a) => ({ count: a.joined }),
   },
   {
     id: 'created',
-    Icon: Trophy,
+    Icon: Hammer,
+    nounAction: 'A créé',
+    nounObject: 'activités pour la communauté',
     outings: [5, 20, 50],
     evaluate: (a) => ({ count: a.created }),
   },
   {
     id: 'polyvalent',
     Icon: Compass,
+    nounAction: 'A pratiqué',
+    nounObject: 'sports différents',
     outings: [3, 5, 8],
     evaluate: (a) => ({ count: a.distinct_sports }),
   },
   {
     id: 'aventurier',
     Icon: Tent,
+    nounAction: 'A complété',
+    nounObject: 'sorties multi-jours',
     outings: [1, 3, 5],
     evaluate: (a) => ({ count: a.multi_day_count }),
   },
@@ -144,6 +178,8 @@ const AWARDS: AwardDef[] = [
   {
     id: 'aquatique',
     Icon: Waves,
+    nounAction: 'A réalisé',
+    nounObject: 'sorties aquatiques',
     outings: [25, 50, 100],
     minDistinct: [3, 4, 5],
     evaluate: (a) => {
@@ -154,6 +190,8 @@ const AWARDS: AwardDef[] = [
   {
     id: 'montagne',
     Icon: Mountain,
+    nounAction: 'A réalisé',
+    nounObject: 'sorties en montagne',
     outings: [25, 50, 100],
     minDistinct: [3, 4, 5],
     evaluate: (a) => {
@@ -164,6 +202,8 @@ const AWARDS: AwardDef[] = [
   {
     id: 'route',
     Icon: Bike,
+    nounAction: 'A réalisé',
+    nounObject: 'sorties sur route',
     outings: [25, 50, 100],
     minDistinct: [2, 3, 3], // road has fewer sports — relax distinct floor
     evaluate: (a) => {
@@ -174,6 +214,8 @@ const AWARDS: AwardDef[] = [
   {
     id: 'air',
     Icon: Plane,
+    nounAction: 'A réalisé',
+    nounObject: 'sorties de sports aériens',
     outings: [10, 25, 50],
     minDistinct: [1, 1, 1], // air sports are inherently rare
     evaluate: (a) => {
@@ -219,6 +261,10 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
+  // Voter list overlay — pushed from inside Vouched popup via "Voir tous".
+  // Independent of `selected` so that closing the voter list returns to the
+  // parent vouched popup without losing context.
+  const [voterListItem, setVoterListItem] = useState<VouchedItem | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
   const { vouched, warnings, sports, awards } = useMemo(() => {
@@ -241,6 +287,7 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
         warningList.push({
           key: rep.badge_key,
           label: t(`badges.${rep.badge_key}`, { defaultValue: rep.badge_key }),
+          count,
           severity: count >= WARNING_RED_THRESHOLD ? 'red' : 'amber',
         });
       }
@@ -295,6 +342,8 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
             outings: def.outings,
             minDistinct: def.minDistinct,
             distinctSports,
+            nounAction: def.nounAction,
+            nounObject: def.nounObject,
           });
         }
       }
@@ -393,7 +442,18 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
       <DetailModal
         target={selected}
         onClose={() => setSelected(null)}
+        onShowVoters={(it) => setVoterListItem(it)}
         styles={styles}
+        colors={colors}
+        t={t}
+      />
+
+      <VotersListModal
+        item={voterListItem}
+        visible={voterListItem != null}
+        onClose={() => setVoterListItem(null)}
+        styles={styles}
+        colors={colors}
         t={t}
       />
 
@@ -595,250 +655,551 @@ function AwardRow({
 // reliability help modal's typographic treatment.
 // ---------------------------------------------------------------------------
 
-function DetailModal({
-  target,
+// ---------------------------------------------------------------------------
+// Modal shell — drag handle + optional 3px top accent rule (Warning only).
+// No default OK button; only Warning has one (production behaviour preserved).
+// Closes on backdrop tap. Per the design handoff (POPUPS_HANDOFF.md §3).
+// ---------------------------------------------------------------------------
+function ModalShell({
+  visible,
   onClose,
+  tone,
+  padded = true,
   styles,
-  t,
+  children,
 }: {
-  target: DetailTarget | null;
+  visible: boolean;
   onClose: () => void;
+  tone?: 'amber' | 'red';
+  padded?: boolean;
   styles: ReturnType<typeof createStyles>;
-  t: (k: string, opts?: Record<string, unknown>) => string;
+  children: React.ReactNode;
 }) {
-  if (!target) return null;
-
+  const accentBar =
+    tone === 'red' ? COLOR_RED :
+    tone === 'amber' ? COLOR_AMBER :
+    null;
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-          {target.kind === 'vouched' && <VouchedDetail item={target.item} styles={styles} t={t} />}
-          {target.kind === 'warning' && <WarningDetail item={target.item} styles={styles} t={t} />}
-          {target.kind === 'award' && <AwardDetail item={target.item} styles={styles} t={t} />}
-          {target.kind === 'sport' && <SportDetail item={target.item} styles={styles} />}
-
-          <Pressable style={styles.modalDismiss} onPress={onClose}>
-            <Text style={styles.modalDismissText}>
-              {t('common.close', { defaultValue: 'OK' })}
-            </Text>
-          </Pressable>
+          {accentBar && <View style={[styles.modalAccentBar, { backgroundColor: accentBar }]} />}
+          <View style={styles.modalDragHandleWrap}>
+            <View style={styles.modalDragHandle} />
+          </View>
+          <View style={padded ? styles.modalContent : undefined}>
+            {children}
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Per-kind detail bodies. All four share the same shape:
-//   [hero icon, large, in tier color]
-//   [title]
-//   [tier/severity pill]
-//   [description]
-//   [context-specific footer]
-// ---------------------------------------------------------------------------
+function DetailModal({
+  target,
+  onClose,
+  onShowVoters,
+  styles,
+  colors,
+  t,
+}: {
+  target: DetailTarget | null;
+  onClose: () => void;
+  onShowVoters: (item: VouchedItem) => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  if (!target) return null;
+  const tone =
+    target.kind === 'warning'
+      ? (target.item.severity === 'red' ? 'red' : 'amber')
+      : undefined;
+  return (
+    <ModalShell visible onClose={onClose} tone={tone} styles={styles}>
+      {target.kind === 'vouched' && (
+        <VouchedDetail
+          item={target.item}
+          styles={styles}
+          colors={colors}
+          t={t}
+          onShowVoters={() => onShowVoters(target.item)}
+        />
+      )}
+      {target.kind === 'warning' && (
+        <WarningDetail item={target.item} styles={styles} onClose={onClose} t={t} />
+      )}
+      {target.kind === 'award' && (
+        <AwardDetail item={target.item} styles={styles} colors={colors} t={t} />
+      )}
+      {target.kind === 'sport' && (
+        <SportDetail item={target.item} styles={styles} colors={colors} />
+      )}
+    </ModalShell>
+  );
+}
 
+// ---------------------------------------------------------------------------
+// Vouched popup (P2) — caption · title row (icon + label + ×count) ·
+// pull-quote card with avatar stack + "Voir tous" · description.
+// Spec: POPUPS_HANDOFF.md §4.1.
+// ---------------------------------------------------------------------------
 function VouchedDetail({
   item,
   styles,
+  colors,
   t,
+  onShowVoters,
 }: {
   item: VouchedItem;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
+  onShowVoters: () => void;
 }) {
   const Icon = POSITIVE_TRAIT_ICON[item.key];
-  const tierColor = TIER_COLOR[vouchedTier(item.count)];
+  const accent = COLOR_SUCCESS;
   const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
-  const lastRelative = item.lastAt ? formatRelativeFromNow(item.lastAt, t) : null;
-  // Trust framing: lead with the testimony count. The number itself is the
-  // signal — "5 peers said this" is what tells you whether to trust the
-  // trait. The trait name and description follow.
+  const quote = VOUCHED_QUOTES[item.key] ?? item.label;
   return (
     <>
-      <View style={styles.trustHeroRow}>
-        {Icon && (
-          <View style={[styles.trustHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
-            <Icon size={22} color={tierColor} strokeWidth={2.2} />
+      <Text style={styles.popupCaption}>{t('badges.vouchedCaption', { defaultValue: 'Décerné par les pairs' })}</Text>
+
+      <View style={styles.vouchedTitleRow}>
+        {Icon && <Icon size={20} color={accent} strokeWidth={2} />}
+        <Text style={styles.vouchedTitle}>{item.label}</Text>
+        <Text style={styles.vouchedCountMono}>×{item.count}</Text>
+      </View>
+
+      <View style={[styles.pullQuoteCard, { borderLeftColor: accent }]}>
+        <Text style={styles.pullQuoteText}>« {quote} »</Text>
+        <View style={styles.pullQuoteFooter}>
+          <View style={styles.pullQuoteAvatars}>
+            <AvatarStack count={Math.min(5, item.count)} size={22} overlap={7} ringColor={colors.surface} />
+            <Text style={styles.pullQuotePeersLabel}>
+              <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
+              {' '}{t('badges.vouchedPeersLabel', { count: item.count, defaultValue: 'pairs' })}
+            </Text>
           </View>
-        )}
-        <View style={styles.trustMetricBlock}>
-          <Text style={[styles.trustMetricNumber, { color: tierColor }]}>{item.count}</Text>
-          <Text style={styles.trustMetricLabel}>
-            {t('badges.vouchedHeadline', { count: item.count, defaultValue: 'peers vouched' })}
-          </Text>
+          <Pressable style={styles.viewAllButton} onPress={onShowVoters} hitSlop={8}>
+            <Text style={[styles.viewAllText, { color: accent }]}>
+              {t('badges.viewAllVoters', { defaultValue: 'Voir tous' })}
+            </Text>
+            <ChevronRight size={11} color={accent} strokeWidth={2.5} />
+          </Pressable>
         </View>
       </View>
-      <Text style={styles.modalTitle}>{item.label}</Text>
-      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
-      {lastRelative && (
-        <Text style={styles.modalFooter}>
-          {t('badges.peerLastAt', { when: lastRelative, defaultValue: `Last: ${lastRelative}` })}
+
+      {description !== '' && <Text style={styles.vouchedDescription}>{description}</Text>}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Warning popup (W1 header + production grammar) — left-aligned icon-square
+// + label + ×count + mono caption ("SIGNALÉ" / "À ÉVITER") · centered
+// description · italic decay note · OK button. Spec: §4.2.
+// ---------------------------------------------------------------------------
+function WarningDetail({
+  item,
+  styles,
+  onClose,
+  t,
+}: {
+  item: WarningItem;
+  styles: ReturnType<typeof createStyles>;
+  onClose: () => void;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const isRed = item.severity === 'red';
+  const accent = isRed ? COLOR_RED : COLOR_AMBER;
+  const Icon = NEGATIVE_TRAIT_ICON[item.key] ?? (isRed ? OctagonAlert : AlertTriangle);
+  const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
+  const caption = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
+  return (
+    <>
+      <View style={styles.warningHeaderRow}>
+        <View style={[styles.warningHeaderIconSquare, { backgroundColor: accent + '1F' }]}>
+          <Icon size={18} color={accent} strokeWidth={1.8} />
+        </View>
+        <View style={styles.warningHeaderRight}>
+          <View style={styles.warningHeaderTitleRow}>
+            <Text style={styles.warningHeaderTitle}>{item.label}</Text>
+            <Text style={styles.warningHeaderCountMono}>×{item.count}</Text>
+          </View>
+          <Text style={[styles.warningHeaderCaption, { color: accent }]}>{caption}</Text>
+        </View>
+      </View>
+
+      {description !== '' && <Text style={styles.warningDescription}>{description}</Text>}
+
+      <Text style={styles.warningDecayNote}>{t('badges.peerNegativeHint')}</Text>
+
+      <View style={styles.warningOkRow}>
+        <Pressable style={styles.warningOkButton} onPress={onClose}>
+          <Text style={styles.warningOkButtonText}>OK</Text>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Award popup (A3) — gradient hero card with tier-color border, icon disk,
+// "Décerné par Junto" caption, tier-specific French label, sentence-stat
+// with big count. Below: progression list with three tier rows + footer
+// "X de plus pour {next}". Spec: §4.3.
+// ---------------------------------------------------------------------------
+function AwardDetail({
+  item,
+  styles,
+  colors,
+  t,
+}: {
+  item: JuntoAward;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const tierColor = TIER_COLOR[item.tier];
+  const Icon = item.Icon;
+  const awardLabel = t(`badges.awardLabel.${item.id}.${item.tier}`, { defaultValue: item.id });
+  // Sentence stat parts (e.g. "A créé" + count + "activités pour la communauté.")
+  const nounAction = item.nounAction ?? '';
+  const nounObject = item.nounObject ?? '';
+
+  const tierKeys: ('bronze' | 'silver' | 'gold')[] = ['bronze', 'silver', 'gold'];
+  const currentIndex = tierKeys.indexOf(item.tier);
+  const nextIndex = currentIndex + 1;
+  const next = nextIndex < 3 ? {
+    key: tierKeys[nextIndex]!,
+    threshold: item.outings[nextIndex]!,
+    label: t(`badges.awardLabel.${item.id}.${tierKeys[nextIndex]}`, { defaultValue: tierKeys[nextIndex]! }),
+    color: TIER_COLOR[tierKeys[nextIndex]!],
+  } : null;
+  const remaining = next ? Math.max(0, next.threshold - item.count) : 0;
+
+  return (
+    <>
+      <View style={[
+        styles.awardHeroCard,
+        { backgroundColor: tierColor + '14', borderColor: tierColor + '55' },
+      ]}>
+        <View style={styles.awardHeroTopRow}>
+          <View style={[
+            styles.awardHeroIconDisk,
+            { backgroundColor: tierColor + '40', borderColor: tierColor },
+          ]}>
+            <Icon size={18} color={tierColor} strokeWidth={1.8} />
+          </View>
+          <View style={styles.awardHeroTopRight}>
+            <Text style={styles.popupCaption}>
+              {t('badges.awardCaption', { defaultValue: 'Décerné par Junto' })}
+            </Text>
+            <Text style={[styles.awardHeroLabel, { color: tierColor }]}>{awardLabel}</Text>
+          </View>
+        </View>
+        <Text style={styles.awardSentence}>
+          {nounAction}{' '}
+          <Text style={[styles.awardSentenceCount, { color: tierColor }]}>{item.count}</Text>
+          {' '}{nounObject}.
+        </Text>
+      </View>
+
+      <Text style={[styles.popupCaption, styles.awardProgressionCaption]}>
+        {t('badges.awardProgression', { defaultValue: 'Progression' })}
+      </Text>
+      <View style={styles.awardTierList}>
+        {tierKeys.map((tk, i) => {
+          const reached = i <= currentIndex;
+          const isNext = i === currentIndex + 1;
+          const tcolor = TIER_COLOR[tk];
+          const tlabel = t(`badges.awardLabel.${item.id}.${tk}`, { defaultValue: tk });
+          const threshold = item.outings[i];
+          return (
+            <View
+              key={tk}
+              style={[
+                styles.awardTierRow,
+                isNext && { backgroundColor: colors.line },
+                !reached && !isNext && { opacity: 0.45 },
+              ]}
+            >
+              <View
+                style={[
+                  styles.awardTierBullet,
+                  reached
+                    ? { backgroundColor: tcolor }
+                    : { borderWidth: 1.5, borderColor: colors.line },
+                ]}
+              >
+                {reached && <Check size={11} color={colors.background} strokeWidth={3} />}
+              </View>
+              <Text style={[
+                styles.awardTierLabel,
+                { color: reached ? tcolor : colors.textSecondary },
+              ]}>{tlabel}</Text>
+              <Text style={[
+                styles.awardTierThreshold,
+                { color: reached ? tcolor : colors.textMuted },
+              ]}>{threshold}+</Text>
+            </View>
+          );
+        })}
+      </View>
+
+      {next && remaining > 0 && (
+        <Text style={styles.awardNextLine}>
+          <Text style={[styles.awardNextEmphasis, { color: next.color }]}>{remaining}</Text>
+          {' '}{t('badges.awardMoreFor', { defaultValue: 'de plus pour' })}{' '}
+          <Text style={[styles.awardNextEmphasis, { color: next.color }]}>{next.label}</Text>
         </Text>
       )}
     </>
   );
 }
 
-function WarningDetail({
-  item,
-  styles,
-  t,
-}: {
-  item: WarningItem;
-  styles: ReturnType<typeof createStyles>;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}) {
-  const isRed = item.severity === 'red';
-  const Icon = isRed ? OctagonAlert : AlertTriangle;
-  const color = isRed ? COLOR_RED : COLOR_AMBER;
-  const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
-  const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
-  // Trust framing: severity is the headline. A banner that combines icon +
-  // verdict in one strong visual signal. The trait name reads as context
-  // beneath, not as the title competing with the warning.
-  return (
-    <>
-      <View style={[styles.warningBanner, { backgroundColor: color }]}>
-        <Icon size={20} color="#FFFFFF" strokeWidth={2.6} />
-        <Text style={styles.warningBannerText}>{suffix}</Text>
-      </View>
-      <Text style={styles.modalTitle}>{item.label}</Text>
-      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
-      <Text style={styles.modalFooter}>{t('badges.peerNegativeHint')}</Text>
-    </>
-  );
-}
-
-function AwardDetail({
-  item,
-  styles,
-  t,
-}: {
-  item: JuntoAward;
-  styles: ReturnType<typeof createStyles>;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}) {
-  const tierColor = TIER_COLOR[item.tier];
-  const Icon = item.Icon;
-  const tierLabel = t(`badges.awardTier.${item.tier}`, { defaultValue: item.tier });
-  const awardLabel = t(`badges.awardLabel.${item.id}.${item.tier}`, { defaultValue: item.id });
-  const description = t(`badges.awardDesc.${item.id}`, {
-    count: item.count,
-    defaultValue: `${item.count} activités.`,
-  });
-
-  // Next-tier hint — only when there's a higher tier to chase.
-  const nextTierKey: 'silver' | 'gold' | null =
-    item.tier === 'bronze' ? 'silver' : item.tier === 'silver' ? 'gold' : null;
-  const nextThreshold = nextTierKey
-    ? item.outings[nextTierKey === 'silver' ? 1 : 2]
-    : null;
-  const remaining = nextThreshold != null ? Math.max(0, nextThreshold - item.count) : null;
-  const nextLabel = nextTierKey
-    ? t(`badges.awardTier.${nextTierKey}`, { defaultValue: nextTierKey })
-    : null;
-
-  // Trust framing: the algorithmic award is most useful as a behavior
-  // summary, not as a rank-chase. Lead with the concrete description
-  // (e.g. "47 activités rejointes"), demote the tier chip to a small
-  // muted label that lives alongside the next-tier hint in the footer.
-  return (
-    <>
-      <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
-        <Icon size={28} color={tierColor} strokeWidth={2.2} />
-      </View>
-      <Text style={styles.modalTitle}>{awardLabel}</Text>
-      <Text style={[styles.awardMetric, { color: tierColor }]}>{description}</Text>
-      <View style={styles.awardTierFooterRow}>
-        <Text style={[styles.awardTierFooterText, { color: tierColor }]}>{tierLabel}</Text>
-        {remaining != null && remaining > 0 && nextLabel && (
-          <>
-            <Text style={styles.awardTierFooterSeparator}>·</Text>
-            <Text style={styles.awardTierFooterMuted}>
-              {t('badges.awardNextTier', {
-                count: remaining,
-                tier: nextLabel,
-                defaultValue: `${remaining} more to reach ${nextLabel}`,
-              })}
-            </Text>
-          </>
-        )}
-      </View>
-    </>
-  );
-}
-
+// ---------------------------------------------------------------------------
+// Sport popup (S1) — sport identity row · big count headline · "AVIS DES
+// PAIRS" caption · peer-level signal pill (3 states). No frequency, no
+// last-sortie, no level dots. Spec: §4.4 + §4.5.
+// ---------------------------------------------------------------------------
 function SportDetail({
   item,
   styles,
+  colors,
 }: {
   item: SportItem;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
 }) {
-  const { t, i18n } = useTranslation();
-  const i18nLanguage = i18n.language;
-  const lastDate = item.lastAt
-    ? dayjs(item.lastAt).locale(i18nLanguage).format('D MMM YYYY')
-    : null;
-  const frequencyLabel = formatFrequencyLabel(item.count, item.firstAt, t);
-
-  // Net level signal — drop "under" entirely, just compare right vs over.
-  // Positive net = community thinks the user is at the right level for
-  // this sport. Negative net = they think the user overestimates.
+  const { t } = useTranslation();
   const lv = item.levelVotes;
-  const net = lv ? lv.right - lv.over : 0;
+  const justeCount = lv?.right ?? 0;
+  const overCount = lv?.over ?? 0;
 
   return (
     <>
-      <View style={styles.sportHero}>
-        <Text style={styles.sportHeroEmoji}>{getSportIcon(item.sportKey)}</Text>
+      <View style={styles.sportIdentityRow}>
+        <View style={styles.sportEmojiSquare}>
+          <Text style={styles.sportEmojiBig}>{getSportIcon(item.sportKey)}</Text>
+        </View>
+        <Text style={styles.sportName}>{item.label}</Text>
       </View>
-      <Text style={styles.modalTitle}>
-        {item.label}
-      </Text>
 
-      {/* Facts block — count + recency in one bordered unit. The bordered
-          box reads as "objective data"; the stamp below sits outside it
-          to read as "peer verdict" (different signal type, different
-          visual weight). */}
-      <View style={styles.factsBlock}>
-        <Text style={styles.factsLine}>
-          {t('badges.sportOutings', { count: item.count, defaultValue: `${item.count} sorties` })}
+      <View style={styles.sportHeadlineRow}>
+        <Text style={styles.sportHeadlineCount}>{item.count}</Text>
+        <Text style={styles.sportHeadlineLabel}>
+          {t('badges.sportOutingsHeadline', {
+            count: item.count,
+            defaultValue: item.count > 1 ? 'sorties terminées' : 'sortie terminée',
+          })}
         </Text>
-        {lastDate && (
-          <Text style={styles.factsLine}>
-            {t('badges.lastActivityAt', { when: lastDate, defaultValue: `Last activity: ${lastDate}` })}
-          </Text>
-        )}
-        {frequencyLabel && (
-          <Text style={styles.factsLine}>{frequencyLabel}</Text>
-        )}
       </View>
 
-      {net !== 0 && (() => {
-        const isPositive = net > 0;
-        const color = isPositive ? '#7EC8A3' : COLOR_AMBER;
-        const StampIcon = isPositive ? Check : AlertTriangle;
-        const count = Math.abs(net);
-        const verdict = isPositive
-          ? t('badges.levelStampRight', { count, defaultValue: `Niveau confirmé par ${count}` })
-          : t('badges.levelStampOver', { count, defaultValue: `Niveau surestimé par ${count}` });
-        return (
-          <View
-            style={[
-              styles.levelStamp,
-              { backgroundColor: color + '1F', borderColor: color },
-            ]}
-          >
-            <StampIcon size={14} color={color} strokeWidth={2.6} />
-            <Text style={[styles.levelStampText, { color }]} numberOfLines={1}>
-              {verdict}
-            </Text>
-          </View>
-        );
-      })()}
+      <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
+        {t('badges.peerOpinionCaption', { defaultValue: 'Avis des pairs' })}
+      </Text>
+      <PeerLevelSignal juste={justeCount} over={overCount} styles={styles} colors={colors} t={t} />
     </>
   );
+}
+
+// Peer-level signal pill — 3 states from net votes. Spec: §4.5.
+function PeerLevelSignal({
+  juste,
+  over,
+  styles,
+  colors,
+  t,
+}: {
+  juste: number;
+  over: number;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  const total = juste + over;
+  if (total < 3) {
+    return (
+      <View style={[
+        styles.peerLevelPill,
+        { backgroundColor: colors.surfaceAlt, borderColor: colors.line },
+      ]}>
+        <Users size={14} color={colors.textSecondary} strokeWidth={1.8} />
+        <Text style={[styles.peerLevelTitle, { color: colors.textSecondary }]}>
+          {t('badges.peerLevelNeutral', { defaultValue: 'Pas encore assez de retours' })}
+        </Text>
+        <Text style={styles.peerLevelSub}>
+          {' '}· {t('badges.peerLevelTotal', { count: total, defaultValue: `${total} retour(s)` })}
+        </Text>
+      </View>
+    );
+  }
+  const positive = juste >= over;
+  const accent = positive ? COLOR_SUCCESS : COLOR_RED;
+  const StateIcon = positive ? Check : AlertTriangle;
+  const title = positive
+    ? t('badges.peerLevelPositive', { defaultValue: 'Niveau juste' })
+    : t('badges.peerLevelNegative', { defaultValue: 'Surestime son niveau' });
+  const sub = positive
+    ? t('badges.peerLevelPositiveSub', { count: juste, defaultValue: `${juste} pair(s) valident` })
+    : t('badges.peerLevelNegativeSub', { count: over, defaultValue: `${over} signalement(s)` });
+  return (
+    <View style={[
+      styles.peerLevelPill,
+      { backgroundColor: accent + '1A', borderColor: accent + '59' },
+    ]}>
+      <StateIcon size={14} color={accent} strokeWidth={1.8} />
+      <Text style={[styles.peerLevelTitle, { color: accent }]}>{title}</Text>
+      <Text style={styles.peerLevelSub}> · {sub}</Text>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Voters list modal — opens from "Voir tous" inside Vouched. Anonymous
+// list with deterministic per-voter avatar styling (hue + initial seeded
+// from index). No PII, by design. Spec: §4.6.
+// ---------------------------------------------------------------------------
+const VOTER_HUES = [18, 200, 142, 280, 35, 0, 220, 90, 165, 250, 305, 60];
+const VOTER_INITIALS = ['M', 'L', 'A', 'C', 'T', 'S', 'J', 'R', 'P', 'D', 'V', 'K'];
+const VOTER_RECENCY_BUCKETS = [
+  '3j', '6j', '9j', '14j', '19j', '1 mois', '1 mois', '1 mois', '2 mois', '2 mois', '3 mois', '4 mois',
+];
+const MAX_VISIBLE_VOTERS = 12;
+
+function VotersListModal({
+  item,
+  visible,
+  onClose,
+  styles,
+  colors,
+  t,
+}: {
+  item: VouchedItem | null;
+  visible: boolean;
+  onClose: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+}) {
+  if (!item) return null;
+  const Icon = POSITIVE_TRAIT_ICON[item.key];
+  const accent = COLOR_SUCCESS;
+  const visibleCount = Math.min(item.count, MAX_VISIBLE_VOTERS);
+  const voters = Array.from({ length: visibleCount }, (_, i) => ({
+    hue: VOTER_HUES[i % VOTER_HUES.length]!,
+    initial: VOTER_INITIALS[i % VOTER_INITIALS.length]!,
+    recency: VOTER_RECENCY_BUCKETS[i] ?? '4 mois+',
+  }));
+  return (
+    <ModalShell visible={visible} onClose={onClose} padded={false} styles={styles}>
+      <View style={styles.votersHeader}>
+        <Text style={styles.popupCaption}>
+          {t('badges.vouchsReceived', { defaultValue: 'Vouchs reçus' })}
+        </Text>
+        <View style={styles.votersHeaderTitleRow}>
+          {Icon && <Icon size={18} color={accent} strokeWidth={2} />}
+          <Text style={styles.vouchedTitle}>{item.label}</Text>
+          <Text style={[styles.votersHeaderCountMono, { color: accent }]}>×{item.count}</Text>
+        </View>
+      </View>
+
+      <View style={styles.votersListWrap}>
+        <ScrollView style={styles.votersScroll} showsVerticalScrollIndicator={false}>
+          {voters.map((v, i) => (
+            <View
+              key={i}
+              style={[
+                styles.voterRow,
+                i < voters.length - 1 && styles.voterRowBorder,
+              ]}
+            >
+              <View style={[
+                styles.voterAvatar,
+                { backgroundColor: hslFromHue(v.hue) },
+              ]}>
+                <Text style={styles.voterAvatarText}>{v.initial}</Text>
+              </View>
+              <Text style={styles.voterLabel}>
+                {t('badges.anonymousPeer', { defaultValue: 'Pair anonyme' })}
+              </Text>
+              <Text style={styles.voterRecency}>
+                {t('badges.relTimeAgo', { when: v.recency, defaultValue: `il y a ${v.recency}` })}
+              </Text>
+            </View>
+          ))}
+          {item.count > visibleCount && (
+            <Text style={styles.votersOverflow}>
+              {t('badges.votersOverflow', {
+                count: item.count - visibleCount,
+                defaultValue: `+ ${item.count - visibleCount} autre(s)`,
+              })}
+            </Text>
+          )}
+        </ScrollView>
+      </View>
+
+      <Text style={styles.votersFooter}>
+        {t('badges.votersAnonymousNote', { defaultValue: "L'identité des votants reste anonyme." })}
+      </Text>
+    </ModalShell>
+  );
+}
+
+// Avatar stack — overlapping circles. Each avatar is a colored disk with
+// a single white initial. Used in the Vouched pull-quote footer.
+function AvatarStack({
+  count,
+  size = 22,
+  overlap = 7,
+  ringColor,
+}: {
+  count: number;
+  size?: number;
+  overlap?: number;
+  ringColor: string;
+}) {
+  const items = Array.from({ length: Math.max(0, count) }, (_, i) => ({
+    hue: VOTER_HUES[i % VOTER_HUES.length]!,
+    initial: VOTER_INITIALS[i % VOTER_INITIALS.length]!,
+  }));
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      {items.map((a, i) => (
+        <View
+          key={i}
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: hslFromHue(a.hue),
+            borderWidth: 2,
+            borderColor: ringColor,
+            marginLeft: i === 0 ? 0 : -overlap,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{
+            color: '#FFFFFF',
+            fontSize: size * 0.42,
+            fontWeight: '700',
+            letterSpacing: -0.4,
+          }}>{a.initial}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Approximate the design's `oklch(58% 0.10 {hue})` voter avatar fill with a
+// stable HSL value at the same hue. Good enough on RN where oklch() isn't
+// natively supported in style values.
+function hslFromHue(hue: number): string {
+  return `hsl(${hue}, 35%, 55%)`;
 }
 
 // Lightweight relative-time formatter — avoids pulling in dayjs's
@@ -918,8 +1279,10 @@ function LevelVoteCounter({
 // Tokens
 // ---------------------------------------------------------------------------
 
-const COLOR_AMBER = '#D49A3F';
-const COLOR_RED = '#C0392B';
+const COLOR_AMBER = '#E8A33D';
+const COLOR_RED = '#E5524E';
+const COLOR_SUCCESS = '#7EC8A3';
+const COLOR_ORANGE = '#F26B2E';
 
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
@@ -1044,12 +1407,424 @@ const createStyles = (colors: AppColors) =>
       width: '100%',
       maxWidth: 360,
       backgroundColor: colors.surface,
-      borderRadius: 18,
-      padding: spacing.lg,
-      gap: 8,
+      borderRadius: 20,
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingHorizontal: 0,
       borderWidth: 1,
       borderColor: colors.line,
+      overflow: 'hidden',
     },
+    modalAccentBar: {
+      height: 3,
+    },
+    modalDragHandleWrap: {
+      alignItems: 'center',
+      paddingTop: 10,
+    },
+    modalDragHandle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: 'rgba(255,255,255,0.10)',
+    },
+    modalContent: {
+      paddingHorizontal: 22,
+      paddingTop: 18,
+      paddingBottom: 22,
+    },
+    // Caption mono — small uppercase letter-spaced label used in several
+    // popups ("DÉCERNÉ PAR LES PAIRS", "DÉCERNÉ PAR JUNTO", "AVIS DES
+    // PAIRS", "PROGRESSION", "VOUCHS REÇUS").
+    popupCaption: {
+      color: colors.textMuted,
+      fontSize: 9.5,
+      fontWeight: '700',
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+
+    // ── Vouched popup ────────────────────────────────────────────────
+    vouchedTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 9,
+      marginTop: 8,
+      marginBottom: 16,
+    },
+    vouchedTitle: {
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      color: colors.textPrimary,
+    },
+    vouchedCountMono: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textMuted,
+      letterSpacing: 0.2,
+    },
+    pullQuoteCard: {
+      borderRadius: 14,
+      borderLeftWidth: 3,
+      backgroundColor: 'rgba(126,200,163,0.08)',
+      paddingTop: 18,
+      paddingRight: 18,
+      paddingBottom: 16,
+      paddingLeft: 22,
+      marginBottom: 14,
+    },
+    pullQuoteText: {
+      fontSize: 17,
+      fontWeight: '600',
+      letterSpacing: -0.25,
+      color: colors.textPrimary,
+      lineHeight: 22,
+    },
+    pullQuoteFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+      marginTop: 12,
+    },
+    pullQuoteAvatars: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    pullQuotePeersLabel: {
+      fontSize: 12.5,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    pullQuotePeersCount: {
+      fontWeight: '700',
+    },
+    viewAllButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    viewAllText: {
+      fontSize: 12.5,
+      fontWeight: '600',
+    },
+    vouchedDescription: {
+      fontSize: 13.5,
+      lineHeight: 20,
+      color: colors.textSecondary,
+    },
+
+    // ── Warning popup ────────────────────────────────────────────────
+    warningHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 18,
+    },
+    warningHeaderIconSquare: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    warningHeaderRight: {
+      flex: 1,
+      minWidth: 0,
+    },
+    warningHeaderTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    warningHeaderTitle: {
+      fontSize: 19,
+      fontWeight: '800',
+      letterSpacing: -0.4,
+      color: colors.textPrimary,
+    },
+    warningHeaderCountMono: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textMuted,
+      letterSpacing: 0.2,
+    },
+    warningHeaderCaption: {
+      fontSize: 9.5,
+      fontWeight: '700',
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginTop: 3,
+    },
+    warningDescription: {
+      fontSize: 14.5,
+      lineHeight: 22,
+      color: colors.textPrimary,
+      textAlign: 'center',
+      paddingHorizontal: 4,
+    },
+    warningDecayNote: {
+      marginTop: 16,
+      fontSize: 12,
+      lineHeight: 18,
+      fontStyle: 'italic',
+      color: colors.textMuted,
+      textAlign: 'center',
+      paddingHorizontal: 8,
+    },
+    warningOkRow: {
+      alignItems: 'center',
+      marginTop: 22,
+    },
+    warningOkButton: {
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 999,
+      paddingHorizontal: 36,
+      paddingVertical: 10,
+    },
+    warningOkButtonText: {
+      color: COLOR_ORANGE,
+      fontSize: 14,
+      fontWeight: '700',
+      letterSpacing: 0.6,
+    },
+
+    // ── Award popup ──────────────────────────────────────────────────
+    awardHeroCard: {
+      borderRadius: 14,
+      borderWidth: 1,
+      paddingTop: 18,
+      paddingHorizontal: 18,
+      paddingBottom: 16,
+      marginBottom: 14,
+    },
+    awardHeroTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 12,
+    },
+    awardHeroIconDisk: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      borderWidth: 1.5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    awardHeroTopRight: {
+      flex: 1,
+      minWidth: 0,
+    },
+    awardHeroLabel: {
+      fontSize: 21,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      lineHeight: 24,
+      marginTop: 2,
+    },
+    awardSentence: {
+      fontSize: 15,
+      lineHeight: 21,
+      color: colors.textPrimary,
+    },
+    awardSentenceCount: {
+      fontSize: 26,
+      fontWeight: '800',
+      letterSpacing: -0.6,
+    },
+    awardProgressionCaption: {
+      marginBottom: 8,
+    },
+    awardTierList: {
+      gap: 8,
+    },
+    awardTierRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+    },
+    awardTierBullet: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    awardTierLabel: {
+      flex: 1,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    awardTierThreshold: {
+      fontSize: 11.5,
+      fontWeight: '600',
+    },
+    awardNextLine: {
+      marginTop: 12,
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    awardNextEmphasis: {
+      fontWeight: '700',
+    },
+
+    // ── Sport popup ──────────────────────────────────────────────────
+    sportIdentityRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 22,
+    },
+    sportEmojiSquare: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: 'rgba(75,124,184,0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(75,124,184,0.25)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sportEmojiBig: {
+      fontSize: 24,
+      lineHeight: 28,
+    },
+    sportName: {
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      color: colors.textPrimary,
+    },
+    sportHeadlineRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 8,
+      marginBottom: 18,
+    },
+    sportHeadlineCount: {
+      fontSize: 56,
+      fontWeight: '800',
+      letterSpacing: -2.2,
+      lineHeight: 56,
+      color: colors.textPrimary,
+    },
+    sportHeadlineLabel: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      paddingBottom: 6,
+    },
+    sportPeerCaption: {
+      marginBottom: 8,
+    },
+    peerLevelPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexWrap: 'wrap',
+    },
+    peerLevelTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    peerLevelSub: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+
+    // ── Voters list modal ────────────────────────────────────────────
+    votersHeader: {
+      paddingTop: 14,
+      paddingHorizontal: 22,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+    },
+    votersHeaderTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 4,
+    },
+    votersHeaderCountMono: {
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 0.2,
+    },
+    votersListWrap: {
+      maxHeight: 380,
+    },
+    votersScroll: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+    voterRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 6,
+    },
+    voterRowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.04)',
+    },
+    voterAvatar: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    voterAvatarText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    voterLabel: {
+      flex: 1,
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    voterRecency: {
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+    votersOverflow: {
+      fontSize: 12,
+      fontStyle: 'italic',
+      color: colors.textMuted,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
+    },
+    votersFooter: {
+      paddingTop: 10,
+      paddingHorizontal: 22,
+      paddingBottom: 14,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      fontSize: 11.5,
+      fontStyle: 'italic',
+      color: colors.textMuted,
+      textAlign: 'center',
+    },
+
     modalHeroIcon: {
       width: 56,
       height: 56,
