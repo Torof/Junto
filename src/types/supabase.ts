@@ -2216,6 +2216,15 @@ export type Database = {
           sport_key: string
         }[]
       }
+      get_voters_for_badge: {
+        Args: { p_badge_key: string; p_user_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          voted_at: string
+          voter_id: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       give_reputation_badge: {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }

@@ -181,6 +181,7 @@ export default function PublicProfileScreen() {
       />
 
       <BadgeDisplay
+        userId={profile.id}
         reputation={reputation ?? []}
         trophies={trophies ?? []}
         sportLevels={sportLevels ?? []}

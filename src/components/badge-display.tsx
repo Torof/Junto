@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
+import { Fragment, useMemo, useState } from 'react';
+import { View, Text, Pressable, Modal, Image, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import {
@@ -15,14 +15,17 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
+import { useQuery } from '@tanstack/react-query';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
+  badgeService,
   type ReputationBadge,
   type Trophy as ReputationTrophy,
   type SportLevel,
   type SportLevelVotes,
   type AwardAggregates,
+  type BadgeVoter,
 } from '@/services/badge-service';
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
@@ -33,6 +36,8 @@ import {
 // Tier names, "newcomer", and the locked teaser section are gone.
 
 interface BadgeDisplayProps {
+  /** Target user — needed to fetch voters for the Vouched popup. */
+  userId: string;
   reputation: ReputationBadge[];
   trophies: ReputationTrophy[];
   sportLevels?: SportLevel[];
@@ -48,6 +53,9 @@ const VOUCHED_THRESHOLD = 5;
 const WARNING_THRESHOLD = 5;
 const WARNING_RED_THRESHOLD = 15;
 const SPORT_THRESHOLD = 3;
+// Cap voter avatars surfaced in the Vouched popup. Beyond this we render
+// a "+N" overflow indicator instead of more rounded portraits.
+const MAX_VISIBLE_VOTER_AVATARS = 7;
 // Peer-vouched tier — same color palette as Junto so the eye learns one
 // rank language across the card. Visibility threshold is 5 so the bronze
 // floor is never "missing".
@@ -80,14 +88,6 @@ const NEGATIVE_TRAIT_ICON: Record<string, LucideIcon> = {
   // here so the popup renders correctly if/when they're added.
   lacheur: LogOut,
   surestime: TrendingUp,
-};
-
-// Pull-quotes per positive trait — spoken in the third person, peer voice.
-const VOUCHED_QUOTES: Record<string, string> = {
-  punctual: 'Toujours à l\'heure.',
-  prepared: 'Vraiment préparé.',
-  conciliant: 'Facile à vivre.',
-  prudent: 'Sait gérer le risque.',
 };
 
 // level_accurate is deprecated. Hidden everywhere.
@@ -256,15 +256,11 @@ type DetailTarget =
   | { kind: 'sport'; item: SportItem }
   | { kind: 'award'; item: JuntoAward };
 
-export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates }: BadgeDisplayProps) {
+export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates }: BadgeDisplayProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
-  // Voter list overlay — pushed from inside Vouched popup via "Voir tous".
-  // Independent of `selected` so that closing the voter list returns to the
-  // parent vouched popup without losing context.
-  const [voterListItem, setVoterListItem] = useState<VouchedItem | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
   const { vouched, warnings, sports, awards } = useMemo(() => {
@@ -441,17 +437,8 @@ export function BadgeDisplay({ reputation, trophies, sportLevels = [], sportLeve
 
       <DetailModal
         target={selected}
+        userId={userId}
         onClose={() => setSelected(null)}
-        onShowVoters={(it) => setVoterListItem(it)}
-        styles={styles}
-        colors={colors}
-        t={t}
-      />
-
-      <VotersListModal
-        item={voterListItem}
-        visible={voterListItem != null}
-        onClose={() => setVoterListItem(null)}
         styles={styles}
         colors={colors}
         t={t}
@@ -698,15 +685,15 @@ function ModalShell({
 
 function DetailModal({
   target,
+  userId,
   onClose,
-  onShowVoters,
   styles,
   colors,
   t,
 }: {
   target: DetailTarget | null;
+  userId: string;
   onClose: () => void;
-  onShowVoters: (item: VouchedItem) => void;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
@@ -721,14 +708,14 @@ function DetailModal({
       {target.kind === 'vouched' && (
         <VouchedDetail
           item={target.item}
+          userId={userId}
           styles={styles}
           colors={colors}
           t={t}
-          onShowVoters={() => onShowVoters(target.item)}
         />
       )}
       {target.kind === 'warning' && (
-        <WarningDetail item={target.item} styles={styles} onClose={onClose} t={t} />
+        <WarningDetail item={target.item} styles={styles} t={t} />
       )}
       {target.kind === 'award' && (
         <AwardDetail item={target.item} styles={styles} colors={colors} t={t} />
@@ -747,21 +734,33 @@ function DetailModal({
 // ---------------------------------------------------------------------------
 function VouchedDetail({
   item,
+  userId,
   styles,
   colors,
   t,
-  onShowVoters,
 }: {
   item: VouchedItem;
+  userId: string;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
-  onShowVoters: () => void;
 }) {
   const Icon = POSITIVE_TRAIT_ICON[item.key];
   const accent = COLOR_SUCCESS;
   const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
-  const quote = VOUCHED_QUOTES[item.key] ?? item.label;
+
+  // Lazy fetch the most recent voters for this trait. Avatars only —
+  // no nav click-through. Privacy stance: voter identity is exposed
+  // visually to strengthen the trust signal (see mig 00169 comment).
+  const { data: voters = [] } = useQuery<BadgeVoter[]>({
+    queryKey: ['badgeVoters', userId, item.key],
+    queryFn: () => badgeService.getVotersForBadge(userId, item.key),
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+  const visibleVoters = voters.slice(0, MAX_VISIBLE_VOTER_AVATARS);
+  const overflow = Math.max(0, item.count - visibleVoters.length);
+
   return (
     <>
       <Text style={styles.popupCaption}>{t('badges.vouchedCaption', { defaultValue: 'Décerné par les pairs' })}</Text>
@@ -772,26 +771,25 @@ function VouchedDetail({
         <Text style={styles.vouchedCountMono}>×{item.count}</Text>
       </View>
 
+      {/* Description first — Scott's call: text precedes the voter card so
+          the reader sees what the trait MEANS before seeing who agrees. */}
+      {description !== '' && <Text style={styles.vouchedDescription}>{description}</Text>}
+
       <View style={[styles.pullQuoteCard, { borderLeftColor: accent }]}>
-        <Text style={styles.pullQuoteText}>« {quote} »</Text>
-        <View style={styles.pullQuoteFooter}>
-          <View style={styles.pullQuoteAvatars}>
-            <AvatarStack count={Math.min(5, item.count)} size={22} overlap={7} ringColor={colors.surface} />
-            <Text style={styles.pullQuotePeersLabel}>
-              <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
-              {' '}{t('badges.vouchedPeersLabel', { count: item.count, defaultValue: 'pairs' })}
-            </Text>
-          </View>
-          <Pressable style={styles.viewAllButton} onPress={onShowVoters} hitSlop={8}>
-            <Text style={[styles.viewAllText, { color: accent }]}>
-              {t('badges.viewAllVoters', { defaultValue: 'Voir tous' })}
-            </Text>
-            <ChevronRight size={11} color={accent} strokeWidth={2.5} />
-          </Pressable>
+        <View style={styles.pullQuoteAvatars}>
+          <VoterAvatarStack
+            voters={visibleVoters}
+            ringColor={colors.surface}
+          />
+          {overflow > 0 && (
+            <Text style={styles.pullQuoteOverflow}>+{overflow}</Text>
+          )}
+          <Text style={styles.pullQuotePeersLabel}>
+            <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
+            {' '}{t('badges.vouchedPeersLabel', { count: item.count, defaultValue: 'pairs' })}
+          </Text>
         </View>
       </View>
-
-      {description !== '' && <Text style={styles.vouchedDescription}>{description}</Text>}
     </>
   );
 }
@@ -804,12 +802,10 @@ function VouchedDetail({
 function WarningDetail({
   item,
   styles,
-  onClose,
   t,
 }: {
   item: WarningItem;
   styles: ReturnType<typeof createStyles>;
-  onClose: () => void;
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   const isRed = item.severity === 'red';
@@ -835,12 +831,6 @@ function WarningDetail({
       {description !== '' && <Text style={styles.warningDescription}>{description}</Text>}
 
       <Text style={styles.warningDecayNote}>{t('badges.peerNegativeHint')}</Text>
-
-      <View style={styles.warningOkRow}>
-        <Pressable style={styles.warningOkButton} onPress={onClose}>
-          <Text style={styles.warningOkButtonText}>OK</Text>
-        </Pressable>
-      </View>
     </>
   );
 }
@@ -910,41 +900,43 @@ function AwardDetail({
       <Text style={[styles.popupCaption, styles.awardProgressionCaption]}>
         {t('badges.awardProgression', { defaultValue: 'Progression' })}
       </Text>
-      <View style={styles.awardTierList}>
+      <View style={styles.awardProgressionRow}>
         {tierKeys.map((tk, i) => {
           const reached = i <= currentIndex;
-          const isNext = i === currentIndex + 1;
           const tcolor = TIER_COLOR[tk];
           const tlabel = t(`badges.awardLabel.${item.id}.${tk}`, { defaultValue: tk });
           const threshold = item.outings[i];
           return (
-            <View
-              key={tk}
-              style={[
-                styles.awardTierRow,
-                isNext && { backgroundColor: colors.line },
-                !reached && !isNext && { opacity: 0.45 },
-              ]}
-            >
-              <View
-                style={[
-                  styles.awardTierBullet,
-                  reached
-                    ? { backgroundColor: tcolor }
-                    : { borderWidth: 1.5, borderColor: colors.line },
-                ]}
-              >
-                {reached && <Check size={11} color={colors.background} strokeWidth={3} />}
+            <Fragment key={tk}>
+              {i > 0 && (
+                <View
+                  style={[
+                    styles.awardProgressionConnector,
+                    { backgroundColor: reached ? tcolor : colors.line },
+                  ]}
+                />
+              )}
+              <View style={styles.awardProgressionStep}>
+                <View
+                  style={[
+                    styles.awardProgressionDot,
+                    reached
+                      ? { backgroundColor: tcolor }
+                      : { borderWidth: 1.5, borderColor: colors.line },
+                  ]}
+                >
+                  {reached && <Check size={12} color={colors.background} strokeWidth={3} />}
+                </View>
+                <Text style={[
+                  styles.awardProgressionLabel,
+                  { color: reached ? tcolor : colors.textSecondary },
+                ]}>{tlabel}</Text>
+                <Text style={[
+                  styles.awardProgressionThreshold,
+                  { color: reached ? tcolor : colors.textMuted },
+                ]}>{threshold}+</Text>
               </View>
-              <Text style={[
-                styles.awardTierLabel,
-                { color: reached ? tcolor : colors.textSecondary },
-              ]}>{tlabel}</Text>
-              <Text style={[
-                styles.awardTierThreshold,
-                { color: reached ? tcolor : colors.textMuted },
-              ]}>{threshold}+</Text>
-            </View>
+            </Fragment>
           );
         })}
       </View>
@@ -1059,147 +1051,71 @@ function PeerLevelSignal({
 }
 
 // ---------------------------------------------------------------------------
-// Voters list modal — opens from "Voir tous" inside Vouched. Anonymous
-// list with deterministic per-voter avatar styling (hue + initial seeded
-// from index). No PII, by design. Spec: §4.6.
+// Voter avatar stack — real profile pictures of recent voters. Falls back
+// to a hashed-color disk + first letter when avatar_url is null. Display
+// only, no nav click-through (privacy stance: faces visible to strengthen
+// the trust signal, but no doxxing path).
 // ---------------------------------------------------------------------------
-const VOTER_HUES = [18, 200, 142, 280, 35, 0, 220, 90, 165, 250, 305, 60];
-const VOTER_INITIALS = ['M', 'L', 'A', 'C', 'T', 'S', 'J', 'R', 'P', 'D', 'V', 'K'];
-const VOTER_RECENCY_BUCKETS = [
-  '3j', '6j', '9j', '14j', '19j', '1 mois', '1 mois', '1 mois', '2 mois', '2 mois', '3 mois', '4 mois',
-];
-const MAX_VISIBLE_VOTERS = 12;
-
-function VotersListModal({
-  item,
-  visible,
-  onClose,
-  styles,
-  colors,
-  t,
-}: {
-  item: VouchedItem | null;
-  visible: boolean;
-  onClose: () => void;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}) {
-  if (!item) return null;
-  const Icon = POSITIVE_TRAIT_ICON[item.key];
-  const accent = COLOR_SUCCESS;
-  const visibleCount = Math.min(item.count, MAX_VISIBLE_VOTERS);
-  const voters = Array.from({ length: visibleCount }, (_, i) => ({
-    hue: VOTER_HUES[i % VOTER_HUES.length]!,
-    initial: VOTER_INITIALS[i % VOTER_INITIALS.length]!,
-    recency: VOTER_RECENCY_BUCKETS[i] ?? '4 mois+',
-  }));
-  return (
-    <ModalShell visible={visible} onClose={onClose} padded={false} styles={styles}>
-      <View style={styles.votersHeader}>
-        <Text style={styles.popupCaption}>
-          {t('badges.vouchsReceived', { defaultValue: 'Vouchs reçus' })}
-        </Text>
-        <View style={styles.votersHeaderTitleRow}>
-          {Icon && <Icon size={18} color={accent} strokeWidth={2} />}
-          <Text style={styles.vouchedTitle}>{item.label}</Text>
-          <Text style={[styles.votersHeaderCountMono, { color: accent }]}>×{item.count}</Text>
-        </View>
-      </View>
-
-      <View style={styles.votersListWrap}>
-        <ScrollView style={styles.votersScroll} showsVerticalScrollIndicator={false}>
-          {voters.map((v, i) => (
-            <View
-              key={i}
-              style={[
-                styles.voterRow,
-                i < voters.length - 1 && styles.voterRowBorder,
-              ]}
-            >
-              <View style={[
-                styles.voterAvatar,
-                { backgroundColor: hslFromHue(v.hue) },
-              ]}>
-                <Text style={styles.voterAvatarText}>{v.initial}</Text>
-              </View>
-              <Text style={styles.voterLabel}>
-                {t('badges.anonymousPeer', { defaultValue: 'Pair anonyme' })}
-              </Text>
-              <Text style={styles.voterRecency}>
-                {t('badges.relTimeAgo', { when: v.recency, defaultValue: `il y a ${v.recency}` })}
-              </Text>
-            </View>
-          ))}
-          {item.count > visibleCount && (
-            <Text style={styles.votersOverflow}>
-              {t('badges.votersOverflow', {
-                count: item.count - visibleCount,
-                defaultValue: `+ ${item.count - visibleCount} autre(s)`,
-              })}
-            </Text>
-          )}
-        </ScrollView>
-      </View>
-
-      <Text style={styles.votersFooter}>
-        {t('badges.votersAnonymousNote', { defaultValue: "L'identité des votants reste anonyme." })}
-      </Text>
-    </ModalShell>
-  );
-}
-
-// Avatar stack — overlapping circles. Each avatar is a colored disk with
-// a single white initial. Used in the Vouched pull-quote footer.
-function AvatarStack({
-  count,
+function VoterAvatarStack({
+  voters,
   size = 22,
   overlap = 7,
   ringColor,
 }: {
-  count: number;
+  voters: BadgeVoter[];
   size?: number;
   overlap?: number;
   ringColor: string;
 }) {
-  const items = Array.from({ length: Math.max(0, count) }, (_, i) => ({
-    hue: VOTER_HUES[i % VOTER_HUES.length]!,
-    initial: VOTER_INITIALS[i % VOTER_INITIALS.length]!,
-  }));
   return (
     <View style={{ flexDirection: 'row' }}>
-      {items.map((a, i) => (
-        <View
-          key={i}
-          style={{
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: hslFromHue(a.hue),
-            borderWidth: 2,
-            borderColor: ringColor,
-            marginLeft: i === 0 ? 0 : -overlap,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{
-            color: '#FFFFFF',
-            fontSize: size * 0.42,
-            fontWeight: '700',
-            letterSpacing: -0.4,
-          }}>{a.initial}</Text>
-        </View>
-      ))}
+      {voters.map((v, i) => {
+        const initial = (v.display_name?.trim()?.[0] ?? '?').toUpperCase();
+        const ring = {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: 2,
+          borderColor: ringColor,
+          marginLeft: i === 0 ? 0 : -overlap,
+          overflow: 'hidden' as const,
+          alignItems: 'center' as const,
+          justifyContent: 'center' as const,
+        };
+        if (v.avatar_url) {
+          return (
+            <Image
+              key={v.voter_id}
+              source={{ uri: v.avatar_url }}
+              style={ring}
+              resizeMode="cover"
+            />
+          );
+        }
+        return (
+          <View
+            key={v.voter_id}
+            style={[ring, { backgroundColor: hashHue(v.voter_id) }]}
+          >
+            <Text style={{
+              color: '#FFFFFF',
+              fontSize: size * 0.42,
+              fontWeight: '700',
+              letterSpacing: -0.4,
+            }}>{initial}</Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
 
-// Approximate the design's `oklch(58% 0.10 {hue})` voter avatar fill with a
-// stable HSL value at the same hue. Good enough on RN where oklch() isn't
-// natively supported in style values.
-function hslFromHue(hue: number): string {
-  return `hsl(${hue}, 35%, 55%)`;
+// Deterministic muted hue from a voter UUID — keeps fallback disks stable
+// across renders without storing per-user color anywhere.
+function hashHue(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return `hsl(${Math.abs(h) % 360}, 35%, 55%)`;
 }
 
 // Lightweight relative-time formatter — avoids pulling in dayjs's
@@ -1282,7 +1198,6 @@ function LevelVoteCounter({
 const COLOR_AMBER = '#E8A33D';
 const COLOR_RED = '#E5524E';
 const COLOR_SUCCESS = '#7EC8A3';
-const COLOR_ORANGE = '#F26B2E';
 
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
@@ -1468,30 +1383,17 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 14,
       borderLeftWidth: 3,
       backgroundColor: 'rgba(126,200,163,0.08)',
-      paddingTop: 18,
+      paddingTop: 14,
       paddingRight: 18,
-      paddingBottom: 16,
-      paddingLeft: 22,
-      marginBottom: 14,
-    },
-    pullQuoteText: {
-      fontSize: 17,
-      fontWeight: '600',
-      letterSpacing: -0.25,
-      color: colors.textPrimary,
-      lineHeight: 22,
-    },
-    pullQuoteFooter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
-      marginTop: 12,
+      paddingBottom: 14,
+      paddingLeft: 18,
+      marginBottom: 4,
     },
     pullQuoteAvatars: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
+      flexWrap: 'wrap',
     },
     pullQuotePeersLabel: {
       fontSize: 12.5,
@@ -1501,19 +1403,17 @@ const createStyles = (colors: AppColors) =>
     pullQuotePeersCount: {
       fontWeight: '700',
     },
-    viewAllButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    viewAllText: {
+    pullQuoteOverflow: {
       fontSize: 12.5,
-      fontWeight: '600',
+      fontWeight: '700',
+      color: colors.textSecondary,
+      marginLeft: -4,
     },
     vouchedDescription: {
       fontSize: 13.5,
       lineHeight: 20,
       color: colors.textSecondary,
+      marginBottom: 14,
     },
 
     // ── Warning popup ────────────────────────────────────────────────
@@ -1574,25 +1474,6 @@ const createStyles = (colors: AppColors) =>
       textAlign: 'center',
       paddingHorizontal: 8,
     },
-    warningOkRow: {
-      alignItems: 'center',
-      marginTop: 22,
-    },
-    warningOkButton: {
-      backgroundColor: 'rgba(255,255,255,0.06)',
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 999,
-      paddingHorizontal: 36,
-      paddingVertical: 10,
-    },
-    warningOkButtonText: {
-      color: COLOR_ORANGE,
-      fontSize: 14,
-      fontWeight: '700',
-      letterSpacing: 0.6,
-    },
-
     // ── Award popup ──────────────────────────────────────────────────
     awardHeroCard: {
       borderRadius: 14,
@@ -1638,34 +1519,46 @@ const createStyles = (colors: AppColors) =>
       letterSpacing: -0.6,
     },
     awardProgressionCaption: {
-      marginBottom: 8,
+      marginBottom: 10,
     },
-    awardTierList: {
-      gap: 8,
-    },
-    awardTierRow: {
+    // Horizontal progression — three steps connected by bars. Each step is
+    // a column (dot · label · threshold). The connector is a thin flex:1
+    // bar whose top margin half-aligns with the dot center so the line
+    // visually passes through the dots.
+    awardProgressionRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 8,
-      paddingHorizontal: 10,
-      borderRadius: 8,
+      alignItems: 'flex-start',
+      paddingHorizontal: 4,
+      marginTop: 4,
     },
-    awardTierBullet: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
+    awardProgressionStep: {
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 4,
+    },
+    awardProgressionDot: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
       alignItems: 'center',
       justifyContent: 'center',
+      marginBottom: 4,
     },
-    awardTierLabel: {
+    awardProgressionConnector: {
       flex: 1,
-      fontSize: 13,
-      fontWeight: '600',
+      height: 2,
+      marginTop: 10,
+      borderRadius: 1,
     },
-    awardTierThreshold: {
-      fontSize: 11.5,
+    awardProgressionLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    awardProgressionThreshold: {
+      fontSize: 11,
       fontWeight: '600',
+      textAlign: 'center',
     },
     awardNextLine: {
       marginTop: 12,
@@ -1711,10 +1604,10 @@ const createStyles = (colors: AppColors) =>
       marginBottom: 18,
     },
     sportHeadlineCount: {
-      fontSize: 56,
+      fontSize: 42,
       fontWeight: '800',
-      letterSpacing: -2.2,
-      lineHeight: 56,
+      letterSpacing: -1.6,
+      lineHeight: 44,
       color: colors.textPrimary,
     },
     sportHeadlineLabel: {
@@ -1744,85 +1637,6 @@ const createStyles = (colors: AppColors) =>
       fontSize: 12,
       fontWeight: '500',
       color: colors.textSecondary,
-    },
-
-    // ── Voters list modal ────────────────────────────────────────────
-    votersHeader: {
-      paddingTop: 14,
-      paddingHorizontal: 22,
-      paddingBottom: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.line,
-    },
-    votersHeaderTitleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      marginTop: 4,
-    },
-    votersHeaderCountMono: {
-      fontSize: 13,
-      fontWeight: '700',
-      letterSpacing: 0.2,
-    },
-    votersListWrap: {
-      maxHeight: 380,
-    },
-    votersScroll: {
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
-    },
-    voterRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 6,
-    },
-    voterRowBorder: {
-      borderBottomWidth: 1,
-      borderBottomColor: 'rgba(255,255,255,0.04)',
-    },
-    voterAvatar: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    voterAvatarText: {
-      color: '#FFFFFF',
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    voterLabel: {
-      flex: 1,
-      fontSize: 13,
-      fontWeight: '500',
-      color: colors.textSecondary,
-    },
-    voterRecency: {
-      fontSize: 11,
-      color: colors.textMuted,
-    },
-    votersOverflow: {
-      fontSize: 12,
-      fontStyle: 'italic',
-      color: colors.textMuted,
-      paddingVertical: 12,
-      paddingHorizontal: 6,
-    },
-    votersFooter: {
-      paddingTop: 10,
-      paddingHorizontal: 22,
-      paddingBottom: 14,
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
-      fontSize: 11.5,
-      fontStyle: 'italic',
-      color: colors.textMuted,
-      textAlign: 'center',
     },
 
     modalHeroIcon: {

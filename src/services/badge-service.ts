@@ -53,6 +53,15 @@ export interface ReputationBadge {
   last_at: string | null;
 }
 
+/** One voter for a (target user, badge) pair. Used by the Vouched popup
+ *  avatar stack. Display-only; popup never offers click-through. */
+export interface BadgeVoter {
+  voter_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  voted_at: string | null;
+}
+
 // Peer badge tier — three positives + one negative + locked.
 // Derived from vote_count via peerTierFor() / peerNegativeTier().
 export type PeerTier = 'bronze' | 'silver' | 'gold' | 'negative' | 'locked';
@@ -169,6 +178,18 @@ export const badgeService = {
     } as unknown as { p_activity_id: string });
     if (error) return [];
     return (data as unknown as ReputationBadge[]) ?? [];
+  },
+
+  getVotersForBadge: async (
+    userId: string,
+    badgeKey: string,
+  ): Promise<BadgeVoter[]> => {
+    const { data, error } = await supabase.rpc('get_voters_for_badge' as 'join_activity', {
+      p_user_id: userId,
+      p_badge_key: badgeKey,
+    } as unknown as { p_activity_id: string });
+    if (error) return [];
+    return (data as unknown as BadgeVoter[]) ?? [];
   },
 
   getUserTrophies: async (userId: string): Promise<Trophy[]> => {

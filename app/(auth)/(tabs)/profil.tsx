@@ -146,6 +146,7 @@ export default function ProfilScreen() {
         />
 
         <BadgeDisplay
+          userId={userId ?? ''}
           reputation={reputation ?? []}
           trophies={trophies ?? []}
           sportLevels={sportLevels ?? []}

@@ -755,10 +755,10 @@
       "negative": "Signal"
     },
     "peerDesc": {
-      "punctual": "Tu étais à l'heure au point de rendez-vous, sans faire attendre le groupe.",
-      "prepared": "Tu avais le bon matériel et tu connaissais l'itinéraire — pas de scramble de dernière minute.",
-      "conciliant": "Tu t'es adapté au rythme du groupe sans pinailler ni pousser, l'ambiance est restée fluide.",
-      "prudent": "Tu as fait les bons appels en sécurité (faire demi-tour, météo, équipement) sans pousser au-delà du raisonnable.",
+      "punctual": "Arrive à l'heure aux points de rendez-vous, ne fait pas attendre le groupe.",
+      "prepared": "A le bon matériel, connaît l'itinéraire, n'improvise pas.",
+      "conciliant": "S'adapte au rythme du groupe, ne s'impose pas.",
+      "prudent": "Gère le risque sainement, ne dépasse pas les limites de sécurité.",
       "unprepared": "Arrivé sans le matériel ou la préparation nécessaire, le groupe a dû s'adapter.",
       "aggressive": "Comportement agressif ou irrespectueux envers les autres participants.",
       "reckless": "Décisions imprudentes qui ont mis le groupe en danger ou ignoré les signaux de sécurité.",
