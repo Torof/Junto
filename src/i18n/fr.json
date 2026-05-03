@@ -826,7 +826,6 @@
     },
     "awardNextTier_one": "Encore {{count}} pour passer {{tier}}",
     "awardNextTier_other": "Encore {{count}} pour passer {{tier}}",
-    "awardTopRank": "Rang max atteint",
     "awardLabel": {
       "joined": {
         "bronze": "Membre",
