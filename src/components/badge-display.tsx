@@ -926,16 +926,14 @@ function formatFrequencyLabel(
 }
 
 
-// Three-dot rank indicator stacked vertically. Bottom dot = bronze, middle
-// = silver, top = gold. Fills bottom-up so the visual reads like a meter
-// rising toward the top tier. Unfilled dots stay outlined so the ceiling
-// is always visible — you see the journey, not just the current state.
+// Three-dot rank indicator. 1 filled = bronze, 2 = silver, 3 = gold. The
+// unfilled dots stay outlined so the "rank ceiling" is always visible
+// (you see the journey, not just the current state).
 function RankDots({ tier, color, size = 5 }: { tier: 'bronze' | 'silver' | 'gold'; color: string; size?: number }) {
   const filled = tier === 'gold' ? 3 : tier === 'silver' ? 2 : 1;
-  // Render top-to-bottom: index 2 = gold (top), 1 = silver, 0 = bronze (bottom).
   return (
-    <View style={{ flexDirection: 'column', gap: 2.5, alignItems: 'center' }}>
-      {[2, 1, 0].map((i) => (
+    <View style={{ flexDirection: 'row', gap: 2.5, alignItems: 'center' }}>
+      {[0, 1, 2].map((i) => (
         <View
           key={i}
           style={{
