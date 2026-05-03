@@ -775,6 +775,8 @@
     },
     "vouchedFooter_one": "Vouched {{count}} time by the community.",
     "vouchedFooter_other": "Vouched {{count}} times by the community.",
+    "vouchedHeadline_one": "peer vouched",
+    "vouchedHeadline_other": "peers vouched",
     "sportFooter_one": "{{count}} activity completed.",
     "sportFooter_other": "{{count}} activities completed.",
     "sportDot": {

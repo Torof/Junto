@@ -777,6 +777,8 @@
     },
     "vouchedFooter_one": "Validé {{count}} fois par la commu.",
     "vouchedFooter_other": "Validé {{count}} fois par la commu.",
+    "vouchedHeadline_one": "personne l'a vouché",
+    "vouchedHeadline_other": "personnes l'ont vouché",
     "sportFooter_one": "{{count}} activité complétée.",
     "sportFooter_other": "{{count}} activités complétées.",
     "sportDot": {

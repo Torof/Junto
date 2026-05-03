@@ -650,17 +650,25 @@ function VouchedDetail({
   const tierColor = TIER_COLOR[vouchedTier(item.count)];
   const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
   const lastRelative = item.lastAt ? formatRelativeFromNow(item.lastAt, t) : null;
+  // Trust framing: lead with the testimony count. The number itself is the
+  // signal — "5 peers said this" is what tells you whether to trust the
+  // trait. The trait name and description follow.
   return (
     <>
-      <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
-        {Icon && <Icon size={28} color={tierColor} strokeWidth={2.2} />}
+      <View style={styles.trustHeroRow}>
+        {Icon && (
+          <View style={[styles.trustHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
+            <Icon size={22} color={tierColor} strokeWidth={2.2} />
+          </View>
+        )}
+        <View style={styles.trustMetricBlock}>
+          <Text style={[styles.trustMetricNumber, { color: tierColor }]}>{item.count}</Text>
+          <Text style={styles.trustMetricLabel}>
+            {t('badges.vouchedHeadline', { count: item.count, defaultValue: 'peers vouched' })}
+          </Text>
+        </View>
       </View>
       <Text style={styles.modalTitle}>{item.label}</Text>
-      <View style={[styles.modalChip, { backgroundColor: tierColor + '1F' }]}>
-        <Text style={[styles.modalChipText, { color: tierColor }]}>
-          {t('badges.vouchedFooter', { count: item.count, defaultValue: `${item.count}` })}
-        </Text>
-      </View>
       {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
       {lastRelative && (
         <Text style={styles.modalFooter}>
@@ -685,15 +693,16 @@ function WarningDetail({
   const color = isRed ? COLOR_RED : COLOR_AMBER;
   const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
   const suffix = t(isRed ? 'badges.warning.avoid' : 'badges.warning.signaled');
+  // Trust framing: severity is the headline. A banner that combines icon +
+  // verdict in one strong visual signal. The trait name reads as context
+  // beneath, not as the title competing with the warning.
   return (
     <>
-      <View style={[styles.modalHeroIcon, { backgroundColor: color + '22', borderColor: color }]}>
-        <Icon size={28} color={color} strokeWidth={2.4} />
+      <View style={[styles.warningBanner, { backgroundColor: color }]}>
+        <Icon size={20} color="#FFFFFF" strokeWidth={2.6} />
+        <Text style={styles.warningBannerText}>{suffix}</Text>
       </View>
       <Text style={styles.modalTitle}>{item.label}</Text>
-      <View style={[styles.modalChip, { backgroundColor: color + '1F' }]}>
-        <Text style={[styles.modalChipText, { color }]}>{suffix}</Text>
-      </View>
       {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
       <Text style={styles.modalFooter}>{t('badges.peerNegativeHint')}</Text>
     </>
@@ -729,25 +738,32 @@ function AwardDetail({
     ? t(`badges.awardTier.${nextTierKey}`, { defaultValue: nextTierKey })
     : null;
 
+  // Trust framing: the algorithmic award is most useful as a behavior
+  // summary, not as a rank-chase. Lead with the concrete description
+  // (e.g. "47 activités rejointes"), demote the tier chip to a small
+  // muted label that lives alongside the next-tier hint in the footer.
   return (
     <>
       <View style={[styles.modalHeroIcon, { backgroundColor: tierColor + '22', borderColor: tierColor }]}>
         <Icon size={28} color={tierColor} strokeWidth={2.2} />
       </View>
       <Text style={styles.modalTitle}>{awardLabel}</Text>
-      <View style={[styles.modalChip, { backgroundColor: tierColor + '1F' }]}>
-        <Text style={[styles.modalChipText, { color: tierColor }]}>{tierLabel}</Text>
+      <Text style={[styles.awardMetric, { color: tierColor }]}>{description}</Text>
+      <View style={styles.awardTierFooterRow}>
+        <Text style={[styles.awardTierFooterText, { color: tierColor }]}>{tierLabel}</Text>
+        {remaining != null && remaining > 0 && nextLabel && (
+          <>
+            <Text style={styles.awardTierFooterSeparator}>·</Text>
+            <Text style={styles.awardTierFooterMuted}>
+              {t('badges.awardNextTier', {
+                count: remaining,
+                tier: nextLabel,
+                defaultValue: `${remaining} more to reach ${nextLabel}`,
+              })}
+            </Text>
+          </>
+        )}
       </View>
-      {description !== '' && <Text style={styles.modalBody}>{description}</Text>}
-      {remaining != null && remaining > 0 && nextLabel && (
-        <Text style={styles.modalFooter}>
-          {t('badges.awardNextTier', {
-            count: remaining,
-            tier: nextLabel,
-            defaultValue: `${remaining} more to reach ${nextLabel}`,
-          })}
-        </Text>
-      )}
     </>
   );
 }
@@ -774,8 +790,11 @@ function SportDetail({
 
   return (
     <>
+      <View style={styles.sportHero}>
+        <Text style={styles.sportHeroEmoji}>{getSportIcon(item.sportKey)}</Text>
+      </View>
       <Text style={styles.modalTitle}>
-        {getSportIcon(item.sportKey)}  {item.label}
+        {item.label}
       </Text>
 
       {/* Facts block — count + recency in one bordered unit. The bordered
@@ -1053,6 +1072,109 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: 0.6,
       textTransform: 'uppercase',
+    },
+    // Vouched popup — leads with the testimony count. The big number is
+    // the trust signal; the trait icon sits to its left so the eye reads
+    // "icon + count + label" as one unit before the title.
+    trustHeroRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 14,
+      marginBottom: 8,
+    },
+    trustHeroIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+    },
+    trustMetricBlock: {
+      alignItems: 'flex-start',
+    },
+    trustMetricNumber: {
+      fontSize: 32,
+      fontWeight: '800',
+      letterSpacing: -1,
+      lineHeight: 36,
+    },
+    trustMetricLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.4,
+    },
+    // Warning popup — severity banner replaces the hero+chip combo. One
+    // strong colored bar reads as "this is the verdict" before anything
+    // else.
+    warningBanner: {
+      alignSelf: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    warningBannerText: {
+      color: '#FFFFFF',
+      fontSize: 12.5,
+      fontWeight: '800',
+      letterSpacing: 1.4,
+      textTransform: 'uppercase',
+    },
+    // Award popup — concrete behavior metric in tier color, replaces the
+    // tier chip. The tier name itself moves to a quiet footer next to
+    // the next-tier hint.
+    awardMetric: {
+      fontSize: 16,
+      fontWeight: '700',
+      textAlign: 'center',
+      marginTop: 4,
+      marginBottom: 4,
+    },
+    awardTierFooterRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: 8,
+    },
+    awardTierFooterText: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    awardTierFooterSeparator: {
+      color: colors.textMuted,
+      fontSize: 11,
+    },
+    awardTierFooterMuted: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontStyle: 'italic',
+    },
+    // Sport popup — emoji hero in a tinted circle. The sport popup carries
+    // the strongest trust signal (concrete count + level + recency) so it
+    // earns hero treatment.
+    sportHero: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignSelf: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceAlt,
+      marginBottom: 6,
+    },
+    sportHeroEmoji: {
+      fontSize: 30,
+      lineHeight: 36,
     },
     modalTitle: {
       color: colors.textPrimary,
