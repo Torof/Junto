@@ -385,7 +385,8 @@
       "inventory": "Inventaire",
       "recap": "Qui apporte quoi"
     },
-    "recapEmpty": "Personne n'a encore déclaré de matériel"
+    "recapEmpty": "Personne n'a encore déclaré de matériel",
+    "addGear": "Ajouter du matériel"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

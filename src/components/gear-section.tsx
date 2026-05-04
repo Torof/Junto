@@ -2,7 +2,7 @@ import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Minus } from 'lucide-react-native';
+import { Plus, Minus, ChevronDown, Check } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -42,10 +42,12 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const [isSavingItem, setIsSavingItem] = useState(false);
 
   // Custom-item modal state — opened by Mine's "+ Ajouter du matériel"
-  // button. User types a free-form name + quantity.
+  // button or the Group's gear-tab CTA. User picks from a catalog
+  // dropdown or types a free-form name + quantity.
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customQty, setCustomQty] = useState(1);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const { data: activityGear } = useQuery({
     queryKey: ['activity-gear', activityId],
@@ -81,6 +83,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     openCustomSheet: () => {
       setCustomName('');
       setCustomQty(1);
+      setCatalogOpen(false);
       setShowCustomSheet(true);
     },
   }), [activityGear, currentUserId]);
@@ -238,29 +241,48 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                 <Text style={styles.sheetTitle}>{t('gear.customSheetTitle')}</Text>
 
                 {catalog.length > 0 && (
-                  <>
-                    <Text style={styles.sheetSectionLabel}>{t('gear.pickFromList')}</Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.chipRow}
+                  <View style={styles.dropdownWrapper}>
+                    <Pressable
+                      style={styles.dropdownHeader}
+                      onPress={() => setCatalogOpen((v) => !v)}
+                      hitSlop={4}
                     >
-                      {catalog.map((item) => {
-                        const selected = customName.trim() === item.name_key;
-                        return (
-                          <Pressable
-                            key={item.id}
-                            onPress={() => setCustomName(item.name_key)}
-                            style={[styles.chip, selected && styles.chipSelected]}
-                          >
-                            <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                              {item.name_key}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </ScrollView>
-                  </>
+                      <Text style={styles.dropdownHeaderText}>
+                        {t('gear.pickFromList')}
+                      </Text>
+                      <ChevronDown
+                        size={16}
+                        color={colors.textSecondary}
+                        strokeWidth={2.2}
+                        style={{ transform: [{ rotate: catalogOpen ? '180deg' : '0deg' }] }}
+                      />
+                    </Pressable>
+                    {catalogOpen && (
+                      <View style={styles.dropdownList}>
+                        {catalog.map((item) => {
+                          const selected = customName.trim() === item.name_key;
+                          return (
+                            <Pressable
+                              key={item.id}
+                              onPress={() => {
+                                setCustomName(item.name_key);
+                                setCatalogOpen(false);
+                              }}
+                              style={({ pressed }) => [
+                                styles.dropdownRow,
+                                pressed && { backgroundColor: colors.surface },
+                              ]}
+                            >
+                              <Text style={styles.dropdownRowText}>{item.name_key}</Text>
+                              {selected && (
+                                <Check size={16} color={colors.cta} strokeWidth={2.5} />
+                              )}
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
                 )}
 
                 <View style={styles.fieldBox}>
@@ -371,24 +393,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fieldInput: { color: colors.textPrimary, fontSize: fontSizes.md },
 
-  chipRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    paddingVertical: spacing.xs,
+  dropdownWrapper: {
     marginBottom: spacing.md,
-  },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
+    borderRadius: radius.md,
+    overflow: 'hidden',
   },
-  chipSelected: {
-    backgroundColor: colors.cta,
-    borderColor: colors.cta,
+  dropdownHeader: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
   },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
-  chipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
+  dropdownHeaderText: {
+    flex: 1, color: colors.textPrimary,
+    fontSize: fontSizes.sm, fontWeight: '600',
+  },
+  dropdownList: {
+    backgroundColor: colors.background,
+  },
+  dropdownRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderTopWidth: 1, borderTopColor: colors.line,
+  },
+  dropdownRowText: {
+    flex: 1, color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+  },
 });

@@ -385,7 +385,8 @@
       "inventory": "Inventory",
       "recap": "Who brings what"
     },
-    "recapEmpty": "Nobody's declared gear yet"
+    "recapEmpty": "Nobody's declared gear yet",
+    "addGear": "Add gear"
   },
   "pushDenied": {
     "title": "Notifications disabled",

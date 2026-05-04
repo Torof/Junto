@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, Plus, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -34,6 +34,7 @@ interface Props {
   activeSubTab: 'transport' | 'gear';
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
+  onAddGear: () => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -55,6 +56,7 @@ export function GroupCard({
   activeSubTab,
   onActiveSubTabChange,
   onReserveSeat,
+  onAddGear,
 }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -604,6 +606,15 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
+            {isParticipant && (
+              <Pressable style={styles.addGearCta} onPress={onAddGear}>
+                <Plus size={16} color={colors.cta} strokeWidth={2.5} />
+                <Text style={styles.addGearCtaText}>
+                  {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
+                </Text>
+              </Pressable>
+            )}
+
             {gearDeclared.length === 0 && (
               <Text style={styles.emptyHint}>
                 {t('group.recapEmpty', { defaultValue: 'Personne n\'a encore déclaré de matériel' })}
@@ -1042,6 +1053,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSizes.xs + 1,
     fontStyle: 'italic',
+  },
+  addGearCta: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.cta,
+    backgroundColor: colors.cta + '15',
+    marginBottom: spacing.md,
+  },
+  addGearCtaText: {
+    color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700',
   },
 
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced

@@ -742,6 +742,7 @@ export function ActivityDetail({
               const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
+            onAddGear={() => gearSectionRef.current?.openCustomSheet()}
           />
 
           <TransportSection
