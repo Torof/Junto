@@ -1,5 +1,5 @@
 import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, LayoutAnimation, UIManager } from 'react-native';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, ChevronDown, Plus, Clock } from 'lucide-react-native';
@@ -22,6 +22,13 @@ interface Props {
   currentUserId: string | null;
 }
 
+// Imperative API exposed via ref so the parent screen (activity-detail)
+// can open the transport editor sheet directly when the user taps their
+// transport line on the MyRoleCard.
+export interface TransportSectionHandle {
+  openEditor: () => void;
+}
+
 const TRANSPORT_TYPES = ['car', 'carpool', 'public_transport', 'bike', 'on_foot', 'other'] as const;
 const CAR_TYPES = ['car', 'carpool'] as const;
 
@@ -35,7 +42,7 @@ const TRANSPORT_ICONS: Record<string, typeof Car> = {
 };
 
 
-export function TransportSection({ activityId, currentUserId }: Props) {
+export const TransportSection = forwardRef<TransportSectionHandle, Props>(function TransportSection({ activityId, currentUserId }, ref) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const colors = useColors();
@@ -167,6 +174,10 @@ export function TransportSection({ activityId, currentUserId }: Props) {
     }
     setShowEditor(true);
   };
+
+  // Exposed to parent so MyRoleCard's "edit transport" tap opens the
+  // editor without a sub-tab navigation step.
+  useImperativeHandle(ref, () => ({ openEditor }), [openEditor]);
 
   const openRequestSheet = (driverId: string) => {
     setRequestingFromDriver(driverId);
@@ -508,7 +519,7 @@ export function TransportSection({ activityId, currentUserId }: Props) {
       </Modal>
     </View>
   );
-}
+});
 
 interface FilterPillProps {
   label: string;

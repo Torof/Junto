@@ -313,7 +313,30 @@
       "gearMissing_other": "{{count}} missing",
       "gearComplete": "complete",
       "gearEmpty": "no gear"
+    },
+    "showDetails": "Show details",
+    "hideDetails": "Hide details"
+  },
+  "myRole": {
+    "caption": "Your role",
+    "driving": "You're driving",
+    "drivingFrom": "You're driving from {{from}}",
+    "drivingWithSeats_one": "You're driving · {{count}} seat free",
+    "drivingWithSeats_other": "You're driving · {{count}} seats free",
+    "drivingFromWithSeats_one": "You're driving from {{from}} · {{count}} seat free",
+    "drivingFromWithSeats_other": "You're driving from {{from}} · {{count}} seats free",
+    "passenger": "You're riding with {{driver}}",
+    "bringingLabel": "You bring",
+    "mode": {
+      "public_transport": "You're taking public transport",
+      "bike": "You're biking there",
+      "on_foot": "You're walking there",
+      "other": "You're going your own way"
     }
+  },
+  "groupNeeds": {
+    "caption": "Still to figure out",
+    "bringIt": "I'll bring it"
   },
   "logisticsVerdict": {
     "ready": "You're set",

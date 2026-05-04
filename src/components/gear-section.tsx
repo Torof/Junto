@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,13 @@ interface Props {
   currentUserId: string | null;
   isParticipant: boolean;
   participantCount: number;
+}
+
+// Imperative API exposed via ref so the parent screen (activity-detail)
+// can open the per-item sheet directly when the user taps a need on
+// the GroupNeedsStrip or a contribution on the MyRoleCard.
+export interface GearSectionHandle {
+  openItemByName: (name: string) => void;
 }
 
 type CategoryKey = GearCategoryKey | 'custom';
@@ -49,7 +56,7 @@ interface ItemView {
   bringers: Bringer[];
 }
 
-export function GearSection({ activityId, sportKey, currentUserId, isParticipant, participantCount }: Props) {
+export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant, participantCount }, ref) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -171,6 +178,17 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
     setMyQtyDraft(mine > 0 ? mine : 1);
     setSelectedItemName(item.name);
   };
+
+  // Exposed to parent so MyRoleCard / GroupNeedsStrip can open the per-item
+  // sheet directly without forcing a navigation. Looks up the item in the
+  // computed map (catalog items are present even when nobody has declared,
+  // so a fresh "I bring rope" tap from the needs strip works correctly).
+  useImperativeHandle(ref, () => ({
+    openItemByName: (name: string) => {
+      const found = items.get(name);
+      if (found) openItemSheet(found);
+    },
+  }), [items, activityGear, currentUserId]);
 
   const persistMyGear = async (transform: (existing: { name: string; quantity: number }[]) => { name: string; quantity: number }[]) => {
     const mine = (activityGear ?? [])
@@ -466,7 +484,7 @@ export function GearSection({ activityId, sportKey, currentUserId, isParticipant
       </Modal>
     </View>
   );
-}
+});
 
 interface ItemRowProps {
   item: ItemView;

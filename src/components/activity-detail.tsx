@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, ChevronDown } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -37,9 +37,11 @@ import { wallService } from '@/services/wall-service';
 import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
-import { TransportSection } from './transport-section';
-import { GearSection } from './gear-section';
+import { TransportSection, type TransportSectionHandle } from './transport-section';
+import { GearSection, type GearSectionHandle } from './gear-section';
 import { LogisticsVerdict } from './logistics-verdict';
+import { MyRoleCard } from './my-role-card';
+import { GroupNeedsStrip } from './group-needs-strip';
 import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
@@ -421,6 +423,12 @@ export function ActivityDetail({
 
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const [orgSubTab, setOrgSubTab] = useState<OrganisationSubTab>('transport');
+  // Org-tab details (existing TransportSection + GearSection) are now
+  // collapsed by default — the verdict / role card / needs strip carry
+  // primary info above. Users tap "Voir les détails" for the dense view.
+  const [showOrgDetails, setShowOrgDetails] = useState(false);
+  const transportSectionRef = useRef<TransportSectionHandle>(null);
+  const gearSectionRef = useRef<GearSectionHandle>(null);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
@@ -721,10 +729,10 @@ export function ActivityDetail({
             </View>
           )}
 
-          {/* User-perspective verdict: synthesizes transport + gear into a
-              one-line "you're set / one thing left / something's wrong"
-              friend-voice sentence above the sub-tabs. Step 1 of the
-              organization remodel — read-only, no flow change yet. */}
+          {/* Synthesis layers (steps 1–3 of the organization remodel) —
+              user-perspective, calm, no forms. The dense per-section
+              views below are kept for full inspection but collapsed
+              by default. */}
           <LogisticsVerdict
             activityId={activity.id}
             sportKey={activity.sport_key}
@@ -732,38 +740,82 @@ export function ActivityDetail({
             isParticipant={isCreator || isAccepted}
           />
 
-          {/* Sub-tabs: Transport | Matériel */}
-          <OrganisationSubTabs
-            active={orgSubTab}
-            onChange={setOrgSubTab}
-            carCount={(orgTransportParticipants ?? []).filter(
-              (p) => p.transport_type != null
-                && ['car', 'carpool'].includes(p.transport_type)
-                && (p.transport_seats ?? 0) > 0,
-            ).length}
-            gearMissingCount={
-              orgGearCatalog == null || orgGearCatalog.length === 0
-                ? null
-                : (() => {
-                    const covered = new Set((orgGearDeclared ?? []).map((g) => g.gear_name));
-                    return orgGearCatalog.filter((c) => !covered.has(c.name_key)).length;
-                  })()
-            }
+          <MyRoleCard
+            activityId={activity.id}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+            onEditTransport={() => transportSectionRef.current?.openEditor()}
+            onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
           />
 
-          {orgSubTab === 'transport' && (
-            <TransportSection activityId={activity.id} currentUserId={currentUserId ?? null} />
-          )}
+          <GroupNeedsStrip
+            activityId={activity.id}
+            sportKey={activity.sport_key}
+            isParticipant={isCreator || isAccepted}
+            onClaimGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
+          />
 
-          {orgSubTab === 'gear' && (
+          {/* Details — collapsed by default. Sections stay mounted (just
+              hidden) so the imperative refs above are always live, which
+              lets the role card and needs strip open editor sheets without
+              forcing a sub-tab navigation. */}
+          <Pressable
+            style={styles.detailsToggle}
+            onPress={() => setShowOrgDetails((v) => !v)}
+            hitSlop={6}
+          >
+            <Text style={styles.detailsToggleText}>
+              {showOrgDetails ? t('organisation.hideDetails') : t('organisation.showDetails')}
+            </Text>
+            <ChevronDown
+              size={14}
+              color={colors.textSecondary}
+              strokeWidth={2.2}
+              style={{ transform: [{ rotate: showOrgDetails ? '180deg' : '0deg' }] }}
+            />
+          </Pressable>
+
+          <View style={{ display: showOrgDetails ? 'flex' : 'none' }}>
+            <OrganisationSubTabs
+              active={orgSubTab}
+              onChange={setOrgSubTab}
+              carCount={(orgTransportParticipants ?? []).filter(
+                (p) => p.transport_type != null
+                  && ['car', 'carpool'].includes(p.transport_type)
+                  && (p.transport_seats ?? 0) > 0,
+              ).length}
+              gearMissingCount={
+                orgGearCatalog == null || orgGearCatalog.length === 0
+                  ? null
+                  : (() => {
+                      const covered = new Set((orgGearDeclared ?? []).map((g) => g.gear_name));
+                      return orgGearCatalog.filter((c) => !covered.has(c.name_key)).length;
+                    })()
+              }
+            />
+          </View>
+
+          {/* Both sections always mounted — display:none-toggled rather
+              than conditionally rendered — so the parent's imperative
+              refs stay live regardless of the active sub-tab or whether
+              details are collapsed. */}
+          <View style={{ display: showOrgDetails && orgSubTab === 'transport' ? 'flex' : 'none' }}>
+            <TransportSection
+              ref={transportSectionRef}
+              activityId={activity.id}
+              currentUserId={currentUserId ?? null}
+            />
+          </View>
+          <View style={{ display: showOrgDetails && orgSubTab === 'gear' ? 'flex' : 'none' }}>
             <GearSection
+              ref={gearSectionRef}
               activityId={activity.id}
               sportKey={activity.sport_key}
               currentUserId={currentUserId ?? null}
               isParticipant={isCreator || isAccepted}
               participantCount={activity.participant_count}
             />
-          )}
+          </View>
         </ScrollView>
       )}
 
@@ -895,6 +947,20 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  detailsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  detailsToggleText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
   tabBar: {
     flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm,
     paddingBottom: spacing.xs, gap: spacing.sm, backgroundColor: colors.background,

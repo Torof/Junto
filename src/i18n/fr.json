@@ -313,7 +313,30 @@
       "gearMissing_other": "{{count}} manquants",
       "gearComplete": "complet",
       "gearEmpty": "aucun matériel"
+    },
+    "showDetails": "Voir les détails",
+    "hideDetails": "Masquer les détails"
+  },
+  "myRole": {
+    "caption": "Ton rôle",
+    "driving": "Tu conduis",
+    "drivingFrom": "Tu conduis depuis {{from}}",
+    "drivingWithSeats_one": "Tu conduis · {{count}} place libre",
+    "drivingWithSeats_other": "Tu conduis · {{count}} places libres",
+    "drivingFromWithSeats_one": "Tu conduis depuis {{from}} · {{count}} place libre",
+    "drivingFromWithSeats_other": "Tu conduis depuis {{from}} · {{count}} places libres",
+    "passenger": "Tu es passager avec {{driver}}",
+    "bringingLabel": "Tu apportes",
+    "mode": {
+      "public_transport": "Tu y vas en transports en commun",
+      "bike": "Tu y vas à vélo",
+      "on_foot": "Tu y vas à pied",
+      "other": "Tu y vas autrement"
     }
+  },
+  "groupNeeds": {
+    "caption": "À régler ensemble",
+    "bringIt": "J'apporte"
   },
   "logisticsVerdict": {
     "ready": "Tu es prêt",
