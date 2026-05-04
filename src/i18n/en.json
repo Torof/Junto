@@ -270,6 +270,7 @@
     "customSheetTitle": "Add custom gear",
     "customSheetNameLabel": "Name",
     "customSheetQtyLabel": "Quantity",
+    "pickFromList": "Pick from list",
     "category": {
       "safety": "Safety",
       "technical": "Technical",

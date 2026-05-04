@@ -11,6 +11,7 @@ import { gearService } from '@/services/gear-service';
 
 interface Props {
   activityId: string;
+  sportKey: string;
   currentUserId: string | null;
   isParticipant: boolean;
 }
@@ -27,7 +28,7 @@ export interface GearSectionHandle {
   openCustomSheet: () => void;
 }
 
-export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, currentUserId, isParticipant }, ref) {
+export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant }, ref) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -49,6 +50,14 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const { data: activityGear } = useQuery({
     queryKey: ['activity-gear', activityId],
     queryFn: () => gearService.getForActivity(activityId),
+  });
+
+  // Catalog only fetched once the custom sheet opens — saves a request
+  // for the common case where the user just edits an existing item.
+  const { data: catalog = [] } = useQuery({
+    queryKey: ['gear-catalog', sportKey],
+    queryFn: () => gearService.getCatalog(sportKey),
+    enabled: showCustomSheet,
   });
 
   const myCurrentQtyFor = (itemName: string): number => {
@@ -228,6 +237,32 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={styles.sheetTitle}>{t('gear.customSheetTitle')}</Text>
 
+                {catalog.length > 0 && (
+                  <>
+                    <Text style={styles.sheetSectionLabel}>{t('gear.pickFromList')}</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.chipRow}
+                    >
+                      {catalog.map((item) => {
+                        const selected = customName.trim() === item.name_key;
+                        return (
+                          <Pressable
+                            key={item.id}
+                            onPress={() => setCustomName(item.name_key)}
+                            style={[styles.chip, selected && styles.chipSelected]}
+                          >
+                            <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                              {item.name_key}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </>
+                )}
+
                 <View style={styles.fieldBox}>
                   <Text style={styles.fieldLabel}>{t('gear.customSheetNameLabel')}</Text>
                   <TextInput
@@ -335,4 +370,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs,
   },
   fieldInput: { color: colors.textPrimary, fontSize: fontSizes.md },
+
+  chipRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  chipSelected: {
+    backgroundColor: colors.cta,
+    borderColor: colors.cta,
+  },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
+  chipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
 });

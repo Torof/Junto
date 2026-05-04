@@ -752,6 +752,7 @@ export function ActivityDetail({
           <GearSection
             ref={gearSectionRef}
             activityId={activity.id}
+            sportKey={activity.sport_key}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
           />

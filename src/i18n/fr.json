@@ -270,6 +270,7 @@
     "customSheetTitle": "Ajouter un matériel",
     "customSheetNameLabel": "Nom",
     "customSheetQtyLabel": "Quantité",
+    "pickFromList": "Choisir dans la liste",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",
