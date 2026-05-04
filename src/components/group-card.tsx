@@ -446,33 +446,56 @@ export function GroupCard({
                         </Text>
                       )}
                     </View>
-                    {/* Passengers — one small row per accepted seat,
-                        showing name + pickup place + pickup time. Each
-                        row tappable to land on that passenger's profile. */}
+                    {/* Passengers — clearly nested under the driver via
+                        a left-border "thread". Each entry is a 2-line
+                        block: avatar + name on top, pickup place + time
+                        on a sub-line beneath. The size + weight + color
+                        contrast vs the driver's row keeps the hierarchy
+                        unambiguous. Tap → that passenger's profile. */}
                     {driverPassengers.length > 0 && (
                       <View style={styles.passengersList}>
-                        {driverPassengers.map((p) => {
-                          const parts: string[] = [p.display_name ?? '?'];
-                          if (p.pickup_from) parts.push(p.pickup_from);
-                          if (p.requested_pickup_at) parts.push(dayjs(p.requested_pickup_at).format('H[h]mm'));
-                          return (
-                            <Pressable
-                              key={p.id}
-                              onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
-                              style={styles.passengerListRow}
-                              hitSlop={4}
-                            >
+                        {driverPassengers.map((p) => (
+                          <Pressable
+                            key={p.id}
+                            onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                            style={styles.passengerBlock}
+                            hitSlop={4}
+                          >
+                            <View style={styles.passengerHeader}>
                               <UserAvatar
                                 name={p.display_name}
                                 avatarUrl={p.avatar_url}
-                                size={16}
+                                size={18}
                               />
-                              <Text style={styles.passengerListText} numberOfLines={1}>
-                                {parts.join(' · ')}
+                              <Text style={styles.passengerName} numberOfLines={1}>
+                                {p.display_name}
                               </Text>
-                            </Pressable>
-                          );
-                        })}
+                            </View>
+                            {(p.pickup_from || p.requested_pickup_at) && (
+                              <View style={styles.passengerMetaRow}>
+                                {p.pickup_from && (
+                                  <>
+                                    <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                    <Text style={styles.passengerMetaText} numberOfLines={1}>
+                                      {p.pickup_from}
+                                    </Text>
+                                  </>
+                                )}
+                                {p.pickup_from && p.requested_pickup_at && (
+                                  <Text style={styles.passengerMetaText}>·</Text>
+                                )}
+                                {p.requested_pickup_at && (
+                                  <>
+                                    <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                    <Text style={styles.passengerMetaText}>
+                                      {dayjs(p.requested_pickup_at).format('H[h]mm')}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            )}
+                          </Pressable>
+                        ))}
                       </View>
                     )}
                   </View>
@@ -842,23 +865,44 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Passengers under each driver row — one small line per accepted seat
-  // showing avatar + name + pickup place + pickup time. Tap → profile.
+  // Passengers under each driver row — clearly nested via a vertical
+  // "thread" border on the left. Each entry is a 2-line block (avatar
+  // + name on top, pickup meta below) with smaller avatars / weights
+  // / muted meta-text so the hierarchy vs the driver's full row is
+  // unambiguous: driver = primary, passengers = secondary children.
   passengersList: {
-    marginTop: 5,
-    gap: 3,
+    marginTop: 8,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.line,
+    gap: 8,
   },
-  passengerListRow: {
+  passengerBlock: {
+    gap: 2,
+  },
+  passengerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  passengerListText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '500',
+  passengerName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+    letterSpacing: -0.05,
     flex: 1,
     minWidth: 0,
+  },
+  passengerMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingLeft: 24, // align under the name (avatar 18 + gap 6)
+  },
+  passengerMetaText: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '500',
   },
   driverMeta: {
     flexDirection: 'row',
