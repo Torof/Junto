@@ -155,27 +155,73 @@ export function MyOutingCard({
     enabled: isParticipant,
   });
 
-  // Detect a still-pending seat request the user has out — drives both
-  // the transport-stamp visual ("En attente · Marie") and the cancel-
-  // first gate when they tap to change transport.
+  // Cancel-first gate: tapping the transport stamp while ANY transport
+  // is set opens a confirmation modal so the user has to explicitly
+  // "cancel" before changing. Covers four cases:
+  //   - pending      → cancel_pending_seat_request RPC
+  //   - accepted     → cancel_accepted_seat RPC (restores driver's seat)
+  //   - driver/self  → clearTransport (no side effects)
+  // Without the gate, a user could silently swap modes while a pending
+  // request lingered with a driver, or while their accepted seat was
+  // still on the books.
   const myPending = useMemo(
     () => pendingRequests.find((r) => r.requester_id === currentUserId) ?? null,
     [pendingRequests, currentUserId],
   );
-  const myPendingDriver = useMemo(
-    () => (myPending ? transports.find((p) => p.user_id === myPending.driver_id) : null),
-    [myPending, transports],
+  const myAcceptedSeatLocal = useMemo(
+    () => seatAssignments.find((r) => r.requester_id === currentUserId) ?? null,
+    [seatAssignments, currentUserId],
+  );
+  const myTransportLocal = useMemo(
+    () => transports.find((p) => p.user_id === currentUserId) ?? null,
+    [transports, currentUserId],
   );
 
-  const handleCancelPending = async () => {
-    if (!myPending) return;
+  type CancelState = 'pending' | 'accepted' | 'driver' | 'selfMover' | 'none';
+  const cancelState: CancelState = useMemo(() => {
+    if (myPending) return 'pending';
+    if (myAcceptedSeatLocal) return 'accepted';
+    if (myTransportLocal?.transport_type && (CAR_TYPES as readonly string[]).includes(myTransportLocal.transport_type)) {
+      return 'driver';
+    }
+    if (myTransportLocal?.transport_type) return 'selfMover';
+    return 'none';
+  }, [myPending, myAcceptedSeatLocal, myTransportLocal]);
+
+  // Driver name surfaced in the modal copy where applicable. Pending
+  // and accepted cases reference a specific driver; driver/self-mover
+  // don't.
+  const cancelModalDriverName = useMemo(() => {
+    if (myPending) return transports.find((p) => p.user_id === myPending.driver_id)?.display_name ?? '?';
+    if (myAcceptedSeatLocal) return transports.find((p) => p.user_id === myAcceptedSeatLocal.driver_id)?.display_name ?? '?';
+    return null;
+  }, [myPending, myAcceptedSeatLocal, transports]);
+
+  const cancelModalModeLabel = useMemo(() => {
+    if (cancelState !== 'selfMover' || !myTransportLocal?.transport_type) return null;
+    return t(`myOuting.stamp.mode.${myTransportLocal.transport_type}`, {
+      defaultValue: myTransportLocal.transport_type,
+    });
+  }, [cancelState, myTransportLocal, t]);
+
+  const handleCancelTransport = async () => {
     setCancellingPending(true);
     try {
-      await transportService.cancelPendingSeatRequest(myPending.id);
+      if (cancelState === 'pending' && myPending) {
+        await transportService.cancelPendingSeatRequest(myPending.id);
+      } else if (cancelState === 'accepted' && myAcceptedSeatLocal) {
+        await transportService.cancelAcceptedSeat(myAcceptedSeatLocal.id);
+      } else if (cancelState === 'driver' || cancelState === 'selfMover') {
+        await transportService.clearTransport(activityId);
+      }
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       setShowCancelPending(false);
-      Burnt.toast({ title: t('myOuting.pendingCancel.toastDone', { defaultValue: 'Demande annulée' }), preset: 'done' });
+      Burnt.toast({
+        title: t('myOuting.cancelTransport.toastDone', { defaultValue: 'Annulé' }),
+        preset: 'done',
+      });
     } catch {
       Burnt.toast({ title: t('auth.unknownError', { defaultValue: 'Erreur' }) });
     } finally {
@@ -184,7 +230,7 @@ export function MyOutingCard({
   };
 
   const handleTransportStampPress = () => {
-    if (myPending) {
+    if (cancelState !== 'none') {
       setShowCancelPending(true);
     } else {
       onEditTransport();
@@ -499,11 +545,12 @@ export function MyOutingCard({
         </Pressable>
       </Modal>
 
-      {/* Pending-cancel modal — tapping the transport stamp while a
-          seat request is pending opens this first. The user must
-          cancel their pending request before they can change mode.
-          Two buttons: cancel-the-request (primary, danger-tinted) +
-          keep-waiting (secondary, dismiss). */}
+      {/* Cancel-transport modal — tapping the transport stamp while
+          ANY transport is set (pending request, accepted seat, driver,
+          or self-mover) opens this first. The user must explicitly
+          cancel their current state before they can pick a different
+          mode. Copy adapts per state; the action dispatches to the
+          right service call. */}
       <Modal
         visible={showCancelPending}
         animationType="fade"
@@ -513,12 +560,16 @@ export function MyOutingCard({
         <Pressable style={styles.backdrop} onPress={() => setShowCancelPending(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>
-              {t('myOuting.pendingCancel.title', { defaultValue: 'Demande en attente' })}
+              {t(`myOuting.cancelTransport.title.${cancelState}`, {
+                mode: cancelModalModeLabel ?? '',
+                defaultValue: 'Annuler ton transport',
+              })}
             </Text>
             <Text style={styles.pendingCancelBody}>
-              {t('myOuting.pendingCancel.body', {
-                driver: myPendingDriver?.display_name ?? '?',
-                defaultValue: `Tu attends la réponse de ${myPendingDriver?.display_name ?? '?'} pour la place. Annule ta demande pour pouvoir changer de transport.`,
+              {t(`myOuting.cancelTransport.body.${cancelState}`, {
+                driver: cancelModalDriverName ?? '?',
+                mode: cancelModalModeLabel ?? '',
+                defaultValue: 'Annule ton transport actuel pour pouvoir en choisir un autre.',
               })}
             </Text>
             <View style={styles.pendingCancelActions}>
@@ -528,17 +579,17 @@ export function MyOutingCard({
                 hitSlop={4}
               >
                 <Text style={styles.pendingCancelKeepText}>
-                  {t('myOuting.pendingCancel.keep', { defaultValue: 'Garder' })}
+                  {t('myOuting.cancelTransport.keep', { defaultValue: 'Garder' })}
                 </Text>
               </Pressable>
               <Pressable
                 style={[styles.pendingCancelConfirm, cancellingPending && { opacity: 0.5 }]}
-                onPress={handleCancelPending}
+                onPress={handleCancelTransport}
                 disabled={cancellingPending}
                 hitSlop={4}
               >
                 <Text style={styles.pendingCancelConfirmText}>
-                  {t('myOuting.pendingCancel.confirm', { defaultValue: 'Annuler ma demande' })}
+                  {t(`myOuting.cancelTransport.confirm.${cancelState}`, { defaultValue: 'Annuler' })}
                 </Text>
               </Pressable>
             </View>

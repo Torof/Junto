@@ -105,6 +105,23 @@ export const transportService = {
     if (error) throw error;
   },
 
+  // Clears the user's declared transport (type / seats / from / departs)
+  // back to null, returning them to the empty / "À régler" state. Used
+  // by Mine's cancel-transport modal for driver and self-mover cases
+  // where there's no seat-request to cancel — just the user's own
+  // declaration to wipe. set_participation_transport accepts null
+  // p_transport_type per its 00120 spec.
+  clearTransport: async (activityId: string): Promise<void> => {
+    const { error } = await supabase.rpc('set_participation_transport' as 'join_activity', {
+      p_activity_id: activityId,
+      p_transport_type: null,
+      p_transport_seats: null,
+      p_transport_from_name: null,
+      p_transport_departs_at: null,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
   getPendingSeatRequests: async (activityId: string): Promise<{ id: string; requester_id: string; driver_id: string; status: string }[]> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return [];

@@ -326,12 +326,27 @@
     "gearListTitle": "Mon matériel",
     "gearListEmpty": "Tu n'apportes rien pour le moment.",
     "addMaterial": "Ajouter du matériel",
-    "pendingCancel": {
-      "title": "Demande en attente",
-      "body": "Tu attends la réponse de {{driver}} pour la place. Annule ta demande pour pouvoir changer de transport.",
+    "cancelTransport": {
       "keep": "Garder",
-      "confirm": "Annuler ma demande",
-      "toastDone": "Demande annulée"
+      "toastDone": "Annulé",
+      "title": {
+        "pending": "Demande en attente",
+        "accepted": "Tu es à bord",
+        "driver": "Tu conduis",
+        "selfMover": "Annuler ton transport"
+      },
+      "body": {
+        "pending": "Tu attends la réponse de {{driver}} pour la place. Annule ta demande pour pouvoir changer de transport.",
+        "accepted": "Tu es passager avec {{driver}}. Annule ta place pour pouvoir changer de transport.",
+        "driver": "Tu es conducteur. Annule ton rôle pour pouvoir changer de transport. Préviens tes passagers s'il y en a.",
+        "selfMover": "{{mode}}. Annule pour pouvoir choisir un autre transport."
+      },
+      "confirm": {
+        "pending": "Annuler ma demande",
+        "accepted": "Annuler ma place",
+        "driver": "Annuler",
+        "selfMover": "Annuler"
+      }
     },
     "stamp": {
       "transport": "Transport",

@@ -326,12 +326,27 @@
     "gearListTitle": "My gear",
     "gearListEmpty": "You're not bringing anything yet.",
     "addMaterial": "Add gear",
-    "pendingCancel": {
-      "title": "Pending request",
-      "body": "You're waiting on {{driver}} to confirm your seat. Cancel your request to change transport.",
-      "keep": "Keep waiting",
-      "confirm": "Cancel my request",
-      "toastDone": "Request cancelled"
+    "cancelTransport": {
+      "keep": "Keep",
+      "toastDone": "Cancelled",
+      "title": {
+        "pending": "Pending request",
+        "accepted": "You're aboard",
+        "driver": "You're driving",
+        "selfMover": "Cancel your transport"
+      },
+      "body": {
+        "pending": "You're waiting on {{driver}} to confirm your seat. Cancel your request to change transport.",
+        "accepted": "You're riding with {{driver}}. Cancel your seat to change transport.",
+        "driver": "You're driving. Cancel your role to change transport. Let your passengers know if you have any.",
+        "selfMover": "{{mode}}. Cancel to pick a different transport."
+      },
+      "confirm": {
+        "pending": "Cancel my request",
+        "accepted": "Cancel my seat",
+        "driver": "Cancel",
+        "selfMover": "Cancel"
+      }
     },
     "stamp": {
       "transport": "Transport",
