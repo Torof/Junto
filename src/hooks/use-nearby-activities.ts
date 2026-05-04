@@ -1,5 +1,7 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { activityService } from '@/services/activity-service';
+import { supabase } from '@/services/supabase';
 
 export interface MapBounds {
   swLng: number;
@@ -9,6 +11,29 @@ export interface MapBounds {
 }
 
 export function useNearbyActivities(bounds?: MapBounds | null) {
+  const queryClient = useQueryClient();
+
+  // Realtime: invalidate every ['activities', ...] cache (TanStack matches
+  // by prefix) on any activity create/edit/delete. The map / list re-fetches
+  // for the current bounds so new activities appear without manual pan.
+  // Migration 00180 added activities to the publication. No per-user filter
+  // — pre-launch traffic is low; geographic scoping comes later if needed.
+  useEffect(() => {
+    const channel = supabase
+      .channel('activities-nearby')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activities' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['activities', 'nearby', bounds],
     queryFn: () => activityService.getNearby(bounds ?? undefined),
