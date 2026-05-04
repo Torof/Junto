@@ -95,6 +95,55 @@ export function ActivityDetail({
       && (!wallReadAt || m.created_at > wallReadAt),
     ).length;
   }, [wallMessages, wallReadAt, currentUserId]);
+
+  // Realtime invalidation for the activity's coordination tables. One
+  // channel per activity, listening to changes on participations,
+  // seat_requests, activity_gear scoped to this activity. Without this,
+  // a participant only sees other participants' changes on remount or
+  // app restart. Migration 00181 (recovery of 00178) ensures these
+  // tables are members of the supabase_realtime publication.
+  //
+  // Slice 1 of 3 — the staged retry after the launch-time crash. The
+  // bell/DM tab subscriptions (slice 2) and the nearby-activities
+  // subscription (slice 3) stay deferred until this one is verified
+  // safe on two devices. activity-wall.tsx keeps its own wall_messages
+  // subscription as before.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`activity:${activity.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'participations', filter: `activity_id=eq.${activity.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['participants-pending', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activity.id] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'seat_requests', filter: `activity_id=eq.${activity.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['seat-requests', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activity.id] });
+          queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activity_gear', filter: `activity_id=eq.${activity.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['activity-gear', activity.id] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activity.id, queryClient]);
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
