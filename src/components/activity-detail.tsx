@@ -740,15 +740,22 @@ export function ActivityDetail({
           <MyOutingCard
             activityId={activity.id}
             sportKey={activity.sport_key}
-            sportIcon={activity.sport_icon}
-            sportCategory={activity.sport_category}
-            startsAt={activity.starts_at}
-            meetingPointName={activity.start_name}
-            fallbackTitle={activity.title}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
             onEditTransport={() => transportSectionRef.current?.openEditor()}
-            onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
+            onMaterialTap={() => {
+              // If the user already brings something, open the first item's
+              // sheet so they can tweak the qty or remove it. If they bring
+              // nothing yet, fall back to expanding the dense gear view so
+              // they can pick from the catalog. Either way one tap acts.
+              const firstMine = (orgGearDeclared ?? []).find((g) => g.user_id === currentUserId);
+              if (firstMine) {
+                gearSectionRef.current?.openItemByName(firstMine.gear_name);
+              } else {
+                setShowOrgDetails(true);
+                setOrgSubTab('gear');
+              }
+            }}
           />
 
           <GroupCard

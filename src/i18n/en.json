@@ -316,22 +316,24 @@
     }
   },
   "myOuting": {
+    "caption": "Your role",
     "ready": "Ready",
-    "bringingLabel": "You bring",
-    "role": {
-      "empty": "Say how you're getting there",
-      "driving": "You're driving",
-      "drivingFrom": "You're driving from {{from}}",
-      "seatsFree_one": "{{count}} seat free in your car",
-      "seatsFree_other": "{{count}} seats free in your car",
-      "passenger": "You're riding with {{driver}}",
-      "passengerPickup": "Pickup at {{from}}",
-      "pending": "Waiting on {{driver}} to confirm your seat",
+    "stamp": {
+      "transport": "Transport",
+      "material": "Gear",
+      "toSettle": "To settle",
+      "transportPending": "Awaiting · {{driver}}",
+      "transportDriver": "Driving",
+      "transportDriverFrom": "Driving · {{from}}",
+      "transportPassenger": "Riding · {{driver}}",
+      "materialNothing": "Nothing to bring",
+      "seatsFree_one": "{{count}} seat free",
+      "seatsFree_other": "{{count}} seats free",
       "mode": {
-        "public_transport": "Taking public transport",
-        "bike": "Biking there",
-        "on_foot": "Walking there",
-        "other": "Going your own way"
+        "public_transport": "Public transport",
+        "bike": "Biking",
+        "on_foot": "On foot",
+        "other": "Other"
       }
     }
   },

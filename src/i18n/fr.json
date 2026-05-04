@@ -316,22 +316,24 @@
     }
   },
   "myOuting": {
+    "caption": "Ton rôle",
     "ready": "Prêt",
-    "bringingLabel": "Tu apportes",
-    "role": {
-      "empty": "Dis comment tu y vas",
-      "driving": "Tu conduis",
-      "drivingFrom": "Tu conduis depuis {{from}}",
-      "seatsFree_one": "{{count}} place libre dans la voiture",
-      "seatsFree_other": "{{count}} places libres dans la voiture",
-      "passenger": "Tu es passager avec {{driver}}",
-      "passengerPickup": "Récupéré à {{from}}",
-      "pending": "Tu attends la réponse de {{driver}} pour la place",
+    "stamp": {
+      "transport": "Transport",
+      "material": "Matériel",
+      "toSettle": "À régler",
+      "transportPending": "En attente · {{driver}}",
+      "transportDriver": "Conduis",
+      "transportDriverFrom": "Conduis · {{from}}",
+      "transportPassenger": "Passager · {{driver}}",
+      "materialNothing": "Rien à apporter",
+      "seatsFree_one": "{{count}} place libre",
+      "seatsFree_other": "{{count}} places libres",
       "mode": {
-        "public_transport": "Tu y vas en transports en commun",
-        "bike": "Tu y vas à vélo",
-        "on_foot": "Tu y vas à pied",
-        "other": "Tu y vas autrement"
+        "public_transport": "Transports en commun",
+        "bike": "À vélo",
+        "on_foot": "À pied",
+        "other": "Autre"
       }
     }
   },

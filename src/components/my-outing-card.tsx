@@ -2,75 +2,71 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
-import 'dayjs/locale/fr';
 import {
   Car,
   Users,
   Backpack,
-  Check,
   Bike,
   TrainFront,
   Footprints,
   HelpCircle,
   Compass,
-  ChevronRight,
+  Clock,
+  Check,
+  Minus,
+  type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
-import { sportCategoryColor } from '@/utils/sport-category-color';
 
 interface Props {
   activityId: string;
   sportKey: string;
-  sportIcon: string;
-  sportCategory: string | null;
-  startsAt: string;
-  meetingPointName: string | null;
-  fallbackTitle: string;
   currentUserId: string | null;
   isParticipant: boolean;
   onEditTransport: () => void;
-  onEditGearItem: (itemName: string) => void;
+  onMaterialTap: () => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
 
-// One unified card replacing the previous verdict + role + needs trio.
-// Carries the user's role for THIS outing (transport + gear) plus, when
-// present, a single quiet pending block for what's still left to figure
-// out together. The card itself is the synthesis — top band tells you
-// which outing it is, body tells you what you're doing for it, optional
-// bottom row tells you what's still up.
+type StampState = 'set' | 'pending' | 'todo' | 'neutral';
+
+interface StampDef {
+  caption: string;
+  Icon: LucideIcon;
+  content: string;
+  state: StampState;
+}
+
+const COLOR_AMBER = '#E8A33D';
+
+// Mine — your personal status panel for this outing. No activity identity
+// (the screen header carries that already), no group state — this is a
+// strict me-card. Two stamps: TRANSPORT (what mode/role I've taken) and
+// MATÉRIEL (what I'm contributing). Each stamp's visual fills in as the
+// state moves from "à régler" → "set"; PRÊT seal earns its place when
+// transport is sorted (gear is optional, doesn't gate readiness).
 //
-// Coordination voice, not marketplace: the pending block phrases gaps as
-// "Manque la corde dans le matos commun · J'apporte", not as a listing.
+// Tap behavior:
+//   TRANSPORT stamp → opens the existing transport editor sheet.
+//   MATÉRIEL stamp → if you've already declared something, opens that
+//     first item's sheet so you can edit it; if you haven't, it expands
+//     the dense gear view (handler in the parent) so you can pick.
 export function MyOutingCard({
   activityId,
   sportKey,
-  sportIcon,
-  sportCategory,
-  startsAt,
-  meetingPointName,
-  fallbackTitle,
   currentUserId,
   isParticipant,
   onEditTransport,
-  onEditGearItem,
+  onMaterialTap,
 }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  // The accent the top band borrows. Falls back to CTA orange for unknown
-  // categories so the card still feels intentional even on edge sports.
-  const accent = useMemo(
-    () => sportCategoryColor(sportCategory, colors.cta),
-    [sportCategory, colors.cta],
-  );
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -93,72 +89,65 @@ export function MyOutingCard({
     enabled: isParticipant,
   });
 
-  const role = useMemo(() => {
-    if (!currentUserId) return null;
+  const transportStamp = useMemo<StampDef>(() => {
+    const empty: StampDef = {
+      caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+      Icon: Compass,
+      content: t('myOuting.stamp.toSettle', { defaultValue: 'À régler' }),
+      state: 'todo',
+    };
+    if (!currentUserId) return empty;
+
     const myTransport = transports.find((p) => p.user_id === currentUserId);
     const myAcceptedSeat = seatAssignments.find((r) => r.requester_id === currentUserId);
     const myPending = pendingRequests.find((r) => r.requester_id === currentUserId);
 
-    // Pending — waiting on a driver's reply. Treated as a "your role
-    // is in motion" state, not "set", so no PRÊT seal yet.
     if (myPending) {
       const driver = transports.find((p) => p.user_id === myPending.driver_id);
       return {
-        kind: 'pending' as const,
-        Icon: Users,
-        sentence: t('myOuting.role.pending', {
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        Icon: Clock,
+        content: t('myOuting.stamp.transportPending', {
           driver: driver?.display_name ?? '?',
-          defaultValue: `Tu attends la réponse de ${driver?.display_name ?? '?'} pour la place`,
+          defaultValue: `En attente · ${driver?.display_name ?? '?'}`,
         }),
-        sub: null as string | null,
+        state: 'pending',
       };
     }
 
-    // Driver — having car/carpool with explicit seats wins over passenger
-    // status if both somehow exist (data oddity), since being a driver
-    // is the more committed role.
     if (myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')) {
+      const from = myTransport.transport_from_name?.trim();
       const seats = myTransport.transport_seats ?? 0;
-      const from = myTransport.transport_from_name?.trim() ?? null;
-      let sentence: string;
-      let sub: string | null = null;
-      if (from) {
-        sentence = t('myOuting.role.drivingFrom', {
-          from,
-          defaultValue: `Tu conduis depuis ${from}`,
-        });
-      } else {
-        sentence = t('myOuting.role.driving', { defaultValue: 'Tu conduis' });
-      }
-      if (seats > 0) {
-        sub = t('myOuting.role.seatsFree', {
-          count: seats,
-          defaultValue: `${seats} place${seats > 1 ? 's' : ''} libre${seats > 1 ? 's' : ''} dans la voiture`,
-        });
-      }
-      return { kind: 'driver' as const, Icon: Car, sentence, sub };
+      return {
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        Icon: Car,
+        content: from
+          ? t('myOuting.stamp.transportDriverFrom', {
+              from,
+              defaultValue: `Conduis · ${from}`,
+            })
+          : t('myOuting.stamp.transportDriver', { defaultValue: 'Conduis' }),
+        state: 'set',
+        // seats info is shown as a sub-line in render below — kept on the
+        // stamp def implicitly via the role kind. We render seat count via
+        // a small stamp footer when state === 'set' for drivers.
+        ...(seats > 0 ? { seats } : {}),
+      } as StampDef & { seats?: number };
     }
 
-    // Passenger — accepted seat with another driver.
     if (myAcceptedSeat) {
       const driver = transports.find((p) => p.user_id === myAcceptedSeat.driver_id);
       return {
-        kind: 'passenger' as const,
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon: Users,
-        sentence: t('myOuting.role.passenger', {
+        content: t('myOuting.stamp.transportPassenger', {
           driver: driver?.display_name ?? '?',
-          defaultValue: `Tu es passager avec ${driver?.display_name ?? '?'}`,
+          defaultValue: `Passager · ${driver?.display_name ?? '?'}`,
         }),
-        sub: myAcceptedSeat.pickup_from
-          ? t('myOuting.role.passengerPickup', {
-              from: myAcceptedSeat.pickup_from,
-              defaultValue: `Récupéré à ${myAcceptedSeat.pickup_from}`,
-            })
-          : null,
+        state: 'set',
       };
     }
 
-    // Other declared modes — bike, foot, public, other.
     if (myTransport?.transport_type) {
       const Icon =
         myTransport.transport_type === 'bike'
@@ -169,24 +158,16 @@ export function MyOutingCard({
               ? TrainFront
               : HelpCircle;
       return {
-        kind: 'self' as const,
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon,
-        sentence: t(`myOuting.role.mode.${myTransport.transport_type}`, {
-          defaultValue: `Tu y vas en ${myTransport.transport_type}`,
+        content: t(`myOuting.stamp.mode.${myTransport.transport_type}`, {
+          defaultValue: myTransport.transport_type,
         }),
-        sub: null,
+        state: 'set',
       };
     }
 
-    // Empty — no transport declared. The CTA-tinted state directs the
-    // user to the primary action; this is also what Scott was missing
-    // when the previous layout buried the entry point.
-    return {
-      kind: 'empty' as const,
-      Icon: Compass,
-      sentence: t('myOuting.role.empty', { defaultValue: 'Dis comment tu y vas' }),
-      sub: null,
-    };
+    return empty;
   }, [transports, seatAssignments, pendingRequests, currentUserId, t]);
 
   const myGearItems = useMemo(() => {
@@ -196,121 +177,161 @@ export function MyOutingCard({
       .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
   }, [gearDeclared, currentUserId]);
 
-  // "Prêt" is about the user — their personal role for this outing. Group
-  // safety gaps live in the GroupCard below; conflating them here would
-  // make a passenger feel "not ready" because someone else hasn't claimed
-  // the rope yet, which isn't honest. Mine is mine.
-  const isReady = useMemo(() => {
-    if (!role) return false;
-    return role.kind === 'driver' || role.kind === 'passenger' || role.kind === 'self';
-  }, [role]);
+  const materialStamp = useMemo<StampDef>(() => {
+    if (myGearItems.length === 0) {
+      return {
+        caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
+        Icon: Backpack,
+        content: t('myOuting.stamp.materialNothing', { defaultValue: 'Rien à apporter' }),
+        state: 'neutral',
+      };
+    }
+    // Compose the content string: up to two item names, then "+N more".
+    const labels = myGearItems.map((g) => (g.quantity > 1 ? `${g.name} ×${g.quantity}` : g.name));
+    let content: string;
+    if (labels.length === 1) {
+      content = labels[0]!;
+    } else if (labels.length === 2) {
+      content = labels.join(' · ');
+    } else {
+      content = `${labels[0]!} · ${labels[1]!} +${labels.length - 2}`;
+    }
+    return {
+      caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
+      Icon: Backpack,
+      content,
+      state: 'set',
+    };
+  }, [myGearItems, t]);
 
-  if (!isParticipant || !role) return null;
+  // PRÊT logic — transport is the only required leg. Gear stays optional;
+  // a passenger who isn't bringing anything shouldn't feel "not ready".
+  const isReady = transportStamp.state === 'set';
 
-  const dateLabel = dayjs(startsAt).locale(i18n.language === 'fr' ? 'fr' : 'en').format(
-    i18n.language === 'fr' ? 'D MMM' : 'MMM D',
-  );
-  const sportLabel = t(`sports.${sportKey}`, { defaultValue: sportKey });
-  const placeLabel = meetingPointName?.trim() || fallbackTitle;
+  if (!isParticipant) return null;
 
   return (
     <View style={styles.cardWrapper}>
-      <View style={[styles.card, { borderColor: accent + '4D' }]}>
-        {/* Top band — sport identity + date + meeting point. The thin
-            tinted band is the card's "passport" — same tinting language
-            we use on the small sport pill in the activity header, so
-            family read carries. */}
-        <View style={[styles.band, { backgroundColor: accent + '1F' }]}>
-          <Text style={styles.bandIcon}>{sportIcon}</Text>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.bandSport, { color: accent }]} numberOfLines={1}>
-              {sportLabel}
-            </Text>
-            <Text style={styles.bandMeta} numberOfLines={1}>
-              {dateLabel}
-              {placeLabel ? ` · ${placeLabel}` : ''}
-            </Text>
-          </View>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Text style={styles.caption}>
+            {t('myOuting.caption', { defaultValue: 'Ton rôle' })}
+          </Text>
           {isReady && (
-            <View style={[styles.readySeal, { borderColor: colors.success }]}>
-              <Check size={11} color={colors.success} strokeWidth={3} />
-              <Text style={[styles.readySealText, { color: colors.success }]}>
+            <View style={[styles.seal, { borderColor: colors.success }]}>
+              <Check size={10} color={colors.success} strokeWidth={3} />
+              <Text style={[styles.sealText, { color: colors.success }]}>
                 {t('myOuting.ready', { defaultValue: 'Prêt' })}
               </Text>
             </View>
           )}
         </View>
 
-        <View style={styles.body}>
-          {/* Role row — single sentence + optional sub. Tappable: opens
-              transport editor whatever the state. The empty state uses
-              the CTA color to read as "primary action here". */}
-          <Pressable style={styles.roleRow} onPress={onEditTransport} hitSlop={4}>
-            <View
-              style={[
-                styles.roleIconWrap,
-                {
-                  backgroundColor:
-                    role.kind === 'empty' ? colors.cta + '1F' : accent + '14',
-                },
-              ]}
-            >
-              <role.Icon
-                size={16}
-                color={role.kind === 'empty' ? colors.cta : accent}
-                strokeWidth={2.2}
-              />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text
-                style={[
-                  styles.roleSentence,
-                  role.kind === 'empty' && { color: colors.cta },
-                ]}
-                numberOfLines={2}
-              >
-                {role.sentence}
-              </Text>
-              {role.sub && (
-                <Text style={styles.roleSub} numberOfLines={1}>
-                  {role.sub}
-                </Text>
-              )}
-            </View>
-            <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
-          </Pressable>
-
-          {myGearItems.length > 0 && (
-            <View style={styles.gearRow}>
-              <View style={[styles.roleIconWrap, { backgroundColor: accent + '14' }]}>
-                <Backpack size={14} color={accent} strokeWidth={2.2} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.gearLabel}>
-                  {t('myOuting.bringingLabel', { defaultValue: 'Tu apportes' })}
-                </Text>
-                <View style={styles.gearChipsRow}>
-                  {myGearItems.map((g) => (
-                    <Pressable
-                      key={g.name}
-                      style={styles.gearChip}
-                      onPress={() => onEditGearItem(g.name)}
-                      hitSlop={4}
-                    >
-                      <Text style={styles.gearChipName} numberOfLines={1}>
-                        {g.name}
-                        {g.quantity > 1 ? ` ×${g.quantity}` : ''}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            </View>
-          )}
+        <View style={styles.stampsRow}>
+          <Stamp
+            stamp={transportStamp}
+            seatsHint={
+              transportStamp.state === 'set' && (transportStamp as StampDef & { seats?: number }).seats
+                ? t('myOuting.stamp.seatsFree', {
+                    count: (transportStamp as StampDef & { seats?: number }).seats!,
+                    defaultValue: `${(transportStamp as StampDef & { seats?: number }).seats} place${(transportStamp as StampDef & { seats?: number }).seats! > 1 ? 's' : ''} libre${(transportStamp as StampDef & { seats?: number }).seats! > 1 ? 's' : ''}`,
+                  })
+                : null
+            }
+            onPress={onEditTransport}
+            colors={colors}
+            styles={styles}
+          />
+          <Stamp
+            stamp={materialStamp}
+            seatsHint={null}
+            onPress={onMaterialTap}
+            colors={colors}
+            styles={styles}
+          />
         </View>
-
       </View>
     </View>
+  );
+}
+
+interface StampProps {
+  stamp: StampDef;
+  seatsHint: string | null;
+  onPress: () => void;
+  colors: AppColors;
+  styles: ReturnType<typeof createStyles>;
+}
+
+function Stamp({ stamp, seatsHint, onPress, colors, styles }: StampProps) {
+  // Visual coding by state. "set" reads as filled-and-done (success green),
+  // "pending" and "todo" pull attention with amber, "neutral" stays muted
+  // (the matériel "rien à apporter" case shouldn't ping for action).
+  const accent =
+    stamp.state === 'set' ? colors.success
+    : stamp.state === 'pending' || stamp.state === 'todo' ? COLOR_AMBER
+    : colors.textMuted;
+
+  const isFilledLook = stamp.state === 'set' || stamp.state === 'pending';
+  const dashedBorder = stamp.state === 'todo' || stamp.state === 'neutral';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.stamp,
+        isFilledLook && {
+          backgroundColor: accent + '14',
+          borderColor: accent + '4D',
+        },
+        dashedBorder && { borderStyle: 'dashed' },
+        pressed && { opacity: 0.6 },
+      ]}
+      hitSlop={4}
+    >
+      <View style={styles.stampHeaderRow}>
+        <stamp.Icon
+          size={14}
+          color={isFilledLook ? accent : colors.textMuted}
+          strokeWidth={2.2}
+        />
+        <Text
+          style={[
+            styles.stampCaption,
+            { color: isFilledLook ? accent : colors.textMuted },
+          ]}
+        >
+          {stamp.caption}
+        </Text>
+      </View>
+
+      <Text
+        style={[
+          styles.stampContent,
+          stamp.state === 'todo' || stamp.state === 'neutral'
+            ? { color: colors.textSecondary }
+            : { color: colors.textPrimary },
+        ]}
+        numberOfLines={2}
+      >
+        {stamp.content}
+      </Text>
+
+      {seatsHint && (
+        <Text style={styles.stampSubHint} numberOfLines={1}>
+          {seatsHint}
+        </Text>
+      )}
+
+      <View style={styles.stampMarkRow}>
+        {stamp.state === 'set' && <Check size={14} color={accent} strokeWidth={3} />}
+        {stamp.state === 'pending' && <Clock size={14} color={accent} strokeWidth={2.4} />}
+        {stamp.state === 'todo' && (
+          <View style={[styles.stampDottedDot, { borderColor: accent }]} />
+        )}
+        {stamp.state === 'neutral' && <Minus size={14} color={colors.textMuted} strokeWidth={2.4} />}
+      </View>
+    </Pressable>
   );
 }
 
@@ -320,31 +341,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
-    overflow: 'hidden',
-  },
-
-  // Top band
-  band: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    borderColor: colors.line,
+    paddingVertical: spacing.md - 2,
     paddingHorizontal: spacing.md,
   },
-  bandIcon: { fontSize: 22, lineHeight: 24 },
-  bandSport: {
-    fontSize: fontSizes.sm,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-    textTransform: 'capitalize',
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm + 2,
   },
-  bandMeta: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '500',
-    marginTop: 1,
+  caption: {
+    color: colors.textMuted,
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
-  readySeal: {
+  seal: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -353,72 +368,65 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  readySealText: {
+  sealText: {
     fontSize: 9.5,
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
 
-  // Body
-  body: {
-    paddingVertical: spacing.md - 2,
-    paddingHorizontal: spacing.md,
+  stampsRow: {
+    flexDirection: 'row',
     gap: spacing.sm + 2,
   },
-  roleRow: {
+  stamp: {
+    flex: 1,
+    minHeight: 96,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 2,
+    backgroundColor: 'transparent',
+  },
+  stampHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 6,
+    marginBottom: 6,
   },
-  roleIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
+  stampCaption: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
-  roleSentence: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm + 1,
-    fontWeight: '600',
-    lineHeight: 20,
+  stampContent: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    lineHeight: 18,
     letterSpacing: -0.1,
+    flexShrink: 1,
   },
-  roleSub: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-    marginTop: 1,
-  },
-
-  // Gear chips
-  gearRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  gearLabel: {
+  stampSubHint: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
-    marginBottom: 4,
+    marginTop: 3,
   },
-  gearChipsRow: {
+  stampMarkRow: {
+    marginTop: 'auto',
+    paddingTop: 6,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
-  gearChip: {
-    backgroundColor: colors.surfaceAlt,
+  stampDottedDot: {
+    width: 12,
+    height: 12,
     borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
-  gearChipName: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-  },
-
 });
