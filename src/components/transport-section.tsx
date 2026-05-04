@@ -347,13 +347,12 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         </View>
       )}
 
-      {/* Transport editor modal */}
-      <Modal visible={showEditor} animationType="slide" transparent>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      {/* Transport editor modal — centered floating card. */}
+      <Modal visible={showEditor} animationType="fade" transparent>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
-              <Pressable style={styles.sheet} onPress={() => {}}>
-                <View style={styles.handle} />
+            <Pressable style={styles.sheet} onPress={() => {}}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</Text>
 
                 <View style={styles.typeGrid}>
@@ -437,19 +436,18 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 >
                   <Text style={styles.saveText}>{t('profil.save')}</Text>
                 </Pressable>
-              </Pressable>
-            </ScrollView>
+              </ScrollView>
+            </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Seat request modal */}
-      <Modal visible={requestingFromDriver !== null} animationType="slide" transparent onRequestClose={() => setRequestingFromDriver(null)}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      {/* Seat request modal — centered floating card. */}
+      <Modal visible={requestingFromDriver !== null} animationType="fade" transparent onRequestClose={() => setRequestingFromDriver(null)}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setRequestingFromDriver(null)}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
-              <Pressable style={styles.sheet} onPress={() => {}}>
-                <View style={styles.handle} />
+            <Pressable style={styles.sheet} onPress={() => {}}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={styles.sheetTitle}>{t('transport.requestSeatTitle')}</Text>
 
                 <View style={styles.fromRow}>
@@ -510,8 +508,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 >
                   <Text style={styles.saveText}>{t('transport.requestSeat')}</Text>
                 </Pressable>
-              </Pressable>
-            </ScrollView>
+              </ScrollView>
+            </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
@@ -799,13 +797,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   otherType: { color: colors.textSecondary, fontSize: fontSizes.xs },
   otherFrom: { color: colors.textMuted, fontSize: fontSizes.xs, flex: 1 },
 
-  // Modals (unchanged structure)
-  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.lg, paddingBottom: spacing.xl + 16,
+  // Modals — centered floating cards (was bottom drawers).
+  backdrop: {
+    flex: 1, backgroundColor: colors.overlay,
+    alignItems: 'center', justifyContent: 'center',
+    padding: spacing.lg,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
+  sheet: {
+    width: '100%', maxWidth: 380, maxHeight: '85%',
+    backgroundColor: colors.background, borderRadius: radius.lg,
+    borderWidth: 1, borderColor: colors.line,
+    padding: spacing.lg,
+  },
   sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   typeChip: {

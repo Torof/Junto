@@ -346,18 +346,18 @@ export function MyOutingCard({
         </View>
       </View>
 
-      {/* Mon matériel sheet — full list of what I bring, each row tappable
-          to edit, plus "Ajouter" to bring something new. The matériel
-          stamp truncates at 2 lines; this sheet is where the rest lives. */}
+      {/* Mon matériel modal — full list of what I bring, each row tappable
+          to edit, plus "Ajouter" to bring something new. Centered floating
+          card on a tinted scrim, matching the visual language of the
+          trust-pillar popups in the profile. */}
       <Modal
         visible={showMyGear}
-        animationType="slide"
+        animationType="fade"
         transparent
         onRequestClose={() => setShowMyGear(false)}
       >
         <Pressable style={styles.backdrop} onPress={() => setShowMyGear(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.handle} />
             <Text style={styles.sheetTitle}>
               {t('myOuting.gearListTitle', { defaultValue: 'Mon matériel' })}
             </Text>
@@ -656,28 +656,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // My-gear sheet (modal)
+  // My-gear modal — centered floating card.
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
   },
   sheet: {
+    width: '100%',
+    maxWidth: 380,
+    maxHeight: '85%',
     backgroundColor: colors.background,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
     padding: spacing.lg,
-    paddingBottom: spacing.xl + 16,
-    maxHeight: '70%',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.textSecondary,
-    alignSelf: 'center',
-    marginBottom: spacing.lg,
-    opacity: 0.4,
   },
   sheetTitle: {
     color: colors.textPrimary,

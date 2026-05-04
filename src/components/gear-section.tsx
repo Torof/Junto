@@ -334,18 +334,17 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
         </Pressable>
       )}
 
-      {/* Per-item sheet */}
+      {/* Per-item modal — centered floating card. */}
       <Modal
         visible={selectedItem !== null}
-        animationType="slide"
+        animationType="fade"
         transparent
         onRequestClose={() => setSelectedItemName(null)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setSelectedItemName(null)}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
-              <Pressable style={styles.sheet} onPress={() => {}}>
-                <View style={styles.handle} />
+            <Pressable style={styles.sheet} onPress={() => {}}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {selectedItem && (
                   <>
                     <Text style={styles.sheetTitle}>{selectedItem.name}</Text>
@@ -417,24 +416,23 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                     )}
                   </>
                 )}
-              </Pressable>
-            </ScrollView>
+              </ScrollView>
+            </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Custom item sheet */}
+      {/* Custom-item modal — centered floating card. */}
       <Modal
         visible={showCustomSheet}
-        animationType="slide"
+        animationType="fade"
         transparent
         onRequestClose={() => setShowCustomSheet(false)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setShowCustomSheet(false)}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} keyboardShouldPersistTaps="handled">
-              <Pressable style={styles.sheet} onPress={() => {}}>
-                <View style={styles.handle} />
+            <Pressable style={styles.sheet} onPress={() => {}}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={styles.sheetTitle}>{t('gear.customSheetTitle')}</Text>
 
                 <View style={styles.fieldBox}>
@@ -477,8 +475,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                 >
                   <Text style={styles.saveBtnText}>{t('profil.save')}</Text>
                 </Pressable>
-              </Pressable>
-            </ScrollView>
+              </ScrollView>
+            </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
@@ -627,13 +625,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   addCustomText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '500' },
 
-  // Sheet styles
-  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.lg, paddingBottom: spacing.xl + 16,
+  // Modals — centered floating cards (was bottom drawers).
+  backdrop: {
+    flex: 1, backgroundColor: colors.overlay,
+    alignItems: 'center', justifyContent: 'center',
+    padding: spacing.lg,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
+  sheet: {
+    width: '100%', maxWidth: 380, maxHeight: '85%',
+    backgroundColor: colors.background, borderRadius: radius.lg,
+    borderWidth: 1, borderColor: colors.line,
+    padding: spacing.lg,
+  },
   sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.xs },
   sheetStatus: { fontSize: fontSizes.sm, fontWeight: '600', marginBottom: spacing.md },
   sheetSectionLabel: {
