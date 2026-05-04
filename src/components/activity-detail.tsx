@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, ChevronDown } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -39,9 +39,7 @@ import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
-import { LogisticsVerdict } from './logistics-verdict';
-import { MyRoleCard } from './my-role-card';
-import { GroupNeedsStrip } from './group-needs-strip';
+import { MyOutingCard } from './my-outing-card';
 import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
@@ -729,52 +727,32 @@ export function ActivityDetail({
             </View>
           )}
 
-          {/* Synthesis layers (steps 1–3 of the organization remodel) —
-              user-perspective, calm, no forms. The dense per-section
-              views below are kept for full inspection but collapsed
-              by default. */}
-          <LogisticsVerdict
+          {/* MyOutingCard — single card carrying the user's role for this
+              outing (transport + gear) plus the most pressing group gap
+              when there is one. Replaces the previous verdict + role +
+              needs trio. The "Voir tous les détails" link inside the card
+              expands the existing TransportSection / GearSection below
+              for power-users; most should never need it. */}
+          <MyOutingCard
             activityId={activity.id}
             sportKey={activity.sport_key}
-            currentUserId={currentUserId ?? null}
-            isParticipant={isCreator || isAccepted}
-          />
-
-          <MyRoleCard
-            activityId={activity.id}
+            sportIcon={activity.sport_icon}
+            sportCategory={activity.sport_category}
+            startsAt={activity.starts_at}
+            meetingPointName={activity.start_name}
+            fallbackTitle={activity.title}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
             onEditTransport={() => transportSectionRef.current?.openEditor()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
+            onToggleDetails={() => setShowOrgDetails((v) => !v)}
+            showDetailsActive={showOrgDetails}
           />
 
-          <GroupNeedsStrip
-            activityId={activity.id}
-            sportKey={activity.sport_key}
-            isParticipant={isCreator || isAccepted}
-            onClaimGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
-          />
-
-          {/* Details — collapsed by default. Sections stay mounted (just
-              hidden) so the imperative refs above are always live, which
-              lets the role card and needs strip open editor sheets without
-              forcing a sub-tab navigation. */}
-          <Pressable
-            style={styles.detailsToggle}
-            onPress={() => setShowOrgDetails((v) => !v)}
-            hitSlop={6}
-          >
-            <Text style={styles.detailsToggleText}>
-              {showOrgDetails ? t('organisation.hideDetails') : t('organisation.showDetails')}
-            </Text>
-            <ChevronDown
-              size={14}
-              color={colors.textSecondary}
-              strokeWidth={2.2}
-              style={{ transform: [{ rotate: showOrgDetails ? '180deg' : '0deg' }] }}
-            />
-          </Pressable>
-
+          {/* Both sections always mounted — display:none-toggled rather
+              than conditionally rendered — so the imperative refs above
+              stay live regardless of which sub-tab is active or whether
+              details are expanded at all. */}
           <View style={{ display: showOrgDetails ? 'flex' : 'none' }}>
             <OrganisationSubTabs
               active={orgSubTab}
@@ -795,10 +773,6 @@ export function ActivityDetail({
             />
           </View>
 
-          {/* Both sections always mounted — display:none-toggled rather
-              than conditionally rendered — so the parent's imperative
-              refs stay live regardless of the active sub-tab or whether
-              details are collapsed. */}
           <View style={{ display: showOrgDetails && orgSubTab === 'transport' ? 'flex' : 'none' }}>
             <TransportSection
               ref={transportSectionRef}
@@ -947,20 +921,6 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  detailsToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  detailsToggleText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
   tabBar: {
     flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm,
     paddingBottom: spacing.xs, gap: spacing.sm, backgroundColor: colors.background,

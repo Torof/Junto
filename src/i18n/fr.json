@@ -313,39 +313,33 @@
       "gearMissing_other": "{{count}} manquants",
       "gearComplete": "complet",
       "gearEmpty": "aucun matériel"
-    },
-    "showDetails": "Voir les détails",
-    "hideDetails": "Masquer les détails"
-  },
-  "myRole": {
-    "caption": "Ton rôle",
-    "driving": "Tu conduis",
-    "drivingFrom": "Tu conduis depuis {{from}}",
-    "drivingWithSeats_one": "Tu conduis · {{count}} place libre",
-    "drivingWithSeats_other": "Tu conduis · {{count}} places libres",
-    "drivingFromWithSeats_one": "Tu conduis depuis {{from}} · {{count}} place libre",
-    "drivingFromWithSeats_other": "Tu conduis depuis {{from}} · {{count}} places libres",
-    "passenger": "Tu es passager avec {{driver}}",
-    "bringingLabel": "Tu apportes",
-    "mode": {
-      "public_transport": "Tu y vas en transports en commun",
-      "bike": "Tu y vas à vélo",
-      "on_foot": "Tu y vas à pied",
-      "other": "Tu y vas autrement"
     }
   },
-  "groupNeeds": {
-    "caption": "À régler ensemble",
-    "bringIt": "J'apporte"
-  },
-  "logisticsVerdict": {
-    "ready": "Tu es prêt",
-    "noTransportYet": "Il reste à dire comment tu y vas",
-    "pendingSeat": "En attente de la réponse de {{driver}} pour la place",
-    "missingOne": "Manque dans le matos commun : {{item}}",
-    "missingTwo": "Manque dans le matos commun : {{item1}}, {{item2}}",
-    "missingMany_one": "{{count}} équipement de sécurité à apporter",
-    "missingMany_other": "{{count}} équipements de sécurité à apporter"
+  "myOuting": {
+    "ready": "Prêt",
+    "bringingLabel": "Tu apportes",
+    "bringIt": "J'apporte",
+    "showDetails": "Voir tous les détails",
+    "hideDetails": "Masquer les détails",
+    "pendingOne": "Manque {{item}} dans le matos commun",
+    "pendingMany_one": "{{count}} équipement de sécurité à apporter",
+    "pendingMany_other": "{{count}} équipements de sécurité à apporter",
+    "role": {
+      "empty": "Dis comment tu y vas",
+      "driving": "Tu conduis",
+      "drivingFrom": "Tu conduis depuis {{from}}",
+      "seatsFree_one": "{{count}} place libre dans la voiture",
+      "seatsFree_other": "{{count}} places libres dans la voiture",
+      "passenger": "Tu es passager avec {{driver}}",
+      "passengerPickup": "Récupéré à {{from}}",
+      "pending": "Tu attends la réponse de {{driver}} pour la place",
+      "mode": {
+        "public_transport": "Tu y vas en transports en commun",
+        "bike": "Tu y vas à vélo",
+        "on_foot": "Tu y vas à pied",
+        "other": "Tu y vas autrement"
+      }
+    }
   },
   "pushDenied": {
     "title": "Notifications désactivées",

@@ -313,39 +313,33 @@
       "gearMissing_other": "{{count}} missing",
       "gearComplete": "complete",
       "gearEmpty": "no gear"
-    },
-    "showDetails": "Show details",
-    "hideDetails": "Hide details"
-  },
-  "myRole": {
-    "caption": "Your role",
-    "driving": "You're driving",
-    "drivingFrom": "You're driving from {{from}}",
-    "drivingWithSeats_one": "You're driving · {{count}} seat free",
-    "drivingWithSeats_other": "You're driving · {{count}} seats free",
-    "drivingFromWithSeats_one": "You're driving from {{from}} · {{count}} seat free",
-    "drivingFromWithSeats_other": "You're driving from {{from}} · {{count}} seats free",
-    "passenger": "You're riding with {{driver}}",
-    "bringingLabel": "You bring",
-    "mode": {
-      "public_transport": "You're taking public transport",
-      "bike": "You're biking there",
-      "on_foot": "You're walking there",
-      "other": "You're going your own way"
     }
   },
-  "groupNeeds": {
-    "caption": "Still to figure out",
-    "bringIt": "I'll bring it"
-  },
-  "logisticsVerdict": {
-    "ready": "You're set",
-    "noTransportYet": "Still need to say how you're getting there",
-    "pendingSeat": "Waiting on {{driver}} to confirm your seat",
-    "missingOne": "Missing from group gear: {{item}}",
-    "missingTwo": "Missing from group gear: {{item1}}, {{item2}}",
-    "missingMany_one": "{{count}} safety item to bring",
-    "missingMany_other": "{{count}} safety items to bring"
+  "myOuting": {
+    "ready": "Ready",
+    "bringingLabel": "You bring",
+    "bringIt": "I'll bring it",
+    "showDetails": "Show full details",
+    "hideDetails": "Hide details",
+    "pendingOne": "Missing {{item}} from group gear",
+    "pendingMany_one": "{{count}} safety item to bring",
+    "pendingMany_other": "{{count}} safety items to bring",
+    "role": {
+      "empty": "Say how you're getting there",
+      "driving": "You're driving",
+      "drivingFrom": "You're driving from {{from}}",
+      "seatsFree_one": "{{count}} seat free in your car",
+      "seatsFree_other": "{{count}} seats free in your car",
+      "passenger": "You're riding with {{driver}}",
+      "passengerPickup": "Pickup at {{from}}",
+      "pending": "Waiting on {{driver}} to confirm your seat",
+      "mode": {
+        "public_transport": "Taking public transport",
+        "bike": "Biking there",
+        "on_foot": "Walking there",
+        "other": "Going your own way"
+      }
+    }
   },
   "pushDenied": {
     "title": "Notifications disabled",
