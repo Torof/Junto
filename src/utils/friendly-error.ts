@@ -8,6 +8,8 @@ type ErrorAction =
   | 'cancelActivity'
   | 'sendMessage'
   | 'sendWallMessage'
+  | 'editWallMessage'
+  | 'deleteWallMessage'
   | 'createAlert'
   | 'deleteAlert'
   | 'confirmPresence'

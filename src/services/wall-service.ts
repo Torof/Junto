@@ -55,4 +55,25 @@ export const wallService = {
     if (error) throw error;
     return data as unknown as string;
   },
+
+  // Both routes go through edit_wall_message (mig 00177) — content edit
+  // when p_delete=false, soft-delete when p_delete=true. Auth chain
+  // enforces caller-is-author + activity-still-active server-side.
+  edit: async (messageId: string, content: string): Promise<void> => {
+    const { error } = await supabase.rpc('edit_wall_message' as 'join_activity', {
+      p_message_id: messageId,
+      p_content: content,
+      p_delete: false,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  remove: async (messageId: string): Promise<void> => {
+    const { error } = await supabase.rpc('edit_wall_message' as 'join_activity', {
+      p_message_id: messageId,
+      p_content: null,
+      p_delete: true,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
 };

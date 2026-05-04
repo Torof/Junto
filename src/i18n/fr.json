@@ -196,6 +196,8 @@
     "cancelActivity": "Impossible d'annuler l'activité. Réessaie.",
     "sendMessage": "Message non envoyé. Réessaie dans un instant.",
     "sendWallMessage": "Message non publié sur le mur. Réessaie.",
+    "editWallMessage": "Modification non enregistrée. Réessaie.",
+    "deleteWallMessage": "Suppression non aboutie. Réessaie.",
     "createAlert": "Impossible de créer l'alerte. Vérifie les infos et réessaie.",
     "deleteAlert": "Impossible de supprimer l'alerte. Réessaie.",
     "confirmPresence": "Tu n'es pas encore dans la zone de l'activité (rayon de 150m autour du point de départ, RDV ou arrivée). Approche-toi et réessaie — ou scanne le QR code du créateur.",
@@ -1024,7 +1026,16 @@
     "empty": "Aucun message pour le moment",
     "placeholder": "Écrire un message...",
     "rateLimited": "Attends 1 minute entre chaque message",
-    "deletedUser": "Utilisateur supprimé"
+    "deletedUser": "Utilisateur supprimé",
+    "youAuthor": "Toi",
+    "editedTag": "modifié",
+    "dateToday": "Aujourd'hui",
+    "dateYesterday": "Hier",
+    "actionEdit": "Modifier",
+    "actionDelete": "Supprimer",
+    "editTitle": "Modifier le message",
+    "deleteConfirmTitle": "Supprimer le message ?",
+    "deleteConfirmBody": "Cette action est définitive."
   },
   "notifications": {
     "emptyAction": "Aucune action en attente",

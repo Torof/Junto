@@ -855,6 +855,7 @@ export function ActivityDetail({
             <ActivityWall
               activityId={activity.id}
               isActive={['published', 'in_progress'].includes(activity.status)}
+              currentUserId={currentUserId ?? null}
             />
           </View>
         </KeyboardAvoidingView>
