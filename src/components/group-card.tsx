@@ -268,6 +268,40 @@ export function GroupCard({
     [missingItems],
   );
 
+  // Progress fraction for the "Inventaire" header bar — only counts
+  // catalog items (not customs). Custom contributions surface in the
+  // Recap section instead, so the bar honestly tracks "is the sport's
+  // standard kit covered?".
+  const totalCatalog = coveredItems.length + missingItems.length;
+  const progressRatio = totalCatalog === 0 ? 0 : coveredItems.length / totalCatalog;
+
+  // "Qui apporte quoi" recap — group declared gear by user_id,
+  // sorted by contribution count descending so heavy contributors
+  // anchor the top. Includes self (with TOI tag at render time)
+  // for confirmation that their commitment is registered.
+  const bringers = useMemo(() => {
+    const map = new Map<string, {
+      user_id: string;
+      display_name: string;
+      avatar_url: string | null;
+      items: { name: string; quantity: number }[];
+    }>();
+    gearDeclared.forEach((g) => {
+      const existing = map.get(g.user_id);
+      if (existing) {
+        existing.items.push({ name: g.gear_name, quantity: g.quantity });
+      } else {
+        map.set(g.user_id, {
+          user_id: g.user_id,
+          display_name: g.display_name,
+          avatar_url: g.avatar_url,
+          items: [{ name: g.gear_name, quantity: g.quantity }],
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
+  }, [gearDeclared]);
+
   // Whether the current user is allowed to request a seat right now —
   // mirrors TransportSection's existing rule so the affordance behaves
   // consistently with the dense view.
@@ -594,55 +628,142 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
-            {!hasGear && (
+            {!hasGear && bringers.length === 0 && (
               <Text style={styles.emptyHint}>
                 {t('group.noGearForSport', { defaultValue: 'Pas de matériel commun pour ce sport' })}
               </Text>
             )}
 
-            {coveredItems.length > 0 && (
-              <View style={styles.coveredChipsRow}>
-                {coveredItems.map((c) => (
-                  <View key={c.name} style={styles.coveredChip}>
-                    <Check size={10} color={colors.success} strokeWidth={3} />
-                    <Text style={styles.coveredChipText} numberOfLines={1}>
-                      {c.name}
-                      {c.have > c.required ? ` ×${c.have}` : ''}
+            {/* Section 1 — Inventaire. Progress bar + count anchor the
+                top so a glance answers "is the catalog covered?". Below:
+                missing items as actionable rows, then covered items as
+                check-chips. Hidden entirely if the sport has no catalog
+                (custom-only contributions surface in the Recap below). */}
+            {hasGear && (
+              <View style={styles.gearSection}>
+                <View style={styles.transportCategoryHeader}>
+                  <Text style={styles.transportCategoryLabel}>
+                    {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
+                  </Text>
+                  <Text style={styles.transportCategoryCount}>
+                    · {t('group.progressLabel', {
+                      covered: coveredItems.length,
+                      total: totalCatalog,
+                      defaultValue: `${coveredItems.length}/${totalCatalog} prêt`,
+                    })}
+                  </Text>
+                </View>
+
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
+                </View>
+
+                {missingItems.map((m) => (
+                  <Pressable
+                    key={m.name}
+                    style={styles.missingRow}
+                    onPress={() => onClaimGearItem(m.name)}
+                    hitSlop={4}
+                  >
+                    <View
+                      style={[
+                        styles.missingDot,
+                        { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
+                      ]}
+                    />
+                    <Text style={styles.missingText} numberOfLines={1}>
+                      {m.name}
+                      {m.required > 1 ? ` ×${m.required}` : ''}
                     </Text>
-                  </View>
+                    <View style={styles.claimBtn}>
+                      <Plus size={11} color={colors.cta} strokeWidth={2.6} />
+                      <Text style={styles.claimText}>
+                        {t('group.bringIt', { defaultValue: "J'apporte" })}
+                      </Text>
+                    </View>
+                  </Pressable>
                 ))}
+
+                {coveredItems.length > 0 && (
+                  <View style={styles.coveredChipsRow}>
+                    {coveredItems.map((c) => (
+                      <View key={c.name} style={styles.coveredChip}>
+                        <Check size={10} color={colors.success} strokeWidth={3} />
+                        <Text style={styles.coveredChipText} numberOfLines={1}>
+                          {c.name}
+                          {c.have > c.required ? ` ×${c.have}` : ''}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {missingItems.length === 0 && coveredItems.length > 0 && (
+                  <Text style={styles.allCoveredHint}>
+                    {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
+                  </Text>
+                )}
               </View>
             )}
 
-            {missingItems.map((m) => (
-              <Pressable
-                key={m.name}
-                style={styles.missingRow}
-                onPress={() => onClaimGearItem(m.name)}
-                hitSlop={4}
-              >
-                <View
-                  style={[
-                    styles.missingDot,
-                    { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
-                  ]}
-                />
-                <Text style={styles.missingText} numberOfLines={1}>
-                  {m.name}
-                  {m.required > 1 ? ` ×${m.required}` : ''}
-                </Text>
-                <View style={styles.claimBtn}>
-                  <Plus size={11} color={colors.cta} strokeWidth={2.6} />
-                  <Text style={styles.claimText}>
-                    {t('group.bringIt', { defaultValue: "J'apporte" })}
+            {/* Section 2 — Qui apporte quoi. Per-bringer block: avatar
+                (tappable → profile) + name + their items as chips. Self
+                gets the TOI tag for consistency with Transport's
+                self-driver row. Sorted heaviest contributors first. */}
+            {bringers.length > 0 && (
+              <View style={[styles.gearSection, hasGear && styles.gearSectionSpacer]}>
+                <View style={styles.transportCategoryHeader}>
+                  <Text style={styles.transportCategoryLabel}>
+                    {t('group.gearSection.recap', { defaultValue: 'Qui apporte quoi' })}
                   </Text>
+                  <Text style={styles.transportCategoryCount}>· {bringers.length}</Text>
                 </View>
-              </Pressable>
-            ))}
 
-            {hasGear && missingItems.length === 0 && coveredItems.length > 0 && (
-              <Text style={styles.allCoveredHint}>
-                {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
+                {bringers.map((b) => {
+                  const isSelf = b.user_id === currentUserId;
+                  return (
+                    <Pressable
+                      key={b.user_id}
+                      onPress={() => router.push(`/(auth)/profile/${b.user_id}`)}
+                      style={styles.bringerBlock}
+                      hitSlop={4}
+                    >
+                      <View style={styles.bringerHeader}>
+                        <UserAvatar
+                          name={b.display_name}
+                          avatarUrl={b.avatar_url}
+                          size={22}
+                        />
+                        <Text style={styles.bringerName} numberOfLines={1}>
+                          {b.display_name}
+                        </Text>
+                        {isSelf && (
+                          <View style={styles.youTag}>
+                            <Text style={styles.youTagText}>
+                              {t('group.youTag', { defaultValue: 'Toi' })}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.bringerChipsRow}>
+                        {b.items.map((it) => (
+                          <View key={it.name} style={styles.bringerChip}>
+                            <Text style={styles.bringerChipText} numberOfLines={1}>
+                              {it.name}
+                              {it.quantity > 1 ? ` ×${it.quantity}` : ''}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+
+            {hasGear && bringers.length === 0 && (
+              <Text style={[styles.emptyHint, { marginTop: spacing.sm }]}>
+                {t('group.recapEmpty', { defaultValue: 'Personne n\'apporte encore de matériel' })}
               </Text>
             )}
           </View>
@@ -1006,6 +1127,67 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+  },
+
+  // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced
+  // so each section reads as its own block under the same tab.
+  gearSection: {
+    gap: 6,
+  },
+  gearSectionSpacer: {
+    marginTop: spacing.md - 2,
+  },
+
+  // Inventory progress bar — 6px track + success-green fill. Track is
+  // surfaceAlt so it reads as a quiet neutral; fill is the green that
+  // signals "covered" everywhere else (covered chips, ready seal).
+  progressTrack: {
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: colors.success,
+  },
+
+  // Recap — per-bringer block: avatar + name (+ TOI tag) on top,
+  // chips listing their items below, indented under the name.
+  bringerBlock: {
+    gap: 5,
+    paddingVertical: 4,
+  },
+  bringerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  bringerName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    letterSpacing: -0.05,
+    flexShrink: 1,
+  },
+  bringerChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+    paddingLeft: 28, // align under name (avatar 22 + gap 6)
+  },
+  bringerChip: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  bringerChipText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '500',
   },
   coveredChipsRow: {
     flexDirection: 'row',

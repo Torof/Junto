@@ -392,6 +392,12 @@
       "public_transport": "Transit",
       "other": "Other"
     },
+    "gearSection": {
+      "inventory": "Inventory",
+      "recap": "Who brings what"
+    },
+    "progressLabel": "{{covered}}/{{total}} ready",
+    "recapEmpty": "Nobody's bringing gear yet",
     "bringIt": "I'll bring it",
     "allGearCovered": "All gear is sorted",
     "showDetails": "Show full details",

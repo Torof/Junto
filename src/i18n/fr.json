@@ -392,6 +392,12 @@
       "public_transport": "Transports",
       "other": "Autre"
     },
+    "gearSection": {
+      "inventory": "Inventaire",
+      "recap": "Qui apporte quoi"
+    },
+    "progressLabel": "{{covered}}/{{total}} prêt",
+    "recapEmpty": "Personne n'apporte encore de matériel",
     "bringIt": "J'apporte",
     "allGearCovered": "Tout est prévu côté matos",
     "showDetails": "Voir tous les détails",
