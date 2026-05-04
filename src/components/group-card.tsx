@@ -693,10 +693,8 @@ export function GroupCard({
                             { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
                           ]}
                         />
-                        <Text style={styles.missingText} numberOfLines={1}>
-                          {m.name}
-                          {m.required > 1 ? ` ×${m.required}` : ''}
-                        </Text>
+                        <Text style={styles.missingText} numberOfLines={1}>{m.name}</Text>
+                        <Text style={styles.itemQty}>×{m.required}</Text>
                         <View style={styles.claimBtn}>
                           <Plus size={11} color={colors.cta} strokeWidth={2.6} />
                           <Text style={styles.claimText}>
@@ -711,10 +709,8 @@ export function GroupCard({
                         {coveredItems.map((c) => (
                           <View key={c.name} style={styles.bulletRow}>
                             <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
-                            <Text style={styles.bulletText} numberOfLines={1}>
-                              {c.name}
-                              {c.have > c.required ? ` ×${c.have}` : ''}
-                            </Text>
+                            <Text style={styles.bulletText} numberOfLines={1}>{c.name}</Text>
+                            <Text style={styles.itemQty}>×{c.have}</Text>
                           </View>
                         ))}
                       </View>
@@ -789,10 +785,8 @@ export function GroupCard({
                           {b.items.map((it) => (
                             <View key={it.name} style={styles.bulletRow}>
                               <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
-                              <Text style={styles.bulletText} numberOfLines={1}>
-                                {it.name}
-                                {it.quantity > 1 ? ` ×${it.quantity}` : ''}
-                              </Text>
+                              <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
+                              <Text style={styles.itemQty}>×{it.quantity}</Text>
                             </View>
                           ))}
                         </View>
@@ -1244,6 +1238,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     minWidth: 0,
+  },
+  // Right-aligned quantity caption — sits at the end of every gear-list
+  // row (covered, brought, missing) so the count reads as a separate
+  // column rather than appended to the item name. Muted + 700 weight
+  // gives it numeric tabular feel without visual competition.
+  itemQty: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    marginLeft: 6,
   },
   missingRow: {
     flexDirection: 'row',
