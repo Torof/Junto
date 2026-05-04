@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, ListChecks, Bell, MessageSquare, User, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -28,33 +28,12 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const rotation = useRef(new Animated.Value(0)).current;
-  const queryClient = useQueryClient();
 
   const { data: count } = useQuery({
     queryKey: ['notifications-count'],
     queryFn: () => notificationService.getUnreadCount(),
     refetchInterval: 30000,
   });
-
-  // Realtime: bell badge updates when a new notification arrives or one
-  // gets marked-as-read. RLS gates events to this user's rows only.
-  // Migration 00179 added notifications to the publication.
-  useEffect(() => {
-    const channel = supabase
-      .channel('notifications-badge')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   const hasUnread = (count ?? 0) > 0;
 
@@ -104,7 +83,6 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { isConversationUnread } = useMessageStore();
-  const queryClient = useQueryClient();
 
   const { data: currentUserId } = useQuery({
     queryKey: ['currentUser-id'],
@@ -116,27 +94,6 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
     queryFn: () => conversationService.getAll(),
     refetchInterval: 30000,
   });
-
-  // Realtime: DM tab dot updates when a new private message arrives in
-  // any of the user's conversations. RLS on private_messages drops
-  // events for conversations the user isn't part of. Migration 00179
-  // added private_messages to the publication.
-  useEffect(() => {
-    const channel = supabase
-      .channel('dm-badge')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'private_messages' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   const hasUnread = (conversations ?? []).some(
     (c) => isConversationUnread(c.id, c.last_message_at, c.last_message_sender_id, c.last_message_metadata, currentUserId)
