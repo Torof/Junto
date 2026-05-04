@@ -3,16 +3,28 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Plus, Check, ChevronRight, Bike, TrainFront, Footprints, HelpCircle } from 'lucide-react-native';
+import { Users, MapPin, Clock, Plus, Check, ChevronRight, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
 import { participationService } from '@/services/participation-service';
+import { badgeService } from '@/services/badge-service';
 import { UserAvatar } from './user-avatar';
 import { ringColorFor } from './profile-hero';
 import { supabase } from '@/services/supabase';
+
+// Icon for each positive peer-vouch trait. Shown inline next to driver
+// names so the trust signal reaches the decision point ("ride with this
+// stranger?"). Same mapping as badge-display.tsx — kept inline rather
+// than imported to keep this file self-contained.
+const VOUCH_ICONS: Record<string, LucideIcon> = {
+  punctual: Clock,
+  prepared: Package,
+  conciliant: Handshake,
+  prudent: Shield,
+};
 
 interface Props {
   activityId: string;
@@ -113,6 +125,22 @@ export function GroupCard({
     reliabilityScores.forEach((p) => map.set(p.id, p.reliability_score));
     return map;
   }, [reliabilityScores]);
+
+  // Top positive peer-vouch per driver — surfaced as an inline chip next
+  // to their name. Batch RPC (mig 00174) returns at most one row per
+  // user, threshold-gated at 5 votes. Stale cache fine; vouches change
+  // slowly compared to transport state.
+  const { data: topVouches = [] } = useQuery({
+    queryKey: ['top-vouched-badges', transportUserIdsKey],
+    queryFn: () => badgeService.getTopVouchedBadges(transports.map((p) => p.user_id)),
+    enabled: isParticipant && transports.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const vouchById = useMemo(() => {
+    const map = new Map<string, { badge_key: string; vote_count: number }>();
+    topVouches.forEach((v) => map.set(v.user_id, { badge_key: v.badge_key, vote_count: v.vote_count }));
+    return map;
+  }, [topVouches]);
 
   // Drivers offering rides — exclude the current user's own car (it's
   // already represented in Mine). Sort by departure time ascending so
@@ -244,9 +272,25 @@ export function GroupCard({
                     />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.driverName} numberOfLines={1}>
-                      {d.display_name}
-                    </Text>
+                    <View style={styles.driverNameRow}>
+                      <Text style={styles.driverName} numberOfLines={1}>
+                        {d.display_name}
+                      </Text>
+                      {(() => {
+                        const vouch = vouchById.get(d.user_id);
+                        if (!vouch) return null;
+                        const Icon = VOUCH_ICONS[vouch.badge_key];
+                        if (!Icon) return null;
+                        const label = t(`badges.${vouch.badge_key}`, { defaultValue: vouch.badge_key });
+                        return (
+                          <>
+                            <Text style={styles.vouchSep}>·</Text>
+                            <Icon size={11} color={colors.success} strokeWidth={2.4} />
+                            <Text style={styles.vouchLabel} numberOfLines={1}>{label}</Text>
+                          </>
+                        );
+                      })()}
+                    </View>
                     <View style={styles.driverMeta}>
                       {d.transport_from_name && (
                         <>
@@ -492,11 +536,32 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  // Wraps the driver's display name + their inline peer-vouch chip
+  // (icon + trait label). flexShrink on the name lets it ellipsize
+  // first if space is tight; the chip stays visible since it's the
+  // trust signal we're surfacing.
+  driverNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   driverName: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
     fontWeight: '700',
     letterSpacing: -0.1,
+    flexShrink: 1,
+  },
+  vouchSep: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+  },
+  vouchLabel: {
+    color: colors.success,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: -0.05,
+    flexShrink: 1,
   },
   driverMeta: {
     flexDirection: 'row',

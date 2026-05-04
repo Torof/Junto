@@ -192,6 +192,21 @@ export const badgeService = {
     return (data as unknown as BadgeVoter[]) ?? [];
   },
 
+  // Batch fetch — top positive peer-vouch (above 5-vote threshold) per
+  // user. Used by the GroupCard to render an inline vouch chip next to
+  // each driver's name. Returns one row per user; users with no vouched
+  // positive trait above threshold simply don't appear in the result.
+  getTopVouchedBadges: async (
+    userIds: string[],
+  ): Promise<{ user_id: string; badge_key: string; vote_count: number }[]> => {
+    if (userIds.length === 0) return [];
+    const { data, error } = await supabase.rpc('get_top_vouched_badges' as 'join_activity', {
+      p_user_ids: userIds,
+    } as unknown as { p_activity_id: string });
+    if (error) return [];
+    return (data as unknown as { user_id: string; badge_key: string; vote_count: number }[]) ?? [];
+  },
+
   getUserTrophies: async (userId: string): Promise<Trophy[]> => {
     const { data, error } = await supabase.rpc('get_user_trophies' as 'join_activity', {
       p_user_id: userId,
