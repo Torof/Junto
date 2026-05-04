@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,17 @@ interface Props {
   onEditTransport: () => void;
   onEditGearItem: (name: string) => void;
   onAddMaterial: () => void;
+}
+
+// Imperative handle so the parent (and sibling components like the
+// GroupCard's "Réserver" CTA) can route through Mine's cancel-first
+// gate. requestCancelIfNeeded returns true when it opens the cancel
+// modal — the caller then knows to NOT proceed with the new action;
+// the user has to clear their existing transport first. Returns
+// false if no transport is set, in which case the caller is free to
+// open whatever sheet they wanted.
+export interface MyOutingCardHandle {
+  requestCancelIfNeeded: () => boolean;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -112,7 +123,7 @@ const COLOR_AMBER = '#E8A33D';
 //     which lists all your declared items. Tapping a line in that
 //     sheet opens the existing per-item editor; "+ Ajouter" expands
 //     the dense gear view in the parent so you can pick from catalog.
-export function MyOutingCard({
+export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOutingCard({
   activityId,
   startsAt,
   status,
@@ -121,7 +132,7 @@ export function MyOutingCard({
   onEditTransport,
   onEditGearItem,
   onAddMaterial,
-}: Props) {
+}, ref) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -236,6 +247,20 @@ export function MyOutingCard({
       onEditTransport();
     }
   };
+
+  // Exposed to parent — lets the GroupCard's "Réserver" tap route
+  // through the same cancel-first gate that Mine's transport-stamp
+  // tap uses. Returns true if it intercepted (modal opened); false
+  // if no transport is set so the caller can proceed.
+  useImperativeHandle(ref, () => ({
+    requestCancelIfNeeded: () => {
+      if (cancelState !== 'none') {
+        setShowCancelPending(true);
+        return true;
+      }
+      return false;
+    },
+  }), [cancelState]);
 
   // Caption — countdown / status. Computed against the user's local day
   // boundary so a 22h activity tonight reads "AUJOURD'HUI" right up to
@@ -598,7 +623,7 @@ export function MyOutingCard({
       </Modal>
     </View>
   );
-}
+});
 
 interface StampProps {
   stamp: StampDef;

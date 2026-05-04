@@ -184,7 +184,15 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     setRequestingFromDriver(driverId);
     setRequestPickup(defaultPickupFrom ?? '');
     setRequestMessage('');
-    setRequestedPickupAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
+    // Default pickup time = driver's declared departure if they've set
+    // one (so the request is in-bounds vs the request_seat RPC's
+    // requested_pickup_at <= driver_departs_at constraint), else fall
+    // back to activity-start - 30min.
+    const driver = (participants ?? []).find((p) => p.user_id === driverId);
+    const driverDeparts = driver?.transport_departs_at ? new Date(driver.transport_departs_at) : null;
+    setRequestedPickupAt(
+      driverDeparts ?? (activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null),
+    );
   };
 
   // Exposed to parent so MyOutingCard / GroupCard can drive the editor
@@ -218,6 +226,21 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const handleRequestSeat = async () => {
     if (!requestingFromDriver) return;
     setRequestSending(true);
+    // Pre-flight clamp — even with the picker's maximumDate cap, surface
+    // a clear message rather than an opaque RPC rejection if somehow the
+    // value still exceeds the driver's declared departure.
+    const driver = (participants ?? []).find((p) => p.user_id === requestingFromDriver);
+    const driverDeparts = driver?.transport_departs_at ? new Date(driver.transport_departs_at) : null;
+    if (requestedPickupAt && driverDeparts && requestedPickupAt > driverDeparts) {
+      setRequestSending(false);
+      Burnt.toast({
+        title: t('transport.pickupAfterDriverError', {
+          time: dayjs(driverDeparts).format('H[h]mm'),
+          defaultValue: `Le chauffeur part à ${dayjs(driverDeparts).format('H[h]mm')}, choisis une heure avant`,
+        }),
+      });
+      return;
+    }
     try {
       await transportService.requestSeat(
         activityId,
@@ -481,22 +504,35 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                     </Text>
                   </Pressable>
                 </View>
-                {showPickupPicker && (
+                {showPickupPicker && (() => {
+                  // Cap the pickup time at the driver's declared departure
+                  // so the user can't pick a value the request_seat RPC
+                  // will reject (requested_pickup_at <= driver_departs_at,
+                  // enforced in mig 00116). If the driver hasn't logged a
+                  // time yet, no cap.
+                  const driver = (participants ?? []).find((p) => p.user_id === requestingFromDriver);
+                  const driverDeparts = driver?.transport_departs_at ? new Date(driver.transport_departs_at) : null;
+                  return (
                   <DateTimePicker
-                    value={requestedPickupAt ?? activityStartsAt ?? new Date()}
+                    value={requestedPickupAt ?? driverDeparts ?? activityStartsAt ?? new Date()}
                     mode="time"
                     is24Hour
+                    maximumDate={driverDeparts ?? undefined}
                     onChange={(_, d) => {
                       setShowPickupPicker(Platform.OS === 'ios');
                       if (d) {
                         const base = activityStartsAt ?? new Date();
                         const merged = new Date(base);
                         merged.setHours(d.getHours(), d.getMinutes(), 0, 0);
-                        setRequestedPickupAt(merged);
+                        // Clamp client-side too — maximumDate isn't always
+                        // reliable on Android's clock-mode picker.
+                        const clamped = driverDeparts && merged > driverDeparts ? driverDeparts : merged;
+                        setRequestedPickupAt(clamped);
                       }
                     }}
                   />
-                )}
+                  );
+                })()}
 
                 <View style={styles.fromRow}>
                   <Text style={styles.fromLabel}>{t('transport.messageOptional')}</Text>

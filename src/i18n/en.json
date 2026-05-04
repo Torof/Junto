@@ -212,6 +212,7 @@
     "departsAt": "Departure time",
     "pickupAt": "Pickup time",
     "pickTime": "Pick a time",
+    "pickupAfterDriverError": "The driver leaves at {{time}}, pick an earlier time",
     "freeSeats": "Free seats",
     "freeSeatsTotal_one": "{{count}} free seat",
     "freeSeatsTotal_other": "{{count}} free seats",

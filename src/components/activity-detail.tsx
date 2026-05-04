@@ -39,7 +39,7 @@ import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
-import { MyOutingCard } from './my-outing-card';
+import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
 import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
@@ -428,6 +428,7 @@ export function ActivityDetail({
   const [showOrgDetails, setShowOrgDetails] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
+  const myOutingCardRef = useRef<MyOutingCardHandle>(null);
   // Scroll target for "+ Ajouter du matériel" — without this, expanding
   // details below the fold leaves the user staring at the cards thinking
   // nothing happened.
@@ -746,6 +747,7 @@ export function ActivityDetail({
               by default and revealed via the "Voir tous les détails" link
               inside the GroupCard for power-users. */}
           <MyOutingCard
+            ref={myOutingCardRef}
             activityId={activity.id}
             startsAt={activity.starts_at}
             status={activity.status}
@@ -773,6 +775,11 @@ export function ActivityDetail({
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
             onReserveSeat={(driverId) => {
+              // Same cancel-first gate as Mine's stamp tap. If the user
+              // has any transport set (driver / passenger / self-mover /
+              // pending request), the gate opens the cancel modal and
+              // returns true; we bail without opening the reserve sheet.
+              if (myOutingCardRef.current?.requestCancelIfNeeded()) return;
               const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
