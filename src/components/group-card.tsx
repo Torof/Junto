@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Plus, Check, ChevronRight, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Plus, Check, ChevronRight, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -45,12 +45,6 @@ interface Props {
 
 const CAR_TYPES = ['car', 'carpool'] as const;
 
-const MODE_ICONS: Record<string, typeof Bike> = {
-  bike: Bike,
-  on_foot: Footprints,
-  public_transport: TrainFront,
-  other: HelpCircle,
-};
 
 // The sibling card to MyOutingCard. Mine is "what I'm doing for this
 // outing"; Group is "what everyone else is doing, and where the group
@@ -189,8 +183,8 @@ export function GroupCard({
   }, [transports]);
 
   // Per-driver passenger list — looked up from accepted seat assignments
-  // and joined to display info. Rendered as a small avatar stack below
-  // each driver row so the user can see who's already aboard.
+  // and joined to display info. Rendered as small rows under each driver
+  // (name · pickup place · pickup time).
   const passengersByDriver = useMemo(() => {
     const map = new Map<string, typeof seatAssignments>();
     seatAssignments.forEach((r) => {
@@ -200,6 +194,45 @@ export function GroupCard({
     });
     return map;
   }, [seatAssignments]);
+
+  // Free-seats summary at the top of the Transport tab — gives the user
+  // a one-glance answer to "is there capacity, and where from?". Cities
+  // come from each driver's transport_from_name (deduped, ordered by
+  // first appearance — the sort by departs_at carries through).
+  const totalFreeSeats = useMemo(
+    () => drivers.reduce((sum, d) => sum + d.free, 0),
+    [drivers],
+  );
+  const departureCities = useMemo(() => {
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    drivers.forEach((d) => {
+      const city = d.transport_from_name?.trim();
+      if (city && !seen.has(city) && d.free > 0) {
+        seen.add(city);
+        ordered.push(city);
+      }
+    });
+    return ordered;
+  }, [drivers]);
+
+  // Bucket self-movers (bike / foot / transit / other) so each category
+  // gets its own caption header. Empty buckets simply don't render.
+  const moverBuckets = useMemo(() => {
+    const buckets: Record<'bike' | 'on_foot' | 'public_transport' | 'other', typeof selfMovers> = {
+      bike: [],
+      on_foot: [],
+      public_transport: [],
+      other: [],
+    };
+    selfMovers.forEach((p) => {
+      const key = (p.transport_type === 'bike' || p.transport_type === 'on_foot' || p.transport_type === 'public_transport')
+        ? p.transport_type
+        : 'other';
+      buckets[key].push(p);
+    });
+    return buckets;
+  }, [selfMovers]);
 
   // Gear coverage — group view of the catalog. Per-person items deferred
   // until step 4 brings the explicit "I have my own" state.
@@ -306,7 +339,38 @@ export function GroupCard({
 
         {activeSubTab === 'transport' && (
           <View style={styles.tabContent}>
-            {drivers.map((d) => {
+            {/* Free-seats banner — at-a-glance answer to "is there a ride
+                available, and from where?". Hidden when no driver has
+                free seats so the surface stays calm in that case. */}
+            {totalFreeSeats > 0 && (
+              <View style={styles.freeSeatsBanner}>
+                <Text style={styles.freeSeatsCount}>
+                  {t('group.freeSeatsCount', {
+                    count: totalFreeSeats,
+                    defaultValue: totalFreeSeats === 1 ? '1 place libre' : `${totalFreeSeats} places libres`,
+                  })}
+                </Text>
+                {departureCities.length > 0 && (
+                  <Text style={styles.freeSeatsFrom} numberOfLines={2}>
+                    {t('group.freeSeatsFrom', {
+                      cities: departureCities.join(' · '),
+                      defaultValue: `depuis ${departureCities.join(' · ')}`,
+                    })}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {drivers.length > 0 && (
+              <View style={styles.transportCategory}>
+                <View style={styles.transportCategoryHeader}>
+                  <Car size={11} color={colors.textSecondary} strokeWidth={2.4} />
+                  <Text style={styles.transportCategoryLabel}>
+                    {t('group.transportCategory.car', { defaultValue: 'Voitures' })}
+                  </Text>
+                  <Text style={styles.transportCategoryCount}>· {drivers.length}</Text>
+                </View>
+                {drivers.map((d) => {
               const isSelf = d.user_id === currentUserId;
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
               const isPendingFromMe = myPending?.driver_id === d.user_id;
@@ -382,24 +446,33 @@ export function GroupCard({
                         </Text>
                       )}
                     </View>
-                    {/* Passengers — small avatar stack right below the
-                        meta line. Tap any to land on their profile. */}
+                    {/* Passengers — one small row per accepted seat,
+                        showing name + pickup place + pickup time. Each
+                        row tappable to land on that passenger's profile. */}
                     {driverPassengers.length > 0 && (
-                      <View style={styles.passengersRow}>
-                        {driverPassengers.map((p, i) => (
-                          <Pressable
-                            key={p.id}
-                            onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
-                            style={[styles.passengerAvatar, i > 0 && styles.passengerAvatarStacked]}
-                            hitSlop={4}
-                          >
-                            <UserAvatar
-                              name={p.display_name}
-                              avatarUrl={p.avatar_url}
-                              size={18}
-                            />
-                          </Pressable>
-                        ))}
+                      <View style={styles.passengersList}>
+                        {driverPassengers.map((p) => {
+                          const parts: string[] = [p.display_name ?? '?'];
+                          if (p.pickup_from) parts.push(p.pickup_from);
+                          if (p.requested_pickup_at) parts.push(dayjs(p.requested_pickup_at).format('H[h]mm'));
+                          return (
+                            <Pressable
+                              key={p.id}
+                              onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                              style={styles.passengerListRow}
+                              hitSlop={4}
+                            >
+                              <UserAvatar
+                                name={p.display_name}
+                                avatarUrl={p.avatar_url}
+                                size={16}
+                              />
+                              <Text style={styles.passengerListText} numberOfLines={1}>
+                                {parts.join(' · ')}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
                       </View>
                     )}
                   </View>
@@ -446,23 +519,45 @@ export function GroupCard({
                 </View>
               );
             })}
-
-            {selfMovers.length > 0 && (
-              <View style={styles.selfMoversRow}>
-                {selfMovers.map((p) => {
-                  const Icon = MODE_ICONS[p.transport_type ?? 'other'] ?? HelpCircle;
-                  const isSelf = p.user_id === currentUserId;
-                  return (
-                    <View key={p.user_id} style={[styles.selfChip, isSelf && styles.selfChipSelf]}>
-                      <Icon size={11} color={isSelf ? colors.cta : colors.textMuted} strokeWidth={2} />
-                      <Text style={[styles.selfChipText, isSelf && { color: colors.cta }]} numberOfLines={1}>
-                        {isSelf ? t('group.youTag', { defaultValue: 'Toi' }) : p.display_name}
-                      </Text>
-                    </View>
-                  );
-                })}
               </View>
             )}
+
+            {/* Self-mover categories — one section per non-empty bucket
+                (bike / on_foot / public_transport / other). Each section
+                has a small caption header + a chip strip. The user's
+                own entry highlights with the CTA-tinted "selfChipSelf"
+                variant. */}
+            {(['bike', 'on_foot', 'public_transport', 'other'] as const).map((bucket) => {
+              const list = moverBuckets[bucket];
+              if (list.length === 0) return null;
+              const Icon = bucket === 'bike' ? Bike
+                : bucket === 'on_foot' ? Footprints
+                : bucket === 'public_transport' ? TrainFront
+                : HelpCircle;
+              return (
+                <View key={bucket} style={styles.transportCategory}>
+                  <View style={styles.transportCategoryHeader}>
+                    <Icon size={11} color={colors.textSecondary} strokeWidth={2.4} />
+                    <Text style={styles.transportCategoryLabel}>
+                      {t(`group.transportCategory.${bucket}`, { defaultValue: bucket })}
+                    </Text>
+                    <Text style={styles.transportCategoryCount}>· {list.length}</Text>
+                  </View>
+                  <View style={styles.selfMoversRow}>
+                    {list.map((p) => {
+                      const isSelf = p.user_id === currentUserId;
+                      return (
+                        <View key={p.user_id} style={[styles.selfChip, isSelf && styles.selfChipSelf]}>
+                          <Text style={[styles.selfChipText, isSelf && { color: colors.cta }]} numberOfLines={1}>
+                            {isSelf ? t('group.youTag', { defaultValue: 'Toi' }) : p.display_name}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
 
             {drivers.length === 0 && selfMovers.length === 0 && (
               <Text style={styles.emptyHint}>
@@ -697,18 +792,73 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
-  // Passengers below each driver row — small overlapping avatar stack.
-  passengersRow: {
+
+  // Free-seats banner — pinned at the top of the Transport tab. Subtle
+  // success-tinted bg + bold count + smaller "from cities" sub-line.
+  // Only shown when at least one driver has free seats; otherwise the
+  // surface stays calm.
+  freeSeatsBanner: {
+    backgroundColor: colors.success + '14',
+    borderRadius: radius.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+  },
+  freeSeatsCount: {
+    color: colors.success,
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: -0.05,
+  },
+  freeSeatsFrom: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
+  // Transport sub-categories (Voitures / Vélo / À pied / Transports /
+  // Autre). Each non-empty bucket gets its own caption header followed
+  // by the cars' driver-rows or the self-movers' chip strip.
+  transportCategory: {
+    gap: 6,
+  },
+  transportCategoryHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     marginTop: 4,
   },
-  passengerAvatar: {
-    borderWidth: 1.5,
-    borderColor: colors.surface,
-    borderRadius: 11,
+  transportCategoryLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
-  passengerAvatarStacked: {
-    marginLeft: -6,
+  transportCategoryCount: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  // Passengers under each driver row — one small line per accepted seat
+  // showing avatar + name + pickup place + pickup time. Tap → profile.
+  passengersList: {
+    marginTop: 5,
+    gap: 3,
+  },
+  passengerListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  passengerListText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '500',
+    flex: 1,
+    minWidth: 0,
   },
   driverMeta: {
     flexDirection: 'row',

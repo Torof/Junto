@@ -382,6 +382,16 @@
     "noTransportYet": "Nobody's said how they're getting there yet",
     "noGearForSport": "No shared gear needed for this sport",
     "youTag": "You",
+    "freeSeatsCount_one": "{{count}} free seat",
+    "freeSeatsCount_other": "{{count}} free seats",
+    "freeSeatsFrom": "from {{cities}}",
+    "transportCategory": {
+      "car": "Cars",
+      "bike": "Biking",
+      "on_foot": "Walking",
+      "public_transport": "Transit",
+      "other": "Other"
+    },
     "bringIt": "I'll bring it",
     "allGearCovered": "All gear is sorted",
     "showDetails": "Show full details",
