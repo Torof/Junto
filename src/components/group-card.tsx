@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Plus, Check, ChevronRight, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Plus, Check, ChevronRight, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -70,6 +70,22 @@ export function GroupCard({
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  // Collapse state for the Matériel sub-sections. Inventaire opens by
+  // default (it's the action surface — claim missing items, see the
+  // covered list); the bringer recaps stay closed by default since
+  // they're info-shaped and only useful when the user is curious
+  // about a specific person's contribution.
+  const [inventaireExpanded, setInventaireExpanded] = useState(true);
+  const [expandedBringers, setExpandedBringers] = useState<Set<string>>(new Set());
+  const toggleBringer = (userId: string) => {
+    setExpandedBringers((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -268,12 +284,10 @@ export function GroupCard({
     [missingItems],
   );
 
-  // Progress fraction for the "Inventaire" header bar — only counts
-  // catalog items (not customs). Custom contributions surface in the
-  // Recap section instead, so the bar honestly tracks "is the sport's
-  // standard kit covered?".
+  // Total catalog count drives the "X/Y prêt" header subtitle on the
+  // Inventaire section. (Progress bar removed — the count + the
+  // missing-items rows together tell the same readiness story.)
   const totalCatalog = coveredItems.length + missingItems.length;
-  const progressRatio = totalCatalog === 0 ? 0 : coveredItems.length / totalCatalog;
 
   // "Qui apporte quoi" recap — group declared gear by user_id,
   // sorted by contribution count descending so heavy contributors
@@ -634,14 +648,17 @@ export function GroupCard({
               </Text>
             )}
 
-            {/* Section 1 — Inventaire. Progress bar + count anchor the
-                top so a glance answers "is the catalog covered?". Below:
-                missing items as actionable rows, then covered items as
-                check-chips. Hidden entirely if the sport has no catalog
-                (custom-only contributions surface in the Recap below). */}
+            {/* Section 1 — Inventaire. Collapsible: header is tappable
+                (chevron rotates), content shows missing-items rows +
+                covered chips when expanded. Header subtitle "X/Y prêt"
+                gives readiness at a glance even when collapsed. */}
             {hasGear && (
               <View style={styles.gearSection}>
-                <View style={styles.transportCategoryHeader}>
+                <Pressable
+                  style={styles.collapsibleHeader}
+                  onPress={() => setInventaireExpanded((v) => !v)}
+                  hitSlop={4}
+                >
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
                   </Text>
@@ -652,56 +669,63 @@ export function GroupCard({
                       defaultValue: `${coveredItems.length}/${totalCatalog} prêt`,
                     })}
                   </Text>
-                </View>
+                  <View style={styles.collapsibleSpacer} />
+                  <ChevronDown
+                    size={14}
+                    color={colors.textMuted}
+                    strokeWidth={2}
+                    style={{ transform: [{ rotate: inventaireExpanded ? '180deg' : '0deg' }] }}
+                  />
+                </Pressable>
 
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
-                </View>
-
-                {missingItems.map((m) => (
-                  <Pressable
-                    key={m.name}
-                    style={styles.missingRow}
-                    onPress={() => onClaimGearItem(m.name)}
-                    hitSlop={4}
-                  >
-                    <View
-                      style={[
-                        styles.missingDot,
-                        { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
-                      ]}
-                    />
-                    <Text style={styles.missingText} numberOfLines={1}>
-                      {m.name}
-                      {m.required > 1 ? ` ×${m.required}` : ''}
-                    </Text>
-                    <View style={styles.claimBtn}>
-                      <Plus size={11} color={colors.cta} strokeWidth={2.6} />
-                      <Text style={styles.claimText}>
-                        {t('group.bringIt', { defaultValue: "J'apporte" })}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-
-                {coveredItems.length > 0 && (
-                  <View style={styles.coveredChipsRow}>
-                    {coveredItems.map((c) => (
-                      <View key={c.name} style={styles.coveredChip}>
-                        <Check size={10} color={colors.success} strokeWidth={3} />
-                        <Text style={styles.coveredChipText} numberOfLines={1}>
-                          {c.name}
-                          {c.have > c.required ? ` ×${c.have}` : ''}
+                {inventaireExpanded && (
+                  <>
+                    {missingItems.map((m) => (
+                      <Pressable
+                        key={m.name}
+                        style={styles.missingRow}
+                        onPress={() => onClaimGearItem(m.name)}
+                        hitSlop={4}
+                      >
+                        <View
+                          style={[
+                            styles.missingDot,
+                            { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
+                          ]}
+                        />
+                        <Text style={styles.missingText} numberOfLines={1}>
+                          {m.name}
+                          {m.required > 1 ? ` ×${m.required}` : ''}
                         </Text>
-                      </View>
+                        <View style={styles.claimBtn}>
+                          <Plus size={11} color={colors.cta} strokeWidth={2.6} />
+                          <Text style={styles.claimText}>
+                            {t('group.bringIt', { defaultValue: "J'apporte" })}
+                          </Text>
+                        </View>
+                      </Pressable>
                     ))}
-                  </View>
-                )}
 
-                {missingItems.length === 0 && coveredItems.length > 0 && (
-                  <Text style={styles.allCoveredHint}>
-                    {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
-                  </Text>
+                    {coveredItems.length > 0 && (
+                      <View style={styles.coveredChipsRow}>
+                        {coveredItems.map((c) => (
+                          <View key={c.name} style={styles.coveredChip}>
+                            <Check size={10} color={colors.success} strokeWidth={3} />
+                            <Text style={styles.coveredChipText} numberOfLines={1}>
+                              {c.name}
+                              {c.have > c.required ? ` ×${c.have}` : ''}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {missingItems.length === 0 && coveredItems.length > 0 && (
+                      <Text style={styles.allCoveredHint}>
+                        {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
+                      </Text>
+                    )}
+                  </>
                 )}
               </View>
             )}
@@ -721,19 +745,24 @@ export function GroupCard({
 
                 {bringers.map((b) => {
                   const isSelf = b.user_id === currentUserId;
+                  const isExpanded = expandedBringers.has(b.user_id);
                   return (
-                    <Pressable
-                      key={b.user_id}
-                      onPress={() => router.push(`/(auth)/profile/${b.user_id}`)}
-                      style={styles.bringerBlock}
-                      hitSlop={4}
-                    >
-                      <View style={styles.bringerHeader}>
-                        <UserAvatar
-                          name={b.display_name}
-                          avatarUrl={b.avatar_url}
-                          size={22}
-                        />
+                    <View key={b.user_id} style={styles.bringerBlock}>
+                      <Pressable
+                        style={styles.bringerHeader}
+                        onPress={() => toggleBringer(b.user_id)}
+                        hitSlop={4}
+                      >
+                        <Pressable
+                          onPress={() => router.push(`/(auth)/profile/${b.user_id}`)}
+                          hitSlop={4}
+                        >
+                          <UserAvatar
+                            name={b.display_name}
+                            avatarUrl={b.avatar_url}
+                            size={22}
+                          />
+                        </Pressable>
                         <Text style={styles.bringerName} numberOfLines={1}>
                           {b.display_name}
                         </Text>
@@ -744,18 +773,30 @@ export function GroupCard({
                             </Text>
                           </View>
                         )}
-                      </View>
-                      <View style={styles.bringerChipsRow}>
-                        {b.items.map((it) => (
-                          <View key={it.name} style={styles.bringerChip}>
-                            <Text style={styles.bringerChipText} numberOfLines={1}>
-                              {it.name}
-                              {it.quantity > 1 ? ` ×${it.quantity}` : ''}
-                            </Text>
-                          </View>
-                        ))}
-                      </View>
-                    </Pressable>
+                        <Text style={styles.bringerCount}>
+                          · {b.items.length}
+                        </Text>
+                        <View style={styles.collapsibleSpacer} />
+                        <ChevronDown
+                          size={13}
+                          color={colors.textMuted}
+                          strokeWidth={2}
+                          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+                        />
+                      </Pressable>
+                      {isExpanded && (
+                        <View style={styles.bringerChipsRow}>
+                          {b.items.map((it) => (
+                            <View key={it.name} style={styles.bringerChip}>
+                              <Text style={styles.bringerChipText} numberOfLines={1}>
+                                {it.name}
+                                {it.quantity > 1 ? ` ×${it.quantity}` : ''}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
                   );
                 })}
               </View>
@@ -1138,20 +1179,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: spacing.md - 2,
   },
 
-  // Inventory progress bar — 6px track + success-green fill. Track is
-  // surfaceAlt so it reads as a quiet neutral; fill is the green that
-  // signals "covered" everywhere else (covered chips, ready seal).
-  progressTrack: {
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: colors.surfaceAlt,
-    overflow: 'hidden',
-    marginBottom: 4,
+  // Collapsible-section header — used by both Inventaire and the
+  // per-bringer blocks. Pressable row with the section caption on the
+  // left, optional metadata, then a chevron pinned to the right via
+  // a flex spacer.
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 4,
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: colors.success,
+  collapsibleSpacer: {
+    flex: 1,
   },
 
   // Recap — per-bringer block: avatar + name (+ TOI tag) on top,
@@ -1171,6 +1210,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.05,
     flexShrink: 1,
+  },
+  bringerCount: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
   },
   bringerChipsRow: {
     flexDirection: 'row',
