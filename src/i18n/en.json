@@ -337,6 +337,8 @@
       "materialNothing": "Nothing to bring",
       "passengersCount_one": "{{count}} passenger",
       "passengersCount_other": "{{count}} passengers",
+      "itemsOverflow_one": "+ {{count}} more",
+      "itemsOverflow_other": "+ {{count}} more",
       "mode": {
         "public_transport": "Public transport",
         "bike": "Biking",

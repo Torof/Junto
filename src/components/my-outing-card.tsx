@@ -47,13 +47,29 @@ interface StampSubRow {
   text: string;
 }
 
+interface StampItem {
+  name: string;
+  quantity: number;
+}
+
 interface StampDef {
   caption: string;
   Icon: LucideIcon;
   content: string;
   state: StampState;
   subRows?: StampSubRow[];
+  // When set, the stamp renders this as a bulleted list (one per line)
+  // instead of the `content` string. Used by matériel so each item gets
+  // its own row, with overflowCount surfacing how many fall off.
+  itemsList?: StampItem[];
+  overflowCount?: number;
 }
+
+// How many gear items fit nicely in a stamp before we collapse the rest
+// into "+N autres". Keeps the card height in check while still giving
+// the user a real list, not a single ellipsized line.
+const STAMP_ITEMS_CAP = 4;
+const STAMP_ITEMS_BEFORE_OVERFLOW = 3;
 
 const COLOR_AMBER = '#E8A33D';
 
@@ -247,16 +263,24 @@ export function MyOutingCard({
         state: 'neutral',
       };
     }
-    // Show every item joined by " · " — RN's numberOfLines={2} auto-
-    // truncates with ellipsis when the row overflows. The full list lives
-    // in the my-gear sheet, so anything truncated here is reachable in
-    // one tap.
-    const labels = myGearItems.map((g) => (g.quantity > 1 ? `${g.name} ×${g.quantity}` : g.name));
+    // Each item gets its own bulleted row. We show up to STAMP_ITEMS_CAP;
+    // beyond that, collapse the tail into "+N autres" and let the my-gear
+    // sheet carry the full list on tap. STAMP_ITEMS_BEFORE_OVERFLOW
+    // governs how many we show when overflow is present so the "+N"
+    // pill actually visible (otherwise we'd show CAP items + cramped
+    // overflow line).
+    const visible =
+      myGearItems.length <= STAMP_ITEMS_CAP
+        ? myGearItems
+        : myGearItems.slice(0, STAMP_ITEMS_BEFORE_OVERFLOW);
+    const overflowCount = myGearItems.length - visible.length;
     return {
       caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
       Icon: Backpack,
-      content: labels.join(' · '),
+      content: '',
       state: 'set',
+      itemsList: visible,
+      overflowCount: overflowCount > 0 ? overflowCount : undefined,
     };
   }, [myGearItems, t]);
 
@@ -283,16 +307,16 @@ export function MyOutingCard({
           <Stamp
             stamp={transportStamp}
             onPress={onEditTransport}
-            singleLineContent={false}
             colors={colors}
             styles={styles}
+            t={t}
           />
           <Stamp
             stamp={materialStamp}
             onPress={() => setShowMyGear(true)}
-            singleLineContent
             colors={colors}
             styles={styles}
+            t={t}
           />
         </View>
       </View>
@@ -369,12 +393,12 @@ export function MyOutingCard({
 interface StampProps {
   stamp: StampDef;
   onPress: () => void;
-  singleLineContent: boolean;
   colors: AppColors;
   styles: ReturnType<typeof createStyles>;
+  t: (k: string, opts?: Record<string, unknown>) => string;
 }
 
-function Stamp({ stamp, onPress, singleLineContent, colors, styles }: StampProps) {
+function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
   const accent =
     stamp.state === 'set' ? colors.success
     : stamp.state === 'pending' || stamp.state === 'todo' ? COLOR_AMBER
@@ -383,6 +407,7 @@ function Stamp({ stamp, onPress, singleLineContent, colors, styles }: StampProps
   const isFilledLook = stamp.state === 'set' || stamp.state === 'pending';
   const dashedBorder = stamp.state === 'todo' || stamp.state === 'neutral';
   const mutedContent = stamp.state === 'todo' || stamp.state === 'neutral';
+  const hasItemsList = stamp.itemsList && stamp.itemsList.length > 0;
 
   return (
     <Pressable
@@ -414,15 +439,35 @@ function Stamp({ stamp, onPress, singleLineContent, colors, styles }: StampProps
         </Text>
       </View>
 
-      <Text
-        style={[
-          styles.stampContent,
-          mutedContent ? { color: colors.textSecondary } : { color: colors.textPrimary },
-        ]}
-        numberOfLines={singleLineContent ? 1 : 2}
-      >
-        {stamp.content}
-      </Text>
+      {hasItemsList ? (
+        <View style={styles.stampItemsList}>
+          {stamp.itemsList!.map((item, i) => (
+            <Text key={`${item.name}-${i}`} style={styles.stampItemRow} numberOfLines={1}>
+              <Text style={[styles.stampItemBullet, { color: accent }]}>•  </Text>
+              {item.name}
+              {item.quantity > 1 ? ` ×${item.quantity}` : ''}
+            </Text>
+          ))}
+          {stamp.overflowCount && stamp.overflowCount > 0 && (
+            <Text style={styles.stampItemOverflow} numberOfLines={1}>
+              {t('myOuting.stamp.itemsOverflow', {
+                count: stamp.overflowCount,
+                defaultValue: `+ ${stamp.overflowCount} autres`,
+              })}
+            </Text>
+          )}
+        </View>
+      ) : (
+        <Text
+          style={[
+            styles.stampContent,
+            mutedContent ? { color: colors.textSecondary } : { color: colors.textPrimary },
+          ]}
+          numberOfLines={2}
+        >
+          {stamp.content}
+        </Text>
+      )}
 
       {stamp.subRows && stamp.subRows.length > 0 && (
         <View style={styles.stampSubRowsCol}>
@@ -521,6 +566,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     lineHeight: 18,
     letterSpacing: -0.1,
     flexShrink: 1,
+  },
+  stampItemsList: {
+    gap: 1,
+  },
+  stampItemRow: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+    lineHeight: 17,
+    letterSpacing: -0.05,
+  },
+  stampItemBullet: {
+    fontWeight: '800',
+  },
+  stampItemOverflow: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   stampSubRowsCol: {
     marginTop: 4,
