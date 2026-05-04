@@ -18,6 +18,7 @@ import {
   Minus,
   Plus,
   ChevronRight,
+  MapPin,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -41,11 +42,17 @@ const CAR_TYPES = ['car', 'carpool'] as const;
 
 type StampState = 'set' | 'pending' | 'todo' | 'neutral';
 
+interface StampSubRow {
+  Icon: LucideIcon;
+  text: string;
+}
+
 interface StampDef {
   caption: string;
   Icon: LucideIcon;
   content: string;
   state: StampState;
+  subRows?: StampSubRow[];
 }
 
 const COLOR_AMBER = '#E8A33D';
@@ -131,7 +138,7 @@ export function MyOutingCard({
       .format(i18n.language === 'fr' ? 'D MMM' : 'MMM D');
   }, [startsAt, status, t, i18n.language]);
 
-  const transportStamp = useMemo<StampDef & { seats?: number }>(() => {
+  const transportStamp = useMemo<StampDef>(() => {
     const empty: StampDef = {
       caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
       Icon: Compass,
@@ -143,6 +150,9 @@ export function MyOutingCard({
     const myTransport = transports.find((p) => p.user_id === currentUserId);
     const myAcceptedSeat = seatAssignments.find((r) => r.requester_id === currentUserId);
     const myPending = pendingRequests.find((r) => r.requester_id === currentUserId);
+    // For the driver case, count the seats already taken by accepted
+    // requesters — that's the user's passenger headcount.
+    const myPassengerCount = seatAssignments.filter((r) => r.driver_id === currentUserId).length;
 
     if (myPending) {
       const driver = transports.find((p) => p.user_id === myPending.driver_id);
@@ -159,23 +169,34 @@ export function MyOutingCard({
 
     if (myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')) {
       const from = myTransport.transport_from_name?.trim();
-      const seats = myTransport.transport_seats ?? 0;
+      const subRows: StampSubRow[] = [];
+      if (from) {
+        subRows.push({ Icon: MapPin, text: from });
+      }
+      // Passenger count — render even at 0 so the stamp's role as "I'm
+      // a driver carrying N people" is consistently visible.
+      subRows.push({
+        Icon: Users,
+        text: t('myOuting.stamp.passengersCount', {
+          count: myPassengerCount,
+          defaultValue: myPassengerCount === 1 ? '1 passager' : `${myPassengerCount} passagers`,
+        }),
+      });
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon: Car,
-        content: from
-          ? t('myOuting.stamp.transportDriverFrom', {
-              from,
-              defaultValue: `Conduis · ${from}`,
-            })
-          : t('myOuting.stamp.transportDriver', { defaultValue: 'Conduis' }),
+        content: t('myOuting.stamp.transportDriver', { defaultValue: 'Conduis' }),
         state: 'set',
-        seats: seats > 0 ? seats : undefined,
+        subRows,
       };
     }
 
     if (myAcceptedSeat) {
       const driver = transports.find((p) => p.user_id === myAcceptedSeat.driver_id);
+      const subRows: StampSubRow[] = [];
+      if (myAcceptedSeat.pickup_from) {
+        subRows.push({ Icon: MapPin, text: myAcceptedSeat.pickup_from });
+      }
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon: Users,
@@ -184,6 +205,7 @@ export function MyOutingCard({
           defaultValue: `Passager · ${driver?.display_name ?? '?'}`,
         }),
         state: 'set',
+        subRows: subRows.length > 0 ? subRows : undefined,
       };
     }
 
@@ -260,22 +282,15 @@ export function MyOutingCard({
         <View style={styles.stampsRow}>
           <Stamp
             stamp={transportStamp}
-            seatsHint={
-              transportStamp.state === 'set' && transportStamp.seats
-                ? t('myOuting.stamp.seatsFree', {
-                    count: transportStamp.seats,
-                    defaultValue: `${transportStamp.seats} place${transportStamp.seats > 1 ? 's' : ''} libre${transportStamp.seats > 1 ? 's' : ''}`,
-                  })
-                : null
-            }
             onPress={onEditTransport}
+            singleLineContent={false}
             colors={colors}
             styles={styles}
           />
           <Stamp
             stamp={materialStamp}
-            seatsHint={null}
             onPress={() => setShowMyGear(true)}
+            singleLineContent
             colors={colors}
             styles={styles}
           />
@@ -352,14 +367,14 @@ export function MyOutingCard({
 }
 
 interface StampProps {
-  stamp: StampDef & { seats?: number };
-  seatsHint: string | null;
+  stamp: StampDef;
   onPress: () => void;
+  singleLineContent: boolean;
   colors: AppColors;
   styles: ReturnType<typeof createStyles>;
 }
 
-function Stamp({ stamp, seatsHint, onPress, colors, styles }: StampProps) {
+function Stamp({ stamp, onPress, singleLineContent, colors, styles }: StampProps) {
   const accent =
     stamp.state === 'set' ? colors.success
     : stamp.state === 'pending' || stamp.state === 'todo' ? COLOR_AMBER
@@ -367,6 +382,7 @@ function Stamp({ stamp, seatsHint, onPress, colors, styles }: StampProps) {
 
   const isFilledLook = stamp.state === 'set' || stamp.state === 'pending';
   const dashedBorder = stamp.state === 'todo' || stamp.state === 'neutral';
+  const mutedContent = stamp.state === 'todo' || stamp.state === 'neutral';
 
   return (
     <Pressable
@@ -401,19 +417,24 @@ function Stamp({ stamp, seatsHint, onPress, colors, styles }: StampProps) {
       <Text
         style={[
           styles.stampContent,
-          stamp.state === 'todo' || stamp.state === 'neutral'
-            ? { color: colors.textSecondary }
-            : { color: colors.textPrimary },
+          mutedContent ? { color: colors.textSecondary } : { color: colors.textPrimary },
         ]}
-        numberOfLines={2}
+        numberOfLines={singleLineContent ? 1 : 2}
       >
         {stamp.content}
       </Text>
 
-      {seatsHint && (
-        <Text style={styles.stampSubHint} numberOfLines={1}>
-          {seatsHint}
-        </Text>
+      {stamp.subRows && stamp.subRows.length > 0 && (
+        <View style={styles.stampSubRowsCol}>
+          {stamp.subRows.map((row, i) => (
+            <View key={i} style={styles.stampSubRow}>
+              <row.Icon size={11} color={colors.textSecondary} strokeWidth={2.2} />
+              <Text style={styles.stampSubText} numberOfLines={1}>
+                {row.text}
+              </Text>
+            </View>
+          ))}
+        </View>
       )}
 
       <View style={styles.stampMarkRow}>
@@ -501,11 +522,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.1,
     flexShrink: 1,
   },
-  stampSubHint: {
+  stampSubRowsCol: {
+    marginTop: 4,
+    gap: 2,
+  },
+  stampSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  stampSubText: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
-    marginTop: 3,
+    flexShrink: 1,
   },
   stampMarkRow: {
     marginTop: 'auto',

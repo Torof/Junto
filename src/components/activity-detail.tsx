@@ -428,6 +428,10 @@ export function ActivityDetail({
   const [showOrgDetails, setShowOrgDetails] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
+  // Scroll target for "+ Ajouter du matériel" — without this, expanding
+  // details below the fold leaves the user staring at the cards thinking
+  // nothing happened.
+  const orgScrollRef = useRef<ScrollView>(null);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
@@ -681,7 +685,11 @@ export function ActivityDetail({
 
       {/* ===== ORGANIZATION TAB ===== */}
       {showTabs && activeTab === 'organization' && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <ScrollView
+          ref={orgScrollRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.content}
+        >
           {/* Presence verification */}
           {canCheckIn && (
             <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
@@ -746,10 +754,16 @@ export function ActivityDetail({
             onEditTransport={() => transportSectionRef.current?.openEditor()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
             onAddMaterial={() => {
-              // No item declared yet — surface the catalog so the user can
-              // pick what they bring.
+              // Surface the catalog so the user can claim items. The
+              // expand happens off-screen below the fold; scroll the
+              // org ScrollView to the bottom after a beat so the
+              // newly-rendered gear section is in view, otherwise the
+              // tap reads as "did nothing".
               setShowOrgDetails(true);
               setOrgSubTab('gear');
+              setTimeout(() => {
+                orgScrollRef.current?.scrollToEnd({ animated: true });
+              }, 80);
             }}
           />
 

@@ -335,8 +335,8 @@
       "transportDriverFrom": "Driving · {{from}}",
       "transportPassenger": "Riding · {{driver}}",
       "materialNothing": "Nothing to bring",
-      "seatsFree_one": "{{count}} seat free",
-      "seatsFree_other": "{{count}} seats free",
+      "passengersCount_one": "{{count}} passenger",
+      "passengersCount_other": "{{count}} passengers",
       "mode": {
         "public_transport": "Public transport",
         "bike": "Biking",
