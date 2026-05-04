@@ -781,16 +781,20 @@ function VouchedDetail({
 
       <View style={[styles.pullQuoteCard, { borderLeftColor: accent }]}>
         <View style={styles.pullQuoteAvatars}>
-          <VoterAvatarStack
-            voters={visibleVoters}
-            ringColor={colors.surface}
-          />
-          {uniqueOverflow > 0 && (
-            <>
+          <View style={styles.pullQuoteAvatarsLeft}>
+            <VoterAvatarStack
+              voters={visibleVoters}
+              ringColor={colors.surface}
+            />
+            {/* "..." rendered whenever ≥1 avatar exists — Scott's call:
+                visual separator regardless of overflow state. */}
+            {visibleVoters.length > 0 && (
               <Text style={styles.pullQuoteEllipsis}>...</Text>
+            )}
+            {uniqueOverflow > 0 && (
               <Text style={styles.pullQuoteOverflow}>+{uniqueOverflow}</Text>
-            </>
-          )}
+            )}
+          </View>
           <Text style={styles.pullQuotePeersLabel}>
             <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
             {' '}{t('badges.vouchedVotesLabel', { count: item.count, defaultValue: 'votes' })}
@@ -1399,8 +1403,15 @@ const createStyles = (colors: AppColors) =>
     pullQuoteAvatars: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: 10,
       flexWrap: 'wrap',
+    },
+    pullQuoteAvatarsLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 1,
     },
     pullQuotePeersLabel: {
       fontSize: 12.5,
