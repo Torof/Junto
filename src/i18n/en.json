@@ -380,6 +380,8 @@
     "pendingRequest": "Pending",
     "seatsLabel": "seats",
     "noTransportYet": "Nobody's said how they're getting there yet",
+    "noGearForSport": "No shared gear needed for this sport",
+    "youTag": "You",
     "bringIt": "I'll bring it",
     "allGearCovered": "All gear is sorted",
     "showDetails": "Show full details",

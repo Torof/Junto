@@ -380,6 +380,8 @@
     "pendingRequest": "En attente",
     "seatsLabel": "places",
     "noTransportYet": "Personne n'a encore dit comment il y va",
+    "noGearForSport": "Pas de matériel commun pour ce sport",
+    "youTag": "Toi",
     "bringIt": "J'apporte",
     "allGearCovered": "Tout est prévu côté matos",
     "showDetails": "Voir tous les détails",

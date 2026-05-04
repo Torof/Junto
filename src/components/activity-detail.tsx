@@ -774,6 +774,8 @@ export function ActivityDetail({
             sportKey={activity.sport_key}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
+            activeSubTab={orgSubTab}
+            onActiveSubTabChange={setOrgSubTab}
             onReserveSeat={(driverId) => {
               // Same cancel-first gate as Mine's stamp tap. If the user
               // has any transport set (driver / passenger / self-mover /

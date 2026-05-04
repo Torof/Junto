@@ -32,6 +32,11 @@ interface Props {
   sportKey: string;
   currentUserId: string | null;
   isParticipant: boolean;
+  // Active sub-section is owned by the parent so the in-card folder
+  // tabs and the "Voir tous les détails" dense expansion stay in sync —
+  // tapping a tab in the card sets the same state the dense view uses.
+  activeSubTab: 'transport' | 'gear';
+  onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
   onClaimGearItem: (itemName: string) => void;
   onToggleDetails: () => void;
@@ -61,6 +66,8 @@ export function GroupCard({
   sportKey,
   currentUserId,
   isParticipant,
+  activeSubTab,
+  onActiveSubTabChange,
   onReserveSeat,
   onClaimGearItem,
   onToggleDetails,
@@ -143,9 +150,9 @@ export function GroupCard({
     return map;
   }, [topVouches]);
 
-  // Drivers offering rides — exclude the current user's own car (it's
-  // already represented in Mine). Sort by departure time ascending so
-  // the earliest meet-up surfaces first.
+  // Drivers offering rides — INCLUDES the current user when they're
+  // a driver (rendered with a "Toi" marker). Sort by departure time
+  // ascending so the earliest meet-up surfaces first.
   const drivers = useMemo(() => {
     const acceptedByDriver = new Map<string, number>();
     seatAssignments.forEach((r) =>
@@ -153,7 +160,6 @@ export function GroupCard({
     );
     return transports
       .filter((p) => {
-        if (p.user_id === currentUserId) return false;
         if (!p.transport_type || !(CAR_TYPES as readonly string[]).includes(p.transport_type)) return false;
         const offered = (p.transport_seats ?? 0) + (acceptedByDriver.get(p.user_id) ?? 0);
         return offered > 0;
@@ -169,17 +175,31 @@ export function GroupCard({
         const tb = b.transport_departs_at ? new Date(b.transport_departs_at).getTime() : Infinity;
         return ta - tb;
       });
-  }, [transports, seatAssignments, currentUserId]);
+  }, [transports, seatAssignments]);
 
-  // Self-going modes (bike / foot / public / other) — small one-line
-  // chips so the user knows who's coming under their own steam.
+  // Self-going modes (bike / foot / public / other) — INCLUDES the
+  // current user when they self-move. Small one-line chips so the
+  // user can see who's coming under their own steam, including their
+  // own entry if applicable.
   const selfMovers = useMemo(() => {
     return transports.filter((p) => {
-      if (p.user_id === currentUserId) return false;
       if (!p.transport_type) return false;
       return !(CAR_TYPES as readonly string[]).includes(p.transport_type);
     });
-  }, [transports, currentUserId]);
+  }, [transports]);
+
+  // Per-driver passenger list — looked up from accepted seat assignments
+  // and joined to display info. Rendered as a small avatar stack below
+  // each driver row so the user can see who's already aboard.
+  const passengersByDriver = useMemo(() => {
+    const map = new Map<string, typeof seatAssignments>();
+    seatAssignments.forEach((r) => {
+      const list = map.get(r.driver_id) ?? [];
+      list.push(r);
+      map.set(r.driver_id, list);
+    });
+    return map;
+  }, [seatAssignments]);
 
   // Gear coverage — group view of the catalog. Per-person items deferred
   // until step 4 brings the explicit "I have my own" state.
@@ -247,18 +267,65 @@ export function GroupCard({
           </View>
         </View>
 
-        {(drivers.length > 0 || selfMovers.length > 0) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
+        {/* Folder-style sub-tabs: Transport / Matériel. The active tab
+            shares its background with the content area below, so they
+            visually merge into a single "open folder"; the inactive tab
+            sits on the surfaceAlt strip looking tucked-behind. */}
+        <View style={styles.folderTabsStrip}>
+          <Pressable
+            onPress={() => onActiveSubTabChange('transport')}
+            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
+            hitSlop={4}
+          >
+            <Text style={[
+              styles.folderTabLabel,
+              activeSubTab === 'transport' ? styles.folderTabLabelActive : styles.folderTabLabelInactive,
+            ]}>
               {t('group.transport', { defaultValue: 'Transport' })}
             </Text>
+            <Text style={[
+              styles.folderTabCaption,
+              activeSubTab === 'transport' ? styles.folderTabCaptionActive : styles.folderTabCaptionInactive,
+            ]}>
+              {drivers.length > 0
+                ? t('organisation.tabs.transportCount', { count: drivers.length })
+                : t('organisation.tabs.transportEmpty')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => onActiveSubTabChange('gear')}
+            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
+            hitSlop={4}
+          >
+            <Text style={[
+              styles.folderTabLabel,
+              activeSubTab === 'gear' ? styles.folderTabLabelActive : styles.folderTabLabelInactive,
+            ]}>
+              {t('group.gear', { defaultValue: 'Matériel' })}
+            </Text>
+            <Text style={[
+              styles.folderTabCaption,
+              activeSubTab === 'gear' ? styles.folderTabCaptionActive : styles.folderTabCaptionInactive,
+            ]}>
+              {missingItems.length > 0
+                ? t('organisation.tabs.gearMissing', { count: missingItems.length })
+                : coveredItems.length > 0
+                  ? t('organisation.tabs.gearComplete')
+                  : t('organisation.tabs.gearEmpty')}
+            </Text>
+          </Pressable>
+        </View>
 
+        {activeSubTab === 'transport' && (
+          <View style={styles.tabContent}>
             {drivers.map((d) => {
+              const isSelf = d.user_id === currentUserId;
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
               const isPendingFromMe = myPending?.driver_id === d.user_id;
               const isFull = d.free === 0;
               const score = reliabilityById.get(d.user_id) ?? null;
               const ringColor = score !== null ? ringColorFor(score) : null;
+              const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
               return (
                 <View key={d.user_id} style={styles.driverRow}>
                   <Pressable
@@ -281,7 +348,12 @@ export function GroupCard({
                       <Text style={styles.driverName} numberOfLines={1}>
                         {d.display_name}
                       </Text>
-                      {(() => {
+                      {isSelf && (
+                        <View style={styles.youTag}>
+                          <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                        </View>
+                      )}
+                      {!isSelf && (() => {
                         const vouch = vouchById.get(d.user_id);
                         if (!vouch) return null;
                         const Icon = VOUCH_ICONS[vouch.badge_key];
@@ -322,6 +394,26 @@ export function GroupCard({
                         </Text>
                       )}
                     </View>
+                    {/* Passengers — small avatar stack right below the
+                        meta line. Tap any to land on their profile. */}
+                    {driverPassengers.length > 0 && (
+                      <View style={styles.passengersRow}>
+                        {driverPassengers.map((p, i) => (
+                          <Pressable
+                            key={p.id}
+                            onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                            style={[styles.passengerAvatar, i > 0 && styles.passengerAvatarStacked]}
+                            hitSlop={4}
+                          >
+                            <UserAvatar
+                              name={p.display_name}
+                              avatarUrl={p.avatar_url}
+                              size={18}
+                            />
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
                   </View>
                   <View style={styles.seatsCluster}>
                     {(d.transport_from_name || d.transport_departs_at) && (
@@ -329,7 +421,12 @@ export function GroupCard({
                         {d.accepted}/{d.capacity}
                       </Text>
                     )}
-                    {isMyDriver ? (
+                    {isSelf ? (
+                      // Self-driver shows no action pill — they manage
+                      // via Mine's transport stamp. The "Toi" tag above
+                      // already marks the row.
+                      null
+                    ) : isMyDriver ? (
                       <View style={styles.statusPillSet}>
                         <Check size={10} color={colors.success} strokeWidth={3} />
                         <Text style={[styles.statusPillText, { color: colors.success }]}>
@@ -366,11 +463,12 @@ export function GroupCard({
               <View style={styles.selfMoversRow}>
                 {selfMovers.map((p) => {
                   const Icon = MODE_ICONS[p.transport_type ?? 'other'] ?? HelpCircle;
+                  const isSelf = p.user_id === currentUserId;
                   return (
-                    <View key={p.user_id} style={styles.selfChip}>
-                      <Icon size={11} color={colors.textMuted} strokeWidth={2} />
-                      <Text style={styles.selfChipText} numberOfLines={1}>
-                        {p.display_name}
+                    <View key={p.user_id} style={[styles.selfChip, isSelf && styles.selfChipSelf]}>
+                      <Icon size={11} color={isSelf ? colors.cta : colors.textMuted} strokeWidth={2} />
+                      <Text style={[styles.selfChipText, isSelf && { color: colors.cta }]} numberOfLines={1}>
+                        {isSelf ? t('group.youTag', { defaultValue: 'Toi' }) : p.display_name}
                       </Text>
                     </View>
                   );
@@ -388,16 +486,13 @@ export function GroupCard({
           </View>
         )}
 
-        {hasGear && (
-          <View style={[styles.section, styles.sectionTopBorder, { borderTopColor: colors.line }]}>
-            <View style={styles.gearHeader}>
-              <Text style={styles.sectionLabel}>
-                {t('group.gear', { defaultValue: 'Matériel commun' })}
+        {activeSubTab === 'gear' && (
+          <View style={styles.tabContent}>
+            {!hasGear && (
+              <Text style={styles.emptyHint}>
+                {t('group.noGearForSport', { defaultValue: 'Pas de matériel commun pour ce sport' })}
               </Text>
-              <Text style={styles.gearProgress}>
-                {coveredItems.length}/{coveredItems.length + missingItems.length}
-              </Text>
-            </View>
+            )}
 
             {coveredItems.length > 0 && (
               <View style={styles.coveredChipsRow}>
@@ -439,7 +534,7 @@ export function GroupCard({
               </Pressable>
             ))}
 
-            {missingItems.length === 0 && coveredItems.length > 0 && (
+            {hasGear && missingItems.length === 0 && coveredItems.length > 0 && (
               <Text style={styles.allCoveredHint}>
                 {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
               </Text>
@@ -510,20 +605,59 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: 1,
   },
 
-  section: {
+  // Folder-tab strip — sits between the band and the active tab content,
+  // bg = surfaceAlt (the inactive-tab background). Active tab has bg =
+  // surface so it visually merges with the content area below.
+  folderTabsStrip: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceAlt,
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    gap: 4,
+  },
+  folderTab: {
+    flex: 1,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderTopLeftRadius: radius.md,
+    borderTopRightRadius: radius.md,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  folderTabActive: {
+    backgroundColor: colors.surface,
+  },
+  folderTabLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  folderTabLabelActive: {
+    color: colors.textPrimary,
+  },
+  folderTabLabelInactive: {
+    color: colors.textMuted,
+  },
+  folderTabCaption: {
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  folderTabCaptionActive: {
+    color: colors.cta,
+  },
+  folderTabCaptionInactive: {
+    color: colors.textMuted,
+    opacity: 0.7,
+  },
+
+  // Active tab content area — bg matches active folder tab so they
+  // read as one continuous panel. Padding mirrors the previous section
+  // values so existing rows don't reflow.
+  tabContent: {
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
-  },
-  sectionTopBorder: {
-    borderTopWidth: 1,
-  },
-  sectionLabel: {
-    color: colors.textMuted,
-    fontSize: 9.5,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
   },
 
   driverRow: {
@@ -567,6 +701,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.05,
     flexShrink: 1,
+  },
+  // "Toi" pill on self-driver rows — uses CTA tint to mirror the
+  // ownership signal Mine's stamp uses for the empty state.
+  youTag: {
+    backgroundColor: colors.cta + '1F',
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  youTagText: {
+    color: colors.cta,
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  // Passengers below each driver row — small overlapping avatar stack.
+  passengersRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  passengerAvatar: {
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+    borderRadius: 11,
+  },
+  passengerAvatarStacked: {
+    marginLeft: -6,
   },
   driverMeta: {
     flexDirection: 'row',
@@ -642,6 +804,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 3,
+  },
+  // Same chip but with CTA accent border so the user spots their own
+  // entry at a glance among the other self-movers.
+  selfChipSelf: {
+    backgroundColor: colors.cta + '1F',
+    borderWidth: 1,
+    borderColor: colors.cta + '4D',
   },
   selfChipText: {
     color: colors.textSecondary,
