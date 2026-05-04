@@ -150,32 +150,68 @@ export function MyOutingCard({
   // Caption — countdown / status. Computed against the user's local day
   // boundary so a 22h activity tonight reads "AUJOURD'HUI" right up to
   // midnight, then "EN COURS" once status flips.
-  const captionText = useMemo(() => {
+  // Returns text + a tone tag the renderer maps to a color: the caption
+  // warms up as the activity approaches (cool muted → amber → cta orange
+  // → green when active) so the slot acts as both label and pulse.
+  const caption = useMemo(() => {
     if (status === 'in_progress') {
-      return t('myOuting.captionInProgress', { defaultValue: 'En cours' });
+      return {
+        text: t('myOuting.captionInProgress', { defaultValue: 'En cours' }),
+        tone: 'live' as const,
+      };
     }
     const days = dayjs(startsAt).startOf('day').diff(dayjs().startOf('day'), 'day');
     if (days < 0) {
-      return t('myOuting.captionPast', { defaultValue: 'Terminée' });
+      return {
+        text: t('myOuting.captionPast', { defaultValue: 'Terminée' }),
+        tone: 'past' as const,
+      };
     }
     if (days === 0) {
-      return t('myOuting.captionToday', { defaultValue: "Aujourd'hui" });
+      return {
+        text: t('myOuting.captionToday', { defaultValue: "Aujourd'hui" }),
+        tone: 'today' as const,
+      };
     }
     if (days === 1) {
-      return t('myOuting.captionTomorrow', { defaultValue: 'Demain' });
+      return {
+        text: t('myOuting.captionTomorrow', { defaultValue: 'Demain' }),
+        tone: 'soon' as const,
+      };
+    }
+    if (days <= 7) {
+      return {
+        text: t('myOuting.captionInDays', {
+          count: days,
+          defaultValue: `Dans ${days} jours`,
+        }),
+        tone: 'soon' as const,
+      };
     }
     if (days <= 30) {
-      return t('myOuting.captionInDays', {
-        count: days,
-        defaultValue: `Dans ${days} jours`,
-      });
+      return {
+        text: t('myOuting.captionInDays', {
+          count: days,
+          defaultValue: `Dans ${days} jours`,
+        }),
+        tone: 'far' as const,
+      };
     }
-    // Far-future activities — just a short date so the caption doesn't
-    // grow ridiculous ("Dans 87 jours" reads as nag, not reminder).
-    return dayjs(startsAt)
-      .locale(i18n.language === 'fr' ? 'fr' : 'en')
-      .format(i18n.language === 'fr' ? 'D MMM' : 'MMM D');
+    // Far-future activities — short date so the caption doesn't grow
+    // ridiculous ("Dans 87 jours" reads as nag, not reminder).
+    return {
+      text: dayjs(startsAt)
+        .locale(i18n.language === 'fr' ? 'fr' : 'en')
+        .format(i18n.language === 'fr' ? 'D MMM' : 'MMM D'),
+      tone: 'far' as const,
+    };
   }, [startsAt, status, t, i18n.language]);
+
+  const captionColor =
+    caption.tone === 'live' ? colors.success
+    : caption.tone === 'today' ? colors.cta
+    : caption.tone === 'soon' ? COLOR_AMBER
+    : colors.textMuted;
 
   const transportStamp = useMemo<StampDef>(() => {
     const empty: StampDef = {
@@ -324,7 +360,7 @@ export function MyOutingCard({
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.caption}>{captionText}</Text>
+          <Text style={[styles.caption, { color: captionColor }]}>{caption.text}</Text>
           {isReady && (
             <View style={[styles.seal, { borderColor: colors.success }]}>
               <Check size={10} color={colors.success} strokeWidth={3} />

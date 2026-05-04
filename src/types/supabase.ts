@@ -1702,6 +1702,7 @@ export type Database = {
           display_name: string | null
           id: string | null
           levels_per_sport: Json | null
+          reliability_score: number | null
           sports: Json | null
         }
         Insert: {
@@ -1711,6 +1712,7 @@ export type Database = {
           display_name?: string | null
           id?: string | null
           levels_per_sport?: Json | null
+          reliability_score?: number | null
           sports?: Json | null
         }
         Update: {
@@ -1720,6 +1722,7 @@ export type Database = {
           display_name?: string | null
           id?: string | null
           levels_per_sport?: Json | null
+          reliability_score?: number | null
           sports?: Json | null
         }
         Relationships: []

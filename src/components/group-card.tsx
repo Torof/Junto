@@ -11,6 +11,8 @@ import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
+import { ringColorFor } from './profile-hero';
+import { supabase } from '@/services/supabase';
 
 interface Props {
   activityId: string;
@@ -86,6 +88,31 @@ export function GroupCard({
     enabled: isParticipant,
     staleTime: 15_000,
   });
+
+  // Reliability scores keyed by user_id, used for the trust ring around
+  // each driver's avatar. Reads from public_profiles (00173 added the
+  // column) so we don't need a per-driver RPC. Stale cache fine since
+  // scores update slowly.
+  const transportUserIdsKey = transports.map((p) => p.user_id).sort().join(',');
+  const { data: reliabilityScores = [] } = useQuery({
+    queryKey: ['public-profile-scores', transportUserIdsKey],
+    queryFn: async () => {
+      const ids = transports.map((p) => p.user_id);
+      if (ids.length === 0) return [];
+      const { data } = await supabase
+        .from('public_profiles')
+        .select('id, reliability_score')
+        .in('id', ids);
+      return (data ?? []) as { id: string; reliability_score: number | null }[];
+    },
+    enabled: isParticipant && transports.length > 0,
+    staleTime: 60_000,
+  });
+  const reliabilityById = useMemo(() => {
+    const map = new Map<string, number | null>();
+    reliabilityScores.forEach((p) => map.set(p.id, p.reliability_score));
+    return map;
+  }, [reliabilityScores]);
 
   // Drivers offering rides — exclude the current user's own car (it's
   // already represented in Mine). Sort by departure time ascending so
@@ -201,14 +228,21 @@ export function GroupCard({
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
               const isPendingFromMe = myPending?.driver_id === d.user_id;
               const isFull = d.free === 0;
+              const score = reliabilityById.get(d.user_id) ?? null;
+              const ringColor = score !== null ? ringColorFor(score) : null;
               return (
                 <View key={d.user_id} style={styles.driverRow}>
-                  <UserAvatar
-                    name={d.display_name}
-                    avatarUrl={d.avatar_url}
-                    size={28}
-                    confirmedPresent={d.confirmed_present === true}
-                  />
+                  <View style={[
+                    styles.avatarRing,
+                    ringColor && { borderColor: ringColor },
+                  ]}>
+                    <UserAvatar
+                      name={d.display_name}
+                      avatarUrl={d.avatar_url}
+                      size={32}
+                      confirmedPresent={d.confirmed_present === true}
+                    />
+                  </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.driverName} numberOfLines={1}>
                       {d.display_name}
@@ -216,7 +250,7 @@ export function GroupCard({
                     <View style={styles.driverMeta}>
                       {d.transport_from_name && (
                         <>
-                          <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                          <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
                           <Text style={styles.driverMetaText} numberOfLines={1}>
                             {d.transport_from_name}
                           </Text>
@@ -227,18 +261,25 @@ export function GroupCard({
                       )}
                       {d.transport_departs_at && (
                         <>
-                          <Clock size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                          <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
                           <Text style={styles.driverMetaText}>
                             {dayjs(d.transport_departs_at).format('H[h]mm')}
                           </Text>
                         </>
                       )}
+                      {!d.transport_from_name && !d.transport_departs_at && (
+                        <Text style={styles.driverMetaText}>
+                          {d.accepted}/{d.capacity} {t('group.seatsLabel', { defaultValue: 'places' })}
+                        </Text>
+                      )}
                     </View>
                   </View>
                   <View style={styles.seatsCluster}>
-                    <Text style={styles.seatsCount}>
-                      {d.accepted}/{d.capacity}
-                    </Text>
+                    {(d.transport_from_name || d.transport_departs_at) && (
+                      <Text style={styles.seatsCount}>
+                        {d.accepted}/{d.capacity}
+                      </Text>
+                    )}
                     {isMyDriver ? (
                       <View style={styles.statusPillSet}>
                         <Check size={10} color={colors.success} strokeWidth={3} />
@@ -439,12 +480,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   driverRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.sm + 2,
+    paddingVertical: 2,
+  },
+  // Tier ring around the driver avatar — borderColor set inline based on
+  // reliability score; transparent here so the layout stays stable when
+  // a driver has no score yet (new user, no ring shown).
+  avatarRing: {
+    padding: 2,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   driverName: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   driverMeta: {
     flexDirection: 'row',

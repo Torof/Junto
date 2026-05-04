@@ -33,7 +33,10 @@ interface Props {
 
 const RING_SIZE = 80;
 
-function ringColorFor(pct: number): string {
+// Trust-pillar tier color for a reliability percentage. Exported so the
+// Organisation tab's GroupCard can render the same tier ring around
+// driver avatars where the actual decision happens.
+export function ringColorFor(pct: number): string {
   if (pct >= 75) return '#7EC8A3';
   if (pct >= 40) return '#F26B2E';
   return '#E5524E';
