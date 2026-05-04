@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { router } from 'expo-router';
 import dayjs from 'dayjs';
 import { Users, MapPin, Clock, Plus, Check, ChevronRight, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -260,17 +261,21 @@ export function GroupCard({
               const ringColor = score !== null ? ringColorFor(score) : null;
               return (
                 <View key={d.user_id} style={styles.driverRow}>
-                  <View style={[
-                    styles.avatarRing,
-                    ringColor && { borderColor: ringColor },
-                  ]}>
+                  <Pressable
+                    style={[
+                      styles.avatarRing,
+                      ringColor && { borderColor: ringColor },
+                    ]}
+                    onPress={() => router.push(`/(auth)/profile/${d.user_id}`)}
+                    hitSlop={4}
+                  >
                     <UserAvatar
                       name={d.display_name}
                       avatarUrl={d.avatar_url}
                       size={32}
                       confirmedPresent={d.confirmed_present === true}
                     />
-                  </View>
+                  </Pressable>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <View style={styles.driverNameRow}>
                       <Text style={styles.driverName} numberOfLines={1}>

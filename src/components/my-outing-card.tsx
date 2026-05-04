@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import {
@@ -124,7 +125,14 @@ export function MyOutingCard({
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const queryClient = useQueryClient();
   const [showMyGear, setShowMyGear] = useState(false);
+  // Pending-request gate: tapping the transport stamp while a seat
+  // request is pending opens this modal first. The user must cancel
+  // their pending request before changing mode — otherwise we'd leave
+  // the driver with a stale "pending" they could later approve.
+  const [showCancelPending, setShowCancelPending] = useState(false);
+  const [cancellingPending, setCancellingPending] = useState(false);
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -146,6 +154,42 @@ export function MyOutingCard({
     queryFn: () => gearService.getForActivity(activityId),
     enabled: isParticipant,
   });
+
+  // Detect a still-pending seat request the user has out — drives both
+  // the transport-stamp visual ("En attente · Marie") and the cancel-
+  // first gate when they tap to change transport.
+  const myPending = useMemo(
+    () => pendingRequests.find((r) => r.requester_id === currentUserId) ?? null,
+    [pendingRequests, currentUserId],
+  );
+  const myPendingDriver = useMemo(
+    () => (myPending ? transports.find((p) => p.user_id === myPending.driver_id) : null),
+    [myPending, transports],
+  );
+
+  const handleCancelPending = async () => {
+    if (!myPending) return;
+    setCancellingPending(true);
+    try {
+      await transportService.cancelPendingSeatRequest(myPending.id);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      setShowCancelPending(false);
+      Burnt.toast({ title: t('myOuting.pendingCancel.toastDone', { defaultValue: 'Demande annulée' }), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError', { defaultValue: 'Erreur' }) });
+    } finally {
+      setCancellingPending(false);
+    }
+  };
+
+  const handleTransportStampPress = () => {
+    if (myPending) {
+      setShowCancelPending(true);
+    } else {
+      onEditTransport();
+    }
+  };
 
   // Caption — countdown / status. Computed against the user's local day
   // boundary so a 22h activity tonight reads "AUJOURD'HUI" right up to
@@ -374,7 +418,7 @@ export function MyOutingCard({
         <View style={styles.stampsRow}>
           <Stamp
             stamp={transportStamp}
-            onPress={onEditTransport}
+            onPress={handleTransportStampPress}
             colors={colors}
             styles={styles}
             t={t}
@@ -451,6 +495,53 @@ export function MyOutingCard({
                 {t('myOuting.addMaterial', { defaultValue: 'Ajouter du matériel' })}
               </Text>
             </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Pending-cancel modal — tapping the transport stamp while a
+          seat request is pending opens this first. The user must
+          cancel their pending request before they can change mode.
+          Two buttons: cancel-the-request (primary, danger-tinted) +
+          keep-waiting (secondary, dismiss). */}
+      <Modal
+        visible={showCancelPending}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowCancelPending(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setShowCancelPending(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.sheetTitle}>
+              {t('myOuting.pendingCancel.title', { defaultValue: 'Demande en attente' })}
+            </Text>
+            <Text style={styles.pendingCancelBody}>
+              {t('myOuting.pendingCancel.body', {
+                driver: myPendingDriver?.display_name ?? '?',
+                defaultValue: `Tu attends la réponse de ${myPendingDriver?.display_name ?? '?'} pour la place. Annule ta demande pour pouvoir changer de transport.`,
+              })}
+            </Text>
+            <View style={styles.pendingCancelActions}>
+              <Pressable
+                style={styles.pendingCancelKeep}
+                onPress={() => setShowCancelPending(false)}
+                hitSlop={4}
+              >
+                <Text style={styles.pendingCancelKeepText}>
+                  {t('myOuting.pendingCancel.keep', { defaultValue: 'Garder' })}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.pendingCancelConfirm, cancellingPending && { opacity: 0.5 }]}
+                onPress={handleCancelPending}
+                disabled={cancellingPending}
+                hitSlop={4}
+              >
+                <Text style={styles.pendingCancelConfirmText}>
+                  {t('myOuting.pendingCancel.confirm', { defaultValue: 'Annuler ma demande' })}
+                </Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -724,6 +815,46 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.lg,
     fontWeight: 'bold',
     marginBottom: spacing.md,
+  },
+
+  // Pending-cancel modal
+  pendingCancelBody: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+  },
+  pendingCancelActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  pendingCancelKeep: {
+    flex: 1,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingCancelKeepText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  pendingCancelConfirm: {
+    flex: 1.4,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingCancelConfirmText: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   sheetEmpty: {
     color: colors.textSecondary,

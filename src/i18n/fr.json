@@ -326,6 +326,13 @@
     "gearListTitle": "Mon matériel",
     "gearListEmpty": "Tu n'apportes rien pour le moment.",
     "addMaterial": "Ajouter du matériel",
+    "pendingCancel": {
+      "title": "Demande en attente",
+      "body": "Tu attends la réponse de {{driver}} pour la place. Annule ta demande pour pouvoir changer de transport.",
+      "keep": "Garder",
+      "confirm": "Annuler ma demande",
+      "toastDone": "Demande annulée"
+    },
     "stamp": {
       "transport": "Transport",
       "material": "Matériel",

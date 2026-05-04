@@ -93,6 +93,18 @@ export const transportService = {
     if (error) throw error;
   },
 
+  // Cancels a still-pending request the user sent to a driver. Used by
+  // MyOutingCard's pending-cancel flow so the user can back out before
+  // changing transport mode. cancel_accepted_seat handles the already-
+  // accepted case (which also restores seats); this one is the no-side-
+  // effects status flip for pending.
+  cancelPendingSeatRequest: async (requestId: string): Promise<void> => {
+    const { error } = await supabase.rpc('cancel_pending_seat_request' as 'join_activity', {
+      p_request_id: requestId,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
   getPendingSeatRequests: async (activityId: string): Promise<{ id: string; requester_id: string; driver_id: string; status: string }[]> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return [];

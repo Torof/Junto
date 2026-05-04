@@ -326,6 +326,13 @@
     "gearListTitle": "My gear",
     "gearListEmpty": "You're not bringing anything yet.",
     "addMaterial": "Add gear",
+    "pendingCancel": {
+      "title": "Pending request",
+      "body": "You're waiting on {{driver}} to confirm your seat. Cancel your request to change transport.",
+      "keep": "Keep waiting",
+      "confirm": "Cancel my request",
+      "toastDone": "Request cancelled"
+    },
     "stamp": {
       "transport": "Transport",
       "material": "Gear",
