@@ -442,11 +442,13 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
       {hasItemsList ? (
         <View style={styles.stampItemsList}>
           {stamp.itemsList!.map((item, i) => (
-            <Text key={`${item.name}-${i}`} style={styles.stampItemRow} numberOfLines={1}>
-              <Text style={[styles.stampItemBullet, { color: accent }]}>•  </Text>
-              {item.name}
-              {item.quantity > 1 ? ` ×${item.quantity}` : ''}
-            </Text>
+            <View key={`${item.name}-${i}`} style={styles.stampItemRow}>
+              <Text style={[styles.stampItemBullet, { color: accent }]}>•</Text>
+              <Text style={styles.stampItemName} numberOfLines={1}>
+                {item.name}
+                {item.quantity > 1 ? ` ×${item.quantity}` : ''}
+              </Text>
+            </View>
           ))}
           {stamp.overflowCount && stamp.overflowCount > 0 && (
             <Text style={styles.stampItemOverflow} numberOfLines={1}>
@@ -567,18 +569,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.1,
     flexShrink: 1,
   },
+  // Bulleted items list — bullet rendered as a sibling Text in a flex row
+  // (not as inline Text inside the name Text), since inline-text-in-text
+  // can swallow the bullet on some RN/iOS rendering paths.
   stampItemsList: {
-    gap: 1,
+    gap: 2,
   },
   stampItemRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 5,
+  },
+  stampItemBullet: {
+    fontSize: fontSizes.sm + 2,
+    fontWeight: '800',
+    lineHeight: 17,
+  },
+  stampItemName: {
+    flex: 1,
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
     fontWeight: '600',
     lineHeight: 17,
     letterSpacing: -0.05,
-  },
-  stampItemBullet: {
-    fontWeight: '800',
   },
   stampItemOverflow: {
     color: colors.textMuted,
