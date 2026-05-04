@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import {
   Car,
   Users,
@@ -14,6 +16,8 @@ import {
   Clock,
   Check,
   Minus,
+  Plus,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -24,11 +28,13 @@ import { gearService } from '@/services/gear-service';
 
 interface Props {
   activityId: string;
-  sportKey: string;
+  startsAt: string;
+  status: string;
   currentUserId: string | null;
   isParticipant: boolean;
   onEditTransport: () => void;
-  onMaterialTap: () => void;
+  onEditGearItem: (name: string) => void;
+  onAddMaterial: () => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -44,29 +50,35 @@ interface StampDef {
 
 const COLOR_AMBER = '#E8A33D';
 
-// Mine — your personal status panel for this outing. No activity identity
-// (the screen header carries that already), no group state — this is a
-// strict me-card. Two stamps: TRANSPORT (what mode/role I've taken) and
-// MATÉRIEL (what I'm contributing). Each stamp's visual fills in as the
-// state moves from "à régler" → "set"; PRÊT seal earns its place when
-// transport is sorted (gear is optional, doesn't gate readiness).
+// Mine — your personal status panel for this outing. The card carries
+// only what's about you for this specific activity: when it is, what
+// role you've taken, what you're contributing. No activity title or
+// meeting point here — those live in the screen header.
 //
-// Tap behavior:
-//   TRANSPORT stamp → opens the existing transport editor sheet.
-//   MATÉRIEL stamp → if you've already declared something, opens that
-//     first item's sheet so you can edit it; if you haven't, it expands
-//     the dense gear view (handler in the parent) so you can pick.
+// The caption slot at the top doubles as a countdown ("AUJOURD'HUI",
+// "DEMAIN", "DANS 3 JOURS", "EN COURS") so it earns its space — it's
+// label and reminder at once.
+//
+// Tap targets:
+//   TRANSPORT stamp → opens the transport editor sheet directly.
+//   MATÉRIEL stamp → opens the "mon matériel" sheet (this card's own),
+//     which lists all your declared items. Tapping a line in that
+//     sheet opens the existing per-item editor; "+ Ajouter" expands
+//     the dense gear view in the parent so you can pick from catalog.
 export function MyOutingCard({
   activityId,
-  sportKey,
+  startsAt,
+  status,
   currentUserId,
   isParticipant,
   onEditTransport,
-  onMaterialTap,
+  onEditGearItem,
+  onAddMaterial,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [showMyGear, setShowMyGear] = useState(false);
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -89,7 +101,37 @@ export function MyOutingCard({
     enabled: isParticipant,
   });
 
-  const transportStamp = useMemo<StampDef>(() => {
+  // Caption — countdown / status. Computed against the user's local day
+  // boundary so a 22h activity tonight reads "AUJOURD'HUI" right up to
+  // midnight, then "EN COURS" once status flips.
+  const captionText = useMemo(() => {
+    if (status === 'in_progress') {
+      return t('myOuting.captionInProgress', { defaultValue: 'En cours' });
+    }
+    const days = dayjs(startsAt).startOf('day').diff(dayjs().startOf('day'), 'day');
+    if (days < 0) {
+      return t('myOuting.captionPast', { defaultValue: 'Terminée' });
+    }
+    if (days === 0) {
+      return t('myOuting.captionToday', { defaultValue: "Aujourd'hui" });
+    }
+    if (days === 1) {
+      return t('myOuting.captionTomorrow', { defaultValue: 'Demain' });
+    }
+    if (days <= 30) {
+      return t('myOuting.captionInDays', {
+        count: days,
+        defaultValue: `Dans ${days} jours`,
+      });
+    }
+    // Far-future activities — just a short date so the caption doesn't
+    // grow ridiculous ("Dans 87 jours" reads as nag, not reminder).
+    return dayjs(startsAt)
+      .locale(i18n.language === 'fr' ? 'fr' : 'en')
+      .format(i18n.language === 'fr' ? 'D MMM' : 'MMM D');
+  }, [startsAt, status, t, i18n.language]);
+
+  const transportStamp = useMemo<StampDef & { seats?: number }>(() => {
     const empty: StampDef = {
       caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
       Icon: Compass,
@@ -128,11 +170,8 @@ export function MyOutingCard({
             })
           : t('myOuting.stamp.transportDriver', { defaultValue: 'Conduis' }),
         state: 'set',
-        // seats info is shown as a sub-line in render below — kept on the
-        // stamp def implicitly via the role kind. We render seat count via
-        // a small stamp footer when state === 'set' for drivers.
-        ...(seats > 0 ? { seats } : {}),
-      } as StampDef & { seats?: number };
+        seats: seats > 0 ? seats : undefined,
+      };
     }
 
     if (myAcceptedSeat) {
@@ -186,26 +225,19 @@ export function MyOutingCard({
         state: 'neutral',
       };
     }
-    // Compose the content string: up to two item names, then "+N more".
+    // Show every item joined by " · " — RN's numberOfLines={2} auto-
+    // truncates with ellipsis when the row overflows. The full list lives
+    // in the my-gear sheet, so anything truncated here is reachable in
+    // one tap.
     const labels = myGearItems.map((g) => (g.quantity > 1 ? `${g.name} ×${g.quantity}` : g.name));
-    let content: string;
-    if (labels.length === 1) {
-      content = labels[0]!;
-    } else if (labels.length === 2) {
-      content = labels.join(' · ');
-    } else {
-      content = `${labels[0]!} · ${labels[1]!} +${labels.length - 2}`;
-    }
     return {
       caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
       Icon: Backpack,
-      content,
+      content: labels.join(' · '),
       state: 'set',
     };
   }, [myGearItems, t]);
 
-  // PRÊT logic — transport is the only required leg. Gear stays optional;
-  // a passenger who isn't bringing anything shouldn't feel "not ready".
   const isReady = transportStamp.state === 'set';
 
   if (!isParticipant) return null;
@@ -214,9 +246,7 @@ export function MyOutingCard({
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.caption}>
-            {t('myOuting.caption', { defaultValue: 'Ton rôle' })}
-          </Text>
+          <Text style={styles.caption}>{captionText}</Text>
           {isReady && (
             <View style={[styles.seal, { borderColor: colors.success }]}>
               <Check size={10} color={colors.success} strokeWidth={3} />
@@ -231,10 +261,10 @@ export function MyOutingCard({
           <Stamp
             stamp={transportStamp}
             seatsHint={
-              transportStamp.state === 'set' && (transportStamp as StampDef & { seats?: number }).seats
+              transportStamp.state === 'set' && transportStamp.seats
                 ? t('myOuting.stamp.seatsFree', {
-                    count: (transportStamp as StampDef & { seats?: number }).seats!,
-                    defaultValue: `${(transportStamp as StampDef & { seats?: number }).seats} place${(transportStamp as StampDef & { seats?: number }).seats! > 1 ? 's' : ''} libre${(transportStamp as StampDef & { seats?: number }).seats! > 1 ? 's' : ''}`,
+                    count: transportStamp.seats,
+                    defaultValue: `${transportStamp.seats} place${transportStamp.seats > 1 ? 's' : ''} libre${transportStamp.seats > 1 ? 's' : ''}`,
                   })
                 : null
             }
@@ -245,18 +275,84 @@ export function MyOutingCard({
           <Stamp
             stamp={materialStamp}
             seatsHint={null}
-            onPress={onMaterialTap}
+            onPress={() => setShowMyGear(true)}
             colors={colors}
             styles={styles}
           />
         </View>
       </View>
+
+      {/* Mon matériel sheet — full list of what I bring, each row tappable
+          to edit, plus "Ajouter" to bring something new. The matériel
+          stamp truncates at 2 lines; this sheet is where the rest lives. */}
+      <Modal
+        visible={showMyGear}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowMyGear(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setShowMyGear(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.handle} />
+            <Text style={styles.sheetTitle}>
+              {t('myOuting.gearListTitle', { defaultValue: 'Mon matériel' })}
+            </Text>
+
+            {myGearItems.length === 0 ? (
+              <Text style={styles.sheetEmpty}>
+                {t('myOuting.gearListEmpty', {
+                  defaultValue: 'Tu n\'apportes rien pour le moment.',
+                })}
+              </Text>
+            ) : (
+              <ScrollView style={styles.gearList} showsVerticalScrollIndicator={false}>
+                {myGearItems.map((g, i) => (
+                  <Pressable
+                    key={g.name}
+                    style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
+                    onPress={() => {
+                      setShowMyGear(false);
+                      onEditGearItem(g.name);
+                    }}
+                    hitSlop={4}
+                  >
+                    <View style={styles.gearListIconWrap}>
+                      <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                    </View>
+                    <Text style={styles.gearListName} numberOfLines={1}>
+                      {g.name}
+                    </Text>
+                    {g.quantity > 1 && (
+                      <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                    )}
+                    <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            )}
+
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => {
+                setShowMyGear(false);
+                onAddMaterial();
+              }}
+              hitSlop={4}
+            >
+              <Plus size={14} color={colors.cta} strokeWidth={2.6} />
+              <Text style={styles.addBtnText}>
+                {t('myOuting.addMaterial', { defaultValue: 'Ajouter du matériel' })}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
 interface StampProps {
-  stamp: StampDef;
+  stamp: StampDef & { seats?: number };
   seatsHint: string | null;
   onPress: () => void;
   colors: AppColors;
@@ -264,9 +360,6 @@ interface StampProps {
 }
 
 function Stamp({ stamp, seatsHint, onPress, colors, styles }: StampProps) {
-  // Visual coding by state. "set" reads as filled-and-done (success green),
-  // "pending" and "todo" pull attention with amber, "neutral" stays muted
-  // (the matériel "rien à apporter" case shouldn't ping for action).
   const accent =
     stamp.state === 'set' ? colors.success
     : stamp.state === 'pending' || stamp.state === 'todo' ? COLOR_AMBER
@@ -428,5 +521,92 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1.5,
     borderStyle: 'dashed',
     backgroundColor: 'transparent',
+  },
+
+  // My-gear sheet (modal)
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl + 16,
+    maxHeight: '70%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.textSecondary,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
+    opacity: 0.4,
+  },
+  sheetTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.lg,
+    fontWeight: 'bold',
+    marginBottom: spacing.md,
+  },
+  sheetEmpty: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    fontStyle: 'italic',
+    marginBottom: spacing.md,
+  },
+  gearList: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  gearListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 2,
+    paddingVertical: spacing.sm + 2,
+  },
+  gearListRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  gearListIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    backgroundColor: colors.success + '14',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gearListName: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  gearListQty: {
+    color: colors.success,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.cta + '14',
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm + 4,
+  },
+  addBtnText: {
+    color: colors.cta,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
 });

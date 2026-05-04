@@ -316,8 +316,16 @@
     }
   },
   "myOuting": {
-    "caption": "Ton rôle",
     "ready": "Prêt",
+    "captionToday": "Aujourd'hui",
+    "captionTomorrow": "Demain",
+    "captionInDays_one": "Dans {{count}} jour",
+    "captionInDays_other": "Dans {{count}} jours",
+    "captionInProgress": "En cours",
+    "captionPast": "Terminée",
+    "gearListTitle": "Mon matériel",
+    "gearListEmpty": "Tu n'apportes rien pour le moment.",
+    "addMaterial": "Ajouter du matériel",
     "stamp": {
       "transport": "Transport",
       "material": "Matériel",

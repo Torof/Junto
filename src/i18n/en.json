@@ -316,8 +316,16 @@
     }
   },
   "myOuting": {
-    "caption": "Your role",
     "ready": "Ready",
+    "captionToday": "Today",
+    "captionTomorrow": "Tomorrow",
+    "captionInDays_one": "In {{count}} day",
+    "captionInDays_other": "In {{count}} days",
+    "captionInProgress": "Now",
+    "captionPast": "Done",
+    "gearListTitle": "My gear",
+    "gearListEmpty": "You're not bringing anything yet.",
+    "addMaterial": "Add gear",
     "stamp": {
       "transport": "Transport",
       "material": "Gear",
