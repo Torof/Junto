@@ -656,10 +656,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // My-gear modal — centered floating card.
+  // My-gear modal — centered floating card on a near-opaque scrim so
+  // the active modal carries the user's attention without competing
+  // with the cards underneath.
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.lg,

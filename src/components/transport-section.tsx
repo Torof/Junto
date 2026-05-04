@@ -30,7 +30,11 @@ export interface TransportSectionHandle {
   openRequestSheet: (driverId: string, defaultPickupFrom?: string | null) => void;
 }
 
-const TRANSPORT_TYPES = ['car', 'carpool', 'public_transport', 'bike', 'on_foot', 'other'] as const;
+// Order matters for the chip grid wrapping: "public_transport" carries
+// the longest label ("Transports en commun"), so we park it at the
+// end where it can take its own line without forcing earlier pills
+// to wrap awkwardly.
+const TRANSPORT_TYPES = ['car', 'carpool', 'bike', 'on_foot', 'other', 'public_transport'] as const;
 const CAR_TYPES = ['car', 'carpool'] as const;
 
 const TRANSPORT_ICONS: Record<string, typeof Car> = {
@@ -197,7 +201,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         selectedType,
         isCar ? seats : null,
         fromName.trim() || null,
-        isCar && departsAt ? departsAt.toISOString() : null,
+        // Departure time persists for every mode now — cyclists and
+        // pedestrians can log when they leave too. Seats stay car-only.
+        departsAt ? departsAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       setShowEditor(false);
@@ -401,7 +407,11 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   />
                 </View>
 
-                {selectedType && (CAR_TYPES as readonly string[]).includes(selectedType) && (
+                {/* Departure time is useful for any mode, not just cars —
+                    a cyclist or pedestrian leaving Gap at 7h to make a
+                    9h start gives passengers/group a useful coordination
+                    signal. Show as soon as the user picks a mode. */}
+                {selectedType && (
                   <View style={styles.fromRow}>
                     <Text style={styles.fromLabel}>{t('transport.departsAt')}</Text>
                     <Pressable style={styles.timeButton} onPress={() => setShowDepartsPicker(true)}>
@@ -797,9 +807,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   otherType: { color: colors.textSecondary, fontSize: fontSizes.xs },
   otherFrom: { color: colors.textMuted, fontSize: fontSizes.xs, flex: 1 },
 
-  // Modals — centered floating cards (was bottom drawers).
+  // Modals — centered floating cards on a near-opaque scrim so the
+  // active modal carries the user's attention without competing with
+  // the cards underneath.
   backdrop: {
-    flex: 1, backgroundColor: colors.overlay,
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
     alignItems: 'center', justifyContent: 'center',
     padding: spacing.lg,
   },

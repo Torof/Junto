@@ -625,9 +625,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   addCustomText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '500' },
 
-  // Modals — centered floating cards (was bottom drawers).
+  // Modals — centered floating cards on a near-opaque scrim so the
+  // active modal carries the user's attention without competing with
+  // the cards underneath.
   backdrop: {
-    flex: 1, backgroundColor: colors.overlay,
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
     alignItems: 'center', justifyContent: 'center',
     padding: spacing.lg,
   },
