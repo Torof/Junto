@@ -114,7 +114,7 @@ export function ActivityDetail({
   // - wall_messages keeps its own subscription inside activity-wall.tsx.
   useEffect(() => {
     const channel = supabase
-      .channel(`activity:${activity.id}`)
+      .channel(`activity:${activity.id}`, { config: { private: true } })
       .on(
         'broadcast',
         { event: 'change' },
