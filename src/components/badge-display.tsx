@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, Image, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -917,17 +917,28 @@ function AwardDetail({
           const tcolor = TIER_COLOR[tk];
           const tlabel = t(`badges.awardLabel.${item.id}.${tk}`, { defaultValue: tk });
           const threshold = item.outings[i];
+          // Each column owns half a bar on each side. The neighboring
+          // column owns the matching half, so colors must match between
+          // (col i right-half) and (col i+1 left-half) for the bar to
+          // read as continuous when reached.
+          const leftBarReached = i > 0 && i <= currentIndex;
+          const leftBarColor = leftBarReached ? tcolor : colors.line;
+          const rightBarReached = i < tierKeys.length - 1 && (i + 1) <= currentIndex;
+          const nextTcolor = i < tierKeys.length - 1 ? TIER_COLOR[tierKeys[i + 1]!] : null;
+          const rightBarColor = rightBarReached && nextTcolor ? nextTcolor : colors.line;
           return (
-            <Fragment key={tk}>
-              {i > 0 && (
+            <View key={tk} style={styles.awardProgressionColumn}>
+              <Text style={[
+                styles.awardProgressionThreshold,
+                { color: reached ? tcolor : colors.textMuted },
+              ]}>+{threshold}</Text>
+              <View style={styles.awardProgressionDotRow}>
                 <View
                   style={[
-                    styles.awardProgressionConnector,
-                    { backgroundColor: reached ? tcolor : colors.line },
+                    styles.awardProgressionHalfBar,
+                    { backgroundColor: i > 0 ? leftBarColor : 'transparent' },
                   ]}
                 />
-              )}
-              <View style={styles.awardProgressionStep}>
                 <View
                   style={[
                     styles.awardProgressionDot,
@@ -938,16 +949,18 @@ function AwardDetail({
                 >
                   {reached && <Check size={12} color={colors.background} strokeWidth={3} />}
                 </View>
-                <Text style={[
-                  styles.awardProgressionLabel,
-                  { color: reached ? tcolor : colors.textSecondary },
-                ]}>{tlabel}</Text>
-                <Text style={[
-                  styles.awardProgressionThreshold,
-                  { color: reached ? tcolor : colors.textMuted },
-                ]}>{threshold}+</Text>
+                <View
+                  style={[
+                    styles.awardProgressionHalfBar,
+                    { backgroundColor: i < tierKeys.length - 1 ? rightBarColor : 'transparent' },
+                  ]}
+                />
               </View>
-            </Fragment>
+              <Text style={[
+                styles.awardProgressionLabel,
+                { color: reached ? tcolor : colors.textSecondary },
+              ]}>{tlabel}</Text>
+            </View>
           );
         })}
       </View>
@@ -1545,20 +1558,30 @@ const createStyles = (colors: AppColors) =>
     awardProgressionCaption: {
       marginBottom: 10,
     },
-    // Horizontal progression — three steps connected by bars. Each step is
-    // a column (dot · label · threshold). The connector is a thin flex:1
-    // bar whose top margin half-aligns with the dot center so the line
-    // visually passes through the dots.
+    // Horizontal progression — three equal-flex columns, each holding
+    // [threshold (top) · dot+half-bars · label (bottom)]. The dot row
+    // owns two half-bars (flex:1 each) flanking the dot, so adjacent
+    // columns' half-bars meet at the column boundary, forming an
+    // edge-to-edge line that visually starts and ends at dot centers.
     awardProgressionRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      paddingHorizontal: 4,
       marginTop: 4,
     },
-    awardProgressionStep: {
+    awardProgressionColumn: {
+      flex: 1,
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 4,
+    },
+    awardProgressionDotRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'stretch',
+    },
+    awardProgressionHalfBar: {
+      flex: 1,
+      height: 2,
+      borderRadius: 1,
     },
     awardProgressionDot: {
       width: 22,
@@ -1566,13 +1589,6 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 11,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 4,
-    },
-    awardProgressionConnector: {
-      flex: 1,
-      height: 2,
-      marginTop: 10,
-      borderRadius: 1,
     },
     awardProgressionLabel: {
       fontSize: 12,
@@ -1581,7 +1597,7 @@ const createStyles = (colors: AppColors) =>
     },
     awardProgressionThreshold: {
       fontSize: 11,
-      fontWeight: '600',
+      fontWeight: '700',
       textAlign: 'center',
     },
     awardNextLine: {
