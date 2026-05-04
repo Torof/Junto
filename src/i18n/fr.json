@@ -304,19 +304,6 @@
     "startPoint": "Départ",
     "objective": "Objectif"
   },
-  "organisation": {
-    "tabs": {
-      "transport": "Transport",
-      "gear": "Matériel",
-      "transportCount_one": "{{count}} voiture",
-      "transportCount_other": "{{count}} voitures",
-      "transportEmpty": "aucune voiture",
-      "gearMissing_one": "{{count}} manquant",
-      "gearMissing_other": "{{count}} manquants",
-      "gearComplete": "complet",
-      "gearEmpty": "aucun matériel"
-    }
-  },
   "myOuting": {
     "ready": "Prêt",
     "captionToday": "Aujourd'hui",
@@ -397,9 +384,7 @@
       "inventory": "Inventaire",
       "recap": "Qui apporte quoi"
     },
-    "recapEmpty": "Personne n'a encore déclaré de matériel",
-    "showDetails": "Voir tous les détails",
-    "hideDetails": "Masquer les détails"
+    "recapEmpty": "Personne n'a encore déclaré de matériel"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

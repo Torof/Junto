@@ -42,9 +42,7 @@ import { GearSection, type GearSectionHandle } from './gear-section';
 import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
 import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
-import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
-import { gearService } from '@/services/gear-service';
 import { distanceMeters } from '@/utils/geo';
 import { Car } from 'lucide-react-native';
 
@@ -77,14 +75,6 @@ export function ActivityDetail({
   const { data: orgTransportParticipants } = useQuery({
     queryKey: ['transport', activity.id],
     queryFn: () => transportService.getForActivity(activity.id),
-  });
-  const { data: orgGearDeclared } = useQuery({
-    queryKey: ['activity-gear', activity.id],
-    queryFn: () => gearService.getForActivity(activity.id),
-  });
-  const { data: orgGearCatalog } = useQuery({
-    queryKey: ['gear-catalog', activity.sport_key],
-    queryFn: () => gearService.getCatalog(activity.sport_key),
   });
   const { data: wallMessages } = useQuery({
     queryKey: ['wall', activity.id],
@@ -421,18 +411,10 @@ export function ActivityDetail({
   };
 
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
-  const [orgSubTab, setOrgSubTab] = useState<OrganisationSubTab>('transport');
-  // Org-tab details (existing TransportSection + GearSection) are now
-  // collapsed by default — the verdict / role card / needs strip carry
-  // primary info above. Users tap "Voir les détails" for the dense view.
-  const [showOrgDetails, setShowOrgDetails] = useState(false);
+  const [orgSubTab, setOrgSubTab] = useState<'transport' | 'gear'>('transport');
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
   const myOutingCardRef = useRef<MyOutingCardHandle>(null);
-  // Scroll target for "+ Ajouter du matériel" — without this, expanding
-  // details below the fold leaves the user staring at the cards thinking
-  // nothing happened.
-  const orgScrollRef = useRef<ScrollView>(null);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
@@ -686,11 +668,7 @@ export function ActivityDetail({
 
       {/* ===== ORGANIZATION TAB ===== */}
       {showTabs && activeTab === 'organization' && (
-        <ScrollView
-          ref={orgScrollRef}
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.content}
-        >
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {/* Presence verification */}
           {canCheckIn && (
             <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
@@ -739,13 +717,8 @@ export function ActivityDetail({
 
           {/* Two-card composition: Mine (your role for this outing) on top,
               Group (drivers, gear, where the coordination happens) below.
-              Each card has the same visual grammar but different scope.
-              Mine stays calm and personal; Group is action-coded — reserve
-              a seat, claim a missing safety item.
-
-              The dense TransportSection + GearSection sit beneath, hidden
-              by default and revealed via the "Voir tous les détails" link
-              inside the GroupCard for power-users. */}
+              TransportSection and GearSection are mounted invisibly as
+              modal-only hosts driven by imperative refs from the cards. */}
           <MyOutingCard
             ref={myOutingCardRef}
             activityId={activity.id}
@@ -755,18 +728,7 @@ export function ActivityDetail({
             isParticipant={isCreator || isAccepted}
             onEditTransport={() => transportSectionRef.current?.openEditor()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
-            onAddMaterial={() => {
-              // Surface the catalog so the user can claim items. The
-              // expand happens off-screen below the fold; scroll the
-              // org ScrollView to the bottom after a beat so the
-              // newly-rendered gear section is in view, otherwise the
-              // tap reads as "did nothing".
-              setShowOrgDetails(true);
-              setOrgSubTab('gear');
-              setTimeout(() => {
-                orgScrollRef.current?.scrollToEnd({ animated: true });
-              }, 80);
-            }}
+            onAddMaterial={() => gearSectionRef.current?.openCustomSheet()}
           />
 
           <GroupCard
@@ -776,70 +738,23 @@ export function ActivityDetail({
             activeSubTab={orgSubTab}
             onActiveSubTabChange={setOrgSubTab}
             onReserveSeat={(driverId) => {
-              // Same cancel-first gate as Mine's stamp tap. If the user
-              // has any transport set (driver / passenger / self-mover /
-              // pending request), the gate opens the cancel modal and
-              // returns true; we bail without opening the reserve sheet.
               if (myOutingCardRef.current?.requestCancelIfNeeded()) return;
               const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
-            onToggleDetails={() => setShowOrgDetails((v) => !v)}
-            showDetailsActive={showOrgDetails}
           />
 
-          {/* Sub-tabs only render when details are expanded — purely
-              decorative wrapper, no internal state to preserve. */}
-          {showOrgDetails && (
-            <OrganisationSubTabs
-              active={orgSubTab}
-              onChange={setOrgSubTab}
-              carCount={(orgTransportParticipants ?? []).filter(
-                (p) => p.transport_type != null
-                  && ['car', 'carpool'].includes(p.transport_type)
-                  && (p.transport_seats ?? 0) > 0,
-              ).length}
-              gearMissingCount={
-                orgGearCatalog == null || orgGearCatalog.length === 0
-                  ? null
-                  : (() => {
-                      const covered = new Set((orgGearDeclared ?? []).map((g) => g.gear_name));
-                      return orgGearCatalog.filter((c) => !covered.has(c.name_key)).length;
-                    })()
-              }
-            />
-          )}
-
-          {/* Sections stay mounted (refs need to be live so the cards
-              above can drive their editor sheets) but clip to height: 0
-              when collapsed. Using `display: 'none'` here previously froze
-              the app on the first interaction — RN locks touches when a
-              <Modal> opens whose ancestor View is display:none. Clipping
-              via height + overflow keeps the layout tree intact and lets
-              the Modal portal out cleanly. */}
-          <View
-            style={!(showOrgDetails && orgSubTab === 'transport') ? styles.collapsedSection : null}
-            pointerEvents={showOrgDetails && orgSubTab === 'transport' ? 'auto' : 'none'}
-          >
-            <TransportSection
-              ref={transportSectionRef}
-              activityId={activity.id}
-              currentUserId={currentUserId ?? null}
-            />
-          </View>
-          <View
-            style={!(showOrgDetails && orgSubTab === 'gear') ? styles.collapsedSection : null}
-            pointerEvents={showOrgDetails && orgSubTab === 'gear' ? 'auto' : 'none'}
-          >
-            <GearSection
-              ref={gearSectionRef}
-              activityId={activity.id}
-              sportKey={activity.sport_key}
-              currentUserId={currentUserId ?? null}
-              isParticipant={isCreator || isAccepted}
-              participantCount={activity.participant_count}
-            />
-          </View>
+          <TransportSection
+            ref={transportSectionRef}
+            activityId={activity.id}
+            currentUserId={currentUserId ?? null}
+          />
+          <GearSection
+            ref={gearSectionRef}
+            activityId={activity.id}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+          />
         </ScrollView>
       )}
 
@@ -972,9 +887,6 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  // Clip a section to zero height instead of using `display: 'none'` —
-  // see comment at the call site for why.
-  collapsedSection: { height: 0, overflow: 'hidden' },
   tabBar: {
     flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm,
     paddingBottom: spacing.xs, gap: spacing.sm, backgroundColor: colors.background,

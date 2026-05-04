@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronRight, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -31,14 +31,9 @@ interface Props {
   activityId: string;
   currentUserId: string | null;
   isParticipant: boolean;
-  // Active sub-section is owned by the parent so the in-card folder
-  // tabs and the "Voir tous les détails" dense expansion stay in sync —
-  // tapping a tab in the card sets the same state the dense view uses.
   activeSubTab: 'transport' | 'gear';
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
-  onToggleDetails: () => void;
-  showDetailsActive: boolean;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -60,8 +55,6 @@ export function GroupCard({
   activeSubTab,
   onActiveSubTabChange,
   onReserveSeat,
-  onToggleDetails,
-  showDetailsActive,
 }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -729,23 +722,6 @@ export function GroupCard({
           </View>
         )}
 
-        <Pressable
-          style={[styles.detailsRow, { borderTopColor: colors.line }]}
-          onPress={onToggleDetails}
-          hitSlop={4}
-        >
-          <Text style={styles.detailsText}>
-            {showDetailsActive
-              ? t('group.hideDetails', { defaultValue: 'Masquer les détails' })
-              : t('group.showDetails', { defaultValue: 'Voir tous les détails' })}
-          </Text>
-          <ChevronRight
-            size={12}
-            color={colors.textMuted}
-            strokeWidth={2}
-            style={{ transform: [{ rotate: showDetailsActive ? '90deg' : '0deg' }] }}
-          />
-        </Pressable>
       </View>
     </View>
   );
@@ -1152,20 +1128,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
     marginLeft: 6,
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderTopWidth: 1,
-  },
-  detailsText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '600',
-    letterSpacing: 0.2,
   },
 });

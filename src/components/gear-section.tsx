@@ -2,70 +2,46 @@ import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Minus, AlertCircle, Check } from 'lucide-react-native';
+import { Plus, Minus } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { gearService, type GearCategoryKey } from '@/services/gear-service';
-import { participationService } from '@/services/participation-service';
-import { UserAvatar } from './user-avatar';
+import { gearService } from '@/services/gear-service';
 
 interface Props {
   activityId: string;
-  sportKey: string;
   currentUserId: string | null;
   isParticipant: boolean;
-  participantCount: number;
 }
 
-// Imperative API exposed via ref so the parent screen (activity-detail)
-// can open the per-item sheet directly when the user taps a need on
-// the GroupNeedsStrip or a contribution on the MyRoleCard.
+// Modal-only host: the dense "Voir tous les détails" gear surface
+// (catalog list, missing/covered split, status, warning card) was
+// pruned alongside the rest of the legacy organization view. The
+// component now just holds the two editor modals — per-item edit
+// (Save / Remove) and custom-item add — exposed via imperative refs
+// the cards drive. No catalog dependency, no quotas, no per-person
+// logic; matches the simplified gear philosophy.
 export interface GearSectionHandle {
   openItemByName: (name: string) => void;
+  openCustomSheet: () => void;
 }
 
-type CategoryKey = GearCategoryKey | 'custom';
-
-const CATEGORY_COLORS: Record<CategoryKey, string> = {
-  safety: '#E5524E',
-  technical: '#F4A373',
-  water: '#4B7CB8',
-  personal: '#7EC8A3',
-  custom: '#8A95AB',
-};
-
-const CATEGORY_ORDER: CategoryKey[] = ['safety', 'technical', 'water', 'personal', 'custom'];
-
-interface Bringer {
-  user_id: string;
-  display_name: string;
-  avatar_url: string | null;
-  quantity: number;
-}
-
-interface ItemView {
-  name: string;
-  category: CategoryKey;
-  display_order: number;
-  isCatalog: boolean;
-  have: number;
-  required: number;
-  covered: boolean;
-  bringers: Bringer[];
-}
-
-export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant, participantCount }, ref) {
+export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, currentUserId, isParticipant }, ref) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
 
+  // Per-item modal state — opened either by name (Mine's chip tap or
+  // Mon matériel sheet's row tap). Quantity stepper defaults to the
+  // user's existing quantity for that item, or 1 if not yet brought.
   const [selectedItemName, setSelectedItemName] = useState<string | null>(null);
   const [myQtyDraft, setMyQtyDraft] = useState(1);
   const [isSavingItem, setIsSavingItem] = useState(false);
 
+  // Custom-item modal state — opened by Mine's "+ Ajouter du matériel"
+  // button. User types a free-form name + quantity.
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customQty, setCustomQty] = useState(1);
@@ -75,97 +51,6 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     queryFn: () => gearService.getForActivity(activityId),
   });
 
-  const { data: catalog } = useQuery({
-    queryKey: ['gear-catalog', sportKey],
-    queryFn: () => gearService.getCatalog(sportKey),
-  });
-
-  // Shared queryKey with the participant list — TanStack dedupes the fetch.
-  const { data: participantsForPresence } = useQuery({
-    queryKey: ['participants', activityId],
-    queryFn: () => participationService.getForActivity(activityId),
-    staleTime: 15_000,
-  });
-
-  const confirmedUserIds = useMemo(
-    () => new Set((participantsForPresence ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
-    [participantsForPresence],
-  );
-
-  const { grouped, checkedCatalog, totalCatalog, missingCount, items } = useMemo(() => {
-    const itemMap = new Map<string, ItemView>();
-    (catalog ?? []).forEach((c) => {
-      const required = c.per_person ? participantCount : (c.shared_recommended_qty ?? 1);
-      itemMap.set(c.name_key, {
-        name: c.name_key,
-        category: c.category_key,
-        display_order: c.display_order,
-        isCatalog: true,
-        have: 0,
-        required,
-        covered: false,
-        bringers: [],
-      });
-    });
-    (activityGear ?? []).forEach((g) => {
-      const existing = itemMap.get(g.gear_name);
-      if (existing) {
-        existing.have += g.quantity;
-        existing.bringers.push({
-          user_id: g.user_id,
-          display_name: g.display_name,
-          avatar_url: g.avatar_url,
-          quantity: g.quantity,
-        });
-      } else {
-        itemMap.set(g.gear_name, {
-          name: g.gear_name,
-          category: 'custom',
-          display_order: 999,
-          isCatalog: false,
-          have: g.quantity,
-          required: 0,
-          covered: true,
-          bringers: [{
-            user_id: g.user_id,
-            display_name: g.display_name,
-            avatar_url: g.avatar_url,
-            quantity: g.quantity,
-          }],
-        });
-      }
-    });
-    itemMap.forEach((item) => {
-      item.covered = item.isCatalog ? item.have >= item.required : true;
-    });
-
-    const groupsMap = new Map<CategoryKey, ItemView[]>();
-    itemMap.forEach((item) => {
-      if (!groupsMap.has(item.category)) groupsMap.set(item.category, []);
-      groupsMap.get(item.category)!.push(item);
-    });
-    groupsMap.forEach((g) => g.sort((a, b) => a.display_order - b.display_order));
-
-    const orderedGroups = CATEGORY_ORDER
-      .map((key) => ({ key, items: groupsMap.get(key) ?? [] }))
-      .filter((g) => g.items.length > 0);
-
-    const catalogItems = Array.from(itemMap.values()).filter((i) => i.isCatalog);
-    const checkedCat = catalogItems.filter((i) => i.covered).length;
-    const missing = catalogItems.filter((i) => !i.covered).length;
-
-    return {
-      grouped: orderedGroups,
-      checkedCatalog: checkedCat,
-      totalCatalog: catalogItems.length,
-      missingCount: missing,
-      items: itemMap,
-    };
-  }, [catalog, activityGear, participantCount]);
-
-  const progressRatio = totalCatalog === 0 ? 0 : checkedCatalog / totalCatalog;
-  const selectedItem = selectedItemName ? items.get(selectedItemName) ?? null : null;
-
   const myCurrentQtyFor = (itemName: string): number => {
     const entry = (activityGear ?? []).find(
       (g) => g.gear_name === itemName && g.user_id === currentUserId,
@@ -173,23 +58,26 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     return entry?.quantity ?? 0;
   };
 
-  const openItemSheet = (item: ItemView) => {
-    const mine = myCurrentQtyFor(item.name);
-    setMyQtyDraft(mine > 0 ? mine : 1);
-    setSelectedItemName(item.name);
-  };
+  const myOriginalQty = selectedItemName ? myCurrentQtyFor(selectedItemName) : 0;
+  const iAlreadyBring = myOriginalQty > 0;
 
-  // Exposed to parent so MyRoleCard / GroupNeedsStrip can open the per-item
-  // sheet directly without forcing a navigation. Looks up the item in the
-  // computed map (catalog items are present even when nobody has declared,
-  // so a fresh "I bring rope" tap from the needs strip works correctly).
   useImperativeHandle(ref, () => ({
     openItemByName: (name: string) => {
-      const found = items.get(name);
-      if (found) openItemSheet(found);
+      const mine = (activityGear ?? []).find(
+        (g) => g.gear_name === name && g.user_id === currentUserId,
+      )?.quantity ?? 0;
+      setMyQtyDraft(mine > 0 ? mine : 1);
+      setSelectedItemName(name);
     },
-  }), [items, activityGear, currentUserId]);
+    openCustomSheet: () => {
+      setCustomName('');
+      setCustomQty(1);
+      setShowCustomSheet(true);
+    },
+  }), [activityGear, currentUserId]);
 
+  // Drives both Save and Remove on the per-item modal — sets the user's
+  // gear to the transformed list and invalidates the cache.
   const persistMyGear = async (transform: (existing: { name: string; quantity: number }[]) => { name: string; quantity: number }[]) => {
     const mine = (activityGear ?? [])
       .filter((g) => g.user_id === currentUserId)
@@ -254,89 +142,13 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   };
 
   const myDraftIsBringing = myQtyDraft > 0;
-  const myOriginalQty = selectedItemName ? myCurrentQtyFor(selectedItemName) : 0;
-  const iAlreadyBring = myOriginalQty > 0;
-
-  const itemStatusLabel = (item: ItemView): string => {
-    if (!item.isCatalog) return t('gear.itemSheetStatusCustom');
-    if (item.have === 0) return t('gear.itemSheetStatusMissing', { required: item.required });
-    if (item.have < item.required) return t('gear.itemSheetStatusPartial', { have: item.have, required: item.required });
-    if (item.have === item.required) return t('gear.itemSheetStatusCovered', { have: item.have, required: item.required });
-    return t('gear.itemSheetStatusExtra', { have: item.have });
-  };
-
-  const itemStatusColor = (item: ItemView): string => {
-    if (!item.isCatalog) return colors.success;
-    if (item.have === 0) return colors.error;
-    if (item.have < item.required) return colors.cta;
-    return colors.success;
-  };
-
-  const isEmpty = grouped.length === 0;
 
   return (
-    <View style={styles.section}>
-      {totalCatalog > 0 && (
-        <>
-          <Text style={styles.coveredLabel}>
-            {t('gear.covered', { checked: checkedCatalog, total: totalCatalog, count: checkedCatalog })}
-          </Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
-          </View>
-        </>
-      )}
-
-      {missingCount > 0 && (
-        <View style={styles.warningCard}>
-          <View style={styles.warningIconBox}>
-            <AlertCircle size={14} color={colors.error} strokeWidth={2.5} />
-          </View>
-          <Text style={styles.warningText}>
-            {t('gear.missingWarning', { count: missingCount })}
-          </Text>
-        </View>
-      )}
-
-      {isEmpty ? (
-        <Text style={styles.emptyText}>{t('gear.empty')}</Text>
-      ) : (
-        grouped.map((group) => (
-          <View key={group.key} style={styles.groupBlock}>
-            <View style={styles.groupHeader}>
-              <View style={[styles.groupDot, { backgroundColor: CATEGORY_COLORS[group.key] }]} />
-              <Text style={styles.groupTitle}>{t(`gear.category.${group.key}`)}</Text>
-              <Text style={styles.groupCount}>
-                {group.items.filter((i) => i.covered).length}/{group.items.length}
-              </Text>
-            </View>
-            <View style={styles.groupCard}>
-              {group.items.map((item, idx) => (
-                <ItemRow
-                  key={item.name}
-                  item={item}
-                  isLast={idx === group.items.length - 1}
-                  confirmedUserIds={confirmedUserIds}
-                  onPress={() => openItemSheet(item)}
-                  styles={styles}
-                  colors={colors}
-                  t={t}
-                />
-              ))}
-            </View>
-          </View>
-        ))
-      )}
-
-      {isParticipant && (
-        <Pressable onPress={() => { setCustomName(''); setCustomQty(1); setShowCustomSheet(true); }} style={styles.addCustomBtn}>
-          <Text style={styles.addCustomText}>{t('gear.addCustom')}</Text>
-        </Pressable>
-      )}
-
-      {/* Per-item modal — centered floating card. */}
+    <>
+      {/* Per-item modal — edit my quantity for an existing item, or
+          remove it from my contributions. */}
       <Modal
-        visible={selectedItem !== null}
+        visible={selectedItemName !== null}
         animationType="fade"
         transparent
         onRequestClose={() => setSelectedItemName(null)}
@@ -345,33 +157,13 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
           <Pressable style={styles.backdrop} onPress={() => setSelectedItemName(null)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                {selectedItem && (
+                {selectedItemName && (
                   <>
-                    <Text style={styles.sheetTitle}>{selectedItem.name}</Text>
-                    <Text style={[styles.sheetStatus, { color: itemStatusColor(selectedItem) }]}>
-                      {itemStatusLabel(selectedItem)}
-                    </Text>
-
-                    <Text style={styles.sheetSectionLabel}>
-                      {selectedItem.bringers.length === 0
-                        ? t('gear.itemSheetNoBringers')
-                        : t('gear.itemSheetBringers')}
-                    </Text>
-                    {selectedItem.bringers.length > 0 && (
-                      <View style={styles.bringersList}>
-                        {selectedItem.bringers.map((b) => (
-                          <View key={b.user_id} style={styles.bringerRowSheet}>
-                            <UserAvatar name={b.display_name} avatarUrl={b.avatar_url} size={24} confirmedPresent={confirmedUserIds.has(b.user_id)} />
-                            <Text style={styles.bringerNameSheet} numberOfLines={1}>{b.display_name}</Text>
-                            <Text style={styles.bringerQtySheet}>×{b.quantity}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
+                    <Text style={styles.sheetTitle}>{selectedItemName}</Text>
 
                     {isParticipant && (
                       <>
-                        <Text style={[styles.sheetSectionLabel, { marginTop: spacing.md }]}>
+                        <Text style={styles.sheetSectionLabel}>
                           {t('gear.itemSheetMyContribution')}
                         </Text>
                         <View style={styles.myContribRow}>
@@ -422,7 +214,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Custom-item modal — centered floating card. */}
+      {/* Custom-item modal — name + qty. Used by Mine's "+ Ajouter du
+          matériel" button to declare a free-form gear item. */}
       <Modal
         visible={showCustomSheet}
         animationType="fade"
@@ -480,154 +273,11 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </>
   );
 });
 
-interface ItemRowProps {
-  item: ItemView;
-  isLast: boolean;
-  confirmedUserIds: Set<string>;
-  onPress: () => void;
-  colors: AppColors;
-  styles: ReturnType<typeof createStyles>;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}
-
-function ItemRow({ item, isLast, confirmedUserIds, onPress, colors, styles, t }: ItemRowProps) {
-  const firstBringer = item.bringers[0];
-  const extraBringers = item.bringers.length - 1;
-
-  const qtyLabel =
-    !item.isCatalog ? `×${item.have}` :
-    item.have === 0 ? `0/${item.required}` :
-    item.covered ? `×${item.have}` :
-    `${item.have}/${item.required}`;
-
-  const qtyColor =
-    !item.isCatalog ? colors.success :
-    item.have === 0 ? colors.error :
-    item.covered ? colors.success :
-    colors.cta;
-
-  return (
-    <Pressable onPress={onPress} style={[styles.itemRow, !isLast && styles.itemRowBorder]}>
-      <View style={[styles.checkbox, item.covered ? styles.checkboxChecked : styles.checkboxEmpty]}>
-        {item.covered && <Check size={12} color="#FFFFFF" strokeWidth={3.5} />}
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text
-          style={[styles.itemName, item.covered && styles.itemNameCovered]}
-          numberOfLines={1}
-        >
-          {item.name}
-        </Text>
-        {item.bringers.length > 0 && firstBringer && (
-          <View style={styles.bringerRow}>
-            <UserAvatar name={firstBringer.display_name} avatarUrl={firstBringer.avatar_url} size={14} confirmedPresent={confirmedUserIds.has(firstBringer.user_id)} />
-            <Text style={styles.bringerText} numberOfLines={1}>
-              {t('gear.broughtBy')} <Text style={styles.bringerName}>{firstBringer.display_name}</Text>
-              {extraBringers > 0 && <Text style={styles.bringerExtra}> +{extraBringers}</Text>}
-            </Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.qty, { color: qtyColor }]}>{qtyLabel}</Text>
-    </Pressable>
-  );
-}
-
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  section: { marginBottom: spacing.lg },
-
-  coveredLabel: {
-    color: colors.textSecondary, fontSize: fontSizes.xs - 2, fontWeight: 'bold',
-    letterSpacing: 1.4, textTransform: 'uppercase',
-    marginBottom: spacing.xs + 2,
-  },
-
-  progressTrack: {
-    height: 6, borderRadius: 999,
-    backgroundColor: colors.surface,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%', borderRadius: 999,
-    backgroundColor: colors.cta,
-  },
-
-  warningCard: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.error + '14',
-    borderWidth: 1, borderColor: colors.error + '40',
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  warningIconBox: {
-    width: 28, height: 28, borderRadius: 8,
-    backgroundColor: colors.error + '30',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  warningText: {
-    flex: 1, color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1, fontWeight: '500',
-  },
-
-  emptyText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
-
-  groupBlock: { marginBottom: spacing.md },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2, marginBottom: spacing.xs + 2 },
-  groupDot: { width: 8, height: 8, borderRadius: 4 },
-  groupTitle: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', letterSpacing: -0.2 },
-  groupCount: { color: colors.textMuted, fontSize: fontSizes.xs - 1 },
-
-  groupCard: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.line,
-    paddingHorizontal: spacing.sm + 4,
-  },
-
-  itemRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
-    paddingVertical: spacing.sm,
-  },
-  itemRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.line },
-
-  checkbox: {
-    width: 22, height: 22, borderRadius: 7,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  checkboxChecked: { backgroundColor: colors.cta, borderWidth: 1, borderColor: colors.cta },
-  checkboxEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.line },
-
-  itemName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
-  itemNameCovered: {
-    color: colors.textSecondary,
-    textDecorationLine: 'line-through',
-    textDecorationColor: colors.textMuted,
-  },
-
-  bringerRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
-  bringerText: { color: colors.textMuted, fontSize: 11 },
-  bringerName: { color: colors.cta, fontWeight: '600' },
-  bringerExtra: { color: colors.textMuted, fontWeight: '500' },
-
-  qty: { fontSize: fontSizes.sm, fontWeight: '700' },
-
-  addCustomBtn: {
-    marginTop: spacing.xs,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.md,
-    borderWidth: 1, borderStyle: 'dashed', borderColor: colors.line,
-    alignItems: 'center',
-  },
-  addCustomText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '500' },
-
-  // Modals — centered floating cards on a near-opaque scrim so the
-  // active modal carries the user's attention without competing with
-  // the cards underneath.
   backdrop: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
     alignItems: 'center', justifyContent: 'center',
@@ -640,24 +290,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.lg,
   },
   sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.xs },
-  sheetStatus: { fontSize: fontSizes.sm, fontWeight: '600', marginBottom: spacing.md },
   sheetSectionLabel: {
     color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontWeight: 'bold',
     letterSpacing: 1.2, textTransform: 'uppercase',
     marginBottom: spacing.xs + 2,
+    marginTop: spacing.md,
   },
-
-  bringersList: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.xs,
-  },
-  bringerRowSheet: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: spacing.xs + 2,
-  },
-  bringerNameSheet: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
-  bringerQtySheet: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-
   myContribRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: spacing.lg,

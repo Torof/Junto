@@ -1,39 +1,32 @@
-import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, LayoutAnimation, UIManager } from 'react-native';
-import { useState, useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Car, Bike, TrainFront, Footprints, HelpCircle, MapPin, ChevronDown, Plus, Clock } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, Clock } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
-import { transportService, type ParticipantTransport, type SeatAssignment } from '@/services/transport-service';
+import { transportService } from '@/services/transport-service';
 import { supabase } from '@/services/supabase';
-import { UserAvatar } from './user-avatar';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 interface Props {
   activityId: string;
   currentUserId: string | null;
 }
 
-// Imperative API exposed via ref so the parent screen (activity-detail)
-// can open the transport editor sheet directly when the user taps their
-// transport line on the MyRoleCard.
+// Modal-only host: the dense "Voir tous les détails" surface (cars list,
+// city filter, others footer, header CTA) was pruned. MyOutingCard +
+// GroupCard now own all visible transport state. This component just
+// holds the two editor modals (declare/edit transport, reserve a seat)
+// and exposes them via imperative refs the cards already drive.
 export interface TransportSectionHandle {
   openEditor: () => void;
   openRequestSheet: (driverId: string, defaultPickupFrom?: string | null) => void;
 }
 
-// Order matters for the chip grid wrapping: "public_transport" carries
-// the longest label ("Transports en commun"), so we park it at the
-// end where it can take its own line without forcing earlier pills
-// to wrap awkwardly.
 const TRANSPORT_TYPES = ['car', 'carpool', 'bike', 'on_foot', 'other', 'public_transport'] as const;
 const CAR_TYPES = ['car', 'carpool'] as const;
 
@@ -46,13 +39,13 @@ const TRANSPORT_ICONS: Record<string, typeof Car> = {
   other: HelpCircle,
 };
 
-
 export const TransportSection = forwardRef<TransportSectionHandle, Props>(function TransportSection({ activityId, currentUserId }, ref) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  // Editor (declare / edit own transport) state.
   const [showEditor, setShowEditor] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
@@ -61,6 +54,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const [showDepartsPicker, setShowDepartsPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Seat-reserve state.
   const [requestingFromDriver, setRequestingFromDriver] = useState<string | null>(null);
   const [requestPickup, setRequestPickup] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
@@ -68,7 +62,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const [showPickupPicker, setShowPickupPicker] = useState(false);
   const [requestSending, setRequestSending] = useState(false);
 
-  // Default times anchor on the activity's starts_at (-30min for driver default)
+  // Drives the default departs/pickup time (= activity start - 30min).
   const { data: activityRow } = useQuery({
     queryKey: ['activity-starts-at', activityId],
     queryFn: async () => {
@@ -78,91 +72,15 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   });
   const activityStartsAt = activityRow?.starts_at ? new Date(activityRow.starts_at) : null;
 
-  const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
-  const [cityFilter, setCityFilter] = useState<string>('all');
-
+  // Used by openEditor to prefill from the user's existing transport,
+  // and by openRequestSheet's default-pickup-city fallback. TanStack
+  // dedupes with the same query in MyOutingCard / GroupCard.
   const { data: participants } = useQuery({
     queryKey: ['transport', activityId],
     queryFn: () => transportService.getForActivity(activityId),
   });
 
-  const { data: pendingSeatRequests } = useQuery({
-    queryKey: ['seat-requests', activityId],
-    queryFn: () => transportService.getPendingSeatRequests(activityId),
-  });
-
-  const { data: acceptedSeatRequests } = useQuery({
-    queryKey: ['seat-requests-accepted', activityId],
-    queryFn: () => transportService.getSeatAssignments(activityId),
-  });
-
-  const acceptedCountByDriver = useMemo(() => {
-    const map = new Map<string, number>();
-    (acceptedSeatRequests ?? []).forEach((r) => {
-      map.set(r.driver_id, (map.get(r.driver_id) ?? 0) + 1);
-    });
-    return map;
-  }, [acceptedSeatRequests]);
-
-  const confirmedUserIds = useMemo(
-    () => new Set((participants ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
-    [participants],
-  );
-
-  const cars = useMemo(
-    () => (participants ?? []).filter((p) => {
-      if (!p.transport_type || !(CAR_TYPES as readonly string[]).includes(p.transport_type)) return false;
-      const free = p.transport_seats ?? 0;
-      const accepted = acceptedCountByDriver.get(p.user_id) ?? 0;
-      return free + accepted > 0;
-    }),
-    [participants, acceptedCountByDriver],
-  );
-
-  const others = useMemo(
-    () => (participants ?? []).filter((p) => {
-      if (!p.transport_type) return false;
-      if (!(CAR_TYPES as readonly string[]).includes(p.transport_type)) return true;
-      const free = p.transport_seats ?? 0;
-      const accepted = acceptedCountByDriver.get(p.user_id) ?? 0;
-      return free + accepted === 0;
-    }),
-    [participants, acceptedCountByDriver],
-  );
-
-  const uniqueCities = useMemo(() => {
-    const set = new Set<string>();
-    cars.forEach((c) => { if (c.transport_from_name) set.add(c.transport_from_name); });
-    return Array.from(set).sort();
-  }, [cars]);
-
-  const filteredCars = useMemo(() => {
-    if (cityFilter === 'all') return cars;
-    return cars.filter((c) => c.transport_from_name === cityFilter);
-  }, [cars, cityFilter]);
-
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
-  const hasSetTransport = !!myTransport;
-  const isDriver = myTransport
-    && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')
-    && (myTransport.transport_seats ?? 0) > 0;
-  const myAcceptedSeat = (acceptedSeatRequests ?? []).find((r) => r.requester_id === currentUserId);
-
-  const totalFreeSeats = useMemo(
-    () => cars.reduce((sum, c) => sum + (c.transport_seats ?? 0), 0),
-    [cars],
-  );
-
-  const hasPendingRequest = (driverId: string) =>
-    (pendingSeatRequests ?? []).some((r) => r.driver_id === driverId && r.requester_id === currentUserId);
-
-  const getPassengersFor = (driverId: string) =>
-    (acceptedSeatRequests ?? []).filter((r) => r.driver_id === driverId);
-
-  const toggleCar = (carId: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedCarId(expandedCarId === carId ? null : carId);
-  };
 
   const openEditor = () => {
     if (myTransport) {
@@ -174,7 +92,6 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       setSelectedType(null);
       setSeats(0);
       setFromName('');
-      // Default departs at 30min before activity start
       setDepartsAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
     }
     setShowEditor(true);
@@ -185,15 +102,13 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     setRequestPickup(defaultPickupFrom ?? '');
     setRequestMessage('');
     // Sensible default — activity-start - 30min. Pickup-vs-driver-
-    // departure is intentionally not constrained: a passenger en route
-    // (Sisteron between Marseille and Briançon) is picked up AFTER the
-    // driver's start, not before. Mig 00176 dropped the wrong DB bound
-    // that used to force pickup ≤ driver_departs_at.
+    // departure is not constrained: a passenger en route (Sisteron
+    // between Marseille and Briançon) is picked up AFTER the driver's
+    // start. Mig 00176 dropped the wrong DB bound that used to force
+    // pickup ≤ driver_departs_at.
     setRequestedPickupAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
   };
 
-  // Exposed to parent so MyOutingCard / GroupCard can drive the editor
-  // and reserve sheet without forcing a sub-tab navigation.
   useImperativeHandle(ref, () => ({ openEditor, openRequestSheet }), [openEditor]);
 
   const handleSave = async () => {
@@ -241,124 +156,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     }
   };
 
-  const handleCancelSeat = async () => {
-    if (!myAcceptedSeat) return;
-    try {
-      await transportService.cancelAcceptedSeat(myAcceptedSeat.id);
-      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
-      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
-      Burnt.toast({ title: t('transport.seatCancelled'), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
-    }
-  };
-
-  // Collapse any expanded car that disappears from the filtered view
-  useEffect(() => {
-    if (expandedCarId && !filteredCars.some((c) => c.user_id === expandedCarId)) {
-      setExpandedCarId(null);
-    }
-  }, [expandedCarId, filteredCars]);
-
   return (
-    <View style={styles.section}>
-      <View style={styles.headerRow}>
-        <Text style={styles.freeSeatsLabel}>
-          {totalFreeSeats === 0 ? t('transport.noFreeSeats') : t('transport.freeSeatsTotal', { count: totalFreeSeats })}
-        </Text>
-        <Pressable onPress={openEditor} hitSlop={8} style={styles.headerCta}>
-          {!hasSetTransport && <Plus size={12} color={colors.cta} strokeWidth={2.5} />}
-          <Text style={styles.headerCtaText}>
-            {hasSetTransport ? t('transport.edit') : t('transport.propose')}
-          </Text>
-        </Pressable>
-      </View>
-
-      {uniqueCities.length >= 2 && (
-        <View style={styles.filterRow}>
-          <FilterPill
-            label={t('transport.filterAll')}
-            isActive={cityFilter === 'all'}
-            onPress={() => setCityFilter('all')}
-            styles={styles}
-          />
-          {uniqueCities.map((city) => (
-            <FilterPill
-              key={city}
-              label={city}
-              isActive={cityFilter === city}
-              onPress={() => setCityFilter(city)}
-              styles={styles}
-            />
-          ))}
-        </View>
-      )}
-
-      {cars.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}>{t('transport.noCars')}</Text>
-        </View>
-      ) : filteredCars.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}>—</Text>
-        </View>
-      ) : (
-        filteredCars.map((car) => {
-          const passengers = getPassengersFor(car.user_id);
-          const used = passengers.length;
-          const free = car.transport_seats ?? 0;
-          const offered = used + free;
-          const isMyCar = car.user_id === currentUserId;
-          const hasMySeatHere = myAcceptedSeat?.driver_id === car.user_id;
-          const hasPendingHere = hasPendingRequest(car.user_id);
-          return (
-            <CarRow
-              key={car.user_id}
-              car={car}
-              capacity={offered}
-              used={used}
-              free={free}
-              passengers={passengers}
-              confirmedUserIds={confirmedUserIds}
-              isExpanded={expandedCarId === car.user_id}
-              onToggle={() => toggleCar(car.user_id)}
-              isMyCar={isMyCar}
-              hasMySeatHere={hasMySeatHere}
-              hasPendingHere={hasPendingHere}
-              hasAnyReservation={!!myAcceptedSeat}
-              canRequest={!isDriver && !myAcceptedSeat && !hasPendingHere && !isMyCar && free > 0}
-              onRequestPress={() => openRequestSheet(car.user_id, myTransport?.transport_from_name)}
-              onCancelSeatPress={handleCancelSeat}
-              onEditMyCar={openEditor}
-              t={t}
-              styles={styles}
-              colors={colors}
-            />
-          );
-        })
-      )}
-
-      {others.length > 0 && (
-        <View style={styles.othersSection}>
-          <Text style={styles.othersTitle}>{t('transport.otherTransports')}</Text>
-          {others.map((p) => {
-            const Icon = TRANSPORT_ICONS[p.transport_type ?? 'other'] ?? HelpCircle;
-            return (
-              <View key={p.user_id} style={styles.otherRow}>
-                <Icon size={14} color={colors.textMuted} strokeWidth={2} />
-                <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} confirmedPresent={p.confirmed_present === true} />
-                <Text style={styles.otherName} numberOfLines={1}>{p.display_name}</Text>
-                <Text style={styles.otherType}>{t(`transport.type.${p.transport_type}`)}</Text>
-                {p.transport_from_name && (
-                  <Text style={styles.otherFrom} numberOfLines={1}>· {p.transport_from_name}</Text>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      )}
-
-      {/* Transport editor modal — centered floating card. */}
+    <>
+      {/* Transport editor modal — declare / edit own transport. */}
       <Modal visible={showEditor} animationType="fade" transparent>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
@@ -412,10 +212,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   />
                 </View>
 
-                {/* Departure time is useful for any mode, not just cars —
-                    a cyclist or pedestrian leaving Gap at 7h to make a
-                    9h start gives passengers/group a useful coordination
-                    signal. Show as soon as the user picks a mode. */}
+                {/* Departure time is useful for any mode — a cyclist or
+                    pedestrian leaving Gap at 7h to make a 9h start gives
+                    the group a useful coordination signal too. */}
                 {selectedType && (
                   <View style={styles.fromRow}>
                     <Text style={styles.fromLabel}>{t('transport.departsAt')}</Text>
@@ -457,7 +256,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Seat request modal — centered floating card. */}
+      {/* Seat request modal — request a seat from a specific driver. */}
       <Modal visible={requestingFromDriver !== null} animationType="fade" transparent onRequestClose={() => setRequestingFromDriver(null)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.backdrop} onPress={() => setRequestingFromDriver(null)}>
@@ -528,293 +327,11 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </>
   );
 });
 
-interface FilterPillProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-  styles: ReturnType<typeof createStyles>;
-}
-
-function FilterPill({ label, isActive, onPress, styles }: FilterPillProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.filterPill, isActive && styles.filterPillActive]}
-      hitSlop={6}
-    >
-      <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-interface CarRowProps {
-  car: ParticipantTransport;
-  capacity: number;
-  used: number;
-  free: number;
-  passengers: SeatAssignment[];
-  confirmedUserIds: Set<string>;
-  isExpanded: boolean;
-  onToggle: () => void;
-  isMyCar: boolean;
-  hasMySeatHere: boolean;
-  hasPendingHere: boolean;
-  hasAnyReservation: boolean;
-  canRequest: boolean;
-  onRequestPress: () => void;
-  onCancelSeatPress: () => void;
-  onEditMyCar: () => void;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-}
-
-function CarRow({
-  car, capacity, used, free, passengers, confirmedUserIds,
-  isExpanded, onToggle,
-  isMyCar, hasMySeatHere, hasPendingHere, canRequest,
-  onRequestPress, onCancelSeatPress, onEditMyCar,
-  t, styles, colors,
-}: CarRowProps) {
-  const isHighlighted = isMyCar || hasMySeatHere;
-
-  return (
-    <View style={[styles.carRow, isHighlighted && styles.carRowHighlighted]}>
-      <Pressable onPress={onToggle} style={styles.carHeader}>
-        <View style={styles.carAvatarWrap}>
-          <UserAvatar name={car.display_name} avatarUrl={car.avatar_url} size={36} confirmedPresent={car.confirmed_present === true} />
-          <View style={styles.carBadge}>
-            <Car size={8} color={colors.textPrimary} strokeWidth={2.5} />
-          </View>
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={styles.carNameRow}>
-            <Text style={styles.carName} numberOfLines={1}>{car.display_name}</Text>
-            {isMyCar && (
-              <View style={styles.myTag}><Text style={styles.myTagText}>{t('transport.myCar')}</Text></View>
-            )}
-            {!isMyCar && hasMySeatHere && (
-              <View style={styles.myTag}><Text style={styles.myTagText}>{t('transport.myReservation')}</Text></View>
-            )}
-          </View>
-          {(car.transport_from_name || car.transport_departs_at) && (
-            <View style={styles.carMetaRow}>
-              {car.transport_from_name && (
-                <>
-                  <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
-                  <Text style={styles.carFrom} numberOfLines={1}>{car.transport_from_name}</Text>
-                </>
-              )}
-              {car.transport_from_name && car.transport_departs_at && (
-                <Text style={styles.carFrom}> · </Text>
-              )}
-              {car.transport_departs_at && (
-                <>
-                  <Clock size={10} color={colors.textSecondary} strokeWidth={2.2} />
-                  <Text style={styles.carFrom}>{dayjs(car.transport_departs_at).format('H[h]mm')}</Text>
-                </>
-              )}
-            </View>
-          )}
-        </View>
-        <View style={styles.seatsCluster}>
-          <View style={styles.pipsRow}>
-            {Array.from({ length: capacity }).map((_, i) => (
-              <View
-                key={i}
-                style={[styles.pip, i < used ? styles.pipFilled : styles.pipEmpty]}
-              />
-            ))}
-          </View>
-          <Text style={styles.seatsCount}>{used}/{capacity}</Text>
-        </View>
-        <ChevronDown
-          size={16}
-          color={colors.textMuted}
-          strokeWidth={2}
-          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
-        />
-      </Pressable>
-
-      {isExpanded && (
-        <View style={styles.carExpand}>
-          {passengers.length > 0 && (
-            <View style={{ marginBottom: spacing.sm }}>
-              {passengers.map((p) => (
-                <View key={p.id} style={styles.passengerRow}>
-                  <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={20} confirmedPresent={confirmedUserIds.has(p.requester_id)} />
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
-                    {(p.pickup_from || p.requested_pickup_at) && (
-                      <Text style={styles.passengerSub} numberOfLines={1}>
-                        {p.pickup_from ?? ''}
-                        {p.pickup_from && p.requested_pickup_at ? ' · ' : ''}
-                        {p.requested_pickup_at ? dayjs(p.requested_pickup_at).format('H[h]mm') : ''}
-                      </Text>
-                    )}
-                  </View>
-                  <Text style={styles.passengerTag}>{t('transport.passenger')}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {isMyCar ? (
-            <Pressable style={styles.actionBtnSecondary} onPress={onEditMyCar}>
-              <Text style={styles.actionBtnSecondaryText}>{t('transport.edit')}</Text>
-            </Pressable>
-          ) : hasMySeatHere ? (
-            <Pressable style={styles.actionBtnDanger} onPress={onCancelSeatPress}>
-              <Text style={styles.actionBtnDangerText}>{t('transport.cancelMySeat')}</Text>
-            </Pressable>
-          ) : hasPendingHere ? (
-            <View style={[styles.actionBtnSecondary, { opacity: 0.6 }]}>
-              <Text style={styles.actionBtnSecondaryText}>{t('transport.requestPending')}</Text>
-            </View>
-          ) : canRequest ? (
-            <Pressable style={styles.actionBtnPrimary} onPress={onRequestPress}>
-              <Text style={styles.actionBtnPrimaryText}>{t('transport.reserve', { count: free })}</Text>
-            </Pressable>
-          ) : free === 0 ? (
-            <View style={[styles.actionBtnSecondary, { opacity: 0.5 }]}>
-              <Text style={styles.actionBtnSecondaryText}>{t('transport.full')}</Text>
-            </View>
-          ) : null}
-        </View>
-      )}
-    </View>
-  );
-}
-
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  section: { marginBottom: spacing.lg },
-
-  headerRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  freeSeatsLabel: {
-    color: colors.textSecondary, fontSize: fontSizes.xs - 2, fontWeight: 'bold',
-    letterSpacing: 1.4, textTransform: 'uppercase',
-  },
-  headerCta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  headerCtaText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '600' },
-
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.sm },
-  filterPill: {
-    backgroundColor: 'transparent',
-    borderWidth: 1, borderColor: colors.line,
-    borderRadius: radius.full,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  filterPillActive: { backgroundColor: colors.surfaceAlt, borderColor: colors.surfaceAlt },
-  filterPillText: { color: colors.textSecondary, fontSize: 11, fontWeight: '500' },
-  filterPillTextActive: { color: colors.textPrimary },
-
-  emptyBox: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: spacing.md, alignItems: 'center',
-  },
-  emptyText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
-
-  carRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.line,
-    marginBottom: spacing.sm,
-    overflow: 'hidden',
-  },
-  carRowHighlighted: { borderColor: colors.cta, borderWidth: 1.5 },
-
-  carHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
-    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm + 4,
-  },
-  carAvatarWrap: { position: 'relative' },
-  carBadge: {
-    position: 'absolute', bottom: -2, right: -2,
-    width: 16, height: 16, borderRadius: 8,
-    backgroundColor: colors.cta,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.background,
-  },
-  carNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  carName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  myTag: {
-    backgroundColor: colors.cta,
-    paddingHorizontal: 5, paddingVertical: 1,
-    borderRadius: 3,
-  },
-  myTagText: {
-    color: '#FFFFFF', fontSize: 9, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 0.6,
-  },
-  carMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
-  carFrom: { color: colors.textSecondary, fontSize: 11 },
-
-  seatsCluster: { alignItems: 'flex-end', gap: 3 },
-  pipsRow: { flexDirection: 'row', gap: 3 },
-  pip: { width: 7, height: 7, borderRadius: 3.5 },
-  pipFilled: { backgroundColor: colors.cta },
-  pipEmpty: { backgroundColor: colors.line },
-  seatsCount: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
-
-  carExpand: {
-    paddingHorizontal: spacing.sm + 4, paddingTop: spacing.sm, paddingBottom: spacing.sm + 4,
-    borderTopWidth: 1, borderTopColor: colors.line, borderStyle: 'dashed',
-  },
-  passengerRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: 4, paddingLeft: spacing.sm,
-  },
-  passengerName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1 },
-  passengerSub: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 1 },
-  passengerTag: { color: colors.textMuted, fontSize: 10 },
-
-  actionBtnPrimary: {
-    backgroundColor: colors.cta, borderRadius: radius.sm,
-    height: 36, alignItems: 'center', justifyContent: 'center',
-  },
-  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
-
-  actionBtnDanger: {
-    backgroundColor: 'transparent', borderRadius: radius.sm,
-    borderWidth: 1, borderColor: colors.error,
-    height: 36, alignItems: 'center', justifyContent: 'center',
-  },
-  actionBtnDangerText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
-
-  actionBtnSecondary: {
-    backgroundColor: colors.surfaceAlt, borderRadius: radius.sm,
-    borderWidth: 1, borderColor: colors.line,
-    height: 36, alignItems: 'center', justifyContent: 'center',
-  },
-  actionBtnSecondaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-
-  othersSection: {
-    marginTop: spacing.md, paddingTop: spacing.sm,
-    borderTopWidth: 1, borderTopColor: colors.line, borderStyle: 'dashed',
-  },
-  othersTitle: {
-    color: colors.textMuted, fontSize: fontSizes.xs - 2, fontWeight: 'bold',
-    letterSpacing: 1.4, textTransform: 'uppercase',
-    marginBottom: spacing.xs,
-  },
-  otherRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,
-    paddingVertical: 5,
-  },
-  otherName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1 },
-  otherType: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  otherFrom: { color: colors.textMuted, fontSize: fontSizes.xs, flex: 1 },
-
-  // Modals — centered floating cards on a near-opaque scrim so the
-  // active modal carries the user's attention without competing with
-  // the cards underneath.
   backdrop: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
     alignItems: 'center', justifyContent: 'center',

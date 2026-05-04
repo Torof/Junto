@@ -304,19 +304,6 @@
     "startPoint": "Start",
     "objective": "Objective"
   },
-  "organisation": {
-    "tabs": {
-      "transport": "Transport",
-      "gear": "Gear",
-      "transportCount_one": "{{count}} car",
-      "transportCount_other": "{{count}} cars",
-      "transportEmpty": "no cars",
-      "gearMissing_one": "{{count}} missing",
-      "gearMissing_other": "{{count}} missing",
-      "gearComplete": "complete",
-      "gearEmpty": "no gear"
-    }
-  },
   "myOuting": {
     "ready": "Ready",
     "captionToday": "Today",
@@ -397,9 +384,7 @@
       "inventory": "Inventory",
       "recap": "Who brings what"
     },
-    "recapEmpty": "Nobody's declared gear yet",
-    "showDetails": "Show full details",
-    "hideDetails": "Hide details"
+    "recapEmpty": "Nobody's declared gear yet"
   },
   "pushDenied": {
     "title": "Notifications disabled",
