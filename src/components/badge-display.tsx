@@ -872,14 +872,6 @@ function AwardDetail({
 
   const tierKeys: ('bronze' | 'silver' | 'gold')[] = ['bronze', 'silver', 'gold'];
   const currentIndex = tierKeys.indexOf(item.tier);
-  const nextIndex = currentIndex + 1;
-  const next = nextIndex < 3 ? {
-    key: tierKeys[nextIndex]!,
-    threshold: item.outings[nextIndex]!,
-    label: t(`badges.awardLabel.${item.id}.${tierKeys[nextIndex]}`, { defaultValue: tierKeys[nextIndex]! }),
-    color: TIER_COLOR[tierKeys[nextIndex]!],
-  } : null;
-  const remaining = next ? Math.max(0, next.threshold - item.count) : 0;
 
   return (
     <>
@@ -921,11 +913,14 @@ function AwardDetail({
           // column owns the matching half, so colors must match between
           // (col i right-half) and (col i+1 left-half) for the bar to
           // read as continuous when reached.
+          // Bars use a single neutral "reached" color — tinting them
+          // with the tier color competes with the dots and reads as a
+          // hot, flat segment. textSecondary is muted enough to recede
+          // and still convey progress, line stays for unreached.
           const leftBarReached = i > 0 && i <= currentIndex;
-          const leftBarColor = leftBarReached ? tcolor : colors.line;
+          const leftBarColor = leftBarReached ? colors.textSecondary : colors.line;
           const rightBarReached = i < tierKeys.length - 1 && (i + 1) <= currentIndex;
-          const nextTcolor = i < tierKeys.length - 1 ? TIER_COLOR[tierKeys[i + 1]!] : null;
-          const rightBarColor = rightBarReached && nextTcolor ? nextTcolor : colors.line;
+          const rightBarColor = rightBarReached ? colors.textSecondary : colors.line;
           return (
             <View key={tk} style={styles.awardProgressionColumn}>
               <Text style={[
@@ -964,14 +959,6 @@ function AwardDetail({
           );
         })}
       </View>
-
-      {next && remaining > 0 && (
-        <Text style={styles.awardNextLine}>
-          <Text style={[styles.awardNextEmphasis, { color: next.color }]}>{remaining}</Text>
-          {' '}{t('badges.awardMoreFor', { defaultValue: 'de plus pour' })}{' '}
-          <Text style={[styles.awardNextEmphasis, { color: next.color }]}>{next.label}</Text>
-        </Text>
-      )}
     </>
   );
 }
@@ -1600,16 +1587,6 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '700',
       textAlign: 'center',
     },
-    awardNextLine: {
-      marginTop: 12,
-      fontSize: 12,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    awardNextEmphasis: {
-      fontWeight: '700',
-    },
-
     // ── Sport popup ──────────────────────────────────────────────────
     sportIdentityRow: {
       flexDirection: 'row',
