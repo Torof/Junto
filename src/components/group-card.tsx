@@ -707,11 +707,11 @@ export function GroupCard({
                     ))}
 
                     {coveredItems.length > 0 && (
-                      <View style={styles.coveredChipsRow}>
+                      <View style={styles.bulletList}>
                         {coveredItems.map((c) => (
-                          <View key={c.name} style={styles.coveredChip}>
-                            <Check size={10} color={colors.success} strokeWidth={3} />
-                            <Text style={styles.coveredChipText} numberOfLines={1}>
+                          <View key={c.name} style={styles.bulletRow}>
+                            <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
+                            <Text style={styles.bulletText} numberOfLines={1}>
                               {c.name}
                               {c.have > c.required ? ` ×${c.have}` : ''}
                             </Text>
@@ -785,10 +785,11 @@ export function GroupCard({
                         />
                       </Pressable>
                       {isExpanded && (
-                        <View style={styles.bringerChipsRow}>
+                        <View style={styles.bringerItemsList}>
                           {b.items.map((it) => (
-                            <View key={it.name} style={styles.bringerChip}>
-                              <Text style={styles.bringerChipText} numberOfLines={1}>
+                            <View key={it.name} style={styles.bulletRow}>
+                              <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
+                              <Text style={styles.bulletText} numberOfLines={1}>
                                 {it.name}
                                 {it.quantity > 1 ? ` ×${it.quantity}` : ''}
                               </Text>
@@ -1216,41 +1217,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '600',
   },
-  bringerChipsRow: {
+  // Bullet list — single shared style for the covered-items list under
+  // Inventaire and the per-bringer items list under the recap. One item
+  // per row, success-green bullet (the "covered" / "brought" semantic
+  // is the same in both contexts).
+  bulletList: {
+    gap: 2,
+  },
+  bringerItemsList: {
+    gap: 2,
+    paddingLeft: 28, // align under bringer's name (avatar 22 + gap 6)
+  },
+  bulletRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 5,
-    paddingLeft: 28, // align under name (avatar 22 + gap 6)
-  },
-  bringerChip: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  bringerChipText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-  },
-  coveredChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'baseline',
     gap: 6,
   },
-  coveredChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.success + '14',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+  bullet: {
+    fontSize: fontSizes.sm + 2,
+    fontWeight: '800',
+    lineHeight: 17,
   },
-  coveredChipText: {
+  bulletText: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
     fontWeight: '500',
+    flex: 1,
+    minWidth: 0,
   },
   missingRow: {
     flexDirection: 'row',
