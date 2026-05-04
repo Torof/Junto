@@ -226,6 +226,15 @@ export function GroupCard({
     return { coveredItems: covered, missingItems: missing };
   }, [gearDeclared, gearCatalog]);
 
+  // Critical gap signal — when a SAFETY catalog item is missing in
+  // the shared pool, the activity itself can't safely go ahead. We
+  // surface this on the inactive Matériel mini-tab so the
+  // Transport-default doesn't bury a deal-breaker behind a tap.
+  const hasMissingSafety = useMemo(
+    () => missingItems.some((m) => m.isSafety),
+    [missingItems],
+  );
+
   // Whether the current user is allowed to request a seat right now —
   // mirrors TransportSection's existing rule so the affordance behaves
   // consistently with the dense view.
@@ -250,70 +259,52 @@ export function GroupCard({
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
+        {/* Compact band — people count on the left, mini-tab pills on
+            the right (Transport / Matériel). The big folder-tab strip
+            from the previous iteration is gone; tabs now ride inside
+            this single header row. The Matériel pill carries a small
+            red dot when shared-safety gear is missing AND the tab is
+            inactive — so a critical gap doesn't get hidden behind the
+            "Transport-default" choice. */}
         <View style={styles.band}>
           <View style={styles.bandIconWrap}>
             <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
           </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.bandTitle}>
-              {t('group.title', { defaultValue: 'Le groupe' })}
-            </Text>
-            <Text style={styles.bandMeta}>
-              {t('group.peopleCount', {
-                count: participants.length,
-                defaultValue: `${participants.length} personnes`,
-              })}
-            </Text>
+          <Text style={styles.bandPeopleCount} numberOfLines={1}>
+            {t('group.peopleCount', {
+              count: participants.length,
+              defaultValue: `${participants.length} personnes`,
+            })}
+          </Text>
+          <View style={styles.miniTabsRow}>
+            <Pressable
+              onPress={() => onActiveSubTabChange('transport')}
+              style={[styles.miniTab, activeSubTab === 'transport' && styles.miniTabActive]}
+              hitSlop={6}
+            >
+              <Text style={[
+                styles.miniTabText,
+                activeSubTab === 'transport' && styles.miniTabTextActive,
+              ]}>
+                {t('group.transport', { defaultValue: 'Transport' })}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onActiveSubTabChange('gear')}
+              style={[styles.miniTab, activeSubTab === 'gear' && styles.miniTabActive]}
+              hitSlop={6}
+            >
+              <Text style={[
+                styles.miniTabText,
+                activeSubTab === 'gear' && styles.miniTabTextActive,
+              ]}>
+                {t('group.gear', { defaultValue: 'Matériel' })}
+              </Text>
+              {hasMissingSafety && activeSubTab !== 'gear' && (
+                <View style={[styles.miniTabUrgentDot, { backgroundColor: colors.error }]} />
+              )}
+            </Pressable>
           </View>
-        </View>
-
-        {/* Folder-style sub-tabs: Transport / Matériel. The active tab
-            shares its background with the content area below, so they
-            visually merge into a single "open folder"; the inactive tab
-            sits on the surfaceAlt strip looking tucked-behind. */}
-        <View style={styles.folderTabsStrip}>
-          <Pressable
-            onPress={() => onActiveSubTabChange('transport')}
-            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
-            hitSlop={4}
-          >
-            <Text style={[
-              styles.folderTabLabel,
-              activeSubTab === 'transport' ? styles.folderTabLabelActive : styles.folderTabLabelInactive,
-            ]}>
-              {t('group.transport', { defaultValue: 'Transport' })}
-            </Text>
-            <Text style={[
-              styles.folderTabCaption,
-              activeSubTab === 'transport' ? styles.folderTabCaptionActive : styles.folderTabCaptionInactive,
-            ]}>
-              {drivers.length > 0
-                ? t('organisation.tabs.transportCount', { count: drivers.length })
-                : t('organisation.tabs.transportEmpty')}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onActiveSubTabChange('gear')}
-            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
-            hitSlop={4}
-          >
-            <Text style={[
-              styles.folderTabLabel,
-              activeSubTab === 'gear' ? styles.folderTabLabelActive : styles.folderTabLabelInactive,
-            ]}>
-              {t('group.gear', { defaultValue: 'Matériel' })}
-            </Text>
-            <Text style={[
-              styles.folderTabCaption,
-              activeSubTab === 'gear' ? styles.folderTabCaptionActive : styles.folderTabCaptionInactive,
-            ]}>
-              {missingItems.length > 0
-                ? t('organisation.tabs.gearMissing', { count: missingItems.length })
-                : coveredItems.length > 0
-                  ? t('organisation.tabs.gearComplete')
-                  : t('organisation.tabs.gearEmpty')}
-            </Text>
-          </Pressable>
         </View>
 
         {activeSubTab === 'transport' && (
@@ -574,81 +565,75 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
 
+  // Band — single-line header. Icon + people-count caption on the
+  // left, mini-tab pills (Transport / Matériel) flex-pushed to the
+  // right. Bottom border seals it off from the active tab content.
   band: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md - 2,
     backgroundColor: colors.surfaceAlt,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
   },
   bandIconWrap: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     borderRadius: 8,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bandTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: -0.1,
-  },
-  bandMeta: {
+  bandPeopleCount: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    fontWeight: '500',
-    marginTop: 1,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    flex: 1,
+    minWidth: 0,
   },
 
-  // Folder-tab strip — sits between the band and the active tab content,
-  // bg = surfaceAlt (the inactive-tab background). Active tab has bg =
-  // surface so it visually merges with the content area below.
-  folderTabsStrip: {
+  // Mini-tab pills — sit on the right side of the band, alongside the
+  // people count. Active pill uses surface bg + line border to "lift"
+  // it off the surfaceAlt band. Inactive pill is bare text on the band
+  // bg. A small red dot anchors to the top-right of the Matériel pill
+  // when shared-safety gear is missing AND the tab is inactive.
+  miniTabsRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceAlt,
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
     gap: 4,
   },
-  folderTab: {
-    flex: 1,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
-    borderTopLeftRadius: radius.md,
-    borderTopRightRadius: radius.md,
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+  miniTab: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  folderTabActive: {
+  miniTabActive: {
     backgroundColor: colors.surface,
+    borderColor: colors.line,
   },
-  folderTabLabel: {
-    fontSize: fontSizes.sm,
+  miniTabText: {
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: -0.1,
+    color: colors.textMuted,
+    letterSpacing: -0.05,
   },
-  folderTabLabelActive: {
+  miniTabTextActive: {
     color: colors.textPrimary,
   },
-  folderTabLabelInactive: {
-    color: colors.textMuted,
-  },
-  folderTabCaption: {
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  folderTabCaptionActive: {
-    color: colors.cta,
-  },
-  folderTabCaptionInactive: {
-    color: colors.textMuted,
-    opacity: 0.7,
+  miniTabUrgentDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: colors.surfaceAlt,
   },
 
   // Active tab content area — bg matches active folder tab so they
