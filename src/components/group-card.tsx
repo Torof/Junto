@@ -259,13 +259,12 @@ export function GroupCard({
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
-        {/* Compact band — people count on the left, mini-tab pills on
-            the right (Transport / Matériel). The big folder-tab strip
-            from the previous iteration is gone; tabs now ride inside
-            this single header row. The Matériel pill carries a small
-            red dot when shared-safety gear is missing AND the tab is
-            inactive — so a critical gap doesn't get hidden behind the
-            "Transport-default" choice. */}
+        {/* Header band — single row carrying the icon + people count
+            on the left and folder-shaped tabs flush against the bottom
+            edge on the right. Active tab has surface bg matching the
+            content area below, so the tab visually "lifts" out of the
+            surfaceAlt band and merges with the content (the file-folder
+            metaphor). Inactive tab stays on the band, looking tucked. */}
         <View style={styles.band}>
           <View style={styles.bandIconWrap}>
             <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
@@ -276,35 +275,33 @@ export function GroupCard({
               defaultValue: `${participants.length} personnes`,
             })}
           </Text>
-          <View style={styles.miniTabsRow}>
-            <Pressable
-              onPress={() => onActiveSubTabChange('transport')}
-              style={[styles.miniTab, activeSubTab === 'transport' && styles.miniTabActive]}
-              hitSlop={6}
-            >
-              <Text style={[
-                styles.miniTabText,
-                activeSubTab === 'transport' && styles.miniTabTextActive,
-              ]}>
-                {t('group.transport', { defaultValue: 'Transport' })}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => onActiveSubTabChange('gear')}
-              style={[styles.miniTab, activeSubTab === 'gear' && styles.miniTabActive]}
-              hitSlop={6}
-            >
-              <Text style={[
-                styles.miniTabText,
-                activeSubTab === 'gear' && styles.miniTabTextActive,
-              ]}>
-                {t('group.gear', { defaultValue: 'Matériel' })}
-              </Text>
-              {hasMissingSafety && activeSubTab !== 'gear' && (
-                <View style={[styles.miniTabUrgentDot, { backgroundColor: colors.error }]} />
-              )}
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => onActiveSubTabChange('transport')}
+            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
+            hitSlop={4}
+          >
+            <Text style={[
+              styles.folderTabText,
+              activeSubTab === 'transport' && styles.folderTabTextActive,
+            ]}>
+              {t('group.transport', { defaultValue: 'Transport' })}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => onActiveSubTabChange('gear')}
+            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
+            hitSlop={4}
+          >
+            <Text style={[
+              styles.folderTabText,
+              activeSubTab === 'gear' && styles.folderTabTextActive,
+            ]}>
+              {t('group.gear', { defaultValue: 'Matériel' })}
+            </Text>
+            {hasMissingSafety && activeSubTab !== 'gear' && (
+              <View style={[styles.folderTabUrgentDot, { backgroundColor: colors.error }]} />
+            )}
+          </Pressable>
         </View>
 
         {activeSubTab === 'transport' && (
@@ -565,18 +562,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Band — single-line header. Icon + people-count caption on the
-  // left, mini-tab pills (Transport / Matériel) flex-pushed to the
-  // right. Bottom border seals it off from the active tab content.
+  // Band — single row, icon + people-count on the left, folder tabs
+  // flush against the bottom on the right. NO borderBottom (the active
+  // tab "tucks into" the content below; a separator line would break
+  // the merge effect). The band's surfaceAlt bg is what the inactive
+  // tab sits on; the active tab uses surface bg matching the content.
   band: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: spacing.sm,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md - 2,
+    paddingTop: 8,
+    paddingHorizontal: spacing.sm + 2,
     backgroundColor: colors.surfaceAlt,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
   },
   bandIconWrap: {
     width: 22,
@@ -585,6 +582,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 6,
   },
   bandPeopleCount: {
     color: colors.textSecondary,
@@ -593,42 +591,39 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.4,
     flex: 1,
     minWidth: 0,
+    paddingBottom: 8,
   },
 
-  // Mini-tab pills — sit on the right side of the band, alongside the
-  // people count. Active pill uses surface bg + line border to "lift"
-  // it off the surfaceAlt band. Inactive pill is bare text on the band
-  // bg. A small red dot anchors to the top-right of the Matériel pill
-  // when shared-safety gear is missing AND the tab is inactive.
-  miniTabsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  // Folder-shape tabs — sit at the bottom of the band, with rounded
+  // top corners only. The active tab's bg matches the content area
+  // below so the two visually merge into a single open folder. The
+  // marginBottom: -1 lets the active tab's bottom edge tuck into the
+  // content area, sealing any seam at the band/content boundary.
+  folderTab: {
+    paddingHorizontal: 12,
+    paddingTop: 6,
+    paddingBottom: 6,
+    borderTopLeftRadius: radius.md,
+    borderTopRightRadius: radius.md,
+    backgroundColor: 'transparent',
+    marginBottom: -1,
   },
-  miniTab: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  miniTabActive: {
+  folderTabActive: {
     backgroundColor: colors.surface,
-    borderColor: colors.line,
   },
-  miniTabText: {
+  folderTabText: {
     fontSize: 11,
     fontWeight: '700',
     color: colors.textMuted,
     letterSpacing: -0.05,
   },
-  miniTabTextActive: {
+  folderTabTextActive: {
     color: colors.textPrimary,
   },
-  miniTabUrgentDot: {
+  folderTabUrgentDot: {
     position: 'absolute',
     top: -2,
-    right: -2,
+    right: 2,
     width: 8,
     height: 8,
     borderRadius: 4,
