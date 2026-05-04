@@ -765,11 +765,9 @@ export function ActivityDetail({
             showDetailsActive={showOrgDetails}
           />
 
-          {/* Both sections always mounted — display:none-toggled rather
-              than conditionally rendered — so the imperative refs above
-              stay live regardless of which sub-tab is active or whether
-              details are expanded at all. */}
-          <View style={{ display: showOrgDetails ? 'flex' : 'none' }}>
+          {/* Sub-tabs only render when details are expanded — purely
+              decorative wrapper, no internal state to preserve. */}
+          {showOrgDetails && (
             <OrganisationSubTabs
               active={orgSubTab}
               onChange={setOrgSubTab}
@@ -787,16 +785,29 @@ export function ActivityDetail({
                     })()
               }
             />
-          </View>
+          )}
 
-          <View style={{ display: showOrgDetails && orgSubTab === 'transport' ? 'flex' : 'none' }}>
+          {/* Sections stay mounted (refs need to be live so the cards
+              above can drive their editor sheets) but clip to height: 0
+              when collapsed. Using `display: 'none'` here previously froze
+              the app on the first interaction — RN locks touches when a
+              <Modal> opens whose ancestor View is display:none. Clipping
+              via height + overflow keeps the layout tree intact and lets
+              the Modal portal out cleanly. */}
+          <View
+            style={!(showOrgDetails && orgSubTab === 'transport') ? styles.collapsedSection : null}
+            pointerEvents={showOrgDetails && orgSubTab === 'transport' ? 'auto' : 'none'}
+          >
             <TransportSection
               ref={transportSectionRef}
               activityId={activity.id}
               currentUserId={currentUserId ?? null}
             />
           </View>
-          <View style={{ display: showOrgDetails && orgSubTab === 'gear' ? 'flex' : 'none' }}>
+          <View
+            style={!(showOrgDetails && orgSubTab === 'gear') ? styles.collapsedSection : null}
+            pointerEvents={showOrgDetails && orgSubTab === 'gear' ? 'auto' : 'none'}
+          >
             <GearSection
               ref={gearSectionRef}
               activityId={activity.id}
@@ -937,6 +948,9 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  // Clip a section to zero height instead of using `display: 'none'` —
+  // see comment at the call site for why.
+  collapsedSection: { height: 0, overflow: 'hidden' },
   tabBar: {
     flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm,
     paddingBottom: spacing.xs, gap: spacing.sm, backgroundColor: colors.background,
