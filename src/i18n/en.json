@@ -380,7 +380,6 @@
     "pendingRequest": "Pending",
     "seatsLabel": "seats",
     "noTransportYet": "Nobody's said how they're getting there yet",
-    "noGearForSport": "No shared gear needed for this sport",
     "youTag": "You",
     "freeSeatsCount_one": "{{count}} free seat",
     "freeSeatsCount_other": "{{count}} free seats",
@@ -396,10 +395,7 @@
       "inventory": "Inventory",
       "recap": "Who brings what"
     },
-    "progressLabel": "{{covered}}/{{total}} ready",
-    "recapEmpty": "Nobody's bringing gear yet",
-    "bringIt": "I'll bring it",
-    "allGearCovered": "All gear is sorted",
+    "recapEmpty": "Nobody's declared gear yet",
     "showDetails": "Show full details",
     "hideDetails": "Hide details"
   },

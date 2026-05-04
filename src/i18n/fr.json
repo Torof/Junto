@@ -380,7 +380,6 @@
     "pendingRequest": "En attente",
     "seatsLabel": "places",
     "noTransportYet": "Personne n'a encore dit comment il y va",
-    "noGearForSport": "Pas de matériel commun pour ce sport",
     "youTag": "Toi",
     "freeSeatsCount_one": "{{count}} place libre",
     "freeSeatsCount_other": "{{count}} places libres",
@@ -396,10 +395,7 @@
       "inventory": "Inventaire",
       "recap": "Qui apporte quoi"
     },
-    "progressLabel": "{{covered}}/{{total}} prêt",
-    "recapEmpty": "Personne n'apporte encore de matériel",
-    "bringIt": "J'apporte",
-    "allGearCovered": "Tout est prévu côté matos",
+    "recapEmpty": "Personne n'a encore déclaré de matériel",
     "showDetails": "Voir tous les détails",
     "hideDetails": "Masquer les détails"
   },

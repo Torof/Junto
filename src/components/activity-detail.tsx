@@ -771,7 +771,6 @@ export function ActivityDetail({
 
           <GroupCard
             activityId={activity.id}
-            sportKey={activity.sport_key}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
             activeSubTab={orgSubTab}
@@ -785,7 +784,6 @@ export function ActivityDetail({
               const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
-            onClaimGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
             onToggleDetails={() => setShowOrgDetails((v) => !v)}
             showDetailsActive={showOrgDetails}
           />

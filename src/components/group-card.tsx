@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Plus, Check, ChevronRight, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronRight, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -29,7 +29,6 @@ const VOUCH_ICONS: Record<string, LucideIcon> = {
 
 interface Props {
   activityId: string;
-  sportKey: string;
   currentUserId: string | null;
   isParticipant: boolean;
   // Active sub-section is owned by the parent so the in-card folder
@@ -38,7 +37,6 @@ interface Props {
   activeSubTab: 'transport' | 'gear';
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
-  onClaimGearItem: (itemName: string) => void;
   onToggleDetails: () => void;
   showDetailsActive: boolean;
 }
@@ -57,13 +55,11 @@ const CAR_TYPES = ['car', 'carpool'] as const;
 // the group's behalf.
 export function GroupCard({
   activityId,
-  sportKey,
   currentUserId,
   isParticipant,
   activeSubTab,
   onActiveSubTabChange,
   onReserveSeat,
-  onClaimGearItem,
   onToggleDetails,
   showDetailsActive,
 }: Props) {
@@ -105,11 +101,6 @@ export function GroupCard({
   const { data: gearDeclared = [] } = useQuery({
     queryKey: ['activity-gear', activityId],
     queryFn: () => gearService.getForActivity(activityId),
-    enabled: isParticipant,
-  });
-  const { data: gearCatalog = [] } = useQuery({
-    queryKey: ['gear-catalog', sportKey],
-    queryFn: () => gearService.getCatalog(sportKey),
     enabled: isParticipant,
   });
   const { data: participants = [] } = useQuery({
@@ -250,44 +241,26 @@ export function GroupCard({
     return buckets;
   }, [selfMovers]);
 
-  // Gear coverage — group view of the catalog. Per-person items deferred
-  // until step 4 brings the explicit "I have my own" state.
-  const { coveredItems, missingItems } = useMemo(() => {
-    const declaredByName = new Map<string, number>();
-    gearDeclared.forEach((g) =>
-      declaredByName.set(g.gear_name, (declaredByName.get(g.gear_name) ?? 0) + g.quantity),
+  // Aggregate group inventory — every declared item, summed across
+  // bringers, sorted alphabetically. Catalog comparison logic was
+  // dropped on Scott's call: the gear surface is now a transparent
+  // "what does the group have?" view, no missing/covered/quotas. If
+  // the user wants to add something they go through Mine's "Ajouter
+  // du matériel" path.
+  const groupItems = useMemo(() => {
+    const map = new Map<string, { name: string; total: number }>();
+    gearDeclared.forEach((g) => {
+      const existing = map.get(g.gear_name);
+      if (existing) {
+        existing.total += g.quantity;
+      } else {
+        map.set(g.gear_name, { name: g.gear_name, total: g.quantity });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
     );
-    const covered: { name: string; have: number; required: number; isSafety: boolean }[] = [];
-    const missing: { name: string; required: number; isSafety: boolean }[] = [];
-    gearCatalog
-      .filter((c) => !c.per_person)
-      .forEach((c) => {
-        const required = c.shared_recommended_qty ?? 1;
-        const have = declaredByName.get(c.name_key) ?? 0;
-        if (have >= required) {
-          covered.push({ name: c.name_key, have, required, isSafety: c.category_key === 'safety' });
-        } else {
-          missing.push({ name: c.name_key, required, isSafety: c.category_key === 'safety' });
-        }
-      });
-    // Safety first within missing — same priority as the verdict logic.
-    missing.sort((a, b) => (a.isSafety === b.isSafety ? 0 : a.isSafety ? -1 : 1));
-    return { coveredItems: covered, missingItems: missing };
-  }, [gearDeclared, gearCatalog]);
-
-  // Critical gap signal — when a SAFETY catalog item is missing in
-  // the shared pool, the activity itself can't safely go ahead. We
-  // surface this on the inactive Matériel mini-tab so the
-  // Transport-default doesn't bury a deal-breaker behind a tap.
-  const hasMissingSafety = useMemo(
-    () => missingItems.some((m) => m.isSafety),
-    [missingItems],
-  );
-
-  // Total catalog count drives the "X/Y prêt" header subtitle on the
-  // Inventaire section. (Progress bar removed — the count + the
-  // missing-items rows together tell the same readiness story.)
-  const totalCatalog = coveredItems.length + missingItems.length;
+  }, [gearDeclared]);
 
   // "Qui apporte quoi" recap — group declared gear by user_id,
   // sorted by contribution count descending so heavy contributors
@@ -333,8 +306,7 @@ export function GroupCard({
 
   if (!isParticipant) return null;
 
-  const hasGear = gearCatalog.length > 0;
-  const hasAnyContent = drivers.length > 0 || selfMovers.length > 0 || hasGear;
+  const hasAnyContent = drivers.length > 0 || selfMovers.length > 0 || gearDeclared.length > 0;
   if (!hasAnyContent) return null;
 
   return (
@@ -379,9 +351,6 @@ export function GroupCard({
             ]}>
               {t('group.gear', { defaultValue: 'Matériel' })}
             </Text>
-            {hasMissingSafety && activeSubTab !== 'gear' && (
-              <View style={[styles.folderTabUrgentDot, { backgroundColor: colors.error }]} />
-            )}
           </Pressable>
         </View>
 
@@ -642,17 +611,18 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
-            {!hasGear && bringers.length === 0 && (
+            {gearDeclared.length === 0 && (
               <Text style={styles.emptyHint}>
-                {t('group.noGearForSport', { defaultValue: 'Pas de matériel commun pour ce sport' })}
+                {t('group.recapEmpty', { defaultValue: 'Personne n\'a encore déclaré de matériel' })}
               </Text>
             )}
 
-            {/* Section 1 — Inventaire. Collapsible: header is tappable
-                (chevron rotates), content shows missing-items rows +
-                covered chips when expanded. Header subtitle "X/Y prêt"
-                gives readiness at a glance even when collapsed. */}
-            {hasGear && (
+            {/* Section 1 — Inventaire. A flat bullet list of every item
+                the group has declared, summed across bringers. No
+                catalog comparison, no missing/covered split, no quotas
+                — just a transparent "what does the group have?" view.
+                Collapsible. */}
+            {groupItems.length > 0 && (
               <View style={styles.gearSection}>
                 <Pressable
                   style={styles.collapsibleHeader}
@@ -662,13 +632,7 @@ export function GroupCard({
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
                   </Text>
-                  <Text style={styles.transportCategoryCount}>
-                    · {t('group.progressLabel', {
-                      covered: coveredItems.length,
-                      total: totalCatalog,
-                      defaultValue: `${coveredItems.length}/${totalCatalog} prêt`,
-                    })}
-                  </Text>
+                  <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
                   <View style={styles.collapsibleSpacer} />
                   <ChevronDown
                     size={14}
@@ -679,59 +643,24 @@ export function GroupCard({
                 </Pressable>
 
                 {inventaireExpanded && (
-                  <>
-                    {missingItems.map((m) => (
-                      <Pressable
-                        key={m.name}
-                        style={styles.missingRow}
-                        onPress={() => onClaimGearItem(m.name)}
-                        hitSlop={4}
-                      >
-                        <View
-                          style={[
-                            styles.missingDot,
-                            { backgroundColor: m.isSafety ? colors.error : colors.textMuted },
-                          ]}
-                        />
-                        <Text style={styles.missingText} numberOfLines={1}>{m.name}</Text>
-                        <Text style={styles.itemQty}>×{m.required}</Text>
-                        <View style={styles.claimBtn}>
-                          <Plus size={11} color={colors.cta} strokeWidth={2.6} />
-                          <Text style={styles.claimText}>
-                            {t('group.bringIt', { defaultValue: "J'apporte" })}
-                          </Text>
-                        </View>
-                      </Pressable>
-                    ))}
-
-                    {coveredItems.length > 0 && (
-                      <View style={styles.bulletList}>
-                        {coveredItems.map((c) => (
-                          <View key={c.name} style={styles.bulletRow}>
-                            <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
-                            <Text style={styles.bulletText} numberOfLines={1}>{c.name}</Text>
-                            <Text style={styles.itemQty}>×{c.have}</Text>
-                          </View>
-                        ))}
+                  <View style={styles.bulletList}>
+                    {groupItems.map((g) => (
+                      <View key={g.name} style={styles.bulletRow}>
+                        <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
+                        <Text style={styles.bulletText} numberOfLines={1}>{g.name}</Text>
+                        <Text style={styles.itemQty}>×{g.total}</Text>
                       </View>
-                    )}
-
-                    {missingItems.length === 0 && coveredItems.length > 0 && (
-                      <Text style={styles.allCoveredHint}>
-                        {t('group.allGearCovered', { defaultValue: 'Tout est prévu côté matos' })}
-                      </Text>
-                    )}
-                  </>
+                    ))}
+                  </View>
                 )}
               </View>
             )}
 
-            {/* Section 2 — Qui apporte quoi. Per-bringer block: avatar
-                (tappable → profile) + name + their items as chips. Self
-                gets the TOI tag for consistency with Transport's
-                self-driver row. Sorted heaviest contributors first. */}
+            {/* Section 2 — Qui apporte quoi. Per-bringer collapsible
+                blocks. Same data as before, just no longer paired with
+                a catalog-aware Inventaire above. */}
             {bringers.length > 0 && (
-              <View style={[styles.gearSection, hasGear && styles.gearSectionSpacer]}>
+              <View style={[styles.gearSection, groupItems.length > 0 && styles.gearSectionSpacer]}>
                 <View style={styles.transportCategoryHeader}>
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.gearSection.recap', { defaultValue: 'Qui apporte quoi' })}
@@ -797,11 +726,6 @@ export function GroupCard({
               </View>
             )}
 
-            {hasGear && bringers.length === 0 && (
-              <Text style={[styles.emptyHint, { marginTop: spacing.sm }]}>
-                {t('group.recapEmpty', { defaultValue: 'Personne n\'apporte encore de matériel' })}
-              </Text>
-            )}
           </View>
         )}
 
@@ -894,16 +818,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   folderTabTextActive: {
     color: colors.textPrimary,
-  },
-  folderTabUrgentDot: {
-    position: 'absolute',
-    top: -2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: colors.surfaceAlt,
   },
 
   // Active tab content area — bg matches active folder tab so they
@@ -1154,17 +1068,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  gearHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  gearProgress: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
-
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced
   // so each section reads as its own block under the same tab.
   gearSection: {
@@ -1250,43 +1153,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.2,
     marginLeft: 6,
   },
-  missingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: 4,
-  },
-  missingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  missingText: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '500',
-  },
-  claimBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: colors.cta + '14',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  claimText: {
-    color: colors.cta,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '700',
-  },
-  allCoveredHint: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontStyle: 'italic',
-  },
-
   detailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
