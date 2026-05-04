@@ -331,19 +331,18 @@
       "material": "Gear",
       "toSettle": "To settle",
       "transportPending": "Awaiting · {{driver}}",
-      "transportDriver": "Driving",
-      "transportDriverFrom": "Driving · {{from}}",
-      "transportPassenger": "Riding · {{driver}}",
+      "transportDriver": "You drive",
+      "transportPassenger": "Riding with {{driver}}",
       "materialNothing": "Nothing to bring",
       "passengersCount_one": "{{count}} passenger",
       "passengersCount_other": "{{count}} passengers",
       "itemsOverflow_one": "+ {{count}} more",
       "itemsOverflow_other": "+ {{count}} more",
       "mode": {
-        "public_transport": "Public transport",
-        "bike": "Biking",
-        "on_foot": "On foot",
-        "other": "Other"
+        "public_transport": "You take transit",
+        "bike": "You bike",
+        "on_foot": "You walk",
+        "other": "Other transport"
       }
     }
   },

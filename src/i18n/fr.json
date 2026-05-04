@@ -331,19 +331,18 @@
       "material": "Matériel",
       "toSettle": "À régler",
       "transportPending": "En attente · {{driver}}",
-      "transportDriver": "Conduis",
-      "transportDriverFrom": "Conduis · {{from}}",
-      "transportPassenger": "Passager · {{driver}}",
+      "transportDriver": "Tu conduis",
+      "transportPassenger": "Tu pars avec {{driver}}",
       "materialNothing": "Rien à apporter",
       "passengersCount_one": "{{count}} passager",
       "passengersCount_other": "{{count}} passagers",
       "itemsOverflow_one": "+ {{count}} autre",
       "itemsOverflow_other": "+ {{count}} autres",
       "mode": {
-        "public_transport": "Transports en commun",
-        "bike": "À vélo",
-        "on_foot": "À pied",
-        "other": "Autre"
+        "public_transport": "Tu prends les transports",
+        "bike": "Tu pédales",
+        "on_foot": "Tu marches",
+        "other": "Autre transport"
       }
     }
   },
