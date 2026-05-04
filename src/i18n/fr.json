@@ -315,6 +315,15 @@
       "gearEmpty": "aucun matériel"
     }
   },
+  "logisticsVerdict": {
+    "ready": "Tu es prêt",
+    "noTransportYet": "Il reste à dire comment tu y vas",
+    "pendingSeat": "En attente de la réponse de {{driver}} pour la place",
+    "missingOne": "Manque dans le matos commun : {{item}}",
+    "missingTwo": "Manque dans le matos commun : {{item1}}, {{item2}}",
+    "missingMany_one": "{{count}} équipement de sécurité à apporter",
+    "missingMany_other": "{{count}} équipements de sécurité à apporter"
+  },
   "pushDenied": {
     "title": "Notifications désactivées",
     "body": "Tu vas rater les rappels, demandes et validations.",

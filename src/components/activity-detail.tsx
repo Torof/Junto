@@ -39,6 +39,7 @@ import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
 import { TransportSection } from './transport-section';
 import { GearSection } from './gear-section';
+import { LogisticsVerdict } from './logistics-verdict';
 import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
@@ -719,6 +720,17 @@ export function ActivityDetail({
               <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
             </View>
           )}
+
+          {/* User-perspective verdict: synthesizes transport + gear into a
+              one-line "you're set / one thing left / something's wrong"
+              friend-voice sentence above the sub-tabs. Step 1 of the
+              organization remodel — read-only, no flow change yet. */}
+          <LogisticsVerdict
+            activityId={activity.id}
+            sportKey={activity.sport_key}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+          />
 
           {/* Sub-tabs: Transport | Matériel */}
           <OrganisationSubTabs

@@ -315,6 +315,15 @@
       "gearEmpty": "no gear"
     }
   },
+  "logisticsVerdict": {
+    "ready": "You're set",
+    "noTransportYet": "Still need to say how you're getting there",
+    "pendingSeat": "Waiting on {{driver}} to confirm your seat",
+    "missingOne": "Missing from group gear: {{item}}",
+    "missingTwo": "Missing from group gear: {{item1}}, {{item2}}",
+    "missingMany_one": "{{count}} safety item to bring",
+    "missingMany_other": "{{count}} safety items to bring"
+  },
   "pushDenied": {
     "title": "Notifications disabled",
     "body": "You'll miss reminders, requests, and validation prompts.",
