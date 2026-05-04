@@ -77,14 +77,22 @@ const STAMP_ITEMS_BEFORE_OVERFLOW = 3;
 const formatHm = (iso: string | null | undefined): string | null =>
   iso ? dayjs(iso).format('H[h]mm') : null;
 
-// Joins two optional segments with " · ", dropping the separator when
-// only one side is present.
-const joinDot = (a: string | null | undefined, b: string | null | undefined): string | null => {
-  const aClean = a?.trim() || null;
-  const bClean = b?.trim() || null;
-  if (aClean && bClean) return `${aClean} · ${bClean}`;
-  return aClean || bClean || null;
+// Builds the "departure place · time" sub-row used uniformly across
+// every transport mode (driver, passenger, cyclist, walker, transit,
+// other). Picks MapPin when a place is set (the place anchors the row
+// visually); falls back to Clock when only a time is set so the icon
+// honestly reflects the content. Returns null when neither is set.
+const locationTimeRow = (
+  place: string | null | undefined,
+  time: string | null,
+): StampSubRow | null => {
+  const cleanPlace = place?.trim() || null;
+  if (cleanPlace && time) return { Icon: MapPin, text: `${cleanPlace} · ${time}` };
+  if (cleanPlace) return { Icon: MapPin, text: cleanPlace };
+  if (time) return { Icon: Clock, text: time };
+  return null;
 };
+
 
 const COLOR_AMBER = '#E8A33D';
 
@@ -199,16 +207,12 @@ export function MyOutingCard({
     }
 
     if (myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')) {
-      const from = myTransport.transport_from_name?.trim();
-      const time = formatHm(myTransport.transport_departs_at);
       const subRows: StampSubRow[] = [];
-      // Combine city + time into one sub-row when both exist — keeps the
-      // stamp from getting too tall, and the two pieces read naturally
-      // together as "where + when I'm leaving from".
-      const cityTime = joinDot(from, time);
-      if (cityTime) {
-        subRows.push({ Icon: MapPin, text: cityTime });
-      }
+      const where = locationTimeRow(
+        myTransport.transport_from_name,
+        formatHm(myTransport.transport_departs_at),
+      );
+      if (where) subRows.push(where);
       // Passenger count — render even at 0 so the stamp's role as "I'm
       // a driver carrying N people" is consistently visible.
       subRows.push({
@@ -229,11 +233,10 @@ export function MyOutingCard({
 
     if (myAcceptedSeat) {
       const driver = transports.find((p) => p.user_id === myAcceptedSeat.driver_id);
-      const subRows: StampSubRow[] = [];
-      const cityTime = joinDot(myAcceptedSeat.pickup_from, formatHm(myAcceptedSeat.requested_pickup_at));
-      if (cityTime) {
-        subRows.push({ Icon: MapPin, text: cityTime });
-      }
+      const where = locationTimeRow(
+        myAcceptedSeat.pickup_from,
+        formatHm(myAcceptedSeat.requested_pickup_at),
+      );
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon: Users,
@@ -242,7 +245,7 @@ export function MyOutingCard({
           defaultValue: `Tu pars avec ${driver?.display_name ?? '?'}`,
         }),
         state: 'set',
-        subRows: subRows.length > 0 ? subRows : undefined,
+        subRows: where ? [where] : undefined,
       };
     }
 
@@ -255,9 +258,13 @@ export function MyOutingCard({
             : myTransport.transport_type === 'public_transport'
               ? TrainFront
               : HelpCircle;
-      // Self-movers can still log a departure time; surface it when set
-      // so the stamp doubles as a "leave at X" reminder for them too.
-      const time = formatHm(myTransport.transport_departs_at);
+      // Self-movers (bike / foot / transit / other) get the same
+      // place + time row as drivers and passengers — coordination
+      // signal is just as useful for them.
+      const where = locationTimeRow(
+        myTransport.transport_from_name,
+        formatHm(myTransport.transport_departs_at),
+      );
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
         Icon,
@@ -265,7 +272,7 @@ export function MyOutingCard({
           defaultValue: myTransport.transport_type,
         }),
         state: 'set',
-        subRows: time ? [{ Icon: Clock, text: time }] : undefined,
+        subRows: where ? [where] : undefined,
       };
     }
 
