@@ -97,38 +97,40 @@ export function ActivityDetail({
   }, [wallMessages, wallReadAt, currentUserId]);
 
   // Realtime invalidation for the activity's coordination tables. One
-  // channel per activity, listening to changes on participations,
-  // seat_requests, activity_gear scoped to this activity. Without this,
-  // a participant only sees other participants' changes on remount or
-  // app restart. Migration 00181 (recovery of 00178) ensures these
-  // tables are members of the supabase_realtime publication.
+  // channel per activity (`activity:<id>`).
   //
-  // Slice 1 of 3 — the staged retry after the launch-time crash. The
-  // bell/DM tab subscriptions (slice 2) and the nearby-activities
-  // subscription (slice 3) stay deferred until this one is verified
-  // safe on two devices. activity-wall.tsx keeps its own wall_messages
-  // subscription as before.
+  // - participations / seat_requests come in via Supabase broadcast,
+  //   fired by the AFTER triggers added in migration 00182. Their
+  //   table-level SELECT RLS is too restrictive for postgres_changes
+  //   (only the row's user_id can see participations; only the
+  //   requester/driver can see seat_requests under one of two
+  //   policies), so we route around RLS by broadcasting a no-payload
+  //   "stale" ping. Clients invalidate and refetch through the
+  //   already-RLS-protected views/RPCs.
+  //
+  // - activity_gear stays on postgres_changes — its RLS already lets
+  //   any accepted activity member see all rows for the activity.
+  //
+  // - wall_messages keeps its own subscription inside activity-wall.tsx.
   useEffect(() => {
     const channel = supabase
       .channel(`activity:${activity.id}`)
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'participations', filter: `activity_id=eq.${activity.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['participants-pending', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activity.id] });
-        },
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'seat_requests', filter: `activity_id=eq.${activity.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['seat-requests', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activity.id] });
-          queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+        'broadcast',
+        { event: 'change' },
+        (msg) => {
+          const table = (msg.payload as { table?: string } | undefined)?.table;
+          if (table === 'participations') {
+            queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['participants-pending', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activity.id] });
+          } else if (table === 'seat_requests') {
+            queryClient.invalidateQueries({ queryKey: ['seat-requests', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activity.id] });
+            queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+          }
         },
       )
       .on(
