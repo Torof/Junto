@@ -759,7 +759,11 @@ function VouchedDetail({
     staleTime: 5 * 60_000,
   });
   const visibleVoters = voters.slice(0, MAX_VISIBLE_VOTER_AVATARS);
-  const overflow = Math.max(0, item.count - visibleVoters.length);
+  // Overflow counts UNIQUE voters not yet shown — not raw vote count.
+  // The RPC (mig 00171) returns deduped voters, so voters.length is the
+  // true unique count. The "12 votes" label below uses item.count, which
+  // does include duplicate votes — those are two different signals.
+  const uniqueOverflow = Math.max(0, voters.length - visibleVoters.length);
 
   return (
     <>
@@ -781,12 +785,15 @@ function VouchedDetail({
             voters={visibleVoters}
             ringColor={colors.surface}
           />
-          {overflow > 0 && (
-            <Text style={styles.pullQuoteOverflow}>+{overflow}</Text>
+          {uniqueOverflow > 0 && (
+            <>
+              <Text style={styles.pullQuoteEllipsis}>...</Text>
+              <Text style={styles.pullQuoteOverflow}>+{uniqueOverflow}</Text>
+            </>
           )}
           <Text style={styles.pullQuotePeersLabel}>
             <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
-            {' '}{t('badges.vouchedPeersLabel', { count: item.count, defaultValue: 'pairs' })}
+            {' '}{t('badges.vouchedVotesLabel', { count: item.count, defaultValue: 'votes' })}
           </Text>
         </View>
       </View>
@@ -1403,11 +1410,17 @@ const createStyles = (colors: AppColors) =>
     pullQuotePeersCount: {
       fontWeight: '700',
     },
+    pullQuoteEllipsis: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.textMuted,
+      letterSpacing: 1,
+      marginLeft: -2,
+    },
     pullQuoteOverflow: {
       fontSize: 12.5,
       fontWeight: '700',
       color: colors.textSecondary,
-      marginLeft: -4,
     },
     vouchedDescription: {
       fontSize: 13.5,
