@@ -40,6 +40,7 @@ import { ShareActivitySheet } from './share-activity-sheet';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
 import { MyOutingCard } from './my-outing-card';
+import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { OrganisationSubTabs, type OrganisationSubTab } from './organisation-sub-tabs';
 import { transportService } from '@/services/transport-service';
@@ -727,12 +728,15 @@ export function ActivityDetail({
             </View>
           )}
 
-          {/* MyOutingCard — single card carrying the user's role for this
-              outing (transport + gear) plus the most pressing group gap
-              when there is one. Replaces the previous verdict + role +
-              needs trio. The "Voir tous les détails" link inside the card
-              expands the existing TransportSection / GearSection below
-              for power-users; most should never need it. */}
+          {/* Two-card composition: Mine (your role for this outing) on top,
+              Group (drivers, gear, where the coordination happens) below.
+              Each card has the same visual grammar but different scope.
+              Mine stays calm and personal; Group is action-coded — reserve
+              a seat, claim a missing safety item.
+
+              The dense TransportSection + GearSection sit beneath, hidden
+              by default and revealed via the "Voir tous les détails" link
+              inside the GroupCard for power-users. */}
           <MyOutingCard
             activityId={activity.id}
             sportKey={activity.sport_key}
@@ -745,6 +749,18 @@ export function ActivityDetail({
             isParticipant={isCreator || isAccepted}
             onEditTransport={() => transportSectionRef.current?.openEditor()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
+          />
+
+          <GroupCard
+            activityId={activity.id}
+            sportKey={activity.sport_key}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+            onReserveSeat={(driverId) => {
+              const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
+              transportSectionRef.current?.openRequestSheet(driverId, myFrom);
+            }}
+            onClaimGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
             onToggleDetails={() => setShowOrgDetails((v) => !v)}
             showDetailsActive={showOrgDetails}
           />

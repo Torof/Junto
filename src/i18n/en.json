@@ -318,12 +318,6 @@
   "myOuting": {
     "ready": "Ready",
     "bringingLabel": "You bring",
-    "bringIt": "I'll bring it",
-    "showDetails": "Show full details",
-    "hideDetails": "Hide details",
-    "pendingOne": "Missing {{item}} from group gear",
-    "pendingMany_one": "{{count}} safety item to bring",
-    "pendingMany_other": "{{count}} safety items to bring",
     "role": {
       "empty": "Say how you're getting there",
       "driving": "You're driving",
@@ -340,6 +334,22 @@
         "other": "Going your own way"
       }
     }
+  },
+  "group": {
+    "title": "The group",
+    "peopleCount_one": "{{count}} person",
+    "peopleCount_other": "{{count}} people",
+    "transport": "Transport",
+    "gear": "Group gear",
+    "reserve": "Reserve",
+    "full": "Full",
+    "youAreAboard": "Aboard",
+    "pendingRequest": "Pending",
+    "noTransportYet": "Nobody's said how they're getting there yet",
+    "bringIt": "I'll bring it",
+    "allGearCovered": "All gear is sorted",
+    "showDetails": "Show full details",
+    "hideDetails": "Hide details"
   },
   "pushDenied": {
     "title": "Notifications disabled",

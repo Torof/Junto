@@ -27,6 +27,7 @@ interface Props {
 // transport line on the MyRoleCard.
 export interface TransportSectionHandle {
   openEditor: () => void;
+  openRequestSheet: (driverId: string, defaultPickupFrom?: string | null) => void;
 }
 
 const TRANSPORT_TYPES = ['car', 'carpool', 'public_transport', 'bike', 'on_foot', 'other'] as const;
@@ -175,16 +176,16 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     setShowEditor(true);
   };
 
-  // Exposed to parent so MyRoleCard's "edit transport" tap opens the
-  // editor without a sub-tab navigation step.
-  useImperativeHandle(ref, () => ({ openEditor }), [openEditor]);
-
-  const openRequestSheet = (driverId: string) => {
+  const openRequestSheet = (driverId: string, defaultPickupFrom?: string | null) => {
     setRequestingFromDriver(driverId);
-    setRequestPickup('');
+    setRequestPickup(defaultPickupFrom ?? '');
     setRequestMessage('');
     setRequestedPickupAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
   };
+
+  // Exposed to parent so MyOutingCard / GroupCard can drive the editor
+  // and reserve sheet without forcing a sub-tab navigation.
+  useImperativeHandle(ref, () => ({ openEditor, openRequestSheet }), [openEditor]);
 
   const handleSave = async () => {
     if (!selectedType) return;
@@ -315,10 +316,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
               hasPendingHere={hasPendingHere}
               hasAnyReservation={!!myAcceptedSeat}
               canRequest={!isDriver && !myAcceptedSeat && !hasPendingHere && !isMyCar && free > 0}
-              onRequestPress={() => {
-                openRequestSheet(car.user_id);
-                setRequestPickup(myTransport?.transport_from_name ?? '');
-              }}
+              onRequestPress={() => openRequestSheet(car.user_id, myTransport?.transport_from_name)}
               onCancelSeatPress={handleCancelSeat}
               onEditMyCar={openEditor}
               t={t}

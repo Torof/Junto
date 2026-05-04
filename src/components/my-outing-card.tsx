@@ -8,9 +8,7 @@ import {
   Car,
   Users,
   Backpack,
-  AlertCircle,
   Check,
-  Plus,
   Bike,
   TrainFront,
   Footprints,
@@ -37,8 +35,6 @@ interface Props {
   isParticipant: boolean;
   onEditTransport: () => void;
   onEditGearItem: (itemName: string) => void;
-  onToggleDetails: () => void;
-  showDetailsActive: boolean;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -64,8 +60,6 @@ export function MyOutingCard({
   isParticipant,
   onEditTransport,
   onEditGearItem,
-  onToggleDetails,
-  showDetailsActive,
 }: Props) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -96,11 +90,6 @@ export function MyOutingCard({
   const { data: gearDeclared = [] } = useQuery({
     queryKey: ['activity-gear', activityId],
     queryFn: () => gearService.getForActivity(activityId),
-    enabled: isParticipant,
-  });
-  const { data: gearCatalog = [] } = useQuery({
-    queryKey: ['gear-catalog', sportKey],
-    queryFn: () => gearService.getCatalog(sportKey),
     enabled: isParticipant,
   });
 
@@ -207,29 +196,14 @@ export function MyOutingCard({
       .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
   }, [gearDeclared, currentUserId]);
 
-  // Shared safety gaps — same logic the previous verdict used. Per-person
-  // items deferred to the future "I have my own" state.
-  const sharedSafetyMissing = useMemo(() => {
-    const declaredByName = new Map<string, number>();
-    gearDeclared.forEach((g) =>
-      declaredByName.set(g.gear_name, (declaredByName.get(g.gear_name) ?? 0) + g.quantity),
-    );
-    return gearCatalog.filter((c) => {
-      if (c.category_key !== 'safety') return false;
-      if (c.per_person) return false;
-      const required = c.shared_recommended_qty ?? 1;
-      const have = declaredByName.get(c.name_key) ?? 0;
-      return have < required;
-    });
-  }, [gearDeclared, gearCatalog]);
-
+  // "Prêt" is about the user — their personal role for this outing. Group
+  // safety gaps live in the GroupCard below; conflating them here would
+  // make a passenger feel "not ready" because someone else hasn't claimed
+  // the rope yet, which isn't honest. Mine is mine.
   const isReady = useMemo(() => {
     if (!role) return false;
-    return (
-      (role.kind === 'driver' || role.kind === 'passenger' || role.kind === 'self') &&
-      sharedSafetyMissing.length === 0
-    );
-  }, [role, sharedSafetyMissing]);
+    return role.kind === 'driver' || role.kind === 'passenger' || role.kind === 'self';
+  }, [role]);
 
   if (!isParticipant || !role) return null;
 
@@ -335,57 +309,6 @@ export function MyOutingCard({
           )}
         </View>
 
-        {/* Pending zone — only when there's an actual gap to fill.
-            Phrased as collective coordination ("dans le matos commun"),
-            not a listing. Limit to one item at a time so the card stays
-            calm; if there are several, surface the most critical (safety
-            is the only category we list here, sorted by display order). */}
-        {sharedSafetyMissing.length > 0 && (
-          <Pressable
-            style={[styles.pendingRow, { borderTopColor: colors.line }]}
-            onPress={() => onEditGearItem(sharedSafetyMissing[0]!.name_key)}
-            hitSlop={4}
-          >
-            <AlertCircle size={14} color={colors.error} strokeWidth={2.2} />
-            <Text style={styles.pendingText} numberOfLines={2}>
-              {sharedSafetyMissing.length === 1
-                ? t('myOuting.pendingOne', {
-                    item: sharedSafetyMissing[0]!.name_key,
-                    defaultValue: `Manque ${sharedSafetyMissing[0]!.name_key} dans le matos commun`,
-                  })
-                : t('myOuting.pendingMany', {
-                    count: sharedSafetyMissing.length,
-                    defaultValue: `${sharedSafetyMissing.length} équipements de sécurité à apporter`,
-                  })}
-            </Text>
-            <View style={[styles.claimBtn, { backgroundColor: colors.cta + '14' }]}>
-              <Plus size={11} color={colors.cta} strokeWidth={2.6} />
-              <Text style={[styles.claimText, { color: colors.cta }]}>
-                {t('myOuting.bringIt', { defaultValue: "J'apporte" })}
-              </Text>
-            </View>
-          </Pressable>
-        )}
-
-        {/* Power-user escape hatch — opens the existing TransportSection
-            + GearSection dense lists. Most users should never need it. */}
-        <Pressable
-          style={[styles.detailsRow, { borderTopColor: colors.line }]}
-          onPress={onToggleDetails}
-          hitSlop={4}
-        >
-          <Text style={styles.detailsText}>
-            {showDetailsActive
-              ? t('myOuting.hideDetails', { defaultValue: 'Masquer les détails' })
-              : t('myOuting.showDetails', { defaultValue: 'Voir tous les détails' })}
-          </Text>
-          <ChevronRight
-            size={12}
-            color={colors.textMuted}
-            strokeWidth={2}
-            style={{ transform: [{ rotate: showDetailsActive ? '90deg' : '0deg' }] }}
-          />
-        </Pressable>
       </View>
     </View>
   );
@@ -498,49 +421,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Pending zone
-  pendingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
-    borderTopWidth: 1,
-  },
-  pendingText: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  claimBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  claimText: {
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '700',
-  },
-
-  // Details escape hatch
-  detailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderTopWidth: 1,
-  },
-  detailsText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
 });
