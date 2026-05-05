@@ -388,7 +388,7 @@
     },
     "gearSection": {
       "inventory": "Inventaire commun",
-      "recap": "Qui apporte quoi"
+      "recap": "Inventaire individuel"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
     "addGear": "Ajouter du matériel"

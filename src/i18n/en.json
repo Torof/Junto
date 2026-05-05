@@ -388,7 +388,7 @@
     },
     "gearSection": {
       "inventory": "Common inventory",
-      "recap": "Who brings what"
+      "recap": "Personal inventory"
     },
     "recapEmpty": "Nobody's declared gear yet",
     "addGear": "Add gear"

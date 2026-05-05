@@ -794,6 +794,7 @@ export function ActivityDetail({
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
             onAddGear={() => gearSectionRef.current?.openCustomSheet()}
+            onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
           />
 
           <TransportSection

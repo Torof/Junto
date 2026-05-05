@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, Minus, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -23,6 +23,7 @@ interface Props {
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
   onAddGear: () => void;
+  onEditGearItem: (name: string) => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -45,11 +46,11 @@ export function GroupCard({
   onActiveSubTabChange,
   onReserveSeat,
   onAddGear,
+  onEditGearItem,
 }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const queryClient = useQueryClient();
 
   // Collapse state for the Matériel sub-sections. Inventaire opens by
   // default (it's the action surface — claim missing items, see the
@@ -242,29 +243,6 @@ export function GroupCard({
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
     );
   }, [gearDeclared]);
-
-  // Quick-edit handler for the inline +/- on each inventory pill.
-  // Reads the user's current full gear list, applies the delta on
-  // the named item (clamped to 0..99, dropping the entry at 0),
-  // and writes the new list back via setGear. Mirrors the
-  // persistMyGear helper inside gear-section but lives here so
-  // the inventory pills can mutate without bouncing through a
-  // modal.
-  const setMyQuantityForItem = async (name: string, nextQty: number) => {
-    if (!currentUserId) return;
-    const clamped = Math.max(0, Math.min(99, nextQty));
-    const mine = gearDeclared
-      .filter((g) => g.user_id === currentUserId)
-      .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
-    const filtered = mine.filter((m) => m.name !== name);
-    const next = clamped > 0 ? [...filtered, { name, quantity: clamped }] : filtered;
-    try {
-      await gearService.setGear(activityId, next);
-      await queryClient.invalidateQueries({ queryKey: ['activity-gear', activityId] });
-    } catch {
-      // Silent — the row will simply not update; user can retry.
-    }
-  };
 
   // "Qui apporte quoi" recap — group declared gear by user_id,
   // sorted by contribution count descending so heavy contributors
@@ -725,46 +703,21 @@ export function GroupCard({
 
                 {inventaireExpanded && (
                   <View style={styles.inventoryList}>
-                    {groupItems.map((g) => {
-                      const myQty = gearDeclared
-                        .filter((d) => d.user_id === currentUserId && d.gear_name === g.name)
-                        .reduce((sum, d) => sum + d.quantity, 0);
-                      return (
-                        <View key={g.name} style={styles.inventoryItem}>
-                          <Text style={styles.inventoryItemName} numberOfLines={1}>
-                            {g.name}
-                          </Text>
-                          <Text style={styles.itemQty}>×{g.total}</Text>
-                          {isParticipant && (myQty > 0 ? (
-                            <View style={styles.qtyStepper}>
-                              <Pressable
-                                style={styles.qtyStepperBtn}
-                                onPress={() => setMyQuantityForItem(g.name, myQty - 1)}
-                                hitSlop={6}
-                              >
-                                <Minus size={12} color={colors.cta} strokeWidth={2.5} />
-                              </Pressable>
-                              <Text style={styles.qtyStepperValue}>{myQty}</Text>
-                              <Pressable
-                                style={styles.qtyStepperBtn}
-                                onPress={() => setMyQuantityForItem(g.name, myQty + 1)}
-                                hitSlop={6}
-                              >
-                                <Plus size={12} color={colors.cta} strokeWidth={2.5} />
-                              </Pressable>
-                            </View>
-                          ) : (
-                            <Pressable
-                              style={styles.qtyAddBtn}
-                              onPress={() => setMyQuantityForItem(g.name, 1)}
-                              hitSlop={6}
-                            >
-                              <Plus size={14} color={colors.cta} strokeWidth={2.5} />
-                            </Pressable>
-                          ))}
-                        </View>
-                      );
-                    })}
+                    {groupItems.map((g) => (
+                      <Pressable
+                        key={g.name}
+                        style={styles.inventoryItem}
+                        onPress={() => isParticipant && onEditGearItem(g.name)}
+                        disabled={!isParticipant}
+                        hitSlop={4}
+                      >
+                        <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                        <Text style={styles.inventoryItemName} numberOfLines={1}>
+                          {g.name}
+                        </Text>
+                        <Text style={styles.itemQty}>×{g.total}</Text>
+                      </Pressable>
+                    ))}
                   </View>
                 )}
               </View>
@@ -777,7 +730,7 @@ export function GroupCard({
               <View style={[styles.gearSection, groupItems.length > 0 && styles.gearSectionSpacer]}>
                 <View style={styles.transportCategoryHeader}>
                   <Text style={styles.transportCategoryLabel}>
-                    {t('group.gearSection.recap', { defaultValue: 'Qui apporte quoi' })}
+                    {t('group.gearSection.recap', { defaultValue: 'Inventaire individuel' })}
                   </Text>
                   <Text style={styles.transportCategoryCount}>· {bringers.length}</Text>
                 </View>
@@ -1317,36 +1270,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
     fontWeight: '500',
-  },
-  qtyStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.cta + '14',
-    borderRadius: 999,
-    paddingHorizontal: 4,
-  },
-  qtyStepperBtn: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyStepperValue: {
-    color: colors.cta,
-    fontSize: fontSizes.xs,
-    fontWeight: '800',
-    minWidth: 12,
-    textAlign: 'center',
-  },
-  qtyAddBtn: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.cta + '14',
   },
   // Bullet list — kept for the per-bringer items list inside the
   // expanded "Qui apporte quoi" pills. Inventaire items moved to the
