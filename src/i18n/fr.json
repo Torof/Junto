@@ -368,7 +368,7 @@
     "gear": "Matériel",
     "reserve": "Réserver",
     "full": "Complet",
-    "youAreAboard": "À bord",
+    "youAreAboard": "Réservé",
     "pendingRequest": "En attente",
     "seatsLabel": "places",
     "noTransportYet": "Personne n'a encore dit comment il y va",
@@ -376,6 +376,7 @@
     "freeSeatsCount_one": "{{count}} place libre",
     "freeSeatsCount_other": "{{count}} places libres",
     "freeSeatsFrom": "depuis {{cities}}",
+    "freeSeatsFromLabel": "depuis :",
     "transportCategory": {
       "car": "Voitures",
       "bike": "Vélo",

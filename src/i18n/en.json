@@ -368,7 +368,7 @@
     "gear": "Gear",
     "reserve": "Reserve",
     "full": "Full",
-    "youAreAboard": "Aboard",
+    "youAreAboard": "Reserved",
     "pendingRequest": "Pending",
     "seatsLabel": "seats",
     "noTransportYet": "Nobody's said how they're getting there yet",
@@ -376,6 +376,7 @@
     "freeSeatsCount_one": "{{count}} free seat",
     "freeSeatsCount_other": "{{count}} free seats",
     "freeSeatsFrom": "from {{cities}}",
+    "freeSeatsFromLabel": "from:",
     "transportCategory": {
       "car": "Cars",
       "bike": "Biking",

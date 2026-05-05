@@ -364,7 +364,7 @@ export function GroupCard({
             {drivers.length > 0 && (
               <View style={styles.transportCategory}>
                 <View style={styles.transportCategoryHeader}>
-                  <Car size={11} color={colors.textSecondary} strokeWidth={2.4} />
+                  <Car size={12} color={colors.textSecondary} strokeWidth={2.4} />
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.transportCategory.car', { defaultValue: 'Voitures' })}
                   </Text>
@@ -379,12 +379,17 @@ export function GroupCard({
                   )}
                 </View>
                 {totalFreeSeats > 0 && departureCities.length > 0 && (
-                  <Text style={styles.freeSeatsFromLine} numberOfLines={2}>
-                    {t('group.freeSeatsFrom', {
-                      cities: departureCities.join(' · '),
-                      defaultValue: `depuis ${departureCities.join(' · ')}`,
-                    })}
-                  </Text>
+                  <View style={styles.freeSeatsFromRow}>
+                    <Text style={styles.freeSeatsFromLabel}>
+                      {t('group.freeSeatsFromLabel', { defaultValue: 'depuis :' })}
+                    </Text>
+                    <View style={styles.freeSeatsFromCities}>
+                      <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                      <Text style={styles.freeSeatsFromCitiesText} numberOfLines={2}>
+                        {departureCities.join(', ')}
+                      </Text>
+                    </View>
+                  </View>
                 )}
                 {drivers.map((d) => {
               const isSelf = d.user_id === currentUserId;
@@ -843,7 +848,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   driverPill: {
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.lineStrong,
     borderRadius: radius.md,
     padding: spacing.sm + 2,
     gap: 6,
@@ -933,12 +938,36 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
-  freeSeatsFromLine: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '500',
+  // Cities sub-line under the Voitures section header — "depuis :"
+  // anchored on the left, cities cluster (icon + names) right-aligned.
+  // Small icon-then-text pattern keeps the row scanable at a glance.
+  freeSeatsFromRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
     marginTop: -2,
     marginBottom: 2,
+  },
+  freeSeatsFromLabel: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+  },
+  freeSeatsFromCities: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  freeSeatsFromCitiesText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    textAlign: 'right',
+    flexShrink: 1,
+    minWidth: 0,
   },
 
   // Transport sub-categories (Voitures / Vélo / À pied / Transports /
@@ -954,28 +983,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: 4,
   },
   transportCategoryLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
+    color: colors.textSecondary,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   transportCategoryCount: {
-    color: colors.textMuted,
-    fontSize: 10,
+    color: colors.textSecondary,
+    fontSize: 11,
     fontWeight: '600',
   },
 
-  // Passengers under each driver row — clearly nested via a vertical
-  // "thread" border on the left. Each entry is a 2-line block (avatar
-  // + name on top, pickup meta below) with smaller avatars / weights
-  // / muted meta-text so the hierarchy vs the driver's full row is
-  // unambiguous: driver = primary, passengers = secondary children.
+  // Passengers under each driver — nested inside the pill. The driver
+  // pill's containing border already signals "these belong together",
+  // so no extra thread/border is needed; just inset spacing.
   passengersList: {
     marginTop: 8,
     paddingLeft: 10,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.line,
     gap: 8,
   },
   passengerBlock: {

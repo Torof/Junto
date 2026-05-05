@@ -21,6 +21,10 @@ export const darkColors = {
   pinBorder: '#0D1B2A',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
+  // 2× alpha of `line` — for elements that need a clearly contained
+  // border (e.g. card-pills nested inside a card body) where the
+  // standard `line` reads too quietly.
+  lineStrong: 'rgba(255,255,255,0.18)',
   overlay: 'rgba(0,0,0,0.5)',
 };
 
@@ -47,6 +51,7 @@ export const lightColors = {
   pinBorder: '#1A1A1A',
   border: '#9E9A95',
   line: 'rgba(0,0,0,0.08)',
+  lineStrong: 'rgba(0,0,0,0.18)',
   overlay: 'rgba(0,0,0,0.3)',
 };
 
