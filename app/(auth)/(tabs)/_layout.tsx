@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, ListChecks, Bell, MessageSquare, User, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -111,6 +111,42 @@ export default function TabsLayout() {
   const colors = useColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+
+  // Realtime invalidation for the persistent tab-bar badges. Mounted at
+  // the layout level (not inside the animated tab-icon components) so it
+  // doesn't race with their wiggle Animated.sequence — that race was the
+  // root of the launch-time crash on the original slice 2.
+  //
+  // Both notifications and private_messages have RLS that already gates
+  // delivery to the row owner / conversation participant, so plain
+  // postgres_changes is the right primitive here. No filter on the
+  // subscription — RLS does the per-row filtering server-side.
+  // Migration 00184 ensures both tables are in supabase_realtime.
+  useEffect(() => {
+    const channel = supabase
+      .channel('tabs-badges')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'private_messages' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return (
     <Tabs
