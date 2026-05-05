@@ -78,6 +78,19 @@ export function GroupCard({
     });
   };
 
+  // Per-driver expand state for the passenger thread inside each
+  // driver pill. Collapsed by default — the pill stays compact and
+  // a small "Passagers · N ▾" row reveals the list on tap.
+  const [expandedPassengersByDriver, setExpandedPassengersByDriver] = useState<Set<string>>(new Set());
+  const togglePassengersForDriver = (driverId: string) => {
+    setExpandedPassengersByDriver((prev) => {
+      const next = new Set(prev);
+      if (next.has(driverId)) next.delete(driverId);
+      else next.add(driverId);
+      return next;
+    });
+  };
+
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
     queryFn: () => transportService.getForActivity(activityId),
@@ -514,56 +527,82 @@ export function GroupCard({
                     )}
                   </View>
 
-                  {/* Passengers — nested inside the pill via a left-
-                      border thread. Each entry is a 2-line block:
-                      avatar + name on top, pickup meta beneath.
-                      Tap → that passenger's profile. */}
-                  {driverPassengers.length > 0 && (
-                    <View style={styles.passengersList}>
-                      {driverPassengers.map((p) => (
+                  {/* Passengers — collapsible. The driver pill stays
+                      compact by default; the toggle row reveals the
+                      passenger blocks on tap. Each block: 2 lines
+                      (avatar + name on top, pickup meta beneath).
+                      Tap a block → that passenger's profile. */}
+                  {driverPassengers.length > 0 && (() => {
+                    const expanded = expandedPassengersByDriver.has(d.user_id);
+                    return (
+                      <>
                         <Pressable
-                          key={p.id}
-                          onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
-                          style={styles.passengerBlock}
+                          style={styles.passengersToggleRow}
+                          onPress={() => togglePassengersForDriver(d.user_id)}
                           hitSlop={4}
                         >
-                          <View style={styles.passengerHeader}>
-                            <UserAvatar
-                              name={p.display_name}
-                              avatarUrl={p.avatar_url}
-                              size={18}
-                            />
-                            <Text style={styles.passengerName} numberOfLines={1}>
-                              {p.display_name}
-                            </Text>
-                          </View>
-                          {(p.pickup_from || p.requested_pickup_at) && (
-                            <View style={styles.passengerMetaRow}>
-                              {p.pickup_from && (
-                                <>
-                                  <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                  <Text style={styles.passengerMetaText} numberOfLines={1}>
-                                    {p.pickup_from}
-                                  </Text>
-                                </>
-                              )}
-                              {p.pickup_from && p.requested_pickup_at && (
-                                <Text style={styles.passengerMetaText}>·</Text>
-                              )}
-                              {p.requested_pickup_at && (
-                                <>
-                                  <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                  <Text style={styles.passengerMetaText}>
-                                    {dayjs(p.requested_pickup_at).format('H[h]mm')}
-                                  </Text>
-                                </>
-                              )}
-                            </View>
-                          )}
+                          <Text style={styles.passengersToggleText}>
+                            {t('group.passengersCount', {
+                              count: driverPassengers.length,
+                              defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
+                            })}
+                          </Text>
+                          <ChevronDown
+                            size={14}
+                            color={colors.textMuted}
+                            strokeWidth={2.2}
+                            style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}
+                          />
                         </Pressable>
-                      ))}
-                    </View>
-                  )}
+                        {expanded && (
+                          <View style={styles.passengersList}>
+                            {driverPassengers.map((p) => (
+                              <Pressable
+                                key={p.id}
+                                onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                                style={styles.passengerBlock}
+                                hitSlop={4}
+                              >
+                                <View style={styles.passengerHeader}>
+                                  <UserAvatar
+                                    name={p.display_name}
+                                    avatarUrl={p.avatar_url}
+                                    size={18}
+                                  />
+                                  <Text style={styles.passengerName} numberOfLines={1}>
+                                    {p.display_name}
+                                  </Text>
+                                </View>
+                                {(p.pickup_from || p.requested_pickup_at) && (
+                                  <View style={styles.passengerMetaRow}>
+                                    {p.pickup_from && (
+                                      <>
+                                        <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                        <Text style={styles.passengerMetaText} numberOfLines={1}>
+                                          {p.pickup_from}
+                                        </Text>
+                                      </>
+                                    )}
+                                    {p.pickup_from && p.requested_pickup_at && (
+                                      <Text style={styles.passengerMetaText}>·</Text>
+                                    )}
+                                    {p.requested_pickup_at && (
+                                      <>
+                                        <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                        <Text style={styles.passengerMetaText}>
+                                          {dayjs(p.requested_pickup_at).format('H[h]mm')}
+                                        </Text>
+                                      </>
+                                    )}
+                                  </View>
+                                )}
+                              </Pressable>
+                            ))}
+                          </View>
+                        )}
+                      </>
+                    );
+                  })()}
                 </View>
               );
             })}
@@ -995,11 +1034,27 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
   },
 
+  // Toggle row that fronts the passenger list — small caption +
+  // count + chevron. Tappable, sits at the bottom of the driver pill
+  // so the pill stays compact when collapsed.
+  passengersToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+    paddingHorizontal: 2,
+  },
+  passengersToggleText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
   // Passengers under each driver — nested inside the pill. The driver
   // pill's containing border already signals "these belong together",
   // so no extra thread/border is needed; just inset spacing.
   passengersList: {
-    marginTop: 8,
+    marginTop: 6,
     paddingLeft: 10,
     gap: 8,
   },

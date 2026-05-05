@@ -377,6 +377,8 @@
     "freeSeatsCount_other": "{{count}} free seats",
     "freeSeatsFrom": "from {{cities}}",
     "freeSeatsFromLabel": "from:",
+    "passengersCount_one": "{{count}} passenger",
+    "passengersCount_other": "{{count}} passengers",
     "transportCategory": {
       "car": "Cars",
       "bike": "Biking",

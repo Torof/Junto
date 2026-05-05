@@ -377,6 +377,8 @@
     "freeSeatsCount_other": "{{count}} places libres",
     "freeSeatsFrom": "depuis {{cities}}",
     "freeSeatsFromLabel": "depuis :",
+    "passengersCount_one": "{{count}} passager",
+    "passengersCount_other": "{{count}} passagers",
     "transportCategory": {
       "car": "Voitures",
       "bike": "Vélo",
