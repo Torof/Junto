@@ -474,12 +474,10 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
         <View style={styles.headerBand}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
-          </Text>
-          <View style={styles.headerRight}>
-            <Text style={[styles.caption, { color: captionColor }]} numberOfLines={1}>
-              {caption.text}
+          {/* Row 1: title + small Prêt seal (when ready). */}
+          <View style={styles.headerTopRow}>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
             </Text>
             {isReady && (
               <View style={[styles.seal, { borderColor: colors.success }]}>
@@ -490,6 +488,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               </View>
             )}
           </View>
+          {/* Row 2: countdown caption — its own line so the title isn't
+              compressed when the caption gets long ("Dans 14 jours"). */}
+          <Text style={[styles.caption, { color: captionColor }]} numberOfLines={1}>
+            {caption.text}
+          </Text>
         </View>
         <View style={styles.body}>
           <View style={styles.stampsRow}>
@@ -745,27 +748,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the uppercase letter-spaced title gives it a distinct "headline"
   // feel within the system font.
   headerBand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     backgroundColor: colors.surfaceAlt,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
+    gap: 2,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs + 1,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
   },
   // Body — the actual card content, separated from the header band
   // by the bg-color step and the divider.

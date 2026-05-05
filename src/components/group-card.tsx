@@ -774,9 +774,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs + 1,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   headerRight: {
