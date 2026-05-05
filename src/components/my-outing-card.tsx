@@ -442,7 +442,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       return {
         caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
         Icon: Backpack,
-        content: t('myOuting.stamp.materialNothing', { defaultValue: 'Rien à apporter' }),
+        content: t('myOuting.stamp.materialNothing', { defaultValue: 'Tu n\'apportes rien pour le moment' }),
         state: 'neutral',
       };
     }

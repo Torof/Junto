@@ -345,7 +345,7 @@
       "transportPending": "En attente · {{driver}}",
       "transportDriver": "Tu conduis",
       "transportPassenger": "Tu pars avec {{driver}}",
-      "materialNothing": "Rien à apporter",
+      "materialNothing": "Tu n'apportes rien pour le moment",
       "passengersCount_one": "{{count}} passager",
       "passengersCount_other": "{{count}} passagers",
       "itemsOverflow_one": "+ {{count}} autre",

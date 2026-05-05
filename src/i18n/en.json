@@ -345,7 +345,7 @@
       "transportPending": "Awaiting · {{driver}}",
       "transportDriver": "You drive",
       "transportPassenger": "Riding with {{driver}}",
-      "materialNothing": "Nothing to bring",
+      "materialNothing": "You're not bringing anything yet",
       "passengersCount_one": "{{count}} passenger",
       "passengersCount_other": "{{count}} passengers",
       "itemsOverflow_one": "+ {{count}} more",
