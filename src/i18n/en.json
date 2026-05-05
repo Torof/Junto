@@ -387,7 +387,7 @@
       "other": "Other"
     },
     "gearSection": {
-      "inventory": "Inventory",
+      "inventory": "Common inventory",
       "recap": "Who brings what"
     },
     "recapEmpty": "Nobody's declared gear yet",

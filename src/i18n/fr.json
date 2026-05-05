@@ -387,7 +387,7 @@
       "other": "Autre"
     },
     "gearSection": {
-      "inventory": "Inventaire",
+      "inventory": "Inventaire commun",
       "recap": "Qui apporte quoi"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",

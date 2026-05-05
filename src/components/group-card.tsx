@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, Minus, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -49,6 +49,7 @@ export function GroupCard({
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const queryClient = useQueryClient();
 
   // Collapse state for the Matériel sub-sections. Inventaire opens by
   // default (it's the action surface — claim missing items, see the
@@ -241,6 +242,29 @@ export function GroupCard({
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
     );
   }, [gearDeclared]);
+
+  // Quick-edit handler for the inline +/- on each inventory pill.
+  // Reads the user's current full gear list, applies the delta on
+  // the named item (clamped to 0..99, dropping the entry at 0),
+  // and writes the new list back via setGear. Mirrors the
+  // persistMyGear helper inside gear-section but lives here so
+  // the inventory pills can mutate without bouncing through a
+  // modal.
+  const setMyQuantityForItem = async (name: string, nextQty: number) => {
+    if (!currentUserId) return;
+    const clamped = Math.max(0, Math.min(99, nextQty));
+    const mine = gearDeclared
+      .filter((g) => g.user_id === currentUserId)
+      .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
+    const filtered = mine.filter((m) => m.name !== name);
+    const next = clamped > 0 ? [...filtered, { name, quantity: clamped }] : filtered;
+    try {
+      await gearService.setGear(activityId, next);
+      await queryClient.invalidateQueries({ queryKey: ['activity-gear', activityId] });
+    } catch {
+      // Silent — the row will simply not update; user can retry.
+    }
+  };
 
   // "Qui apporte quoi" recap — group declared gear by user_id,
   // sorted by contribution count descending so heavy contributors
@@ -700,14 +724,47 @@ export function GroupCard({
                 </Pressable>
 
                 {inventaireExpanded && (
-                  <View style={styles.bulletList}>
-                    {groupItems.map((g) => (
-                      <View key={g.name} style={styles.bulletRow}>
-                        <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
-                        <Text style={styles.bulletText} numberOfLines={1}>{g.name}</Text>
-                        <Text style={styles.itemQty}>×{g.total}</Text>
-                      </View>
-                    ))}
+                  <View style={styles.inventoryList}>
+                    {groupItems.map((g) => {
+                      const myQty = gearDeclared
+                        .filter((d) => d.user_id === currentUserId && d.gear_name === g.name)
+                        .reduce((sum, d) => sum + d.quantity, 0);
+                      return (
+                        <View key={g.name} style={styles.inventoryItem}>
+                          <Text style={styles.inventoryItemName} numberOfLines={1}>
+                            {g.name}
+                          </Text>
+                          <Text style={styles.itemQty}>×{g.total}</Text>
+                          {isParticipant && (myQty > 0 ? (
+                            <View style={styles.qtyStepper}>
+                              <Pressable
+                                style={styles.qtyStepperBtn}
+                                onPress={() => setMyQuantityForItem(g.name, myQty - 1)}
+                                hitSlop={6}
+                              >
+                                <Minus size={12} color={colors.cta} strokeWidth={2.5} />
+                              </Pressable>
+                              <Text style={styles.qtyStepperValue}>{myQty}</Text>
+                              <Pressable
+                                style={styles.qtyStepperBtn}
+                                onPress={() => setMyQuantityForItem(g.name, myQty + 1)}
+                                hitSlop={6}
+                              >
+                                <Plus size={12} color={colors.cta} strokeWidth={2.5} />
+                              </Pressable>
+                            </View>
+                          ) : (
+                            <Pressable
+                              style={styles.qtyAddBtn}
+                              onPress={() => setMyQuantityForItem(g.name, 1)}
+                              hitSlop={6}
+                            >
+                              <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                            </Pressable>
+                          ))}
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
               </View>
@@ -1236,10 +1293,64 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
   },
-  // Bullet list — single shared style for the covered-items list under
-  // Inventaire and the per-bringer items list under the recap. One item
-  // per row, success-green bullet (the "covered" / "brought" semantic
-  // is the same in both contexts).
+  // Inventaire commun list — each item is its own thin-bordered pill
+  // with name + total qty + a +/- stepper that lets the user adjust
+  // their personal contribution to that item without leaving the
+  // tab. Compact padding to fit many items, line border (not the
+  // heavier lineStrong used on bringer pills) since this is info /
+  // quick-edit, not the primary action surface.
+  inventoryList: {
+    gap: 4,
+  },
+  inventoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.sm,
+  },
+  inventoryItemName: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '500',
+  },
+  qtyStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.cta + '14',
+    borderRadius: 999,
+    paddingHorizontal: 4,
+  },
+  qtyStepperBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyStepperValue: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    minWidth: 12,
+    textAlign: 'center',
+  },
+  qtyAddBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.cta + '14',
+  },
+  // Bullet list — kept for the per-bringer items list inside the
+  // expanded "Qui apporte quoi" pills. Inventaire items moved to the
+  // pill layout above.
   bulletList: {
     gap: 2,
   },
