@@ -361,28 +361,6 @@ export function GroupCard({
 
         {activeSubTab === 'transport' && (
           <View style={styles.tabContent}>
-            {/* Free-seats banner — at-a-glance answer to "is there a ride
-                available, and from where?". Hidden when no driver has
-                free seats so the surface stays calm in that case. */}
-            {totalFreeSeats > 0 && (
-              <View style={styles.freeSeatsBanner}>
-                <Text style={styles.freeSeatsCount}>
-                  {t('group.freeSeatsCount', {
-                    count: totalFreeSeats,
-                    defaultValue: totalFreeSeats === 1 ? '1 place libre' : `${totalFreeSeats} places libres`,
-                  })}
-                </Text>
-                {departureCities.length > 0 && (
-                  <Text style={styles.freeSeatsFrom} numberOfLines={2}>
-                    {t('group.freeSeatsFrom', {
-                      cities: departureCities.join(' · '),
-                      defaultValue: `depuis ${departureCities.join(' · ')}`,
-                    })}
-                  </Text>
-                )}
-              </View>
-            )}
-
             {drivers.length > 0 && (
               <View style={styles.transportCategory}>
                 <View style={styles.transportCategoryHeader}>
@@ -391,7 +369,23 @@ export function GroupCard({
                     {t('group.transportCategory.car', { defaultValue: 'Voitures' })}
                   </Text>
                   <Text style={styles.transportCategoryCount}>· {drivers.length}</Text>
+                  {totalFreeSeats > 0 && (
+                    <Text style={styles.freeSeatsInline}>
+                      {' · '}{t('group.freeSeatsCount', {
+                        count: totalFreeSeats,
+                        defaultValue: totalFreeSeats === 1 ? '1 place libre' : `${totalFreeSeats} places libres`,
+                      })}
+                    </Text>
+                  )}
                 </View>
+                {totalFreeSeats > 0 && departureCities.length > 0 && (
+                  <Text style={styles.freeSeatsFromLine} numberOfLines={2}>
+                    {t('group.freeSeatsFrom', {
+                      cities: departureCities.join(' · '),
+                      defaultValue: `depuis ${departureCities.join(' · ')}`,
+                    })}
+                  </Text>
+                )}
                 {drivers.map((d) => {
               const isSelf = d.user_id === currentUserId;
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
@@ -401,166 +395,170 @@ export function GroupCard({
               const ringColor = score !== null ? ringColorFor(score) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
               return (
-                <View key={d.user_id} style={styles.driverRow}>
-                  <Pressable
-                    style={[
-                      styles.avatarRing,
-                      ringColor && { borderColor: ringColor },
-                    ]}
-                    onPress={() => router.push(`/(auth)/profile/${d.user_id}`)}
-                    hitSlop={4}
-                  >
-                    <UserAvatar
-                      name={d.display_name}
-                      avatarUrl={d.avatar_url}
-                      size={32}
-                      confirmedPresent={d.confirmed_present === true}
-                    />
-                  </Pressable>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={styles.driverNameRow}>
-                      <Text style={styles.driverName} numberOfLines={1}>
-                        {d.display_name}
-                      </Text>
-                      {isSelf && (
-                        <View style={styles.youTag}>
-                          <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
-                        </View>
-                      )}
-                      {!isSelf && (() => {
-                        const vouch = vouchById.get(d.user_id);
-                        if (!vouch) return null;
-                        const Icon = VOUCH_ICONS[vouch.badge_key];
-                        if (!Icon) return null;
-                        const label = t(`badges.${vouch.badge_key}`, { defaultValue: vouch.badge_key });
-                        return (
-                          <>
-                            <Text style={styles.vouchSep}>·</Text>
-                            <Icon size={11} color={colors.success} strokeWidth={2.4} />
-                            <Text style={styles.vouchLabel} numberOfLines={1}>{label}</Text>
-                          </>
-                        );
-                      })()}
-                    </View>
-                    <View style={styles.driverMeta}>
-                      {d.transport_from_name && (
-                        <>
-                          <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.driverMetaText} numberOfLines={1}>
-                            {d.transport_from_name}
-                          </Text>
-                        </>
-                      )}
-                      {d.transport_from_name && d.transport_departs_at && (
-                        <Text style={styles.driverMetaSep}> · </Text>
-                      )}
-                      {d.transport_departs_at && (
-                        <>
-                          <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.driverMetaText}>
-                            {dayjs(d.transport_departs_at).format('H[h]mm')}
-                          </Text>
-                        </>
-                      )}
-                      {!d.transport_from_name && !d.transport_departs_at && (
-                        <Text style={styles.driverMetaText}>
-                          {d.accepted}/{d.capacity} {t('group.seatsLabel', { defaultValue: 'places' })}
+                <View key={d.user_id} style={styles.driverPill}>
+                  {/* Pill row 1 — avatar + name + vouch + status pill (top-right). */}
+                  <View style={styles.pillHeader}>
+                    <Pressable
+                      style={[
+                        styles.avatarRing,
+                        ringColor && { borderColor: ringColor },
+                      ]}
+                      onPress={() => router.push(`/(auth)/profile/${d.user_id}`)}
+                      hitSlop={4}
+                    >
+                      <UserAvatar
+                        name={d.display_name}
+                        avatarUrl={d.avatar_url}
+                        size={32}
+                        confirmedPresent={d.confirmed_present === true}
+                      />
+                    </Pressable>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <View style={styles.driverNameRow}>
+                        <Text style={styles.driverName} numberOfLines={1}>
+                          {d.display_name}
                         </Text>
-                      )}
-                    </View>
-                    {/* Passengers — clearly nested under the driver via
-                        a left-border "thread". Each entry is a 2-line
-                        block: avatar + name on top, pickup place + time
-                        on a sub-line beneath. The size + weight + color
-                        contrast vs the driver's row keeps the hierarchy
-                        unambiguous. Tap → that passenger's profile. */}
-                    {driverPassengers.length > 0 && (
-                      <View style={styles.passengersList}>
-                        {driverPassengers.map((p) => (
-                          <Pressable
-                            key={p.id}
-                            onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
-                            style={styles.passengerBlock}
-                            hitSlop={4}
-                          >
-                            <View style={styles.passengerHeader}>
-                              <UserAvatar
-                                name={p.display_name}
-                                avatarUrl={p.avatar_url}
-                                size={18}
-                              />
-                              <Text style={styles.passengerName} numberOfLines={1}>
-                                {p.display_name}
-                              </Text>
-                            </View>
-                            {(p.pickup_from || p.requested_pickup_at) && (
-                              <View style={styles.passengerMetaRow}>
-                                {p.pickup_from && (
-                                  <>
-                                    <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                    <Text style={styles.passengerMetaText} numberOfLines={1}>
-                                      {p.pickup_from}
-                                    </Text>
-                                  </>
-                                )}
-                                {p.pickup_from && p.requested_pickup_at && (
-                                  <Text style={styles.passengerMetaText}>·</Text>
-                                )}
-                                {p.requested_pickup_at && (
-                                  <>
-                                    <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                    <Text style={styles.passengerMetaText}>
-                                      {dayjs(p.requested_pickup_at).format('H[h]mm')}
-                                    </Text>
-                                  </>
-                                )}
-                              </View>
-                            )}
-                          </Pressable>
-                        ))}
+                        {isSelf && (
+                          <View style={styles.youTag}>
+                            <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                          </View>
+                        )}
+                        {!isSelf && (() => {
+                          const vouch = vouchById.get(d.user_id);
+                          if (!vouch) return null;
+                          const Icon = VOUCH_ICONS[vouch.badge_key];
+                          if (!Icon) return null;
+                          const label = t(`badges.${vouch.badge_key}`, { defaultValue: vouch.badge_key });
+                          return (
+                            <>
+                              <Text style={styles.vouchSep}>·</Text>
+                              <Icon size={11} color={colors.success} strokeWidth={2.4} />
+                              <Text style={styles.vouchLabel} numberOfLines={1}>{label}</Text>
+                            </>
+                          );
+                        })()}
                       </View>
-                    )}
-                  </View>
-                  <View style={styles.seatsCluster}>
-                    {(d.transport_from_name || d.transport_departs_at) && (
-                      <Text style={styles.seatsCount}>
-                        {d.accepted}/{d.capacity}
-                      </Text>
-                    )}
-                    {isSelf ? (
-                      // Self-driver shows no action pill — they manage
-                      // via Mine's transport stamp. The "Toi" tag above
-                      // already marks the row.
-                      null
-                    ) : isMyDriver ? (
+                    </View>
+                    {/* Status pill in the top-right when the user has a
+                        relationship with this driver (aboard / pending). */}
+                    {!isSelf && isMyDriver && (
                       <View style={styles.statusPillSet}>
                         <Check size={10} color={colors.success} strokeWidth={3} />
                         <Text style={[styles.statusPillText, { color: colors.success }]}>
                           {t('group.youAreAboard', { defaultValue: 'À bord' })}
                         </Text>
                       </View>
-                    ) : isPendingFromMe ? (
+                    )}
+                    {!isSelf && isPendingFromMe && (
                       <View style={styles.statusPillPending}>
                         <Text style={[styles.statusPillText, { color: colors.textMuted }]}>
                           {t('group.pendingRequest', { defaultValue: 'En attente' })}
                         </Text>
                       </View>
-                    ) : isFull ? (
-                      <Text style={styles.fullText}>
-                        {t('group.full', { defaultValue: 'Complet' })}
-                      </Text>
-                    ) : canReserve ? (
-                      <Pressable
-                        style={styles.reserveBtn}
-                        onPress={() => onReserveSeat(d.user_id)}
-                        hitSlop={4}
-                      >
-                        <Text style={styles.reserveBtnText}>
-                          {t('group.reserve', { defaultValue: 'Réserver' })}
-                        </Text>
-                      </Pressable>
-                    ) : null}
+                    )}
                   </View>
+
+                  {/* Pill rows 2-3 — place own line, time own line. Same
+                      treatment as Mine's transport stamp so the place
+                      stays readable even when long. */}
+                  {(d.transport_from_name || d.transport_departs_at) && (
+                    <View style={styles.pillMetaRows}>
+                      {d.transport_from_name && (
+                        <View style={styles.pillMetaRow}>
+                          <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                          <Text style={styles.driverMetaText} numberOfLines={1}>
+                            {d.transport_from_name}
+                          </Text>
+                        </View>
+                      )}
+                      {d.transport_departs_at && (
+                        <View style={styles.pillMetaRow}>
+                          <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                          <Text style={styles.driverMetaText}>
+                            {dayjs(d.transport_departs_at).format('H[h]mm')}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Pill footer — seats count on the left, action CTA
+                      on the right (Reserve / Complet). Hidden for self
+                      and for users with an existing relationship (the
+                      status pill in the header carries that). */}
+                  <View style={styles.pillFooter}>
+                    <Text style={styles.seatsCount}>
+                      {d.accepted}/{d.capacity} {t('group.seatsLabel', { defaultValue: 'places' })}
+                    </Text>
+                    {!isSelf && !isMyDriver && !isPendingFromMe && (
+                      isFull ? (
+                        <Text style={styles.fullText}>
+                          {t('group.full', { defaultValue: 'Complet' })}
+                        </Text>
+                      ) : canReserve ? (
+                        <Pressable
+                          style={styles.reserveBtn}
+                          onPress={() => onReserveSeat(d.user_id)}
+                          hitSlop={4}
+                        >
+                          <Text style={styles.reserveBtnText}>
+                            {t('group.reserve', { defaultValue: 'Réserver' })}
+                          </Text>
+                        </Pressable>
+                      ) : null
+                    )}
+                  </View>
+
+                  {/* Passengers — nested inside the pill via a left-
+                      border thread. Each entry is a 2-line block:
+                      avatar + name on top, pickup meta beneath.
+                      Tap → that passenger's profile. */}
+                  {driverPassengers.length > 0 && (
+                    <View style={styles.passengersList}>
+                      {driverPassengers.map((p) => (
+                        <Pressable
+                          key={p.id}
+                          onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                          style={styles.passengerBlock}
+                          hitSlop={4}
+                        >
+                          <View style={styles.passengerHeader}>
+                            <UserAvatar
+                              name={p.display_name}
+                              avatarUrl={p.avatar_url}
+                              size={18}
+                            />
+                            <Text style={styles.passengerName} numberOfLines={1}>
+                              {p.display_name}
+                            </Text>
+                          </View>
+                          {(p.pickup_from || p.requested_pickup_at) && (
+                            <View style={styles.passengerMetaRow}>
+                              {p.pickup_from && (
+                                <>
+                                  <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                  <Text style={styles.passengerMetaText} numberOfLines={1}>
+                                    {p.pickup_from}
+                                  </Text>
+                                </>
+                              )}
+                              {p.pickup_from && p.requested_pickup_at && (
+                                <Text style={styles.passengerMetaText}>·</Text>
+                              )}
+                              {p.requested_pickup_at && (
+                                <>
+                                  <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                  <Text style={styles.passengerMetaText}>
+                                    {dayjs(p.requested_pickup_at).format('H[h]mm')}
+                                  </Text>
+                                </>
+                              )}
+                            </View>
+                          )}
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
                 </View>
               );
             })}
@@ -838,11 +836,40 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.sm,
   },
 
-  driverRow: {
+  // Driver card-pill — each driver gets a contained unit (border +
+  // padding + radius) so they read as discrete action surfaces, not a
+  // flat list of rows. Visually outranks the self-mover chips since
+  // drivers are where the user takes action (reserving a seat).
+  driverPill: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    padding: spacing.sm + 2,
+    gap: 6,
+  },
+  pillHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm + 2,
-    paddingVertical: 2,
+  },
+  pillMetaRows: {
+    paddingLeft: 44, // align with content under avatar
+    gap: 2,
+  },
+  pillMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  pillFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    marginTop: 2,
+    paddingTop: spacing.xs + 2,
   },
   // Tier ring around the driver avatar — borderColor set inline based on
   // reliability score; transparent here so the layout stays stable when
@@ -896,28 +923,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  // Free-seats banner — pinned at the top of the Transport tab. Subtle
-  // success-tinted bg + bold count + smaller "from cities" sub-line.
-  // Only shown when at least one driver has free seats; otherwise the
-  // surface stays calm.
-  freeSeatsBanner: {
-    backgroundColor: colors.success + '14',
-    borderRadius: radius.sm,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 4,
-  },
-  freeSeatsCount: {
+  // Free-seats info — merged into the Voitures section header
+  // (inline count) + a sub-line for the cities list. Replaces the
+  // standalone success-tinted banner that floated above the section.
+  freeSeatsInline: {
     color: colors.success,
-    fontSize: fontSizes.sm,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: -0.05,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
-  freeSeatsFrom: {
+  freeSeatsFromLine: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: -2,
+    marginBottom: 2,
   },
 
   // Transport sub-categories (Voitures / Vélo / À pied / Transports /
@@ -984,27 +1005,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '500',
   },
-  driverMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 1,
-  },
   driverMetaText: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
-  driverMetaSep: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-  },
-  seatsCluster: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
   seatsCount: {
     color: colors.textMuted,
-    fontSize: 10,
+    fontSize: fontSizes.xs,
     fontWeight: '700',
   },
   reserveBtn: {
