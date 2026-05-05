@@ -277,6 +277,8 @@
     "requestSheetTitle": "Request missing gear",
     "requestSheetSave": "Request",
     "requestSaved": "Request sent",
+    "lendsTag": "lends",
+    "receivesTag": "receives",
     "category": {
       "safety": "Safety",
       "technical": "Technical",
@@ -396,8 +398,8 @@
       "inventory": "Common inventory",
       "recap": "Personal inventory",
       "requested": "Requested by the group",
-      "requestedGroup": "Requested by the group",
-      "requestedPersonal": "Personal requests"
+      "requestedGroup": "Shared gear request",
+      "requestedPersonal": "Individual gear request"
     },
     "recapEmpty": "Nobody's declared gear yet",
     "addGear": "Add",

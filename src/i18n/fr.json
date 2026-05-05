@@ -277,6 +277,8 @@
     "requestSheetTitle": "Demander un manquant",
     "requestSheetSave": "Demander",
     "requestSaved": "Demande envoyée",
+    "lendsTag": "prête",
+    "receivesTag": "reçoit",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",
@@ -396,8 +398,8 @@
       "inventory": "Inventaire commun",
       "recap": "Inventaire individuel",
       "requested": "Demandé par le groupe",
-      "requestedGroup": "Demandé par le groupe",
-      "requestedPersonal": "Demandé personnellement"
+      "requestedGroup": "Demande d'équipement partagé",
+      "requestedPersonal": "Demande d'équipement individuel"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
     "addGear": "Ajouter",

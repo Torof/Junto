@@ -762,8 +762,8 @@ export function GroupCard({
                   {groupRequests.length > 0 && (
                     <View style={styles.gearSection}>
                       <View style={styles.transportCategoryHeader}>
-                        <Text style={styles.transportCategoryLabel}>
-                          {t('group.gearSection.requestedGroup', { defaultValue: 'Demandé par le groupe' })}
+                        <Text style={[styles.transportCategoryLabel, { color: colors.pinMeeting }]}>
+                          {t('group.gearSection.requestedGroup', { defaultValue: 'Demande d\'équipement partagé' })}
                         </Text>
                         <Text style={styles.transportCategoryCount}>· {groupRequests.length}</Text>
                       </View>
@@ -778,19 +778,22 @@ export function GroupCard({
                               disabled={!isParticipant}
                               hitSlop={4}
                             >
-                              {requester ? (
-                                <UserAvatar
-                                  name={requester.display_name}
-                                  avatarUrl={requester.avatar_url}
-                                  size={16}
-                                />
-                              ) : (
-                                <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                              )}
+                              <Plus size={14} color={colors.warning} strokeWidth={2.5} />
                               <Text style={styles.inventoryItemName} numberOfLines={1}>
                                 {r.gear_name}
                               </Text>
-                              <Text style={styles.missingQty}>×{r.quantity}</Text>
+                              {requester ? (
+                                <View style={styles.partyPillWarning}>
+                                  <UserAvatar
+                                    name={requester.display_name}
+                                    avatarUrl={requester.avatar_url}
+                                    size={14}
+                                  />
+                                  <Text style={styles.partyPillQtyWarning}>×{r.quantity}</Text>
+                                </View>
+                              ) : (
+                                <Text style={styles.missingQty}>×{r.quantity}</Text>
+                              )}
                             </Pressable>
                           );
                         })}
@@ -800,8 +803,8 @@ export function GroupCard({
                   {personalRequests.length > 0 && (
                     <View style={styles.gearSection}>
                       <View style={styles.transportCategoryHeader}>
-                        <Text style={styles.transportCategoryLabel}>
-                          {t('group.gearSection.requestedPersonal', { defaultValue: 'Demandé personnellement' })}
+                        <Text style={[styles.transportCategoryLabel, { color: colors.warning }]}>
+                          {t('group.gearSection.requestedPersonal', { defaultValue: 'Demande d\'équipement individuel' })}
                         </Text>
                         <Text style={styles.transportCategoryCount}>· {personalRequests.length}</Text>
                       </View>
@@ -816,19 +819,22 @@ export function GroupCard({
                               disabled={!isParticipant}
                               hitSlop={4}
                             >
-                              {requester ? (
-                                <UserAvatar
-                                  name={requester.display_name}
-                                  avatarUrl={requester.avatar_url}
-                                  size={16}
-                                />
-                              ) : (
-                                <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                              )}
+                              <Plus size={14} color={colors.warning} strokeWidth={2.5} />
                               <Text style={styles.inventoryItemName} numberOfLines={1}>
                                 {r.gear_name}
                               </Text>
-                              <Text style={styles.missingQty}>×{r.quantity}</Text>
+                              {requester ? (
+                                <View style={styles.partyPillWarning}>
+                                  <UserAvatar
+                                    name={requester.display_name}
+                                    avatarUrl={requester.avatar_url}
+                                    size={14}
+                                  />
+                                  <Text style={styles.partyPillQtyWarning}>×{r.quantity}</Text>
+                                </View>
+                              ) : (
+                                <Text style={styles.missingQty}>×{r.quantity}</Text>
+                              )}
                             </Pressable>
                           );
                         })}
@@ -857,7 +863,7 @@ export function GroupCard({
                   onPress={() => setInventaireExpanded((v) => !v)}
                   hitSlop={4}
                 >
-                  <Text style={styles.transportCategoryLabel}>
+                  <Text style={[styles.transportCategoryLabel, { color: colors.success }]}>
                     {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
                   </Text>
                   <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
@@ -880,19 +886,22 @@ export function GroupCard({
                         disabled={!isParticipant}
                         hitSlop={4}
                       >
-                        {g.firstBringer ? (
-                          <UserAvatar
-                            name={g.firstBringer.display_name}
-                            avatarUrl={g.firstBringer.avatar_url}
-                            size={16}
-                          />
-                        ) : (
-                          <Plus size={14} color={colors.cta} strokeWidth={2.5} />
-                        )}
+                        <Plus size={14} color={colors.cta} strokeWidth={2.5} />
                         <Text style={styles.inventoryItemName} numberOfLines={1}>
                           {g.name}
                         </Text>
-                        <Text style={styles.itemQty}>×{g.total}</Text>
+                        {g.firstBringer ? (
+                          <View style={styles.partyPillSuccess}>
+                            <UserAvatar
+                              name={g.firstBringer.display_name}
+                              avatarUrl={g.firstBringer.avatar_url}
+                              size={14}
+                            />
+                            <Text style={styles.partyPillQtySuccess}>×{g.total}</Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.itemQty}>×{g.total}</Text>
+                        )}
                       </Pressable>
                     ))}
                   </View>
@@ -961,6 +970,14 @@ export function GroupCard({
                                 <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
                                 <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
                                 <Text style={styles.itemQty}>×{it.quantity}</Text>
+                                <Text style={[
+                                  styles.lendReceiveTag,
+                                  it.perspective === 'bringing' ? styles.lendTag : styles.receiveTag,
+                                ]}>
+                                  {it.perspective === 'bringing'
+                                    ? t('gear.lendsTag', { defaultValue: 'prête' })
+                                    : t('gear.receivesTag', { defaultValue: 'reçoit' })}
+                                </Text>
                               </View>
                               {it.counterpartName && (
                                 <View style={styles.exchangeChip}>
@@ -1550,6 +1567,62 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+  },
+
+  // Party pill — avatar + count container at the trailing edge of
+  // an inventory / missing pill. Tints match the section theme
+  // (success for common inventory, warning for missing requests).
+  partyPillSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.success + '1F',
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 'auto',
+  },
+  partyPillQtySuccess: {
+    color: colors.success,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+  },
+  partyPillWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.warning + '1F',
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 'auto',
+  },
+  partyPillQtyWarning: {
+    color: colors.warning,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+  },
+
+  // Lend/receive tag on each bringer-item row in Inventaire individuel.
+  // Small uppercase label that disambiguates whether the user is
+  // contributing or receiving the item.
+  lendReceiveTag: {
+    fontSize: fontSizes.xs - 2,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  lendTag: {
+    color: colors.success,
+    backgroundColor: colors.success + '1F',
+  },
+  receiveTag: {
+    color: colors.pinMeeting,
+    backgroundColor: colors.pinMeeting + '1F',
   },
   bulletRow: {
     flexDirection: 'row',

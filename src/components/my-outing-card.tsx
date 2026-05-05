@@ -605,6 +605,14 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                         {g.quantity > 1 && (
                           <Text style={styles.gearListQty}>×{g.quantity}</Text>
                         )}
+                        <Text style={[
+                          styles.lendReceiveTag,
+                          isBringing ? styles.lendTag : styles.receiveTag,
+                        ]}>
+                          {isBringing
+                            ? t('gear.lendsTag', { defaultValue: 'prête' })
+                            : t('gear.receivesTag', { defaultValue: 'reçoit' })}
+                        </Text>
                         {isBringing && (
                           <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
                         )}
@@ -1066,6 +1074,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+  },
+
+  // Lend/receive tag — small uppercase pill that disambiguates
+  // bringing vs broughtForMe in the "Ton matériel" sheet. Mirrors
+  // the same tag in GroupCard's bringer recap.
+  lendReceiveTag: {
+    fontSize: fontSizes.xs - 2,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  lendTag: {
+    color: colors.success,
+    backgroundColor: colors.success + '1F',
+  },
+  receiveTag: {
+    color: colors.pinMeeting,
+    backgroundColor: colors.pinMeeting + '1F',
   },
   gearListIconWrap: {
     width: 24,
