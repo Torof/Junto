@@ -473,7 +473,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
-        <View style={styles.header}>
+        <View style={styles.headerBand}>
           <Text style={styles.cardTitle} numberOfLines={1}>
             {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
           </Text>
@@ -491,22 +491,23 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
             )}
           </View>
         </View>
-
-        <View style={styles.stampsRow}>
-          <Stamp
-            stamp={transportStamp}
-            onPress={handleTransportStampPress}
-            colors={colors}
-            styles={styles}
-            t={t}
-          />
-          <Stamp
-            stamp={materialStamp}
-            onPress={() => setShowMyGear(true)}
-            colors={colors}
-            styles={styles}
-            t={t}
-          />
+        <View style={styles.body}>
+          <View style={styles.stampsRow}>
+            <Stamp
+              stamp={transportStamp}
+              onPress={handleTransportStampPress}
+              colors={colors}
+              styles={styles}
+              t={t}
+            />
+            <Stamp
+              stamp={materialStamp}
+              onPress={() => setShowMyGear(true)}
+              colors={colors}
+              styles={styles}
+              t={t}
+            />
+          </View>
         </View>
       </View>
 
@@ -739,31 +740,44 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
+  // Header band — surfaceAlt bg sets it apart from the card body
+  // (slightly darker), bottom divider seals it as its own zone, and
+  // the uppercase letter-spaced title gives it a distinct "headline"
+  // feel within the system font.
+  headerBand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    backgroundColor: colors.surfaceAlt,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs + 2,
   },
+  // Body — the actual card content, separated from the header band
+  // by the bg-color step and the divider.
+  body: {
+    padding: spacing.md - 2,
+  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.line,
-    paddingVertical: spacing.md - 2,
-    paddingHorizontal: spacing.md,
-  },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm + 2,
+    overflow: 'hidden',
   },
   caption: {
     color: colors.textMuted,

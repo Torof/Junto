@@ -307,10 +307,10 @@ export function GroupCard({
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
-        {/* Header row — title on the left, people count on the right.
-            Pulled up here from the old band so the tab strip below
-            can occupy a full prominent row of its own. */}
-        <View style={styles.header}>
+        {/* Header band — same surfaceAlt + uppercase-letter-spaced
+            treatment as my-outing-card so the two cards read as
+            siblings. Title on the left, people count on the right. */}
+        <View style={styles.headerBand}>
           <Text style={styles.cardTitle} numberOfLines={1}>
             {t('group.cardTitle', { defaultValue: 'Préparatifs de groupe' })}
           </Text>
@@ -325,31 +325,34 @@ export function GroupCard({
           </View>
         </View>
 
-        {/* Prominent tab strip — full-width, equal split, active tab
-            marked with a CTA-coloured underline so the toggle is
-            unmissable. Replaces the folder-tab metaphor that lived
-            tucked into the old band. */}
-        <View style={styles.tabStrip}>
+        {/* Folder-tab strip — square tabs sit on a surfaceAlt band
+            with a 1px bottom divider. The active tab's bg matches
+            the content area below (surface) and its negative
+            margin-bottom punches through the divider, creating the
+            classic "open folder" look where the active tab visually
+            merges with content. Inactive tab stays on the surfaceAlt
+            band with a visible divider beneath, looking tucked. */}
+        <View style={styles.tabBand}>
           <Pressable
             onPress={() => onActiveSubTabChange('transport')}
-            style={[styles.tab, activeSubTab === 'transport' && styles.tabActive]}
+            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
             hitSlop={4}
           >
             <Text style={[
-              styles.tabLabel,
-              activeSubTab === 'transport' && styles.tabLabelActive,
+              styles.folderTabLabel,
+              activeSubTab === 'transport' && styles.folderTabLabelActive,
             ]}>
               {t('group.transport', { defaultValue: 'Transport' })}
             </Text>
           </Pressable>
           <Pressable
             onPress={() => onActiveSubTabChange('gear')}
-            style={[styles.tab, activeSubTab === 'gear' && styles.tabActive]}
+            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
             hitSlop={4}
           >
             <Text style={[
-              styles.tabLabel,
-              activeSubTab === 'gear' && styles.tabLabelActive,
+              styles.folderTabLabel,
+              activeSubTab === 'gear' && styles.folderTabLabelActive,
             ]}>
               {t('group.gear', { defaultValue: 'Matériel' })}
             </Text>
@@ -755,21 +758,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Header row — title left, people count right. Mirrors my-outing-card's
-  // header structure so the two cards read as siblings.
-  header: {
+  // Header band — surfaceAlt bg + bottom divider mark it as its own
+  // zone, distinct from the card body. Mirrors my-outing-card's
+  // header band so the two cards read as siblings.
+  headerBand: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.md - 2,
-    paddingBottom: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    backgroundColor: colors.surfaceAlt,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
   },
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   headerRight: {
     flexDirection: 'row',
@@ -783,34 +791,43 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  // Prominent tab strip — full-width, 50/50 split, active tab gets a
-  // CTA-coloured underline. Replaces the folder-tab metaphor that
-  // tucked into the old surfaceAlt band.
-  tabStrip: {
+  // Tab band — surfaceAlt bg continues from the header band, with a
+  // bottom divider that the active tab "punches through" via negative
+  // margin to merge with the content area below.
+  tabBand: {
     flexDirection: 'row',
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    gap: spacing.xs,
+    backgroundColor: colors.surfaceAlt,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
   },
-  tab: {
+  folderTab: {
     flex: 1,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderBottomWidth: 0,
+    backgroundColor: colors.surfaceAlt,
     marginBottom: -1,
   },
-  tabActive: {
-    borderBottomColor: colors.cta,
+  folderTabActive: {
+    backgroundColor: colors.surface,
   },
-  tabLabel: {
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    color: colors.textMuted,
-    letterSpacing: 0.3,
-  },
-  tabLabelActive: {
-    color: colors.textPrimary,
+  folderTabLabel: {
+    fontSize: fontSizes.xs + 1,
     fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  folderTabLabelActive: {
+    color: colors.textPrimary,
+    fontWeight: '800',
   },
 
   // Active tab content area. Padding kept identical to the previous
