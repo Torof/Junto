@@ -255,34 +255,58 @@ export function GroupCard({
   // sorted by contribution count descending so heavy contributors
   // anchor the top. Includes self (with TOI tag at render time)
   // for confirmation that their commitment is registered.
+  // Bringer recap — each user's block lists items they bring AND items
+  // brought for them by others (mirrors MyOutingCard's dual perspective
+  // in "Ton matériel"). Each item carries its perspective so the row
+  // can render the right "demandé par X" / "apporté par X" chip.
   const bringers = useMemo(() => {
-    const map = new Map<string, {
+    type BringerItem = {
+      name: string;
+      quantity: number;
+      perspective: 'bringing' | 'broughtForMe';
+      counterpartName: string | null;
+      counterpartAvatar: string | null;
+    };
+    type BringerEntry = {
       user_id: string;
       display_name: string;
       avatar_url: string | null;
-      items: {
-        name: string;
-        quantity: number;
-        requested_by_display_name: string | null;
-        requested_by_avatar_url: string | null;
-      }[];
-    }>();
+      items: BringerItem[];
+    };
+    const map = new Map<string, BringerEntry>();
+    const ensure = (user_id: string, display_name: string, avatar_url: string | null) => {
+      let entry = map.get(user_id);
+      if (!entry) {
+        entry = { user_id, display_name, avatar_url, items: [] };
+        map.set(user_id, entry);
+      }
+      return entry;
+    };
     gearDeclared.forEach((g) => {
-      const item = {
+      // Bringer's own perspective: row.user_id sees "demandé par
+      // <requested_by>" when applicable.
+      const bringerEntry = ensure(g.user_id, g.display_name, g.avatar_url);
+      bringerEntry.items.push({
         name: g.gear_name,
         quantity: g.quantity,
-        requested_by_display_name: g.requested_by_display_name,
-        requested_by_avatar_url: g.requested_by_avatar_url,
-      };
-      const existing = map.get(g.user_id);
-      if (existing) {
-        existing.items.push(item);
-      } else {
-        map.set(g.user_id, {
-          user_id: g.user_id,
-          display_name: g.display_name,
-          avatar_url: g.avatar_url,
-          items: [item],
+        perspective: 'bringing',
+        counterpartName: g.requested_by_display_name,
+        counterpartAvatar: g.requested_by_avatar_url,
+      });
+      // Requester's perspective: row.requested_by sees "apporté par
+      // <user_id>" — only if they're not the bringer themselves.
+      if (g.requested_by && g.requested_by !== g.user_id && g.requested_by_display_name) {
+        const requesterEntry = ensure(
+          g.requested_by,
+          g.requested_by_display_name,
+          g.requested_by_avatar_url,
+        );
+        requesterEntry.items.push({
+          name: g.gear_name,
+          quantity: g.quantity,
+          perspective: 'broughtForMe',
+          counterpartName: g.display_name,
+          counterpartAvatar: g.avatar_url,
         });
       }
     });
@@ -840,24 +864,29 @@ export function GroupCard({
                       {isExpanded && (
                         <View style={styles.bringerItemsList}>
                           {b.items.map((it) => (
-                            <View key={it.name} style={styles.bringerItemBlock}>
+                            <View key={`${it.perspective}:${it.name}`} style={styles.bringerItemBlock}>
                               <View style={styles.bulletRow}>
                                 <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
                                 <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
                                 <Text style={styles.itemQty}>×{it.quantity}</Text>
                               </View>
-                              {it.requested_by_display_name && (
+                              {it.counterpartName && (
                                 <View style={styles.requestedByChip}>
                                   <UserAvatar
-                                    name={it.requested_by_display_name}
-                                    avatarUrl={it.requested_by_avatar_url}
+                                    name={it.counterpartName}
+                                    avatarUrl={it.counterpartAvatar}
                                     size={14}
                                   />
                                   <Text style={styles.requestedByText} numberOfLines={1}>
-                                    {t('gear.requestedBy', {
-                                      name: it.requested_by_display_name,
-                                      defaultValue: `demandé par ${it.requested_by_display_name}`,
-                                    })}
+                                    {it.perspective === 'bringing'
+                                      ? t('gear.requestedBy', {
+                                          name: it.counterpartName,
+                                          defaultValue: `demandé par ${it.counterpartName}`,
+                                        })
+                                      : t('gear.broughtBy', {
+                                          name: it.counterpartName,
+                                          defaultValue: `apporté par ${it.counterpartName}`,
+                                        })}
                                   </Text>
                                 </View>
                               )}

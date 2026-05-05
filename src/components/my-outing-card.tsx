@@ -430,16 +430,50 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     return empty;
   }, [transports, seatAssignments, pendingRequests, currentUserId, t]);
 
-  const myGearItems = useMemo(() => {
+  // myGearItems carries TWO perspectives:
+  //   - bringing: user_id = me (I physically carry it). Optional
+  //     "demandé par X" chip when the contribution closed someone
+  //     else's missing-request.
+  //   - broughtForMe: requested_by = me but user_id != me (someone
+  //     else carries it for me, fulfilling my missing-request). Chip
+  //     shows "apporté par X" with the bringer's avatar.
+  // Both contribute to "your gear count" — the user feels the
+  // collective coverage even when they're not physically carrying.
+  const myGearItems = useMemo<Array<{
+    name: string;
+    quantity: number;
+    perspective: 'bringing' | 'broughtForMe';
+    counterpartName: string | null;
+    counterpartAvatar: string | null;
+  }>>(() => {
     if (!currentUserId) return [];
-    return gearDeclared
-      .filter((g) => g.user_id === currentUserId)
-      .map((g) => ({
-        name: g.gear_name,
-        quantity: g.quantity,
-        requested_by_display_name: g.requested_by_display_name,
-        requested_by_avatar_url: g.requested_by_avatar_url,
-      }));
+    const items: Array<{
+      name: string;
+      quantity: number;
+      perspective: 'bringing' | 'broughtForMe';
+      counterpartName: string | null;
+      counterpartAvatar: string | null;
+    }> = [];
+    gearDeclared.forEach((g) => {
+      if (g.user_id === currentUserId) {
+        items.push({
+          name: g.gear_name,
+          quantity: g.quantity,
+          perspective: 'bringing',
+          counterpartName: g.requested_by_display_name,
+          counterpartAvatar: g.requested_by_avatar_url,
+        });
+      } else if (g.requested_by === currentUserId) {
+        items.push({
+          name: g.gear_name,
+          quantity: g.quantity,
+          perspective: 'broughtForMe',
+          counterpartName: g.display_name,
+          counterpartAvatar: g.avatar_url,
+        });
+      }
+    });
+    return items;
   }, [gearDeclared, currentUserId]);
 
   const materialStamp = useMemo<StampDef>(() => {
@@ -544,45 +578,56 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               </Text>
             ) : (
               <ScrollView style={styles.gearList} showsVerticalScrollIndicator={false}>
-                {myGearItems.map((g, i) => (
-                  <Pressable
-                    key={g.name}
-                    style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
-                    onPress={() => {
-                      setShowMyGear(false);
-                      onEditGearItem(g.name);
-                    }}
-                    hitSlop={4}
-                  >
-                    <View style={styles.gearListMainRow}>
-                      <View style={styles.gearListIconWrap}>
-                        <Backpack size={14} color={colors.success} strokeWidth={2.2} />
-                      </View>
-                      <Text style={styles.gearListName} numberOfLines={1}>
-                        {g.name}
-                      </Text>
-                      {g.quantity > 1 && (
-                        <Text style={styles.gearListQty}>×{g.quantity}</Text>
-                      )}
-                      <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
-                    </View>
-                    {g.requested_by_display_name && (
-                      <View style={styles.gearListRequestedBy}>
-                        <UserAvatar
-                          name={g.requested_by_display_name}
-                          avatarUrl={g.requested_by_avatar_url}
-                          size={14}
-                        />
-                        <Text style={styles.gearListRequestedByText} numberOfLines={1}>
-                          {t('gear.requestedBy', {
-                            name: g.requested_by_display_name,
-                            defaultValue: `demandé par ${g.requested_by_display_name}`,
-                          })}
+                {myGearItems.map((g, i) => {
+                  const isBringing = g.perspective === 'bringing';
+                  return (
+                    <Pressable
+                      key={`${g.perspective}:${g.name}`}
+                      style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
+                      onPress={isBringing ? () => {
+                        setShowMyGear(false);
+                        onEditGearItem(g.name);
+                      } : undefined}
+                      disabled={!isBringing}
+                      hitSlop={4}
+                    >
+                      <View style={styles.gearListMainRow}>
+                        <View style={styles.gearListIconWrap}>
+                          <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                        </View>
+                        <Text style={styles.gearListName} numberOfLines={1}>
+                          {g.name}
                         </Text>
+                        {g.quantity > 1 && (
+                          <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                        )}
+                        {isBringing && (
+                          <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
+                        )}
                       </View>
-                    )}
-                  </Pressable>
-                ))}
+                      {g.counterpartName && (
+                        <View style={styles.gearListRequestedBy}>
+                          <UserAvatar
+                            name={g.counterpartName}
+                            avatarUrl={g.counterpartAvatar}
+                            size={14}
+                          />
+                          <Text style={styles.gearListRequestedByText} numberOfLines={1}>
+                            {isBringing
+                              ? t('gear.requestedBy', {
+                                  name: g.counterpartName,
+                                  defaultValue: `demandé par ${g.counterpartName}`,
+                                })
+                              : t('gear.broughtBy', {
+                                  name: g.counterpartName,
+                                  defaultValue: `apporté par ${g.counterpartName}`,
+                                })}
+                          </Text>
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             )}
 

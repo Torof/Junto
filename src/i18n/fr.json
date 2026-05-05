@@ -275,6 +275,7 @@
     "requestSheetSave": "Demander",
     "requestSaved": "Demande envoyée",
     "requestedBy": "demandé par {{name}}",
+    "broughtBy": "apporté par {{name}}",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",

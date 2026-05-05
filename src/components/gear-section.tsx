@@ -102,7 +102,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   }), [activityGear, currentUserId]);
 
   // Drives both Save and Remove on the per-item modal — sets the user's
-  // gear to the transformed list and invalidates the cache.
+  // gear to the transformed list and invalidates the caches. Also
+  // invalidates activity-gear-requests since set_activity_gear may
+  // auto-decrement matching requests server-side.
   const persistMyGear = async (transform: (existing: { name: string; quantity: number }[]) => { name: string; quantity: number }[]) => {
     const mine = (activityGear ?? [])
       .filter((g) => g.user_id === currentUserId)
@@ -110,6 +112,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     const next = transform(mine);
     await gearService.setGear(activityId, next);
     await queryClient.invalidateQueries({ queryKey: ['activity-gear', activityId] });
+    await queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activityId] });
   };
 
   const saveMyContribution = async () => {
@@ -123,8 +126,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       });
       setSelectedItemName(null);
       Burnt.toast({ title: t('gear.saved'), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
     } finally {
       setIsSavingItem(false);
     }
@@ -137,8 +140,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       await persistMyGear((mine) => mine.filter((m) => m.name !== selectedItemName));
       setSelectedItemName(null);
       Burnt.toast({ title: t('gear.saved'), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
     } finally {
       setIsSavingItem(false);
     }
