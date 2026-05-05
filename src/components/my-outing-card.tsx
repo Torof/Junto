@@ -606,23 +606,13 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                         )}
                       </View>
                       {g.counterpartName && (
-                        <View style={styles.gearListRequestedBy}>
+                        <View style={styles.gearListExchange}>
                           <UserAvatar
                             name={g.counterpartName}
                             avatarUrl={g.counterpartAvatar}
                             size={14}
                           />
-                          <Text style={styles.gearListRequestedByText} numberOfLines={1}>
-                            {isBringing
-                              ? t('gear.requestedBy', {
-                                  name: g.counterpartName,
-                                  defaultValue: `demandé par ${g.counterpartName}`,
-                                })
-                              : t('gear.broughtBy', {
-                                  name: g.counterpartName,
-                                  defaultValue: `apporté par ${g.counterpartName}`,
-                                })}
-                          </Text>
+                          <Text style={styles.gearListExchangeQty}>×{g.quantity}</Text>
                         </View>
                       )}
                     </Pressable>
@@ -1058,22 +1048,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm + 2,
   },
-  // "demandé par X" chip — shown beneath a gear row in "Ton matériel"
-  // when this contribution fulfilled an "Add missing" request.
-  // Mirrors GroupCard's requestedByChip so the cue is consistent.
-  gearListRequestedBy: {
+  // Exchange chip — wordless mark that this gear was given/received
+  // through the missing-request flow. Avatar of the counterpart +
+  // ×N. Mirrors GroupCard's exchangeChip so the cue is consistent.
+  gearListExchange: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     paddingLeft: 32, // align under the gear name (icon 24 + gap 8)
     marginTop: 4,
   },
-  gearListRequestedByText: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '500',
-    fontStyle: 'italic',
-    flexShrink: 1,
+  gearListExchangeQty: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
   gearListIconWrap: {
     width: 24,

@@ -871,23 +871,13 @@ export function GroupCard({
                                 <Text style={styles.itemQty}>×{it.quantity}</Text>
                               </View>
                               {it.counterpartName && (
-                                <View style={styles.requestedByChip}>
+                                <View style={styles.exchangeChip}>
                                   <UserAvatar
                                     name={it.counterpartName}
                                     avatarUrl={it.counterpartAvatar}
                                     size={14}
                                   />
-                                  <Text style={styles.requestedByText} numberOfLines={1}>
-                                    {it.perspective === 'bringing'
-                                      ? t('gear.requestedBy', {
-                                          name: it.counterpartName,
-                                          defaultValue: `demandé par ${it.counterpartName}`,
-                                        })
-                                      : t('gear.broughtBy', {
-                                          name: it.counterpartName,
-                                          defaultValue: `apporté par ${it.counterpartName}`,
-                                        })}
-                                  </Text>
+                                  <Text style={styles.exchangeChipQty}>×{it.quantity}</Text>
                                 </View>
                               )}
                             </View>
@@ -1434,23 +1424,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bringerItemBlock: {
     gap: 2,
   },
-  // "demandé par X" chip — shown beneath a gear row when the
-  // contribution fulfilled an "Add missing" request. Avatar + name
-  // tells the user (or the requester themselves) that this item
-  // closes a known group ask.
-  requestedByChip: {
+  // Exchange chip — shown beneath a gear row when this contribution
+  // fulfilled (or was fulfilled by) someone else. Wordless: avatar of
+  // the counterpart + quantity. The list context tells the user which
+  // direction the exchange runs (giving vs receiving).
+  exchangeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     paddingLeft: 16,
-    marginTop: 1,
+    marginTop: 2,
   },
-  requestedByText: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '500',
-    fontStyle: 'italic',
-    flexShrink: 1,
+  exchangeChipQty: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
   bulletRow: {
     flexDirection: 'row',

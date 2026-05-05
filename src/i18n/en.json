@@ -274,8 +274,6 @@
     "requestSheetTitle": "Request missing gear",
     "requestSheetSave": "Request",
     "requestSaved": "Request sent",
-    "requestedBy": "requested by {{name}}",
-    "broughtBy": "brought by {{name}}",
     "category": {
       "safety": "Safety",
       "technical": "Technical",
