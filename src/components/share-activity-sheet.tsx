@@ -37,13 +37,8 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
       await messageService.shareActivity(conversationId, activityId);
       Burnt.toast({ title: t('activity.shared'), preset: 'done' });
       onClose();
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : '';
-      if (errMsg.includes('Operation not permitted')) {
-        Burnt.toast({ title: t('messagerie.rateLimited') });
-      } else {
-        Burnt.toast({ title: t('auth.unknownError') });
-      }
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
     } finally {
       setSendingTo(null);
     }

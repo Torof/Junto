@@ -154,12 +154,7 @@ export default function ConversationScreen() {
       if (err instanceof GpxParseError) {
         Alert.alert(t('messagerie.traceParseError'), err.message);
       } else {
-        const errMsg = err instanceof Error ? err.message : '';
-        if (errMsg.includes('Operation not permitted')) {
-          Burnt.toast({ title: t('messagerie.rateLimited') });
-        } else {
-          Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-        }
+        Alert.alert(t('auth.error'), getFriendlyError(err, 'sendMessage'));
       }
     } finally {
       setIsAttaching(false);
@@ -177,12 +172,7 @@ export default function ConversationScreen() {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : '';
-      if (errMsg.includes('Operation not permitted')) {
-        Burnt.toast({ title: t('messagerie.rateLimited') });
-      } else {
-        Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-      }
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'sendMessage'));
     } finally {
       setIsSending(false);
     }

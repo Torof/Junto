@@ -607,7 +607,6 @@
     "empty": "Aucune conversation",
     "noMessages": "Aucun message — commencez la conversation !",
     "placeholder": "Écrire un message...",
-    "rateLimited": "Attends 1 minute entre chaque message",
     "edited": "modifié",
     "editMessage": "Modifier le message",
     "deleteMessage": "Supprimer le message",
