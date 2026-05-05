@@ -630,15 +630,59 @@ export function GroupCard({
                     </Text>
                     <Text style={styles.transportCategoryCount}>· {list.length}</Text>
                   </View>
-                  <View style={styles.selfMoversRow}>
+                  <View style={styles.selfMoversList}>
                     {list.map((p) => {
                       const isSelf = p.user_id === currentUserId;
+                      const place = p.transport_from_name?.trim() || null;
+                      const time = p.transport_departs_at
+                        ? dayjs(p.transport_departs_at).format('H[h]mm')
+                        : null;
                       return (
-                        <View key={p.user_id} style={[styles.selfChip, isSelf && styles.selfChipSelf]}>
-                          <Text style={[styles.selfChipText, isSelf && { color: colors.cta }]} numberOfLines={1}>
-                            {isSelf ? t('group.youTag', { defaultValue: 'Toi' }) : p.display_name}
-                          </Text>
-                        </View>
+                        <Pressable
+                          key={p.user_id}
+                          style={[styles.selfMoverRow, isSelf && styles.selfMoverRowSelf]}
+                          onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}
+                          hitSlop={4}
+                        >
+                          <UserAvatar
+                            name={p.display_name}
+                            avatarUrl={p.avatar_url}
+                            size={24}
+                          />
+                          <View style={styles.selfMoverInfo}>
+                            <View style={styles.selfMoverNameRow}>
+                              <Text style={styles.selfMoverName} numberOfLines={1}>
+                                {p.display_name}
+                              </Text>
+                              {isSelf && (
+                                <View style={styles.youTag}>
+                                  <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                                </View>
+                              )}
+                            </View>
+                            {(place || time) && (
+                              <View style={styles.selfMoverMeta}>
+                                {place && (
+                                  <>
+                                    <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                                    <Text style={styles.selfMoverMetaText} numberOfLines={1}>
+                                      {place}
+                                    </Text>
+                                  </>
+                                )}
+                                {place && time && (
+                                  <Text style={styles.selfMoverMetaText}>·</Text>
+                                )}
+                                {time && (
+                                  <>
+                                    <Clock size={10} color={colors.textSecondary} strokeWidth={2.2} />
+                                    <Text style={styles.selfMoverMetaText}>{time}</Text>
+                                  </>
+                                )}
+                              </View>
+                            )}
+                          </View>
+                        </Pressable>
                       );
                     })}
                   </View>
@@ -1131,29 +1175,53 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  selfMoversRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+  // Self-mover entries — info-only rows that show profile pic +
+  // departure place + time, one per line inside their bucket. Subtle
+  // surfaceAlt bg keeps them visually quieter than driver pills (which
+  // are the action surface) but still scannable. Tap → that user's
+  // profile.
+  selfMoversList: {
+    gap: 4,
     marginTop: 2,
   },
-  selfChip: {
+  selfMoverRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
     backgroundColor: colors.surfaceAlt,
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
-  // Same chip but with CTA accent border so the user spots their own
-  // entry at a glance among the other self-movers.
-  selfChipSelf: {
+  // CTA-tinted variant for the user's own entry — same accent the
+  // chip variant used previously.
+  selfMoverRowSelf: {
     backgroundColor: colors.cta + '1F',
     borderWidth: 1,
     borderColor: colors.cta + '4D',
   },
-  selfChipText: {
+  selfMoverInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  selfMoverNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  selfMoverName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  selfMoverMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 1,
+  },
+  selfMoverMetaText: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
