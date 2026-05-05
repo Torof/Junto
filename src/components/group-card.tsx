@@ -1175,20 +1175,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Self-mover entries — info-only rows showing profile pic +
-  // departure + time. Flat rows on the card body (no bg, no border)
-  // so they stay visually quieter than driver pills, which carry the
-  // action and need the visual weight. The "Toi" tag is enough to
-  // flag the user's own row — no extra bg tint needed.
+  // Self-mover entries — info-only pills showing profile pic +
+  // departure + time. Subtle border (lighter `line` token, not the
+  // `lineStrong` used on driver pills) signals tappability without
+  // competing with the driver pills which carry the action.
   selfMoversList: {
-    gap: 8,
+    gap: 6,
     marginTop: 4,
   },
   selfMoverRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 2,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
   },
   selfMoverInfo: {
     flex: 1,
