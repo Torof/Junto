@@ -306,7 +306,7 @@
     "objective": "Objective"
   },
   "myOuting": {
-    "cardTitle": "My prep",
+    "cardTitle": "Your prep",
     "ready": "Ready",
     "captionToday": "Today",
     "captionTomorrow": "Tomorrow",
@@ -314,7 +314,7 @@
     "captionInDays_other": "In {{count}} days",
     "captionInProgress": "Now",
     "captionPast": "Done",
-    "gearListTitle": "My gear",
+    "gearListTitle": "Your gear",
     "gearListEmpty": "You're not bringing anything yet.",
     "addMaterial": "Add gear",
     "cancelTransport": {
@@ -333,15 +333,15 @@
         "selfMover": "{{mode}}. Cancel to pick a different transport."
       },
       "confirm": {
-        "pending": "Cancel my request",
-        "accepted": "Cancel my seat",
+        "pending": "Cancel your request",
+        "accepted": "Cancel your seat",
         "driver": "Cancel",
         "selfMover": "Cancel"
       }
     },
     "stamp": {
-      "transport": "Transport",
-      "material": "Gear",
+      "transport": "Your transport",
+      "material": "Your gear",
       "toSettle": "To settle",
       "transportPending": "Awaiting · {{driver}}",
       "transportDriver": "You drive",

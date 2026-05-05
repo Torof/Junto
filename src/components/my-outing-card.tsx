@@ -329,7 +329,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
 
   const transportStamp = useMemo<StampDef>(() => {
     const empty: StampDef = {
-      caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+      caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
       Icon: Compass,
       content: t('myOuting.stamp.toSettle', { defaultValue: 'À régler' }),
       state: 'todo',
@@ -346,7 +346,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     if (myPending) {
       const driver = transports.find((p) => p.user_id === myPending.driver_id);
       return {
-        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
         Icon: Clock,
         content: t('myOuting.stamp.transportPending', {
           driver: driver?.display_name ?? '?',
@@ -373,7 +373,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         }),
       });
       return {
-        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
         Icon: Car,
         content: t('myOuting.stamp.transportDriver', { defaultValue: 'Tu conduis' }),
         state: 'set',
@@ -388,7 +388,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         formatHm(myAcceptedSeat.requested_pickup_at),
       );
       return {
-        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
         Icon: Users,
         content: t('myOuting.stamp.transportPassenger', {
           driver: driver?.display_name ?? '?',
@@ -416,7 +416,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         formatHm(myTransport.transport_departs_at),
       );
       return {
-        caption: t('myOuting.stamp.transport', { defaultValue: 'Transport' }),
+        caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
         Icon,
         content: t(`myOuting.stamp.mode.${myTransport.transport_type}`, {
           defaultValue: myTransport.transport_type,
@@ -439,7 +439,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   const materialStamp = useMemo<StampDef>(() => {
     if (myGearItems.length === 0) {
       return {
-        caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
+        caption: t('myOuting.stamp.material', { defaultValue: 'Ton matériel' }),
         Icon: Backpack,
         content: t('myOuting.stamp.materialNothing', { defaultValue: 'Tu n\'apportes rien pour le moment' }),
         state: 'neutral',
@@ -457,7 +457,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         : myGearItems.slice(0, STAMP_ITEMS_BEFORE_OVERFLOW);
     const overflowCount = myGearItems.length - visible.length;
     return {
-      caption: t('myOuting.stamp.material', { defaultValue: 'Matériel' }),
+      caption: t('myOuting.stamp.material', { defaultValue: 'Ton matériel' }),
       Icon: Backpack,
       content: '',
       state: 'set',
@@ -477,7 +477,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
           {/* Row 1: title + small Prêt seal (when ready). */}
           <View style={styles.headerTopRow}>
             <Text style={styles.cardTitle} numberOfLines={1}>
-              {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
+              {t('myOuting.cardTitle', { defaultValue: 'Tes préparatifs' })}
             </Text>
             {isReady && (
               <View style={[styles.seal, { borderColor: colors.success }]}>
@@ -527,7 +527,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         <Pressable style={styles.backdrop} onPress={() => setShowMyGear(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>
-              {t('myOuting.gearListTitle', { defaultValue: 'Mon matériel' })}
+              {t('myOuting.gearListTitle', { defaultValue: 'Ton matériel' })}
             </Text>
 
             {myGearItems.length === 0 ? (

@@ -306,7 +306,7 @@
     "objective": "Objectif"
   },
   "myOuting": {
-    "cardTitle": "Mes préparatifs",
+    "cardTitle": "Tes préparatifs",
     "ready": "Prêt",
     "captionToday": "Aujourd'hui",
     "captionTomorrow": "Demain",
@@ -314,7 +314,7 @@
     "captionInDays_other": "Dans {{count}} jours",
     "captionInProgress": "En cours",
     "captionPast": "Terminée",
-    "gearListTitle": "Mon matériel",
+    "gearListTitle": "Ton matériel",
     "gearListEmpty": "Tu n'apportes rien pour le moment.",
     "addMaterial": "Ajouter du matériel",
     "cancelTransport": {
@@ -333,15 +333,15 @@
         "selfMover": "{{mode}}. Annule pour pouvoir choisir un autre transport."
       },
       "confirm": {
-        "pending": "Annuler ma demande",
-        "accepted": "Annuler ma place",
+        "pending": "Annuler ta demande",
+        "accepted": "Annuler ta place",
         "driver": "Annuler",
         "selfMover": "Annuler"
       }
     },
     "stamp": {
-      "transport": "Transport",
-      "material": "Matériel",
+      "transport": "Ton transport",
+      "material": "Ton matériel",
       "toSettle": "À régler",
       "transportPending": "En attente · {{driver}}",
       "transportDriver": "Tu conduis",
