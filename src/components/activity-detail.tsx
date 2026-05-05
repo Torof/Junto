@@ -806,7 +806,7 @@ export function ActivityDetail({
             onAddGear={() => gearSectionRef.current?.openCustomSheet()}
             onAddMissingPersonal={() => gearSectionRef.current?.openRequestSheet(false)}
             onAddMissingGroup={() => gearSectionRef.current?.openRequestSheet(true)}
-            onEditGearItem={(name, isShared) => gearSectionRef.current?.openItemByName(name, isShared)}
+            onEditGearItem={(name, isShared, fromRequest) => gearSectionRef.current?.openItemByName(name, isShared, fromRequest)}
           />
 
           <TransportSection

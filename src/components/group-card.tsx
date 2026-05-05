@@ -25,7 +25,7 @@ interface Props {
   onAddGear: () => void;
   onAddMissingPersonal: () => void;
   onAddMissingGroup: () => void;
-  onEditGearItem: (name: string, isShared?: boolean) => void;
+  onEditGearItem: (name: string, isShared?: boolean, fromRequest?: boolean) => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -774,7 +774,7 @@ export function GroupCard({
                             <Pressable
                               key={r.id}
                               style={styles.missingItem}
-                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared, true)}
                               disabled={!isParticipant}
                               hitSlop={4}
                             >
@@ -812,7 +812,7 @@ export function GroupCard({
                             <Pressable
                               key={r.id}
                               style={styles.missingItem}
-                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared, true)}
                               disabled={!isParticipant}
                               hitSlop={4}
                             >

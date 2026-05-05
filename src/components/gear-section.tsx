@@ -24,7 +24,11 @@ interface Props {
 // the cards drive. No catalog dependency, no quotas, no per-person
 // logic; matches the simplified gear philosophy.
 export interface GearSectionHandle {
-  openItemByName: (name: string, isShared?: boolean) => void;
+  // `fromRequest` flips the stepper default to `mine + 1` so tapping
+  // save actually contributes one more (instead of resaving the same
+  // qty for delta=0). When omitted / false, the stepper defaults to
+  // the user's current qty (regular edit flow).
+  openItemByName: (name: string, isShared?: boolean, fromRequest?: boolean) => void;
   openCustomSheet: () => void;
   // Personal vs group request — feeds is_shared on the new request row.
   openRequestSheet: (isShared: boolean) => void;
@@ -85,15 +89,19 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const iAlreadyBring = myOriginalQty > 0;
 
   useImperativeHandle(ref, () => ({
-    openItemByName: (name: string, isShared?: boolean) => {
-      // Existing user row wins (preserves classification on edit);
-      // otherwise the caller-provided isShared (e.g. from a missing
-      // pill); otherwise default false.
+    openItemByName: (name: string, isShared?: boolean, fromRequest?: boolean) => {
       const existing = (activityGear ?? []).find(
         (g) => g.gear_name === name && g.user_id === currentUserId,
       );
       const mine = existing?.quantity ?? 0;
-      setMyQtyDraft(mine > 0 ? mine : 1);
+      // From a missing pill: default to `mine + 1` so save actually
+      // adds one more (otherwise default = mine = no delta = no
+      // decrement, which is the "lending 1 didn't work" bug).
+      // From inventory pill / regular edit: default to current qty.
+      const draft = fromRequest
+        ? Math.min(99, mine + 1)
+        : (mine > 0 ? mine : 1);
+      setMyQtyDraft(draft);
       setSelectedItemIsShared(existing?.is_shared ?? isShared ?? false);
       setSelectedItemName(name);
     },
