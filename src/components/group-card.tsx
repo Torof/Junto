@@ -640,14 +640,14 @@ export function GroupCard({
                       return (
                         <Pressable
                           key={p.user_id}
-                          style={[styles.selfMoverRow, isSelf && styles.selfMoverRowSelf]}
+                          style={styles.selfMoverRow}
                           onPress={() => router.push(`/(auth)/profile/${p.user_id}`)}
                           hitSlop={4}
                         >
                           <UserAvatar
                             name={p.display_name}
                             avatarUrl={p.avatar_url}
-                            size={24}
+                            size={20}
                           />
                           <View style={styles.selfMoverInfo}>
                             <View style={styles.selfMoverNameRow}>
@@ -1175,30 +1175,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Self-mover entries — info-only rows that show profile pic +
-  // departure place + time, one per line inside their bucket. Subtle
-  // surfaceAlt bg keeps them visually quieter than driver pills (which
-  // are the action surface) but still scannable. Tap → that user's
-  // profile.
+  // Self-mover entries — info-only rows showing profile pic +
+  // departure + time. Flat rows on the card body (no bg, no border)
+  // so they stay visually quieter than driver pills, which carry the
+  // action and need the visual weight. The "Toi" tag is enough to
+  // flag the user's own row — no extra bg tint needed.
   selfMoversList: {
-    gap: 4,
-    marginTop: 2,
+    gap: 8,
+    marginTop: 4,
   },
   selfMoverRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  // CTA-tinted variant for the user's own entry — same accent the
-  // chip variant used previously.
-  selfMoverRowSelf: {
-    backgroundColor: colors.cta + '1F',
-    borderWidth: 1,
-    borderColor: colors.cta + '4D',
+    paddingVertical: 2,
   },
   selfMoverInfo: {
     flex: 1,
