@@ -89,20 +89,19 @@ const STAMP_ITEMS_BEFORE_OVERFLOW = 3;
 const formatHm = (iso: string | null | undefined): string | null =>
   iso ? dayjs(iso).format('H[h]mm') : null;
 
-// Builds the "departure place · time" sub-row used uniformly across
-// every transport mode (driver, passenger, cyclist, walker, transit,
-// other). Picks MapPin when a place is set (the place anchors the row
-// visually); falls back to Clock when only a time is set so the icon
-// honestly reflects the content. Returns null when neither is set.
-const locationTimeRow = (
+// Builds the place + time sub-rows used uniformly across every
+// transport mode (driver, passenger, cyclist, walker, transit, other).
+// Returns one row per piece of info — time gets its own line so it
+// stays visible even when the place name is long enough to ellipsize.
+const locationTimeRows = (
   place: string | null | undefined,
   time: string | null,
-): StampSubRow | null => {
+): StampSubRow[] => {
   const cleanPlace = place?.trim() || null;
-  if (cleanPlace && time) return { Icon: MapPin, text: `${cleanPlace} · ${time}` };
-  if (cleanPlace) return { Icon: MapPin, text: cleanPlace };
-  if (time) return { Icon: Clock, text: time };
-  return null;
+  const rows: StampSubRow[] = [];
+  if (cleanPlace) rows.push({ Icon: MapPin, text: cleanPlace });
+  if (time) rows.push({ Icon: Clock, text: time });
+  return rows;
 };
 
 
@@ -358,12 +357,12 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     }
 
     if (myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')) {
-      const subRows: StampSubRow[] = [];
-      const where = locationTimeRow(
-        myTransport.transport_from_name,
-        formatHm(myTransport.transport_departs_at),
-      );
-      if (where) subRows.push(where);
+      const subRows: StampSubRow[] = [
+        ...locationTimeRows(
+          myTransport.transport_from_name,
+          formatHm(myTransport.transport_departs_at),
+        ),
+      ];
       // Passenger count — render even at 0 so the stamp's role as "I'm
       // a driver carrying N people" is consistently visible.
       subRows.push({
@@ -384,7 +383,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
 
     if (myAcceptedSeat) {
       const driver = transports.find((p) => p.user_id === myAcceptedSeat.driver_id);
-      const where = locationTimeRow(
+      const where = locationTimeRows(
         myAcceptedSeat.pickup_from,
         formatHm(myAcceptedSeat.requested_pickup_at),
       );
@@ -396,7 +395,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
           defaultValue: `Tu pars avec ${driver?.display_name ?? '?'}`,
         }),
         state: 'set',
-        subRows: where ? [where] : undefined,
+        subRows: where.length > 0 ? where : undefined,
       };
     }
 
@@ -410,9 +409,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               ? TrainFront
               : HelpCircle;
       // Self-movers (bike / foot / transit / other) get the same
-      // place + time row as drivers and passengers — coordination
+      // place + time rows as drivers and passengers — coordination
       // signal is just as useful for them.
-      const where = locationTimeRow(
+      const where = locationTimeRows(
         myTransport.transport_from_name,
         formatHm(myTransport.transport_departs_at),
       );
@@ -423,7 +422,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
           defaultValue: myTransport.transport_type,
         }),
         state: 'set',
-        subRows: where ? [where] : undefined,
+        subRows: where.length > 0 ? where : undefined,
       };
     }
 
