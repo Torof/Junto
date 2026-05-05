@@ -270,6 +270,9 @@
     "customSheetTitle": "Add custom gear",
     "customSheetNameLabel": "Name",
     "customSheetQtyLabel": "Quantity",
+    "customSheetTypeLabel": "Type",
+    "typePersonal": "Personal",
+    "typeShared": "Shared",
     "pickFromList": "Pick from list",
     "requestSheetTitle": "Request missing gear",
     "requestSheetSave": "Request",
@@ -392,11 +395,14 @@
     "gearSection": {
       "inventory": "Common inventory",
       "recap": "Personal inventory",
-      "requested": "Requested by the group"
+      "requested": "Requested by the group",
+      "requestedGroup": "Requested by the group",
+      "requestedPersonal": "Personal requests"
     },
     "recapEmpty": "Nobody's declared gear yet",
-    "addGear": "Add gear",
-    "addMissing": "Request missing"
+    "addGear": "Add",
+    "addMissingPersonal": "For me",
+    "addMissingGroup": "For the group"
   },
   "pushDenied": {
     "title": "Notifications disabled",

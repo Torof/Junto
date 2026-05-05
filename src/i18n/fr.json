@@ -270,6 +270,9 @@
     "customSheetTitle": "Ajouter un matériel",
     "customSheetNameLabel": "Nom",
     "customSheetQtyLabel": "Quantité",
+    "customSheetTypeLabel": "Type",
+    "typePersonal": "Personnel",
+    "typeShared": "Partagé",
     "pickFromList": "Choisir dans la liste",
     "requestSheetTitle": "Demander un manquant",
     "requestSheetSave": "Demander",
@@ -392,11 +395,14 @@
     "gearSection": {
       "inventory": "Inventaire commun",
       "recap": "Inventaire individuel",
-      "requested": "Demandé par le groupe"
+      "requested": "Demandé par le groupe",
+      "requestedGroup": "Demandé par le groupe",
+      "requestedPersonal": "Demandé personnellement"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
-    "addGear": "Ajouter du matériel",
-    "addMissing": "Demander un manquant"
+    "addGear": "Ajouter",
+    "addMissingPersonal": "Pour moi",
+    "addMissingGroup": "Pour le groupe"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

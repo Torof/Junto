@@ -24,9 +24,10 @@ interface Props {
 // the cards drive. No catalog dependency, no quotas, no per-person
 // logic; matches the simplified gear philosophy.
 export interface GearSectionHandle {
-  openItemByName: (name: string) => void;
+  openItemByName: (name: string, isShared?: boolean) => void;
   openCustomSheet: () => void;
-  openRequestSheet: () => void;
+  // Personal vs group request — feeds is_shared on the new request row.
+  openRequestSheet: (isShared: boolean) => void;
 }
 
 export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant }, ref) {
@@ -52,7 +53,13 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const [customSheetMode, setCustomSheetMode] = useState<'bring' | 'request'>('bring');
   const [customName, setCustomName] = useState('');
   const [customQty, setCustomQty] = useState(1);
+  const [customIsShared, setCustomIsShared] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  // Per-item modal: when opened from a missing pill, the request's
+  // is_shared informs the gear write so the auto-decrement matches.
+  // Tracked separately so opening from inventory (catalog item) vs
+  // missing pill (request-driven) is unambiguous.
+  const [selectedItemIsShared, setSelectedItemIsShared] = useState(false);
 
   const { data: activityGear } = useQuery({
     queryKey: ['activity-gear', activityId],
@@ -78,24 +85,31 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const iAlreadyBring = myOriginalQty > 0;
 
   useImperativeHandle(ref, () => ({
-    openItemByName: (name: string) => {
-      const mine = (activityGear ?? []).find(
+    openItemByName: (name: string, isShared?: boolean) => {
+      // Existing user row wins (preserves classification on edit);
+      // otherwise the caller-provided isShared (e.g. from a missing
+      // pill); otherwise default false.
+      const existing = (activityGear ?? []).find(
         (g) => g.gear_name === name && g.user_id === currentUserId,
-      )?.quantity ?? 0;
+      );
+      const mine = existing?.quantity ?? 0;
       setMyQtyDraft(mine > 0 ? mine : 1);
+      setSelectedItemIsShared(existing?.is_shared ?? isShared ?? false);
       setSelectedItemName(name);
     },
     openCustomSheet: () => {
       setCustomSheetMode('bring');
       setCustomName('');
       setCustomQty(1);
+      setCustomIsShared(false);
       setCatalogOpen(false);
       setShowCustomSheet(true);
     },
-    openRequestSheet: () => {
+    openRequestSheet: (isShared: boolean) => {
       setCustomSheetMode('request');
       setCustomName('');
       setCustomQty(1);
+      setCustomIsShared(isShared);
       setCatalogOpen(false);
       setShowCustomSheet(true);
     },
@@ -105,10 +119,12 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   // gear to the transformed list and invalidates the caches. Also
   // invalidates activity-gear-requests since set_activity_gear may
   // auto-decrement matching requests server-side.
-  const persistMyGear = async (transform: (existing: { name: string; quantity: number }[]) => { name: string; quantity: number }[]) => {
-    const mine = (activityGear ?? [])
+  type GearWriteItem = { name: string; quantity: number; is_shared: boolean };
+
+  const persistMyGear = async (transform: (existing: GearWriteItem[]) => GearWriteItem[]) => {
+    const mine: GearWriteItem[] = (activityGear ?? [])
       .filter((g) => g.user_id === currentUserId)
-      .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
+      .map((g) => ({ name: g.gear_name, quantity: g.quantity, is_shared: g.is_shared }));
     const next = transform(mine);
     await gearService.setGear(activityId, next);
     await queryClient.invalidateQueries({ queryKey: ['activity-gear', activityId] });
@@ -121,7 +137,11 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     try {
       await persistMyGear((mine) => {
         const filtered = mine.filter((m) => m.name !== selectedItemName);
-        if (myQtyDraft > 0) filtered.push({ name: selectedItemName, quantity: myQtyDraft });
+        if (myQtyDraft > 0) filtered.push({
+          name: selectedItemName,
+          quantity: myQtyDraft,
+          is_shared: selectedItemIsShared,
+        });
         return filtered;
       });
       setSelectedItemName(null);
@@ -152,24 +172,31 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     if (!name) return;
     setIsSavingItem(true);
     try {
+      // Catalog match wins over the toggle on the server, but we send
+      // the toggle value so free-form items get classified correctly.
+      const catalogMatch = catalog.find((c) => c.name_key === name);
+      const effectiveIsShared = catalogMatch?.is_shared ?? customIsShared;
+
       if (customSheetMode === 'bring') {
         await persistMyGear((mine) => {
           if (mine.some((m) => m.name === name)) {
-            return mine.map((m) => m.name === name ? { ...m, quantity: customQty } : m);
+            return mine.map((m) => m.name === name
+              ? { ...m, quantity: customQty, is_shared: effectiveIsShared }
+              : m);
           }
-          return [...mine, { name, quantity: customQty }];
+          return [...mine, { name, quantity: customQty, is_shared: effectiveIsShared }];
         });
         Burnt.toast({ title: t('gear.saved'), preset: 'done' });
       } else {
-        await gearService.requestGear(activityId, name, customQty);
+        await gearService.requestGear(activityId, name, customQty, effectiveIsShared);
         await queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activityId] });
         Burnt.toast({ title: t('gear.requestSaved', { defaultValue: 'Demande envoyée' }), preset: 'done' });
       }
       setShowCustomSheet(false);
       setCustomName('');
       setCustomQty(1);
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
     } finally {
       setIsSavingItem(false);
     }
@@ -323,6 +350,51 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                   />
                 </View>
 
+                {/* Personnel / Partagé — for free-form items only.
+                    Catalog matches lock the toggle since the server
+                    overrides client input for known items anyway. */}
+                {(() => {
+                  const trimmed = customName.trim();
+                  const catalogMatch = catalog.find((c) => c.name_key === trimmed);
+                  const locked = !!catalogMatch;
+                  const sharedValue = locked ? catalogMatch.is_shared : customIsShared;
+                  return (
+                    <View style={styles.fieldBoxRow}>
+                      <Text style={styles.fieldLabel}>{t('gear.customSheetTypeLabel', { defaultValue: 'Type' })}</Text>
+                      <View style={styles.typeToggleRow}>
+                        <Pressable
+                          onPress={() => !locked && setCustomIsShared(false)}
+                          style={[
+                            styles.typeToggleBtn,
+                            !sharedValue && styles.typeToggleBtnActive,
+                            locked && styles.typeToggleBtnLocked,
+                          ]}
+                          disabled={locked}
+                          hitSlop={4}
+                        >
+                          <Text style={[styles.typeToggleText, !sharedValue && styles.typeToggleTextActive]}>
+                            {t('gear.typePersonal', { defaultValue: 'Personnel' })}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => !locked && setCustomIsShared(true)}
+                          style={[
+                            styles.typeToggleBtn,
+                            sharedValue && styles.typeToggleBtnActive,
+                            locked && styles.typeToggleBtnLocked,
+                          ]}
+                          disabled={locked}
+                          hitSlop={4}
+                        >
+                          <Text style={[styles.typeToggleText, sharedValue && styles.typeToggleTextActive]}>
+                            {t('gear.typeShared', { defaultValue: 'Partagé' })}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                })()}
+
                 <View style={styles.fieldBoxRow}>
                   <Text style={styles.fieldLabel}>{t('gear.customSheetQtyLabel')}</Text>
                   <View style={styles.myContribRow}>
@@ -422,6 +494,39 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs,
   },
   fieldInput: { color: colors.textPrimary, fontSize: fontSizes.md },
+
+  // Personnel / Partagé toggle — segmented control for free-form
+  // items. Catalog matches show the active side as locked (faded
+  // disabled state) since the server overrides client input.
+  typeToggleRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: 2,
+    gap: 2,
+  },
+  typeToggleBtn: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md - 2,
+  },
+  typeToggleBtnActive: {
+    backgroundColor: colors.cta + '26',
+  },
+  typeToggleBtnLocked: {
+    opacity: 0.6,
+  },
+  typeToggleText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  typeToggleTextActive: {
+    color: colors.cta,
+    fontWeight: '700',
+  },
 
   dropdownWrapper: {
     marginBottom: spacing.md,

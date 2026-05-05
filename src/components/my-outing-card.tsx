@@ -36,7 +36,7 @@ interface Props {
   currentUserId: string | null;
   isParticipant: boolean;
   onEditTransport: () => void;
-  onEditGearItem: (name: string) => void;
+  onEditGearItem: (name: string, isShared?: boolean) => void;
   onAddMaterial: () => void;
 }
 
@@ -442,6 +442,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   const myGearItems = useMemo<Array<{
     name: string;
     quantity: number;
+    is_shared: boolean;
     perspective: 'bringing' | 'broughtForMe';
     counterpartName: string | null;
     counterpartAvatar: string | null;
@@ -450,6 +451,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     const items: Array<{
       name: string;
       quantity: number;
+      is_shared: boolean;
       perspective: 'bringing' | 'broughtForMe';
       counterpartName: string | null;
       counterpartAvatar: string | null;
@@ -459,6 +461,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         items.push({
           name: g.gear_name,
           quantity: g.quantity,
+          is_shared: g.is_shared,
           perspective: 'bringing',
           counterpartName: g.requested_by_display_name,
           counterpartAvatar: g.requested_by_avatar_url,
@@ -467,6 +470,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         items.push({
           name: g.gear_name,
           quantity: g.quantity,
+          is_shared: g.is_shared,
           perspective: 'broughtForMe',
           counterpartName: g.display_name,
           counterpartAvatar: g.avatar_url,
@@ -586,7 +590,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                       style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
                       onPress={isBringing ? () => {
                         setShowMyGear(false);
-                        onEditGearItem(g.name);
+                        onEditGearItem(g.name, g.is_shared);
                       } : undefined}
                       disabled={!isBringing}
                       hitSlop={4}

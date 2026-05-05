@@ -10,6 +10,10 @@ export interface GearCatalogItem {
   category_key: GearCategoryKey;
   per_person: boolean;
   shared_recommended_qty: number | null;
+  // Personal (each user packs their own — helmet, harness) vs shared
+  // (group brings one — rope, dry bag). Drives where the item shows
+  // up in the gear tab (common inventory vs personal lists only).
+  is_shared: boolean;
 }
 
 export interface ActivityGearItem {
@@ -18,6 +22,7 @@ export interface ActivityGearItem {
   user_id: string;
   gear_name: string;
   quantity: number;
+  is_shared: boolean;
   requested_by: string | null;
 }
 
@@ -35,7 +40,7 @@ export const gearService = {
   getCatalog: async (sportKey: string): Promise<GearCatalogItem[]> => {
     const { data, error } = await supabase
       .from('gear_catalog' as 'sports')
-      .select('id, name_key, sport_keys, display_order, category_key, per_person, shared_recommended_qty')
+      .select('id, name_key, sport_keys, display_order, category_key, per_person, shared_recommended_qty, is_shared')
       .contains('sport_keys' as 'key', [sportKey])
       .order('display_order' as 'key') as unknown as { data: GearCatalogItem[] | null; error: Error | null };
     if (error) return [];
@@ -45,7 +50,7 @@ export const gearService = {
   getForActivity: async (activityId: string): Promise<ActivityGearWithProfile[]> => {
     const { data, error } = await supabase
       .from('activity_gear' as 'sports')
-      .select('id, activity_id, user_id, gear_name, quantity, requested_by')
+      .select('id, activity_id, user_id, gear_name, quantity, is_shared, requested_by')
       .eq('activity_id' as 'key', activityId)
       .order('gear_name' as 'key') as unknown as { data: ActivityGearItem[] | null; error: Error | null };
     if (error) return [];
@@ -71,7 +76,10 @@ export const gearService = {
     }));
   },
 
-  setGear: async (activityId: string, items: { name: string; quantity: number }[]): Promise<void> => {
+  setGear: async (
+    activityId: string,
+    items: { name: string; quantity: number; is_shared?: boolean }[],
+  ): Promise<void> => {
     const { error } = await supabase.rpc('set_activity_gear' as 'join_activity', {
       p_activity_id: activityId,
       p_items: items,
@@ -83,25 +91,26 @@ export const gearService = {
   // activity needs more of. RPCs enforce the same auth chain as the
   // gear-set path; auto-decrement happens server-side inside
   // set_activity_gear when a user adds qty for a name that has an
-  // outstanding request.
-  getRequests: async (activityId: string): Promise<{ id: string; gear_name: string; quantity: number; added_by: string | null }[]> => {
+  // outstanding request matching the same is_shared.
+  getRequests: async (activityId: string): Promise<{ id: string; gear_name: string; quantity: number; is_shared: boolean; added_by: string | null }[]> => {
     const { data, error } = await supabase
       .from('activity_gear_requests' as 'sports')
-      .select('id, gear_name, quantity, added_by')
+      .select('id, gear_name, quantity, is_shared, added_by')
       .eq('activity_id' as 'key', activityId)
       .order('gear_name' as 'key') as unknown as {
-        data: { id: string; gear_name: string; quantity: number; added_by: string | null }[] | null;
+        data: { id: string; gear_name: string; quantity: number; is_shared: boolean; added_by: string | null }[] | null;
         error: Error | null;
       };
     if (error) return [];
     return data ?? [];
   },
 
-  requestGear: async (activityId: string, name: string, quantity: number): Promise<void> => {
+  requestGear: async (activityId: string, name: string, quantity: number, isShared: boolean): Promise<void> => {
     const { error } = await supabase.rpc('request_activity_gear' as 'join_activity', {
       p_activity_id: activityId,
       p_name: name,
       p_quantity: quantity,
+      p_is_shared: isShared,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },

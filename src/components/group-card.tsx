@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, Search, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, HandHelping, UserSearch, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -23,8 +23,9 @@ interface Props {
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
   onAddGear: () => void;
-  onAddMissing: () => void;
-  onEditGearItem: (name: string) => void;
+  onAddMissingPersonal: () => void;
+  onAddMissingGroup: () => void;
+  onEditGearItem: (name: string, isShared?: boolean) => void;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -47,7 +48,8 @@ export function GroupCard({
   onActiveSubTabChange,
   onReserveSeat,
   onAddGear,
-  onAddMissing,
+  onAddMissingPersonal,
+  onAddMissingGroup,
   onEditGearItem,
 }: Props) {
   const { t } = useTranslation();
@@ -230,15 +232,13 @@ export function GroupCard({
     return buckets;
   }, [selfMovers]);
 
-  // Aggregate group inventory — every declared item, summed across
-  // bringers, sorted alphabetically. Catalog comparison logic was
-  // dropped on Scott's call: the gear surface is now a transparent
-  // "what does the group have?" view, no missing/covered/quotas. If
-  // the user wants to add something they go through Mine's "Ajouter
-  // du matériel" path.
+  // Common inventory — only SHARED gear. Personal items (helmet,
+  // harness) belong on each user's personal list, not aggregated as a
+  // group total. Sorted alphabetically.
   const groupItems = useMemo(() => {
     const map = new Map<string, { name: string; total: number }>();
     gearDeclared.forEach((g) => {
+      if (!g.is_shared) return;
       const existing = map.get(g.gear_name);
       if (existing) {
         existing.total += g.quantity;
@@ -263,6 +263,7 @@ export function GroupCard({
     type BringerItem = {
       name: string;
       quantity: number;
+      is_shared: boolean;
       perspective: 'bringing' | 'broughtForMe';
       counterpartName: string | null;
       counterpartAvatar: string | null;
@@ -283,18 +284,15 @@ export function GroupCard({
       return entry;
     };
     gearDeclared.forEach((g) => {
-      // Bringer's own perspective: row.user_id sees "demandé par
-      // <requested_by>" when applicable.
       const bringerEntry = ensure(g.user_id, g.display_name, g.avatar_url);
       bringerEntry.items.push({
         name: g.gear_name,
         quantity: g.quantity,
+        is_shared: g.is_shared,
         perspective: 'bringing',
         counterpartName: g.requested_by_display_name,
         counterpartAvatar: g.requested_by_avatar_url,
       });
-      // Requester's perspective: row.requested_by sees "apporté par
-      // <user_id>" — only if they're not the bringer themselves.
       if (g.requested_by && g.requested_by !== g.user_id && g.requested_by_display_name) {
         const requesterEntry = ensure(
           g.requested_by,
@@ -304,6 +302,7 @@ export function GroupCard({
         requesterEntry.items.push({
           name: g.gear_name,
           quantity: g.quantity,
+          is_shared: g.is_shared,
           perspective: 'broughtForMe',
           counterpartName: g.display_name,
           counterpartAvatar: g.avatar_url,
@@ -706,54 +705,94 @@ export function GroupCard({
             {isParticipant && (
               <View style={styles.gearActionsRow}>
                 <Pressable style={styles.gearActionBtn} onPress={onAddGear}>
-                  <Plus size={13} color={colors.cta} strokeWidth={2.5} />
-                  <Text style={styles.gearActionBtnText}>
-                    {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
+                  <Plus size={20} color={colors.cta} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnText} numberOfLines={1}>
+                    {t('group.addGear', { defaultValue: 'Ajouter' })}
                   </Text>
                 </Pressable>
-                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissing}>
-                  <Search size={13} color={colors.warning} strokeWidth={2.5} />
-                  <Text style={styles.gearActionBtnMissingText}>
-                    {t('group.addMissing', { defaultValue: 'Demander un manquant' })}
+                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissingPersonal}>
+                  <HandHelping size={20} color={colors.warning} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnMissingText} numberOfLines={1}>
+                    {t('group.addMissingPersonal', { defaultValue: 'Pour moi' })}
+                  </Text>
+                </Pressable>
+                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissingGroup}>
+                  <UserSearch size={20} color={colors.warning} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnMissingText} numberOfLines={1}>
+                    {t('group.addMissingGroup', { defaultValue: 'Pour le groupe' })}
                   </Text>
                 </Pressable>
               </View>
             )}
 
-            {/* Missing-gear section — sits above the common inventory.
-                Each row uses the same pill anatomy as Inventaire commun
-                but with a warning-tinted glass bg and orange qty so it
-                reads as "needs attention" without shaming. Tap → opens
-                the per-item modal where a participant can claim some
-                or all of it; set_activity_gear auto-decrements the
-                request server-side. */}
-            {gearRequests.length > 0 && (
-              <View style={styles.gearSection}>
-                <View style={styles.transportCategoryHeader}>
-                  <Text style={styles.transportCategoryLabel}>
-                    {t('group.gearSection.requested', { defaultValue: 'Demandé par le groupe' })}
-                  </Text>
-                  <Text style={styles.transportCategoryCount}>· {gearRequests.length}</Text>
-                </View>
-                <View style={styles.inventoryList}>
-                  {gearRequests.map((r) => (
-                    <Pressable
-                      key={r.id}
-                      style={styles.missingItem}
-                      onPress={() => isParticipant && onEditGearItem(r.gear_name)}
-                      disabled={!isParticipant}
-                      hitSlop={4}
-                    >
-                      <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                      <Text style={styles.inventoryItemName} numberOfLines={1}>
-                        {r.gear_name}
-                      </Text>
-                      <Text style={styles.missingQty}>×{r.quantity}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
+            {/* Two missing-request sections, split by is_shared:
+                "Demandé par le groupe" (shared) and "Demandé
+                personnellement" (personal). Same pill anatomy in both;
+                the section header tells the user which type. Tap →
+                opens the per-item modal pre-set with the request's
+                is_shared so the auto-decrement matches correctly. */}
+            {(() => {
+              const groupRequests = gearRequests.filter((r) => r.is_shared);
+              const personalRequests = gearRequests.filter((r) => !r.is_shared);
+              return (
+                <>
+                  {groupRequests.length > 0 && (
+                    <View style={styles.gearSection}>
+                      <View style={styles.transportCategoryHeader}>
+                        <Text style={styles.transportCategoryLabel}>
+                          {t('group.gearSection.requestedGroup', { defaultValue: 'Demandé par le groupe' })}
+                        </Text>
+                        <Text style={styles.transportCategoryCount}>· {groupRequests.length}</Text>
+                      </View>
+                      <View style={styles.inventoryList}>
+                        {groupRequests.map((r) => (
+                          <Pressable
+                            key={r.id}
+                            style={styles.missingItem}
+                            onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                            disabled={!isParticipant}
+                            hitSlop={4}
+                          >
+                            <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                            <Text style={styles.inventoryItemName} numberOfLines={1}>
+                              {r.gear_name}
+                            </Text>
+                            <Text style={styles.missingQty}>×{r.quantity}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  {personalRequests.length > 0 && (
+                    <View style={styles.gearSection}>
+                      <View style={styles.transportCategoryHeader}>
+                        <Text style={styles.transportCategoryLabel}>
+                          {t('group.gearSection.requestedPersonal', { defaultValue: 'Demandé personnellement' })}
+                        </Text>
+                        <Text style={styles.transportCategoryCount}>· {personalRequests.length}</Text>
+                      </View>
+                      <View style={styles.inventoryList}>
+                        {personalRequests.map((r) => (
+                          <Pressable
+                            key={r.id}
+                            style={styles.missingItem}
+                            onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                            disabled={!isParticipant}
+                            hitSlop={4}
+                          >
+                            <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                            <Text style={styles.inventoryItemName} numberOfLines={1}>
+                              {r.gear_name}
+                            </Text>
+                            <Text style={styles.missingQty}>×{r.quantity}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </>
+              );
+            })()}
 
             {gearDeclared.length === 0 && gearRequests.length === 0 && (
               <Text style={styles.emptyHint}>
@@ -792,7 +831,7 @@ export function GroupCard({
                       <Pressable
                         key={g.name}
                         style={styles.inventoryItem}
-                        onPress={() => isParticipant && onEditGearItem(g.name)}
+                        onPress={() => isParticipant && onEditGearItem(g.name, true)}
                         disabled={!isParticipant}
                         hitSlop={4}
                       >
@@ -1281,6 +1320,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // than the previous single CTA so both fit comfortably side-by-side.
   // Add-gear stays CTA-coloured (orange); add-missing uses warning
   // tone (slightly more amber) to differentiate without shouting.
+  // Three-button row: Ajouter / Pour moi / Pour le groupe. Icon on
+  // top, small label underneath — keeps each button compact on a
+  // narrow row. Add stays CTA-coloured; both request paths are
+  // warning-toned to read as "asking for help" without shouting.
   gearActionsRow: {
     flexDirection: 'row',
     gap: spacing.xs + 2,
@@ -1288,29 +1331,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   gearActionBtn: {
     flex: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 5,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.sm,
+    alignItems: 'center', justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
     borderRadius: radius.md,
     borderWidth: 1, borderColor: colors.cta,
     backgroundColor: colors.cta + '15',
   },
   gearActionBtnText: {
-    color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '700',
+    color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700',
   },
   gearActionBtnMissing: {
     flex: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 5,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.sm,
+    alignItems: 'center', justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
     borderRadius: radius.md,
     borderWidth: 1, borderColor: colors.warning,
     backgroundColor: colors.warning + '15',
   },
   gearActionBtnMissingText: {
-    color: colors.warning, fontSize: fontSizes.xs + 1, fontWeight: '700',
+    color: colors.warning, fontSize: fontSizes.xs, fontWeight: '700',
   },
 
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced
