@@ -1207,28 +1207,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
   },
 
-  // Recap — per-bringer block: avatar + name (+ TOI tag) on top,
-  // chips listing their items below, indented under the name.
+  // Per-bringer card-pill — mirrors the driver pill in the transport
+  // tab so the gear tab reads with the same visual grammar. Each
+  // bringer is a contained unit (surface bg, lineStrong border) with
+  // a tappable header that toggles the items list nested inside.
   bringerBlock: {
-    gap: 5,
-    paddingVertical: 4,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: radius.md,
+    padding: spacing.sm + 2,
+    gap: 6,
   },
   bringerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   bringerName: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: -0.05,
     flexShrink: 1,
   },
   bringerCount: {
-    color: colors.textMuted,
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   // Bullet list — single shared style for the covered-items list under
   // Inventaire and the per-bringer items list under the recap. One item
@@ -1239,7 +1245,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   bringerItemsList: {
     gap: 2,
-    paddingLeft: 28, // align under bringer's name (avatar 22 + gap 6)
+    paddingLeft: 30, // align under bringer's name (avatar 22 + gap 8)
   },
   bulletRow: {
     flexDirection: 'row',
