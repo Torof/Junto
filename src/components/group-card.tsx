@@ -236,20 +236,43 @@ export function GroupCard({
   // harness) belong on each user's personal list, not aggregated as a
   // group total. Sorted alphabetically.
   const groupItems = useMemo(() => {
-    const map = new Map<string, { name: string; total: number }>();
+    type Item = {
+      name: string;
+      total: number;
+      // First contributor (oldest row by created_at order — gearDeclared
+      // is already ordered by gear_name then bringer order). Surfaced
+      // on the inventory pill as a quick-glance "who's bringing this"
+      // signal.
+      firstBringer: { display_name: string; avatar_url: string | null } | null;
+    };
+    const map = new Map<string, Item>();
     gearDeclared.forEach((g) => {
       if (!g.is_shared) return;
       const existing = map.get(g.gear_name);
       if (existing) {
         existing.total += g.quantity;
       } else {
-        map.set(g.gear_name, { name: g.gear_name, total: g.quantity });
+        map.set(g.gear_name, {
+          name: g.gear_name,
+          total: g.quantity,
+          firstBringer: { display_name: g.display_name, avatar_url: g.avatar_url },
+        });
       }
     });
     return Array.from(map.values()).sort((a, b) =>
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
     );
   }, [gearDeclared]);
+
+  // Quick lookup of any participant's profile by user_id — used to
+  // hydrate request pills with the requester's avatar.
+  const profilesById = useMemo(() => {
+    const map = new Map<string, { display_name: string; avatar_url: string | null }>();
+    participants.forEach((p) => {
+      map.set(p.user_id, { display_name: p.display_name, avatar_url: p.avatar_url });
+    });
+    return map;
+  }, [participants]);
 
   // "Qui apporte quoi" recap — group declared gear by user_id,
   // sorted by contribution count descending so heavy contributors
@@ -745,21 +768,32 @@ export function GroupCard({
                         <Text style={styles.transportCategoryCount}>· {groupRequests.length}</Text>
                       </View>
                       <View style={styles.inventoryList}>
-                        {groupRequests.map((r) => (
-                          <Pressable
-                            key={r.id}
-                            style={styles.missingItem}
-                            onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
-                            disabled={!isParticipant}
-                            hitSlop={4}
-                          >
-                            <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                            <Text style={styles.inventoryItemName} numberOfLines={1}>
-                              {r.gear_name}
-                            </Text>
-                            <Text style={styles.missingQty}>×{r.quantity}</Text>
-                          </Pressable>
-                        ))}
+                        {groupRequests.map((r) => {
+                          const requester = r.added_by ? profilesById.get(r.added_by) : null;
+                          return (
+                            <Pressable
+                              key={r.id}
+                              style={styles.missingItem}
+                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                              disabled={!isParticipant}
+                              hitSlop={4}
+                            >
+                              {requester ? (
+                                <UserAvatar
+                                  name={requester.display_name}
+                                  avatarUrl={requester.avatar_url}
+                                  size={16}
+                                />
+                              ) : (
+                                <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                              )}
+                              <Text style={styles.inventoryItemName} numberOfLines={1}>
+                                {r.gear_name}
+                              </Text>
+                              <Text style={styles.missingQty}>×{r.quantity}</Text>
+                            </Pressable>
+                          );
+                        })}
                       </View>
                     </View>
                   )}
@@ -772,21 +806,32 @@ export function GroupCard({
                         <Text style={styles.transportCategoryCount}>· {personalRequests.length}</Text>
                       </View>
                       <View style={styles.inventoryList}>
-                        {personalRequests.map((r) => (
-                          <Pressable
-                            key={r.id}
-                            style={styles.missingItem}
-                            onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
-                            disabled={!isParticipant}
-                            hitSlop={4}
-                          >
-                            <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                            <Text style={styles.inventoryItemName} numberOfLines={1}>
-                              {r.gear_name}
-                            </Text>
-                            <Text style={styles.missingQty}>×{r.quantity}</Text>
-                          </Pressable>
-                        ))}
+                        {personalRequests.map((r) => {
+                          const requester = r.added_by ? profilesById.get(r.added_by) : null;
+                          return (
+                            <Pressable
+                              key={r.id}
+                              style={styles.missingItem}
+                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared)}
+                              disabled={!isParticipant}
+                              hitSlop={4}
+                            >
+                              {requester ? (
+                                <UserAvatar
+                                  name={requester.display_name}
+                                  avatarUrl={requester.avatar_url}
+                                  size={16}
+                                />
+                              ) : (
+                                <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                              )}
+                              <Text style={styles.inventoryItemName} numberOfLines={1}>
+                                {r.gear_name}
+                              </Text>
+                              <Text style={styles.missingQty}>×{r.quantity}</Text>
+                            </Pressable>
+                          );
+                        })}
                       </View>
                     </View>
                   )}
@@ -835,7 +880,15 @@ export function GroupCard({
                         disabled={!isParticipant}
                         hitSlop={4}
                       >
-                        <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                        {g.firstBringer ? (
+                          <UserAvatar
+                            name={g.firstBringer.display_name}
+                            avatarUrl={g.firstBringer.avatar_url}
+                            size={16}
+                          />
+                        ) : (
+                          <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                        )}
                         <Text style={styles.inventoryItemName} numberOfLines={1}>
                           {g.name}
                         </Text>
