@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, Search, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -23,6 +23,7 @@ interface Props {
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
   onAddGear: () => void;
+  onAddMissing: () => void;
   onEditGearItem: (name: string) => void;
 }
 
@@ -46,6 +47,7 @@ export function GroupCard({
   onActiveSubTabChange,
   onReserveSeat,
   onAddGear,
+  onAddMissing,
   onEditGearItem,
 }: Props) {
   const { t } = useTranslation();
@@ -99,6 +101,11 @@ export function GroupCard({
   const { data: gearDeclared = [] } = useQuery({
     queryKey: ['activity-gear', activityId],
     queryFn: () => gearService.getForActivity(activityId),
+    enabled: isParticipant,
+  });
+  const { data: gearRequests = [] } = useQuery({
+    queryKey: ['activity-gear-requests', activityId],
+    queryFn: () => gearService.getRequests(activityId),
     enabled: isParticipant,
   });
   const { data: participants = [] } = useQuery({
@@ -662,15 +669,58 @@ export function GroupCard({
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
             {isParticipant && (
-              <Pressable style={styles.addGearCta} onPress={onAddGear}>
-                <Plus size={16} color={colors.cta} strokeWidth={2.5} />
-                <Text style={styles.addGearCtaText}>
-                  {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
-                </Text>
-              </Pressable>
+              <View style={styles.gearActionsRow}>
+                <Pressable style={styles.gearActionBtn} onPress={onAddGear}>
+                  <Plus size={13} color={colors.cta} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnText}>
+                    {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
+                  </Text>
+                </Pressable>
+                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissing}>
+                  <Search size={13} color={colors.warning} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnMissingText}>
+                    {t('group.addMissing', { defaultValue: 'Demander un manquant' })}
+                  </Text>
+                </Pressable>
+              </View>
             )}
 
-            {gearDeclared.length === 0 && (
+            {/* Missing-gear section — sits above the common inventory.
+                Each row uses the same pill anatomy as Inventaire commun
+                but with a warning-tinted glass bg and orange qty so it
+                reads as "needs attention" without shaming. Tap → opens
+                the per-item modal where a participant can claim some
+                or all of it; set_activity_gear auto-decrements the
+                request server-side. */}
+            {gearRequests.length > 0 && (
+              <View style={styles.gearSection}>
+                <View style={styles.transportCategoryHeader}>
+                  <Text style={styles.transportCategoryLabel}>
+                    {t('group.gearSection.requested', { defaultValue: 'Demandé par le groupe' })}
+                  </Text>
+                  <Text style={styles.transportCategoryCount}>· {gearRequests.length}</Text>
+                </View>
+                <View style={styles.inventoryList}>
+                  {gearRequests.map((r) => (
+                    <Pressable
+                      key={r.id}
+                      style={styles.missingItem}
+                      onPress={() => isParticipant && onEditGearItem(r.gear_name)}
+                      disabled={!isParticipant}
+                      hitSlop={4}
+                    >
+                      <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                      <Text style={styles.inventoryItemName} numberOfLines={1}>
+                        {r.gear_name}
+                      </Text>
+                      <Text style={styles.missingQty}>×{r.quantity}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {gearDeclared.length === 0 && gearRequests.length === 0 && (
               <Text style={styles.emptyHint}>
                 {t('group.recapEmpty', { defaultValue: 'Personne n\'a encore déclaré de matériel' })}
               </Text>
@@ -1180,18 +1230,40 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs + 1,
     fontStyle: 'italic',
   },
-  addGearCta: {
+  // Two-button gear-actions row at the top of the gear tab. Smaller
+  // than the previous single CTA so both fit comfortably side-by-side.
+  // Add-gear stays CTA-coloured (orange); add-missing uses warning
+  // tone (slightly more amber) to differentiate without shouting.
+  gearActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.xs + 2,
+    marginBottom: spacing.md - 2,
+  },
+  gearActionBtn: {
+    flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
+    gap: 5,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1, borderColor: colors.cta,
     backgroundColor: colors.cta + '15',
-    marginBottom: spacing.md,
   },
-  addGearCtaText: {
-    color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700',
+  gearActionBtnText: {
+    color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '700',
+  },
+  gearActionBtnMissing: {
+    flex: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 5,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.warning,
+    backgroundColor: colors.warning + '15',
+  },
+  gearActionBtnMissingText: {
+    color: colors.warning, fontSize: fontSizes.xs + 1, fontWeight: '700',
   },
 
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced
@@ -1270,6 +1342,27 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
     fontWeight: '500',
+  },
+  // Missing-gear pill — same shape as inventoryItem but with a
+  // warning-tinted glass bg and orange qty. Reads "needs attention"
+  // without the shaming weight of red.
+  missingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: colors.warning + '4D',
+    borderRadius: radius.sm,
+    backgroundColor: colors.warning + '14',
+  },
+  missingQty: {
+    color: colors.warning,
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    marginLeft: 6,
   },
   // Bullet list — kept for the per-bringer items list inside the
   // expanded "Qui apporte quoi" pills. Inventaire items moved to the

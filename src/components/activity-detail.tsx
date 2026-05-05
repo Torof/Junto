@@ -138,6 +138,16 @@ export function ActivityDetail({
         { event: '*', schema: 'public', table: 'activity_gear', filter: `activity_id=eq.${activity.id}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ['activity-gear', activity.id] });
+          // set_activity_gear may also auto-decrement matching gear
+          // requests, so refresh those too on every gear write.
+          queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activity.id] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activity_gear_requests', filter: `activity_id=eq.${activity.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activity.id] });
         },
       )
       .subscribe();
@@ -794,6 +804,7 @@ export function ActivityDetail({
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
             onAddGear={() => gearSectionRef.current?.openCustomSheet()}
+            onAddMissing={() => gearSectionRef.current?.openRequestSheet()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
           />
 

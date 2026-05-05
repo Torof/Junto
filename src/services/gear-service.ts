@@ -66,4 +66,39 @@ export const gearService = {
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
+
+  // Gear requests ("Add missing") — group-level asks for items the
+  // activity needs more of. RPCs enforce the same auth chain as the
+  // gear-set path; auto-decrement happens server-side inside
+  // set_activity_gear when a user adds qty for a name that has an
+  // outstanding request.
+  getRequests: async (activityId: string): Promise<{ id: string; gear_name: string; quantity: number; added_by: string | null }[]> => {
+    const { data, error } = await supabase
+      .from('activity_gear_requests' as 'sports')
+      .select('id, gear_name, quantity, added_by')
+      .eq('activity_id' as 'key', activityId)
+      .order('gear_name' as 'key') as unknown as {
+        data: { id: string; gear_name: string; quantity: number; added_by: string | null }[] | null;
+        error: Error | null;
+      };
+    if (error) return [];
+    return data ?? [];
+  },
+
+  requestGear: async (activityId: string, name: string, quantity: number): Promise<void> => {
+    const { error } = await supabase.rpc('request_activity_gear' as 'join_activity', {
+      p_activity_id: activityId,
+      p_name: name,
+      p_quantity: quantity,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  withdrawRequest: async (activityId: string, name: string): Promise<void> => {
+    const { error } = await supabase.rpc('withdraw_activity_gear_request' as 'join_activity', {
+      p_activity_id: activityId,
+      p_name: name,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
 };

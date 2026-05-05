@@ -271,6 +271,9 @@
     "customSheetNameLabel": "Nom",
     "customSheetQtyLabel": "Quantité",
     "pickFromList": "Choisir dans la liste",
+    "requestSheetTitle": "Demander un manquant",
+    "requestSheetSave": "Demander",
+    "requestSaved": "Demande envoyée",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",
@@ -388,10 +391,12 @@
     },
     "gearSection": {
       "inventory": "Inventaire commun",
-      "recap": "Inventaire individuel"
+      "recap": "Inventaire individuel",
+      "requested": "Demandé par le groupe"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
-    "addGear": "Ajouter du matériel"
+    "addGear": "Ajouter du matériel",
+    "addMissing": "Demander un manquant"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

@@ -271,6 +271,9 @@
     "customSheetNameLabel": "Name",
     "customSheetQtyLabel": "Quantity",
     "pickFromList": "Pick from list",
+    "requestSheetTitle": "Request missing gear",
+    "requestSheetSave": "Request",
+    "requestSaved": "Request sent",
     "category": {
       "safety": "Safety",
       "technical": "Technical",
@@ -388,10 +391,12 @@
     },
     "gearSection": {
       "inventory": "Common inventory",
-      "recap": "Personal inventory"
+      "recap": "Personal inventory",
+      "requested": "Requested by the group"
     },
     "recapEmpty": "Nobody's declared gear yet",
-    "addGear": "Add gear"
+    "addGear": "Add gear",
+    "addMissing": "Request missing"
   },
   "pushDenied": {
     "title": "Notifications disabled",
