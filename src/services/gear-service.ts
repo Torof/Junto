@@ -18,11 +18,17 @@ export interface ActivityGearItem {
   user_id: string;
   gear_name: string;
   quantity: number;
+  requested_by: string | null;
 }
 
 export interface ActivityGearWithProfile extends ActivityGearItem {
   display_name: string;
   avatar_url: string | null;
+  // Set when this contribution fulfilled an "Add missing" request —
+  // public profile of the original requester (so the UI can show
+  // "demandé par X" with their avatar).
+  requested_by_display_name: string | null;
+  requested_by_avatar_url: string | null;
 }
 
 export const gearService = {
@@ -39,23 +45,29 @@ export const gearService = {
   getForActivity: async (activityId: string): Promise<ActivityGearWithProfile[]> => {
     const { data, error } = await supabase
       .from('activity_gear' as 'sports')
-      .select('id, activity_id, user_id, gear_name, quantity')
+      .select('id, activity_id, user_id, gear_name, quantity, requested_by')
       .eq('activity_id' as 'key', activityId)
       .order('gear_name' as 'key') as unknown as { data: ActivityGearItem[] | null; error: Error | null };
     if (error) return [];
     if (!data || data.length === 0) return [];
 
-    const userIds = [...new Set(data.map((g) => g.user_id))];
+    const userIds = new Set<string>();
+    data.forEach((g) => {
+      userIds.add(g.user_id);
+      if (g.requested_by) userIds.add(g.requested_by);
+    });
     const { data: profiles } = await supabase
       .from('public_profiles')
       .select('id, display_name, avatar_url')
-      .in('id', userIds);
+      .in('id', [...userIds]);
     const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
     return data.map((g) => ({
       ...g,
       display_name: profileMap.get(g.user_id)?.display_name ?? '?',
       avatar_url: profileMap.get(g.user_id)?.avatar_url ?? null,
+      requested_by_display_name: g.requested_by ? profileMap.get(g.requested_by)?.display_name ?? null : null,
+      requested_by_avatar_url: g.requested_by ? profileMap.get(g.requested_by)?.avatar_url ?? null : null,
     }));
   },
 

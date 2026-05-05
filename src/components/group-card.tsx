@@ -260,18 +260,29 @@ export function GroupCard({
       user_id: string;
       display_name: string;
       avatar_url: string | null;
-      items: { name: string; quantity: number }[];
+      items: {
+        name: string;
+        quantity: number;
+        requested_by_display_name: string | null;
+        requested_by_avatar_url: string | null;
+      }[];
     }>();
     gearDeclared.forEach((g) => {
+      const item = {
+        name: g.gear_name,
+        quantity: g.quantity,
+        requested_by_display_name: g.requested_by_display_name,
+        requested_by_avatar_url: g.requested_by_avatar_url,
+      };
       const existing = map.get(g.user_id);
       if (existing) {
-        existing.items.push({ name: g.gear_name, quantity: g.quantity });
+        existing.items.push(item);
       } else {
         map.set(g.user_id, {
           user_id: g.user_id,
           display_name: g.display_name,
           avatar_url: g.avatar_url,
-          items: [{ name: g.gear_name, quantity: g.quantity }],
+          items: [item],
         });
       }
     });
@@ -829,10 +840,27 @@ export function GroupCard({
                       {isExpanded && (
                         <View style={styles.bringerItemsList}>
                           {b.items.map((it) => (
-                            <View key={it.name} style={styles.bulletRow}>
-                              <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
-                              <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
-                              <Text style={styles.itemQty}>×{it.quantity}</Text>
+                            <View key={it.name} style={styles.bringerItemBlock}>
+                              <View style={styles.bulletRow}>
+                                <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
+                                <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
+                                <Text style={styles.itemQty}>×{it.quantity}</Text>
+                              </View>
+                              {it.requested_by_display_name && (
+                                <View style={styles.requestedByChip}>
+                                  <UserAvatar
+                                    name={it.requested_by_display_name}
+                                    avatarUrl={it.requested_by_avatar_url}
+                                    size={14}
+                                  />
+                                  <Text style={styles.requestedByText} numberOfLines={1}>
+                                    {t('gear.requestedBy', {
+                                      name: it.requested_by_display_name,
+                                      defaultValue: `demandé par ${it.requested_by_display_name}`,
+                                    })}
+                                  </Text>
+                                </View>
+                              )}
                             </View>
                           ))}
                         </View>
@@ -1371,8 +1399,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 2,
   },
   bringerItemsList: {
-    gap: 2,
+    gap: 4,
     paddingLeft: 30, // align under bringer's name (avatar 22 + gap 8)
+  },
+  bringerItemBlock: {
+    gap: 2,
+  },
+  // "demandé par X" chip — shown beneath a gear row when the
+  // contribution fulfilled an "Add missing" request. Avatar + name
+  // tells the user (or the requester themselves) that this item
+  // closes a known group ask.
+  requestedByChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingLeft: 16,
+    marginTop: 1,
+  },
+  requestedByText: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    flexShrink: 1,
   },
   bulletRow: {
     flexDirection: 'row',

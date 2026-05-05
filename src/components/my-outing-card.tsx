@@ -27,6 +27,7 @@ import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
+import { UserAvatar } from './user-avatar';
 
 interface Props {
   activityId: string;
@@ -433,7 +434,12 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     if (!currentUserId) return [];
     return gearDeclared
       .filter((g) => g.user_id === currentUserId)
-      .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
+      .map((g) => ({
+        name: g.gear_name,
+        quantity: g.quantity,
+        requested_by_display_name: g.requested_by_display_name,
+        requested_by_avatar_url: g.requested_by_avatar_url,
+      }));
   }, [gearDeclared, currentUserId]);
 
   const materialStamp = useMemo<StampDef>(() => {
@@ -548,16 +554,33 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                     }}
                     hitSlop={4}
                   >
-                    <View style={styles.gearListIconWrap}>
-                      <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                    <View style={styles.gearListMainRow}>
+                      <View style={styles.gearListIconWrap}>
+                        <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                      </View>
+                      <Text style={styles.gearListName} numberOfLines={1}>
+                        {g.name}
+                      </Text>
+                      {g.quantity > 1 && (
+                        <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                      )}
+                      <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
                     </View>
-                    <Text style={styles.gearListName} numberOfLines={1}>
-                      {g.name}
-                    </Text>
-                    {g.quantity > 1 && (
-                      <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                    {g.requested_by_display_name && (
+                      <View style={styles.gearListRequestedBy}>
+                        <UserAvatar
+                          name={g.requested_by_display_name}
+                          avatarUrl={g.requested_by_avatar_url}
+                          size={14}
+                        />
+                        <Text style={styles.gearListRequestedByText} numberOfLines={1}>
+                          {t('gear.requestedBy', {
+                            name: g.requested_by_display_name,
+                            defaultValue: `demandé par ${g.requested_by_display_name}`,
+                          })}
+                        </Text>
+                      </View>
                     )}
-                    <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
                   </Pressable>
                 ))}
               </ScrollView>
@@ -979,14 +1002,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   gearListRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm + 2,
     paddingVertical: spacing.sm + 2,
   },
   gearListRowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
+  },
+  gearListMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 2,
+  },
+  // "demandé par X" chip — shown beneath a gear row in "Ton matériel"
+  // when this contribution fulfilled an "Add missing" request.
+  // Mirrors GroupCard's requestedByChip so the cue is consistent.
+  gearListRequestedBy: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingLeft: 32, // align under the gear name (icon 24 + gap 8)
+    marginTop: 4,
+  },
+  gearListRequestedByText: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    flexShrink: 1,
   },
   gearListIconWrap: {
     width: 24,

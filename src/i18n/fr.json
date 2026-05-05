@@ -274,6 +274,7 @@
     "requestSheetTitle": "Demander un manquant",
     "requestSheetSave": "Demander",
     "requestSaved": "Demande envoyée",
+    "requestedBy": "demandé par {{name}}",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",
