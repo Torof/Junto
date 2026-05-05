@@ -306,46 +306,50 @@ export function GroupCard({
 
   return (
     <View style={styles.cardWrapper}>
-      <Text style={styles.cardTitle}>
-        {t('group.cardTitle', { defaultValue: 'Préparatifs de groupe' })}
-      </Text>
       <View style={styles.card}>
-        {/* Header band — single row carrying the icon + people count
-            on the left and folder-shaped tabs flush against the bottom
-            edge on the right. Active tab has surface bg matching the
-            content area below, so the tab visually "lifts" out of the
-            surfaceAlt band and merges with the content (the file-folder
-            metaphor). Inactive tab stays on the band, looking tucked. */}
-        <View style={styles.band}>
-          <View style={styles.bandIconWrap}>
-            <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          </View>
-          <Text style={styles.bandPeopleCount} numberOfLines={1}>
-            {t('group.peopleCount', {
-              count: participants.length,
-              defaultValue: `${participants.length} personnes`,
-            })}
+        {/* Header row — title on the left, people count on the right.
+            Pulled up here from the old band so the tab strip below
+            can occupy a full prominent row of its own. */}
+        <View style={styles.header}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {t('group.cardTitle', { defaultValue: 'Préparatifs de groupe' })}
           </Text>
+          <View style={styles.headerRight}>
+            <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.peopleCount} numberOfLines={1}>
+              {t('group.peopleCount', {
+                count: participants.length,
+                defaultValue: `${participants.length} personnes`,
+              })}
+            </Text>
+          </View>
+        </View>
+
+        {/* Prominent tab strip — full-width, equal split, active tab
+            marked with a CTA-coloured underline so the toggle is
+            unmissable. Replaces the folder-tab metaphor that lived
+            tucked into the old band. */}
+        <View style={styles.tabStrip}>
           <Pressable
             onPress={() => onActiveSubTabChange('transport')}
-            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
+            style={[styles.tab, activeSubTab === 'transport' && styles.tabActive]}
             hitSlop={4}
           >
             <Text style={[
-              styles.folderTabText,
-              activeSubTab === 'transport' && styles.folderTabTextActive,
+              styles.tabLabel,
+              activeSubTab === 'transport' && styles.tabLabelActive,
             ]}>
               {t('group.transport', { defaultValue: 'Transport' })}
             </Text>
           </Pressable>
           <Pressable
             onPress={() => onActiveSubTabChange('gear')}
-            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
+            style={[styles.tab, activeSubTab === 'gear' && styles.tabActive]}
             hitSlop={4}
           >
             <Text style={[
-              styles.folderTabText,
-              activeSubTab === 'gear' && styles.folderTabTextActive,
+              styles.tabLabel,
+              activeSubTab === 'gear' && styles.tabLabelActive,
             ]}>
               {t('group.gear', { defaultValue: 'Matériel' })}
             </Text>
@@ -743,13 +747,6 @@ export function GroupCard({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
-  cardTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
-    marginLeft: 2,
-  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -758,68 +755,66 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Band — single row, icon + people-count on the left, folder tabs
-  // flush against the bottom on the right. NO borderBottom (the active
-  // tab "tucks into" the content below; a separator line would break
-  // the merge effect). The band's surfaceAlt bg is what the inactive
-  // tab sits on; the active tab uses surface bg matching the content.
-  band: {
+  // Header row — title left, people count right. Mirrors my-outing-card's
+  // header structure so the two cards read as siblings.
+  header: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.sm,
-    paddingTop: 8,
-    paddingHorizontal: spacing.sm + 2,
-    backgroundColor: colors.surfaceAlt,
-  },
-  bandIconWrap: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
-    backgroundColor: colors.surface,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md - 2,
+    paddingBottom: spacing.sm,
   },
-  bandPeopleCount: {
+  cardTitle: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  peopleCount: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
     letterSpacing: 0.4,
-    flex: 1,
-    minWidth: 0,
-    paddingBottom: 8,
   },
 
-  // Folder-shape tabs — sit at the bottom of the band, with rounded
-  // top corners only. The active tab's bg matches the content area
-  // below so the two visually merge into a single open folder. The
-  // marginBottom: -1 lets the active tab's bottom edge tuck into the
-  // content area, sealing any seam at the band/content boundary.
-  folderTab: {
-    paddingHorizontal: 12,
-    paddingTop: 6,
-    paddingBottom: 6,
-    borderTopLeftRadius: radius.md,
-    borderTopRightRadius: radius.md,
-    backgroundColor: 'transparent',
+  // Prominent tab strip — full-width, 50/50 split, active tab gets a
+  // CTA-coloured underline. Replaces the folder-tab metaphor that
+  // tucked into the old surfaceAlt band.
+  tabStrip: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
     marginBottom: -1,
   },
-  folderTabActive: {
-    backgroundColor: colors.surface,
+  tabActive: {
+    borderBottomColor: colors.cta,
   },
-  folderTabText: {
-    fontSize: 11,
-    fontWeight: '700',
+  tabLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
     color: colors.textMuted,
-    letterSpacing: -0.05,
+    letterSpacing: 0.3,
   },
-  folderTabTextActive: {
+  tabLabelActive: {
     color: colors.textPrimary,
+    fontWeight: '700',
   },
 
-  // Active tab content area — bg matches active folder tab so they
-  // read as one continuous panel. Padding mirrors the previous section
-  // values so existing rows don't reflow.
+  // Active tab content area. Padding kept identical to the previous
+  // value so existing rows don't reflow.
   tabContent: {
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
