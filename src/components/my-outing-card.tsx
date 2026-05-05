@@ -472,20 +472,24 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
 
   return (
     <View style={styles.cardWrapper}>
-      <Text style={styles.cardTitle}>
-        {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
-      </Text>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={[styles.caption, { color: captionColor }]}>{caption.text}</Text>
-          {isReady && (
-            <View style={[styles.seal, { borderColor: colors.success }]}>
-              <Check size={10} color={colors.success} strokeWidth={3} />
-              <Text style={[styles.sealText, { color: colors.success }]}>
-                {t('myOuting.ready', { defaultValue: 'Prêt' })}
-              </Text>
-            </View>
-          )}
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
+          </Text>
+          <View style={styles.headerRight}>
+            <Text style={[styles.caption, { color: captionColor }]} numberOfLines={1}>
+              {caption.text}
+            </Text>
+            {isReady && (
+              <View style={[styles.seal, { borderColor: colors.success }]}>
+                <Check size={10} color={colors.success} strokeWidth={3} />
+                <Text style={[styles.sealText, { color: colors.success }]}>
+                  {t('myOuting.ready', { defaultValue: 'Prêt' })}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.stampsRow}>
@@ -736,11 +740,15 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
   cardTitle: {
+    flex: 1,
     color: colors.textPrimary,
     fontSize: fontSizes.md,
     fontWeight: '700',
-    marginBottom: spacing.xs,
-    marginLeft: 2,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
   },
   card: {
     backgroundColor: colors.surface,
