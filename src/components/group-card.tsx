@@ -704,21 +704,21 @@ export function GroupCard({
           <View style={styles.tabContent}>
             {isParticipant && (
               <View style={styles.gearActionsRow}>
-                <Pressable style={styles.gearActionBtn} onPress={onAddGear}>
-                  <Plus size={20} color={colors.cta} strokeWidth={2.5} />
-                  <Text style={styles.gearActionBtnText} numberOfLines={1}>
+                <Pressable style={styles.gearActionBtnAdd} onPress={onAddGear}>
+                  <Plus size={20} color={colors.success} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnAddText} numberOfLines={1}>
                     {t('group.addGear', { defaultValue: 'Ajouter' })}
                   </Text>
                 </Pressable>
-                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissingPersonal}>
+                <Pressable style={styles.gearActionBtnPersonal} onPress={onAddMissingPersonal}>
                   <HandHelping size={20} color={colors.warning} strokeWidth={2.5} />
-                  <Text style={styles.gearActionBtnMissingText} numberOfLines={1}>
+                  <Text style={styles.gearActionBtnPersonalText} numberOfLines={1}>
                     {t('group.addMissingPersonal', { defaultValue: 'Pour moi' })}
                   </Text>
                 </Pressable>
-                <Pressable style={styles.gearActionBtnMissing} onPress={onAddMissingGroup}>
-                  <UserSearch size={20} color={colors.warning} strokeWidth={2.5} />
-                  <Text style={styles.gearActionBtnMissingText} numberOfLines={1}>
+                <Pressable style={styles.gearActionBtnGroup} onPress={onAddMissingGroup}>
+                  <UserSearch size={20} color={colors.pinMeeting} strokeWidth={2.5} />
+                  <Text style={styles.gearActionBtnGroupText} numberOfLines={1}>
                     {t('group.addMissingGroup', { defaultValue: 'Pour le groupe' })}
                   </Text>
                 </Pressable>
@@ -1324,25 +1324,27 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // top, small label underneath — keeps each button compact on a
   // narrow row. Add stays CTA-coloured; both request paths are
   // warning-toned to read as "asking for help" without shouting.
+  // Three-button row: Ajouter (green) / Pour moi (warning) / Pour le
+  // groupe (blue). Icon on top, small label underneath.
   gearActionsRow: {
     flexDirection: 'row',
     gap: spacing.xs + 2,
     marginBottom: spacing.md - 2,
   },
-  gearActionBtn: {
+  gearActionBtnAdd: {
     flex: 1,
     alignItems: 'center', justifyContent: 'center',
     gap: 4,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
     borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.cta,
-    backgroundColor: colors.cta + '15',
+    borderWidth: 1, borderColor: colors.success,
+    backgroundColor: colors.success + '15',
   },
-  gearActionBtnText: {
-    color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700',
+  gearActionBtnAddText: {
+    color: colors.success, fontSize: fontSizes.xs, fontWeight: '700',
   },
-  gearActionBtnMissing: {
+  gearActionBtnPersonal: {
     flex: 1,
     alignItems: 'center', justifyContent: 'center',
     gap: 4,
@@ -1352,8 +1354,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.warning,
     backgroundColor: colors.warning + '15',
   },
-  gearActionBtnMissingText: {
+  gearActionBtnPersonalText: {
     color: colors.warning, fontSize: fontSizes.xs, fontWeight: '700',
+  },
+  gearActionBtnGroup: {
+    flex: 1,
+    alignItems: 'center', justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.pinMeeting,
+    backgroundColor: colors.pinMeeting + '15',
+  },
+  gearActionBtnGroupText: {
+    color: colors.pinMeeting, fontSize: fontSizes.xs, fontWeight: '700',
   },
 
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced

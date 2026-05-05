@@ -147,7 +147,12 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       setSelectedItemName(null);
       Burnt.toast({ title: t('gear.saved'), preset: 'done' });
     } catch (err) {
-      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
+      // PostgrestError doesn't always pass `instanceof Error` in RN
+      // bundles — duck-type the message field instead.
+      const msg = (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
+        ? (err as { message: string }).message
+        : t('auth.unknownError');
+      Burnt.toast({ title: msg });
     } finally {
       setIsSavingItem(false);
     }
@@ -161,7 +166,12 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       setSelectedItemName(null);
       Burnt.toast({ title: t('gear.saved'), preset: 'done' });
     } catch (err) {
-      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
+      // PostgrestError doesn't always pass `instanceof Error` in RN
+      // bundles — duck-type the message field instead.
+      const msg = (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
+        ? (err as { message: string }).message
+        : t('auth.unknownError');
+      Burnt.toast({ title: msg });
     } finally {
       setIsSavingItem(false);
     }
@@ -196,7 +206,12 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       setCustomName('');
       setCustomQty(1);
     } catch (err) {
-      Burnt.toast({ title: err instanceof Error ? err.message : t('auth.unknownError') });
+      // PostgrestError doesn't always pass `instanceof Error` in RN
+      // bundles — duck-type the message field instead.
+      const msg = (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
+        ? (err as { message: string }).message
+        : t('auth.unknownError');
+      Burnt.toast({ title: msg });
     } finally {
       setIsSavingItem(false);
     }
