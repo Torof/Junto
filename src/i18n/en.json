@@ -277,8 +277,8 @@
     "requestSheetTitle": "Request missing gear",
     "requestSheetSave": "Request",
     "requestSaved": "Request sent",
-    "lendsTag": "lends",
-    "receivesTag": "receives",
+    "lendsTo": "lends to",
+    "receivesFrom": "receives from",
     "category": {
       "safety": "Safety",
       "technical": "Technical",

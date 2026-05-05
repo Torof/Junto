@@ -277,8 +277,8 @@
     "requestSheetTitle": "Demander un manquant",
     "requestSheetSave": "Demander",
     "requestSaved": "Demande envoyée",
-    "lendsTag": "prête",
-    "receivesTag": "reçoit",
+    "lendsTo": "prête à",
+    "receivesFrom": "reçoit de",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",

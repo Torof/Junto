@@ -762,48 +762,36 @@ export function GroupCard({
                   {groupRequests.length > 0 && (
                     <View style={styles.gearSection}>
                       <View style={styles.transportCategoryHeader}>
-                        <Text style={[styles.transportCategoryLabel, { color: colors.pinMeeting }]}>
+                        <Text style={styles.transportCategoryLabel}>
                           {t('group.gearSection.requestedGroup', { defaultValue: 'Demande d\'équipement partagé' })}
                         </Text>
                         <Text style={styles.transportCategoryCount}>· {groupRequests.length}</Text>
                       </View>
                       <View style={styles.inventoryList}>
-                        {groupRequests.map((r) => {
-                          const requester = r.added_by ? profilesById.get(r.added_by) : null;
-                          return (
-                            <Pressable
-                              key={r.id}
-                              style={styles.missingItem}
-                              onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared, true)}
-                              disabled={!isParticipant}
-                              hitSlop={4}
-                            >
-                              <Plus size={14} color={colors.warning} strokeWidth={2.5} />
-                              <Text style={styles.inventoryItemName} numberOfLines={1}>
-                                {r.gear_name}
-                              </Text>
-                              {requester ? (
-                                <View style={styles.partyPillWarning}>
-                                  <UserAvatar
-                                    name={requester.display_name}
-                                    avatarUrl={requester.avatar_url}
-                                    size={14}
-                                  />
-                                  <Text style={styles.partyPillQtyWarning}>×{r.quantity}</Text>
-                                </View>
-                              ) : (
-                                <Text style={styles.missingQty}>×{r.quantity}</Text>
-                              )}
-                            </Pressable>
-                          );
-                        })}
+                        {groupRequests.map((r) => (
+                          <Pressable
+                            key={r.id}
+                            style={styles.missingItem}
+                            onPress={() => isParticipant && onEditGearItem(r.gear_name, r.is_shared, true)}
+                            disabled={!isParticipant}
+                            hitSlop={4}
+                          >
+                            <Plus size={14} color={colors.warning} strokeWidth={2.5} />
+                            <Text style={styles.inventoryItemName} numberOfLines={1}>
+                              {r.gear_name}
+                            </Text>
+                            {/* Shared gear is a group concern — no per-requester
+                                attribution. Just the count needed. */}
+                            <Text style={styles.missingQty}>×{r.quantity}</Text>
+                          </Pressable>
+                        ))}
                       </View>
                     </View>
                   )}
                   {personalRequests.length > 0 && (
                     <View style={styles.gearSection}>
                       <View style={styles.transportCategoryHeader}>
-                        <Text style={[styles.transportCategoryLabel, { color: colors.warning }]}>
+                        <Text style={styles.transportCategoryLabel}>
                           {t('group.gearSection.requestedPersonal', { defaultValue: 'Demande d\'équipement individuel' })}
                         </Text>
                         <Text style={styles.transportCategoryCount}>· {personalRequests.length}</Text>
@@ -863,7 +851,7 @@ export function GroupCard({
                   onPress={() => setInventaireExpanded((v) => !v)}
                   hitSlop={4}
                 >
-                  <Text style={[styles.transportCategoryLabel, { color: colors.success }]}>
+                  <Text style={styles.transportCategoryLabel}>
                     {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
                   </Text>
                   <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
@@ -970,23 +958,20 @@ export function GroupCard({
                                 <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
                                 <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
                                 <Text style={styles.itemQty}>×{it.quantity}</Text>
-                                <Text style={[
-                                  styles.lendReceiveTag,
-                                  it.perspective === 'bringing' ? styles.lendTag : styles.receiveTag,
-                                ]}>
-                                  {it.perspective === 'bringing'
-                                    ? t('gear.lendsTag', { defaultValue: 'prête' })
-                                    : t('gear.receivesTag', { defaultValue: 'reçoit' })}
-                                </Text>
                               </View>
                               {it.counterpartName && (
-                                <View style={styles.exchangeChip}>
+                                <View style={styles.exchangePhrase}>
+                                  <Text style={styles.exchangePhraseText}>
+                                    {it.perspective === 'bringing'
+                                      ? t('gear.lendsTo', { defaultValue: 'prête à' })
+                                      : t('gear.receivesFrom', { defaultValue: 'reçoit de' })}
+                                  </Text>
                                   <UserAvatar
                                     name={it.counterpartName}
                                     avatarUrl={it.counterpartAvatar}
                                     size={14}
                                   />
-                                  <Text style={styles.exchangeChipQty}>×{it.quantity}</Text>
+                                  <Text style={styles.exchangePhraseQty}>×{it.quantity}</Text>
                                 </View>
                               )}
                             </View>
@@ -1552,18 +1537,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bringerItemBlock: {
     gap: 2,
   },
-  // Exchange chip — shown beneath a gear row when this contribution
-  // fulfilled (or was fulfilled by) someone else. Wordless: avatar of
-  // the counterpart + quantity. The list context tells the user which
-  // direction the exchange runs (giving vs receiving).
-  exchangeChip: {
+  // Inline exchange phrase — shown on a gear row that's part of a
+  // give/receive pair. Reads as one phrase: "prête à [👤] ×N" (the
+  // user is contributing) or "reçoit de [👤] ×N" (someone is
+  // contributing for the user). Replaces the older standalone tag +
+  // separate avatar chip pattern.
+  exchangePhrase: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingLeft: 16,
     marginTop: 2,
   },
-  exchangeChipQty: {
+  exchangePhraseText: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  exchangePhraseQty: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
@@ -1603,27 +1595,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '800',
   },
 
-  // Lend/receive tag on each bringer-item row in Inventaire individuel.
-  // Small uppercase label that disambiguates whether the user is
-  // contributing or receiving the item.
-  lendReceiveTag: {
-    fontSize: fontSizes.xs - 2,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-    marginLeft: 4,
-  },
-  lendTag: {
-    color: colors.success,
-    backgroundColor: colors.success + '1F',
-  },
-  receiveTag: {
-    color: colors.pinMeeting,
-    backgroundColor: colors.pinMeeting + '1F',
-  },
   bulletRow: {
     flexDirection: 'row',
     alignItems: 'baseline',

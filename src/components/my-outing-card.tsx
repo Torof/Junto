@@ -605,26 +605,23 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                         {g.quantity > 1 && (
                           <Text style={styles.gearListQty}>×{g.quantity}</Text>
                         )}
-                        <Text style={[
-                          styles.lendReceiveTag,
-                          isBringing ? styles.lendTag : styles.receiveTag,
-                        ]}>
-                          {isBringing
-                            ? t('gear.lendsTag', { defaultValue: 'prête' })
-                            : t('gear.receivesTag', { defaultValue: 'reçoit' })}
-                        </Text>
                         {isBringing && (
                           <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
                         )}
                       </View>
                       {g.counterpartName && (
-                        <View style={styles.gearListExchange}>
+                        <View style={styles.gearListExchangePhrase}>
+                          <Text style={styles.gearListExchangePhraseText}>
+                            {isBringing
+                              ? t('gear.lendsTo', { defaultValue: 'prête à' })
+                              : t('gear.receivesFrom', { defaultValue: 'reçoit de' })}
+                          </Text>
                           <UserAvatar
                             name={g.counterpartName}
                             avatarUrl={g.counterpartAvatar}
                             size={14}
                           />
-                          <Text style={styles.gearListExchangeQty}>×{g.quantity}</Text>
+                          <Text style={styles.gearListExchangePhraseQty}>×{g.quantity}</Text>
                         </View>
                       )}
                     </Pressable>
@@ -1060,42 +1057,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm + 2,
   },
-  // Exchange chip — wordless mark that this gear was given/received
-  // through the missing-request flow. Avatar of the counterpart +
-  // ×N. Mirrors GroupCard's exchangeChip so the cue is consistent.
-  gearListExchange: {
+  // Inline exchange phrase — "prête à [👤] ×N" or "reçoit de [👤] ×N".
+  // Mirrors GroupCard's exchangePhrase so the cue is consistent.
+  gearListExchangePhrase: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingLeft: 32, // align under the gear name (icon 24 + gap 8)
     marginTop: 4,
   },
-  gearListExchangeQty: {
+  gearListExchangePhraseText: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  gearListExchangePhraseQty: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
-  },
-
-  // Lend/receive tag — small uppercase pill that disambiguates
-  // bringing vs broughtForMe in the "Ton matériel" sheet. Mirrors
-  // the same tag in GroupCard's bringer recap.
-  lendReceiveTag: {
-    fontSize: fontSizes.xs - 2,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-    marginLeft: 4,
-  },
-  lendTag: {
-    color: colors.success,
-    backgroundColor: colors.success + '1F',
-  },
-  receiveTag: {
-    color: colors.pinMeeting,
-    backgroundColor: colors.pinMeeting + '1F',
   },
   gearListIconWrap: {
     width: 24,
