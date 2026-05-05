@@ -4,28 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Package, Handshake, Shield, Plus, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
 import { participationService } from '@/services/participation-service';
-import { badgeService } from '@/services/badge-service';
 import { UserAvatar } from './user-avatar';
 import { ringColorFor } from './profile-hero';
 import { supabase } from '@/services/supabase';
-
-// Icon for each positive peer-vouch trait. Shown inline next to driver
-// names so the trust signal reaches the decision point ("ride with this
-// stranger?"). Same mapping as badge-display.tsx — kept inline rather
-// than imported to keep this file self-contained.
-const VOUCH_ICONS: Record<string, LucideIcon> = {
-  punctual: Clock,
-  prepared: Package,
-  conciliant: Handshake,
-  prudent: Shield,
-};
 
 interface Props {
   activityId: string;
@@ -142,22 +130,6 @@ export function GroupCard({
     reliabilityScores.forEach((p) => map.set(p.id, p.reliability_score));
     return map;
   }, [reliabilityScores]);
-
-  // Top positive peer-vouch per driver — surfaced as an inline chip next
-  // to their name. Batch RPC (mig 00174) returns at most one row per
-  // user, threshold-gated at 5 votes. Stale cache fine; vouches change
-  // slowly compared to transport state.
-  const { data: topVouches = [] } = useQuery({
-    queryKey: ['top-vouched-badges', transportUserIdsKey],
-    queryFn: () => badgeService.getTopVouchedBadges(transports.map((p) => p.user_id)),
-    enabled: isParticipant && transports.length > 0,
-    staleTime: 5 * 60_000,
-  });
-  const vouchById = useMemo(() => {
-    const map = new Map<string, { badge_key: string; vote_count: number }>();
-    topVouches.forEach((v) => map.set(v.user_id, { badge_key: v.badge_key, vote_count: v.vote_count }));
-    return map;
-  }, [topVouches]);
 
   // Drivers offering rides — INCLUDES the current user when they're
   // a driver (rendered with a "Toi" marker). Sort by departure time
@@ -329,12 +301,7 @@ export function GroupCard({
           </Text>
           <View style={styles.headerRight}>
             <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.peopleCount} numberOfLines={1}>
-              {t('group.peopleCount', {
-                count: participants.length,
-                defaultValue: `${participants.length} personnes`,
-              })}
-            </Text>
+            <Text style={styles.peopleCount}>{participants.length}</Text>
           </View>
         </View>
 
@@ -441,20 +408,6 @@ export function GroupCard({
                             <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
                           </View>
                         )}
-                        {!isSelf && (() => {
-                          const vouch = vouchById.get(d.user_id);
-                          if (!vouch) return null;
-                          const Icon = VOUCH_ICONS[vouch.badge_key];
-                          if (!Icon) return null;
-                          const label = t(`badges.${vouch.badge_key}`, { defaultValue: vouch.badge_key });
-                          return (
-                            <>
-                              <Text style={styles.vouchSep}>·</Text>
-                              <Icon size={11} color={colors.success} strokeWidth={2.4} />
-                              <Text style={styles.vouchLabel} numberOfLines={1}>{label}</Text>
-                            </>
-                          );
-                        })()}
                       </View>
                     </View>
                     {/* Status pill in the top-right when the user has a
@@ -506,7 +459,11 @@ export function GroupCard({
                       status pill in the header carries that). */}
                   <View style={styles.pillFooter}>
                     <Text style={styles.seatsCount}>
-                      {d.accepted}/{d.capacity} {t('group.seatsLabel', { defaultValue: 'places' })}
+                      {d.accepted}/
+                      <Text style={d.free > 0 ? { color: colors.success } : undefined}>
+                        {d.capacity}
+                      </Text>
+                      {' '}{t('group.seatsLabel', { defaultValue: 'places' })}
                     </Text>
                     {!isSelf && !isMyDriver && !isPendingFromMe && (
                       isFull ? (
@@ -982,17 +939,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '700',
     letterSpacing: -0.1,
-    flexShrink: 1,
-  },
-  vouchSep: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-  },
-  vouchLabel: {
-    color: colors.success,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: -0.05,
     flexShrink: 1,
   },
   // "Toi" pill on self-driver rows — uses CTA tint to mirror the
