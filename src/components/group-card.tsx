@@ -1142,13 +1142,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  // Right-aligned quantity caption — sits at the end of every gear-list
-  // row (covered, brought, missing) so the count reads as a separate
-  // column rather than appended to the item name. Muted + 700 weight
-  // gives it numeric tabular feel without visual competition.
+  // Right-aligned quantity caption — the one-glance metric for the
+  // gear inventory. Matches Mine's gearListQty (success + sm + 700)
+  // so "the group has this" reads with the same affirmative weight as
+  // "I'm bringing this".
   itemQty: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs + 1,
+    color: colors.success,
+    fontSize: fontSizes.sm,
     fontWeight: '700',
     letterSpacing: 0.2,
     marginLeft: 6,
