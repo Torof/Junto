@@ -306,6 +306,7 @@
     "objective": "Objective"
   },
   "myOuting": {
+    "cardTitle": "My prep",
     "ready": "Ready",
     "captionToday": "Today",
     "captionTomorrow": "Tomorrow",
@@ -359,6 +360,7 @@
     }
   },
   "group": {
+    "cardTitle": "Group prep",
     "title": "The group",
     "peopleCount_one": "{{count}} person",
     "peopleCount_other": "{{count}} people",

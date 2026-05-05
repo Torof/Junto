@@ -306,6 +306,9 @@ export function GroupCard({
 
   return (
     <View style={styles.cardWrapper}>
+      <Text style={styles.cardTitle}>
+        {t('group.cardTitle', { defaultValue: 'Préparatifs de groupe' })}
+      </Text>
       <View style={styles.card}>
         {/* Header band — single row carrying the icon + people count
             on the left and folder-shaped tabs flush against the bottom
@@ -740,6 +743,13 @@ export function GroupCard({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
+  cardTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+    marginLeft: 2,
+  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

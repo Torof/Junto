@@ -472,6 +472,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
 
   return (
     <View style={styles.cardWrapper}>
+      <Text style={styles.cardTitle}>
+        {t('myOuting.cardTitle', { defaultValue: 'Mes préparatifs' })}
+      </Text>
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={[styles.caption, { color: captionColor }]}>{caption.text}</Text>
@@ -732,6 +735,13 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
+  cardTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+    marginLeft: 2,
+  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

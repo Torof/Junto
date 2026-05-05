@@ -306,6 +306,7 @@
     "objective": "Objectif"
   },
   "myOuting": {
+    "cardTitle": "Mes préparatifs",
     "ready": "Prêt",
     "captionToday": "Aujourd'hui",
     "captionTomorrow": "Demain",
@@ -359,6 +360,7 @@
     }
   },
   "group": {
+    "cardTitle": "Préparatifs de groupe",
     "title": "Le groupe",
     "peopleCount_one": "{{count}} personne",
     "peopleCount_other": "{{count}} personnes",
