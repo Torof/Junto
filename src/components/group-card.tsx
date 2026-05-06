@@ -57,7 +57,6 @@ export function GroupCard({
   // covered list); the bringer recaps stay closed by default since
   // they're info-shaped and only useful when the user is curious
   // about a specific person's contribution.
-  const [inventaireExpanded, setInventaireExpanded] = useState(true);
   const [expandedBringers, setExpandedBringers] = useState<Set<string>>(new Set());
   const toggleBringer = (userId: string) => {
     setExpandedBringers((prev) => {
@@ -674,47 +673,39 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
-            {isParticipant && (
-              <Pressable style={styles.addGearCta} onPress={onAddGear}>
-                <Plus size={16} color={colors.cta} strokeWidth={2.5} />
-                <Text style={styles.addGearCtaText}>
-                  {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
-                </Text>
-              </Pressable>
-            )}
-
-            {gearDeclared.length === 0 && (
+            {gearDeclared.length === 0 && !isParticipant && (
               <Text style={styles.emptyHint}>
                 {t('group.recapEmpty', { defaultValue: 'Personne n\'a encore déclaré de matériel' })}
               </Text>
             )}
 
-            {/* Section 1 — Inventaire. A flat bullet list of every item
-                the group has declared, summed across bringers. No
-                catalog comparison, no missing/covered split, no quotas
-                — just a transparent "what does the group have?" view.
-                Collapsible. */}
-            {groupItems.length > 0 && (
+            {/* Section 1 — Inventaire commun (shared gear only). Always
+                expanded; the "+ Ajouter" affordance lives in the header
+                so the section reads as a single unit and the list isn't
+                pushed down by a separate CTA. */}
+            {(isParticipant || groupItems.length > 0) && (
               <View style={styles.gearSection}>
-                <Pressable
-                  style={styles.collapsibleHeader}
-                  onPress={() => setInventaireExpanded((v) => !v)}
-                  hitSlop={4}
-                >
+                <View style={styles.collapsibleHeader}>
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
                   </Text>
                   <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
                   <View style={styles.collapsibleSpacer} />
-                  <ChevronDown
-                    size={14}
-                    color={colors.textMuted}
-                    strokeWidth={2}
-                    style={{ transform: [{ rotate: inventaireExpanded ? '180deg' : '0deg' }] }}
-                  />
-                </Pressable>
+                  {isParticipant && (
+                    <Pressable
+                      style={styles.addGearChip}
+                      onPress={onAddGear}
+                      hitSlop={6}
+                    >
+                      <Plus size={12} color={colors.cta} strokeWidth={2.5} />
+                      <Text style={styles.addGearChipText}>
+                        {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
 
-                {inventaireExpanded && (
+                {groupItems.length > 0 && (
                   <View style={styles.inventoryList}>
                     {groupItems.map((g) => (
                       <Pressable
@@ -1208,26 +1199,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // than the previous single CTA so both fit comfortably side-by-side.
   // Add-gear stays CTA-coloured (orange); add-missing uses warning
   // tone (slightly more amber) to differentiate without shouting.
-  // Single CTA: "Ajouter du matériel" — opens the gear sheet for
-  // free-form personal/shared contributions. Replaces the earlier
-  // three-button row (Ajouter / Pour moi / Pour le groupe) — the
-  // request flow has been parked.
-  addGearCta: {
+  // Compact "+ Ajouter du matériel" chip pinned to the right edge of
+  // the Inventaire commun header — replaces the older full-width CTA so
+  // the inventory list keeps its vertical room.
+  addGearChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
+    gap: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.cta,
+    borderColor: colors.cta + '66',
     backgroundColor: colors.cta + '15',
-    marginBottom: spacing.md - 2,
   },
-  addGearCtaText: {
+  addGearChipText: {
     color: colors.cta,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs,
     fontWeight: '700',
   },
 
