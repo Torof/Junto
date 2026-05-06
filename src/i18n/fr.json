@@ -380,6 +380,8 @@
     "freeSeatsFromLabel": "depuis :",
     "passengersCount_one": "{{count}} passager",
     "passengersCount_other": "{{count}} passagers",
+    "incomingRequests_one": "{{count}} demande reçue",
+    "incomingRequests_other": "{{count}} demandes reçues",
     "transportCategory": {
       "car": "Voitures",
       "bike": "Vélo",

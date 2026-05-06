@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, type LucideIcon } from 'lucide-react-native';
+import * as Burnt from 'burnt';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -300,6 +301,45 @@ export function GroupCard({
     [pendingRequests, currentUserId],
   );
 
+  // Inline driver-side incoming requests — visible only to the driver
+  // for this activity. Lets them act without context-switching to the
+  // messagerie tab. RLS filters seat_requests to (requester=me OR
+  // driver=me); when I'm the driver of this activity, this collects
+  // the "incoming" rows.
+  const myDriverPending = useMemo(
+    () => pendingRequests.filter((r) => r.driver_id === currentUserId),
+    [pendingRequests, currentUserId],
+  );
+  const queryClient = useQueryClient();
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+
+  const handleAcceptIncoming = async (requestId: string) => {
+    setPendingActionId(requestId);
+    try {
+      await transportService.acceptSeatRequest(requestId);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setPendingActionId(null);
+    }
+  };
+
+  const handleDeclineIncoming = async (requestId: string) => {
+    setPendingActionId(requestId);
+    try {
+      await transportService.declineSeatRequest(requestId);
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setPendingActionId(null);
+    }
+  };
+
   // Whether the current user is allowed to request a seat right now —
   // mirrors TransportSection's existing rule so the affordance behaves
   // consistently with the dense view. `isActive` gates the affordance
@@ -369,6 +409,67 @@ export function GroupCard({
 
         {activeSubTab === 'transport' && (
           <View style={styles.tabContent}>
+            {/* Inline driver-side incoming requests — visible only to
+                the driver of this activity, so they can accept / decline
+                without context-switching to the messagerie tab. Sits
+                above the "Voitures" category since it's the action
+                surface for an active driver. */}
+            {myDriverPending.length > 0 && (
+              <View style={styles.incomingRequests}>
+                <Text style={styles.incomingRequestsLabel}>
+                  {t('group.incomingRequests', {
+                    count: myDriverPending.length,
+                    defaultValue: myDriverPending.length === 1 ? '1 demande reçue' : `${myDriverPending.length} demandes reçues`,
+                  })}
+                </Text>
+                {myDriverPending.map((req) => {
+                  const subtitleParts = [
+                    req.pickup_from,
+                    req.requested_pickup_at ? dayjs(req.requested_pickup_at).format('H[h]mm') : null,
+                  ].filter(Boolean);
+                  const isActing = pendingActionId === req.id;
+                  return (
+                    <View key={req.id} style={styles.incomingRequestCard}>
+                      <UserAvatar
+                        size={28}
+                        name={req.requester_name}
+                        avatarUrl={req.requester_avatar}
+                      />
+                      <View style={styles.incomingRequestInfo}>
+                        <Text style={styles.incomingRequestName} numberOfLines={1}>
+                          {req.requester_name}
+                          {subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
+                        </Text>
+                        {req.message && (
+                          <Text style={styles.incomingRequestMessage} numberOfLines={2}>
+                            {req.message}
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.incomingRequestActions}>
+                        <Pressable
+                          style={[styles.incomingAcceptBtn, isActing && styles.incomingActionDisabled]}
+                          onPress={() => handleAcceptIncoming(req.id)}
+                          disabled={isActing}
+                          hitSlop={6}
+                        >
+                          <Check size={16} color={colors.success} strokeWidth={3} />
+                        </Pressable>
+                        <Pressable
+                          style={[styles.incomingDeclineBtn, isActing && styles.incomingActionDisabled]}
+                          onPress={() => handleDeclineIncoming(req.id)}
+                          disabled={isActing}
+                          hitSlop={6}
+                        >
+                          <X size={16} color={colors.textMuted} strokeWidth={3} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
             {drivers.length > 0 && (
               <View style={styles.transportCategory}>
                 <View style={styles.transportCategoryHeader}>
@@ -912,6 +1013,75 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
+  },
+
+  // Driver-side incoming-requests panel — sits above the Voitures
+  // section in the Transport tab. Warning-tinted card to read as
+  // "needs your action" without feeling alarming.
+  incomingRequests: {
+    gap: 6,
+    paddingBottom: spacing.xs,
+  },
+  incomingRequestsLabel: {
+    color: colors.warning,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+  },
+  incomingRequestCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: spacing.sm - 2,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.warning + '4D',
+    backgroundColor: colors.warning + '12',
+  },
+  incomingRequestInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  incomingRequestName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    letterSpacing: -0.05,
+  },
+  incomingRequestMessage: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '400',
+    fontStyle: 'italic',
+  },
+  incomingRequestActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  incomingAcceptBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.success + '20',
+    borderWidth: 1,
+    borderColor: colors.success + '60',
+  },
+  incomingDeclineBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.line,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+  },
+  incomingActionDisabled: {
+    opacity: 0.4,
   },
 
   // Driver card-pill — each driver gets a contained unit (border +

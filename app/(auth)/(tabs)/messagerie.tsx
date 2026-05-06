@@ -96,21 +96,24 @@ export default function MessagerieScreen() {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) return [];
       const { data } = await supabase
-        .from('seat_requests' as 'participations')
+        .from('seat_requests')
         .select('id, activity_id, requester_id, driver_id, status, created_at, pickup_from, message, requested_pickup_at')
-        .eq('driver_id' as 'user_id', userId)
-        .eq('status' as 'user_id', 'pending')
-        .order('created_at', { ascending: false }) as unknown as { data: { id: string; activity_id: string; requester_id: string; status: string; created_at: string; pickup_from: string | null; message: string | null; requested_pickup_at: string | null }[] | null };
+        .eq('driver_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
       if (!data || data.length === 0) return [];
 
       // Defensive: hide pending requests for activities that are no longer
       // active. The server-side trigger flips them to 'expired' on status
-      // change, but this guards against any in-flight state.
+      // change, but this guards against any in-flight state. Also fetch
+      // each activity's title so the request card can show context
+      // (which hike is this request for? — U-3 audit fix).
       const activityIds = Array.from(new Set(data.map((r) => r.activity_id)));
       const { data: activities } = await supabase
         .from('activities')
-        .select('id, status, deleted_at')
+        .select('id, status, deleted_at, title')
         .in('id', activityIds);
+      const activityMap = new Map((activities ?? []).map((a) => [a.id, a]));
       const activeIds = new Set(
         (activities ?? [])
           .filter((a) => (a.status === 'published' || a.status === 'in_progress') && a.deleted_at === null)
@@ -122,7 +125,12 @@ export default function MessagerieScreen() {
       const requesterIds = filtered.map((r) => r.requester_id);
       const { data: profiles } = await supabase.from('public_profiles').select('id, display_name, avatar_url').in('id', requesterIds);
       const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return filtered.map((r) => ({ ...r, requester_name: profileMap.get(r.requester_id)?.display_name ?? '?', requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null }));
+      return filtered.map((r) => ({
+        ...r,
+        requester_name: profileMap.get(r.requester_id)?.display_name ?? '?',
+        requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null,
+        activity_title: activityMap.get(r.activity_id)?.title ?? null,
+      }));
     },
   });
 
@@ -321,20 +329,28 @@ export default function MessagerieScreen() {
           <ScrollView contentContainerStyle={styles.list}>
             {/* Seat requests */}
             {(seatRequests ?? []).map((sr) => {
-              const srTyped = sr as typeof sr & { requester_name: string; pickup_from: string | null; message: string | null; requested_pickup_at: string | null };
               const subtitleParts = [
-                srTyped.pickup_from,
-                srTyped.requested_pickup_at ? dayjs(srTyped.requested_pickup_at).format('H[h]mm') : null,
+                sr.pickup_from,
+                sr.requested_pickup_at ? dayjs(sr.requested_pickup_at).format('H[h]mm') : null,
               ].filter(Boolean);
               return (
-              <View key={sr.id} style={styles.requestCard}>
+              <Pressable
+                key={sr.id}
+                style={styles.requestCard}
+                onPress={() => router.push(`/(auth)/activity/${sr.activity_id}`)}
+              >
                 <Car size={28} color={colors.cta} strokeWidth={2} />
                 <View style={styles.requestInfo}>
+                  {sr.activity_title && (
+                    <Text style={styles.requestActivityTitle} numberOfLines={1}>
+                      {sr.activity_title}
+                    </Text>
+                  )}
                   <Text style={styles.requestName} numberOfLines={1}>
-                    {srTyped.requester_name}{subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
+                    {sr.requester_name}{subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
                   </Text>
-                  {srTyped.message ? (
-                    <Text style={styles.requestSource} numberOfLines={2}>{srTyped.message}</Text>
+                  {sr.message ? (
+                    <Text style={styles.requestSource} numberOfLines={2}>{sr.message}</Text>
                   ) : (
                     <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>
                   )}
@@ -342,20 +358,20 @@ export default function MessagerieScreen() {
                 <View style={styles.requestActions}>
                   <Pressable
                     style={[styles.acceptBtn, loadingRequestId === sr.id && styles.btnDisabled]}
-                    onPress={() => handleAcceptSeat(sr.id)}
+                    onPress={(e) => { e.stopPropagation(); handleAcceptSeat(sr.id); }}
                     disabled={loadingRequestId === sr.id}
                   >
                     <Check size={18} color={colors.textPrimary} strokeWidth={3} />
                   </Pressable>
                   <Pressable
                     style={[styles.declineBtn, loadingRequestId === sr.id && styles.btnDisabled]}
-                    onPress={() => handleDeclineSeat(sr.id)}
+                    onPress={(e) => { e.stopPropagation(); handleDeclineSeat(sr.id); }}
                     disabled={loadingRequestId === sr.id}
                   >
                     <X size={18} color={colors.textPrimary} strokeWidth={3} />
                   </Pressable>
                 </View>
-              </View>
+              </Pressable>
             );
             })}
 
@@ -462,6 +478,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.sm, marginBottom: spacing.sm, gap: spacing.sm,
   },
   requestInfo: { flex: 1, gap: 2 },
+  // Activity title — appears on seat-request cards above the requester
+  // line so the driver knows which hike the request is for. Audit U-3.
+  requestActivityTitle: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', letterSpacing: -0.05 },
   requestName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   requestSource: { color: colors.textSecondary, fontSize: fontSizes.xs - 1 },
   requestMessage: { color: colors.textSecondary, fontSize: fontSizes.xs, fontStyle: 'italic', marginTop: 2 },

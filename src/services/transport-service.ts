@@ -28,6 +28,19 @@ export interface SeatAssignment {
   requested_pickup_at: string | null;
 }
 
+export interface PendingSeatRequest {
+  id: string;
+  requester_id: string;
+  driver_id: string;
+  status: string;
+  created_at: string;
+  pickup_from: string | null;
+  message: string | null;
+  requested_pickup_at: string | null;
+  requester_name: string;
+  requester_avatar: string | null;
+}
+
 export const transportService = {
   setTransport: async (
     activityId: string,
@@ -111,16 +124,35 @@ export const transportService = {
     if (error) throw error;
   },
 
-  getPendingSeatRequests: async (activityId: string): Promise<{ id: string; requester_id: string; driver_id: string; status: string }[]> => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return [];
+  // Returns the caller-visible pending seat requests for an activity.
+  // RLS narrows this to rows where the caller is requester OR driver,
+  // so the same query feeds two surfaces:
+  //   - requester-side "you have a pending request to driver X" pill
+  //   - driver-side inline "you have N pending requests" panel in
+  //     GroupCard, accept/decline without leaving the activity.
+  // pickup_from / message / requested_pickup_at + requester profile
+  // are joined so the driver-side surface has enough to act without
+  // a second query.
+  getPendingSeatRequests: async (activityId: string): Promise<PendingSeatRequest[]> => {
     const { data, error } = await supabase
       .from('seat_requests')
-      .select('id, requester_id, driver_id, status')
+      .select('id, requester_id, driver_id, status, created_at, pickup_from, message, requested_pickup_at')
       .eq('activity_id', activityId)
       .eq('status', 'pending');
-    if (error) return [];
-    return data ?? [];
+    if (error || !data || data.length === 0) return [];
+
+    const requesterIds = Array.from(new Set(data.map((r) => r.requester_id)));
+    const { data: profiles } = await supabase
+      .from('public_profiles')
+      .select('id, display_name, avatar_url')
+      .in('id', requesterIds);
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+    return data.map((r) => ({
+      ...r,
+      requester_name: profileMap.get(r.requester_id)?.display_name ?? '?',
+      requester_avatar: profileMap.get(r.requester_id)?.avatar_url ?? null,
+    }));
   },
 
   getForActivity: async (activityId: string): Promise<ParticipantTransport[]> => {

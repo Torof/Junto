@@ -380,6 +380,8 @@
     "freeSeatsFromLabel": "from:",
     "passengersCount_one": "{{count}} passenger",
     "passengersCount_other": "{{count}} passengers",
+    "incomingRequests_one": "{{count}} incoming request",
+    "incomingRequests_other": "{{count}} incoming requests",
     "transportCategory": {
       "car": "Cars",
       "bike": "Biking",
