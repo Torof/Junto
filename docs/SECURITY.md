@@ -524,9 +524,13 @@ NEW.updated_at := NOW();
 - `title`, `description`, `sport_id`, `duration`, `requires_presence` — modifiables si créateur
 
 ### Table `participations`
-- `confirmed_present` — modifiable uniquement via les fonctions de présence (`confirm_presence_via_geo`, `confirm_presence_via_token`, `peer_validate_presence`)
-- `status` — modifiable uniquement via les fonctions de participation
-- `transport_*` — modifiable via `set_participation_transport`
+
+Pas de trigger whitelist sur `participations` — la table n'a **aucune policy UPDATE** (cf. mig 00004 et le commentaire explicite dans 00065 : *"The whitelist trigger on participations doesn't exist — these are only writable via SECURITY DEFINER fns"*). C'est plus strict qu'un whitelist par colonne : aucune écriture client n'est possible, point.
+
+Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFINER dédiées :
+- `confirmed_present` — via les fonctions de présence (`confirm_presence_via_geo`, `confirm_presence_via_token`, `peer_validate_presence`)
+- `status` — via les fonctions de participation (`accept_participation`, `refuse_participation`, `leave_activity`, `remove_participant`)
+- `transport_*` — via `set_participation_transport` (et `accept_seat_request` / `cancel_accepted_seat` pour le décrément/refund de `transport_seats`)
 
 ### Table `notifications`
 - INSERT interdit pour les clients (fonctions seulement)
