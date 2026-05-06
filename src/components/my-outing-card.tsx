@@ -336,9 +336,6 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     };
     if (!currentUserId) return empty;
 
-    const myTransport = transports.find((p) => p.user_id === currentUserId);
-    const myAcceptedSeat = seatAssignments.find((r) => r.requester_id === currentUserId);
-    const myPending = pendingRequests.find((r) => r.requester_id === currentUserId);
     // For the driver case, count the seats already taken by accepted
     // requesters — that's the user's passenger headcount.
     const myPassengerCount = seatAssignments.filter((r) => r.driver_id === currentUserId).length;
@@ -356,11 +353,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       };
     }
 
-    if (myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '')) {
+    if (myTransportLocal && (CAR_TYPES as readonly string[]).includes(myTransportLocal.transport_type ?? '')) {
       const subRows: StampSubRow[] = [
         ...locationTimeRows(
-          myTransport.transport_from_name,
-          formatHm(myTransport.transport_departs_at),
+          myTransportLocal.transport_from_name,
+          formatHm(myTransportLocal.transport_departs_at),
         ),
       ];
       // Passenger count — render even at 0 so the stamp's role as "I'm
@@ -381,11 +378,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       };
     }
 
-    if (myAcceptedSeat) {
-      const driver = transports.find((p) => p.user_id === myAcceptedSeat.driver_id);
+    if (myAcceptedSeatLocal) {
+      const driver = transports.find((p) => p.user_id === myAcceptedSeatLocal.driver_id);
       const where = locationTimeRows(
-        myAcceptedSeat.pickup_from,
-        formatHm(myAcceptedSeat.requested_pickup_at),
+        myAcceptedSeatLocal.pickup_from,
+        formatHm(myAcceptedSeatLocal.requested_pickup_at),
       );
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
@@ -399,27 +396,27 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       };
     }
 
-    if (myTransport?.transport_type) {
+    if (myTransportLocal?.transport_type) {
       const Icon =
-        myTransport.transport_type === 'bike'
+        myTransportLocal.transport_type === 'bike'
           ? Bike
-          : myTransport.transport_type === 'on_foot'
+          : myTransportLocal.transport_type === 'on_foot'
             ? Footprints
-            : myTransport.transport_type === 'public_transport'
+            : myTransportLocal.transport_type === 'public_transport'
               ? TrainFront
               : HelpCircle;
       // Self-movers (bike / foot / transit / other) get the same
       // place + time rows as drivers and passengers — coordination
       // signal is just as useful for them.
       const where = locationTimeRows(
-        myTransport.transport_from_name,
-        formatHm(myTransport.transport_departs_at),
+        myTransportLocal.transport_from_name,
+        formatHm(myTransportLocal.transport_departs_at),
       );
       return {
         caption: t('myOuting.stamp.transport', { defaultValue: 'Ton transport' }),
         Icon,
-        content: t(`myOuting.stamp.mode.${myTransport.transport_type}`, {
-          defaultValue: myTransport.transport_type,
+        content: t(`myOuting.stamp.mode.${myTransportLocal.transport_type}`, {
+          defaultValue: myTransportLocal.transport_type,
         }),
         state: 'set',
         subRows: where.length > 0 ? where : undefined,
@@ -427,7 +424,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     }
 
     return empty;
-  }, [transports, seatAssignments, pendingRequests, currentUserId, t]);
+  }, [myPending, myAcceptedSeatLocal, myTransportLocal, transports, seatAssignments, currentUserId, t]);
 
   const myGearItems = useMemo(() => {
     if (!currentUserId) return [];

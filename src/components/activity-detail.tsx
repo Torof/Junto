@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -72,14 +72,21 @@ export function ActivityDetail({
     queryKey: ['transport-summary', activity.id],
     queryFn: () => transportService.getSummary(activity.id),
   });
+  // Org-tab transport list and wall messages are only consumed by
+  // participants/creator (the org tab is gated, the unread badge sits
+  // on the chat tab which non-participants can't reach). Skip the
+  // fetch + 30s wall poll for non-participant viewers.
+  const isAccepted = participation?.status === 'accepted';
   const { data: orgTransportParticipants } = useQuery({
     queryKey: ['transport', activity.id],
     queryFn: () => transportService.getForActivity(activity.id),
+    enabled: isAuthenticated && (isCreator || isAccepted),
   });
   const { data: wallMessages } = useQuery({
     queryKey: ['wall', activity.id],
     queryFn: () => wallService.getMessages(activity.id),
     refetchInterval: 30000,
+    enabled: isAuthenticated && (isCreator || isAccepted),
   });
   const wallReadAt = useMessageStore((s) => s.getWallReadAt(activity.id));
 
@@ -175,6 +182,27 @@ export function ActivityDetail({
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
 
+  const handleShare = useCallback(async () => {
+    try {
+      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto-nine.vercel.app';
+      let link: string;
+      if (isPrivateLink) {
+        // Only the creator can share private-link activities (token gated)
+        const token = await activityService.getInviteToken(activity.id);
+        if (!token) return;
+        link = `https://${webHost}/invite/${token}`;
+      } else {
+        link = `https://${webHost}/activity/${activity.id}`;
+      }
+      const sportLabel = t(`sports.${activity.sport_key}`, activity.sport_key);
+      const when = dayjs(activity.starts_at).format('ddd D MMM H[h]mm');
+      const message = `${activity.title}\n${sportLabel} · ${when}\n\n${t('activity.shareJoin')}\n${link}`;
+      await Share.share({ message });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    }
+  }, [isPrivateLink, activity.id, activity.sport_key, activity.starts_at, activity.title, t]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -199,7 +227,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, t]);
+  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, t, handleShare, colors, styles]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -313,7 +341,7 @@ export function ActivityDetail({
       cancelled = true;
       clearInterval(interval);
     };
-  }, [canCheckIn, activity.lat, activity.lng, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, activity.title, t]);
+  }, [canCheckIn, canConfirmGeo, activity.id, activity.lat, activity.lng, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, queryClient, t]);
 
   const handleCheckIn = async () => {
     setIsConfirming(true);
@@ -445,28 +473,6 @@ export function ActivityDetail({
     ]);
   };
 
-  const handleShare = async () => {
-    try {
-      const isPrivateLink = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
-      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto-nine.vercel.app';
-      let link: string;
-      if (isPrivateLink) {
-        // Only the creator can share private-link activities (token gated)
-        const token = await activityService.getInviteToken(activity.id);
-        if (!token) return;
-        link = `https://${webHost}/invite/${token}`;
-      } else {
-        link = `https://${webHost}/activity/${activity.id}`;
-      }
-      const sportLabel = t(`sports.${activity.sport_key}`, activity.sport_key);
-      const when = dayjs(activity.starts_at).format('ddd D MMM H[h]mm');
-      const message = `${activity.title}\n${sportLabel} · ${when}\n\n${t('activity.shareJoin')}\n${link}`;
-      await Share.share({ message });
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
-
   const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
   const [orgSubTab, setOrgSubTab] = useState<'transport' | 'gear'>('transport');
   const transportSectionRef = useRef<TransportSectionHandle>(null);
@@ -481,7 +487,6 @@ export function ActivityDetail({
   const showLeaveButton = !isCreator && participation && ['accepted', 'pending'].includes(participation.status) && isActive;
   const showCancelButton = isCreator && isActive;
   const isPending = participation?.status === 'pending';
-  const isAccepted = participation?.status === 'accepted';
 
   const joinLabel = activity.visibility === 'approval' || activity.visibility === 'private_link_approval'
     ? t('activity.requestJoin')

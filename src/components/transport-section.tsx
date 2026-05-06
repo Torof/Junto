@@ -1,5 +1,5 @@
 import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useState, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Car, Bike, TrainFront, Footprints, HelpCircle, Clock } from 'lucide-react-native';
@@ -82,7 +82,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
 
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);
 
-  const openEditor = () => {
+  const openEditor = useCallback(() => {
     if (myTransport) {
       setSelectedType(myTransport.transport_type);
       setSeats(myTransport.transport_seats ?? 0);
@@ -95,9 +95,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       setDepartsAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
     }
     setShowEditor(true);
-  };
+  }, [myTransport, activityStartsAt]);
 
-  const openRequestSheet = (driverId: string, defaultPickupFrom?: string | null) => {
+  const openRequestSheet = useCallback((driverId: string, defaultPickupFrom?: string | null) => {
     setRequestingFromDriver(driverId);
     setRequestPickup(defaultPickupFrom ?? '');
     setRequestMessage('');
@@ -107,9 +107,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     // start. Mig 00176 dropped the wrong DB bound that used to force
     // pickup ≤ driver_departs_at.
     setRequestedPickupAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
-  };
+  }, [activityStartsAt]);
 
-  useImperativeHandle(ref, () => ({ openEditor, openRequestSheet }), [openEditor]);
+  useImperativeHandle(ref, () => ({ openEditor, openRequestSheet }), [openEditor, openRequestSheet]);
 
   const handleSave = async () => {
     if (!selectedType) return;

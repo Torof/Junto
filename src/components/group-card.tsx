@@ -111,7 +111,10 @@ export function GroupCard({
   // each driver's avatar. Reads from public_profiles (00173 added the
   // column) so we don't need a per-driver RPC. Stale cache fine since
   // scores update slowly.
-  const transportUserIdsKey = transports.map((p) => p.user_id).sort().join(',');
+  const transportUserIdsKey = useMemo(
+    () => transports.map((p) => p.user_id).sort().join(','),
+    [transports],
+  );
   const { data: reliabilityScores = [] } = useQuery({
     queryKey: ['public-profile-scores', transportUserIdsKey],
     queryFn: async () => {
@@ -283,6 +286,15 @@ export function GroupCard({
     return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
   }, [gearDeclared]);
 
+  const myAcceptedSeat = useMemo(
+    () => seatAssignments.find((r) => r.requester_id === currentUserId) ?? null,
+    [seatAssignments, currentUserId],
+  );
+  const myPending = useMemo(
+    () => pendingRequests.find((r) => r.requester_id === currentUserId) ?? null,
+    [pendingRequests, currentUserId],
+  );
+
   // Whether the current user is allowed to request a seat right now —
   // mirrors TransportSection's existing rule so the affordance behaves
   // consistently with the dense view.
@@ -291,12 +303,8 @@ export function GroupCard({
     const myTransport = transports.find((p) => p.user_id === currentUserId);
     const isMyselfDriver =
       myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '');
-    const myAcceptedSeat = seatAssignments.find((r) => r.requester_id === currentUserId);
     return !isMyselfDriver && !myAcceptedSeat;
-  }, [transports, seatAssignments, currentUserId]);
-
-  const myAcceptedSeat = seatAssignments.find((r) => r.requester_id === currentUserId);
-  const myPending = pendingRequests.find((r) => r.requester_id === currentUserId);
+  }, [transports, myAcceptedSeat, currentUserId]);
 
   if (!isParticipant) return null;
 
