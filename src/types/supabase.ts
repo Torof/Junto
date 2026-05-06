@@ -1833,10 +1833,7 @@ export type Database = {
         Args: { p_participation_id: string }
         Returns: undefined
       }
-      accept_seat_request: {
-        Args: { p_request_id: string }
-        Returns: undefined
-      }
+      accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
@@ -2029,6 +2026,7 @@ export type Database = {
       enablelongtransactions: { Args: never; Returns: string }
       ensure_user_row: { Args: never; Returns: undefined }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_idle_seat_requests: { Args: never; Returns: undefined }
       expire_stale_contact_requests: { Args: never; Returns: undefined }
       generate_random_name: { Args: never; Returns: string }
       geometry: { Args: { "": string }; Returns: unknown }

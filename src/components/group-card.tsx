@@ -316,11 +316,14 @@ export function GroupCard({
   const handleAcceptIncoming = async (requestId: string) => {
     setPendingActionId(requestId);
     try {
-      await transportService.acceptSeatRequest(requestId);
+      const conversationId = await transportService.acceptSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
+      if (conversationId) {
+        router.push(`/(auth)/conversation/${conversationId}`);
+      }
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {

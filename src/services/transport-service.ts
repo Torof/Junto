@@ -85,9 +85,14 @@ export const transportService = {
     return data;
   },
 
-  acceptSeatRequest: async (requestId: string): Promise<void> => {
-    const { error } = await supabase.rpc('accept_seat_request', { p_request_id: requestId });
+  // Returns the conversation_id between driver and requester so the
+  // caller can route straight to the chat thread on success. NULL when
+  // the two users are blocked in either direction (no DM channel
+  // opened — accept still proceeds, just no chat to land on).
+  acceptSeatRequest: async (requestId: string): Promise<string | null> => {
+    const { data, error } = await supabase.rpc('accept_seat_request', { p_request_id: requestId });
     if (error) throw error;
+    return data ?? null;
   },
 
   declineSeatRequest: async (requestId: string): Promise<void> => {

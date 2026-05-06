@@ -154,12 +154,15 @@ export default function MessagerieScreen() {
     haptic.success();
     setLoadingRequestId(requestId);
     try {
-      await transportService.acceptSeatRequest(requestId);
+      const conversationId = await transportService.acceptSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['transport'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
       Burnt.toast({ title: t('transport.seatAccepted'), preset: 'done' });
+      if (conversationId) {
+        router.push(`/(auth)/conversation/${conversationId}`);
+      }
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {
