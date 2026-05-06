@@ -274,11 +274,6 @@
     "typePersonal": "Personnel",
     "typeShared": "Partagé",
     "pickFromList": "Choisir dans la liste",
-    "requestSheetTitle": "Demander un manquant",
-    "requestSheetSave": "Demander",
-    "requestSaved": "Demande envoyée",
-    "lendsTo": "prête à",
-    "receivesFrom": "reçoit de",
     "category": {
       "safety": "Sécurité",
       "technical": "Technique",
@@ -396,15 +391,10 @@
     },
     "gearSection": {
       "inventory": "Inventaire commun",
-      "recap": "Inventaire individuel",
-      "requested": "Demandé par le groupe",
-      "requestedGroup": "Demande d'équipement partagé",
-      "requestedPersonal": "Demande d'équipement individuel"
+      "recap": "Inventaire individuel"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
-    "addGear": "Ajouter",
-    "addMissingPersonal": "Pour moi",
-    "addMissingGroup": "Pour le groupe"
+    "addGear": "Ajouter du matériel"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

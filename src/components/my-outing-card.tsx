@@ -27,7 +27,6 @@ import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
-import { UserAvatar } from './user-avatar';
 
 interface Props {
   activityId: string;
@@ -36,7 +35,7 @@ interface Props {
   currentUserId: string | null;
   isParticipant: boolean;
   onEditTransport: () => void;
-  onEditGearItem: (name: string, isShared?: boolean) => void;
+  onEditGearItem: (name: string) => void;
   onAddMaterial: () => void;
 }
 
@@ -430,54 +429,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     return empty;
   }, [transports, seatAssignments, pendingRequests, currentUserId, t]);
 
-  // myGearItems carries TWO perspectives:
-  //   - bringing: user_id = me (I physically carry it). Optional
-  //     "demandé par X" chip when the contribution closed someone
-  //     else's missing-request.
-  //   - broughtForMe: requested_by = me but user_id != me (someone
-  //     else carries it for me, fulfilling my missing-request). Chip
-  //     shows "apporté par X" with the bringer's avatar.
-  // Both contribute to "your gear count" — the user feels the
-  // collective coverage even when they're not physically carrying.
-  const myGearItems = useMemo<Array<{
-    name: string;
-    quantity: number;
-    is_shared: boolean;
-    perspective: 'bringing' | 'broughtForMe';
-    counterpartName: string | null;
-    counterpartAvatar: string | null;
-  }>>(() => {
+  const myGearItems = useMemo(() => {
     if (!currentUserId) return [];
-    const items: Array<{
-      name: string;
-      quantity: number;
-      is_shared: boolean;
-      perspective: 'bringing' | 'broughtForMe';
-      counterpartName: string | null;
-      counterpartAvatar: string | null;
-    }> = [];
-    gearDeclared.forEach((g) => {
-      if (g.user_id === currentUserId) {
-        items.push({
-          name: g.gear_name,
-          quantity: g.quantity,
-          is_shared: g.is_shared,
-          perspective: 'bringing',
-          counterpartName: g.requested_by_display_name,
-          counterpartAvatar: g.requested_by_avatar_url,
-        });
-      } else if (g.requested_by === currentUserId) {
-        items.push({
-          name: g.gear_name,
-          quantity: g.quantity,
-          is_shared: g.is_shared,
-          perspective: 'broughtForMe',
-          counterpartName: g.display_name,
-          counterpartAvatar: g.avatar_url,
-        });
-      }
-    });
-    return items;
+    return gearDeclared
+      .filter((g) => g.user_id === currentUserId)
+      .map((g) => ({ name: g.gear_name, quantity: g.quantity }));
   }, [gearDeclared, currentUserId]);
 
   const materialStamp = useMemo<StampDef>(() => {
@@ -582,51 +538,28 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               </Text>
             ) : (
               <ScrollView style={styles.gearList} showsVerticalScrollIndicator={false}>
-                {myGearItems.map((g, i) => {
-                  const isBringing = g.perspective === 'bringing';
-                  return (
-                    <Pressable
-                      key={`${g.perspective}:${g.name}`}
-                      style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
-                      onPress={isBringing ? () => {
-                        setShowMyGear(false);
-                        onEditGearItem(g.name, g.is_shared);
-                      } : undefined}
-                      disabled={!isBringing}
-                      hitSlop={4}
-                    >
-                      <View style={styles.gearListMainRow}>
-                        <View style={styles.gearListIconWrap}>
-                          <Backpack size={14} color={colors.success} strokeWidth={2.2} />
-                        </View>
-                        <Text style={styles.gearListName} numberOfLines={1}>
-                          {g.name}
-                        </Text>
-                        {g.quantity > 1 && (
-                          <Text style={styles.gearListQty}>×{g.quantity}</Text>
-                        )}
-                        {isBringing && (
-                          <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
-                        )}
-                      </View>
-                      {g.counterpartName && (
-                        <View style={styles.gearListExchangePhrase}>
-                          <Text style={styles.gearListExchangePhraseText}>
-                            {isBringing
-                              ? t('gear.lendsTo', { defaultValue: 'prête à' })
-                              : t('gear.receivesFrom', { defaultValue: 'reçoit de' })}
-                          </Text>
-                          <UserAvatar
-                            name={g.counterpartName}
-                            avatarUrl={g.counterpartAvatar}
-                            size={14}
-                          />
-                          <Text style={styles.gearListExchangePhraseQty}>×{g.quantity}</Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
+                {myGearItems.map((g, i) => (
+                  <Pressable
+                    key={g.name}
+                    style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
+                    onPress={() => {
+                      setShowMyGear(false);
+                      onEditGearItem(g.name);
+                    }}
+                    hitSlop={4}
+                  >
+                    <View style={styles.gearListIconWrap}>
+                      <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                    </View>
+                    <Text style={styles.gearListName} numberOfLines={1}>
+                      {g.name}
+                    </Text>
+                    {g.quantity > 1 && (
+                      <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                    )}
+                    <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
+                  </Pressable>
+                ))}
               </ScrollView>
             )}
 
@@ -1046,36 +979,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   gearListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 2,
     paddingVertical: spacing.sm + 2,
   },
   gearListRowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
-  },
-  gearListMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm + 2,
-  },
-  // Inline exchange phrase — "prête à [👤] ×N" or "reçoit de [👤] ×N".
-  // Mirrors GroupCard's exchangePhrase so the cue is consistent.
-  gearListExchangePhrase: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingLeft: 32, // align under the gear name (icon 24 + gap 8)
-    marginTop: 4,
-  },
-  gearListExchangePhraseText: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '600',
-    fontStyle: 'italic',
-  },
-  gearListExchangePhraseQty: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
   },
   gearListIconWrap: {
     width: 24,

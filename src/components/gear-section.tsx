@@ -24,14 +24,8 @@ interface Props {
 // the cards drive. No catalog dependency, no quotas, no per-person
 // logic; matches the simplified gear philosophy.
 export interface GearSectionHandle {
-  // `fromRequest` flips the stepper default to `mine + 1` so tapping
-  // save actually contributes one more (instead of resaving the same
-  // qty for delta=0). When omitted / false, the stepper defaults to
-  // the user's current qty (regular edit flow).
-  openItemByName: (name: string, isShared?: boolean, fromRequest?: boolean) => void;
+  openItemByName: (name: string, isShared?: boolean) => void;
   openCustomSheet: () => void;
-  // Personal vs group request — feeds is_shared on the new request row.
-  openRequestSheet: (isShared: boolean) => void;
 }
 
 export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant }, ref) {
@@ -47,22 +41,16 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const [myQtyDraft, setMyQtyDraft] = useState(1);
   const [isSavingItem, setIsSavingItem] = useState(false);
 
-  // Custom-item modal state — same sheet shape for two flows:
-  //   bring   → user adds to their own gear list (setGear path)
-  //   request → user flags a missing item for the group
-  //             (request_activity_gear RPC, no personal qty change)
-  // Same UI to keep behaviour predictable; the title, save label,
-  // and save handler swap based on mode.
+  // Custom-item modal state — user types a free-form name + qty +
+  // toggles Personnel/Partagé (catalog matches lock the toggle).
   const [showCustomSheet, setShowCustomSheet] = useState(false);
-  const [customSheetMode, setCustomSheetMode] = useState<'bring' | 'request'>('bring');
   const [customName, setCustomName] = useState('');
   const [customQty, setCustomQty] = useState(1);
   const [customIsShared, setCustomIsShared] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
-  // Per-item modal: when opened from a missing pill, the request's
-  // is_shared informs the gear write so the auto-decrement matches.
-  // Tracked separately so opening from inventory (catalog item) vs
-  // missing pill (request-driven) is unambiguous.
+  // Per-item modal preserves the existing row's classification on
+  // edit (catalog wins on the server side anyway, but pass it
+  // through so the user's gear write doesn't accidentally re-flag).
   const [selectedItemIsShared, setSelectedItemIsShared] = useState(false);
 
   const { data: activityGear } = useQuery({
@@ -89,35 +77,19 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   const iAlreadyBring = myOriginalQty > 0;
 
   useImperativeHandle(ref, () => ({
-    openItemByName: (name: string, isShared?: boolean, fromRequest?: boolean) => {
+    openItemByName: (name: string, isShared?: boolean) => {
       const existing = (activityGear ?? []).find(
         (g) => g.gear_name === name && g.user_id === currentUserId,
       );
       const mine = existing?.quantity ?? 0;
-      // From a missing pill: default to `mine + 1` so save actually
-      // adds one more (otherwise default = mine = no delta = no
-      // decrement, which is the "lending 1 didn't work" bug).
-      // From inventory pill / regular edit: default to current qty.
-      const draft = fromRequest
-        ? Math.min(99, mine + 1)
-        : (mine > 0 ? mine : 1);
-      setMyQtyDraft(draft);
+      setMyQtyDraft(mine > 0 ? mine : 1);
       setSelectedItemIsShared(existing?.is_shared ?? isShared ?? false);
       setSelectedItemName(name);
     },
     openCustomSheet: () => {
-      setCustomSheetMode('bring');
       setCustomName('');
       setCustomQty(1);
       setCustomIsShared(false);
-      setCatalogOpen(false);
-      setShowCustomSheet(true);
-    },
-    openRequestSheet: (isShared: boolean) => {
-      setCustomSheetMode('request');
-      setCustomName('');
-      setCustomQty(1);
-      setCustomIsShared(isShared);
       setCatalogOpen(false);
       setShowCustomSheet(true);
     },
@@ -195,21 +167,15 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       const catalogMatch = catalog.find((c) => c.name_key === name);
       const effectiveIsShared = catalogMatch?.is_shared ?? customIsShared;
 
-      if (customSheetMode === 'bring') {
-        await persistMyGear((mine) => {
-          if (mine.some((m) => m.name === name)) {
-            return mine.map((m) => m.name === name
-              ? { ...m, quantity: customQty, is_shared: effectiveIsShared }
-              : m);
-          }
-          return [...mine, { name, quantity: customQty, is_shared: effectiveIsShared }];
-        });
-        Burnt.toast({ title: t('gear.saved'), preset: 'done' });
-      } else {
-        await gearService.requestGear(activityId, name, customQty, effectiveIsShared);
-        await queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activityId] });
-        Burnt.toast({ title: t('gear.requestSaved', { defaultValue: 'Demande envoyée' }), preset: 'done' });
-      }
+      await persistMyGear((mine) => {
+        if (mine.some((m) => m.name === name)) {
+          return mine.map((m) => m.name === name
+            ? { ...m, quantity: customQty, is_shared: effectiveIsShared }
+            : m);
+        }
+        return [...mine, { name, quantity: customQty, is_shared: effectiveIsShared }];
+      });
+      Burnt.toast({ title: t('gear.saved'), preset: 'done' });
       setShowCustomSheet(false);
       setCustomName('');
       setCustomQty(1);
@@ -310,11 +276,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
           <Pressable style={styles.backdrop} onPress={() => setShowCustomSheet(false)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.sheetTitle}>
-                  {customSheetMode === 'request'
-                    ? t('gear.requestSheetTitle', { defaultValue: 'Demander un manquant' })
-                    : t('gear.customSheetTitle')}
-                </Text>
+                <Text style={styles.sheetTitle}>{t('gear.customSheetTitle')}</Text>
 
                 {catalog.length > 0 && (
                   <View style={styles.dropdownWrapper}>
@@ -444,11 +406,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                   onPress={submitCustomSheet}
                   disabled={isSavingItem || !customName.trim()}
                 >
-                  <Text style={styles.saveBtnText}>
-                    {customSheetMode === 'request'
-                      ? t('gear.requestSheetSave', { defaultValue: 'Demander' })
-                      : t('profil.save')}
-                  </Text>
+                  <Text style={styles.saveBtnText}>{t('profil.save')}</Text>
                 </Pressable>
               </ScrollView>
             </Pressable>

@@ -274,11 +274,6 @@
     "typePersonal": "Personal",
     "typeShared": "Shared",
     "pickFromList": "Pick from list",
-    "requestSheetTitle": "Request missing gear",
-    "requestSheetSave": "Request",
-    "requestSaved": "Request sent",
-    "lendsTo": "lends to",
-    "receivesFrom": "receives from",
     "category": {
       "safety": "Safety",
       "technical": "Technical",
@@ -396,15 +391,10 @@
     },
     "gearSection": {
       "inventory": "Common inventory",
-      "recap": "Personal inventory",
-      "requested": "Requested by the group",
-      "requestedGroup": "Shared gear request",
-      "requestedPersonal": "Individual gear request"
+      "recap": "Personal inventory"
     },
     "recapEmpty": "Nobody's declared gear yet",
-    "addGear": "Add",
-    "addMissingPersonal": "For me",
-    "addMissingGroup": "For the group"
+    "addGear": "Add gear"
   },
   "pushDenied": {
     "title": "Notifications disabled",
