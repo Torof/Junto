@@ -33,20 +33,20 @@ export interface ActivityGearWithProfile extends ActivityGearItem {
 export const gearService = {
   getCatalog: async (sportKey: string): Promise<GearCatalogItem[]> => {
     const { data, error } = await supabase
-      .from('gear_catalog' as 'sports')
+      .from('gear_catalog')
       .select('id, name_key, sport_keys, display_order, category_key, per_person, shared_recommended_qty, is_shared')
-      .contains('sport_keys' as 'key', [sportKey])
-      .order('display_order' as 'key') as unknown as { data: GearCatalogItem[] | null; error: Error | null };
+      .contains('sport_keys', [sportKey])
+      .order('display_order');
     if (error) return [];
-    return data ?? [];
+    return (data ?? []) as GearCatalogItem[];
   },
 
   getForActivity: async (activityId: string): Promise<ActivityGearWithProfile[]> => {
     const { data, error } = await supabase
-      .from('activity_gear' as 'sports')
+      .from('activity_gear')
       .select('id, activity_id, user_id, gear_name, quantity, is_shared')
-      .eq('activity_id' as 'key', activityId)
-      .order('gear_name' as 'key') as unknown as { data: ActivityGearItem[] | null; error: Error | null };
+      .eq('activity_id', activityId)
+      .order('gear_name');
     if (error) return [];
     if (!data || data.length === 0) return [];
 
@@ -69,10 +69,10 @@ export const gearService = {
     activityId: string,
     items: { name: string; quantity: number; is_shared?: boolean }[],
   ): Promise<void> => {
-    const { error } = await supabase.rpc('set_activity_gear' as 'join_activity', {
+    const { error } = await supabase.rpc('set_activity_gear', {
       p_activity_id: activityId,
       p_items: items,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 };

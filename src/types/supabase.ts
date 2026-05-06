@@ -208,6 +208,7 @@ export type Database = {
           created_at: string
           gear_name: string
           id: string
+          is_shared: boolean
           quantity: number
           user_id: string
         }
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string
           gear_name: string
           id?: string
+          is_shared?: boolean
           quantity?: number
           user_id: string
         }
@@ -224,6 +226,7 @@ export type Database = {
           created_at?: string
           gear_name?: string
           id?: string
+          is_shared?: boolean
           quantity?: number
           user_id?: string
         }
@@ -444,6 +447,7 @@ export type Database = {
           category_key: string
           display_order: number
           id: string
+          is_shared: boolean
           name_key: string
           per_person: boolean
           shared_recommended_qty: number | null
@@ -453,6 +457,7 @@ export type Database = {
           category_key?: string
           display_order?: number
           id?: string
+          is_shared?: boolean
           name_key: string
           per_person?: boolean
           shared_recommended_qty?: number | null
@@ -462,6 +467,7 @@ export type Database = {
           category_key?: string
           display_order?: number
           id?: string
+          is_shared?: boolean
           name_key?: string
           per_person?: boolean
           shared_recommended_qty?: number | null
@@ -1887,6 +1893,10 @@ export type Database = {
         Args: { p_activity_id: string; p_reason: string }
         Returns: undefined
       }
+      cancel_pending_seat_request: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
       check_activity_transitions: { Args: never; Returns: undefined }
       check_alerts_for_activity: {
         Args: { p_activity_id: string }
@@ -2009,6 +2019,10 @@ export type Database = {
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
       edit_private_message: {
+        Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
+        Returns: undefined
+      }
+      edit_wall_message: {
         Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
         Returns: undefined
       }
@@ -2147,6 +2161,18 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: Json
       }
+      get_activity_seat_assignments: {
+        Args: { p_activity_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          driver_id: string
+          id: string
+          pickup_from: string
+          requested_pickup_at: string
+          requester_id: string
+        }[]
+      }
       get_my_active_presence_activities: {
         Args: never
         Returns: {
@@ -2163,6 +2189,14 @@ export type Database = {
         }[]
       }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
+      get_top_vouched_badges: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          badge_key: string
+          user_id: string
+          vote_count: number
+        }[]
+      }
       get_transport_summary: {
         Args: { p_activity_id: string }
         Returns: {

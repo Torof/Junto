@@ -215,8 +215,6 @@
     "pickupAt": "Heure de prise en charge",
     "pickTime": "Choisir l'heure",
     "freeSeats": "Places disponibles",
-    "freeSeatsTotal_one": "{{count}} place libre",
-    "freeSeatsTotal_other": "{{count}} places libres",
     "noFreeSeats": "aucune place libre",
     "seats": "places",
     "myReservation": "Ma place",

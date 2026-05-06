@@ -215,8 +215,6 @@
     "pickupAt": "Pickup time",
     "pickTime": "Pick a time",
     "freeSeats": "Free seats",
-    "freeSeatsTotal_one": "{{count}} free seat",
-    "freeSeatsTotal_other": "{{count}} free seats",
     "noFreeSeats": "no free seats",
     "seats": "seats",
     "myReservation": "My seat",
