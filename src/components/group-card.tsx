@@ -225,17 +225,27 @@ export function GroupCard({
 
   // Common inventory — only SHARED gear. Personal items (helmet,
   // harness) belong on each user's personal list, not aggregated as a
-  // group total. Sorted alphabetically.
+  // group total. Sorted alphabetically. Each row carries its per-user
+  // breakdown so the row can render one avatar+qty pill per bringer.
+  type InventoryBringer = {
+    user_id: string;
+    display_name: string;
+    avatar_url: string | null;
+    quantity: number;
+  };
   const groupItems = useMemo(() => {
-    const map = new Map<string, { name: string; total: number }>();
+    const map = new Map<string, { name: string; bringers: InventoryBringer[] }>();
     gearDeclared.forEach((g) => {
       if (!g.is_shared) return;
-      const existing = map.get(g.gear_name);
-      if (existing) {
-        existing.total += g.quantity;
-      } else {
-        map.set(g.gear_name, { name: g.gear_name, total: g.quantity });
-      }
+      const entry = map.get(g.gear_name);
+      const bringer: InventoryBringer = {
+        user_id: g.user_id,
+        display_name: g.display_name,
+        avatar_url: g.avatar_url,
+        quantity: g.quantity,
+      };
+      if (entry) entry.bringers.push(bringer);
+      else map.set(g.gear_name, { name: g.gear_name, bringers: [bringer] });
     });
     return Array.from(map.values()).sort((a, b) =>
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
@@ -718,7 +728,18 @@ export function GroupCard({
                         <Text style={styles.inventoryItemName} numberOfLines={1}>
                           {g.name}
                         </Text>
-                        <Text style={styles.itemQty}>×{g.total}</Text>
+                        <View style={styles.partyPillRow}>
+                          {g.bringers.map((b) => (
+                            <View key={b.user_id} style={styles.partyPillSuccess}>
+                              <UserAvatar
+                                size={18}
+                                name={b.display_name}
+                                avatarUrl={b.avatar_url}
+                              />
+                              <Text style={styles.partyPillQtySuccess}>×{b.quantity}</Text>
+                            </View>
+                          ))}
+                        </View>
                       </Pressable>
                     ))}
                   </View>
@@ -1286,6 +1307,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
     fontWeight: '500',
+  },
+  // Trailing pill cluster — one success-tinted pill per contributor on
+  // a shared inventory row. Avatar + ×qty inline; pattern repeats per
+  // bringer so a glance reveals who contributed how much.
+  partyPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 0,
+  },
+  partyPillSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.success + '1F',
+    borderRadius: 999,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  partyPillQtySuccess: {
+    color: colors.success,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
   },
   // Bullet list — used for the per-bringer items list inside the
   // expanded "Qui apporte quoi" pills.

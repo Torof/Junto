@@ -97,8 +97,6 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
 
   // Drives both Save and Remove on the per-item modal — sets the user's
   // gear to the transformed list and invalidates the caches. Also
-  // invalidates activity-gear-requests since set_activity_gear may
-  // auto-decrement matching requests server-side.
   type GearWriteItem = { name: string; quantity: number; is_shared: boolean };
 
   const persistMyGear = async (transform: (existing: GearWriteItem[]) => GearWriteItem[]) => {
@@ -108,7 +106,6 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     const next = transform(mine);
     await gearService.setGear(activityId, next);
     await queryClient.invalidateQueries({ queryKey: ['activity-gear', activityId] });
-    await queryClient.invalidateQueries({ queryKey: ['activity-gear-requests', activityId] });
   };
 
   const saveMyContribution = async () => {
