@@ -23,17 +23,11 @@ export interface ActivityGearItem {
   gear_name: string;
   quantity: number;
   is_shared: boolean;
-  requested_by: string | null;
 }
 
 export interface ActivityGearWithProfile extends ActivityGearItem {
   display_name: string;
   avatar_url: string | null;
-  // Set when this contribution fulfilled an "Add missing" request —
-  // public profile of the original requester (so the UI can show
-  // "demandé par X" with their avatar).
-  requested_by_display_name: string | null;
-  requested_by_avatar_url: string | null;
 }
 
 export const gearService = {
@@ -50,17 +44,14 @@ export const gearService = {
   getForActivity: async (activityId: string): Promise<ActivityGearWithProfile[]> => {
     const { data, error } = await supabase
       .from('activity_gear' as 'sports')
-      .select('id, activity_id, user_id, gear_name, quantity, is_shared, requested_by')
+      .select('id, activity_id, user_id, gear_name, quantity, is_shared')
       .eq('activity_id' as 'key', activityId)
       .order('gear_name' as 'key') as unknown as { data: ActivityGearItem[] | null; error: Error | null };
     if (error) return [];
     if (!data || data.length === 0) return [];
 
     const userIds = new Set<string>();
-    data.forEach((g) => {
-      userIds.add(g.user_id);
-      if (g.requested_by) userIds.add(g.requested_by);
-    });
+    data.forEach((g) => userIds.add(g.user_id));
     const { data: profiles } = await supabase
       .from('public_profiles')
       .select('id, display_name, avatar_url')
@@ -71,8 +62,6 @@ export const gearService = {
       ...g,
       display_name: profileMap.get(g.user_id)?.display_name ?? '?',
       avatar_url: profileMap.get(g.user_id)?.avatar_url ?? null,
-      requested_by_display_name: g.requested_by ? profileMap.get(g.requested_by)?.display_name ?? null : null,
-      requested_by_avatar_url: g.requested_by ? profileMap.get(g.requested_by)?.avatar_url ?? null : null,
     }));
   },
 
@@ -83,42 +72,6 @@ export const gearService = {
     const { error } = await supabase.rpc('set_activity_gear' as 'join_activity', {
       p_activity_id: activityId,
       p_items: items,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
-  // Gear requests ("Add missing") — group-level asks for items the
-  // activity needs more of. RPCs enforce the same auth chain as the
-  // gear-set path; auto-decrement happens server-side inside
-  // set_activity_gear when a user adds qty for a name that has an
-  // outstanding request matching the same is_shared.
-  getRequests: async (activityId: string): Promise<{ id: string; gear_name: string; quantity: number; is_shared: boolean; added_by: string | null }[]> => {
-    const { data, error } = await supabase
-      .from('activity_gear_requests' as 'sports')
-      .select('id, gear_name, quantity, is_shared, added_by')
-      .eq('activity_id' as 'key', activityId)
-      .order('gear_name' as 'key') as unknown as {
-        data: { id: string; gear_name: string; quantity: number; is_shared: boolean; added_by: string | null }[] | null;
-        error: Error | null;
-      };
-    if (error) return [];
-    return data ?? [];
-  },
-
-  requestGear: async (activityId: string, name: string, quantity: number, isShared: boolean): Promise<void> => {
-    const { error } = await supabase.rpc('request_activity_gear' as 'join_activity', {
-      p_activity_id: activityId,
-      p_name: name,
-      p_quantity: quantity,
-      p_is_shared: isShared,
-    } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
-  withdrawRequest: async (activityId: string, name: string): Promise<void> => {
-    const { error } = await supabase.rpc('withdraw_activity_gear_request' as 'join_activity', {
-      p_activity_id: activityId,
-      p_name: name,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
