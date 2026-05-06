@@ -136,6 +136,10 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+  // Activity is writable only while published or in_progress. Past /
+  // cancelled / expired activities read as history — the stamps go
+  // non-tappable and the "Ajouter" CTA disappears.
+  const isActive = status === 'published' || status === 'in_progress';
   const [showMyGear, setShowMyGear] = useState(false);
   // Pending-request gate: tapping the transport stamp while a seat
   // request is pending opens this modal first. The user must cancel
@@ -240,6 +244,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   };
 
   const handleTransportStampPress = () => {
+    if (!isActive) return;
     if (cancelState !== 'none') {
       setShowCancelPending(true);
     } else {
@@ -253,13 +258,14 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   // if no transport is set so the caller can proceed.
   useImperativeHandle(ref, () => ({
     requestCancelIfNeeded: () => {
+      if (!isActive) return false;
       if (cancelState !== 'none') {
         setShowCancelPending(true);
         return true;
       }
       return false;
     },
-  }), [cancelState]);
+  }), [cancelState, isActive]);
 
   // Caption — countdown / status. Computed against the user's local day
   // boundary so a 22h activity tonight reads "AUJOURD'HUI" right up to
@@ -540,9 +546,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                     key={g.name}
                     style={[styles.gearListRow, i < myGearItems.length - 1 && styles.gearListRowBorder]}
                     onPress={() => {
+                      if (!isActive) return;
                       setShowMyGear(false);
                       onEditGearItem(g.name);
                     }}
+                    disabled={!isActive}
                     hitSlop={4}
                   >
                     <View style={styles.gearListIconWrap}>
@@ -560,19 +568,21 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               </ScrollView>
             )}
 
-            <Pressable
-              style={styles.addBtn}
-              onPress={() => {
-                setShowMyGear(false);
-                onAddMaterial();
-              }}
-              hitSlop={4}
-            >
-              <Plus size={14} color={colors.cta} strokeWidth={2.6} />
-              <Text style={styles.addBtnText}>
-                {t('myOuting.addMaterial', { defaultValue: 'Ajouter du matériel' })}
-              </Text>
-            </Pressable>
+            {isActive && (
+              <Pressable
+                style={styles.addBtn}
+                onPress={() => {
+                  setShowMyGear(false);
+                  onAddMaterial();
+                }}
+                hitSlop={4}
+              >
+                <Plus size={14} color={colors.cta} strokeWidth={2.6} />
+                <Text style={styles.addBtnText}>
+                  {t('myOuting.addMaterial', { defaultValue: 'Ajouter du matériel' })}
+                </Text>
+              </Pressable>
+            )}
           </Pressable>
         </Pressable>
       </Modal>

@@ -19,6 +19,10 @@ interface Props {
   activityId: string;
   currentUserId: string | null;
   isParticipant: boolean;
+  // True when the activity is published or in_progress (writable). Past/
+  // cancelled/expired activities are read-only — write affordances stay
+  // hidden so users don't tap into a generic "Operation not permitted".
+  isActive: boolean;
   activeSubTab: 'transport' | 'gear';
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;
   onReserveSeat: (driverId: string) => void;
@@ -42,6 +46,7 @@ export function GroupCard({
   activityId,
   currentUserId,
   isParticipant,
+  isActive,
   activeSubTab,
   onActiveSubTabChange,
   onReserveSeat,
@@ -297,14 +302,15 @@ export function GroupCard({
 
   // Whether the current user is allowed to request a seat right now —
   // mirrors TransportSection's existing rule so the affordance behaves
-  // consistently with the dense view.
+  // consistently with the dense view. `isActive` gates the affordance
+  // for terminated activities (request_seat would fail server-side).
   const canReserve = useMemo(() => {
-    if (!currentUserId) return false;
+    if (!currentUserId || !isActive) return false;
     const myTransport = transports.find((p) => p.user_id === currentUserId);
     const isMyselfDriver =
       myTransport && (CAR_TYPES as readonly string[]).includes(myTransport.transport_type ?? '');
     return !isMyselfDriver && !myAcceptedSeat;
-  }, [transports, myAcceptedSeat, currentUserId]);
+  }, [transports, myAcceptedSeat, currentUserId, isActive]);
 
   if (!isParticipant) return null;
 
@@ -681,70 +687,64 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
-            {gearDeclared.length === 0 && !isParticipant && (
-              <Text style={styles.emptyHint}>
-                {t('group.recapEmpty', { defaultValue: 'Personne n\'a encore déclaré de matériel' })}
-              </Text>
-            )}
-
             {/* Section 1 — Inventaire commun (shared gear only). Always
                 expanded; the "+ Ajouter" affordance lives in the header
                 so the section reads as a single unit and the list isn't
-                pushed down by a separate CTA. */}
-            {(isParticipant || groupItems.length > 0) && (
-              <View style={styles.gearSection}>
-                <View style={styles.collapsibleHeader}>
-                  <Text style={styles.transportCategoryLabel}>
-                    {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
-                  </Text>
-                  <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
-                  <View style={styles.collapsibleSpacer} />
-                  {isParticipant && (
-                    <Pressable
-                      style={styles.addGearChip}
-                      onPress={onAddGear}
-                      hitSlop={6}
-                    >
-                      <Plus size={12} color={colors.cta} strokeWidth={2.5} />
-                      <Text style={styles.addGearChipText}>
-                        {t('group.addGearShort', { defaultValue: 'Ajouter' })}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-
-                {groupItems.length > 0 && (
-                  <View style={styles.inventoryList}>
-                    {groupItems.map((g) => (
-                      <Pressable
-                        key={g.name}
-                        style={styles.inventoryItem}
-                        onPress={() => isParticipant && onEditGearItem(g.name, true)}
-                        disabled={!isParticipant}
-                        hitSlop={4}
-                      >
-                        <Plus size={14} color={colors.cta} strokeWidth={2.5} />
-                        <Text style={styles.inventoryItemName} numberOfLines={1}>
-                          {g.name}
-                        </Text>
-                        <View style={styles.partyPillRow}>
-                          {g.bringers.map((b) => (
-                            <View key={b.user_id} style={styles.partyPillSuccess}>
-                              <UserAvatar
-                                size={18}
-                                name={b.display_name}
-                                avatarUrl={b.avatar_url}
-                              />
-                              <Text style={styles.partyPillQtySuccess}>×{b.quantity}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      </Pressable>
-                    ))}
-                  </View>
+                pushed down by a separate CTA. The chip + per-item tap
+                are gated on isActive so terminated activities read as
+                read-only history. */}
+            <View style={styles.gearSection}>
+              <View style={styles.collapsibleHeader}>
+                <Text style={styles.transportCategoryLabel}>
+                  {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
+                </Text>
+                <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
+                <View style={styles.collapsibleSpacer} />
+                {isActive && (
+                  <Pressable
+                    style={styles.addGearChip}
+                    onPress={onAddGear}
+                    hitSlop={6}
+                  >
+                    <Plus size={12} color={colors.cta} strokeWidth={2.5} />
+                    <Text style={styles.addGearChipText}>
+                      {t('group.addGearShort', { defaultValue: 'Ajouter' })}
+                    </Text>
+                  </Pressable>
                 )}
               </View>
-            )}
+
+              {groupItems.length > 0 && (
+                <View style={styles.inventoryList}>
+                  {groupItems.map((g) => (
+                    <Pressable
+                      key={g.name}
+                      style={styles.inventoryItem}
+                      onPress={() => isActive && onEditGearItem(g.name, true)}
+                      disabled={!isActive}
+                      hitSlop={4}
+                    >
+                      <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                      <Text style={styles.inventoryItemName} numberOfLines={1}>
+                        {g.name}
+                      </Text>
+                      <View style={styles.partyPillRow}>
+                        {g.bringers.map((b) => (
+                          <View key={b.user_id} style={styles.partyPillSuccess}>
+                            <UserAvatar
+                              size={18}
+                              name={b.display_name}
+                              avatarUrl={b.avatar_url}
+                            />
+                            <Text style={styles.partyPillQtySuccess}>×{b.quantity}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
 
             {/* Section 2 — Qui apporte quoi. Per-bringer collapsible
                 blocks. Same data as before, just no longer paired with

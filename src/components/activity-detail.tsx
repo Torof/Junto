@@ -797,6 +797,7 @@ export function ActivityDetail({
             activityId={activity.id}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
+            isActive={isActive}
             activeSubTab={orgSubTab}
             onActiveSubTabChange={setOrgSubTab}
             onReserveSeat={(driverId) => {
