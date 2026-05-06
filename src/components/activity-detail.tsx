@@ -126,6 +126,12 @@ export function ActivityDetail({
             queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
             queryClient.invalidateQueries({ queryKey: ['participants-pending', activity.id] });
             queryClient.invalidateQueries({ queryKey: ['participants-late-leavers', activity.id] });
+            // Caller's own participation row — driven by external changes
+            // (creator removes them, lazy transition flips status,
+            // accept_seat_request nulls transport_*, peer_validate flips
+            // confirmed_present). Without this, the screen-level query in
+            // app/(auth)/activity/[id].tsx stays stale until manual refresh.
+            queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
           } else if (table === 'seat_requests') {
             queryClient.invalidateQueries({ queryKey: ['seat-requests', activity.id] });
             queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activity.id] });
