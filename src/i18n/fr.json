@@ -394,7 +394,8 @@
       "recap": "Inventaire individuel"
     },
     "recapEmpty": "Personne n'a encore déclaré de matériel",
-    "addGear": "Ajouter du matériel"
+    "addGear": "Ajouter du matériel",
+    "addGearShort": "Ajouter"
   },
   "pushDenied": {
     "title": "Notifications désactivées",

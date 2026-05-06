@@ -394,7 +394,8 @@
       "recap": "Personal inventory"
     },
     "recapEmpty": "Nobody's declared gear yet",
-    "addGear": "Add gear"
+    "addGear": "Add gear",
+    "addGearShort": "Add"
   },
   "pushDenied": {
     "title": "Notifications disabled",

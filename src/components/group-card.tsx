@@ -699,7 +699,7 @@ export function GroupCard({
                     >
                       <Plus size={12} color={colors.cta} strokeWidth={2.5} />
                       <Text style={styles.addGearChipText}>
-                        {t('group.addGear', { defaultValue: 'Ajouter du matériel' })}
+                        {t('group.addGearShort', { defaultValue: 'Ajouter' })}
                       </Text>
                     </Pressable>
                   )}
