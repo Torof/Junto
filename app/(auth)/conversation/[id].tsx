@@ -464,57 +464,61 @@ export default function ConversationScreen() {
         />
       )}
 
-      {/* Replying-to preview — small bar above the input showing the
-          quoted message and a cancel ✕. Sender name resolves from the
-          long-pressed message: own self if the user is replying to
-          their own message, otherSelf's name otherwise. */}
-      {replyingTo && (
-        <View style={styles.replyPreview}>
-          <View style={styles.replyPreviewBar} />
-          <View style={styles.replyPreviewBody}>
-            <Text style={styles.replyPreviewLabel} numberOfLines={1}>
-              {replyingTo.sender_id === currentUser
-                ? t('messagerie.replyToSelf', { defaultValue: 'Réponse à toi-même' })
-                : t('messagerie.replyTo', {
-                    name: otherUser?.display_name ?? '',
-                    defaultValue: `Réponse à ${otherUser?.display_name ?? ''}`,
-                  })}
-            </Text>
-            <Text style={styles.replyPreviewContent} numberOfLines={1}>
-              {replyingTo.content}
-            </Text>
+      {/* Bottom dock — wraps the replying-to preview (when active)
+          and the input row. Explicit `alignSelf: 'stretch'` so the
+          column always takes full width regardless of any flex
+          ancestor's alignItems setting. Without the wrapper the
+          preview was occasionally collapsing to the input's content
+          width. */}
+      <View style={styles.bottomDock}>
+        {replyingTo && (
+          <View style={styles.replyPreview}>
+            <View style={styles.replyPreviewBar} />
+            <View style={styles.replyPreviewBody}>
+              <Text style={styles.replyPreviewLabel} numberOfLines={1}>
+                {replyingTo.sender_id === currentUser
+                  ? t('messagerie.replyToSelf', { defaultValue: 'Réponse à toi-même' })
+                  : t('messagerie.replyTo', {
+                      name: otherUser?.display_name ?? '',
+                      defaultValue: `Réponse à ${otherUser?.display_name ?? ''}`,
+                    })}
+              </Text>
+              <Text style={styles.replyPreviewContent} numberOfLines={1}>
+                {replyingTo.content}
+              </Text>
+            </View>
+            <Pressable onPress={() => setReplyingTo(null)} hitSlop={8} style={styles.replyPreviewClose}>
+              <XIcon size={16} color={colors.textSecondary} strokeWidth={2.4} />
+            </Pressable>
           </View>
-          <Pressable onPress={() => setReplyingTo(null)} hitSlop={8} style={styles.replyPreviewClose}>
-            <XIcon size={16} color={colors.textSecondary} strokeWidth={2.4} />
+        )}
+
+        <View style={[styles.inputRow, { paddingBottom: insets.bottom + spacing.sm }]}>
+          <Pressable
+            style={[styles.attachButton, isAttaching && styles.sendDisabled]}
+            onPress={handleAttachTrace}
+            disabled={isAttaching}
+            hitSlop={6}
+          >
+            <Paperclip size={20} color={colors.textSecondary} strokeWidth={2.2} />
+          </Pressable>
+          <TextInput
+            style={styles.input}
+            value={message}
+            onChangeText={setMessage}
+            placeholder={t('messagerie.placeholder')}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={2000}
+            multiline
+          />
+          <Pressable
+            style={[styles.sendButton, (!message.trim() || isSending) && styles.sendDisabled]}
+            onPress={handleSend}
+            disabled={!message.trim() || isSending}
+          >
+            <Text style={styles.sendText}>↑</Text>
           </Pressable>
         </View>
-      )}
-
-      <View style={[styles.inputRow, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <Pressable
-          style={[styles.attachButton, isAttaching && styles.sendDisabled]}
-          onPress={handleAttachTrace}
-          disabled={isAttaching}
-          hitSlop={6}
-        >
-          <Paperclip size={20} color={colors.textSecondary} strokeWidth={2.2} />
-        </Pressable>
-        <TextInput
-          style={styles.input}
-          value={message}
-          onChangeText={setMessage}
-          placeholder={t('messagerie.placeholder')}
-          placeholderTextColor={colors.textSecondary}
-          maxLength={2000}
-          multiline
-        />
-        <Pressable
-          style={[styles.sendButton, (!message.trim() || isSending) && styles.sendDisabled]}
-          onPress={handleSend}
-          disabled={!message.trim() || isSending}
-        >
-          <Text style={styles.sendText}>↑</Text>
-        </Pressable>
       </View>
 
       {/* Trace preview modal */}
@@ -924,10 +928,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     maxWidth: 200,
   },
 
+  // Bottom dock — single full-width column wrapping the reply
+  // preview (when active) and the input row. Guarantees both rows
+  // span the screen even if a flex ancestor uses non-stretch
+  // alignment (the wrapper makes our intent explicit).
+  bottomDock: {
+    alignSelf: 'stretch',
+    width: '100%',
+  },
   // Quoted-reply preview above the input bar — small bar with the
   // original sender + a snippet of the original content, plus a
   // cancel ✕. Shown while the user is composing a reply.
   replyPreview: {
+    alignSelf: 'stretch',
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -1005,6 +1019,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
 
   inputRow: {
+    alignSelf: 'stretch',
+    width: '100%',
     flexDirection: 'row', alignItems: 'flex-end',
     padding: spacing.md, gap: spacing.xs,
     borderTopWidth: 1, borderTopColor: colors.surface,
