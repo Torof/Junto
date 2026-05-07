@@ -433,6 +433,7 @@ export default function ConversationScreen() {
       ) : (
         <FlatList
           ref={flatListRef}
+          style={styles.messageListContainer}
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
@@ -815,6 +816,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
+  // FlatList wrapper takes remaining vertical space so the bottom
+  // dock (reply preview + input) anchors at the bottom of the
+  // visible area. Without flex:1 the list sizes to its content and
+  // the dock floats up — which also collapsed the dock's width
+  // because nothing was forcing the column to span the screen.
+  messageListContainer: { flex: 1 },
   messageList: { padding: spacing.md, paddingBottom: spacing.sm },
   bubble: {
     maxWidth: '80%',
