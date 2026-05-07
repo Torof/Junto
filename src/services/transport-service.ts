@@ -67,13 +67,17 @@ export const transportService = {
     return (data ?? []) as TransportSummary[];
   },
 
+  // Returns the conversation_id between requester and driver so the
+  // caller can route straight to the chat thread on success — both
+  // sides land on the conversation and can discuss before the
+  // accept/decline decision (00206 + 00207). NULL when blocked.
   requestSeat: async (
     activityId: string,
     driverId: string,
     pickupFrom?: string,
     message?: string,
     requestedPickupAt?: string | null,
-  ): Promise<string> => {
+  ): Promise<string | null> => {
     const { data, error } = await supabase.rpc('request_seat', {
       p_activity_id: activityId,
       p_driver_id: driverId,
@@ -82,7 +86,7 @@ export const transportService = {
       p_requested_pickup_at: requestedPickupAt ?? undefined,
     });
     if (error) throw error;
-    return data;
+    return data ?? null;
   },
 
   // Returns the conversation_id between driver and requester so the

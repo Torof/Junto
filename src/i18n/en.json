@@ -642,7 +642,15 @@
     "requestAccepted": "Request accepted",
     "viaProfile": "Via profile",
     "viaDiscovery": "Via discovery",
-    "viaTransport": "Transport request"
+    "viaTransport": "Transport request",
+    "seatAccept": "Accept",
+    "seatDecline": "Decline",
+    "seatStatus": {
+      "accepted": "Seat confirmed",
+      "declined": "Request declined",
+      "cancelled": "Request cancelled",
+      "expired": "Request expired"
+    }
   },
   "publicProfile": {
     "sendMessage": "Send message",

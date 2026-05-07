@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus } from 'lucide-react-native';
+import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
+import { transportService } from '@/services/transport-service';
 import type { GeoJsonLineString } from '@/services/activity-service';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
@@ -85,6 +86,71 @@ export default function ConversationScreen() {
       supabase.removeChannel(channel);
     };
   }, [id, queryClient]);
+
+  // Seat-request inline actions — when a message is the seed for a
+  // pending seat request and the viewer is the driver, we render
+  // accept/decline buttons under the bubble so the driver can act
+  // without leaving the chat. Status drives whether to show the
+  // buttons (still pending) or a transition badge.
+  const seatRequestIdsKey = useMemo(() => {
+    const ids = (messages ?? [])
+      .map((m) => m.metadata?.seat_request_id)
+      .filter((v): v is string => typeof v === 'string');
+    return Array.from(new Set(ids)).sort().join(',');
+  }, [messages]);
+
+  const { data: seatRequestStatuses = [] } = useQuery({
+    queryKey: ['conversation-seat-requests', seatRequestIdsKey],
+    queryFn: async () => {
+      if (!seatRequestIdsKey) return [];
+      const ids = seatRequestIdsKey.split(',');
+      const { data } = await supabase
+        .from('seat_requests')
+        .select('id, status')
+        .in('id', ids);
+      return data ?? [];
+    },
+    enabled: !!seatRequestIdsKey,
+  });
+
+  const seatRequestStatusById = useMemo(() => {
+    const map = new Map<string, string>();
+    seatRequestStatuses.forEach((r) => map.set(r.id, r.status));
+    return map;
+  }, [seatRequestStatuses]);
+
+  const [seatActionId, setSeatActionId] = useState<string | null>(null);
+
+  const handleSeatAccept = async (requestId: string) => {
+    setSeatActionId(requestId);
+    try {
+      await transportService.acceptSeatRequest(requestId);
+      // Stay in the chat — the accept RPC seeds a "🚗 Place réservée"
+      // message that the realtime subscription will surface here.
+      await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+      await queryClient.invalidateQueries({ queryKey: ['conversation-seat-requests', seatRequestIdsKey] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setSeatActionId(null);
+    }
+  };
+
+  const handleSeatDecline = async (requestId: string) => {
+    setSeatActionId(requestId);
+    try {
+      await transportService.declineSeatRequest(requestId);
+      await queryClient.invalidateQueries({ queryKey: ['conversation-seat-requests', seatRequestIdsKey] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+    } catch {
+      Burnt.toast({ title: t('auth.unknownError') });
+    } finally {
+      setSeatActionId(null);
+    }
+  };
 
   const handleDownloadTrace = async () => {
     if (!tracePreview) return;
@@ -241,6 +307,11 @@ export default function ConversationScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const isTrace = item.metadata?.type === 'shared_trace' && item.metadata.trace_geojson;
+            const seatReqId = item.metadata?.type === 'seat_request_pending' ? item.metadata.seat_request_id : null;
+            const seatReqStatus = seatReqId ? (seatRequestStatusById.get(seatReqId) ?? 'pending') : null;
+            // Driver = receiver of the seed (the requester sent it).
+            const isDriver = !!seatReqId && item.receiver_id === currentUser;
+            const isActing = !!seatReqId && seatActionId === seatReqId;
             return (
               <Pressable
                 style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}
@@ -274,6 +345,48 @@ export default function ConversationScreen() {
                       {t('messagerie.viewActivity')}
                     </Text>
                   </Pressable>
+                )}
+                {/* Seat-request inline actions (driver-side) — accept /
+                    decline straight from the chat surface so the
+                    discussion can lead to a decision in place. */}
+                {seatReqId && seatReqStatus === 'pending' && isDriver && (
+                  <View style={styles.seatActionRow}>
+                    <Pressable
+                      style={[styles.seatAcceptBtn, isActing && styles.seatActionDisabled]}
+                      onPress={() => handleSeatAccept(seatReqId)}
+                      disabled={isActing}
+                      hitSlop={4}
+                    >
+                      <Check size={14} color={colors.textPrimary} strokeWidth={3} />
+                      <Text style={styles.seatAcceptText}>
+                        {t('messagerie.seatAccept', { defaultValue: 'Accepter' })}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.seatDeclineBtn, isActing && styles.seatActionDisabled]}
+                      onPress={() => handleSeatDecline(seatReqId)}
+                      disabled={isActing}
+                      hitSlop={4}
+                    >
+                      <Text style={styles.seatDeclineText}>
+                        {t('messagerie.seatDecline', { defaultValue: 'Refuser' })}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                {seatReqId && seatReqStatus && seatReqStatus !== 'pending' && (
+                  <View style={styles.seatStatusBadge}>
+                    <Text style={styles.seatStatusText}>
+                      {t(`messagerie.seatStatus.${seatReqStatus}`, {
+                        defaultValue:
+                          seatReqStatus === 'accepted' ? 'Place confirmée'
+                          : seatReqStatus === 'declined' ? 'Demande refusée'
+                          : seatReqStatus === 'cancelled' ? 'Demande annulée'
+                          : seatReqStatus === 'expired' ? 'Demande expirée'
+                          : seatReqStatus,
+                      })}
+                    </Text>
+                  </View>
                 )}
                 <View style={styles.bubbleFooter}>
                   <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
@@ -428,6 +541,60 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.cta,
   },
   bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  // Seat-request inline action row — sits inside the seed bubble so
+  // the driver can accept / decline without leaving the chat. Buttons
+  // are pill-shaped, full-width, with action-coloured backgrounds.
+  seatActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  seatAcceptBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    backgroundColor: colors.success,
+  },
+  seatAcceptText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '700',
+  },
+  seatDeclineBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    backgroundColor: 'transparent',
+  },
+  seatDeclineText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs + 1,
+    fontWeight: '600',
+  },
+  seatActionDisabled: {
+    opacity: 0.4,
+  },
+  seatStatusBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    backgroundColor: colors.line,
+  },
+  seatStatusText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+  },
   bubbleFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 2 },
   bubbleTime: { color: colors.textSecondary, fontSize: fontSizes.xs - 2 },
   editedTag: { color: colors.textSecondary, fontSize: fontSizes.xs - 2, fontStyle: 'italic' },

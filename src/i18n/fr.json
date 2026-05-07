@@ -642,7 +642,15 @@
     "requestAccepted": "Demande acceptée",
     "viaProfile": "Via le profil",
     "viaDiscovery": "Via la découverte",
-    "viaTransport": "Demande de transport"
+    "viaTransport": "Demande de transport",
+    "seatAccept": "Accepter",
+    "seatDecline": "Refuser",
+    "seatStatus": {
+      "accepted": "Place confirmée",
+      "declined": "Demande refusée",
+      "cancelled": "Demande annulée",
+      "expired": "Demande expirée"
+    }
   },
   "publicProfile": {
     "sendMessage": "Envoyer un message",

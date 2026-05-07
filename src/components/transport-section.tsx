@@ -2,6 +2,7 @@ import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingVi
 import { useState, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { router } from 'expo-router';
 import { Car, Bike, TrainFront, Footprints, HelpCircle, Clock } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
@@ -139,7 +140,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     if (!requestingFromDriver) return;
     setRequestSending(true);
     try {
-      await transportService.requestSeat(
+      const conversationId = await transportService.requestSeat(
         activityId,
         requestingFromDriver,
         requestPickup.trim() || undefined,
@@ -147,8 +148,16 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         requestedPickupAt ? requestedPickupAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setRequestingFromDriver(null);
       Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
+      // Land on the chat — driver will be there too once they tap the
+      // push or open messagerie. Both sides can discuss pickup/timing
+      // before the driver accepts. Falls through silently when the
+      // two are blocked (no conversation to route to).
+      if (conversationId) {
+        router.push(`/(auth)/conversation/${conversationId}`);
+      }
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {

@@ -2,8 +2,13 @@ import { supabase } from './supabase';
 import type { GeoJsonLineString } from './activity-service';
 
 export interface MessageMetadata {
-  type?: 'seat_accepted' | 'shared_activity' | 'shared_trace';
+  type?: 'seat_accepted' | 'seat_request_pending' | 'shared_activity' | 'shared_trace';
   activity_id?: string;
+  // Set on 'seat_request_pending' seed messages so the conversation
+  // thread can render inline accept/decline buttons + look up the
+  // current status to show "accepted/declined/cancelled" badges
+  // after a transition.
+  seat_request_id?: string;
   name?: string;
   trace_geojson?: GeoJsonLineString;
 }
