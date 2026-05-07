@@ -244,10 +244,21 @@ export default function ConversationScreen() {
       await transportService.acceptSeatRequest(requestId);
       // Stay in the chat — the accept RPC seeds a "🚗 Place réservée"
       // message that the realtime subscription will surface here.
+      // Invalidate everything that the accept could have touched.
+      // Some keys (messagerie list, conversations) are local; the rest
+      // belong to the activity tab — invalidating them by prefix
+      // refreshes any mounted GroupCard / MyOutingCard regardless of
+      // activityId. Belt-and-suspenders for cases where the realtime
+      // broadcast is lost in flight.
       await queryClient.invalidateQueries({ queryKey: ['messages', id] });
       await queryClient.invalidateQueries({ queryKey: ['conversation-seat-requests', seatRequestIdsKey] });
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted'] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests'] });
+      await queryClient.invalidateQueries({ queryKey: ['transport'] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary'] });
+      await queryClient.invalidateQueries({ queryKey: ['participation'] });
       Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
@@ -262,6 +273,10 @@ export default function ConversationScreen() {
       await transportService.declineSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['conversation-seat-requests', seatRequestIdsKey] });
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+      // Same belt-and-suspenders as accept — decline doesn't touch
+      // transport but refreshing the seat-requests query removes the
+      // pending row from the requester's "En attente" pill.
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests'] });
     } catch {
       Burnt.toast({ title: t('auth.unknownError') });
     } finally {
