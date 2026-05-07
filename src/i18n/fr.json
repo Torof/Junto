@@ -650,7 +650,12 @@
       "declined": "Demande refusée",
       "cancelled": "Demande annulée",
       "expired": "Demande expirée"
-    }
+    },
+    "reply": "Répondre",
+    "replyTo": "Réponse à {{name}}",
+    "replyToSelf": "Réponse à toi-même",
+    "replyDeleted": "Message supprimé",
+    "you": "Toi"
   },
   "publicProfile": {
     "sendMessage": "Envoyer un message",

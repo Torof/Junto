@@ -758,6 +758,7 @@ export type Database = {
           id: string
           metadata: Json | null
           receiver_id: string
+          reply_to_message_id: string | null
           sender_id: string
         }
         Insert: {
@@ -769,6 +770,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           receiver_id: string
+          reply_to_message_id?: string | null
           sender_id: string
         }
         Update: {
@@ -780,6 +782,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           receiver_id?: string
+          reply_to_message_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -802,6 +805,13 @@ export type Database = {
             columns: ["receiver_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_messages_reply_to_message_id_fkey"
+            columns: ["reply_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "private_messages"
             referencedColumns: ["id"]
           },
           {
@@ -2408,10 +2418,19 @@ export type Database = {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
         Returns: string
       }
-      send_private_message: {
-        Args: { p_content: string; p_conversation_id: string }
-        Returns: string
-      }
+      send_private_message:
+        | {
+            Args: { p_content: string; p_conversation_id: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_content: string
+              p_conversation_id: string
+              p_reply_to_message_id?: string
+            }
+            Returns: string
+          }
       send_wall_message: {
         Args: { p_activity_id: string; p_content: string }
         Returns: string

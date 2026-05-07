@@ -650,7 +650,12 @@
       "declined": "Request declined",
       "cancelled": "Request cancelled",
       "expired": "Request expired"
-    }
+    },
+    "reply": "Reply",
+    "replyTo": "Reply to {{name}}",
+    "replyToSelf": "Reply to yourself",
+    "replyDeleted": "Message deleted",
+    "you": "You"
   },
   "publicProfile": {
     "sendMessage": "Send message",

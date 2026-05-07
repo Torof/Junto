@@ -13,6 +13,16 @@ export interface MessageMetadata {
   trace_geojson?: GeoJsonLineString;
 }
 
+// Quoted-reply payload — the original message (or a placeholder when
+// the original was deleted post-reply). Surfaced inside reply bubbles
+// so the chat UI can render a small quote at the top.
+export interface ReplySnippet {
+  id: string;
+  sender_id: string;
+  content: string;
+  deleted_at: string | null;
+}
+
 export interface PrivateMessage {
   id: string;
   conversation_id: string;
@@ -23,27 +33,43 @@ export interface PrivateMessage {
   deleted_at: string | null;
   created_at: string;
   metadata: MessageMetadata | null;
+  reply_to_message_id: string | null;
+  reply_to: ReplySnippet | null;
 }
+
+type RawMessageRow = Omit<PrivateMessage, 'reply_to'> & {
+  reply_to: ReplySnippet | ReplySnippet[] | null;
+};
 
 export const messageService = {
   getMessages: async (conversationId: string): Promise<PrivateMessage[]> => {
     const { data, error } = await supabase
       .from('private_messages')
-      .select('id, conversation_id, sender_id, receiver_id, content, edited_at, deleted_at, created_at, metadata')
-      .eq('conversation_id' as 'id', conversationId)
+      .select(`
+        id, conversation_id, sender_id, receiver_id, content,
+        edited_at, deleted_at, created_at, metadata, reply_to_message_id,
+        reply_to:reply_to_message_id (id, sender_id, content, deleted_at)
+      `)
+      .eq('conversation_id', conversationId)
       .is('deleted_at', null)
       .order('created_at', { ascending: true });
     if (error) throw error;
-    return (data ?? []) as unknown as PrivateMessage[];
+    // Supabase types the foreign-key embed as an array even on
+    // single-row joins via a self-FK — flatten it.
+    return ((data ?? []) as unknown as RawMessageRow[]).map((row) => ({
+      ...row,
+      reply_to: Array.isArray(row.reply_to) ? (row.reply_to[0] ?? null) : row.reply_to,
+    }));
   },
 
-  send: async (conversationId: string, content: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('send_private_message' as 'join_activity', {
+  send: async (conversationId: string, content: string, replyToMessageId?: string | null): Promise<string> => {
+    const { data, error } = await supabase.rpc('send_private_message', {
       p_conversation_id: conversationId,
       p_content: content,
-    } as unknown as { p_activity_id: string });
+      p_reply_to_message_id: replyToMessageId ?? undefined,
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   edit: async (messageId: string, content: string): Promise<void> => {

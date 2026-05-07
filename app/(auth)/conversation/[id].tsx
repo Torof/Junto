@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
+import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft } from 'lucide-react-native';
+import { UserAvatar } from '@/components/user-avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +44,8 @@ export default function ConversationScreen() {
   const { markConversationRead } = useMessageStore();
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
+  const navigation = useNavigation();
 
   // Mark conversation as read when opened
   useEffect(() => {
@@ -53,6 +56,50 @@ export default function ConversationScreen() {
     queryKey: ['currentUser-id'],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
   });
+
+  // Other party of this DM — used by the header (avatar + name, tap
+  // to profile) so the conversation has context instead of an empty
+  // top bar.
+  const { data: otherUser } = useQuery({
+    queryKey: ['conversation-other-user', id, currentUser ?? null],
+    queryFn: async () => {
+      if (!id || !currentUser) return null;
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('user_1, user_2')
+        .eq('id', id)
+        .maybeSingle();
+      if (!conv) return null;
+      const otherId = conv.user_1 === currentUser ? conv.user_2 : conv.user_1;
+      const { data: profile } = await supabase
+        .from('public_profiles')
+        .select('id, display_name, avatar_url')
+        .eq('id', otherId)
+        .maybeSingle();
+      return profile;
+    },
+    enabled: !!id && !!currentUser,
+    staleTime: 60_000,
+  });
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        otherUser ? (
+          <Pressable
+            style={styles.headerRow}
+            onPress={() => router.push(`/(auth)/profile/${otherUser.id}`)}
+            hitSlop={6}
+          >
+            <UserAvatar name={otherUser.display_name ?? '?'} avatarUrl={otherUser.avatar_url} size={28} />
+            <Text style={styles.headerName} numberOfLines={1}>
+              {otherUser.display_name ?? '?'}
+            </Text>
+          </Pressable>
+        ) : null
+      ),
+    });
+  }, [navigation, otherUser, router, styles]);
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['messages', id],
@@ -232,8 +279,9 @@ export default function ConversationScreen() {
 
     setIsSending(true);
     try {
-      await messageService.send(id, message.trim());
+      await messageService.send(id, message.trim(), replyingTo?.id ?? null);
       setMessage('');
+      setReplyingTo(null);
       await queryClient.invalidateQueries({ queryKey: ['messages', id] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
@@ -244,9 +292,17 @@ export default function ConversationScreen() {
     }
   };
 
+  // Long-press opens the action sheet for any message — Reply is
+  // available on both own + received bubbles; Edit / Delete only on
+  // own bubbles. The sheet renders conditionals based on ownership.
   const handleLongPress = (msg: PrivateMessage) => {
-    if (msg.sender_id !== currentUser) return;
     setSelectedMessage(msg);
+  };
+
+  const handleReplyTo = () => {
+    if (!selectedMessage) return;
+    setReplyingTo(selectedMessage);
+    setSelectedMessage(null);
   };
 
   const handleEdit = () => {
@@ -291,7 +347,11 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+    >
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
@@ -317,6 +377,23 @@ export default function ConversationScreen() {
                 style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}
                 onLongPress={() => handleLongPress(item)}
               >
+                {item.reply_to && (
+                  <View style={[styles.bubbleReplyQuote, isOwnMessage(item) && styles.bubbleReplyQuoteOwn]}>
+                    <View style={[styles.bubbleReplyBar, isOwnMessage(item) && styles.bubbleReplyBarOwn]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.bubbleReplyAuthor, isOwnMessage(item) && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
+                        {item.reply_to.sender_id === currentUser
+                          ? t('messagerie.you', { defaultValue: 'Toi' })
+                          : otherUser?.display_name ?? '?'}
+                      </Text>
+                      <Text style={[styles.bubbleReplyContent, isOwnMessage(item) && styles.bubbleReplyContentOwn]} numberOfLines={2}>
+                        {item.reply_to.deleted_at
+                          ? t('messagerie.replyDeleted', { defaultValue: 'Message supprimé' })
+                          : item.reply_to.content}
+                      </Text>
+                    </View>
+                  </View>
+                )}
                 <Text style={[styles.bubbleText, isOwnMessage(item) && styles.bubbleTextOwn]}>{item.content}</Text>
                 {isTrace && (
                   <Pressable
@@ -400,7 +477,33 @@ export default function ConversationScreen() {
         />
       )}
 
-      <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+      {/* Replying-to preview — small bar above the input showing the
+          quoted message and a cancel ✕. Sender name resolves from the
+          long-pressed message: own self if the user is replying to
+          their own message, otherSelf's name otherwise. */}
+      {replyingTo && (
+        <View style={styles.replyPreview}>
+          <View style={styles.replyPreviewBar} />
+          <View style={styles.replyPreviewBody}>
+            <Text style={styles.replyPreviewLabel} numberOfLines={1}>
+              {replyingTo.sender_id === currentUser
+                ? t('messagerie.replyToSelf', { defaultValue: 'Réponse à toi-même' })
+                : t('messagerie.replyTo', {
+                    name: otherUser?.display_name ?? '',
+                    defaultValue: `Réponse à ${otherUser?.display_name ?? ''}`,
+                  })}
+            </Text>
+            <Text style={styles.replyPreviewContent} numberOfLines={1}>
+              {replyingTo.content}
+            </Text>
+          </View>
+          <Pressable onPress={() => setReplyingTo(null)} hitSlop={8} style={styles.replyPreviewClose}>
+            <XIcon size={16} color={colors.textSecondary} strokeWidth={2.4} />
+          </Pressable>
+        </View>
+      )}
+
+      <View style={[styles.inputRow, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Pressable
           style={[styles.attachButton, isAttaching && styles.sendDisabled]}
           onPress={handleAttachTrace}
@@ -469,17 +572,25 @@ export default function ConversationScreen() {
           })()}
         </View>
       </Modal>
-      {/* Message action sheet */}
+      {/* Message action sheet — Reply is always offered; Edit / Delete
+          only when the long-pressed message belongs to the caller. */}
       <Modal visible={selectedMessage !== null && !isEditMode} animationType="slide" transparent>
         <Pressable style={styles.menuBackdrop} onPress={() => setSelectedMessage(null)}>
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             <View style={styles.menuHandle} />
-            <Pressable style={styles.menuItem} onPress={handleEdit}>
-              <Text style={styles.menuText}>{t('messagerie.editMessage')}</Text>
+            <Pressable style={styles.menuItem} onPress={handleReplyTo}>
+              <Text style={styles.menuText}>{t('messagerie.reply', { defaultValue: 'Répondre' })}</Text>
             </Pressable>
-            <Pressable style={styles.menuItem} onPress={handleDelete}>
-              <Text style={styles.menuTextDanger}>{t('messagerie.deleteMessage')}</Text>
-            </Pressable>
+            {selectedMessage && selectedMessage.sender_id === currentUser && (
+              <>
+                <Pressable style={styles.menuItem} onPress={handleEdit}>
+                  <Text style={styles.menuText}>{t('messagerie.editMessage')}</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={handleDelete}>
+                  <Text style={styles.menuTextDanger}>{t('messagerie.deleteMessage')}</Text>
+                </Pressable>
+              </>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -514,7 +625,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
   messageList: { padding: spacing.md, paddingBottom: spacing.sm },
   bubble: {
-    maxWidth: '80%', borderRadius: radius.md,
+    maxWidth: '80%',
+    // Pillier-style soft corners — closer to WhatsApp / iMessage than
+    // the previous medium radius. Symmetric (no tail) for now;
+    // asymmetric tails can come later if we want to lean further into
+    // the chat-app look.
+    borderRadius: 20,
     padding: spacing.sm, paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
   },
@@ -606,6 +722,100 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bubbleFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 2 },
   bubbleTime: { color: colors.textSecondary, fontSize: fontSizes.xs - 2 },
   editedTag: { color: colors.textSecondary, fontSize: fontSizes.xs - 2, fontStyle: 'italic' },
+  // Header content — avatar + display name, tap to profile.
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerName: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    letterSpacing: -0.05,
+    maxWidth: 200,
+  },
+
+  // Quoted-reply preview above the input bar — small bar with the
+  // original sender + a snippet of the original content, plus a
+  // cancel ✕. Shown while the user is composing a reply.
+  replyPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
+  },
+  replyPreviewBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    backgroundColor: colors.cta,
+    borderRadius: 2,
+  },
+  replyPreviewBody: {
+    flex: 1,
+    gap: 1,
+  },
+  replyPreviewLabel: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
+  replyPreviewContent: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs + 1,
+  },
+  replyPreviewClose: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Quoted-reply block inside a message bubble — sits at the top of
+  // the bubble showing the snippet of the original. Variants for own
+  // (white bubble → dark text) vs other (blue bubble → light text).
+  bubbleReplyQuote: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    marginBottom: 6,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  bubbleReplyQuoteOwn: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  bubbleReplyBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    backgroundColor: colors.cta,
+    borderRadius: 2,
+  },
+  bubbleReplyBarOwn: {
+    backgroundColor: colors.cta,
+  },
+  bubbleReplyAuthor: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
+  bubbleReplyAuthorOwn: {
+    color: colors.cta,
+  },
+  bubbleReplyContent: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs + 1,
+  },
+  bubbleReplyContentOwn: {
+    color: colors.pinBorder,
+  },
+
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end',
     padding: spacing.md, gap: spacing.xs,
