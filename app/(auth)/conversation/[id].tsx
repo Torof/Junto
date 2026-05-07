@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft } from 'lucide-react-native';
+import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
+import { userService } from '@/services/user-service';
+import { conversationService } from '@/services/conversation-service';
+import { haptic } from '@/lib/haptics';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +50,7 @@ export default function ConversationScreen() {
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const navigation = useNavigation();
 
   // Mark conversation as read when opened
@@ -85,7 +91,7 @@ export default function ConversationScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        otherUser ? (
+        otherUser?.id ? (
           <Pressable
             style={styles.headerRow}
             onPress={() => router.push(`/(auth)/profile/${otherUser.id}`)}
@@ -98,8 +104,72 @@ export default function ConversationScreen() {
           </Pressable>
         ) : null
       ),
+      headerRight: () => (
+        otherUser ? (
+          <Pressable
+            onPress={() => setShowHeaderMenu(true)}
+            hitSlop={10}
+            style={{ paddingHorizontal: spacing.sm }}
+          >
+            <MoreHorizontal size={22} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        ) : null
+      ),
     });
-  }, [navigation, otherUser, router, styles]);
+  }, [navigation, otherUser, router, styles, colors]);
+
+  const handleBlockUser = () => {
+    const otherId = otherUser?.id;
+    if (!otherId) return;
+    setShowHeaderMenu(false);
+    Alert.alert(
+      t('publicProfile.blockConfirmTitle'),
+      t('publicProfile.blockConfirmMessage'),
+      [
+        { text: t('activity.no'), style: 'cancel' },
+        {
+          text: t('activity.yes'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await userService.blockUser(otherId);
+              await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+              await queryClient.invalidateQueries({ queryKey: ['is-blocked', otherId] });
+              Burnt.toast({ title: t('publicProfile.blocked') });
+              router.back();
+            } catch (err) {
+              Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleHideConversation = () => {
+    if (!id) return;
+    setShowHeaderMenu(false);
+    Alert.alert(
+      t('messagerie.hideTitle'),
+      t('messagerie.hideMessage', { name: otherUser?.display_name ?? '' }),
+      [
+        { text: t('activity.no'), style: 'cancel' },
+        {
+          text: t('messagerie.hideConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await conversationService.hideConversation(id);
+              await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+              router.back();
+            } catch (err) {
+              Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['messages', id],
@@ -366,110 +436,27 @@ export default function ConversationScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            const isTrace = item.metadata?.type === 'shared_trace' && item.metadata.trace_geojson;
-            const seatReqId = item.metadata?.type === 'seat_request_pending' ? item.metadata.seat_request_id : null;
+            const seatReqId = item.metadata?.type === 'seat_request_pending' ? item.metadata.seat_request_id ?? null : null;
             const seatReqStatus = seatReqId ? (seatRequestStatusById.get(seatReqId) ?? 'pending') : null;
-            // Driver = receiver of the seed (the requester sent it).
-            const isDriver = !!seatReqId && item.receiver_id === currentUser;
-            const isActing = !!seatReqId && seatActionId === seatReqId;
             return (
-              <Pressable
-                style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}
-                onLongPress={() => handleLongPress(item)}
-              >
-                {item.reply_to && (
-                  <View style={[styles.bubbleReplyQuote, isOwnMessage(item) && styles.bubbleReplyQuoteOwn]}>
-                    <View style={[styles.bubbleReplyBar, isOwnMessage(item) && styles.bubbleReplyBarOwn]} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.bubbleReplyAuthor, isOwnMessage(item) && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
-                        {item.reply_to.sender_id === currentUser
-                          ? t('messagerie.you', { defaultValue: 'Toi' })
-                          : otherUser?.display_name ?? '?'}
-                      </Text>
-                      <Text style={[styles.bubbleReplyContent, isOwnMessage(item) && styles.bubbleReplyContentOwn]} numberOfLines={2}>
-                        {item.reply_to.deleted_at
-                          ? t('messagerie.replyDeleted', { defaultValue: 'Message supprimé' })
-                          : item.reply_to.content}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-                <Text style={[styles.bubbleText, isOwnMessage(item) && styles.bubbleTextOwn]}>{item.content}</Text>
-                {isTrace && (
-                  <Pressable
-                    style={styles.activityLink}
-                    onPress={() => {
-                      const geo = item.metadata!.trace_geojson!;
-                      const coords = geo.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
-                      setTracePreview({ name: item.metadata!.name ?? 'trace.gpx', coords, geo });
-                    }}
-                    hitSlop={4}
-                  >
-                    <RouteIcon size={12} color={isOwnMessage(item) ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
-                    <Text style={[styles.activityLinkText, !isOwnMessage(item) && styles.activityLinkTextOther]}>
-                      {t('messagerie.viewTrace')}
-                    </Text>
-                  </Pressable>
-                )}
-                {item.metadata?.activity_id && !isTrace && (
-                  <Pressable
-                    style={styles.activityLink}
-                    onPress={() => router.push(`/(auth)/activity/${item.metadata!.activity_id}`)}
-                    hitSlop={4}
-                  >
-                    <ExternalLink size={12} color={isOwnMessage(item) ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
-                    <Text style={[styles.activityLinkText, !isOwnMessage(item) && styles.activityLinkTextOther]}>
-                      {t('messagerie.viewActivity')}
-                    </Text>
-                  </Pressable>
-                )}
-                {/* Seat-request inline actions (driver-side) — accept /
-                    decline straight from the chat surface so the
-                    discussion can lead to a decision in place. */}
-                {seatReqId && seatReqStatus === 'pending' && isDriver && (
-                  <View style={styles.seatActionRow}>
-                    <Pressable
-                      style={[styles.seatAcceptBtn, isActing && styles.seatActionDisabled]}
-                      onPress={() => handleSeatAccept(seatReqId)}
-                      disabled={isActing}
-                      hitSlop={4}
-                    >
-                      <Check size={14} color={colors.textPrimary} strokeWidth={3} />
-                      <Text style={styles.seatAcceptText}>
-                        {t('messagerie.seatAccept', { defaultValue: 'Accepter' })}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.seatDeclineBtn, isActing && styles.seatActionDisabled]}
-                      onPress={() => handleSeatDecline(seatReqId)}
-                      disabled={isActing}
-                      hitSlop={4}
-                    >
-                      <Text style={styles.seatDeclineText}>
-                        {t('messagerie.seatDecline', { defaultValue: 'Refuser' })}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
-                {seatReqId && seatReqStatus && seatReqStatus !== 'pending' && (
-                  <View style={styles.seatStatusBadge}>
-                    <Text style={styles.seatStatusText}>
-                      {t(`messagerie.seatStatus.${seatReqStatus}`, {
-                        defaultValue:
-                          seatReqStatus === 'accepted' ? 'Place confirmée'
-                          : seatReqStatus === 'declined' ? 'Demande refusée'
-                          : seatReqStatus === 'cancelled' ? 'Demande annulée'
-                          : seatReqStatus === 'expired' ? 'Demande expirée'
-                          : seatReqStatus,
-                      })}
-                    </Text>
-                  </View>
-                )}
-                <View style={styles.bubbleFooter}>
-                  <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
-                  {item.edited_at && <Text style={styles.editedTag}>{t('messagerie.edited')}</Text>}
-                </View>
-              </Pressable>
+              <MessageBubble
+                item={item}
+                isOwn={isOwnMessage(item)}
+                currentUser={currentUser ?? null}
+                otherUserName={otherUser?.display_name ?? null}
+                seatReqId={seatReqId}
+                seatReqStatus={seatReqStatus}
+                seatActionId={seatActionId}
+                onLongPress={handleLongPress}
+                onReply={setReplyingTo}
+                onTracePreview={setTracePreview}
+                onActivityNav={(activityId) => router.push(`/(auth)/activity/${activityId}`)}
+                onSeatAccept={handleSeatAccept}
+                onSeatDecline={handleSeatDecline}
+                styles={styles}
+                colors={colors}
+                t={t}
+              />
             );
           }}
           contentContainerStyle={styles.messageList}
@@ -572,6 +559,25 @@ export default function ConversationScreen() {
           })()}
         </View>
       </Modal>
+      {/* Header menu — Block / Delete (hide) the conversation. */}
+      <Modal visible={showHeaderMenu} animationType="slide" transparent onRequestClose={() => setShowHeaderMenu(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setShowHeaderMenu(false)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            <View style={styles.menuHandle} />
+            <Pressable style={styles.menuItem} onPress={handleHideConversation}>
+              <Text style={styles.menuTextDanger}>
+                {t('messagerie.hideConversation', { defaultValue: 'Supprimer la conversation' })}
+              </Text>
+            </Pressable>
+            <Pressable style={styles.menuItem} onPress={handleBlockUser}>
+              <Text style={styles.menuTextDanger}>
+                {t('messagerie.blockUser', { defaultValue: 'Bloquer l\'utilisateur' })}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Message action sheet — Reply is always offered; Edit / Delete
           only when the long-pressed message belongs to the caller. */}
       <Modal visible={selectedMessage !== null && !isEditMode} animationType="slide" transparent>
@@ -615,6 +621,188 @@ export default function ConversationScreen() {
         </View>
       )}
     </KeyboardAvoidingView>
+  );
+}
+
+// MessageBubble — extracted so each row can host a Pan gesture for
+// swipe-to-reply (WhatsApp/Messenger pattern). Received bubbles
+// follow the finger to the right; own bubbles to the left. On
+// release past threshold, fires reply with a soft haptic and snaps
+// back. Long-press still opens the action sheet via the inner
+// Pressable (the Pan only activates after 15px horizontal — taps
+// and long-presses go through unimpeded).
+type MessageBubbleProps = {
+  item: PrivateMessage;
+  isOwn: boolean;
+  currentUser: string | null;
+  otherUserName: string | null;
+  seatReqId: string | null;
+  seatReqStatus: string | null;
+  seatActionId: string | null;
+  onLongPress: (msg: PrivateMessage) => void;
+  onReply: (msg: PrivateMessage) => void;
+  onTracePreview: (preview: { name: string; coords: [number, number][]; geo: GeoJsonLineString }) => void;
+  onActivityNav: (activityId: string) => void;
+  onSeatAccept: (id: string) => void;
+  onSeatDecline: (id: string) => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  t: ReturnType<typeof useTranslation>['t'];
+};
+
+function MessageBubble({
+  item,
+  isOwn,
+  currentUser,
+  otherUserName,
+  seatReqId,
+  seatReqStatus,
+  seatActionId,
+  onLongPress,
+  onReply,
+  onTracePreview,
+  onActivityNav,
+  onSeatAccept,
+  onSeatDecline,
+  styles,
+  colors,
+  t,
+}: MessageBubbleProps) {
+  const translateX = useSharedValue(0);
+  const triggered = useSharedValue(false);
+  // Direction: own messages slide LEFT (toward incoming), received
+  // messages slide RIGHT — matches WhatsApp's reply gesture grammar.
+  const direction = isOwn ? -1 : 1;
+
+  const fireReply = () => {
+    haptic.light();
+    onReply(item);
+  };
+
+  const pan = Gesture.Pan()
+    .activeOffsetX(isOwn ? [-15, 9999] : [-9999, 15])
+    .failOffsetY([-15, 15])
+    .onUpdate((e) => {
+      const raw = e.translationX * direction;
+      const clamped = Math.max(0, Math.min(raw, 80));
+      translateX.value = clamped * direction;
+      if (clamped > 60 && !triggered.value) {
+        triggered.value = true;
+        runOnJS(fireReply)();
+      }
+    })
+    .onEnd(() => {
+      translateX.value = withSpring(0);
+      triggered.value = false;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const isTrace = item.metadata?.type === 'shared_trace' && item.metadata.trace_geojson;
+  const isDriver = !!seatReqId && item.receiver_id === currentUser;
+  const isActing = !!seatReqId && seatActionId === seatReqId;
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={animatedStyle}>
+        <Pressable
+          style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}
+          onLongPress={() => onLongPress(item)}
+        >
+          {item.reply_to && (
+            <View style={[styles.bubbleReplyQuote, isOwn && styles.bubbleReplyQuoteOwn]}>
+              <View style={[styles.bubbleReplyBar, isOwn && styles.bubbleReplyBarOwn]} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.bubbleReplyAuthor, isOwn && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
+                  {item.reply_to.sender_id === currentUser
+                    ? t('messagerie.you', { defaultValue: 'Toi' })
+                    : otherUserName ?? '?'}
+                </Text>
+                <Text style={[styles.bubbleReplyContent, isOwn && styles.bubbleReplyContentOwn]} numberOfLines={2}>
+                  {item.reply_to.deleted_at
+                    ? t('messagerie.replyDeleted', { defaultValue: 'Message supprimé' })
+                    : item.reply_to.content}
+                </Text>
+              </View>
+            </View>
+          )}
+          <Text style={[styles.bubbleText, isOwn && styles.bubbleTextOwn]}>{item.content}</Text>
+          {isTrace && (
+            <Pressable
+              style={styles.activityLink}
+              onPress={() => {
+                const geo = item.metadata!.trace_geojson!;
+                const coords = geo.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
+                onTracePreview({ name: item.metadata!.name ?? 'trace.gpx', coords, geo });
+              }}
+              hitSlop={4}
+            >
+              <RouteIcon size={12} color={isOwn ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
+              <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
+                {t('messagerie.viewTrace')}
+              </Text>
+            </Pressable>
+          )}
+          {item.metadata?.activity_id && !isTrace && (
+            <Pressable
+              style={styles.activityLink}
+              onPress={() => onActivityNav(item.metadata!.activity_id!)}
+              hitSlop={4}
+            >
+              <ExternalLink size={12} color={isOwn ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
+              <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
+                {t('messagerie.viewActivity')}
+              </Text>
+            </Pressable>
+          )}
+          {seatReqId && seatReqStatus === 'pending' && isDriver && (
+            <View style={styles.seatActionRow}>
+              <Pressable
+                style={[styles.seatAcceptBtn, isActing && styles.seatActionDisabled]}
+                onPress={() => onSeatAccept(seatReqId)}
+                disabled={isActing}
+                hitSlop={4}
+              >
+                <Check size={14} color={colors.textPrimary} strokeWidth={3} />
+                <Text style={styles.seatAcceptText}>
+                  {t('messagerie.seatAccept', { defaultValue: 'Accepter' })}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.seatDeclineBtn, isActing && styles.seatActionDisabled]}
+                onPress={() => onSeatDecline(seatReqId)}
+                disabled={isActing}
+                hitSlop={4}
+              >
+                <Text style={styles.seatDeclineText}>
+                  {t('messagerie.seatDecline', { defaultValue: 'Refuser' })}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+          {seatReqId && seatReqStatus && seatReqStatus !== 'pending' && (
+            <View style={styles.seatStatusBadge}>
+              <Text style={styles.seatStatusText}>
+                {t(`messagerie.seatStatus.${seatReqStatus}`, {
+                  defaultValue:
+                    seatReqStatus === 'accepted' ? 'Place confirmée'
+                    : seatReqStatus === 'declined' ? 'Demande refusée'
+                    : seatReqStatus === 'cancelled' ? 'Demande annulée'
+                    : seatReqStatus === 'expired' ? 'Demande expirée'
+                    : seatReqStatus,
+                })}
+              </Text>
+            </View>
+          )}
+          <View style={styles.bubbleFooter}>
+            <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
+            {item.edited_at && <Text style={styles.editedTag}>{t('messagerie.edited')}</Text>}
+          </View>
+        </Pressable>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
