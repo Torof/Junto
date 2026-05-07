@@ -317,7 +317,7 @@ export default function ConversationScreen() {
                 style={[styles.bubble, isOwnMessage(item) ? styles.bubbleOwn : styles.bubbleOther]}
                 onLongPress={() => handleLongPress(item)}
               >
-                <Text style={styles.bubbleText}>{item.content}</Text>
+                <Text style={[styles.bubbleText, isOwnMessage(item) && styles.bubbleTextOwn]}>{item.content}</Text>
                 {isTrace && (
                   <Pressable
                     style={styles.activityLink}
@@ -328,7 +328,7 @@ export default function ConversationScreen() {
                     }}
                     hitSlop={4}
                   >
-                    <RouteIcon size={12} color={isOwnMessage(item) ? colors.textPrimary : colors.cta} strokeWidth={2.4} />
+                    <RouteIcon size={12} color={isOwnMessage(item) ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
                     <Text style={[styles.activityLinkText, !isOwnMessage(item) && styles.activityLinkTextOther]}>
                       {t('messagerie.viewTrace')}
                     </Text>
@@ -340,7 +340,7 @@ export default function ConversationScreen() {
                     onPress={() => router.push(`/(auth)/activity/${item.metadata!.activity_id}`)}
                     hitSlop={4}
                   >
-                    <ExternalLink size={12} color={isOwnMessage(item) ? colors.textPrimary : colors.cta} strokeWidth={2.4} />
+                    <ExternalLink size={12} color={isOwnMessage(item) ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
                     <Text style={[styles.activityLinkText, !isOwnMessage(item) && styles.activityLinkTextOther]}>
                       {t('messagerie.viewActivity')}
                     </Text>
@@ -518,7 +518,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.sm, paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
   },
-  bubbleOwn: { backgroundColor: colors.cta, alignSelf: 'flex-end' },
+  // Self-bubble is near-white (pinBackground = #F5F5F0 in dark / pure
+  // white in light) to match the logo's blue-and-white identity. The
+  // received-bubble keeps the surface tone (Junto blue in dark, soft
+  // gray in light).
+  bubbleOwn: { backgroundColor: colors.pinBackground, alignSelf: 'flex-end' },
   bubbleOther: { backgroundColor: colors.surface, alignSelf: 'flex-start' },
   activityLink: {
     flexDirection: 'row',
@@ -532,7 +536,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignSelf: 'flex-start',
   },
   activityLinkText: {
-    color: colors.textPrimary,
+    color: colors.pinBorder,
     fontSize: fontSizes.xs,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -541,6 +545,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.cta,
   },
   bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  // Dark-always text for own bubbles since the new background is
+  // near-white in both themes (textPrimary would disappear in dark
+  // mode where it's an off-white).
+  bubbleTextOwn: { color: colors.pinBorder },
   // Seat-request inline action row — sits inside the seed bubble so
   // the driver can accept / decline without leaving the chat. Buttons
   // are pill-shaped, full-width, with action-coloured backgrounds.
