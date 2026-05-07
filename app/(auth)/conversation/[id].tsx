@@ -425,7 +425,7 @@ export default function ConversationScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
-      <View style={[styles.containerInner, { paddingBottom: Math.max(spacing.lg, insets.bottom + spacing.xs) }]}>
+      <View style={[styles.containerInner, { paddingBottom: insets.bottom + spacing.sm }]}>
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
@@ -997,7 +997,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Quoted-reply block inside a message bubble — sits at the top of
   // the bubble showing the snippet of the original. Variants for own
   // (white bubble → dark text) vs other (blue bubble → light text).
+  // minWidth pushes the parent bubble wider so a short reply ("ok")
+  // doesn't squash the quote into a few pixels — the bubble's
+  // maxWidth: '80%' still caps the upper bound.
   bubbleReplyQuote: {
+    minWidth: 200,
     flexDirection: 'row',
     gap: 8,
     paddingVertical: 4,
