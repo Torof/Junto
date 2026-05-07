@@ -63,11 +63,16 @@ export const messageService = {
   },
 
   send: async (conversationId: string, content: string, replyToMessageId?: string | null): Promise<string> => {
+    // Always send p_reply_to_message_id (even as null) so PostgREST
+    // routes to the 3-arg overload unambiguously. Sending `undefined`
+    // drops the key from JSON, which lets the legacy 2-arg overload
+    // match — and Postgres flags the call as ambiguous because the
+    // 3-arg version has DEFAULT NULL on its third parameter.
     const { data, error } = await supabase.rpc('send_private_message', {
       p_conversation_id: conversationId,
       p_content: content,
-      p_reply_to_message_id: replyToMessageId ?? undefined,
-    });
+      p_reply_to_message_id: replyToMessageId ?? null,
+    } as { p_conversation_id: string; p_content: string; p_reply_to_message_id: string | null });
     if (error) throw error;
     return data;
   },
