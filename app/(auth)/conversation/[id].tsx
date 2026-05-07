@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, Keyboard } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
@@ -51,25 +51,7 @@ export default function ConversationScreen() {
   const [isAttaching, setIsAttaching] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const navigation = useNavigation();
-
-  // Manual keyboard tracking. KAV proved unreliable here (squashed
-  // the bottom dock to input-content width on Android edge-to-edge,
-  // and the input still ended up under the keyboard in some flows).
-  // Reading endCoordinates.height directly and applying as
-  // paddingBottom on the screen container handles both platforms
-  // without depending on the layout tree.
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, (e) => setKeyboardHeight(e.endCoordinates.height));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   // Mark conversation as read when opened
   useEffect(() => {
@@ -434,13 +416,16 @@ export default function ConversationScreen() {
 
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
-  // Effective bottom inset:
-  //  - keyboard up   → keyboard height (input sits just above IME)
-  //  - keyboard down → safe-area inset + breathing room (above navbar)
-  const dockBottomPad = keyboardHeight > 0 ? keyboardHeight : insets.bottom + spacing.sm;
-
   return (
-    <View style={styles.container}>
+    // Same KAV grammar as the activity-wall chat (which works), and the
+    // outer wrapper handles the bottom safe-area padding so the IME
+    // gap stays consistent.
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <View style={[styles.containerInner, { paddingBottom: Math.max(spacing.lg, insets.bottom + spacing.xs) }]}>
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
@@ -513,7 +498,7 @@ export default function ConversationScreen() {
           </View>
         )}
 
-        <View style={[styles.inputRow, { paddingBottom: dockBottomPad }]}>
+        <View style={styles.inputRow}>
           <Pressable
             style={[styles.attachButton, isAttaching && styles.sendDisabled]}
             onPress={handleAttachTrace}
@@ -644,7 +629,8 @@ export default function ConversationScreen() {
           </Pressable>
         </View>
       )}
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -832,6 +818,10 @@ function MessageBubble({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  // Inner wrapper carries the bottom safe-area padding (matches the
+  // activity-wall chat tab's wrapper). Lets the KAV stay clean and
+  // ensures the dock sits above the system nav bar.
+  containerInner: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
