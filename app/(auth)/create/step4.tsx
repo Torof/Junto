@@ -74,7 +74,13 @@ export default function CreateStep4() {
         }
       }
 
-      router.replace('/(auth)/(tabs)/carte');
+      // The 4 create steps are presented as a modal stack (see auth
+      // _layout). router.replace from inside that stack to a non-modal
+      // tab route was leaving the navigator half-dismissed → white
+      // screen. Dismiss the modal stack first, then switch to the map
+      // tab where the new activity appears.
+      router.dismissAll();
+      router.navigate('/(auth)/(tabs)/carte');
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'createActivity'));
     } finally {
