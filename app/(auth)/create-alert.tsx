@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Burnt from 'burnt';
+import { X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -28,7 +29,7 @@ export default function CreateAlertScreen() {
   const queryClient = useQueryClient();
   const { center } = useInitialLocation();
 
-  const [sportKey, setSportKey] = useState<string>('');
+  const [sportKeys, setSportKeys] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [radiusKm, setRadiusKm] = useState<number>(25);
   const [location, setLocation] = useState<{ lng: number; lat: number } | null>(null);
@@ -41,16 +42,13 @@ export default function CreateAlertScreen() {
   const tutorialStep = useTutorialStore((s) => s.step);
   const setTutorialStep = useTutorialStore((s) => s.setStep);
 
-  // Tutorial: on entering alert screen, advance to set_radius step
   useEffect(() => {
     if (tutorialStep === 'click_alert') {
-      // Auto-fill location to user center so they can't fail
       if (!location) setLocation({ lng: center[0], lat: center[1] });
       setTutorialStep('set_radius');
     }
   }, [tutorialStep, location, center, setTutorialStep]);
 
-  // When radius reaches max, advance
   useEffect(() => {
     if (tutorialStep === 'set_radius' && radiusKm >= 200) {
       setTutorialStep('validate_alert');
@@ -59,6 +57,10 @@ export default function CreateAlertScreen() {
 
   const toggleLevel = (l: string) => {
     setLevels((prev) => prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l]);
+  };
+
+  const toggleSport = (key: string) => {
+    setSportKeys((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
   };
 
   const { data: alerts } = useQuery({
@@ -70,18 +72,26 @@ export default function CreateAlertScreen() {
     if (!location) return;
     setIsSaving(true);
     try {
-      await alertService.create(
-        location.lng,
-        location.lat,
-        radiusKm,
-        sportKey || undefined,
-        levels.length > 0 ? levels : undefined,
-        startsOn ? dayjs(startsOn).format('YYYY-MM-DD') : undefined,
-        endsOn ? dayjs(endsOn).format('YYYY-MM-DD') : undefined,
-      );
+      const startsStr = startsOn ? dayjs(startsOn).format('YYYY-MM-DD') : undefined;
+      const endsStr = endsOn ? dayjs(endsOn).format('YYYY-MM-DD') : undefined;
+      const lvls = levels.length > 0 ? levels : undefined;
+
+      // 0 sports → one alert covering all sports.
+      // N sports → one alert per sport (backend takes a single sport_key
+      // per row, so multi-select is a fan-out at create time).
+      if (sportKeys.length === 0) {
+        await alertService.create(location.lng, location.lat, radiusKm, undefined, lvls, startsStr, endsStr);
+      } else {
+        await Promise.all(
+          sportKeys.map((key) =>
+            alertService.create(location.lng, location.lat, radiusKm, key, lvls, startsStr, endsStr),
+          ),
+        );
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['activity-alerts'] });
       Burnt.toast({ title: t('alerts.created'), preset: 'done' });
-      setSportKey('');
+      setSportKeys([]);
       setLevels([]);
       setLocation(null);
       setStartsOn(null);
@@ -125,14 +135,13 @@ export default function CreateAlertScreen() {
         <View style={styles.headerBlock}>
           <Text style={styles.screenSubtitle}>{t('alerts.subtitle')}</Text>
         </View>
-        {/* Map preview — tap to open fullscreen */}
+
         <Pressable style={styles.mapPreview} onPress={() => setShowMap(true)}>
           <JuntoMapView
             center={location ? [location.lng, location.lat] : center}
             zoom={10}
             pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}
           />
-          {/* Overlay blocks map touches, shows hint */}
           <View style={styles.mapPreviewOverlay}>
             <Text style={styles.mapHintText}>
               {location ? '✓ ' + t('alerts.locationSet') : t('alerts.tapMap')}
@@ -140,7 +149,6 @@ export default function CreateAlertScreen() {
           </View>
         </Pressable>
 
-        {/* Radius */}
         <View style={styles.radiusHeader}>
           <Text style={styles.labelInline}>{t('alerts.radius')}</Text>
           <Text style={styles.radiusValue}>{radiusKm} km</Text>
@@ -153,7 +161,7 @@ export default function CreateAlertScreen() {
             value={radiusKm}
             onValueChange={setRadiusKm}
             minimumTrackTintColor={colors.cta}
-            maximumTrackTintColor={colors.surface}
+            maximumTrackTintColor={colors.borderMuted}
             thumbTintColor={colors.cta}
           />
           <View style={styles.sliderBounds}>
@@ -162,17 +170,16 @@ export default function CreateAlertScreen() {
           </View>
         </View>
 
-        {/* Sport (optional) */}
         <Text style={styles.label}>{t('alerts.sport')}</Text>
         <View style={styles.fieldPad}>
           <SportDropdown
-            selected={sportKey}
-            onSelect={(key) => setSportKey(sportKey === key ? '' : key)}
+            selected={sportKeys}
+            onSelect={toggleSport}
+            multiSelect
             label={t('alerts.anySport')}
           />
         </View>
 
-        {/* Levels (optional, multi-select) */}
         <Text style={styles.label}>{t('alerts.level')}</Text>
         <View style={styles.chipRow}>
           {LEVELS.map((l) => {
@@ -189,7 +196,6 @@ export default function CreateAlertScreen() {
           })}
         </View>
 
-        {/* Period (optional) */}
         <Text style={styles.label}>{t('alerts.period')}</Text>
         <View style={styles.chipRow}>
           <Pressable style={[styles.chip, startsOn && styles.chipActive]} onPress={() => setShowStartsPicker(true)}>
@@ -221,7 +227,6 @@ export default function CreateAlertScreen() {
           }} />
         )}
 
-        {/* Create button */}
         <Pressable
           style={[styles.createButton, (!location || isSaving) && styles.buttonDisabled]}
           onPress={handleCreate}
@@ -230,14 +235,13 @@ export default function CreateAlertScreen() {
           <Text style={styles.createText}>{isSaving ? '...' : t('alerts.create')}</Text>
         </Pressable>
 
-        {/* Existing alerts */}
         {(alerts ?? []).length > 0 && (
           <View style={styles.alertsList}>
             <Text style={styles.label}>{t('alerts.existing')}</Text>
             {(alerts ?? []).map((alert) => (
-              <View key={alert.id} style={styles.alertCard}>
+              <View key={alert.id} style={styles.alertRow}>
                 <View style={styles.alertInfo}>
-                  <Text style={styles.alertText}>
+                  <Text style={styles.alertText} numberOfLines={2}>
                     {alert.sport_key ? t(`sports.${alert.sport_key}`, alert.sport_key) : t('alerts.anySport')}
                     {' · '}{alert.radius_km} km
                     {alert.levels && alert.levels.length > 0 ? ` · ${alert.levels.join(', ')}` : ''}
@@ -246,8 +250,8 @@ export default function CreateAlertScreen() {
                       : ''}
                   </Text>
                 </View>
-                <Pressable onPress={() => handleDelete(alert.id)}>
-                  <Text style={styles.deleteText}>✕</Text>
+                <Pressable onPress={() => handleDelete(alert.id)} hitSlop={6} style={styles.alertDeleteBtn}>
+                  <X size={16} color={colors.error} strokeWidth={2.4} />
                 </Pressable>
               </View>
             ))}
@@ -255,7 +259,6 @@ export default function CreateAlertScreen() {
         )}
       </ScrollView>
 
-      {/* Fullscreen map modal */}
       <Modal visible={showMap} animationType="slide">
         <SafeAreaView style={styles.mapContainer} edges={['top', 'bottom']}>
           <JuntoMapView
@@ -265,19 +268,16 @@ export default function CreateAlertScreen() {
             onMapPress={(lng, lat) => setLocation({ lng, lat })}
           />
 
-          {/* Hint overlay */}
           <View style={styles.mapHintBar} pointerEvents="none">
-            <Text style={styles.mapHintText}>
+            <Text style={styles.mapHintBarText}>
               {location ? '✓ ' + t('alerts.locationSet') : t('alerts.tapMap')}
             </Text>
           </View>
 
-          {/* Close button */}
           <Pressable style={styles.mapClose} onPress={() => setShowMap(false)}>
-            <Text style={styles.mapCloseText}>✕</Text>
+            <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
 
-          {/* Confirm button */}
           {location && (
             <Pressable style={styles.mapConfirm} onPress={() => setShowMap(false)}>
               <Text style={styles.mapConfirmText}>✓ {t('alerts.confirmLocation')}</Text>
@@ -292,43 +292,163 @@ export default function CreateAlertScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing.xl + 32 },
-  headerBlock: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  headerBlock: { paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm },
   screenSubtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
-  radiusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: spacing.sm },
-  labelInline: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase' },
-  radiusValue: { color: colors.cta, fontSize: fontSizes.md, fontWeight: 'bold' },
-  sliderWrap: { paddingHorizontal: spacing.lg },
+
+  // Map preview — flat, no shadow, bordered
+  mapPreview: {
+    height: 200,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+    marginHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  mapPreviewOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapHintText: {
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+
+  // Radius
+  radiusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  labelInline: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  radiusValue: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
+  sliderWrap: { paddingHorizontal: spacing.md },
   sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 },
   sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  label: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.md, paddingHorizontal: spacing.lg },
-  mapPreview: {
-    height: 200, borderRadius: radius.lg, overflow: 'hidden', marginHorizontal: spacing.lg,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+
+  // Section labels
+  label: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
   },
-  mapPreviewOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)', alignItems: 'center', justifyContent: 'center' },
-  fieldPad: { paddingHorizontal: spacing.lg },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingHorizontal: spacing.lg },
-  chip: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
-  chipActive: { backgroundColor: colors.cta },
-  chipText: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  chipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
-  createButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xl, marginHorizontal: spacing.lg },
+
+  fieldPad: { paddingHorizontal: spacing.md },
+
+  // Brutalist outlined chips
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs + 2,
+    paddingHorizontal: spacing.md,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: 'transparent',
+  },
+  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+
+  // Create button
+  createButton: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    marginHorizontal: spacing.md,
+  },
   buttonDisabled: { opacity: 0.4 },
-  createText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
-  alertsList: { marginTop: spacing.xl, paddingHorizontal: spacing.lg },
-  alertCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.sm,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+  createText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+
+  // Existing alerts — flat row pattern
+  alertsList: { marginTop: spacing.lg, paddingHorizontal: spacing.md },
+  alertRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   alertInfo: { flex: 1 },
   alertText: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  deleteText: { color: colors.error, fontSize: 16, fontWeight: 'bold', paddingHorizontal: spacing.sm },
+  alertDeleteBtn: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   // Fullscreen map modal
   mapContainer: { flex: 1, backgroundColor: colors.background },
-  mapHintBar: { position: 'absolute', bottom: 150, left: spacing.md, right: spacing.md, alignItems: 'center' },
-  mapHintText: { backgroundColor: colors.background + 'E6', color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full },
-  mapClose: { position: 'absolute', top: spacing.xl + spacing.md, left: spacing.md, backgroundColor: colors.surface, borderRadius: radius.full, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  mapCloseText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
-  mapConfirm: { position: 'absolute', bottom: spacing.xl + 40, left: spacing.lg, right: spacing.lg, backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center' },
-  mapConfirmText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  mapHintBar: {
+    position: 'absolute',
+    bottom: 150,
+    left: spacing.md,
+    right: spacing.md,
+    alignItems: 'center',
+  },
+  mapHintBarText: {
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  mapClose: {
+    position: 'absolute',
+    top: spacing.xl + spacing.md,
+    left: spacing.md,
+    backgroundColor: colors.background,
+    borderRadius: radius.sm,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  mapConfirm: {
+    position: 'absolute',
+    bottom: spacing.xl + 40,
+    left: spacing.md,
+    right: spacing.md,
+    backgroundColor: colors.cta,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+  },
+  mapConfirmText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
 });
