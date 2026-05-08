@@ -14,6 +14,7 @@ import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
 import { RecenterButton } from '@/components/recenter-button';
+import { MapActiveFilterPills } from '@/components/map-active-filter-pills';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
@@ -254,6 +255,9 @@ export default function CarteScreen() {
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
+        <View style={styles.activePillsBar} pointerEvents="box-none">
+          <MapActiveFilterPills />
+        </View>
         <CreateButton />
         <MapStyleButton />
         <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
@@ -491,6 +495,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  activePillsBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
 });
 

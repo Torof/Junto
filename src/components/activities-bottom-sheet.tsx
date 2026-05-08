@@ -10,6 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { distanceMeters } from '@/utils/geo';
 import { ActivityCard } from './activity-card';
+import { DrawerFilterBar } from './drawer-filter-bar';
 
 interface Props {
   activities: NearbyActivity[];
@@ -104,6 +105,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         data={sorted}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        ListHeaderComponent={DrawerFilterBar}
         renderItem={({ item }) => (
           <ActivityCard
             activity={item}
