@@ -282,22 +282,23 @@ export default function MessagerieScreen() {
               const otherUserId = item.user_1 === currentUserId ? item.user_2 : item.user_1;
               return (
                 <Pressable
-                  style={styles.card}
+                  style={styles.row}
                   onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
                   onLongPress={() => handleHideConversation(item.id, item.other_user_name)}
                 >
+                  <View style={[styles.unreadBar, !isUnread && styles.unreadBarHidden]} />
                   <Pressable
                     onPress={() => router.push(`/(auth)/profile/${otherUserId}`)}
                     hitSlop={4}
                   >
-                    <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={48} />
+                    <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={44} />
                   </Pressable>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardHeader}>
+                  <View style={styles.rowContent}>
+                    <View style={styles.rowHeader}>
                       <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{item.other_user_name}</Text>
                       {item.last_message_at && (
                         <Text style={styles.time}>
-                          {dayjs(item.last_message_at).locale(i18n.language).fromNow()}
+                          {dayjs(item.last_message_at).locale(i18n.language).fromNow(true)}
                         </Text>
                       )}
                     </View>
@@ -305,7 +306,6 @@ export default function MessagerieScreen() {
                       <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{item.last_message_content}</Text>
                     )}
                   </View>
-                  {isUnread && <View style={styles.unreadDot} />}
                 </Pressable>
               );
             }}
@@ -339,10 +339,12 @@ export default function MessagerieScreen() {
               return (
               <Pressable
                 key={sr.id}
-                style={styles.requestCard}
+                style={styles.requestRow}
                 onPress={() => router.push(`/(auth)/activity/${sr.activity_id}`)}
               >
-                <Car size={28} color={colors.cta} strokeWidth={2} />
+                <View style={styles.requestIconCol}>
+                  <Car size={24} color={colors.cta} strokeWidth={2.2} />
+                </View>
                 <View style={styles.requestInfo}>
                   {sr.activity_title && (
                     <Text style={styles.requestActivityTitle} numberOfLines={1}>
@@ -364,14 +366,14 @@ export default function MessagerieScreen() {
                     onPress={(e) => { e.stopPropagation(); handleAcceptSeat(sr.id); }}
                     disabled={loadingRequestId === sr.id}
                   >
-                    <Check size={18} color={colors.textPrimary} strokeWidth={3} />
+                    <Check size={18} color="#FFFFFF" strokeWidth={3} />
                   </Pressable>
                   <Pressable
                     style={[styles.declineBtn, loadingRequestId === sr.id && styles.btnDisabled]}
                     onPress={(e) => { e.stopPropagation(); handleDeclineSeat(sr.id); }}
                     disabled={loadingRequestId === sr.id}
                   >
-                    <X size={18} color={colors.textPrimary} strokeWidth={3} />
+                    <X size={18} color="#FFFFFF" strokeWidth={3} />
                   </Pressable>
                 </View>
               </Pressable>
@@ -382,10 +384,10 @@ export default function MessagerieScreen() {
             {(pendingRequests ?? []).map((req) => (
               <Pressable
                 key={req.id}
-                style={styles.requestCard}
+                style={styles.requestRow}
                 onPress={() => router.push(`/(auth)/profile/${req.request_sender_id}`)}
               >
-                <UserAvatar name={req.sender_name} avatarUrl={req.sender_avatar} size={48} />
+                <UserAvatar name={req.sender_name} avatarUrl={req.sender_avatar} size={44} />
                 <View style={styles.requestInfo}>
                   <Text style={styles.requestName} numberOfLines={1}>{req.sender_name}</Text>
                   <Text style={styles.requestSource}>{sourceLabel(req.initiated_from)}</Text>
@@ -403,14 +405,14 @@ export default function MessagerieScreen() {
                     onPress={(e) => { e.stopPropagation(); handleAccept(req.id); }}
                     disabled={loadingRequestId === req.id}
                   >
-                    <Check size={18} color={colors.textPrimary} strokeWidth={3} />
+                    <Check size={18} color="#FFFFFF" strokeWidth={3} />
                   </Pressable>
                   <Pressable
                     style={[styles.declineBtn, loadingRequestId === req.id && styles.btnDisabled]}
                     onPress={(e) => { e.stopPropagation(); handleDecline(req.id); }}
                     disabled={loadingRequestId === req.id}
                   >
-                    <X size={18} color={colors.textPrimary} strokeWidth={3} />
+                    <X size={18} color="#FFFFFF" strokeWidth={3} />
                   </Pressable>
                 </View>
               </Pressable>
@@ -424,76 +426,96 @@ export default function MessagerieScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  list: { padding: spacing.md },
+  list: { paddingBottom: spacing.md },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
+
+  // Tab bar — underline pattern
   tabBar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
-    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   tab: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: {
-    backgroundColor: colors.cta,
-  },
-  tabText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-  },
-  tabTextActive: {
-    color: colors.textPrimary,
-  },
+  tabActive: { borderBottomColor: colors.borderStrong },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '500' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   badge: {
-    minWidth: 20, height: 20, borderRadius: 10,
-    backgroundColor: colors.error,
+    minWidth: 16, height: 16, borderRadius: radius.sm,
+    backgroundColor: colors.cta,
     alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
-  badgeText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: spacing.md, marginBottom: spacing.sm, gap: spacing.md,
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+
+  // Conversation row — flat list-item with leading unread bar
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingRight: spacing.md,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  cardContent: { flex: 1 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold', flex: 1 },
-  nameUnread: { color: colors.cta },
+  unreadBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    backgroundColor: colors.cta,
+    marginRight: spacing.sm,
+  },
+  unreadBarHidden: { backgroundColor: 'transparent' },
+  rowContent: { flex: 1, minWidth: 0 },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+  },
+  name: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
+  nameUnread: { fontWeight: '700' },
   time: { color: colors.textSecondary, fontSize: fontSizes.xs },
   preview: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
-  previewUnread: { color: colors.textPrimary, fontWeight: 'bold' },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cta, marginLeft: spacing.sm },
-  requestCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: spacing.sm, marginBottom: spacing.sm, gap: spacing.sm,
+  previewUnread: { color: colors.textPrimary },
+
+  // Request row — flat row with avatar/icon + info + accept/decline
+  requestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  requestInfo: { flex: 1, gap: 2 },
-  // Activity title — appears on seat-request cards above the requester
-  // line so the driver knows which hike the request is for. Audit U-3.
+  requestIconCol: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  requestInfo: { flex: 1, minWidth: 0, gap: 2 },
   requestActivityTitle: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', letterSpacing: -0.05 },
   requestName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   requestSource: { color: colors.textSecondary, fontSize: fontSizes.xs - 1 },
   requestMessage: { color: colors.textSecondary, fontSize: fontSizes.xs, fontStyle: 'italic', marginTop: 2 },
-  requestActions: { flexDirection: 'row', gap: spacing.xs },
+  requestActions: { flexDirection: 'row', gap: spacing.xs + 2 },
   acceptBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center',
   },
   declineBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center',
   },
   btnDisabled: { opacity: 0.4 },
