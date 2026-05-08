@@ -175,9 +175,11 @@ export default function MesActivitesScreen() {
               label={t('map.sportLabel')}
             />
 
-            <Pressable style={styles.applyButton} onPress={() => setShowFilters(false)}>
-              <Text style={styles.applyText}>{t('map.apply')}</Text>
-            </Pressable>
+            <View style={styles.applyContainer}>
+              <Pressable style={styles.applyButton} onPress={() => setShowFilters(false)}>
+                <Text style={styles.applyText}>{t('map.apply')}</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -220,52 +222,63 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
+  // Primary scope (Créées / Rejointes) — underline tab pattern
   mainTabs: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   mainTab: {
-    flex: 1,
     paddingVertical: spacing.sm,
-    alignItems: 'center',
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   mainTabActive: {
-    backgroundColor: colors.cta,
+    borderBottomColor: colors.borderStrong,
   },
   mainTabText: {
     color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
+    fontSize: fontSizes.md,
+    fontWeight: '500',
   },
   mainTabTextActive: {
     color: colors.textPrimary,
+    fontWeight: '700',
   },
+
+  // Secondary time filter (À venir / Passées) + filter icon — outlined chip row
   timeTabs: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    gap: spacing.sm,
+    paddingBottom: spacing.xs,
+    gap: spacing.xs + 2,
   },
   timeTab: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
     backgroundColor: 'transparent',
   },
   timeTabActive: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cta,
+    borderColor: colors.cta,
   },
   timeTabText: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs,
+    fontSize: fontSizes.sm,
   },
   timeTabTextActive: {
-    color: colors.textPrimary,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   timeTabSpacer: {
     flex: 1,
@@ -273,14 +286,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   filterToggle: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterToggleActive: {
-    backgroundColor: colors.cta + '30',
-  },
+  filterToggleActive: {},
   filterIconWrap: {
     width: 20,
     height: 20,
@@ -293,9 +302,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     right: -4,
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: radius.xs,
     backgroundColor: colors.cta,
   },
+
+  // Filter modal
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -305,7 +316,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
+    padding: spacing.md,
     paddingBottom: spacing.xl + 16,
     maxHeight: '70%',
   },
@@ -315,7 +326,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 2,
     backgroundColor: colors.textSecondary,
     alignSelf: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     opacity: 0.4,
   },
   sheetHeader: {
@@ -333,50 +344,63 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: spacing.sm,
     marginTop: spacing.sm,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.xs + 2,
     marginBottom: spacing.md,
   },
   chip: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: 'transparent',
   },
   chipActive: {
     backgroundColor: colors.cta,
+    borderColor: colors.cta,
   },
   chipText: {
     color: colors.textSecondary,
     fontSize: fontSizes.sm,
   },
   chipTextActive: {
-    color: colors.textPrimary,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   resetText: {
     color: colors.cta,
     fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  applyContainer: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
   },
   applyButton: {
     backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
     alignItems: 'center',
-    marginTop: spacing.lg,
   },
   applyText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontSize: fontSizes.md,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
+
+  // List + states
   list: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
   center: {
     flex: 1,
