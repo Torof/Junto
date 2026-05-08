@@ -25,6 +25,21 @@ interface ExpoTicket {
 
 const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
 
+// Constant-time string equality. The naïve `===` short-circuits on
+// the first differing byte, leaking prefix-match length via timing.
+// For a fixed-size secret like ours, length-equality leakage is a
+// non-issue (the length is well known once the secret is set), so we
+// can early-return on length mismatch and only need to be constant-
+// time across the byte loop itself.
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 // Expo errors that mean "this token is permanently dead" — delete the row
 // so we stop targeting it. Other transient errors (e.g. MessageRateExceeded)
 // are not on this list and the token stays.
@@ -39,9 +54,9 @@ Deno.serve(async (req) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  // Reject if the shared secret is missing or wrong (constant-time-ish compare).
+  // Reject if the shared secret is missing or wrong.
   const provided = req.headers.get('x-junto-push-secret') ?? '';
-  if (!SECRET || provided.length !== SECRET.length || provided !== SECRET) {
+  if (!SECRET || !constantTimeEqual(provided, SECRET)) {
     return new Response('Forbidden', { status: 403 });
   }
 
