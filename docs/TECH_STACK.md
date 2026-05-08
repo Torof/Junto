@@ -172,7 +172,6 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 | `seat_requests` | demandes de covoiturage |
 | `activity_alerts` | alertes (saved searches) |
 | `activity_gear` | matériel collaboratif |
-| `sport_level_endorsements` | confirmation/contestation de niveau annoncé |
 | `user_badge_progression` | tiers progression (joined/created/sport) |
 | `blocked_users` | bidirectionnel pour DM, unidirectionnel ailleurs |
 | `reports` | signalements de modération |

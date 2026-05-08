@@ -221,7 +221,6 @@ Soft delete via `delete_wall_message` (auteur ou créateur). Edit via `edit_wall
 ### Peer review (end+15min..end+24h)
 - Reputation badges (`give_reputation_badge` / `revoke_reputation_badge`)
 - Peer presence votes (`peer_validate_presence`)
-- Sport-level endorsements (`endorse_sport_level` — confirmer/contester le niveau annoncé)
 
 ### Notif relance (end+22h..end+24h)
 - `notify_peer_review_closing` envoie un push aux non-voteurs (qui sont confirmed_present mais n'ont voté pour personne)

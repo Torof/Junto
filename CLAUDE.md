@@ -125,5 +125,5 @@ All operations via SECURITY DEFINER functions only:
 - `seat_requests` (INSERT, UPDATE)
 - `activity_alerts` (INSERT, UPDATE, DELETE)
 - `activity_gear` (INSERT, UPDATE, DELETE)
-- `sport_level_endorsements` (INSERT, UPDATE, DELETE)
-- `user_badge_progression` (INSERT, UPDATE) — auto-managed via trigger
+- `reports` (INSERT via `create_report`, DELETE never)
+- `user_badge_progression` (INSERT, UPDATE, DELETE) — auto-managed via trigger
