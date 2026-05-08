@@ -62,7 +62,7 @@ export default function CreateAlertScreen() {
   };
 
   const { data: alerts } = useQuery({
-    queryKey: ['alerts'],
+    queryKey: ['activity-alerts'],
     queryFn: () => alertService.getAll(),
   });
 
@@ -79,7 +79,7 @@ export default function CreateAlertScreen() {
         startsOn ? dayjs(startsOn).format('YYYY-MM-DD') : undefined,
         endsOn ? dayjs(endsOn).format('YYYY-MM-DD') : undefined,
       );
-      await queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      await queryClient.invalidateQueries({ queryKey: ['activity-alerts'] });
       Burnt.toast({ title: t('alerts.created'), preset: 'done' });
       setSportKey('');
       setLevels([]);
@@ -100,7 +100,7 @@ export default function CreateAlertScreen() {
 
   const handleDelete = async (alertId: string) => {
     await alertService.delete(alertId);
-    await queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    await queryClient.invalidateQueries({ queryKey: ['activity-alerts'] });
     Burnt.toast({ title: t('alerts.deleted') });
   };
 
