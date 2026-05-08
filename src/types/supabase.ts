@@ -2165,6 +2165,24 @@ export type Database = {
           visibility: string
         }[]
       }
+      get_activity_participants: {
+        Args: { p_activity_id: string }
+        Returns: {
+          activity_id: string
+          avatar_url: string
+          confirmed_present: boolean
+          created_at: string
+          display_name: string
+          left_at: string
+          participation_id: string
+          status: string
+          transport_departs_at: string
+          transport_from_name: string
+          transport_seats: number
+          transport_type: string
+          user_id: string
+        }[]
+      }
       get_activity_peer_review_state: {
         Args: { p_activity_id: string }
         Returns: Json

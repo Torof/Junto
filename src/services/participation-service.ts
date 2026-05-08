@@ -93,13 +93,24 @@ export const participationService = {
   },
 
   getForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
-    const { data, error } = await supabase
-      .from('public_participants')
-      .select('participation_id, activity_id, user_id, status, created_at, display_name, avatar_url, confirmed_present')
-      .eq('activity_id', activityId)
-      .order('created_at');
+    // Routes through get_activity_participants (mig 00230) so creators
+    // and accepted participants both see the full accepted list. Direct
+    // SELECT on public_participants only returns the caller's own row
+    // because participations RLS is auth.uid() = user_id only.
+    const { data, error } = await supabase.rpc('get_activity_participants', {
+      p_activity_id: activityId,
+    });
     if (error) throw error;
-    return (data ?? []) as ParticipantInfo[];
+    return (data ?? []).map((r) => ({
+      participation_id: r.participation_id,
+      activity_id: r.activity_id,
+      user_id: r.user_id,
+      status: r.status,
+      created_at: r.created_at,
+      display_name: r.display_name,
+      avatar_url: r.avatar_url,
+      confirmed_present: r.confirmed_present,
+    })) as ParticipantInfo[];
   },
 
   getLateLeaversForCreator: async (activityId: string): Promise<{

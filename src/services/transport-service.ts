@@ -165,14 +165,25 @@ export const transportService = {
   },
 
   getForActivity: async (activityId: string): Promise<ParticipantTransport[]> => {
-    const { data, error } = await supabase
-      .from('public_participants')
-      .select('user_id, display_name, avatar_url, transport_type, transport_seats, transport_from_name, transport_departs_at')
-      .eq('activity_id', activityId)
-      .not('transport_type', 'is', null)
-      .order('transport_type');
+    // Routes through get_activity_participants (mig 00230) instead of
+    // the public_participants view — same reason as
+    // participation-service.getForActivity. Filter transport_type !=
+    // null in JS since the RPC returns the full participant set.
+    const { data, error } = await supabase.rpc('get_activity_participants', {
+      p_activity_id: activityId,
+    });
     if (error) return [];
-    return (data ?? []) as ParticipantTransport[];
+    return (data ?? [])
+      .filter((r) => r.transport_type !== null)
+      .map((r) => ({
+        user_id: r.user_id,
+        display_name: r.display_name,
+        avatar_url: r.avatar_url,
+        transport_type: r.transport_type,
+        transport_seats: r.transport_seats,
+        transport_from_name: r.transport_from_name,
+        transport_departs_at: r.transport_departs_at,
+      })) as ParticipantTransport[];
   },
 
   // Routes through get_activity_seat_assignments (mig 00089, hardened
