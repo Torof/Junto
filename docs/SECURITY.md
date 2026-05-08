@@ -348,7 +348,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
 
-**Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`, `endorse_sport_level`
+**Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`
 
 **Conversations :** `create_or_get_conversation`, `accept_contact_request`, `decline_contact_request`, `hide_conversation`, `send_wall_message`, `send_private_message`, `edit_wall_message`, `edit_private_message`, `delete_wall_message`, `delete_private_message`, `share_trace_message`
 
@@ -356,7 +356,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`
 
-**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `report_content`, `get_user_public_stats`, `get_user_sport_breakdown`
+**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `get_user_sport_breakdown`
 
 **Cron-on-foreground :** `check_activity_transitions`
 
@@ -415,8 +415,8 @@ AS $$ ... $$;
 | `seat_requests` | INSERT, UPDATE | Bypass driver/requester checks | `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`, trigger d'expiration |
 | `activity_alerts` | INSERT, UPDATE, DELETE | Bypass tier check, sanity bounds | `create_alert`, `delete_alert` |
 | `activity_gear` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear` |
-| `sport_level_endorsements` | INSERT, UPDATE, DELETE | Bypass UNIQUE + window check | `endorse_sport_level` |
-| `user_badge_progression` | INSERT, UPDATE | Auto-managed par trigger | `award_badge_progression` |
+| `reports` | INSERT, DELETE | Rate limit + dup-check + target validation | `create_report` (DELETE jamais autorisé) |
+| `user_badge_progression` | INSERT, UPDATE, DELETE | Auto-managed par trigger (DELETE jamais autorisé) | `award_badge_progression` |
 
 Sans ces restrictions, un client peut contourner les fonctions et opérer directement via l'API REST.
 
@@ -599,7 +599,7 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 #### `reports`
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| Reporter voit les siens + admins voient tout | ✅ Authenticated | ✅ Admins (status) | ❌ |
+| Reporter voit les siens + admins voient tout | 🔧 `create_report` (rate-limited, dup-check) | ✅ Admins (status) | ❌ |
 
 #### `peer_validations` (nouveau)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -636,8 +636,8 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 |--------|--------|--------|--------|
 | `auth.uid() = user_id` | 🔧 trigger via `award_badge_progression` | 🔧 | ❌ |
 
-#### `activity_gear`, `sport_level_endorsements` (nouveau)
-Voir leurs fonctions dédiées. Lecture par participants/créateur.
+#### `activity_gear` (nouveau)
+Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear`). Lecture par participants/créateur.
 
 ---
 
@@ -918,7 +918,7 @@ Validation client :
 
 ### Tables
 - `blocked_users` — affecte RLS sur toutes tables
-- `reports` — INSERT par tous, SELECT par reporter+admin, UPDATE admin only
+- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only
 
 ---
 
