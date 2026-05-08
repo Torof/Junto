@@ -143,7 +143,7 @@ export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
       <PushDeniedBanner />
-      {/* Tab bar */}
+
       <View style={styles.tabBar}>
         <Pressable
           style={[styles.tab, activeTab === 'action' && styles.tabActive]}
@@ -171,13 +171,12 @@ export default function NotificationsScreen() {
             </View>
           )}
         </Pressable>
+        {hasUnread && (
+          <Pressable style={styles.markAllButton} onPress={handleMarkAllRead} hitSlop={8}>
+            <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
+          </Pressable>
+        )}
       </View>
-
-      {hasUnread && (
-        <Pressable style={styles.markAllButton} onPress={handleMarkAllRead}>
-          <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
-        </Pressable>
-      )}
 
       {isLoading ? (
         <View style={styles.center}>
@@ -193,31 +192,35 @@ export default function NotificationsScreen() {
         <FlatList
           data={visible}
           keyExtractor={(item) => item.id}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={({ item }) => {
             const meta = notificationIcons[item.type] ?? defaultIcon;
             const IconComp = meta.icon;
             const body = item.type === 'activity_updated' && item.data?.changes
               ? renderActivityUpdatedBody(item.body, item.data.changes as Record<string, boolean>, t)
               : item.body;
+            const isUnread = !item.read_at;
             return (
-            <Pressable
-              style={[styles.card, !item.read_at && styles.cardUnread]}
-              onPress={() => handlePress(item)}
-            >
-              <View style={[styles.iconWrap, { backgroundColor: meta.color + '22' }]}>
-                <IconComp size={20} color={meta.color} strokeWidth={2.2} />
-              </View>
-              <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, !item.read_at && styles.cardTitleUnread]}>
-                  {item.title}
-                </Text>
-                <Text style={styles.cardBody} numberOfLines={2}>{body}</Text>
-                <Text style={styles.cardTime}>
-                  {dayjs(item.created_at).locale(i18n.language).fromNow()}
-                </Text>
-              </View>
-              {!item.read_at && <View style={styles.unreadDot} />}
-            </Pressable>
+              <Pressable style={styles.row} onPress={() => handlePress(item)}>
+                <View style={[styles.unreadBar, !isUnread && styles.unreadBarHidden]} />
+                <View style={styles.iconWrap}>
+                  <IconComp size={18} color={meta.color} strokeWidth={2.2} />
+                </View>
+                <View style={styles.rowContent}>
+                  <View style={styles.rowHeader}>
+                    <Text
+                      style={[styles.rowTitle, isUnread && styles.rowTitleUnread]}
+                      numberOfLines={1}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text style={styles.rowTime}>
+                      {dayjs(item.created_at).locale(i18n.language).fromNow(true)}
+                    </Text>
+                  </View>
+                  <Text style={styles.rowBody} numberOfLines={1}>{body}</Text>
+                </View>
+              </Pressable>
             );
           }}
           contentContainerStyle={styles.list}
@@ -234,89 +237,101 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
-    gap: spacing.sm,
+    gap: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   tab: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: { backgroundColor: colors.cta },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  tabTextActive: { color: colors.textPrimary },
+  tabActive: { borderBottomColor: colors.borderStrong },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   badge: {
-    minWidth: 20, height: 20, borderRadius: 10,
-    backgroundColor: colors.error,
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: radius.sm,
+    backgroundColor: colors.cta,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  badgeText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   markAllButton: {
-    paddingHorizontal: spacing.md,
+    marginLeft: 'auto',
     paddingVertical: spacing.sm,
-    alignItems: 'flex-end',
   },
   markAllText: {
     color: colors.cta,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
   },
   list: {
-    padding: spacing.md,
+    paddingVertical: 0,
   },
-  card: {
+  separator: {
+    height: 1,
+    backgroundColor: colors.borderMuted,
+    marginLeft: spacing.md + 3 + spacing.sm + 24 + spacing.sm, // align with text column (skip unread bar + icon)
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingRight: spacing.md,
+    minHeight: 56,
   },
-  cardUnread: {
-    backgroundColor: colors.cta + '15',
+  unreadBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    backgroundColor: colors.cta,
+    marginRight: spacing.sm,
+  },
+  unreadBarHidden: {
+    backgroundColor: 'transparent',
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
+    marginRight: spacing.sm,
   },
-  cardContent: {
+  rowContent: {
     flex: 1,
+    minWidth: 0,
   },
-  cardTitle: {
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+  },
+  rowTitle: {
+    flex: 1,
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
-    marginBottom: 2,
+    fontWeight: '500',
   },
-  cardTitleUnread: {
-    fontWeight: 'bold',
+  rowTitleUnread: {
+    fontWeight: '700',
   },
-  cardBody: {
+  rowTime: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    marginBottom: 4,
   },
-  cardTime: {
+  rowBody: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    opacity: 0.7,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.cta,
-    marginLeft: spacing.sm,
+    marginTop: 2,
   },
   center: {
     flex: 1,
