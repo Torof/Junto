@@ -39,8 +39,7 @@ export function MetaChipsGrid({ chips }: Props) {
             <Pressable
               key={chip.id}
               style={[styles.chip, chip.span === 'full' && styles.chipFull]}
-              onLongPress={() => setTooltip({ label: chip.label, value: chip.value })}
-              delayLongPress={350}
+              onPress={() => setTooltip({ label: chip.label, value: chip.value })}
             >
               <View style={[styles.iconBox, { backgroundColor: chip.accent + '33' }]}>
                 <Icon size={16} color={chip.accent} strokeWidth={2.4} />

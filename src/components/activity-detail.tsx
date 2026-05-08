@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -667,6 +667,10 @@ export function ActivityDetail({
               <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
                 <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                 <View style={styles.mapTapOverlay} pointerEvents="box-only" />
+                <View style={styles.mapNavHint} pointerEvents="none">
+                  <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
+                  <Text style={styles.mapNavHintText}>{t('activity.navigate')}</Text>
+                </View>
                 {isCreator && (
                   <View style={styles.traceIconRow} pointerEvents="box-none">
                     <Pressable
@@ -1070,6 +1074,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted,
   },
   mapTapOverlay: { ...StyleSheet.absoluteFillObject },
+  // Affordance badge: tells the user that tapping the preview leads to
+  // the full-screen map + Google-Maps directions. Floats bottom-left so
+  // it doesn't collide with the creator's trace tools (top-right).
+  mapNavHint: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    left: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: 4,
+  },
+  mapNavHintText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
   traceIconRow: { position: 'absolute', top: spacing.sm, right: spacing.sm, flexDirection: 'row', gap: 6 },
   traceIconButton: {
     width: 32, height: 32, borderRadius: radius.sm,
