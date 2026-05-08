@@ -39,9 +39,8 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
     <View style={styles.handleContainer} pointerEvents="box-none">
       <View style={styles.topBorder} />
       <Pressable style={styles.tab} onPress={onExpand} hitSlop={6}>
-        <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
-          <ChevronUpCircle size={15} color={colors.textPrimary} strokeWidth={2.2} />
+          <ChevronUpCircle size={16} color={colors.textPrimary} strokeWidth={2.2} />
           <Text style={styles.tabText}>{filterLabel ?? `${label} · ${count}`}</Text>
           {filterLabel && onClearFilter && (
             <Pressable
@@ -49,7 +48,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
               hitSlop={10}
               style={styles.clearBtn}
             >
-              <X size={13} color={colors.textPrimary} strokeWidth={2.4} />
+              <X size={14} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
           )}
         </View>
@@ -134,7 +133,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderTopWidth: 1,
-    borderTopColor: colors.pinBorder,
+    borderTopColor: colors.borderStrong,
   },
   handleContainer: {
     height: 12,
@@ -146,31 +145,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: colors.pinBorder,
+    backgroundColor: colors.borderStrong,
   },
   tab: {
     position: 'absolute',
-    top: -38,
+    top: -34,
     left: spacing.sm,
-    height: 40,
+    height: 36,
     backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xs,
+    borderTopRightRadius: radius.xs,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 4,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
-    gap: 4,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.pinBorder,
-  },
-  tabGrip: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.textSecondary,
+    borderColor: colors.borderStrong,
   },
   tabRow: {
     flexDirection: 'row',
@@ -179,12 +170,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tabText: {
     color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   clearBtn: {
-    marginLeft: 4,
+    marginLeft: 2,
     padding: 2,
+    borderRadius: radius.xs,
   },
   list: {
     paddingHorizontal: spacing.md,
