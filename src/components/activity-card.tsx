@@ -63,7 +63,6 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
             </View>
           )}
         </View>
-        <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Calendar size={11} color={colors.cta} strokeWidth={2.4} />
@@ -161,12 +160,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.lg,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   metaRow: {
     flexDirection: 'row',
