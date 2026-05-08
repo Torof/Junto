@@ -10,7 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { formatDifficultySignal } from '@/constants/sport-levels';
-import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { getActivityTimeStatus, getStatusColor, getRemainingPlaces, type ActivityTimeStatus } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 
 interface ActivityCardProps {
@@ -20,12 +20,15 @@ interface ActivityCardProps {
   showCreator?: boolean;
 }
 
+const ATTENTION_STATES: ReadonlySet<ActivityTimeStatus> = new Set(['in_progress', 'soon', 'cancelled']);
+
 export function ActivityCard({ activity, onPress, distanceKm, showCreator = true }: ActivityCardProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
   const statusColor = getStatusColor(timeStatus);
+  const showStatusBar = ATTENTION_STATES.has(timeStatus);
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
   const joined = activity.participant_count;
   const isFull = remaining <= 0;
@@ -34,16 +37,11 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
   const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
 
   return (
-    <Pressable style={[styles.card, isFull && styles.cardFull]} onPress={onPress}>
-      {/* Left: sport emoji in circle, status dot half on the border */}
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
-        </View>
-        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-      </View>
+    <Pressable style={[styles.row, isFull && styles.rowFull]} onPress={onPress}>
+      <View style={[styles.statusBar, !showStatusBar && styles.statusBarHidden, showStatusBar && { backgroundColor: statusColor }]} />
 
-      {/* Middle: sport + level, title, meta */}
+      <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
+
       <View style={styles.middleCol}>
         <View style={styles.sportRow}>
           <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
@@ -86,7 +84,6 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
         </View>
       </View>
 
-      {/* Right: partants count */}
       <View style={styles.countCol}>
         <Text style={styles.countValue}>
           {joined}{activity.max_participants !== null && (<Text style={styles.countMax}>/{activity.max_participants}</Text>)}
@@ -98,51 +95,36 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  card: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md + 4,
-    marginBottom: spacing.sm,
-    gap: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingRight: spacing.md,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  cardFull: {
-    opacity: 0.6,
+  rowFull: {
+    opacity: 0.55,
   },
-  avatarWrap: {
-    width: 44,
-    height: 44,
-    position: 'relative',
+  statusBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    marginRight: spacing.sm,
   },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
+  statusBarHidden: {
+    backgroundColor: 'transparent',
   },
   emoji: {
-    fontSize: 22,
-  },
-  statusDot: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: colors.surface,
+    fontSize: 26,
+    width: 32,
+    textAlign: 'center',
   },
   middleCol: {
     flex: 1,
     justifyContent: 'center',
-    gap: 5,
+    gap: 3,
+    minWidth: 0,
   },
   sportRow: {
     flexDirection: 'row',
@@ -168,9 +150,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fullPill: {
     backgroundColor: colors.error,
-    borderRadius: radius.full,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
+    paddingVertical: 1,
     marginLeft: spacing.xs,
   },
   fullPillText: {
