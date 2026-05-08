@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -2418,19 +2419,14 @@ export type Database = {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
         Returns: string
       }
-      send_private_message:
-        | {
-            Args: { p_content: string; p_conversation_id: string }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_content: string
-              p_conversation_id: string
-              p_reply_to_message_id?: string
-            }
-            Returns: string
-          }
+      send_private_message: {
+        Args: {
+          p_content: string
+          p_conversation_id: string
+          p_reply_to_message_id?: string
+        }
+        Returns: string
+      }
       send_wall_message: {
         Args: { p_activity_id: string; p_content: string }
         Returns: string
@@ -3046,7 +3042,6 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
-      transition_activity_status: { Args: never; Returns: undefined }
       transition_single_activity: {
         Args: { p_activity_id: string }
         Returns: string
@@ -3231,3 +3226,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />

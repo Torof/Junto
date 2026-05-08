@@ -532,6 +532,8 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 - `status` — via les fonctions de participation (`accept_participation`, `refuse_participation`, `leave_activity`, `remove_participant`)
 - `transport_*` — via `set_participation_transport` (et `accept_seat_request` / `cancel_accepted_seat` pour le décrément/refund de `transport_seats`)
 
+**Convention `bypass_lock` (dette technique connue)** : `junto.bypass_lock` n'est interprété que par les triggers whitelist sur `users` et `activities`. Les appels `set_config('junto.bypass_lock', 'true', true)` qui précèdent uniquement des écritures sur `participations`, `peer_validations`, `seat_requests` ou `notifications` sont des **no-ops bénins** (pas de trigger qui les lit). Mig 00200 a déjà nettoyé `set_participation_transport`, `accept_seat_request`, `cancel_accepted_seat`. Les appels morts résiduels (`join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `cascade_block_cleanup`, `peer_validate_presence`, `create_activity`) seront supprimés **opportunistiquement** la prochaine fois que la fonction est réécrite pour une autre raison — pas de migration cosmétique dédiée.
+
 ### Table `notifications`
 - INSERT interdit pour les clients (fonctions seulement)
 - UPDATE limité à `read_at` sur ses propres notifs
