@@ -275,9 +275,11 @@ function FiltersTab({
         </View>
       </ScrollView>
 
-      <Pressable style={styles.applyButton} onPress={onClose}>
-        <Text style={styles.applyText}>{t('map.apply')}</Text>
-      </Pressable>
+      <View style={styles.applyContainer}>
+        <Pressable style={styles.applyButton} onPress={onClose}>
+          <Text style={styles.applyText}>{t('map.apply')}</Text>
+        </Pressable>
+      </View>
     </>
   );
 }
@@ -334,7 +336,7 @@ function AlertsTab({ onNewAlert, t, styles, colors }: AlertsTabProps) {
       ) : (
         alerts.map((a) => (
           <View key={a.id} style={styles.alertRow}>
-            <View style={styles.alertIconBox}>
+            <View style={styles.alertIcon}>
               <Radar size={18} color={colors.cta} strokeWidth={2.2} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -364,37 +366,51 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.lg, paddingBottom: spacing.xl + 16, maxHeight: '85%',
+    padding: spacing.md, paddingBottom: spacing.xl + 16, maxHeight: '85%',
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
 
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: 4,
+    alignItems: 'center',
+    gap: spacing.md,
     marginBottom: spacing.md,
-    gap: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   tab: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingVertical: spacing.sm + 2, borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: { backgroundColor: colors.surfaceAlt },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  tabTextActive: { color: colors.textPrimary },
+  tabActive: { borderBottomColor: colors.borderStrong },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
 
   header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.sm },
   reset: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.sm, marginTop: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
-  chip: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
-  chipActive: { backgroundColor: colors.cta },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: 'transparent',
+  },
+  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
   chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  chipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
 
-  applyButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  applyText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  applyContainer: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
+  },
+  applyButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  applyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
 
   emptyText: {
     color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic',
@@ -403,28 +419,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   alertRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.line,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm,
-    marginBottom: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  alertIconBox: {
-    width: 36, height: 36, borderRadius: radius.sm,
-    backgroundColor: colors.cta + '26',
-    alignItems: 'center', justifyContent: 'center',
-  },
+  alertIcon: { width: 24, alignItems: 'center', justifyContent: 'center' },
   alertSport: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   alertMeta: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 2 },
   alertDeleteBtn: {
-    width: 36, height: 36, alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
   },
 
   newAlertBtn: {
     marginTop: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.md,
-    borderWidth: 1, borderStyle: 'dashed', borderColor: colors.cta,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.cta,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
-  newAlertText: { color: colors.cta, fontSize: fontSizes.sm + 1, fontWeight: '700' },
+  newAlertText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
 });
