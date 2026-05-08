@@ -20,17 +20,16 @@ export function DrawerFilterBar() {
   const [picker, setPicker] = useState<Picker>(null);
 
   const sportActive = filters.sportKeys.length > 0;
-  const dateActive = filters.dateMode !== 'all';
-  const levelActive = filters.levelTiers.length > 0;
-  const visActive = filters.visibilities.length > 0;
+  const otherActive =
+    filters.dateMode !== 'all' ||
+    filters.levelTiers.length > 0 ||
+    filters.visibilities.length > 0;
 
   return (
     <>
       <View style={styles.bar}>
-        <CategoryChip label={t('map.sportLabel')}      active={sportActive} onPress={() => setPicker('sport')} styles={styles} />
-        <CategoryChip label={t('map.dateLabel')}       active={dateActive}  onPress={() => setPicker('sheet')} styles={styles} />
-        <CategoryChip label={t('map.levelLabel')}      active={levelActive} onPress={() => setPicker('sheet')} styles={styles} />
-        <CategoryChip label={t('map.visibilityLabel')} active={visActive}   onPress={() => setPicker('sheet')} styles={styles} />
+        <CategoryChip label={t('map.sportLabel')}        active={sportActive} onPress={() => setPicker('sport')} styles={styles} />
+        <CategoryChip label={t('map.otherFiltersLabel')} active={otherActive} onPress={() => setPicker('sheet')} styles={styles} />
       </View>
 
       {picker === 'sport' && <SportPickerModal onClose={() => setPicker(null)} styles={styles} />}

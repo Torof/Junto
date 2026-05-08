@@ -7,7 +7,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Radar, Trash2 } from 'lucide-react-native';
+import { Radar, Trash2, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type VisibilityFilter } from '@/store/map-store';
@@ -99,6 +99,7 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
               t={t}
               lang={i18n.language}
               styles={styles}
+              colors={colors}
             />
           ) : (
             <AlertsTab
@@ -137,14 +138,47 @@ interface FiltersTabProps {
   t: (k: string, opts?: Record<string, unknown>) => string;
   lang: string;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
 }
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setSpecificDate, setDateRange,
   toggleLevelTier, toggleVisibility, resetFilters,
   showDatePicker, setShowDatePicker, showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
-  onClose, t, lang, styles,
+  onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
+  const activePills: { id: string; label: string; clear: () => void }[] = [];
+
+  filters.sportKeys.forEach((key) => {
+    activePills.push({
+      id: `sport-${key}`,
+      label: t(`sports.${key}`, { defaultValue: key }),
+      clear: () => toggleSportFilter(key),
+    });
+  });
+
+  if (filters.dateMode !== 'all') {
+    let dateLabel = '';
+    if (filters.dateMode === 'today') dateLabel = t('map.date.today');
+    else if (filters.dateMode === 'week') dateLabel = t('map.date.week');
+    else if (filters.dateMode === 'date' && filters.specificDate) {
+      dateLabel = dayjs(filters.specificDate).locale(lang).format('D MMM');
+    } else if (filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo) {
+      dateLabel = `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`;
+    }
+    if (dateLabel) {
+      activePills.push({ id: 'date', label: dateLabel, clear: () => setDateMode('all') });
+    }
+  }
+
+  filters.levelTiers.forEach((tier) => {
+    activePills.push({ id: `level-${tier}`, label: tier, clear: () => toggleLevelTier(tier) });
+  });
+
+  filters.visibilities.forEach((v) => {
+    activePills.push({ id: `vis-${v}`, label: t(`map.visibility.${v}`), clear: () => toggleVisibility(v) });
+  });
+
   return (
     <>
       <View style={styles.header}>
@@ -152,6 +186,19 @@ function FiltersTab({
           <Text style={styles.reset}>{t('map.resetFilters')}</Text>
         </Pressable>
       </View>
+
+      {activePills.length > 0 && (
+        <View style={styles.activePillsWrap}>
+          {activePills.map((pill) => (
+            <View key={pill.id} style={styles.activePill}>
+              <Text style={styles.activePillLabel} numberOfLines={1}>{pill.label}</Text>
+              <Pressable onPress={pill.clear} hitSlop={6} style={styles.activePillClear}>
+                <X size={12} color={colors.textPrimary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
 
       <ScrollView
         style={{ flexGrow: 0 }}
@@ -389,6 +436,41 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.sm },
   reset: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
+
+  // Active filters — wrap-row of pills at the top of the filters tab
+  activePillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs + 2,
+    paddingBottom: spacing.sm,
+    marginBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+  },
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.sm,
+    paddingLeft: spacing.sm + 2,
+    paddingRight: spacing.xs + 2,
+    paddingVertical: spacing.xs + 1,
+  },
+  activePillLabel: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  activePillClear: {
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.sm, marginTop: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
   chip: {

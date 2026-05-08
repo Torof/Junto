@@ -471,6 +471,7 @@
     },
     "dateLabel": "Quand",
     "sportLabel": "Sport",
+    "otherFiltersLabel": "Autres filtres",
     "levelLabel": "Niveau",
     "levelTier": {
       "beginner": "Débutant",
