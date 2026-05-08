@@ -25,6 +25,11 @@ export const darkColors = {
   // border (e.g. card-pills nested inside a card body) where the
   // standard `line` reads too quietly.
   lineStrong: 'rgba(255,255,255,0.18)',
+  // Brutalist 1px-solid border (near-opposite of bg). Use on cards,
+  // notif rows, inputs and other surfaces that should read as
+  // sharply-defined containers, not floating soft shapes.
+  borderStrong: '#F5F5F0',
+  borderMuted: 'rgba(255,255,255,0.18)',
   overlay: 'rgba(0,0,0,0.5)',
 };
 
@@ -52,6 +57,9 @@ export const lightColors = {
   border: '#9E9A95',
   line: 'rgba(0,0,0,0.08)',
   lineStrong: 'rgba(0,0,0,0.18)',
+  // Brutalist 1px-solid border (near-opposite of bg).
+  borderStrong: '#1A1A1A',
+  borderMuted: 'rgba(0,0,0,0.18)',
   overlay: 'rgba(0,0,0,0.3)',
 };
 
