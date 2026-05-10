@@ -472,6 +472,8 @@
     "dateLabel": "When",
     "sportLabel": "Sport",
     "otherFiltersLabel": "Other filters",
+    "radiusLabel": "Radius",
+    "radiusOff": "All",
     "levelLabel": "Level",
     "levelTier": {
       "beginner": "Beginner",

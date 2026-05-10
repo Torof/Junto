@@ -472,6 +472,8 @@
     "dateLabel": "Quand",
     "sportLabel": "Sport",
     "otherFiltersLabel": "Autres filtres",
+    "radiusLabel": "Rayon",
+    "radiusOff": "Tout",
     "levelLabel": "Niveau",
     "levelTier": {
       "beginner": "Débutant",

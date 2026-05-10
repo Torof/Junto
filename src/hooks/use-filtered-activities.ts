@@ -3,10 +3,14 @@ import dayjs from 'dayjs';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useMapStore } from '@/store/map-store';
 import { getLevelScale } from '@/constants/sport-levels';
+import { distanceMeters } from '@/utils/geo';
 
 const OPEN_LEVEL = 'Tous niveaux';
 
-export function useFilteredActivities(activities: NearbyActivity[]): NearbyActivity[] {
+export function useFilteredActivities(
+  activities: NearbyActivity[],
+  userLocation?: [number, number] | null,
+): NearbyActivity[] {
   const { filters } = useMapStore();
 
   return useMemo(() => {
@@ -56,6 +60,15 @@ export function useFilteredActivities(activities: NearbyActivity[]): NearbyActiv
       });
     }
 
+    // Radius filter — distance from userLocation (lng, lat). When the user
+    // hasn't shared GPS or hasn't set a radius, no filter applies.
+    if (filters.radiusKm !== null && userLocation) {
+      const limitMeters = filters.radiusKm * 1000;
+      filtered = filtered.filter(
+        (a) => distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) <= limitMeters,
+      );
+    }
+
     return filtered;
-  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities]);
+  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, userLocation]);
 }

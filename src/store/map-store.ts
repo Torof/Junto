@@ -13,6 +13,7 @@ interface MapFilters {
   rangeTo: string | null;        // ISO date string for 'range' mode
   levelTiers: LevelTier[];       // empty = no filter
   visibilities: VisibilityFilter[]; // empty = no filter
+  radiusKm: number | null;       // null = no radius filter
 }
 
 interface MapStore {
@@ -23,6 +24,7 @@ interface MapStore {
   setDateRange: (from: string, to: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
   toggleVisibility: (v: VisibilityFilter) => void;
+  setRadiusKm: (km: number | null) => void;
   resetFilters: () => void;
 }
 
@@ -34,6 +36,7 @@ const DEFAULT_FILTERS: MapFilters = {
   rangeTo: null,
   levelTiers: [],
   visibilities: [],
+  radiusKm: null,
 };
 
 export const useMapStore = create<MapStore>((set) => ({
@@ -71,5 +74,7 @@ export const useMapStore = create<MapStore>((set) => ({
           : [...state.filters.visibilities, v],
       },
     })),
+  setRadiusKm: (km) =>
+    set((state) => ({ filters: { ...state.filters, radiusKm: km } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));

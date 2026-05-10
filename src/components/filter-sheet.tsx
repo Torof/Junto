@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Slider from '@react-native-community/slider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
@@ -46,6 +47,7 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
     setDateRange,
     toggleLevelTier,
     toggleVisibility,
+    setRadiusKm,
     resetFilters,
   } = useMapStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -88,6 +90,7 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
               setDateRange={setDateRange}
               toggleLevelTier={toggleLevelTier}
               toggleVisibility={toggleVisibility}
+              setRadiusKm={setRadiusKm}
               resetFilters={resetFilters}
               showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
@@ -127,6 +130,7 @@ interface FiltersTabProps {
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
   toggleVisibility: (v: VisibilityFilter) => void;
+  setRadiusKm: (km: number | null) => void;
   resetFilters: () => void;
   showDatePicker: boolean;
   setShowDatePicker: (v: boolean) => void;
@@ -143,7 +147,7 @@ interface FiltersTabProps {
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setSpecificDate, setDateRange,
-  toggleLevelTier, toggleVisibility, resetFilters,
+  toggleLevelTier, toggleVisibility, setRadiusKm, resetFilters,
   showDatePicker, setShowDatePicker, showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
@@ -178,6 +182,14 @@ function FiltersTab({
   filters.visibilities.forEach((v) => {
     activePills.push({ id: `vis-${v}`, label: t(`map.visibility.${v}`), clear: () => toggleVisibility(v) });
   });
+
+  if (filters.radiusKm !== null) {
+    activePills.push({
+      id: 'radius',
+      label: `${filters.radiusKm} km`,
+      clear: () => setRadiusKm(null),
+    });
+  }
 
   return (
     <>
@@ -276,6 +288,27 @@ function FiltersTab({
             }}
           />
         )}
+
+        <View style={styles.radiusHeader}>
+          <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
+          <Text style={styles.radiusValue}>
+            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
+          </Text>
+        </View>
+        <Slider
+          minimumValue={0}
+          maximumValue={200}
+          step={5}
+          value={filters.radiusKm ?? 0}
+          onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
+          minimumTrackTintColor={colors.cta}
+          maximumTrackTintColor={colors.borderMuted}
+          thumbTintColor={colors.cta}
+        />
+        <View style={styles.sliderBounds}>
+          <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
+          <Text style={styles.sliderBoundText}>200 km</Text>
+        </View>
 
         <Text style={styles.sectionTitle}>{t('map.sportLabel')}</Text>
         <SportDropdown
@@ -473,6 +506,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.sm, marginTop: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
+  radiusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: spacing.sm, marginBottom: spacing.sm },
+  radiusValue: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4, marginBottom: spacing.md },
+  sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   chip: {
     borderWidth: 1,
     borderColor: colors.borderMuted,

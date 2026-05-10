@@ -88,7 +88,7 @@ export default function CarteScreen() {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
-  const filtered = useFilteredActivities(activities ?? []);
+  const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
