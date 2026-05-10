@@ -11,8 +11,8 @@ import * as Burnt from 'burnt';
 import { Radar, Trash2, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
-import { useMapStore, type LevelTier, type VisibilityFilter } from '@/store/map-store';
-import { SportDropdown } from './sport-dropdown';
+import { useMapStore, type LevelTier } from '@/store/map-store';
+import { SportPickerSheet } from './sport-picker-sheet';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
 
@@ -22,10 +22,6 @@ const LEVEL_TIERS: { tier: LevelTier; key: string }[] = [
   { tier: 'Intermédiaire', key: 'intermediate' },
   { tier: 'Avancé', key: 'advanced' },
   { tier: 'Expert', key: 'expert' },
-];
-const VISIBILITIES: { key: VisibilityFilter; i18n: string }[] = [
-  { key: 'public', i18n: 'public' },
-  { key: 'approval', i18n: 'approval' },
 ];
 
 type TabKey = 'filters' | 'alerts';
@@ -46,7 +42,6 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
     setSpecificDate,
     setDateRange,
     toggleLevelTier,
-    toggleVisibility,
     setRadiusKm,
     resetFilters,
   } = useMapStore();
@@ -89,7 +84,6 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
               setSpecificDate={setSpecificDate}
               setDateRange={setDateRange}
               toggleLevelTier={toggleLevelTier}
-              toggleVisibility={toggleVisibility}
               setRadiusKm={setRadiusKm}
               resetFilters={resetFilters}
               showDatePicker={showDatePicker}
@@ -129,7 +123,6 @@ interface FiltersTabProps {
   setSpecificDate: (d: string) => void;
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
-  toggleVisibility: (v: VisibilityFilter) => void;
   setRadiusKm: (km: number | null) => void;
   resetFilters: () => void;
   showDatePicker: boolean;
@@ -147,10 +140,12 @@ interface FiltersTabProps {
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setSpecificDate, setDateRange,
-  toggleLevelTier, toggleVisibility, setRadiusKm, resetFilters,
+  toggleLevelTier, setRadiusKm, resetFilters,
   showDatePicker, setShowDatePicker, showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
+  const [showSport, setShowSport] = useState(false);
+
   const activePills: { id: string; label: string; clear: () => void }[] = [];
 
   filters.sportKeys.forEach((key) => {
@@ -179,10 +174,6 @@ function FiltersTab({
     activePills.push({ id: `level-${tier}`, label: tier, clear: () => toggleLevelTier(tier) });
   });
 
-  filters.visibilities.forEach((v) => {
-    activePills.push({ id: `vis-${v}`, label: t(`map.visibility.${v}`), clear: () => toggleVisibility(v) });
-  });
-
   if (filters.radiusKm !== null) {
     activePills.push({
       id: 'radius',
@@ -190,6 +181,13 @@ function FiltersTab({
       clear: () => setRadiusKm(null),
     });
   }
+
+  const sportActive = filters.sportKeys.length > 0;
+  const sportLabel = !sportActive
+    ? t('map.sportLabel')
+    : filters.sportKeys.length === 1
+      ? t(`sports.${filters.sportKeys[0]}`, { defaultValue: filters.sportKeys[0] ?? '' })
+      : `${t('map.sportLabel')} · ${filters.sportKeys.length}`;
 
   return (
     <>
@@ -217,7 +215,29 @@ function FiltersTab({
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.sectionTitle}>{t('map.dateLabel')}</Text>
+        {/* Radius — first selection element */}
+        <View style={styles.radiusHeader}>
+          <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
+          <Text style={styles.radiusValue}>
+            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
+          </Text>
+        </View>
+        <Slider
+          minimumValue={0}
+          maximumValue={200}
+          step={5}
+          value={filters.radiusKm ?? 0}
+          onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
+          minimumTrackTintColor={colors.cta}
+          maximumTrackTintColor={colors.borderMuted}
+          thumbTintColor={colors.cta}
+        />
+        <View style={styles.sliderBounds}>
+          <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
+          <Text style={styles.sliderBoundText}>200 km</Text>
+        </View>
+
+        {/* Date + Sport on one line. No section titles — chip labels carry their meaning. */}
         <View style={styles.chipRow}>
           {QUICK_OPTIONS.map((option) => (
             <Pressable
@@ -248,6 +268,14 @@ function FiltersTab({
               {filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
                 ? `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`
                 : t('map.date.pickRange')}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.chip, sportActive && styles.chipActive]}
+            onPress={() => setShowSport(true)}
+          >
+            <Text style={[styles.chipText, sportActive && styles.chipTextActive]} numberOfLines={1}>
+              {sportLabel}
             </Text>
           </Pressable>
         </View>
@@ -289,35 +317,6 @@ function FiltersTab({
           />
         )}
 
-        <View style={styles.radiusHeader}>
-          <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
-          <Text style={styles.radiusValue}>
-            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
-          </Text>
-        </View>
-        <Slider
-          minimumValue={0}
-          maximumValue={200}
-          step={5}
-          value={filters.radiusKm ?? 0}
-          onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
-          minimumTrackTintColor={colors.cta}
-          maximumTrackTintColor={colors.borderMuted}
-          thumbTintColor={colors.cta}
-        />
-        <View style={styles.sliderBounds}>
-          <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
-          <Text style={styles.sliderBoundText}>200 km</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>{t('map.sportLabel')}</Text>
-        <SportDropdown
-          selected={filters.sportKeys}
-          onSelect={toggleSportFilter}
-          multiSelect
-          label={t('map.sportLabel')}
-        />
-
         <Text style={styles.sectionTitle}>{t('map.levelLabel')}</Text>
         <View style={styles.chipRow}>
           {LEVEL_TIERS.map(({ tier, key }) => {
@@ -335,25 +334,9 @@ function FiltersTab({
             );
           })}
         </View>
-
-        <Text style={styles.sectionTitle}>{t('map.visibilityLabel')}</Text>
-        <View style={styles.chipRow}>
-          {VISIBILITIES.map(({ key, i18n: i18nKey }) => {
-            const active = filters.visibilities.includes(key);
-            return (
-              <Pressable
-                key={key}
-                style={[styles.chip, active && styles.chipActive]}
-                onPress={() => toggleVisibility(key)}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {t(`map.visibility.${i18nKey}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
       </ScrollView>
+
+      <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} />
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
