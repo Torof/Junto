@@ -16,7 +16,6 @@ import { SportPickerSheet } from './sport-picker-sheet';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
 
-const QUICK_OPTIONS = ['all', 'today'] as const;
 const LEVEL_TIERS: { tier: LevelTier; key: string }[] = [
   { tier: 'Débutant', key: 'beginner' },
   { tier: 'Intermédiaire', key: 'intermediate' },
@@ -39,13 +38,11 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
     filters,
     toggleSportFilter,
     setDateMode,
-    setSpecificDate,
     setDateRange,
     toggleLevelTier,
     setRadiusKm,
     resetFilters,
   } = useMapStore();
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRangeFrom, setShowRangeFrom] = useState(false);
   const [showRangeTo, setShowRangeTo] = useState(false);
   const [tab, setTab] = useState<TabKey>('filters');
@@ -81,13 +78,10 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
               filters={filters}
               toggleSportFilter={toggleSportFilter}
               setDateMode={setDateMode}
-              setSpecificDate={setSpecificDate}
               setDateRange={setDateRange}
               toggleLevelTier={toggleLevelTier}
               setRadiusKm={setRadiusKm}
               resetFilters={resetFilters}
-              showDatePicker={showDatePicker}
-              setShowDatePicker={setShowDatePicker}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
               showRangeTo={showRangeTo}
@@ -120,13 +114,10 @@ interface FiltersTabProps {
   filters: ReturnType<typeof useMapStore.getState>['filters'];
   toggleSportFilter: (k: string) => void;
   setDateMode: (m: 'all' | 'today' | 'week' | 'date' | 'range') => void;
-  setSpecificDate: (d: string) => void;
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
   setRadiusKm: (km: number | null) => void;
   resetFilters: () => void;
-  showDatePicker: boolean;
-  setShowDatePicker: (v: boolean) => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
   showRangeTo: boolean;
@@ -139,9 +130,9 @@ interface FiltersTabProps {
 }
 
 function FiltersTab({
-  filters, toggleSportFilter, setDateMode, setSpecificDate, setDateRange,
+  filters, toggleSportFilter, setDateMode, setDateRange,
   toggleLevelTier, setRadiusKm, resetFilters,
-  showDatePicker, setShowDatePicker, showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
+  showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
   const [showSport, setShowSport] = useState(false);
@@ -237,36 +228,19 @@ function FiltersTab({
           <Text style={styles.sliderBoundText}>200 km</Text>
         </View>
 
-        {/* Date + Sport on one line. No section titles — chip labels carry their meaning. */}
+        {/* Période + Sport on one line. The period chip opens a range
+            picker that also covers single-day selection (pick same day
+            twice) — a single control for any time-window selection. */}
         <View style={styles.chipRow}>
-          {QUICK_OPTIONS.map((option) => (
-            <Pressable
-              key={option}
-              style={[styles.chip, filters.dateMode === option && styles.chipActive]}
-              onPress={() => setDateMode(option)}
-            >
-              <Text style={[styles.chipText, filters.dateMode === option && styles.chipTextActive]}>
-                {t(`map.date.${option}`)}
-              </Text>
-            </Pressable>
-          ))}
-          <Pressable
-            style={[styles.chip, filters.dateMode === 'date' && styles.chipActive]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={[styles.chipText, filters.dateMode === 'date' && styles.chipTextActive]}>
-              {filters.dateMode === 'date' && filters.specificDate
-                ? dayjs(filters.specificDate).locale(lang).format('D MMM')
-                : t('map.date.pickDate')}
-            </Text>
-          </Pressable>
           <Pressable
             style={[styles.chip, filters.dateMode === 'range' && styles.chipActive]}
             onPress={() => setShowRangeFrom(true)}
           >
             <Text style={[styles.chipText, filters.dateMode === 'range' && styles.chipTextActive]}>
               {filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
-                ? `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`
+                ? (dayjs(filters.rangeFrom).isSame(filters.rangeTo, 'day')
+                    ? dayjs(filters.rangeFrom).locale(lang).format('D MMM')
+                    : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
                 : t('map.date.pickRange')}
             </Text>
           </Pressable>
@@ -280,17 +254,6 @@ function FiltersTab({
           </Pressable>
         </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={filters.specificDate ? new Date(filters.specificDate) : new Date()}
-            mode="date"
-            minimumDate={new Date()}
-            onChange={(_e, date) => {
-              setShowDatePicker(false);
-              if (date) setSpecificDate(date.toISOString());
-            }}
-          />
-        )}
         {showRangeFrom && (
           <DateTimePicker
             value={filters.rangeFrom ? new Date(filters.rangeFrom) : new Date()}

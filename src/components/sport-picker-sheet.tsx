@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -33,6 +34,16 @@ export function SportPickerSheet({ visible, onClose }: Props) {
     },
   });
 
+  // Sort by translated name (alphabetical in user's locale).
+  const sortedSports = useMemo(() => {
+    if (!sports) return [];
+    return [...sports].sort((a, b) => {
+      const aName = t(`sports.${a.key}`, { defaultValue: a.key });
+      const bName = t(`sports.${b.key}`, { defaultValue: b.key });
+      return aName.localeCompare(bName);
+    });
+  }, [sports, t]);
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -40,19 +51,20 @@ export function SportPickerSheet({ visible, onClose }: Props) {
           <View style={styles.handle} />
           <Text style={styles.sheetTitle}>{t('map.sportLabel')}</Text>
 
-          <ScrollView contentContainerStyle={styles.sportGrid}>
-            {sports?.map((s: { key: string; category: string }) => {
+          <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+            {sortedSports.map((s) => {
               const isSelected = filters.sportKeys.includes(s.key);
               return (
                 <Pressable
                   key={s.key}
-                  style={[styles.sportItem, isSelected && styles.sportItemActive]}
+                  style={styles.row}
                   onPress={() => toggleSportFilter(s.key)}
                 >
-                  <Text style={styles.sportEmoji}>{getSportIcon(s.key)}</Text>
-                  <Text style={[styles.sportItemLabel, isSelected && styles.sportItemLabelActive]} numberOfLines={1}>
+                  <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                  <Text style={[styles.rowLabel, isSelected && styles.rowLabelActive]} numberOfLines={1}>
                     {t(`sports.${s.key}`, { defaultValue: s.key })}
                   </Text>
+                  {isSelected && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
                 </Pressable>
               );
             })}
@@ -98,37 +110,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: spacing.md,
   },
-  sportGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs + 2,
-    paddingBottom: spacing.md,
-  },
-  sportItem: {
+  list: { maxHeight: '80%' },
+  listContent: { paddingBottom: spacing.md },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
-    backgroundColor: 'transparent',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  sportItemActive: {
-    backgroundColor: colors.cta,
-    borderColor: colors.cta,
+  rowEmoji: {
+    fontSize: 20,
+    width: 28,
+    textAlign: 'center',
   },
-  sportEmoji: {
-    fontSize: 16,
-  },
-  sportItemLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
+  rowLabel: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
     fontWeight: '500',
   },
-  sportItemLabelActive: {
-    color: '#FFFFFF',
+  rowLabelActive: {
+    color: colors.cta,
     fontWeight: '700',
   },
   applyContainer: {

@@ -8,6 +8,7 @@ import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { circlePolygon } from '@/utils/geo';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -56,6 +57,10 @@ interface MapViewProps {
   onStuckClusterPress?: (activities: NearbyActivity[]) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
   compassEnabled?: boolean;
+  // Radius filter overlay — draws a tinted circle around radiusCenter
+  // showing the search-radius area. Both must be set to render.
+  radiusKm?: number | null;
+  radiusCenter?: [number, number] | null;
 }
 
 type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
@@ -78,6 +83,8 @@ export function JuntoMapView({
   onStuckClusterPress,
   flyTo,
   compassEnabled = true,
+  radiusKm,
+  radiusCenter,
 }: MapViewProps) {
   const colors = useColors();
   const mapStyleKey = useMapStyleStore((s) => s.style);
@@ -231,6 +238,29 @@ export function JuntoMapView({
         }}
       />
 
+
+      {radiusKm !== null && radiusKm !== undefined && radiusKm > 0 && radiusCenter && (
+        <Mapbox.ShapeSource
+          id="radius-circle"
+          shape={{
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [circlePolygon(radiusCenter[0], radiusCenter[1], radiusKm)],
+            },
+          }}
+        >
+          <Mapbox.FillLayer
+            id="radius-circle-fill"
+            style={{ fillColor: colors.cta, fillOpacity: 0.08 }}
+          />
+          <Mapbox.LineLayer
+            id="radius-circle-line"
+            style={{ lineColor: colors.cta, lineWidth: 1.5, lineOpacity: 0.9 }}
+          />
+        </Mapbox.ShapeSource>
+      )}
 
       {routeLine && routeLine.length >= 2 && (
         <Mapbox.ShapeSource

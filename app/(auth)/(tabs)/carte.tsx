@@ -17,6 +17,7 @@ import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
+import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
 import { useTutorialStore } from '@/store/tutorial-store';
@@ -89,6 +90,7 @@ export default function CarteScreen() {
 
   const { data: activities } = useNearbyActivities(searchBounds);
   const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
+  const radiusKm = useMapStore((s) => s.filters.radiusKm);
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -265,6 +267,8 @@ export default function CarteScreen() {
               center={center}
               activities={filtered}
               userLocation={currentLocation ?? center}
+              radiusKm={radiusKm}
+              radiusCenter={currentLocation ?? center}
               tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
