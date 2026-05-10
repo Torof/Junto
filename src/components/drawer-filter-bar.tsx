@@ -1,24 +1,26 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import Slider from '@react-native-community/slider';
+import { ChevronDown } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
 import { FilterSheet } from './filter-sheet';
-import { SportPickerSheet } from './sport-picker-sheet';
-
-type Picker = 'sport' | 'sheet' | null;
 
 export function DrawerFilterBar() {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const filters = useMapStore((s) => s.filters);
-  const [picker, setPicker] = useState<Picker>(null);
+  const setRadiusKm = useMapStore((s) => s.setRadiusKm);
+  const [showSheet, setShowSheet] = useState(false);
 
-  const sportActive = filters.sportKeys.length > 0;
-  const otherActive =
+  // Radius is the slider, so it doesn't count for the button dot —
+  // the dot signals 'something is filtered behind this button'.
+  const filtersActive =
+    filters.sportKeys.length > 0 ||
     filters.dateMode !== 'all' ||
     filters.levelTiers.length > 0 ||
     filters.visibilities.length > 0;
@@ -26,29 +28,32 @@ export function DrawerFilterBar() {
   return (
     <>
       <View style={styles.bar}>
-        <CategoryChip label={t('map.sportLabel')}        active={sportActive} onPress={() => setPicker('sport')} styles={styles} />
-        <CategoryChip label={t('map.otherFiltersLabel')} active={otherActive} onPress={() => setPicker('sheet')} styles={styles} />
+        <View style={styles.sliderWrap}>
+          <Text style={styles.sliderValue}>
+            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
+          </Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={200}
+            step={5}
+            value={filters.radiusKm ?? 0}
+            onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
+            minimumTrackTintColor={colors.cta}
+            maximumTrackTintColor={colors.borderMuted}
+            thumbTintColor={colors.cta}
+          />
+        </View>
+
+        <Pressable style={styles.filtersBtn} onPress={() => setShowSheet(true)}>
+          <Text style={styles.filtersBtnText}>{t('map.filtersBtn')}</Text>
+          <ChevronDown size={12} color={colors.textPrimary} strokeWidth={2.4} />
+          {filtersActive && <View style={styles.activeDot} />}
+        </Pressable>
       </View>
 
-      <SportPickerSheet visible={picker === 'sport'} onClose={() => setPicker(null)} />
-      <FilterSheet visible={picker === 'sheet'} onClose={() => setPicker(null)} />
+      <FilterSheet visible={showSheet} onClose={() => setShowSheet(false)} />
     </>
-  );
-}
-
-function CategoryChip({
-  label, active, onPress, styles,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  return (
-    <Pressable style={styles.chip} onPress={onPress}>
-      <Text style={styles.chipText} numberOfLines={1}>{label}</Text>
-      {active && <View style={styles.activeDot} />}
-    </Pressable>
   );
 }
 
@@ -56,13 +61,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs + 2,
-    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  chip: {
+  sliderWrap: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  sliderValue: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: -4,
+  },
+  slider: {
+    width: '100%',
+    height: 28,
+  },
+  filtersBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
@@ -73,15 +95,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.xs + 2,
     backgroundColor: 'transparent',
   },
-  chipText: {
-    color: colors.textSecondary,
+  filtersBtnText: {
+    color: colors.textPrimary,
     fontSize: fontSizes.sm,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   activeDot: {
     width: 6,
     height: 6,
     borderRadius: radius.xs,
     backgroundColor: colors.cta,
+    marginLeft: 2,
   },
 });
