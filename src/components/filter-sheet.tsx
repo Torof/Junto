@@ -8,20 +8,21 @@ import Slider from '@react-native-community/slider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Radar, Trash2, X } from 'lucide-react-native';
+import { Radar, Trash2, X, ChevronDown } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier } from '@/store/map-store';
 import { SportPickerSheet } from './sport-picker-sheet';
+import { LevelPickerSheet } from './level-picker-sheet';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
 
-const LEVEL_TIERS: { tier: LevelTier; key: string }[] = [
-  { tier: 'Débutant', key: 'beginner' },
-  { tier: 'Intermédiaire', key: 'intermediate' },
-  { tier: 'Avancé', key: 'advanced' },
-  { tier: 'Expert', key: 'expert' },
-];
+const LEVEL_KEY: Record<LevelTier, string> = {
+  Débutant: 'beginner',
+  Intermédiaire: 'intermediate',
+  Avancé: 'advanced',
+  Expert: 'expert',
+};
 
 type TabKey = 'filters' | 'alerts';
 
@@ -136,6 +137,7 @@ function FiltersTab({
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
   const [showSport, setShowSport] = useState(false);
+  const [showLevel, setShowLevel] = useState(false);
 
   const activePills: { id: string; label: string; clear: () => void }[] = [];
 
@@ -179,6 +181,13 @@ function FiltersTab({
     : filters.sportKeys.length === 1
       ? t(`sports.${filters.sportKeys[0]}`, { defaultValue: filters.sportKeys[0] ?? '' })
       : `${t('map.sportLabel')} · ${filters.sportKeys.length}`;
+
+  const levelActive = filters.levelTiers.length > 0;
+  const levelLabel = !levelActive
+    ? t('map.levelLabel')
+    : filters.levelTiers.length === 1
+      ? t(`map.levelTier.${LEVEL_KEY[filters.levelTiers[0]!]}`)
+      : `${t('map.levelLabel')} · ${filters.levelTiers.length}`;
 
   return (
     <>
@@ -228,9 +237,9 @@ function FiltersTab({
           <Text style={styles.sliderBoundText}>200 km</Text>
         </View>
 
-        {/* Période + Sport on one line. The period chip opens a range
-            picker that also covers single-day selection (pick same day
-            twice) — a single control for any time-window selection. */}
+        {/* Période + Sport + Niveau on one line. Each opens its own
+            picker. The period chip uses a range picker that also covers
+            single-day selection (pick same day twice). */}
         <View style={styles.chipRow}>
           <Pressable
             style={[styles.chip, filters.dateMode === 'range' && styles.chipActive]}
@@ -243,6 +252,7 @@ function FiltersTab({
                     : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
                 : t('map.date.pickRange')}
             </Text>
+            <ChevronDown size={12} color={filters.dateMode === 'range' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
           </Pressable>
           <Pressable
             style={[styles.chip, sportActive && styles.chipActive]}
@@ -251,6 +261,16 @@ function FiltersTab({
             <Text style={[styles.chipText, sportActive && styles.chipTextActive]} numberOfLines={1}>
               {sportLabel}
             </Text>
+            <ChevronDown size={12} color={sportActive ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
+          </Pressable>
+          <Pressable
+            style={[styles.chip, levelActive && styles.chipActive]}
+            onPress={() => setShowLevel(true)}
+          >
+            <Text style={[styles.chipText, levelActive && styles.chipTextActive]} numberOfLines={1}>
+              {levelLabel}
+            </Text>
+            <ChevronDown size={12} color={levelActive ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
           </Pressable>
         </View>
 
@@ -280,26 +300,10 @@ function FiltersTab({
           />
         )}
 
-        <Text style={styles.sectionTitle}>{t('map.levelLabel')}</Text>
-        <View style={styles.chipRow}>
-          {LEVEL_TIERS.map(({ tier, key }) => {
-            const active = filters.levelTiers.includes(tier);
-            return (
-              <Pressable
-                key={tier}
-                style={[styles.chip, active && styles.chipActive]}
-                onPress={() => toggleLevelTier(tier)}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {t(`map.levelTier.${key}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
       </ScrollView>
 
       <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} />
+      <LevelPickerSheet visible={showLevel} onClose={() => setShowLevel(false)} />
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
@@ -457,6 +461,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4, marginBottom: spacing.md },
   sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.sm,

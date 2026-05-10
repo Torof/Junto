@@ -95,6 +95,26 @@ export function JuntoMapView({
   const lastCamera = useRef<{ center: [number, number]; zoom: number } | null>(null);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  // When the radius filter changes, fit the camera to its bounding box so
+  // the visible map matches the active filter. Debounced so a slider drag
+  // doesn't trigger a camera move on every step. Cleared (null) keeps the
+  // user's current view untouched.
+  useEffect(() => {
+    if (radiusKm === null || radiusKm === undefined || radiusKm <= 0 || !radiusCenter) return;
+    const id = setTimeout(() => {
+      const [lng, lat] = radiusCenter;
+      const halfDeltaLat = radiusKm / 110.574; // approx km-per-deg-lat
+      const halfDeltaLng = halfDeltaLat / Math.max(Math.cos((lat * Math.PI) / 180), 0.01);
+      cameraRef.current?.fitBounds(
+        [lng + halfDeltaLng, lat + halfDeltaLat],
+        [lng - halfDeltaLng, lat - halfDeltaLat],
+        60,
+        700,
+      );
+    }, 400);
+    return () => clearTimeout(id);
+  }, [radiusKm, radiusCenter]);
+
   // Follow `center` prop updates (e.g. GPS resolved after initial mount).
   // Also: force a tiny camera bump on first mount so onCameraChanged fires
   // (Mapbox sometimes skips the initial event, which leaves bounds stale
