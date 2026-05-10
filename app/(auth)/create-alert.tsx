@@ -268,21 +268,19 @@ export default function CreateAlertScreen() {
             onMapPress={(lng, lat) => setLocation({ lng, lat })}
           />
 
-          <View style={styles.mapHintBar} pointerEvents="none">
-            <Text style={styles.mapHintBarText}>
-              {location ? '✓ ' + t('alerts.locationSet') : t('alerts.tapMap')}
-            </Text>
-          </View>
+          {location ? (
+            <Pressable style={styles.mapHintBar} onPress={() => setShowMap(false)}>
+              <Text style={styles.mapHintBarText}>✓ {t('alerts.locationSet')}</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.mapHintBar} pointerEvents="none">
+              <Text style={styles.mapHintBarText}>{t('alerts.tapMap')}</Text>
+            </View>
+          )}
 
           <Pressable style={styles.mapClose} onPress={() => setShowMap(false)}>
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
-
-          {location && (
-            <Pressable style={styles.mapConfirm} onPress={() => setShowMap(false)}>
-              <Text style={styles.mapConfirmText}>✓ {t('alerts.confirmLocation')}</Text>
-            </Pressable>
-          )}
         </SafeAreaView>
       </Modal>
     </View>
