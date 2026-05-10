@@ -100,6 +100,10 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         />
       )}
       containerStyle={styles.sheetContainer}
+      // Free the content area from the sheet's pan-to-dismiss gesture
+      // so the radius slider in the header can capture horizontal drag.
+      // The floating tab handle still drives expand/collapse.
+      enableContentPanningGesture={false}
     >
       <BottomSheetFlatList
         data={sorted}
