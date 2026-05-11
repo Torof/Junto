@@ -29,9 +29,12 @@ export function DrawerFilterBar() {
     <>
       <View style={styles.bar}>
         <View style={styles.sliderWrap}>
-          <Text style={styles.sliderValue}>
-            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
-          </Text>
+          <View style={styles.sliderLabelsRow}>
+            <Text style={styles.sliderValue}>
+              {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
+            </Text>
+            <Text style={styles.sliderBound}>200 km</Text>
+          </View>
           <Slider
             style={styles.slider}
             minimumValue={0}
@@ -72,13 +75,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
   },
+  sliderLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: -4,
+  },
+  sliderBound: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   sliderValue: {
     color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: -4,
   },
   slider: {
     width: '100%',
