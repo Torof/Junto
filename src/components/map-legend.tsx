@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { radius } from '@/constants/theme';
 
 export interface MapLegendItem {
   color: string;
@@ -33,9 +34,9 @@ export function MapLegend({ items }: Props) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     backgroundColor: colors.background + 'E6',
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.borderStrong,
     paddingHorizontal: 8,
     paddingVertical: 6,
     gap: 4,

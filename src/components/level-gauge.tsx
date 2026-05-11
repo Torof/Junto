@@ -86,6 +86,6 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 1.5,
     },
     gaugeSegEmpty: {
-      backgroundColor: colors.line,
+      backgroundColor: colors.borderMuted,
     },
   });

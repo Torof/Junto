@@ -28,10 +28,10 @@ export function ActivityDescription({ description }: Props) {
 
 const createStyles = (colors: AppColors, theme: 'dark' | 'light') => StyleSheet.create({
   container: {
-    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
-    borderRadius: radius.md,
+    backgroundColor: 'transparent',
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.borderMuted,
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
@@ -47,7 +47,7 @@ const createStyles = (colors: AppColors, theme: 'dark' | 'light') => StyleSheet.
     alignSelf: 'center',
     width: 48,
     height: 1,
-    backgroundColor: colors.line,
+    backgroundColor: colors.borderMuted,
     marginTop: spacing.xs,
     marginBottom: spacing.sm,
   },

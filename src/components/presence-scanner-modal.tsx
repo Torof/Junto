@@ -101,13 +101,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   close: { position: 'absolute', top: 60, right: spacing.lg, padding: spacing.sm, zIndex: 10 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.xs },
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, textAlign: 'center', marginBottom: spacing.lg, paddingHorizontal: spacing.lg },
-  cameraWrap: { flex: 1, margin: spacing.lg, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.background },
+  cameraWrap: { flex: 1, margin: spacing.lg, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: colors.background },
   frame: {
     position: 'absolute', top: '20%', left: '15%', right: '15%', aspectRatio: 1,
-    borderWidth: 3, borderColor: colors.cta, borderRadius: radius.lg,
+    borderWidth: 3, borderColor: colors.cta, borderRadius: radius.sm,
   },
   permWrap: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md },
   permText: { color: colors.textPrimary, fontSize: fontSizes.md, textAlign: 'center' },
-  permButton: { backgroundColor: colors.cta, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.full },
-  permButtonText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  permButton: { backgroundColor: colors.cta, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderRadius: radius.sm },
+  permButtonText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
 });

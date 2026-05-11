@@ -377,10 +377,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
   row: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.md,
-    marginBottom: spacing.xs, flexDirection: 'row',
+    paddingHorizontal: spacing.xs, paddingVertical: spacing.sm + 2,
+    flexDirection: 'row',
     justifyContent: 'space-between', alignItems: 'center',
+    borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
   },
   rowLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
   rowValue: { color: colors.textPrimary, fontSize: fontSizes.sm },
@@ -390,6 +390,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nameInput: {
     color: colors.textPrimary, fontSize: fontSizes.sm,
     backgroundColor: colors.background, borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.borderMuted,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
     minWidth: 120,
   },
@@ -399,8 +400,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   notifContent: { marginBottom: spacing.sm },
   prefRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.xs,
+    paddingHorizontal: spacing.xs, paddingVertical: spacing.sm,
+    borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
   deleteLink: {
@@ -417,16 +418,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   editPseudoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   segmentedPill: {
     flexDirection: 'row',
-    backgroundColor: colors.background,
-    borderRadius: 999,
-    padding: 3,
-    borderWidth: 1, borderColor: colors.line,
+    backgroundColor: 'transparent',
+    borderRadius: radius.sm,
+    padding: 2,
+    borderWidth: 1, borderColor: colors.borderMuted,
   },
   segment: {
     paddingHorizontal: spacing.sm, paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: radius.xs,
   },
   segmentActive: { backgroundColor: colors.cta },
   segmentText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
-  segmentTextActive: { color: colors.textPrimary, fontWeight: '800' },
+  segmentTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });
