@@ -88,6 +88,17 @@ export const activityService = {
     return (data ?? []) as unknown as NearbyActivity[];
   },
 
+  getMyPending: async (): Promise<NearbyActivity[]> => {
+    const { data, error } = await supabase
+      .from('my_pending_activities' as 'activities_with_coords')
+      .select(
+        'id, title, description, level, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, start_lng, start_lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, start_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+      )
+      .order('starts_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as unknown as NearbyActivity[];
+  },
+
   create: async (form: ActivityFormData): Promise<string> => {
     const durationStr = `${form.duration_hours} hours ${form.duration_minutes} minutes`;
 

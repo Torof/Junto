@@ -585,12 +585,11 @@
   "myActivities": {
     "created": "Created",
     "joined": "Joined",
-    "upcoming": "Upcoming",
-    "finished": "Finished",
+    "pending": "Pending",
     "emptyCreated": "You haven't created any activity yet",
     "emptyJoined": "You haven't joined any activity",
-    "emptyUpcoming": "No upcoming activities",
-    "emptyFinished": "No finished activities",
+    "emptyPending": "No pending requests",
+    "empty": "No activities",
     "noResults": "No results with these filters",
     "filters": "Filters"
   },

@@ -260,6 +260,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "activity_gear_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "activity_gear_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -602,6 +609,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "participations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "participations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -666,6 +680,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_validations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
           {
@@ -744,6 +765,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presence_tokens_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
         ]
@@ -972,6 +1000,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reputation_votes_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reputation_votes_voted_id_fkey"
             columns: ["voted_id"]
             isOneToOne: false
@@ -1062,6 +1097,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seat_requests_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
           {
@@ -1320,6 +1362,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wall_messages_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wall_messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1463,6 +1512,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
           {
@@ -1649,6 +1705,69 @@ export type Database = {
           },
         ]
       }
+      my_pending_activities: {
+        Row: {
+          created_at: string | null
+          creator_avatar: string | null
+          creator_id: string | null
+          creator_name: string | null
+          deleted_at: string | null
+          description: string | null
+          distance_km: number | null
+          duration: string | null
+          elevation_gain_m: number | null
+          end_lat: number | null
+          end_lng: number | null
+          id: string | null
+          lat: number | null
+          level: string | null
+          lng: number | null
+          max_participants: number | null
+          meeting_lat: number | null
+          meeting_lng: number | null
+          objective_lat: number | null
+          objective_lng: number | null
+          objective_name: string | null
+          participant_count: number | null
+          requires_presence: boolean | null
+          sport_category: string | null
+          sport_icon: string | null
+          sport_id: string | null
+          sport_key: string | null
+          start_lat: number | null
+          start_lng: number | null
+          start_name: string | null
+          starts_at: string | null
+          status: string | null
+          title: string | null
+          trace_geojson: Json | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_participants: {
         Row: {
           activity_id: string | null
@@ -1692,6 +1811,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
           {
