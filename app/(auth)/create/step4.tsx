@@ -153,16 +153,21 @@ function RecapRow({ label, value }: { label: string; value: string }) {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
-  recap: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
+  recap: {
+    backgroundColor: 'transparent',
+    borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.borderMuted,
+    padding: spacing.md, gap: spacing.sm,
+  },
   descSection: { marginTop: spacing.sm },
   recapLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   recapDesc: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  publishButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xl },
+  publishButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
-  publishText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  publishText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
 });
 
 const createRecapStyles = (colors: AppColors) => StyleSheet.create({

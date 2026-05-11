@@ -99,12 +99,17 @@ export default function CreateStep3() {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
+  container: { flex: 1, backgroundColor: colors.background, padding: spacing.md },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
   options: { gap: spacing.sm },
-  option: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 2, borderColor: 'transparent' },
-  optionActive: { borderColor: colors.cta },
+  option: {
+    backgroundColor: 'transparent',
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    borderWidth: 1, borderColor: colors.borderMuted,
+  },
+  optionActive: { borderColor: colors.cta, borderWidth: 2 },
   optionDisabled: { opacity: 0.4 },
   optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
@@ -112,21 +117,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   premiumBadge: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
   unlockedBadge: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
   optionDesc: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xl },
-  nextText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
+  nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.xl,
-    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md,
+    backgroundColor: 'transparent',
+    borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.borderMuted,
+    padding: spacing.md,
   },
   toggleTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', marginBottom: 2 },
   toggleDesc: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16 },
   toggleSwitch: {
     width: 44, height: 26, borderRadius: 13,
-    backgroundColor: colors.background, padding: 3, justifyContent: 'center',
+    backgroundColor: colors.borderMuted, padding: 3, justifyContent: 'center',
   },
   toggleSwitchOn: { backgroundColor: colors.cta },
   toggleKnob: {
     width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary,
   },
-  toggleKnobOn: { backgroundColor: colors.textPrimary, alignSelf: 'flex-end' },
+  toggleKnobOn: { backgroundColor: '#FFFFFF', alignSelf: 'flex-end' },
 });
