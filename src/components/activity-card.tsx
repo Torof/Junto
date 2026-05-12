@@ -43,6 +43,7 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
       <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
 
       <View style={styles.middleCol}>
+        <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
         <View style={styles.sportRow}>
           <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
@@ -65,19 +66,19 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
         </View>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <Calendar size={11} color={colors.cta} strokeWidth={2.4} />
-            <Text style={styles.metaDate} numberOfLines={1}>{datePart}</Text>
+            <Calendar size={11} color={colors.textSecondary} strokeWidth={2.4} />
+            <Text style={styles.metaText} numberOfLines={1}>{datePart}</Text>
           </View>
           {distanceKm !== undefined && (
             <View style={styles.metaItem}>
-              <MapPin size={11} color={colors.pinMeeting} strokeWidth={2.4} />
-              <Text style={styles.metaSecondary} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
+              <MapPin size={11} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.metaText} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
             </View>
           )}
           {showCreator && (
             <View style={[styles.metaItem, { flexShrink: 1 }]}>
-              <User size={11} color={colors.pinStart} strokeWidth={2.4} />
-              <Text style={styles.metaSecondary} numberOfLines={1}>{activity.creator_name}</Text>
+              <User size={11} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.metaText} numberOfLines={1}>{activity.creator_name}</Text>
             </View>
           )}
         </View>
@@ -122,9 +123,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   middleCol: {
     flex: 1,
     justifyContent: 'center',
-    gap: 3,
+    gap: 2,
     minWidth: 0,
   },
+  // Title — the unique row anchor. Bold, single line, truncated.
+  // This is what the eye locks onto when scrolling.
+  title: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  // Sport + level — tiny uppercase 'category' subtitle. Color-coded
+  // by sport so the eye can pre-filter by discipline.
   sportRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,18 +144,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   sport: {
     color: colors.cta,
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
     flexShrink: 0,
   },
   levelSep: {
     color: colors.textSecondary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs - 1,
   },
   level: {
     color: colors.textSecondary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs - 1,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
     flexShrink: 1,
   },
   fullPill: {
@@ -161,12 +176,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
+  // Meta row — date / distance / creator. Quiet textSecondary so
+  // the title can dominate. Icons match the text color (no longer
+  // semantic-colored per-icon).
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'nowrap',
     gap: spacing.sm,
-    marginTop: 2,
+    marginTop: 1,
   },
   metaItem: {
     flexDirection: 'row',
@@ -174,12 +192,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 3,
     flexShrink: 0,
   },
-  metaDate: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
-  metaSecondary: {
+  metaText: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
