@@ -111,6 +111,10 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // so the radius slider in the header can capture horizontal drag.
       // The floating tab handle still drives expand/collapse.
       enableContentPanningGesture={false}
+      // v5 defaults dynamic sizing to ON, which makes the sheet hug its
+      // content (ignoring snapPoints when shorter, overshooting when
+      // longer). Off = snap points are absolute, list scrolls inside.
+      enableDynamicSizing={false}
     >
       <BottomSheetFlatList
         data={sorted}
