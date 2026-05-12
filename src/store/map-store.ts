@@ -4,7 +4,7 @@ type DateFilterMode = 'all' | 'today' | 'week' | 'date' | 'range';
 
 export type LevelTier = 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert';
 export type VisibilityFilter = 'public' | 'approval';
-export type SortBy = 'date' | 'distance' | 'sport' | 'remaining';
+export type SortBy = 'date' | 'distance' | 'sport' | 'remaining' | null;
 export type SortDir = 'asc' | 'desc';
 
 interface MapFilters {
@@ -43,7 +43,7 @@ const DEFAULT_FILTERS: MapFilters = {
   levelTiers: [],
   visibilities: [],
   radiusKm: null,
-  sortBy: 'date',
+  sortBy: null,
   sortDir: 'asc',
 };
 

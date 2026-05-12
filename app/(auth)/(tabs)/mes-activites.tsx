@@ -100,20 +100,22 @@ export default function MesActivitesScreen() {
       return true;
     });
 
-    // Sort — direction is user-controlled via the 'Tri' tab.
+    // Sort. sortBy === null means default (date asc). 3-state chip
+    // cycle in the Trier par tab: asc → desc → null.
     const sorted = [...filteredList];
     const { sortBy, sortDir } = filters;
-    const dir = sortDir === 'desc' ? -1 : 1;
-    if (sortBy === 'date') {
+    const effectiveSort = sortBy ?? 'date';
+    const dir = sortBy !== null && sortDir === 'desc' ? -1 : 1;
+    if (effectiveSort === 'date') {
       sorted.sort((a, b) => (dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf()) * dir);
-    } else if (sortBy === 'distance') {
+    } else if (effectiveSort === 'distance') {
       sorted.sort((a, b) => (
         distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
         distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng)
       ) * dir);
-    } else if (sortBy === 'sport') {
+    } else if (effectiveSort === 'sport') {
       sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key) * dir);
-    } else if (sortBy === 'remaining') {
+    } else if (effectiveSort === 'remaining') {
       const remaining = (a: NearbyActivity) =>
         a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
       sorted.sort((a, b) => (remaining(a) - remaining(b)) * dir);

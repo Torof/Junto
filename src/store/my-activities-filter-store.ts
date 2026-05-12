@@ -48,7 +48,7 @@ const DEFAULT_FILTERS: MapFilters = {
   levelTiers: [],
   visibilities: [],
   radiusKm: null,
-  sortBy: 'date',
+  sortBy: null,
   sortDir: 'asc',
 };
 

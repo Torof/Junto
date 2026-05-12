@@ -240,12 +240,12 @@ function FiltersTab({
     });
   }
 
-  if (filters.sortBy !== 'date' || filters.sortDir !== 'asc') {
+  if (filters.sortBy !== null) {
     const arrow = filters.sortDir === 'desc' ? ' ↓' : ' ↑';
     activePills.push({
       id: 'sort',
       label: `${t(`map.sortBy.${filters.sortBy}`)}${arrow}`,
-      clear: () => { setSortBy('date'); setSortDir('asc'); },
+      clear: () => { setSortBy(null); setSortDir('asc'); },
     });
   }
 
@@ -397,9 +397,27 @@ interface SortTabProps {
   styles: ReturnType<typeof createStyles>;
 }
 
-const SORT_OPTIONS: SortBy[] = ['date', 'distance', 'sport', 'remaining'];
+const SORT_OPTIONS: Exclude<SortBy, null>[] = ['date', 'distance', 'sport', 'remaining'];
 
 function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }: SortTabProps) {
+  // Each chip cycles inactive → asc → desc → inactive on successive
+  // taps. When inactive across all chips, the list falls back to the
+  // default sort (date asc) — see useFilteredActivities / mes-activites.
+  const onPress = (opt: Exclude<SortBy, null>) => {
+    if (sortBy !== opt) {
+      setSortBy(opt);
+      setSortDir('asc');
+      return;
+    }
+    if (sortDir === 'asc') {
+      setSortDir('desc');
+      return;
+    }
+    // Was desc → reset to inactive.
+    setSortBy(null);
+    setSortDir('asc');
+  };
+
   return (
     <>
       <ScrollView
@@ -407,44 +425,24 @@ function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }:
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.sectionTitle}>{t('map.sortByLabel')}</Text>
         <View style={styles.chipRow}>
           {SORT_OPTIONS.map((opt) => {
             const active = sortBy === opt;
+            const Chevron = active && sortDir === 'desc' ? ArrowDown : ArrowUp;
+            const chevronColor = active ? '#FFFFFF' : (styles.chipText.color as string);
             return (
               <Pressable
                 key={opt}
-                style={[styles.chip, active && styles.chipActive]}
-                onPress={() => setSortBy(opt)}
+                style={[styles.chip, active && styles.chipActive, styles.dirChip]}
+                onPress={() => onPress(opt)}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>
                   {t(`map.sortBy.${opt}`)}
                 </Text>
+                {active && <Chevron size={14} color={chevronColor} strokeWidth={2.4} />}
               </Pressable>
             );
           })}
-        </View>
-
-        <Text style={styles.sectionTitle}>{t('map.sortDirLabel')}</Text>
-        <View style={styles.chipRow}>
-          <Pressable
-            style={[styles.chip, sortDir === 'asc' && styles.chipActive, styles.dirChip]}
-            onPress={() => setSortDir('asc')}
-          >
-            <ArrowUp size={14} color={sortDir === 'asc' ? '#FFFFFF' : styles.chipText.color as string} strokeWidth={2.4} />
-            <Text style={[styles.chipText, sortDir === 'asc' && styles.chipTextActive]}>
-              {t('map.sortDir.asc')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.chip, sortDir === 'desc' && styles.chipActive, styles.dirChip]}
-            onPress={() => setSortDir('desc')}
-          >
-            <ArrowDown size={14} color={sortDir === 'desc' ? '#FFFFFF' : styles.chipText.color as string} strokeWidth={2.4} />
-            <Text style={[styles.chipText, sortDir === 'desc' && styles.chipTextActive]}>
-              {t('map.sortDir.desc')}
-            </Text>
-          </Pressable>
         </View>
       </ScrollView>
 

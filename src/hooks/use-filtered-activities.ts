@@ -69,21 +69,23 @@ export function useFilteredActivities(
       );
     }
 
-    // Sort. Defaults are sortBy='date' + sortDir='asc' (upcoming first).
-    // Direction is user-controlled — see the 'Tri' tab in FilterSheet.
+    // Sort. sortBy === null means 'default' (date ascending). When the
+    // user picks a chip the 3-state cycle is asc → desc → null (back
+    // to default). Direction is honoured only when sortBy is non-null.
     const { sortBy, sortDir } = filters;
-    const dir = sortDir === 'desc' ? -1 : 1;
+    const effectiveSort = sortBy ?? 'date';
+    const dir = sortBy !== null && sortDir === 'desc' ? -1 : 1;
     const sorted = [...filtered];
-    if (sortBy === 'date') {
+    if (effectiveSort === 'date') {
       sorted.sort((a, b) => (dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf()) * dir);
-    } else if (sortBy === 'distance' && userLocation) {
+    } else if (effectiveSort === 'distance' && userLocation) {
       sorted.sort((a, b) => (
         distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
         distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng)
       ) * dir);
-    } else if (sortBy === 'sport') {
+    } else if (effectiveSort === 'sport') {
       sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key) * dir);
-    } else if (sortBy === 'remaining') {
+    } else if (effectiveSort === 'remaining') {
       // Open activities (null max) treated as Infinity remaining.
       const remaining = (a: NearbyActivity) =>
         a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
