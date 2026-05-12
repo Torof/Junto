@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
-import { ChevronDown } from 'lucide-react-native';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { SlidersHorizontal } from 'lucide-react-native';
+import { spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
@@ -47,9 +47,13 @@ export function DrawerFilterBar() {
           />
         </View>
 
-        <Pressable style={styles.filtersBtn} onPress={() => setShowSheet(true)}>
-          <Text style={styles.filtersBtnText}>{t('map.filtersBtn')}</Text>
-          <ChevronDown size={12} color={colors.textPrimary} strokeWidth={2.4} />
+        <Pressable
+          style={styles.filtersBtn}
+          onPress={() => setShowSheet(true)}
+          accessibilityLabel={t('map.filtersBtn')}
+          hitSlop={6}
+        >
+          <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2.2} />
           {filtersActive && <View style={styles.activeDot} />}
         </Pressable>
       </View>
@@ -64,10 +68,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm + 2,
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
+    borderBottomColor: colors.borderStrong,
   },
   sliderWrap: {
     flex: 1,
@@ -99,26 +104,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 28,
   },
   filtersBtn: {
-    flexDirection: 'row',
+    width: 36,
+    height: 36,
     alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
     backgroundColor: 'transparent',
   },
-  filtersBtnText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-  },
   activeDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
     width: 6,
     height: 6,
     borderRadius: radius.xs,
     backgroundColor: colors.cta,
-    marginLeft: 2,
   },
 });
