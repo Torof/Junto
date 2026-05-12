@@ -70,7 +70,9 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const snapPoints = useMemo(() => ['3%', '50%', '92%'], []);
+  // Max snap kept below 92% so the floating tab handle and the
+  // map's compass at the top-right stay visible at full extension.
+  const snapPoints = useMemo(() => ['3%', '50%', '78%'], []);
 
   useImperativeHandle(ref, () => ({
     expand: () => sheetRef.current?.snapToIndex(1),
