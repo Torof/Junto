@@ -27,6 +27,16 @@ export function DrawerFilterBar() {
   return (
     <>
       <View style={styles.bar}>
+        <Pressable
+          style={styles.filtersBtn}
+          onPress={() => setShowSheet(true)}
+          accessibilityLabel={t('map.filtersBtn')}
+          hitSlop={6}
+        >
+          <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2.2} />
+          {filtersActive && <View style={styles.activeDot} />}
+        </Pressable>
+
         <View style={styles.sliderWrap}>
           <View style={styles.sliderLabelsRow}>
             <Text style={styles.sliderValue}>
@@ -46,16 +56,6 @@ export function DrawerFilterBar() {
             thumbTintColor={colors.cta}
           />
         </View>
-
-        <Pressable
-          style={styles.filtersBtn}
-          onPress={() => setShowSheet(true)}
-          accessibilityLabel={t('map.filtersBtn')}
-          hitSlop={6}
-        >
-          <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2.2} />
-          {filtersActive && <View style={styles.activeDot} />}
-        </Pressable>
       </View>
 
       <FilterSheet visible={showSheet} onClose={() => setShowSheet(false)} showSortTab />
@@ -69,10 +69,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.sm + 2,
+    paddingBottom: spacing.md,
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderStrong,
+    borderBottomColor: colors.borderMuted,
   },
   sliderWrap: {
     flex: 1,
