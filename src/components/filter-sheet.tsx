@@ -76,11 +76,6 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
           <View style={styles.handle} />
 
           <View style={styles.tabBar}>
-            {hasActiveFilters && (
-              <Pressable onPress={resetFilters} style={styles.resetSlot} hitSlop={6}>
-                <Text style={styles.reset}>{t('map.resetFilters')}</Text>
-              </Pressable>
-            )}
             <Pressable
               style={[styles.tab, tab === 'filters' && styles.tabActive]}
               onPress={() => setTab('filters')}
@@ -97,6 +92,11 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
                 <Text style={[styles.tabText, tab === 'alerts' && styles.tabTextActive]}>
                   {t('map.tabs.alerts')}
                 </Text>
+              </Pressable>
+            )}
+            {hasActiveFilters && (
+              <Pressable onPress={resetFilters} style={styles.resetSlot} hitSlop={6}>
+                <Text style={styles.reset}>{t('map.resetFilters')}</Text>
               </Pressable>
             )}
           </View>
@@ -448,10 +448,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomColor: colors.borderMuted,
   },
   // Reset slot — same rank as the filters/alerts tabs, but text-only
-  // (no underline). Sticks to the left edge of the tab bar.
+  // (no underline). Sticks to the right edge of the tab bar via auto
+  // left margin.
   resetSlot: {
     paddingVertical: spacing.sm,
-    marginRight: spacing.xs,
+    marginLeft: 'auto',
   },
   tab: {
     paddingVertical: spacing.sm,
