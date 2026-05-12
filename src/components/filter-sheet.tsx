@@ -31,9 +31,13 @@ interface FilterSheetProps {
   visible: boolean;
   onClose: () => void;
   hideAlertsTab?: boolean;
+  // Filter state source. Defaults to useMapStore (the map's filter
+  // state). mes-activites passes useMyActivitiesFilterStore so its
+  // filter modal operates on independent state.
+  useStore?: typeof useMapStore;
 }
 
-export function FilterSheet({ visible, onClose, hideAlertsTab = false }: FilterSheetProps) {
+export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore = useMapStore }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -46,7 +50,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false }: FilterS
     toggleLevelTier,
     setRadiusKm,
     resetFilters,
-  } = useMapStore();
+  } = useStore();
   const [showRangeFrom, setShowRangeFrom] = useState(false);
   const [showRangeTo, setShowRangeTo] = useState(false);
   const [tab, setTab] = useState<TabKey>('filters');
@@ -115,6 +119,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false }: FilterS
               lang={i18n.language}
               styles={styles}
               colors={colors}
+              useStore={useStore}
             />
           ) : (
             <AlertsTab
@@ -151,13 +156,14 @@ interface FiltersTabProps {
   lang: string;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
+  useStore: typeof useMapStore;
 }
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
   toggleLevelTier, setRadiusKm, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
-  onClose, t, lang, styles, colors,
+  onClose, t, lang, styles, colors, useStore,
 }: FiltersTabProps) {
   const [showSport, setShowSport] = useState(false);
   const [showLevel, setShowLevel] = useState(false);
@@ -319,8 +325,8 @@ function FiltersTab({
 
       </ScrollView>
 
-      <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} />
-      <LevelPickerSheet visible={showLevel} onClose={() => setShowLevel(false)} />
+      <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} useStore={useStore} />
+      <LevelPickerSheet visible={showLevel} onClose={() => setShowLevel(false)} useStore={useStore} />
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
@@ -417,11 +423,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
 
-  // Top-left close affordance — small circle with an X icon.
+  // Top-right close affordance — small circle with an X icon.
   closeBtn: {
     position: 'absolute',
     top: spacing.sm,
-    left: spacing.sm,
+    right: spacing.sm,
     width: 28,
     height: 28,
     borderRadius: 14,

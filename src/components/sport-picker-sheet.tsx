@@ -16,14 +16,15 @@ import { getSportIcon } from '@/constants/sport-icons';
 interface Props {
   visible: boolean;
   onClose: () => void;
+  useStore?: typeof useMapStore;
 }
 
-export function SportPickerSheet({ visible, onClose }: Props) {
+export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const filters = useMapStore((s) => s.filters);
-  const toggleSportFilter = useMapStore((s) => s.toggleSportFilter);
+  const filters = useStore((s) => s.filters);
+  const toggleSportFilter = useStore((s) => s.toggleSportFilter);
 
   const { data: sports } = useQuery({
     queryKey: ['sports'],

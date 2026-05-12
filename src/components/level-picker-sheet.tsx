@@ -17,14 +17,15 @@ const LEVEL_TIERS: { tier: LevelTier; key: string }[] = [
 interface Props {
   visible: boolean;
   onClose: () => void;
+  useStore?: typeof useMapStore;
 }
 
-export function LevelPickerSheet({ visible, onClose }: Props) {
+export function LevelPickerSheet({ visible, onClose, useStore = useMapStore }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const filters = useMapStore((s) => s.filters);
-  const toggleLevelTier = useMapStore((s) => s.toggleLevelTier);
+  const filters = useStore((s) => s.filters);
+  const toggleLevelTier = useStore((s) => s.toggleLevelTier);
 
   return (
     <Modal visible={visible} animationType="slide" transparent>

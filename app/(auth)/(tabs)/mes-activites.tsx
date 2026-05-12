@@ -12,7 +12,7 @@ import { activityService, type NearbyActivity } from '@/services/activity-servic
 import { ActivityCard } from '@/components/activity-card';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { FilterSheet } from '@/components/filter-sheet';
-import { useMapStore } from '@/store/map-store';
+import { useMyActivitiesFilterStore } from '@/store/my-activities-filter-store';
 import { getLevelScale } from '@/constants/sport-levels';
 import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -29,7 +29,7 @@ export default function MesActivitesScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { center, currentLocation } = useInitialLocation();
-  const filters = useMapStore((s) => s.filters);
+  const filters = useMyActivitiesFilterStore((s) => s.filters);
   const [refreshing, setRefreshing] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('created');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
@@ -190,7 +190,12 @@ export default function MesActivitesScreen() {
         </View>
       )}
 
-      <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} hideAlertsTab />
+      <FilterSheet
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        hideAlertsTab
+        useStore={useMyActivitiesFilterStore}
+      />
 
       {isLoading ? (
         <View style={styles.center}>
