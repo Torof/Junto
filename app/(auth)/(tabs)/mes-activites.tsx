@@ -14,6 +14,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { SportDropdown } from '@/components/sport-dropdown';
 
 type MainTab = 'created' | 'joined' | 'pending';
+type TimeFilter = 'upcoming' | 'finished';
 type DateRange = 'all' | 'today' | 'week';
 
 export default function MesActivitesScreen() {
@@ -24,6 +25,7 @@ export default function MesActivitesScreen() {
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('created');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [sportFilters, setSportFilters] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -52,6 +54,14 @@ export default function MesActivitesScreen() {
     const now = dayjs();
 
     return activities.filter((a: NearbyActivity) => {
+      // Time filter — only for created/joined (pending requests can only
+      // be in-the-future by definition; the chip row is hidden for pending).
+      if (mainTab !== 'pending') {
+        const isUpcoming = dayjs(a.starts_at).isAfter(now) && !['completed', 'cancelled', 'expired'].includes(a.status);
+        if (timeFilter === 'upcoming' && !isUpcoming) return false;
+        if (timeFilter === 'finished' && isUpcoming) return false;
+      }
+
       // Sport filter
       if (sportFilters.length > 0 && !sportFilters.includes(a.sport_key)) return false;
 
@@ -61,14 +71,15 @@ export default function MesActivitesScreen() {
 
       return true;
     });
-  }, [activities, sportFilters, dateRange]);
+  }, [activities, mainTab, timeFilter, sportFilters, dateRange]);
 
   const emptyMessage = () => {
     if (mainTab === 'created' && (!created || created.length === 0)) return t('myActivities.emptyCreated');
     if (mainTab === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
     if (mainTab === 'pending' && (!pending || pending.length === 0)) return t('myActivities.emptyPending');
     if (sportFilters.length > 0 || dateRange !== 'all') return t('myActivities.noResults');
-    return t('myActivities.empty');
+    if (mainTab === 'pending') return t('myActivities.emptyPending');
+    return timeFilter === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
   };
 
   const pendingCount = pending?.length ?? 0;
@@ -128,6 +139,29 @@ export default function MesActivitesScreen() {
           </View>
         </Pressable>
       </View>
+
+      {/* Time refinement — only meaningful for created/joined; pending
+          requests are upcoming by definition. */}
+      {mainTab !== 'pending' && (
+        <View style={styles.timeTabs}>
+          <Pressable
+            style={[styles.timeTab, timeFilter === 'upcoming' && styles.timeTabActive]}
+            onPress={() => setTimeFilter('upcoming')}
+          >
+            <Text style={[styles.timeTabText, timeFilter === 'upcoming' && styles.timeTabTextActive]}>
+              {t('myActivities.upcoming')}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.timeTab, timeFilter === 'finished' && styles.timeTabActive]}
+            onPress={() => setTimeFilter('finished')}
+          >
+            <Text style={[styles.timeTabText, timeFilter === 'finished' && styles.timeTabTextActive]}>
+              {t('myActivities.finished')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <Modal visible={showFilters} animationType="slide" transparent>
         <Pressable style={styles.backdrop} onPress={() => setShowFilters(false)}>
@@ -259,6 +293,37 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pendingBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   tabSpacer: {
     flex: 1,
+  },
+
+  // Secondary time refinement (À venir / Passées) — only rendered for
+  // created/joined tabs.
+  timeTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+    gap: spacing.xs + 2,
+  },
+  timeTab: {
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: 'transparent',
+  },
+  timeTabActive: {
+    backgroundColor: colors.cta,
+    borderColor: colors.cta,
+  },
+  timeTabText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+  },
+  timeTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   filterToggle: {
     width: 32,
