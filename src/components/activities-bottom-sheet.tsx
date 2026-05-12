@@ -70,10 +70,10 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const snapPoints = useMemo(() => ['0%', '30%', '50%', '92%'], []);
+  const snapPoints = useMemo(() => ['2%', '50%', '92%'], []);
 
   useImperativeHandle(ref, () => ({
-    expand: () => sheetRef.current?.snapToIndex(2),
+    expand: () => sheetRef.current?.snapToIndex(1),
     collapse: () => sheetRef.current?.snapToIndex(0),
   }), []);
 
@@ -97,7 +97,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         <TabHandle
           count={sorted.length}
           label={t('map.seeList')}
-          onExpand={() => sheetRef.current?.snapToIndex(3)}
+          onExpand={() => sheetRef.current?.snapToIndex(2)}
           filterLabel={filterLabel}
           onClearFilter={onClearFilter}
         />
