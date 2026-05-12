@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -34,6 +35,7 @@ interface FilterSheetProps {
 export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const {
     filters,
@@ -52,7 +54,7 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
+        <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + spacing.sm, spacing.md) }]} onPress={() => {}}>
           <View style={styles.handle} />
 
           <View style={styles.tabBar}>
@@ -396,7 +398,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.md, paddingBottom: spacing.xl + 16, maxHeight: '85%',
+    padding: spacing.md, maxHeight: '85%',
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
 

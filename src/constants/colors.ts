@@ -30,7 +30,7 @@ export const darkColors = {
   // sharply-defined containers, not floating soft shapes.
   borderStrong: '#F5F5F0',
   borderMuted: 'rgba(255,255,255,0.18)',
-  overlay: 'rgba(0,0,0,0.5)',
+  overlay: 'rgba(0,0,0,0.65)',
 };
 
 export const lightColors = {
@@ -60,7 +60,7 @@ export const lightColors = {
   // Brutalist 1px-solid border (near-opposite of bg).
   borderStrong: '#1A1A1A',
   borderMuted: 'rgba(0,0,0,0.18)',
-  overlay: 'rgba(0,0,0,0.3)',
+  overlay: 'rgba(0,0,0,0.5)',
 };
 
 export type AppColors = typeof darkColors;

@@ -352,7 +352,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Filter modal
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   sheet: {
