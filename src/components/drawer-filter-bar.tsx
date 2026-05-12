@@ -17,13 +17,12 @@ export function DrawerFilterBar() {
   const setRadiusKm = useMapStore((s) => s.setRadiusKm);
   const [showSheet, setShowSheet] = useState(false);
 
-  // Radius is the slider, so it doesn't count for the button dot —
-  // the dot signals 'something is filtered behind this button'.
   const filtersActive =
     filters.sportKeys.length > 0 ||
     filters.dateMode !== 'all' ||
     filters.levelTiers.length > 0 ||
-    filters.visibilities.length > 0;
+    filters.visibilities.length > 0 ||
+    filters.radiusKm !== null;
 
   return (
     <>

@@ -30,9 +30,10 @@ type TabKey = 'filters' | 'alerts';
 interface FilterSheetProps {
   visible: boolean;
   onClose: () => void;
+  hideAlertsTab?: boolean;
 }
 
-export function FilterSheet({ visible, onClose }: FilterSheetProps) {
+export function FilterSheet({ visible, onClose, hideAlertsTab = false }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -51,13 +52,31 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
   const [tab, setTab] = useState<TabKey>('filters');
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const hasActiveFilters =
+    filters.sportKeys.length > 0
+    || filters.dateMode !== 'all'
+    || filters.levelTiers.length > 0
+    || filters.visibilities.length > 0
+    || filters.radiusKm !== null;
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + spacing.sm, spacing.md) }]} onPress={() => {}}>
+          {/* Close button — top-left circle. Provides an explicit
+              dismiss target alongside the tap-backdrop affordance. */}
+          <Pressable style={styles.closeBtn} onPress={onClose} hitSlop={8}>
+            <X size={14} color={colors.textPrimary} strokeWidth={2.4} />
+          </Pressable>
+
           <View style={styles.handle} />
 
           <View style={styles.tabBar}>
+            {hasActiveFilters && (
+              <Pressable onPress={resetFilters} style={styles.resetSlot} hitSlop={6}>
+                <Text style={styles.reset}>{t('map.resetFilters')}</Text>
+              </Pressable>
+            )}
             <Pressable
               style={[styles.tab, tab === 'filters' && styles.tabActive]}
               onPress={() => setTab('filters')}
@@ -66,14 +85,16 @@ export function FilterSheet({ visible, onClose }: FilterSheetProps) {
                 {t('map.tabs.filters')}
               </Text>
             </Pressable>
-            <Pressable
-              style={[styles.tab, tab === 'alerts' && styles.tabActive]}
-              onPress={() => setTab('alerts')}
-            >
-              <Text style={[styles.tabText, tab === 'alerts' && styles.tabTextActive]}>
-                {t('map.tabs.alerts')}
-              </Text>
-            </Pressable>
+            {!hideAlertsTab && (
+              <Pressable
+                style={[styles.tab, tab === 'alerts' && styles.tabActive]}
+                onPress={() => setTab('alerts')}
+              >
+                <Text style={[styles.tabText, tab === 'alerts' && styles.tabTextActive]}>
+                  {t('map.tabs.alerts')}
+                </Text>
+              </Pressable>
+            )}
           </View>
 
           {tab === 'filters' ? (
@@ -193,12 +214,6 @@ function FiltersTab({
 
   return (
     <>
-      <View style={styles.header}>
-        <Pressable onPress={() => { resetFilters(); }}>
-          <Text style={styles.reset}>{t('map.resetFilters')}</Text>
-        </Pressable>
-      </View>
-
       {activePills.length > 0 && (
         <View style={styles.activePillsWrap}>
           {activePills.map((pill) => (
@@ -402,6 +417,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
 
+  // Top-left close affordance — small circle with an X icon.
+  closeBtn: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -409,6 +440,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
+  },
+  // Reset slot — same rank as the filters/alerts tabs, but text-only
+  // (no underline). Sticks to the left edge of the tab bar.
+  resetSlot: {
+    paddingVertical: spacing.sm,
+    marginRight: spacing.xs,
   },
   tab: {
     paddingVertical: spacing.sm,
@@ -419,8 +456,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500' },
   tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
 
-  header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.sm },
-  reset: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
+  reset: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
 
   // Active filters — wrap-row of pills at the top of the filters tab
   activePillsWrap: {

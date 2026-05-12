@@ -20,7 +20,8 @@ export function FilterButton({ onPress, blink = false }: Props) {
     filters.sportKeys.length > 0
     || filters.dateMode !== 'all'
     || filters.levelTiers.length > 0
-    || filters.visibilities.length > 0;
+    || filters.visibilities.length > 0
+    || filters.radiusKm !== null;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;

@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, Modal, RefreshControl } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -12,24 +11,28 @@ import type { AppColors } from '@/constants/colors';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { ActivityCard } from '@/components/activity-card';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { SportDropdown } from '@/components/sport-dropdown';
+import { FilterSheet } from '@/components/filter-sheet';
+import { useMapStore } from '@/store/map-store';
+import { getLevelScale } from '@/constants/sport-levels';
+import { distanceMeters } from '@/utils/geo';
+import { useInitialLocation } from '@/hooks/use-initial-location';
 
 type MainTab = 'created' | 'joined' | 'pending';
 type TimeFilter = 'upcoming' | 'finished';
-type DateRange = 'all' | 'today' | 'week';
+
+const OPEN_LEVEL = 'Tous niveaux';
 
 export default function MesActivitesScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { center, currentLocation } = useInitialLocation();
+  const filters = useMapStore((s) => s.filters);
   const [refreshing, setRefreshing] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('created');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
-  const [sportFilters, setSportFilters] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange>('all');
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: created, isLoading: loadingCreated, error: errorCreated } = useQuery({
@@ -51,6 +54,8 @@ export default function MesActivitesScreen() {
   const isLoading = mainTab === 'created' ? loadingCreated : mainTab === 'joined' ? loadingJoined : loadingPending;
   const error = mainTab === 'created' ? errorCreated : mainTab === 'joined' ? errorJoined : errorPending;
 
+  const userLocation = currentLocation ?? center;
+
   const filtered = useMemo(() => {
     if (!activities) return [];
     const now = dayjs();
@@ -64,22 +69,49 @@ export default function MesActivitesScreen() {
         if (timeFilter === 'finished' && isUpcoming) return false;
       }
 
-      // Sport filter
-      if (sportFilters.length > 0 && !sportFilters.includes(a.sport_key)) return false;
+      // Shared filters from useMapStore (sport / date / level / radius).
+      if (filters.sportKeys.length > 0 && !filters.sportKeys.includes(a.sport_key)) return false;
 
-      // Date range filter
-      if (dateRange === 'today' && !dayjs(a.starts_at).isSame(now, 'day')) return false;
-      if (dateRange === 'week' && dayjs(a.starts_at).isAfter(now.add(7, 'day'))) return false;
+      if (filters.dateMode === 'today' && !dayjs(a.starts_at).isSame(now, 'day')) return false;
+      if (filters.dateMode === 'week' && dayjs(a.starts_at).isAfter(now.add(7, 'day'))) return false;
+      if (filters.dateMode === 'date' && filters.specificDate && !dayjs(a.starts_at).isSame(dayjs(filters.specificDate), 'day')) return false;
+      if (filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo) {
+        const from = dayjs(filters.rangeFrom).startOf('day');
+        const to = dayjs(filters.rangeTo).endOf('day');
+        const d = dayjs(a.starts_at);
+        if (!(d.isAfter(from) && d.isBefore(to))) return false;
+      }
+
+      if (filters.levelTiers.length > 0) {
+        if (a.level && a.level !== OPEN_LEVEL) {
+          const scale = getLevelScale(a.sport_key);
+          const option = scale.find((o) => o.label === a.level);
+          if (option?.description && !filters.levelTiers.includes(option.description as typeof filters.levelTiers[number])) {
+            return false;
+          }
+        }
+      }
+
+      if (filters.radiusKm !== null) {
+        const limit = filters.radiusKm * 1000;
+        if (distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) > limit) return false;
+      }
 
       return true;
     });
-  }, [activities, mainTab, timeFilter, sportFilters, dateRange]);
+  }, [activities, mainTab, timeFilter, filters, userLocation]);
+
+  const hasMapFilters =
+    filters.sportKeys.length > 0
+    || filters.dateMode !== 'all'
+    || filters.levelTiers.length > 0
+    || filters.radiusKm !== null;
 
   const emptyMessage = () => {
     if (mainTab === 'created' && (!created || created.length === 0)) return t('myActivities.emptyCreated');
     if (mainTab === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
     if (mainTab === 'pending' && (!pending || pending.length === 0)) return t('myActivities.emptyPending');
-    if (sportFilters.length > 0 || dateRange !== 'all') return t('myActivities.noResults');
+    if (hasMapFilters) return t('myActivities.noResults');
     if (mainTab === 'pending') return t('myActivities.emptyPending');
     return timeFilter === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
   };
@@ -92,13 +124,6 @@ export default function MesActivitesScreen() {
     await queryClient.invalidateQueries({ queryKey: ['activities', 'my-joined'] });
     await queryClient.invalidateQueries({ queryKey: ['activities', 'my-pending'] });
     setRefreshing(false);
-  };
-
-  const hasActiveFilters = sportFilters.length > 0 || dateRange !== 'all';
-
-  const resetFilters = () => {
-    setSportFilters([]);
-    setDateRange('all');
   };
 
   return (
@@ -136,8 +161,8 @@ export default function MesActivitesScreen() {
         <View style={styles.tabSpacer} />
         <Pressable style={styles.filterToggle} onPress={() => setShowFilters(true)}>
           <View style={styles.filterIconWrap}>
-            <SlidersHorizontal size={18} color={hasActiveFilters ? colors.cta : colors.textSecondary} strokeWidth={2} />
-            {hasActiveFilters && <View style={styles.filterDot} />}
+            <SlidersHorizontal size={18} color={hasMapFilters ? colors.cta : colors.textSecondary} strokeWidth={2} />
+            {hasMapFilters && <View style={styles.filterDot} />}
           </View>
         </Pressable>
       </View>
@@ -165,53 +190,7 @@ export default function MesActivitesScreen() {
         </View>
       )}
 
-      <Modal visible={showFilters} animationType="slide" transparent>
-        <Pressable style={styles.backdrop} onPress={() => setShowFilters(false)}>
-          <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + spacing.sm, spacing.md) }]} onPress={() => {}}>
-            <View style={styles.handle} />
-
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>{t('myActivities.filters')}</Text>
-              {hasActiveFilters && (
-                <Pressable onPress={resetFilters}>
-                  <Text style={styles.resetText}>{t('map.resetFilters')}</Text>
-                </Pressable>
-              )}
-            </View>
-
-            <Text style={styles.filterLabel}>{t('map.dateLabel')}</Text>
-            <View style={styles.chipRow}>
-              {(['all', 'today', 'week'] as const).map((option) => (
-                <Pressable
-                  key={option}
-                  style={[styles.chip, dateRange === option && styles.chipActive]}
-                  onPress={() => setDateRange(option)}
-                >
-                  <Text style={[styles.chipText, dateRange === option && styles.chipTextActive]}>
-                    {t(`map.date.${option}`)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <Text style={styles.filterLabel}>{t('map.sportLabel')}</Text>
-            <SportDropdown
-              selected={sportFilters}
-              onSelect={(key) => setSportFilters((prev) =>
-                prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-              )}
-              multiSelect
-              label={t('map.sportLabel')}
-            />
-
-            <View style={styles.applyContainer}>
-              <Pressable style={styles.applyButton} onPress={() => setShowFilters(false)}>
-                <Text style={styles.applyText}>{t('map.apply')}</Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} hideAlertsTab />
 
       {isLoading ? (
         <View style={styles.center}>
@@ -347,96 +326,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 6,
     borderRadius: radius.xs,
     backgroundColor: colors.cta,
-  },
-
-  // Filter modal
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.md,
-    maxHeight: '70%',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.textSecondary,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-    opacity: 0.4,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  sheetTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.lg,
-    fontWeight: 'bold',
-  },
-  filterLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs + 2,
-    marginBottom: spacing.md,
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
-    backgroundColor: 'transparent',
-  },
-  chipActive: {
-    backgroundColor: colors.cta,
-    borderColor: colors.cta,
-  },
-  chipText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  resetText: {
-    color: colors.cta,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-  },
-  applyContainer: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderMuted,
-  },
-  applyButton: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-  },
-  applyText: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.md,
-    fontWeight: '700',
   },
 
   // List + states
