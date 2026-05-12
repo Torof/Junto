@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, Modal, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ type DateRange = 'all' | 'today' | 'week';
 export default function MesActivitesScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -165,7 +167,7 @@ export default function MesActivitesScreen() {
 
       <Modal visible={showFilters} animationType="slide" transparent>
         <Pressable style={styles.backdrop} onPress={() => setShowFilters(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
+          <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + spacing.sm, spacing.md) }]} onPress={() => {}}>
             <View style={styles.handle} />
 
             <View style={styles.sheetHeader}>
@@ -350,7 +352,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Filter modal
   backdrop: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: 'rgba(0,0,0,0.65)',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -358,7 +360,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     padding: spacing.md,
-    paddingBottom: spacing.xl + 16,
     maxHeight: '70%',
   },
   handle: {
