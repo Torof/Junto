@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, User } from 'lucide-react-native';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, fonts } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -40,9 +40,9 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
       <View style={[styles.statusBar, !showStatusBar && styles.statusBarHidden, showStatusBar && { backgroundColor: statusColor }]} />
 
       <View style={styles.middleCol}>
-        <Text style={[styles.title, { color: sportAccent }]} numberOfLines={1}>{activity.title}</Text>
+        <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
         <View style={styles.sportRow}>
-          <Text style={styles.sport} numberOfLines={1}>
+          <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
           {(() => {
@@ -118,15 +118,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 2,
     minWidth: 0,
   },
-  // Title — the unique row anchor + category signal in one element.
-  // Sport-category-colored, bold, single line, truncated.
+  // Title — the unique row anchor. Uses the title font (Montserrat)
+  // so the typography itself carries weight without needing extra
+  // boldness or color — fits the theme without shouting.
   title: {
+    color: colors.textPrimary,
     fontSize: fontSizes.md,
-    fontWeight: '700',
+    fontFamily: fonts.title,
     letterSpacing: -0.2,
   },
-  // Sport + level subtitle — quiet textSecondary now that the title
-  // carries the category color. Tiny uppercase tag-row.
+  // Sport label — category-colored, tiny uppercase. Carries the
+  // pre-attentive 'what sport' signal via color.
   sportRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -134,7 +136,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexWrap: 'nowrap',
   },
   sport: {
-    color: colors.textSecondary,
+    color: colors.cta,
     fontSize: fontSizes.xs - 1,
     fontWeight: '700',
     textTransform: 'uppercase',
