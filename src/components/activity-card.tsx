@@ -8,7 +8,6 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
-import { getSportIcon } from '@/constants/sport-icons';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces, type ActivityTimeStatus } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -40,12 +39,10 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
     <Pressable style={[styles.row, isFull && styles.rowFull]} onPress={onPress}>
       <View style={[styles.statusBar, !showStatusBar && styles.statusBarHidden, showStatusBar && { backgroundColor: statusColor }]} />
 
-      <Text style={styles.emoji}>{getSportIcon(activity.sport_key)}</Text>
-
       <View style={styles.middleCol}>
-        <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
+        <Text style={[styles.title, { color: sportAccent }]} numberOfLines={1}>{activity.title}</Text>
         <View style={styles.sportRow}>
-          <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
+          <Text style={styles.sport} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
           {(() => {
@@ -115,27 +112,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statusBarHidden: {
     backgroundColor: 'transparent',
   },
-  emoji: {
-    fontSize: 26,
-    width: 32,
-    textAlign: 'center',
-  },
   middleCol: {
     flex: 1,
     justifyContent: 'center',
     gap: 2,
     minWidth: 0,
   },
-  // Title — the unique row anchor. Bold, single line, truncated.
-  // This is what the eye locks onto when scrolling.
+  // Title — the unique row anchor + category signal in one element.
+  // Sport-category-colored, bold, single line, truncated.
   title: {
-    color: colors.textPrimary,
     fontSize: fontSizes.md,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
-  // Sport + level — tiny uppercase 'category' subtitle. Color-coded
-  // by sport so the eye can pre-filter by discipline.
+  // Sport + level subtitle — quiet textSecondary now that the title
+  // carries the category color. Tiny uppercase tag-row.
   sportRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,7 +134,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexWrap: 'nowrap',
   },
   sport: {
-    color: colors.cta,
+    color: colors.textSecondary,
     fontSize: fontSizes.xs - 1,
     fontWeight: '700',
     textTransform: 'uppercase',
