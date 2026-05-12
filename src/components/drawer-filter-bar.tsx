@@ -73,6 +73,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
+    // Opaque background so activity rows scrolling underneath the
+    // sticky header (stickyHeaderIndices in activities-bottom-sheet)
+    // don't bleed through.
+    backgroundColor: colors.surfaceAlt,
   },
   sliderWrap: {
     flex: 1,

@@ -113,6 +113,10 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={DrawerFilterBar}
+        // Pin the DrawerFilterBar (header at index 0) to the top of
+        // the scroll view so the radius slider + filter button stay
+        // reachable while the activity list scrolls underneath.
+        stickyHeaderIndices={[0]}
         renderItem={({ item }) => (
           <ActivityCard
             activity={item}
