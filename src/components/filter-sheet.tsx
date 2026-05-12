@@ -12,7 +12,7 @@ import * as Burnt from 'burnt';
 import { Radar, Trash2, X, ChevronDown } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
-import { useMapStore, type LevelTier } from '@/store/map-store';
+import { useMapStore, type LevelTier, type SortBy } from '@/store/map-store';
 import { SportPickerSheet } from './sport-picker-sheet';
 import { LevelPickerSheet } from './level-picker-sheet';
 import { alertService } from '@/services/alert-service';
@@ -49,6 +49,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
     setDateRange,
     toggleLevelTier,
     setRadiusKm,
+    setSortBy,
     resetFilters,
   } = useStore();
   const [showRangeFrom, setShowRangeFrom] = useState(false);
@@ -109,6 +110,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
               setDateRange={setDateRange}
               toggleLevelTier={toggleLevelTier}
               setRadiusKm={setRadiusKm}
+              setSortBy={setSortBy}
               resetFilters={resetFilters}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
@@ -146,6 +148,7 @@ interface FiltersTabProps {
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
   setRadiusKm: (km: number | null) => void;
+  setSortBy: (sort: SortBy) => void;
   resetFilters: () => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
@@ -161,7 +164,7 @@ interface FiltersTabProps {
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
-  toggleLevelTier, setRadiusKm, resetFilters,
+  toggleLevelTier, setRadiusKm, setSortBy, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors, useStore,
 }: FiltersTabProps) {
@@ -204,6 +207,14 @@ function FiltersTab({
     });
   }
 
+  if (filters.sortBy !== 'date') {
+    activePills.push({
+      id: 'sort',
+      label: `${t('map.sortByLabel')} : ${t(`map.sortBy.${filters.sortBy}`)}`,
+      clear: () => setSortBy('date'),
+    });
+  }
+
   const sportActive = filters.sportKeys.length > 0;
   const sportLabel = !sportActive
     ? t('map.sportLabel')
@@ -238,7 +249,26 @@ function FiltersTab({
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Radius — first selection element */}
+        {/* Sort — single-select, default 'date' */}
+        <Text style={styles.sectionTitle}>{t('map.sortByLabel')}</Text>
+        <View style={styles.chipRow}>
+          {(['date', 'distance', 'sport', 'remaining'] as const).map((opt) => {
+            const active = filters.sortBy === opt;
+            return (
+              <Pressable
+                key={opt}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => setSortBy(opt)}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {t(`map.sortBy.${opt}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Radius */}
         <View style={styles.radiusHeader}>
           <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
           <Text style={styles.radiusValue}>

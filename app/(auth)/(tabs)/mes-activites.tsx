@@ -60,7 +60,7 @@ export default function MesActivitesScreen() {
     if (!activities) return [];
     const now = dayjs();
 
-    return activities.filter((a: NearbyActivity) => {
+    const filteredList = activities.filter((a: NearbyActivity) => {
       // Time filter — only for created/joined (pending requests can only
       // be in-the-future by definition; the chip row is hidden for pending).
       if (mainTab !== 'pending') {
@@ -69,7 +69,7 @@ export default function MesActivitesScreen() {
         if (timeFilter === 'finished' && isUpcoming) return false;
       }
 
-      // Shared filters from useMapStore (sport / date / level / radius).
+      // Shared filters from useMyActivitiesFilterStore (sport / date / level / radius).
       if (filters.sportKeys.length > 0 && !filters.sportKeys.includes(a.sport_key)) return false;
 
       if (filters.dateMode === 'today' && !dayjs(a.starts_at).isSame(now, 'day')) return false;
@@ -99,6 +99,32 @@ export default function MesActivitesScreen() {
 
       return true;
     });
+
+    // Sort. Default 'date' ascending for upcoming/pending, descending for
+    // finished (most recent first when looking back). Other sort options
+    // ignore timeFilter direction — they sort by their own metric.
+    const sorted = [...filteredList];
+    const sortBy = filters.sortBy;
+    if (sortBy === 'date') {
+      const dirDesc = mainTab !== 'pending' && timeFilter === 'finished';
+      sorted.sort((a, b) => {
+        const diff = dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf();
+        return dirDesc ? -diff : diff;
+      });
+    } else if (sortBy === 'distance') {
+      sorted.sort((a, b) =>
+        distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
+        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng),
+      );
+    } else if (sortBy === 'sport') {
+      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key));
+    } else if (sortBy === 'remaining') {
+      const remaining = (a: NearbyActivity) =>
+        a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
+      sorted.sort((a, b) => remaining(b) - remaining(a));
+    }
+
+    return sorted;
   }, [activities, mainTab, timeFilter, filters, userLocation]);
 
   const hasMapFilters =

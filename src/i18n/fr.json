@@ -475,6 +475,13 @@
     "filtersBtn": "Filtres",
     "radiusLabel": "Rayon",
     "radiusOff": "Tout",
+    "sortByLabel": "Trier par",
+    "sortBy": {
+      "date": "Date",
+      "distance": "Distance",
+      "sport": "Sport",
+      "remaining": "Places"
+    },
     "levelLabel": "Niveau",
     "levelTier": {
       "beginner": "Débutant",

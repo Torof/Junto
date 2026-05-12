@@ -69,6 +69,27 @@ export function useFilteredActivities(
       );
     }
 
-    return filtered;
-  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, userLocation]);
+    // Sort. Default is 'date' ascending (upcoming first).
+    const sortBy = filters.sortBy;
+    const sorted = [...filtered];
+    if (sortBy === 'date') {
+      sorted.sort((a, b) => dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf());
+    } else if (sortBy === 'distance' && userLocation) {
+      sorted.sort((a, b) =>
+        distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
+        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng),
+      );
+    } else if (sortBy === 'sport') {
+      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key));
+    } else if (sortBy === 'remaining') {
+      // Open activities (null max) treated as Infinity remaining — they
+      // sort first ('most room first' is the spirit of this sort: find
+      // hikes with space for me + my group).
+      const remaining = (a: NearbyActivity) =>
+        a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
+      sorted.sort((a, b) => remaining(b) - remaining(a));
+    }
+
+    return sorted;
+  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, filters.sortBy, userLocation]);
 }

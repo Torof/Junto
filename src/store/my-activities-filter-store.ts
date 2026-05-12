@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { LevelTier, VisibilityFilter } from './map-store';
+import type { LevelTier, VisibilityFilter, SortBy } from './map-store';
 
 // Separate filter state for the my-activities screen so its filter
 // modal doesn't share state with the map's FilterSheet (Scott 2026-05-12:
@@ -21,6 +21,7 @@ interface MapFilters {
   levelTiers: LevelTier[];
   visibilities: VisibilityFilter[];
   radiusKm: number | null;
+  sortBy: SortBy;
 }
 
 interface FilterStore {
@@ -32,6 +33,7 @@ interface FilterStore {
   toggleLevelTier: (tier: LevelTier) => void;
   toggleVisibility: (v: VisibilityFilter) => void;
   setRadiusKm: (km: number | null) => void;
+  setSortBy: (sort: SortBy) => void;
   resetFilters: () => void;
 }
 
@@ -44,6 +46,7 @@ const DEFAULT_FILTERS: MapFilters = {
   levelTiers: [],
   visibilities: [],
   radiusKm: null,
+  sortBy: 'date',
 };
 
 export const useMyActivitiesFilterStore = create<FilterStore>((set) => ({
@@ -83,5 +86,7 @@ export const useMyActivitiesFilterStore = create<FilterStore>((set) => ({
     })),
   setRadiusKm: (km) =>
     set((state) => ({ filters: { ...state.filters, radiusKm: km } })),
+  setSortBy: (sortBy) =>
+    set((state) => ({ filters: { ...state.filters, sortBy } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));

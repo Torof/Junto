@@ -77,10 +77,13 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     collapse: () => sheetRef.current?.snapToIndex(0),
   }), []);
 
+  // The parent (useFilteredActivities) already applies the user's chosen
+  // sort. We only enrich each row with a distance value here for display.
   const sorted = useMemo(() => {
-    return activities
-      .map((a) => ({ ...a, distance: distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) / 1000 }))
-      .sort((a, b) => a.distance - b.distance);
+    return activities.map((a) => ({
+      ...a,
+      distance: distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) / 1000,
+    }));
   }, [activities, userLocation]);
 
   return (
