@@ -482,6 +482,11 @@
       "sport": "Sport",
       "remaining": "Spots"
     },
+    "sortDirLabel": "Order",
+    "sortDir": {
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
     "levelLabel": "Level",
     "levelTier": {
       "beginner": "Beginner",
@@ -496,6 +501,7 @@
     },
     "tabs": {
       "filters": "Filters",
+      "sort": "Sort",
       "alerts": "Alerts"
     },
     "alerts": {

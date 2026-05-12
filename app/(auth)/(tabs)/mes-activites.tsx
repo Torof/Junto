@@ -100,28 +100,23 @@ export default function MesActivitesScreen() {
       return true;
     });
 
-    // Sort. Default 'date' ascending for upcoming/pending, descending for
-    // finished (most recent first when looking back). Other sort options
-    // ignore timeFilter direction — they sort by their own metric.
+    // Sort — direction is user-controlled via the 'Tri' tab.
     const sorted = [...filteredList];
-    const sortBy = filters.sortBy;
+    const { sortBy, sortDir } = filters;
+    const dir = sortDir === 'desc' ? -1 : 1;
     if (sortBy === 'date') {
-      const dirDesc = mainTab !== 'pending' && timeFilter === 'finished';
-      sorted.sort((a, b) => {
-        const diff = dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf();
-        return dirDesc ? -diff : diff;
-      });
+      sorted.sort((a, b) => (dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf()) * dir);
     } else if (sortBy === 'distance') {
-      sorted.sort((a, b) =>
+      sorted.sort((a, b) => (
         distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
-        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng),
-      );
+        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng)
+      ) * dir);
     } else if (sortBy === 'sport') {
-      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key));
+      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key) * dir);
     } else if (sortBy === 'remaining') {
       const remaining = (a: NearbyActivity) =>
         a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
-      sorted.sort((a, b) => remaining(b) - remaining(a));
+      sorted.sort((a, b) => (remaining(a) - remaining(b)) * dir);
     }
 
     return sorted;
@@ -220,6 +215,7 @@ export default function MesActivitesScreen() {
         visible={showFilters}
         onClose={() => setShowFilters(false)}
         hideAlertsTab
+        showSortTab
         useStore={useMyActivitiesFilterStore}
       />
 

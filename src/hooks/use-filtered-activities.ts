@@ -69,27 +69,27 @@ export function useFilteredActivities(
       );
     }
 
-    // Sort. Default is 'date' ascending (upcoming first).
-    const sortBy = filters.sortBy;
+    // Sort. Defaults are sortBy='date' + sortDir='asc' (upcoming first).
+    // Direction is user-controlled — see the 'Tri' tab in FilterSheet.
+    const { sortBy, sortDir } = filters;
+    const dir = sortDir === 'desc' ? -1 : 1;
     const sorted = [...filtered];
     if (sortBy === 'date') {
-      sorted.sort((a, b) => dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf());
+      sorted.sort((a, b) => (dayjs(a.starts_at).valueOf() - dayjs(b.starts_at).valueOf()) * dir);
     } else if (sortBy === 'distance' && userLocation) {
-      sorted.sort((a, b) =>
+      sorted.sort((a, b) => (
         distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) -
-        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng),
-      );
+        distanceMeters(userLocation[1], userLocation[0], b.lat, b.lng)
+      ) * dir);
     } else if (sortBy === 'sport') {
-      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key));
+      sorted.sort((a, b) => a.sport_key.localeCompare(b.sport_key) * dir);
     } else if (sortBy === 'remaining') {
-      // Open activities (null max) treated as Infinity remaining — they
-      // sort first ('most room first' is the spirit of this sort: find
-      // hikes with space for me + my group).
+      // Open activities (null max) treated as Infinity remaining.
       const remaining = (a: NearbyActivity) =>
         a.max_participants === null ? Infinity : a.max_participants - a.participant_count;
-      sorted.sort((a, b) => remaining(b) - remaining(a));
+      sorted.sort((a, b) => (remaining(a) - remaining(b)) * dir);
     }
 
     return sorted;
-  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, filters.sortBy, userLocation]);
+  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, filters.sortBy, filters.sortDir, userLocation]);
 }

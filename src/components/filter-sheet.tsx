@@ -9,10 +9,10 @@ import Slider from '@react-native-community/slider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Radar, Trash2, X, ChevronDown } from 'lucide-react-native';
+import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
-import { useMapStore, type LevelTier, type SortBy } from '@/store/map-store';
+import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
 import { SportPickerSheet } from './sport-picker-sheet';
 import { LevelPickerSheet } from './level-picker-sheet';
 import { alertService } from '@/services/alert-service';
@@ -25,19 +25,29 @@ const LEVEL_KEY: Record<LevelTier, string> = {
   Expert: 'expert',
 };
 
-type TabKey = 'filters' | 'alerts';
+type TabKey = 'filters' | 'sort' | 'alerts';
 
 interface FilterSheetProps {
   visible: boolean;
   onClose: () => void;
   hideAlertsTab?: boolean;
+  // Show the 'Tri' tab — only meaningful for contexts that show a
+  // list (drawer + mes-activites). Map markers don't have an order
+  // so the map FAB's FilterSheet leaves this off.
+  showSortTab?: boolean;
   // Filter state source. Defaults to useMapStore (the map's filter
   // state). mes-activites passes useMyActivitiesFilterStore so its
   // filter modal operates on independent state.
   useStore?: typeof useMapStore;
 }
 
-export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore = useMapStore }: FilterSheetProps) {
+export function FilterSheet({
+  visible,
+  onClose,
+  hideAlertsTab = false,
+  showSortTab = false,
+  useStore = useMapStore,
+}: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -50,6 +60,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
     toggleLevelTier,
     setRadiusKm,
     setSortBy,
+    setSortDir,
     resetFilters,
   } = useStore();
   const [showRangeFrom, setShowRangeFrom] = useState(false);
@@ -85,6 +96,16 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
                 {t('map.tabs.filters')}
               </Text>
             </Pressable>
+            {showSortTab && (
+              <Pressable
+                style={[styles.tab, tab === 'sort' && styles.tabActive]}
+                onPress={() => setTab('sort')}
+              >
+                <Text style={[styles.tabText, tab === 'sort' && styles.tabTextActive]}>
+                  {t('map.tabs.sort')}
+                </Text>
+              </Pressable>
+            )}
             {!hideAlertsTab && (
               <Pressable
                 style={[styles.tab, tab === 'alerts' && styles.tabActive]}
@@ -111,6 +132,7 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
               toggleLevelTier={toggleLevelTier}
               setRadiusKm={setRadiusKm}
               setSortBy={setSortBy}
+              setSortDir={setSortDir}
               resetFilters={resetFilters}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
@@ -122,6 +144,16 @@ export function FilterSheet({ visible, onClose, hideAlertsTab = false, useStore 
               styles={styles}
               colors={colors}
               useStore={useStore}
+            />
+          ) : tab === 'sort' ? (
+            <SortTab
+              sortBy={filters.sortBy}
+              sortDir={filters.sortDir}
+              setSortBy={setSortBy}
+              setSortDir={setSortDir}
+              onClose={onClose}
+              t={t}
+              styles={styles}
             />
           ) : (
             <AlertsTab
@@ -148,7 +180,8 @@ interface FiltersTabProps {
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
   setRadiusKm: (km: number | null) => void;
-  setSortBy: (sort: SortBy) => void;
+  setSortBy: (s: SortBy) => void;
+  setSortDir: (d: SortDir) => void;
   resetFilters: () => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
@@ -164,7 +197,7 @@ interface FiltersTabProps {
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
-  toggleLevelTier, setRadiusKm, setSortBy, resetFilters,
+  toggleLevelTier, setRadiusKm, setSortBy, setSortDir, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors, useStore,
 }: FiltersTabProps) {
@@ -207,11 +240,12 @@ function FiltersTab({
     });
   }
 
-  if (filters.sortBy !== 'date') {
+  if (filters.sortBy !== 'date' || filters.sortDir !== 'asc') {
+    const arrow = filters.sortDir === 'desc' ? ' ↓' : ' ↑';
     activePills.push({
       id: 'sort',
-      label: `${t('map.sortByLabel')} : ${t(`map.sortBy.${filters.sortBy}`)}`,
-      clear: () => setSortBy('date'),
+      label: `${t(`map.sortBy.${filters.sortBy}`)}${arrow}`,
+      clear: () => { setSortBy('date'); setSortDir('asc'); },
     });
   }
 
@@ -249,25 +283,6 @@ function FiltersTab({
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Sort — single-select, default 'date' */}
-        <Text style={styles.sectionTitle}>{t('map.sortByLabel')}</Text>
-        <View style={styles.chipRow}>
-          {(['date', 'distance', 'sport', 'remaining'] as const).map((opt) => {
-            const active = filters.sortBy === opt;
-            return (
-              <Pressable
-                key={opt}
-                style={[styles.chip, active && styles.chipActive]}
-                onPress={() => setSortBy(opt)}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {t(`map.sortBy.${opt}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
         {/* Radius */}
         <View style={styles.radiusHeader}>
           <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
@@ -357,6 +372,81 @@ function FiltersTab({
 
       <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} useStore={useStore} />
       <LevelPickerSheet visible={showLevel} onClose={() => setShowLevel(false)} useStore={useStore} />
+
+      <View style={styles.applyContainer}>
+        <Pressable style={styles.applyButton} onPress={onClose}>
+          <Text style={styles.applyText}>{t('map.apply')}</Text>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+// ============================================================================
+// Sort tab — choose the metric (date / distance / sport / remaining)
+// and the direction (asc / desc).
+// ============================================================================
+
+interface SortTabProps {
+  sortBy: SortBy;
+  sortDir: SortDir;
+  setSortBy: (s: SortBy) => void;
+  setSortDir: (d: SortDir) => void;
+  onClose: () => void;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+  styles: ReturnType<typeof createStyles>;
+}
+
+const SORT_OPTIONS: SortBy[] = ['date', 'distance', 'sport', 'remaining'];
+
+function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }: SortTabProps) {
+  return (
+    <>
+      <ScrollView
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingBottom: spacing.md }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.sectionTitle}>{t('map.sortByLabel')}</Text>
+        <View style={styles.chipRow}>
+          {SORT_OPTIONS.map((opt) => {
+            const active = sortBy === opt;
+            return (
+              <Pressable
+                key={opt}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => setSortBy(opt)}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {t(`map.sortBy.${opt}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sectionTitle}>{t('map.sortDirLabel')}</Text>
+        <View style={styles.chipRow}>
+          <Pressable
+            style={[styles.chip, sortDir === 'asc' && styles.chipActive, styles.dirChip]}
+            onPress={() => setSortDir('asc')}
+          >
+            <ArrowUp size={14} color={sortDir === 'asc' ? '#FFFFFF' : styles.chipText.color as string} strokeWidth={2.4} />
+            <Text style={[styles.chipText, sortDir === 'asc' && styles.chipTextActive]}>
+              {t('map.sortDir.asc')}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.chip, sortDir === 'desc' && styles.chipActive, styles.dirChip]}
+            onPress={() => setSortDir('desc')}
+          >
+            <ArrowDown size={14} color={sortDir === 'desc' ? '#FFFFFF' : styles.chipText.color as string} strokeWidth={2.4} />
+            <Text style={[styles.chipText, sortDir === 'desc' && styles.chipTextActive]}>
+              {t('map.sortDir.desc')}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
@@ -550,6 +640,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
 
+  dirChip: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   applyContainer: {
     marginTop: spacing.md,
     paddingTop: spacing.md,

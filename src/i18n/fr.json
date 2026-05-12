@@ -482,6 +482,11 @@
       "sport": "Sport",
       "remaining": "Places"
     },
+    "sortDirLabel": "Ordre",
+    "sortDir": {
+      "asc": "Croissant",
+      "desc": "Décroissant"
+    },
     "levelLabel": "Niveau",
     "levelTier": {
       "beginner": "Débutant",
@@ -496,6 +501,7 @@
     },
     "tabs": {
       "filters": "Filtres",
+      "sort": "Tri",
       "alerts": "Alertes"
     },
     "alerts": {

@@ -54,7 +54,7 @@ export function DrawerFilterBar() {
         </Pressable>
       </View>
 
-      <FilterSheet visible={showSheet} onClose={() => setShowSheet(false)} />
+      <FilterSheet visible={showSheet} onClose={() => setShowSheet(false)} showSortTab />
     </>
   );
 }

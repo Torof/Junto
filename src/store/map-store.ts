@@ -5,6 +5,7 @@ type DateFilterMode = 'all' | 'today' | 'week' | 'date' | 'range';
 export type LevelTier = 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert';
 export type VisibilityFilter = 'public' | 'approval';
 export type SortBy = 'date' | 'distance' | 'sport' | 'remaining';
+export type SortDir = 'asc' | 'desc';
 
 interface MapFilters {
   sportKeys: string[];
@@ -16,6 +17,7 @@ interface MapFilters {
   visibilities: VisibilityFilter[]; // empty = no filter
   radiusKm: number | null;       // null = no radius filter
   sortBy: SortBy;                // default 'date'
+  sortDir: SortDir;              // default 'asc'
 }
 
 interface MapStore {
@@ -28,6 +30,7 @@ interface MapStore {
   toggleVisibility: (v: VisibilityFilter) => void;
   setRadiusKm: (km: number | null) => void;
   setSortBy: (sort: SortBy) => void;
+  setSortDir: (dir: SortDir) => void;
   resetFilters: () => void;
 }
 
@@ -41,6 +44,7 @@ const DEFAULT_FILTERS: MapFilters = {
   visibilities: [],
   radiusKm: null,
   sortBy: 'date',
+  sortDir: 'asc',
 };
 
 export const useMapStore = create<MapStore>((set) => ({
@@ -82,5 +86,7 @@ export const useMapStore = create<MapStore>((set) => ({
     set((state) => ({ filters: { ...state.filters, radiusKm: km } })),
   setSortBy: (sortBy) =>
     set((state) => ({ filters: { ...state.filters, sortBy } })),
+  setSortDir: (sortDir) =>
+    set((state) => ({ filters: { ...state.filters, sortDir } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));
