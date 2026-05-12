@@ -70,11 +70,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  // Binary drawer: just collapsed (tab only) or fully open. Max held at
-  // 65% so the floating tab handle and the map compass (top-right) stay
-  // visible at full extension. Dropping the middle snap also fixes the
-  // "list has rows that don't overflow → can't scroll" trap at 50%.
-  const snapPoints = useMemo(() => ['3%', '65%'], []);
+  const snapPoints = useMemo(() => ['30%', '50%', '90%'], []);
 
   useImperativeHandle(ref, () => ({
     expand: () => sheetRef.current?.snapToIndex(1),
@@ -101,7 +97,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         <TabHandle
           count={sorted.length}
           label={t('map.seeList')}
-          onExpand={() => sheetRef.current?.snapToIndex(1)}
+          onExpand={() => sheetRef.current?.snapToIndex(2)}
           filterLabel={filterLabel}
           onClearFilter={onClearFilter}
         />
