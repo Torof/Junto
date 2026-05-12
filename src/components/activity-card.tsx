@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, User } from 'lucide-react-native';
+import { Calendar, MapPin, User, Users } from 'lucide-react-native';
 import { fontSizes, spacing, radius, fonts } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -42,19 +42,21 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
       <View style={styles.middleCol}>
         <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
         <View style={styles.sportRow}>
-          <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
-            {t(`sports.${activity.sport_key}`, activity.sport_key)}
-          </Text>
-          {(() => {
-            const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
-            if (!signal) return null;
-            return (
-              <>
-                <Text style={styles.levelSep}> · </Text>
-                <Text style={styles.level} numberOfLines={1}>{signal}</Text>
-              </>
-            );
-          })()}
+          <View style={[styles.sportPill, { borderColor: sportAccent }]}>
+            <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
+              {t(`sports.${activity.sport_key}`, activity.sport_key)}
+            </Text>
+            {(() => {
+              const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
+              if (!signal) return null;
+              return (
+                <>
+                  <Text style={[styles.levelSep, { color: sportAccent }]}> · </Text>
+                  <Text style={[styles.level, { color: sportAccent }]} numberOfLines={1}>{signal}</Text>
+                </>
+              );
+            })()}
+          </View>
           {isFull && (
             <View style={styles.fullPill}>
               <Text style={styles.fullPillText}>{t('activity.full')}</Text>
@@ -81,11 +83,11 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
         </View>
       </View>
 
-      <View style={styles.countCol}>
+      <View style={styles.countPill}>
+        <Users size={14} color={colors.textPrimary} strokeWidth={2.4} />
         <Text style={styles.countValue}>
           {joined}{activity.max_participants !== null && (<Text style={styles.countMax}>/{activity.max_participants}</Text>)}
         </Text>
-        <Text style={styles.countLabel}>{t('activity.partants')}</Text>
       </View>
     </Pressable>
   );
@@ -127,13 +129,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontFamily: fonts.title,
     letterSpacing: -0.2,
   },
-  // Sport label — category-colored, tiny uppercase. Carries the
-  // pre-attentive 'what sport' signal via color.
+  // Sport row — outlined pill (border only, no fill) with category-
+  // colored border + text. Carries the pre-attentive 'what sport'
+  // signal as a self-contained badge.
   sportRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     flexWrap: 'nowrap',
+  },
+  sportPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: 1,
+    backgroundColor: 'transparent',
+    alignSelf: 'flex-start',
+    flexShrink: 1,
+    minWidth: 0,
   },
   sport: {
     color: colors.cta,
@@ -190,25 +205,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '500',
   },
-  countCol: {
+  // Participant count pill — outlined rectangle with a Users icon
+  // and the X/Y count inline. Replaces the previous two-line
+  // 'value + partants' column.
+  countPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 44,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: 3,
+    backgroundColor: 'transparent',
   },
   countValue: {
     color: colors.textPrimary,
-    fontSize: fontSizes.lg,
-    fontWeight: 'bold',
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   countMax: {
     color: colors.textSecondary,
     fontSize: fontSizes.sm,
     fontWeight: '600',
-  },
-  countLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs - 1,
-    textTransform: 'lowercase',
-    marginTop: 1,
   },
 });
