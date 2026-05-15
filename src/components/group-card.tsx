@@ -86,6 +86,20 @@ export function GroupCard({
     });
   };
 
+  // Driver pill collapsed vs expanded. Collapsed = name + city + time
+  // wrapped on one inline row (skim view). Expanded = the meta gets
+  // its own rows for full-length display. Toggled by tapping the pill
+  // body; avatar/reserve/passengers keep their own handlers.
+  const [expandedDrivers, setExpandedDrivers] = useState<Set<string>>(new Set());
+  const toggleDriver = (driverId: string) => {
+    setExpandedDrivers((prev) => {
+      const next = new Set(prev);
+      if (next.has(driverId)) next.delete(driverId);
+      else next.add(driverId);
+      return next;
+    });
+  };
+
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
     queryFn: () => transportService.getForActivity(activityId),
@@ -511,79 +525,115 @@ export function GroupCard({
               const score = reliabilityById.get(d.user_id) ?? null;
               const ringColor = score !== null ? ringColorFor(score) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
+              const isExpanded = expandedDrivers.has(d.user_id);
+              const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (
                 <View key={d.user_id} style={styles.driverPill}>
-                  {/* Pill row 1 — avatar + name + vouch + status pill (top-right). */}
-                  <View style={styles.pillHeader}>
-                    <Pressable
-                      style={[
-                        styles.avatarRing,
-                        ringColor && { borderColor: ringColor },
-                      ]}
-                      onPress={() => router.push(`/(auth)/profile/${d.user_id}`)}
-                      hitSlop={4}
-                    >
-                      <UserAvatar
-                        name={d.display_name}
-                        avatarUrl={d.avatar_url}
-                        size={32}
-                        confirmedPresent={d.confirmed_present === true}
-                      />
-                    </Pressable>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <View style={styles.driverNameRow}>
-                        <Text style={styles.driverName} numberOfLines={1}>
-                          {d.display_name}
-                        </Text>
-                        {isSelf && (
-                          <View style={styles.youTag}>
-                            <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                  {/* Pill body — tap to expand/collapse. Avatar / status
+                      pill / reserve / passengers keep their own handlers
+                      via stopPropagation on their own press events. */}
+                  <Pressable
+                    onPress={() => hasMeta && toggleDriver(d.user_id)}
+                    style={styles.pillBody}
+                  >
+                    <View style={styles.pillHeader}>
+                      <Pressable
+                        style={[
+                          styles.avatarRing,
+                          ringColor && { borderColor: ringColor },
+                        ]}
+                        onPress={(e) => { e.stopPropagation(); router.push(`/(auth)/profile/${d.user_id}`); }}
+                        hitSlop={4}
+                      >
+                        <UserAvatar
+                          name={d.display_name}
+                          avatarUrl={d.avatar_url}
+                          size={32}
+                          confirmedPresent={d.confirmed_present === true}
+                        />
+                      </Pressable>
+                      <View style={styles.driverIdentity}>
+                        <View style={styles.driverNameRow}>
+                          <Text style={styles.driverName} numberOfLines={1}>
+                            {d.display_name}
+                          </Text>
+                          {isSelf && (
+                            <View style={styles.youTag}>
+                              <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                            </View>
+                          )}
+                          {/* Collapsed: meta is inline beside the name and
+                              wraps to a second line if too wide. */}
+                          {!isExpanded && hasMeta && (
+                            <>
+                              {d.transport_from_name && (
+                                <View style={styles.inlineMetaItem}>
+                                  <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                                  <Text style={styles.driverMetaText} numberOfLines={1}>
+                                    {d.transport_from_name}
+                                  </Text>
+                                </View>
+                              )}
+                              {d.transport_departs_at && (
+                                <View style={styles.inlineMetaItem}>
+                                  <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                                  <Text style={styles.driverMetaText}>
+                                    {dayjs(d.transport_departs_at).format('H[h]mm')}
+                                  </Text>
+                                </View>
+                              )}
+                            </>
+                          )}
+                        </View>
+                      </View>
+                      {!isSelf && isMyDriver && (
+                        <View style={styles.statusPillSet}>
+                          <Check size={10} color={colors.success} strokeWidth={3} />
+                          <Text style={[styles.statusPillText, { color: colors.success }]}>
+                            {t('group.youAreAboard', { defaultValue: 'À bord' })}
+                          </Text>
+                        </View>
+                      )}
+                      {!isSelf && isPendingFromMe && (
+                        <View style={styles.statusPillPending}>
+                          <Text style={[styles.statusPillText, { color: colors.textMuted }]}>
+                            {t('group.pendingRequest', { defaultValue: 'En attente' })}
+                          </Text>
+                        </View>
+                      )}
+                      {hasMeta && (
+                        <ChevronDown
+                          size={14}
+                          color={colors.textMuted}
+                          strokeWidth={2.2}
+                          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+                        />
+                      )}
+                    </View>
+
+                    {/* Expanded: meta on its own rows under the avatar,
+                        full-length text. */}
+                    {isExpanded && hasMeta && (
+                      <View style={styles.pillMetaRows}>
+                        {d.transport_from_name && (
+                          <View style={styles.pillMetaRow}>
+                            <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                            <Text style={styles.driverMetaText}>
+                              {d.transport_from_name}
+                            </Text>
+                          </View>
+                        )}
+                        {d.transport_departs_at && (
+                          <View style={styles.pillMetaRow}>
+                            <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                            <Text style={styles.driverMetaText}>
+                              {dayjs(d.transport_departs_at).format('H[h]mm')}
+                            </Text>
                           </View>
                         )}
                       </View>
-                    </View>
-                    {/* Status pill in the top-right when the user has a
-                        relationship with this driver (aboard / pending). */}
-                    {!isSelf && isMyDriver && (
-                      <View style={styles.statusPillSet}>
-                        <Check size={10} color={colors.success} strokeWidth={3} />
-                        <Text style={[styles.statusPillText, { color: colors.success }]}>
-                          {t('group.youAreAboard', { defaultValue: 'À bord' })}
-                        </Text>
-                      </View>
                     )}
-                    {!isSelf && isPendingFromMe && (
-                      <View style={styles.statusPillPending}>
-                        <Text style={[styles.statusPillText, { color: colors.textMuted }]}>
-                          {t('group.pendingRequest', { defaultValue: 'En attente' })}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Pill rows 2-3 — place own line, time own line. Same
-                      treatment as Mine's transport stamp so the place
-                      stays readable even when long. */}
-                  {(d.transport_from_name || d.transport_departs_at) && (
-                    <View style={styles.pillMetaRows}>
-                      {d.transport_from_name && (
-                        <View style={styles.pillMetaRow}>
-                          <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.driverMetaText} numberOfLines={1}>
-                            {d.transport_from_name}
-                          </Text>
-                        </View>
-                      )}
-                      {d.transport_departs_at && (
-                        <View style={styles.pillMetaRow}>
-                          <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.driverMetaText}>
-                            {dayjs(d.transport_departs_at).format('H[h]mm')}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
+                  </Pressable>
 
                   {/* Pill footer — seats count on the left, action CTA
                       on the right (Reserve / Complet). Hidden for self
@@ -605,7 +655,7 @@ export function GroupCard({
                       ) : canReserve ? (
                         <Pressable
                           style={styles.reserveBtn}
-                          onPress={() => onReserveSeat(d.user_id)}
+                          onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
                           hitSlop={4}
                         >
                           <Text style={styles.reserveBtnText}>
@@ -627,7 +677,7 @@ export function GroupCard({
                       <>
                         <Pressable
                           style={styles.passengersToggleRow}
-                          onPress={() => togglePassengersForDriver(d.user_id)}
+                          onPress={(e) => { e.stopPropagation(); togglePassengersForDriver(d.user_id); }}
                           hitSlop={4}
                         >
                           <Text style={styles.passengersToggleText}>
@@ -1099,10 +1149,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.sm + 2,
     gap: 6,
   },
+  pillBody: {
+    gap: 6,
+  },
   pillHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm + 2,
+  },
+  // Wraps the name + the inline collapsed meta. flex:1 lets it absorb
+  // the row width; flexDirection inside is handled by driverNameRow so
+  // name and meta items can wrap together.
+  driverIdentity: {
+    flex: 1,
+    minWidth: 0,
+  },
+  inlineMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   pillMetaRows: {
     paddingLeft: 44, // align with content under avatar
@@ -1138,7 +1203,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   driverNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 6,
+    rowGap: 2,
   },
   driverName: {
     color: colors.textPrimary,
