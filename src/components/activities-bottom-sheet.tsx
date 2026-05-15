@@ -107,6 +107,12 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // content (ignoring snapPoints when shorter, overshooting when
       // longer). Off = snap points are absolute, list scrolls inside.
       enableDynamicSizing={false}
+      // Let horizontal gestures escape the sheet's pan so the radius
+      // slider (and any future horizontal control) keeps working. The
+      // pan still activates on vertical drags as soon as direction is
+      // disambiguated.
+      failOffsetX={[-5, 5]}
+      activeOffsetY={[-10, 10]}
     >
       <BottomSheetFlatList
         data={sorted}
