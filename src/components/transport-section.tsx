@@ -8,6 +8,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { transportService } from '@/services/transport-service';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
@@ -130,8 +131,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       setShowEditor(false);
       Burnt.toast({ title: t('transport.saved'), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setIsSaving(false);
     }
