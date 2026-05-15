@@ -136,10 +136,15 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
-  // Activity is writable only while published or in_progress. Past /
-  // cancelled / expired activities read as history — the stamps go
-  // non-tappable and the "Ajouter" CTA disappears.
-  const isActive = status === 'published' || status === 'in_progress';
+  // Logistics edits (transport / gear) are writable only while the
+  // activity is published/in_progress AND its start is still in the
+  // future. Once it starts — or once it goes past/cancelled/expired —
+  // stamps go non-tappable and the "Ajouter" CTA disappears. Mirrors
+  // the DB-side `starts_at > NOW()` gate from migration 00233 so users
+  // don't tap into a generic "Operation not permitted".
+  const isActive =
+    (status === 'published' || status === 'in_progress') &&
+    new Date(startsAt).getTime() > Date.now();
   const [showMyGear, setShowMyGear] = useState(false);
   // Pending-request gate: tapping the transport stamp while a seat
   // request is pending opens this modal first. The user must cancel

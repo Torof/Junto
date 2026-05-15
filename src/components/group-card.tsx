@@ -20,9 +20,10 @@ interface Props {
   activityId: string;
   currentUserId: string | null;
   isParticipant: boolean;
-  // True when the activity is published or in_progress (writable). Past/
-  // cancelled/expired activities are read-only — write affordances stay
-  // hidden so users don't tap into a generic "Operation not permitted".
+  // True when logistics edits are still allowed — published / in_progress
+  // status AND start time still in the future. Once the activity starts
+  // (or the status flips to cancelled/finished/expired), the DB rejects
+  // transport / gear / seat-request mutations, so the affordances hide.
   isActive: boolean;
   activeSubTab: 'transport' | 'gear';
   onActiveSubTabChange: (tab: 'transport' | 'gear') => void;

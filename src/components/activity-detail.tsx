@@ -501,6 +501,11 @@ export function ActivityDetail({
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
+  // Logistics (transport / gear / seat requests) are sealed once the
+  // activity starts — DB-side too, via 00233's `starts_at > NOW()` gate.
+  // Hide the corresponding edit affordances so users don't tap into a
+  // generic "Operation not permitted".
+  const canEditLogistics = isActive && new Date(activity.starts_at).getTime() > Date.now();
   const isFull = remaining <= 0;
   const showJoinButton = !isCreator && (!participation || canRejoin) && remaining > 0 && activity.status === 'published';
   const showFullButton = !isCreator && (!participation || canRejoin) && isFull && activity.status === 'published';
@@ -821,7 +826,7 @@ export function ActivityDetail({
             activityId={activity.id}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
-            isActive={isActive}
+            isActive={canEditLogistics}
             activeSubTab={orgSubTab}
             onActiveSubTabChange={setOrgSubTab}
             onReserveSeat={(driverId) => {
