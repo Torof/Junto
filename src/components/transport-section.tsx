@@ -79,6 +79,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const { data: participants } = useQuery({
     queryKey: ['transport', activityId],
     queryFn: () => transportService.getForActivity(activityId),
+    staleTime: 0,
   });
 
   const myTransport = (participants ?? []).find((p) => p.user_id === currentUserId);

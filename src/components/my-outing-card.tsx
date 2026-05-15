@@ -152,6 +152,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     queryKey: ['transport', activityId],
     queryFn: () => transportService.getForActivity(activityId),
     enabled: isParticipant,
+    staleTime: 0,
   });
   const { data: seatAssignments = [] } = useQuery({
     queryKey: ['seat-requests-accepted', activityId],

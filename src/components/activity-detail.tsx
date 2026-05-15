@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useNavigation, useRouter } from 'expo-router';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -159,6 +159,18 @@ export function ActivityDetail({
       supabase.removeChannel(channel);
     };
   }, [activity.id, queryClient]);
+
+  // Reconcile shared caches whenever the screen regains focus — covers
+  // the gap where the realtime channel was disconnected (background,
+  // network blip) and a broadcast was missed while the user was away.
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+      queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
+      queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
+      queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+    }, [activity.id, queryClient]),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -387,6 +399,11 @@ export function ActivityDetail({
       await queryClient.refetchQueries({ queryKey: ['participation', activity.id] });
       await queryClient.refetchQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      // Self-heal the shared participant/transport caches in case the
+      // realtime broadcast is delayed or dropped.
+      await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
       const isApproval = activity.visibility === 'approval' || activity.visibility === 'private_link_approval';
       Burnt.toast({ title: t(isApproval ? 'toast.requestSent' : 'toast.joinedActivity'), preset: 'done' });
     } catch (err) {
@@ -403,6 +420,9 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['transport', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
       await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
       await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
       await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
