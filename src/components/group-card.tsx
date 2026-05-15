@@ -555,34 +555,27 @@ export function GroupCard({
                       <View style={styles.driverIdentity}>
                         <View style={styles.driverNameRow}>
                           <Text style={styles.driverName} numberOfLines={1}>
-                            {d.display_name}
+                            {isExpanded
+                              ? d.display_name
+                              : d.display_name.length > 7
+                                ? `${d.display_name.slice(0, 7)}…`
+                                : d.display_name}
                           </Text>
                           {isSelf && (
                             <View style={styles.youTag}>
                               <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
                             </View>
                           )}
-                          {/* Collapsed: meta is inline beside the name and
-                              wraps to a second line if too wide. */}
-                          {!isExpanded && hasMeta && (
-                            <>
-                              {d.transport_from_name && (
-                                <View style={styles.inlineMetaItem}>
-                                  <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                                  <Text style={styles.driverMetaText} numberOfLines={1}>
-                                    {d.transport_from_name}
-                                  </Text>
-                                </View>
-                              )}
-                              {d.transport_departs_at && (
-                                <View style={styles.inlineMetaItem}>
-                                  <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                                  <Text style={styles.driverMetaText}>
-                                    {dayjs(d.transport_departs_at).format('H[h]mm')}
-                                  </Text>
-                                </View>
-                              )}
-                            </>
+                          {/* Collapsed: only the city is shown inline.
+                              Time moves to its own row below when the
+                              pill is expanded. */}
+                          {!isExpanded && d.transport_from_name && (
+                            <View style={styles.inlineMetaItem}>
+                              <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
+                              <Text style={styles.driverMetaText} numberOfLines={1}>
+                                {d.transport_from_name}
+                              </Text>
+                            </View>
                           )}
                         </View>
                       </View>
