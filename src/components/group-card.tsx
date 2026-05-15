@@ -1168,6 +1168,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
+    flexShrink: 1,
+    minWidth: 0,
   },
   pillMetaRows: {
     paddingLeft: 44, // align with content under avatar
@@ -1203,9 +1205,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   driverNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
     gap: 6,
-    rowGap: 2,
   },
   driverName: {
     color: colors.textPrimary,
