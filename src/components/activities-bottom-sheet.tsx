@@ -116,9 +116,12 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         <FlatList
           data={sorted}
           keyExtractor={(item) => item.id}
+          style={styles.flatList}
           contentContainerStyle={styles.list}
           ListHeaderComponent={DrawerFilterBar}
           stickyHeaderIndices={[0]}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator
           renderItem={({ item }) => (
             <ActivityCard
               activity={item}
@@ -146,6 +149,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 20,
   },
   sheetContent: {
+    flex: 1,
+  },
+  flatList: {
     flex: 1,
   },
   sheetBackground: {
