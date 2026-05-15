@@ -103,10 +103,6 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         />
       )}
       containerStyle={styles.sheetContainer}
-      // Free the content area from the sheet's pan-to-dismiss gesture
-      // so the radius slider in the header can capture horizontal drag.
-      // The floating tab handle still drives expand/collapse.
-      enableContentPanningGesture={false}
       // v5 defaults dynamic sizing to ON, which makes the sheet hug its
       // content (ignoring snapPoints when shorter, overshooting when
       // longer). Off = snap points are absolute, list scrolls inside.
