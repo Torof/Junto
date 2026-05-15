@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
@@ -107,33 +107,36 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // content (ignoring snapPoints when shorter, overshooting when
       // longer). Off = snap points are absolute, list scrolls inside.
       enableDynamicSizing={false}
+      // Decouple the list's pan from the sheet's snap so the FlatList
+      // scrolls independently at any snap point. Snap changes happen
+      // via the tab handle or the sheet edge / background.
+      enableContentPanningGesture={false}
     >
-      <BottomSheetFlatList
-        data={sorted}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={DrawerFilterBar}
-        // Pin the DrawerFilterBar (header at index 0) to the top of
-        // the scroll view so the radius slider + filter button stay
-        // reachable while the activity list scrolls underneath.
-        stickyHeaderIndices={[0]}
-        renderItem={({ item }) => (
-          <ActivityCard
-            activity={item}
-            distanceKm={item.distance}
-            showCreator={false}
-            onPress={() => {
-              if (onItemPress) onItemPress(item);
-              router.push(`/(auth)/activity/${item.id}`);
-            }}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('search.noResults')}</Text>
-          </View>
-        }
-      />
+      <BottomSheetView style={styles.sheetContent}>
+        <FlatList
+          data={sorted}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={DrawerFilterBar}
+          stickyHeaderIndices={[0]}
+          renderItem={({ item }) => (
+            <ActivityCard
+              activity={item}
+              distanceKm={item.distance}
+              showCreator={false}
+              onPress={() => {
+                if (onItemPress) onItemPress(item);
+                router.push(`/(auth)/activity/${item.id}`);
+              }}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>{t('search.noResults')}</Text>
+            </View>
+          }
+        />
+      </BottomSheetView>
     </BottomSheet>
   );
 });
@@ -141,6 +144,9 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
 const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetContainer: {
     zIndex: 20,
+  },
+  sheetContent: {
+    flex: 1,
   },
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
