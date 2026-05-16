@@ -308,7 +308,7 @@ export default function ConversationScreen() {
         await Share.share({ url, title: tracePreview.name });
       }
     } catch (err) {
-      Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     }
   };
 

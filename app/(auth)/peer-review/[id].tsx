@@ -18,6 +18,7 @@ import { activityService } from '@/services/activity-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 
 // Per-trait Lucide icons — match the profile's vouched line for the
@@ -93,7 +94,7 @@ export default function PeerReviewScreen() {
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : msg);
+      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
     }
   };
 
@@ -111,7 +112,7 @@ export default function PeerReviewScreen() {
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : msg);
+      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
     }
   };
 

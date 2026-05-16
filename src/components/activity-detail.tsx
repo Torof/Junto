@@ -467,9 +467,12 @@ export function ActivityDetail({
       Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
     } catch (err) {
       if (err instanceof GpxParseError) {
+        // GpxParseError carries diagnostic text from our own parser
+        // ("No track points found", "Too many points") — helps the
+        // user fix the file. Safe to surface as-is.
         Alert.alert(t('create.traceParseError'), err.message);
       } else {
-        Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+        Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
       }
     }
   };

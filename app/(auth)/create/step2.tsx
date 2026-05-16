@@ -16,6 +16,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 
@@ -59,7 +60,7 @@ export default function CreateStep2() {
       if (err instanceof GpxParseError) {
         Alert.alert(t('create.traceParseError'), err.message);
       } else {
-        Alert.alert(t('auth.error'), err instanceof Error ? err.message : 'Unknown error');
+        Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
       }
     } finally {
       setIsLoadingTrace(false);

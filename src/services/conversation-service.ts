@@ -33,10 +33,10 @@ export const conversationService = {
     if (!userId) return [];
 
     const { data, error } = await supabase
-      .from('conversations' as 'users')
+      .from('conversations')
       .select('id, user_1, user_2, status, last_message_at, created_at, hidden_by_user_1, hidden_by_user_2')
-      .eq('status' as 'id', 'active')
-      .order('last_message_at', { ascending: false, nullsFirst: false }) as unknown as { data: { id: string; user_1: string; user_2: string; status: string; last_message_at: string | null; created_at: string; hidden_by_user_1: boolean; hidden_by_user_2: boolean }[] | null; error: Error | null };
+      .eq('status', 'active')
+      .order('last_message_at', { ascending: false, nullsFirst: false });
     if (error) throw error;
 
     if (!data || data.length === 0) return [];
@@ -66,9 +66,10 @@ export const conversationService = {
     const { data: lastMessages } = await supabase
       .from('private_messages')
       .select('conversation_id, content, sender_id, created_at, metadata')
-      .in('conversation_id' as 'id', conversationIds)
+      .in('conversation_id', conversationIds)
       .is('deleted_at', null)
-      .order('created_at', { ascending: false }) as unknown as { data: { conversation_id: string; content: string; sender_id: string; created_at: string; metadata: MessageMetadata | null }[] | null };
+      .order('created_at', { ascending: false })
+      .returns<{ conversation_id: string; content: string; sender_id: string; created_at: string; metadata: MessageMetadata | null }[]>();
 
     const lastMessageMap = new Map<string, { content: string; sender_id: string; metadata: MessageMetadata | null }>();
     for (const msg of lastMessages ?? []) {
@@ -97,13 +98,10 @@ export const conversationService = {
     if (!userId) return [];
 
     const { data, error } = await supabase
-      .from('conversations' as 'users')
+      .from('conversations')
       .select('id, user_1, user_2, request_sender_id, initiated_from, request_message, created_at, request_expires_at')
-      .eq('status' as 'id', 'pending_request')
-      .order('created_at', { ascending: false }) as unknown as {
-        data: { id: string; user_1: string; user_2: string; request_sender_id: string; initiated_from: string | null; request_message: string | null; created_at: string; request_expires_at: string | null }[] | null;
-        error: Error | null;
-      };
+      .eq('status', 'pending_request')
+      .order('created_at', { ascending: false });
     if (error) throw error;
 
     // Filter: only requests where I'm the RECIPIENT (not the sender)
@@ -123,7 +121,9 @@ export const conversationService = {
 
     if (received.length === 0) return [];
 
-    const senderIds = received.map((c) => c.request_sender_id);
+    const senderIds = received
+      .map((c) => c.request_sender_id)
+      .filter((id): id is string => id !== null);
     const { data: profiles } = await supabase
       .from('public_profiles')
       .select('id, display_name, avatar_url')
@@ -133,37 +133,39 @@ export const conversationService = {
       (profiles ?? []).map((p) => [p.id, p])
     );
 
-    return received.map((c) => {
-      const profile = profileMap.get(c.request_sender_id);
-      return {
-        ...c,
-        sender_name: profile?.display_name ?? '?',
-        sender_avatar: profile?.avatar_url ?? null,
-      };
-    });
+    return received
+      .filter((c): c is typeof c & { request_sender_id: string } => c.request_sender_id !== null)
+      .map((c) => {
+        const profile = profileMap.get(c.request_sender_id);
+        return {
+          ...c,
+          sender_name: profile?.display_name ?? '?',
+          sender_avatar: profile?.avatar_url ?? null,
+        };
+      });
   },
 
   sendContactRequest: async (targetUserId: string, message: string, source: string = 'profile'): Promise<string> => {
-    const { data, error } = await supabase.rpc('send_contact_request' as 'join_activity', {
+    const { data, error } = await supabase.rpc('send_contact_request', {
       p_target_user_id: targetUserId,
       p_message: message,
       p_source: source,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   acceptRequest: async (conversationId: string): Promise<void> => {
-    const { error } = await supabase.rpc('accept_contact_request' as 'join_activity', {
+    const { error } = await supabase.rpc('accept_contact_request', {
       p_conversation_id: conversationId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
   declineRequest: async (conversationId: string): Promise<void> => {
-    const { error } = await supabase.rpc('decline_contact_request' as 'join_activity', {
+    const { error } = await supabase.rpc('decline_contact_request', {
       p_conversation_id: conversationId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
@@ -173,18 +175,18 @@ export const conversationService = {
     const u1 = userId < otherUserId ? userId : otherUserId;
     const u2 = userId < otherUserId ? otherUserId : userId;
     const { data } = await supabase
-      .from('conversations' as 'users')
+      .from('conversations')
       .select('id, status')
-      .eq('user_1' as 'id', u1)
-      .eq('user_2' as 'id', u2)
-      .single() as unknown as { data: { id: string; status: string } | null };
+      .eq('user_1', u1)
+      .eq('user_2', u2)
+      .maybeSingle();
     return data ?? null;
   },
 
   hideConversation: async (conversationId: string): Promise<void> => {
-    const { error } = await supabase.rpc('hide_conversation' as 'join_activity', {
+    const { error } = await supabase.rpc('hide_conversation', {
       p_conversation_id: conversationId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 };
