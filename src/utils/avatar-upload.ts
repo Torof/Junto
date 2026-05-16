@@ -38,6 +38,15 @@ export async function pickAndUploadAvatar(): Promise<string | null> {
     encoding: EncodingType.Base64,
   });
 
+  // 4b. Magic-byte sanity check — ImageManipulator re-encodes as JPEG,
+  // so a successful manipulate already implies valid pixels, but a
+  // belt-and-suspenders check guards against future encoder changes
+  // and any path that might skip manipulation. JPEG starts with
+  // FF D8 FF, which base64-encodes to a prefix beginning with "/9j/".
+  if (!base64.startsWith('/9j/')) {
+    throw new Error('Invalid image type');
+  }
+
   // 5. Get user ID
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');

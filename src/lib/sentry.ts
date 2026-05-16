@@ -24,6 +24,11 @@ const SENSITIVE_KEYS = [
   'bio',
   'details',
   'hint',
+  // PII — display_name is the only real name we carry. Add common
+  // aliases too in case future code uses them.
+  'display_name',
+  'name',
+  'full_name',
 ];
 
 function scrub(obj: unknown, depth = 0): unknown {
@@ -126,7 +131,15 @@ export function trace(
   data?: Record<string, unknown>,
 ): void {
   if (__DEV__) return;
-  Sentry.addBreadcrumb({ category, message, level: 'info', data });
+  // Scrub at the call site, not just in beforeSend. If a breadcrumb
+  // is dropped before send (buffer flush, network) the raw payload
+  // would otherwise leave the device.
+  Sentry.addBreadcrumb({
+    category,
+    message,
+    level: 'info',
+    data: data ? (scrub(data) as Record<string, unknown>) : undefined,
+  });
 }
 
 // Surface a real Sentry event (not just a breadcrumb) so silent failures in

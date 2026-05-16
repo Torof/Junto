@@ -14,82 +14,61 @@ Findings below are grouped by severity. Each row has a file:line ref and a one-l
 
 ## Critical
 
-### C1 — `delete_own_account` leaves `auth.users` orphaned
-Account deletion calls a SECURITY DEFINER RPC ([00042_delete_account.sql:55](../supabase/migrations/00042_delete_account.sql#L55)) that purges `public.users` and dependent tables, but **no edge function** calls `supabase.auth.admin.deleteUser()` (only `supabase/functions/send-push` exists). The auth row persists with a working JWT, dangling references to a public profile that no longer exists.
-**Fix:** Add a `delete-account` edge function that verifies the caller's JWT, calls the RPC, then `supabase.auth.admin.deleteUser(user_id)` with `service_role`. Wire `settings-drawer.tsx:321` to invoke it instead of the RPC directly.
+### ✅ C1 — `delete_own_account` leaves `auth.users` orphaned
+**Shipped** (commit 64515ed). New `supabase/functions/delete-account` edge fn verifies the caller's JWT, calls the RPC as them, then `admin.deleteUser()` with service_role. Client wired at `settings-drawer.tsx:321` to invoke the function instead of the RPC directly.
 
-### C2 — `wall_messages` SELECT policy doesn't filter suspended authors
-[00006_messages.sql:20-34](../supabase/migrations/00006_messages.sql#L20-L34) — wall threads remain visible to participants even after the author is suspended. Per SECURITY.md, suspended users' content should drop out of feeds.
-**Fix:** Add `AND wall_messages.user_id NOT IN (SELECT id FROM users WHERE suspended_at IS NOT NULL)` to the policy.
+### ✅ C2 — `wall_messages` SELECT policy doesn't filter suspended authors
+**Shipped** (migration 00234, commit 64515ed). Suspended users' wall posts now hard-hide from every participant. Public surface, hard-hide stance.
 
-### C3 — `private_messages` SELECT policy doesn't filter suspended senders
-[00031_conversations_and_messaging.sql:53-68](../supabase/migrations/00031_conversations_and_messaging.sql#L53-L68) — same gap as C2 for DMs. Threads from suspended users stay visible.
-**Fix:** Add `AND private_messages.sender_id NOT IN (SELECT id FROM users WHERE suspended_at IS NOT NULL)`.
+### ⊘ C3 — `private_messages` SELECT policy doesn't filter suspended senders
+**Decision: keep current behaviour** (read-only ghost). DMs are 1:1 private — the counterparty already saw the messages. Suspending a user blocks them from sending new DMs (existing suspension check in `send_private_message`), but past content stays visible to the recipient.
 
-### C4 — `conversations` SELECT policy exposes suspended counterparties
-[00031_conversations_and_messaging.sql:25-35](../supabase/migrations/00031_conversations_and_messaging.sql#L25-L35) — even with C3 fixed, the conversation row leaks `last_message_at` and the other user's ID when the counterparty is suspended.
-**Fix:** Require both `user_1` and `user_2` to be non-suspended in the SELECT policy.
+### ⊘ C4 — `conversations` SELECT policy exposes suspended counterparties
+**Decision: keep current behaviour** (same rationale as C3). Conversation rows remain visible to the counterparty so the thread stays readable.
 
 ---
 
 ## High
 
-### H1 — Logistics RPCs reject submissions at the activity-start boundary
-Migration 00233 added `AND starts_at > NOW()` to six logistics RPCs without a grace period. A client save at `T-0.5s` that lands at `T+0.5s` is silently rejected. Across six functions ([00233:56](../supabase/migrations/00233_lock_logistics_after_start.sql#L56), `:135`, `:229`, `:372`, `:491`, `:552`).
-**Fix:** Switch to `starts_at > NOW() - INTERVAL '5 seconds'` (or `15s`) to absorb clock skew + in-flight latency.
+### ✅ H1 — Logistics RPCs reject submissions at the activity-start boundary
+**Shipped** (migration 00235, commit 927db39). Switched the six 00233 functions to `starts_at > NOW() - INTERVAL '15 seconds'`.
 
-### H2 — `seat_requests.status` CHECK missing `'expired'`
-[00076_seat_requests.sql:11](../supabase/migrations/00076_seat_requests.sql#L11) accepts only `pending/accepted/declined`. Later migrations (00142+) write `'expired'`, which the CHECK should refuse. Either no `'expired'` value is actually being written, or the constraint was dropped silently — verify and reconcile.
-**Fix:** Migration to either add `'expired'` to the CHECK or document why writes are happening through a SECURITY DEFINER path that bypasses it.
+### ⊘ H2 — `seat_requests.status` CHECK missing `'expired'`
+**Dropped (stale finding).** Migration 00142 already added `'expired'` to the CHECK; the audit agent compared against the original 00076 CHECK and missed the modification.
 
-### H3 — Raw error messages leak to user alerts
-`err.message` shown directly to users in:
-- [activity-detail.tsx:470, :472](../src/components/activity-detail.tsx#L470)
-- [conversation/[id].tsx:311, :353](../app/(auth)/conversation/[id].tsx#L311)
-- [create/step2.tsx:60, :62](../app/(auth)/create/step2.tsx#L60)
-- [peer-review/[id].tsx:96, :114](../app/(auth)/peer-review/[id].tsx#L96) — only catches `'Operation not permitted'`, falls through for everything else.
+### ✅ H3 — Raw error messages leak to user alerts
+**Shipped** (commit 927db39). Replaced `err.message` user-facing alerts with `getFriendlyError` in `activity-detail.tsx`, `conversation/[id].tsx`, `create/step2.tsx`, and `peer-review/[id].tsx`. `GpxParseError` messages kept (own parser, diagnostic, helps the user fix the file).
 
-**Fix:** Wrap every catch in `getFriendlyError(err, '<key>')`. Per CLAUDE.md "Generic error messages only".
-
-### H4 — Type-cast bypass in `conversation-service.ts`
-[conversation-service.ts:36, :38, :100, :176](../src/services/conversation-service.ts#L36) uses `.from('conversations' as 'users')` and `as unknown as { ... }` to silence Supabase's generated types. Hides schema drift — a column rename or table change wouldn't trigger a compile error.
-**Fix:** Use proper generated types; only cast `as unknown` for RPC return shapes that genuinely lack codegen.
+### ✅ H4 — Type-cast bypass in `conversation-service.ts`
+**Shipped** (commit 927db39). Dropped all `as 'users'` / `as unknown` casts — generated Supabase types already cover the conversations table and all four RPCs. Type safety now restored across getAll / getPendingReceived / sendContactRequest / acceptRequest / declineRequest / getConversationStateWith / hideConversation.
 
 ---
 
 ## Medium
 
-### M1 — `give_reputation_badge` missing bidirectional block guard
-Latest version [00159_dead_artifact_sweep.sql:212-291](../supabase/migrations/00159_dead_artifact_sweep.sql#L212-L291). Blocked users can still vote on each other for completed activities. The pattern from `request_seat` ([00215](../supabase/migrations/00215_request_seat_block_guard.sql)) should apply.
-**Fix:** Add `IF EXISTS (SELECT 1 FROM blocked_users WHERE (blocker_id, blocked_id) IN ((v_user_id, p_voted_id), (p_voted_id, v_user_id))) THEN RAISE EXCEPTION ...` before the participation check.
+### ✅ M1 — `give_reputation_badge` missing bidirectional block guard
+**Shipped** (migration 00236). Added the standard bidirectional `blocked_users` guard right after the self-vote check.
 
-### M2 — `get_user_reputation` + `get_user_trophies` skip auth/suspension checks
-[00154:127-174](../supabase/migrations/00154_level_vote_per_sport.sql#L127) and [00134:14-62](../supabase/migrations/00134_badge_system_overhaul.sql#L14-L62). Read-only, but a suspended user can still query reputation data — inconsistent with the documented baseline.
-**Fix:** Add the standard `IF auth.uid() IS NULL THEN RETURN; END IF;` + suspension check at the top of each, matching 00226's pattern.
+### ✅ M2 — `get_user_reputation` + `get_user_trophies` skip auth/suspension checks
+**Shipped** (migration 00236). Both now follow the documented auth-chain prelude (`auth.uid()` + suspension), matching the 00226 pattern.
 
-### M3 — Sentry scrubber misses `display_name`
-[src/lib/sentry.ts:5-27](../src/lib/sentry.ts#L5-L27) — `SENSITIVE_KEYS` redacts `email`, `phone`, lat/lng, but not `display_name`. Display names are PII (real names common in MVP user set).
-**Fix:** Add `'display_name'` (and `'name'`, `'full_name'`) to `SENSITIVE_KEYS`.
+### ✅ M3 — Sentry scrubber misses `display_name`
+**Shipped** (commit below). Added `display_name`, `name`, `full_name` to `SENSITIVE_KEYS`.
 
-### M4 — `trace()` helper doesn't scrub `data` before adding breadcrumb
-[src/lib/sentry.ts:129](../src/lib/sentry.ts#L129) — relies on `beforeSend` to clean payloads. If a breadcrumb drops before send (buffer flush, network), raw `data` may exit the device.
-**Fix:** Call `scrub(data)` inline before `Sentry.addBreadcrumb`.
+### ✅ M4 — `trace()` helper doesn't scrub `data` before adding breadcrumb
+**Shipped** (commit below). `trace()` now scrubs `data` inline before `Sentry.addBreadcrumb`.
 
-### M5 — Push notification payload forwards raw `NEW.data` jsonb
-[00162:116](../supabase/migrations/00162_notif_flow_fixes_round2.sql#L116) — `push_notification_to_device()` posts `COALESCE(NEW.data, '{}'::jsonb)` straight to the edge function. Current notifications carry only `activity_id`, but a future migration could add lat/lng or message snippets, which then land on the lock screen.
-**Fix:** Add an allow-list of keys forwarded to the device; everything else stays in `notifications` for in-app rendering.
+### ✅ M5 — Push notification payload forwards raw `NEW.data` jsonb
+**Shipped** (migration 00236). `push_notification_to_device` now intersects `NEW.data` with an allow-list (`activity_id`, `conversation_id`, `seat_request_id`, `driver_id`, `requester_id`, `from_user_id`) before forwarding. `type` is always added. Everything else stays in the `notifications` row for in-app rendering.
 
-### M6 — Avatar upload trusts client-reported MIME
-[src/utils/avatar-upload.ts:25](../src/utils/avatar-upload.ts#L25) — `asset.mimeType` is spoofable. `ImageManipulator.manipulateAsync()` re-encodes, which mitigates exec risk, but the validation itself is paper-thin.
-**Fix:** After `manipulateAsync`, verify the first 4 bytes of the buffer match a known image magic number (JPEG / PNG / WEBP). Reject otherwise.
+### ✅ M6 — Avatar upload trusts client-reported MIME
+**Shipped** (commit below). After `manipulateAsync` (which always re-encodes as JPEG), the base64 buffer is now verified to start with `/9j/` (JPEG SOI). Defence-in-depth against future encoder changes / any path that skips manipulation.
 
-### M7 — Reads referencing logistics state aren't time-gated
-Migration 00233 locked WRITES once `starts_at > NOW()`. Functions that read or notify on transport/seat/gear state (audit cross-cut from agent 6) may surface stale state during the in_progress window if any in-flight write was rejected.
-**Fix:** Audit functions that emit notifications referencing `seat_requests.status`, `participations.transport_*`, `activity_gear`. Either also gate them, or document why post-start reads are acceptable.
+### ⊘ M7 — Reads referencing logistics state aren't time-gated
+**Decision: not actionable.** Post-start reads are intentional: presence validation, peer-review windows, and end-of-activity rituals all need to read transport/seat/gear state *after* start. Writes are correctly locked by 00233/00235 — reads stay open by design.
 
-### M8 — Documentation drift in 00232 comment on directional block filter
-[00232_get_activity_participants_public.sql:25](../supabase/migrations/00232_get_activity_participants_public.sql#L25) — comment says "anyone the caller has blocked is hidden" but doesn't note that the reverse direction (B blocks A → B still sees A in A's activity participants) is intentional, matching SECURITY.md "Liste participants (Unidirectionnel)".
-**Fix:** One-line clarification in the comment.
+### ⊘ M8 — Documentation drift in 00232 comment on directional block filter
+**Decision: defer.** Pure doc nit; the runtime behaviour is correct and matches SECURITY.md. Will address as part of a docs-only sweep, not as a security fix.
 
 ---
 
