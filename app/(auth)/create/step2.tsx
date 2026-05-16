@@ -136,7 +136,7 @@ export default function CreateStep2() {
         )}
       </View>
 
-      <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
+      <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</Text>
 
         <Text style={styles.sectionLabel}>{t('create.sectionLocations')}</Text>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -92,6 +93,7 @@ export default function NotificationsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<Tab>('action');
 
@@ -235,7 +237,7 @@ export default function NotificationsScreen() {
               </Pressable>
             );
           }}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.md }]}
         />
       )}
     </View>

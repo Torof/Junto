@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ export default function OnboardingScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [tosAccepted, setTosAccepted] = useState(false);
@@ -60,7 +62,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.content}>
         <Text style={styles.title}>{t('onboarding.welcome')}</Text>
         <Text style={styles.subtitle}>{t('onboarding.completeProfile')}</Text>

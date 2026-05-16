@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -37,7 +37,15 @@ export default function CreateStep1() {
   const isValid = form.sport_id && form.title.length >= 3 && form.level && (form.max_participants === null || form.max_participants >= 2);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.stepLabel}>{t('create.step', { current: 1, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step1Title')}</Text>
 
@@ -169,6 +177,7 @@ export default function CreateStep1() {
         <Text style={styles.nextText}>{t('create.next')}</Text>
       </Pressable>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

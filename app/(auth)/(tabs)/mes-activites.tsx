@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +30,7 @@ export default function MesActivitesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const { center, currentLocation } = useInitialLocation();
   const filters = useMyActivitiesFilterStore((s) => s.filters);
   const [refreshing, setRefreshing] = useState(false);
@@ -244,7 +246,7 @@ export default function MesActivitesScreen() {
               onPress={() => router.push(`/(auth)/activity/${item.id}`)}
             />
           )}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.md }]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
