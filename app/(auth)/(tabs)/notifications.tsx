@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,8 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService, type Notification } from '@/services/notification-service';
 import { PushDeniedBanner } from '@/components/push-denied-banner';
+import * as Burnt from 'burnt';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 dayjs.extend(relativeTime);
 
@@ -112,9 +114,15 @@ export default function NotificationsScreen() {
 
   const handlePress = async (notification: Notification) => {
     if (!notification.read_at) {
-      await notificationService.markAsRead(notification.id);
-      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+      try {
+        await notificationService.markAsRead(notification.id);
+        await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+      } catch {
+        // Non-fatal — the row stays unread, user can retry by re-tapping.
+        // Don't toast: the press is also a navigation action and an error
+        // toast would compete with the screen transition.
+      }
     }
 
     if ((notification.type === 'rate_participants' || notification.type === 'peer_review_closing') && notification.data?.activity_id) {
@@ -133,9 +141,13 @@ export default function NotificationsScreen() {
   };
 
   const handleMarkAllRead = async () => {
-    await notificationService.markAllAsRead();
-    await queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+    try {
+      await notificationService.markAllAsRead();
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      await queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    }
   };
 
   const hasUnread = notifications?.some((n) => !n.read_at);
@@ -180,7 +192,7 @@ export default function NotificationsScreen() {
 
       {isLoading ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>...</Text>
+          <ActivityIndicator color={colors.textSecondary} />
         </View>
       ) : visible.length === 0 ? (
         <View style={styles.center}>

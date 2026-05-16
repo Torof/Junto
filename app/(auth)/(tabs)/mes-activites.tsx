@@ -16,6 +16,7 @@ import { useMyActivitiesFilterStore } from '@/store/my-activities-filter-store';
 import { getLevelScale } from '@/constants/sport-levels';
 import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 type MainTab = 'created' | 'joined' | 'pending';
 type TimeFilter = 'upcoming' | 'finished';
@@ -224,6 +225,10 @@ export default function MesActivitesScreen() {
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner size={48} />
+        </View>
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={styles.emptyText}>{getFriendlyError(error, 'generic')}</Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react-native';
 import { spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
@@ -9,6 +10,7 @@ import { useCreateStore } from '@/store/create-store';
 
 export function CreateButton() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { resetForm } = useCreateStore();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -19,7 +21,12 @@ export function CreateButton() {
   };
 
   return (
-    <Pressable style={styles.button} onPress={handlePress} hitSlop={8} accessibilityLabel="Create activity">
+    <Pressable
+      style={styles.button}
+      onPress={handlePress}
+      hitSlop={8}
+      accessibilityLabel={t('map.createActivityCta', { defaultValue: 'Create activity' })}
+    >
       <Plus size={24} color={colors.textPrimary} strokeWidth={2.5} />
     </Pressable>
   );

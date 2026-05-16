@@ -9,6 +9,7 @@ import * as Location from 'expo-location';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -114,11 +115,15 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const togglePref = async (type: string) => {
     const current = prefs[type] !== false;
     const updated = { ...prefs, [type]: !current };
-    await supabase
-      .from('users')
-      .update({ notification_preferences: updated } as unknown as { bio: string })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
-    await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    try {
+      await supabase
+        .from('users')
+        .update({ notification_preferences: updated } as unknown as { bio: string })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    }
   };
 
   const handleEditName = () => {
@@ -131,13 +136,17 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
       Alert.alert(t('auth.error'), t('profil.nameTooShort'));
       return;
     }
-    await supabase
-      .from('users')
-      .update({ display_name: newName.trim() })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
-    await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-    setEditingName(false);
-    Burnt.toast({ title: t('toast.profileUpdated'), preset: 'done' });
+    try {
+      await supabase
+        .from('users')
+        .update({ display_name: newName.trim() })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      setEditingName(false);
+      Burnt.toast({ title: t('toast.profileUpdated'), preset: 'done' });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    }
   };
 
   const handleLogout = async () => {
@@ -145,7 +154,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     await authService.signOut();
   };
 
-  const tierLabel = user?.tier === 'pro' ? 'Pro' : user?.tier === 'premium' ? 'Premium' : 'Free';
+  const tierKey: 'pro' | 'premium' | 'free' = user?.tier === 'pro' ? 'pro' : user?.tier === 'premium' ? 'premium' : 'free';
+  const tierLabel = t(`account.tier.${tierKey}`);
 
   return (
     <Modal visible={visible} animationType="none" transparent>

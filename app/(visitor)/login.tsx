@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   View, Text, TextInput, Pressable, ScrollView, StyleSheet,
-  Image, KeyboardAvoidingView, Platform,
+  Image, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -211,7 +211,11 @@ export default function LoginScreen() {
           onPress={handleSubmit}
           disabled={isLoading}
         >
-          <Text style={styles.primaryButtonText}>{isLoading ? '...' : ctaLabel}</Text>
+          {isLoading ? (
+            <ActivityIndicator color={colors.textPrimary} />
+          ) : (
+            <Text style={styles.primaryButtonText}>{ctaLabel}</Text>
+          )}
         </Pressable>
 
         {mode === 'login' && (

@@ -460,6 +460,7 @@
   },
   "map": {
     "seeList": "See list",
+    "createActivityCta": "Create activity",
     "activitiesAtPoint_one": "{{count}} activity at this spot",
     "activitiesAtPoint_other": "{{count}} activities at this spot",
     "date": {
@@ -693,7 +694,12 @@
     "deleteConfirm": "Yes, delete",
     "deleteTitle2": "Are you absolutely sure?",
     "deleteMessage2": "Last chance. Your account and all data will be permanently deleted.",
-    "deleteFinal": "Delete permanently"
+    "deleteFinal": "Delete permanently",
+    "tier": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    }
   },
   "suspended": {
     "title": "Account suspended",

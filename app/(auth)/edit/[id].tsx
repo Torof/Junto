@@ -13,6 +13,7 @@ import { activityService } from '@/services/activity-service';
 import { supabase } from '@/services/supabase';
 import { LEVELS } from '@/types/activity-form';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { LogoSpinner } from '@/components/logo-spinner';
 
 const VISIBILITIES = ['public', 'approval', 'private_link', 'private_link_approval'] as const;
 
@@ -103,7 +104,7 @@ export default function EditActivityScreen() {
   if (activityLoading || !activity) {
     return (
       <View style={styles.center}>
-        <Text style={styles.loadingText}>...</Text>
+        <LogoSpinner size={48} />
       </View>
     );
   }

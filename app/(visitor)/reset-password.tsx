@@ -10,6 +10,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 type Phase = 'verifying' | 'ready' | 'invalid' | 'submitting';
 
@@ -73,7 +74,7 @@ export default function ResetPasswordScreen() {
       Burnt.toast({ title: t('auth.passwordUpdated'), preset: 'done' });
       router.replace('/(visitor)/login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.unknownError'));
+      setError(getFriendlyError(err, 'generic'));
       setPhase('ready');
     }
   };

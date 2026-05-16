@@ -60,7 +60,7 @@ export default function CreateStep3() {
                   {t(`create.visibility.${option.key}`)}
                 </Text>
                 {option.requiresPremium && !isPremium && (
-                  <Text style={styles.premiumBadge}>Premium</Text>
+                  <Text style={styles.premiumBadge}>{t('account.tier.premium')}</Text>
                 )}
                 {option.requiresPremium && isPremium && (
                   <Text style={styles.unlockedBadge}>✓</Text>

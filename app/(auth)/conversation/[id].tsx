@@ -788,7 +788,7 @@ function MessageBubble({
                 style={[styles.seatAcceptBtn, isActing && styles.seatActionDisabled]}
                 onPress={() => onSeatAccept(seatReqId)}
                 disabled={isActing}
-                hitSlop={4}
+                hitSlop={8}
               >
                 <Check size={14} color={colors.textPrimary} strokeWidth={3} />
                 <Text style={styles.seatAcceptText}>
@@ -799,7 +799,7 @@ function MessageBubble({
                 style={[styles.seatDeclineBtn, isActing && styles.seatActionDisabled]}
                 onPress={() => onSeatDecline(seatReqId)}
                 disabled={isActing}
-                hitSlop={4}
+                hitSlop={8}
               >
                 <Text style={styles.seatDeclineText}>
                   {t('messagerie.seatDecline', { defaultValue: 'Refuser' })}
@@ -902,7 +902,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    paddingVertical: 6,
+    paddingVertical: 12,
     borderRadius: radius.sm,
     backgroundColor: colors.success,
   },
@@ -915,7 +915,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 12,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.lineStrong,
@@ -1066,11 +1066,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm, maxHeight: 100,
   },
   sendButton: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center',
   },
   attachButton: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
   },
   sendDisabled: { opacity: 0.4 },
