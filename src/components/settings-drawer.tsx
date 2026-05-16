@@ -318,7 +318,11 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                             style: 'destructive',
                             onPress: async () => {
                               try {
-                                await supabase.rpc('delete_own_account' as 'accept_tos');
+                                // Go through the delete-account edge function so
+                                // the auth.users row is hard-deleted too (the
+                                // RPC alone leaves auth orphaned). AUDIT.md C1.
+                                const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+                                if (error) throw error;
                                 await supabase.auth.signOut();
                                 onClose();
                               } catch {
