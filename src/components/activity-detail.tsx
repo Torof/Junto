@@ -227,12 +227,18 @@ export function ActivityDetail({
               onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
               hitSlop={10}
               style={{ paddingHorizontal: spacing.sm }}
+              accessibilityLabel={t('activity.shareCta', { defaultValue: 'Share activity' })}
             >
               <Share2 size={22} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           )}
           {isCreator && (
-            <Pressable onPress={() => setShowMenu(true)} hitSlop={10} style={{ paddingHorizontal: spacing.sm }}>
+            <Pressable
+              onPress={() => setShowMenu(true)}
+              hitSlop={10}
+              style={{ paddingHorizontal: spacing.sm }}
+              accessibilityLabel={t('activity.openMenu', { defaultValue: 'Open menu' })}
+            >
               <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           )}
@@ -557,6 +563,9 @@ export function ActivityDetail({
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeTab === tab }}
+              accessibilityLabel={t(`activity.tab.${tab}`)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                 {t(`activity.tab.${tab}`)}

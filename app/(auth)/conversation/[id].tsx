@@ -398,9 +398,9 @@ export default function ConversationScreen() {
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedMessage && !editContent.trim()) return;
+    if (!selectedMessage || !editContent.trim()) return;
     try {
-      await messageService.edit(selectedMessage!.id, editContent.trim());
+      await messageService.edit(selectedMessage.id, editContent.trim());
       await queryClient.invalidateQueries({ queryKey: ['messages', id] });
       Burnt.toast({ title: t('messagerie.messageEdited'), preset: 'done' });
     } catch (err) {

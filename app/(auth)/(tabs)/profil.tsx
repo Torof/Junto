@@ -65,14 +65,23 @@ export default function ProfilScreen() {
           <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
           </Text>
-          <Pressable onPress={() => setDrawerOpen(true)} hitSlop={10}>
+          <Pressable
+            onPress={() => setDrawerOpen(true)}
+            hitSlop={10}
+            accessibilityLabel={t('profil.editName', { defaultValue: 'Edit name' })}
+          >
             <Pencil size={14} color={colors.textSecondary} strokeWidth={2} />
           </Pressable>
         </View>
       ),
       headerTitleAlign: 'left' as const,
       headerRight: () => (
-        <Pressable onPress={() => setDrawerOpen(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
+        <Pressable
+          onPress={() => setDrawerOpen(true)}
+          hitSlop={12}
+          style={{ paddingHorizontal: spacing.md }}
+          accessibilityLabel={t('profil.openSettings', { defaultValue: 'Open settings' })}
+        >
           <Menu size={24} color={colors.textPrimary} strokeWidth={2.2} />
         </Pressable>
       ),

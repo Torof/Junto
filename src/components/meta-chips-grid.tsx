@@ -40,6 +40,7 @@ export function MetaChipsGrid({ chips }: Props) {
               key={chip.id}
               style={[styles.chip, chip.span === 'full' && styles.chipFull]}
               onPress={() => setTooltip({ label: chip.label, value: chip.value })}
+              accessibilityLabel={`${chip.label}: ${chip.value}`}
             >
               <View style={[styles.iconBox, { backgroundColor: chip.accent + '33' }]}>
                 <Icon size={16} color={chip.accent} strokeWidth={2.4} />

@@ -13,6 +13,7 @@ import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
 import { transportService } from '@/services/transport-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
@@ -143,8 +144,8 @@ export default function MessagerieScreen() {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       Burnt.toast({ title: t('messagerie.requestAccepted'), preset: 'done' });
       router.push(`/(auth)/conversation/${requestId}`);
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setLoadingRequestId(null);
     }
@@ -163,8 +164,8 @@ export default function MessagerieScreen() {
       if (conversationId) {
         router.push(`/(auth)/conversation/${conversationId}`);
       }
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setLoadingRequestId(null);
     }
@@ -175,8 +176,8 @@ export default function MessagerieScreen() {
     try {
       await transportService.declineSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setLoadingRequestId(null);
     }
@@ -187,8 +188,8 @@ export default function MessagerieScreen() {
     try {
       await conversationService.declineRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setLoadingRequestId(null);
     }
@@ -207,8 +208,8 @@ export default function MessagerieScreen() {
             try {
               await conversationService.hideConversation(conversationId);
               await queryClient.invalidateQueries({ queryKey: ['conversations'] });
-            } catch {
-              Burnt.toast({ title: t('auth.unknownError') });
+            } catch (err) {
+              Burnt.toast({ title: getFriendlyError(err, 'generic') });
             }
           },
         },

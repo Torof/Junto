@@ -34,6 +34,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   filterLabel?: string;
   onClearFilter?: () => void;
 }) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
@@ -49,6 +50,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
               onPress={(e) => { e.stopPropagation(); onClearFilter(); }}
               hitSlop={10}
               style={styles.clearBtn}
+              accessibilityLabel={t('map.clearFilter', { defaultValue: 'Clear filter' })}
             >
               <X size={13} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>

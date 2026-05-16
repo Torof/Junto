@@ -115,7 +115,12 @@ export default function PublicProfileScreen() {
       headerTitleAlign: 'left' as const,
       headerRight: () =>
         isOwnProfile ? null : (
-          <Pressable onPress={() => setShowMenu(true)} hitSlop={12} style={{ paddingHorizontal: spacing.md }}>
+          <Pressable
+            onPress={() => setShowMenu(true)}
+            hitSlop={12}
+            style={{ paddingHorizontal: spacing.md }}
+            accessibilityLabel={t('publicProfile.openMenu', { defaultValue: 'Open menu' })}
+          >
             <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
           </Pressable>
         ),

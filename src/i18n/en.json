@@ -61,6 +61,8 @@
     "error": "Error"
   },
   "activity": {
+    "shareCta": "Share activity",
+    "openMenu": "Open menu",
     "full": "Full",
     "activityFull": "Activity full",
     "partants": "going",
