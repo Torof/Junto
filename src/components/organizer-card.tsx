@@ -130,11 +130,10 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
-    backgroundColor: colors.cta + '2E',
-    borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.cta + '66',
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    // Flat — the parent (activity-detail info tab) provides the
+    // brutalist outlined card wrapper. Internal layout only.
+    backgroundColor: 'transparent',
+    padding: 0,
   },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },

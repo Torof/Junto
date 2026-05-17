@@ -18,7 +18,7 @@ import { PresenceQrModal } from './presence-qr-modal';
 import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { supabase } from '@/services/supabase';
@@ -510,6 +510,7 @@ export function ActivityDetail({
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
+  const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
   // Logistics (transport / gear / seat requests) are sealed once the
   // activity starts — DB-side too, via 00233's `starts_at > NOW()` gate.
   // Hide the corresponding edit affordances so users don't tap into a
@@ -585,188 +586,200 @@ export function ActivityDetail({
 
       {/* ===== INFO TAB ===== */}
       {(!showTabs || activeTab === 'info') && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.headerPills}>
-            <View style={[styles.sportPill, { backgroundColor: sportCategoryColor(activity.sport_category, colors.cta) + '1F', borderColor: sportCategoryColor(activity.sport_category, colors.cta) + '4D' }]}>
-              <Text style={styles.sportPillIcon}>{getSportIcon(activity.sport_key)}</Text>
-              <Text style={[styles.sportPillText, { color: sportCategoryColor(activity.sport_category, colors.cta) }]}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-            </View>
-            <View style={styles.visibilityPill}>
-              {activity.visibility === 'public' ? (
-                <Globe size={11} color={colors.cta} strokeWidth={2.2} />
-              ) : activity.visibility === 'approval' ? (
-                <Hand size={11} color={colors.cta} strokeWidth={2.2} />
-              ) : (
-                <Lock size={11} color={colors.cta} strokeWidth={2.2} />
-              )}
-              <Text style={styles.visibilityPillText}>{t(`create.visibility.${activity.visibility}`)}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.titleLarge}>{activity.title}</Text>
-
-          {!isActive && (
-            <View style={styles.inactiveBanner}>
-              <Text style={styles.inactiveText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
-            </View>
-          )}
-          {isPending && isActive && (
-            <View style={styles.pendingBanner}>
-              <Text style={styles.pendingText}>{t('activity.pendingRequest')}</Text>
-            </View>
-          )}
-          {isAccepted && !isCreator && isActive && (
-            <View style={styles.acceptedBanner}>
-              <Text style={styles.acceptedText}>{t('activity.youAreIn')}</Text>
-            </View>
-          )}
-          {alreadyConfirmed && (
-            <View style={[styles.presencePill, styles.presencePillConfirmed]}>
-              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
-              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
-            </View>
-          )}
-          {!alreadyConfirmed && canCheckIn && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.presencePill,
-                styles.presencePillReminder,
-                pressed && { opacity: 0.7 },
-              ]}
-              onPress={() => setActiveTab('organization')}
-            >
-              <MapPinCheck size={16} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.presenceReminderText}>{t('presence.confirmMyPresence')}</Text>
-            </Pressable>
-          )}
-
-          <OrganizerCard
-            activityId={activity.id}
-            creatorId={activity.creator_id}
-            creatorName={activity.creator_name}
-            creatorAvatar={activity.creator_avatar}
-            maxParticipants={activity.max_participants}
-            onOpenAll={() => setShowParticipantsModal(true)}
-          />
-
-          {(() => {
-            const startChip: MetaChip = activity.start_name
-              ? { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: activity.start_name }
-              : activity.objective_name
-              ? { id: 'objective', icon: Flag, accent: '#F5A623', label: t('meta.objective'), value: activity.objective_name }
-              : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
-
-            const chips: MetaChip[] = [
-              { id: 'when', icon: Calendar, accent: '#4B7CB8', label: t('meta.when'), value: `${dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM')} · ${dayjs(activity.starts_at).format('H[h]mm')}`, span: 'full' },
-              { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
-              startChip,
-              { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
-              { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
-            ];
-            if (activity.distance_km != null && activity.distance_km > 0) {
-              chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
-            }
-            if (activity.elevation_gain_m != null && activity.elevation_gain_m > 0) {
-              chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
-            }
-            return <MetaChipsGrid chips={chips} />;
-          })()}
-
-          {/* Transport summary — cars only, seats + cities */}
-          {(() => {
-            const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
-            const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
-            const allCities = carSummary.flatMap((s) => s.cities ?? []).filter(Boolean);
-            if (carSummary.length === 0) return null;
-            return (
-              <View style={styles.transportSummary}>
-                <Car size={16} color={colors.cta} strokeWidth={2} />
-                <Text style={styles.transportSummaryText}>
-                  {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
-                </Text>
-                {allCities.length > 0 && (
-                  <>
-                    <MapPinCheck size={14} color={colors.textSecondary} strokeWidth={2} style={{ marginLeft: 'auto' }} />
-                    <Text style={styles.transportCities} numberOfLines={1}>
-                      {[...new Set(allCities)].join(', ')}
-                    </Text>
-                  </>
-                )}
+        <View style={{ flex: 1 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+            {/* Status banner — full-width above the hero. Only renders
+                when there's a state to communicate. */}
+            {!isActive && (
+              <View style={styles.statusBannerTop}>
+                <Text style={styles.statusBannerText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
               </View>
-            );
-          })()}
+            )}
+            {isPending && isActive && (
+              <View style={[styles.statusBannerTop, styles.statusBannerPending]}>
+                <Text style={styles.statusBannerText}>{t('activity.pendingRequest')}</Text>
+              </View>
+            )}
+            {isAccepted && !isCreator && isActive && (
+              <View style={[styles.statusBannerTop, styles.statusBannerAccepted]}>
+                <Text style={styles.statusBannerText}>{t('activity.youAreIn')}</Text>
+              </View>
+            )}
+            {alreadyConfirmed && (
+              <View style={[styles.statusBannerTop, styles.statusBannerConfirmed]}>
+                <MapPinCheck size={14} color={colors.success} strokeWidth={2.4} />
+                <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
+              </View>
+            )}
+            {!alreadyConfirmed && canCheckIn && (
+              <Pressable
+                style={({ pressed }) => [styles.statusBannerTop, styles.statusBannerCheckIn, pressed && { opacity: 0.7 }]}
+                onPress={() => setActiveTab('organization')}
+              >
+                <MapPinCheck size={14} color={colors.cta} strokeWidth={2.4} />
+                <Text style={[styles.statusBannerText, { color: colors.cta }]}>{t('presence.confirmMyPresence')}</Text>
+              </Pressable>
+            )}
 
-          <ActivityDescription description={activity.description} />
-
-          {showTabs && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t('activity.location')}</Text>
-              <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-                <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
-                <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-                <View style={styles.mapNavHint} pointerEvents="none">
-                  <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.mapNavHintText}>{t('activity.navigate')}</Text>
+            {/* === HERO CARD === Title + sport + when + visibility */}
+            <View style={[styles.infoCard, styles.heroCard, { borderLeftColor: sportAccent }]}>
+              <Text style={styles.titleLarge}>{activity.title}</Text>
+              <View style={styles.heroMetaRow}>
+                <View style={[styles.sportPill, { borderColor: sportAccent }]}>
+                  <Text style={styles.sportPillIcon}>{getSportIcon(activity.sport_key)}</Text>
+                  <Text style={[styles.sportPillText, { color: sportAccent }]}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
                 </View>
-                {isCreator && (
-                  <View style={styles.traceIconRow} pointerEvents="box-none">
-                    <Pressable
-                      style={styles.traceIconButton}
-                      onPress={handlePickTrace}
-                      accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
-                      hitSlop={6}
-                    >
-                      <Route size={18} color={colors.cta} strokeWidth={2.4} />
-                    </Pressable>
-                    {activity.trace_geojson && (
-                      <Pressable
-                        style={styles.traceIconButton}
-                        onPress={handleClearTrace}
-                        accessibilityLabel={t('activity.traceRemove')}
-                        hitSlop={6}
-                      >
-                        <Trash2 size={18} color={colors.error} strokeWidth={2.4} />
-                      </Pressable>
+                <Text style={styles.heroMetaDot}>·</Text>
+                <Text style={styles.heroDateText} numberOfLines={1}>
+                  {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
+                </Text>
+                <View style={styles.heroVisibility}>
+                  {activity.visibility === 'public' ? (
+                    <Globe size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                  ) : activity.visibility === 'approval' ? (
+                    <Hand size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                  ) : (
+                    <Lock size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                  )}
+                </View>
+              </View>
+            </View>
+
+            {/* === STATS GRID === */}
+            <View style={styles.infoCard}>
+              {(() => {
+                const startChip: MetaChip = activity.start_name
+                  ? { id: 'start', icon: MapPinIcon, accent: colors.textSecondary, label: t('meta.startPoint'), value: activity.start_name }
+                  : activity.objective_name
+                  ? { id: 'objective', icon: Flag, accent: colors.textSecondary, label: t('meta.objective'), value: activity.objective_name }
+                  : { id: 'start', icon: MapPinIcon, accent: colors.textSecondary, label: t('meta.startPoint'), value: '—' };
+
+                const chips: MetaChip[] = [
+                  { id: 'level', icon: BarChart3, accent: colors.textSecondary, label: t('meta.level'), value: activity.level },
+                  { id: 'places', icon: Users, accent: colors.textSecondary, label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
+                  { id: 'duration', icon: Clock, accent: colors.textSecondary, label: t('meta.duration'), value: formatDuration(activity.duration) },
+                  startChip,
+                ];
+                if (activity.distance_km != null && activity.distance_km > 0) {
+                  chips.push({ id: 'distance', icon: Route, accent: colors.textSecondary, label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
+                }
+                if (activity.elevation_gain_m != null && activity.elevation_gain_m > 0) {
+                  chips.push({ id: 'elev', icon: Mountain, accent: colors.textSecondary, label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
+                }
+                return <MetaChipsGrid chips={chips} />;
+              })()}
+
+              {/* Transport summary inline at the foot of the stats card */}
+              {(() => {
+                const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
+                const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
+                const allCities = carSummary.flatMap((s) => s.cities ?? []).filter(Boolean);
+                if (carSummary.length === 0) return null;
+                return (
+                  <View style={styles.transportSummary}>
+                    <Car size={14} color={colors.textSecondary} strokeWidth={2} />
+                    <Text style={styles.transportSummaryText}>
+                      {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
+                    </Text>
+                    {allCities.length > 0 && (
+                      <Text style={styles.transportCities} numberOfLines={1}>
+                        · {[...new Set(allCities)].join(', ')}
+                      </Text>
                     )}
                   </View>
+                );
+              })()}
+            </View>
+
+            {/* === PEOPLE CARD === Organizer + avatar stack */}
+            <View style={styles.infoCard}>
+              <OrganizerCard
+                activityId={activity.id}
+                creatorId={activity.creator_id}
+                creatorName={activity.creator_name}
+                creatorAvatar={activity.creator_avatar}
+                maxParticipants={activity.max_participants}
+                onOpenAll={() => setShowParticipantsModal(true)}
+              />
+            </View>
+
+            {/* === WHERE CARD === Map (members only) + description */}
+            {(showTabs || activity.description) && (
+              <View style={styles.infoCard}>
+                {showTabs && (
+                  <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
+                    <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
+                    <View style={styles.mapTapOverlay} pointerEvents="box-only" />
+                    <View style={styles.mapNavHint} pointerEvents="none">
+                      <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
+                      <Text style={styles.mapNavHintText}>{t('activity.navigate')}</Text>
+                    </View>
+                    {isCreator && (
+                      <View style={styles.traceIconRow} pointerEvents="box-none">
+                        <Pressable
+                          style={styles.traceIconButton}
+                          onPress={handlePickTrace}
+                          accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
+                          hitSlop={6}
+                        >
+                          <Route size={18} color={colors.cta} strokeWidth={2.4} />
+                        </Pressable>
+                        {activity.trace_geojson && (
+                          <Pressable
+                            style={styles.traceIconButton}
+                            onPress={handleClearTrace}
+                            accessibilityLabel={t('activity.traceRemove')}
+                            hitSlop={6}
+                          >
+                            <Trash2 size={18} color={colors.error} strokeWidth={2.4} />
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+                  </Pressable>
                 )}
+                <ActivityDescription description={activity.description} />
+              </View>
+            )}
+
+            {!isCreator && isAuthenticated && (
+              <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
+                <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
               </Pressable>
+            )}
+          </ScrollView>
+
+          {/* === STICKY FOOTER === The action — never inline, never scrolls
+              out of reach. Only renders when there's a CTA to show. */}
+          {(showJoinButton || showFullButton || showLeaveButton) && (
+            <View style={[styles.stickyFooter, { paddingBottom: Math.max(spacing.md, insets.bottom + spacing.xs) }]}>
+              {showJoinButton && (
+                <Pressable
+                  style={[styles.joinButton, isLoading && styles.buttonDisabled]}
+                  onPress={handleJoin}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.joinButtonText}>{isLoading ? '...' : joinLabel}</Text>
+                </Pressable>
+              )}
+              {showFullButton && (
+                <View style={styles.fullButton}>
+                  <Lock size={16} color={colors.error} strokeWidth={2.5} />
+                  <Text style={styles.fullButtonText}>{t('activity.activityFull')}</Text>
+                </View>
+              )}
+              {showLeaveButton && (
+                <Pressable
+                  style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
+                  onPress={() => setShowLeaveModal(true)}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+                </Pressable>
+              )}
             </View>
           )}
-
-          {showJoinButton && (
-            <Pressable
-              style={[styles.joinButton, isLoading && styles.buttonDisabled]}
-              onPress={handleJoin}
-              disabled={isLoading}
-            >
-              <Text style={styles.joinButtonText}>{isLoading ? '...' : joinLabel}</Text>
-            </Pressable>
-          )}
-
-          {showFullButton && (
-            <View style={styles.fullButton}>
-              <Lock size={16} color={colors.error} strokeWidth={2.5} />
-              <Text style={styles.fullButtonText}>{t('activity.activityFull')}</Text>
-            </View>
-          )}
-
-          {showLeaveButton && (
-            <Pressable
-              style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
-              onPress={() => setShowLeaveModal(true)}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
-            </Pressable>
-          )}
-
-          {!isCreator && isAuthenticated && (
-            <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
-              <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
-            </Pressable>
-          )}
-        </ScrollView>
+        </View>
       )}
 
       {/* ===== ORGANIZATION TAB ===== */}
@@ -1038,12 +1051,85 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
   comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
   transportSummary: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.cta + '15', borderRadius: radius.sm,
-    padding: spacing.sm, marginBottom: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingTop: spacing.sm,
+    marginTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
   },
-  transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
+
+  // Info-tab cards — each visible section is its own brutalist outlined
+  // box with air between. No shadows, no fills.
+  infoCard: {
+    backgroundColor: 'transparent',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  // Hero gets a sport-category color stripe on its left edge —
+  // same visual idiom as the activity card, scaled up.
+  heroCard: {
+    borderLeftWidth: 4,
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  heroMetaDot: {
+    color: colors.textMuted,
+    fontSize: fontSizes.sm,
+  },
+  heroDateText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    flex: 1,
+  },
+  heroVisibility: {
+    paddingHorizontal: 2,
+  },
+
+  // Status banner — full-width above the hero. Replaces the old
+  // inactive/pending/accepted banners + presence pills.
+  statusBannerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+  },
+  statusBannerPending: { borderColor: colors.warning, backgroundColor: colors.warning + '12' },
+  statusBannerAccepted: { borderColor: colors.success, backgroundColor: colors.success + '12' },
+  statusBannerConfirmed: { borderColor: colors.success, backgroundColor: colors.success + '12' },
+  statusBannerCheckIn: { borderColor: colors.cta, backgroundColor: colors.cta + '12' },
+  statusBannerText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+
+  // Sticky footer — anchors the primary CTA at the bottom of the
+  // viewport so the most consequential action never scrolls out of
+  // reach. 1px top border keeps it visually attached to the page.
+  stickyFooter: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
+    gap: spacing.sm,
+  },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.sm },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
@@ -1053,15 +1139,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   sportPill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.surface,
+    backgroundColor: 'transparent',
     borderWidth: 1, borderColor: colors.borderMuted,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm + 2, paddingVertical: 5,
   },
   sportPillIcon: { fontSize: 14 },
   sportPillText: {
-    color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '600',
-    textTransform: 'capitalize',
+    color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   visibilityPill: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
@@ -1071,9 +1158,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   visibilityPillText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600' },
   titleLarge: {
-    color: colors.textPrimary, fontSize: fontSizes.xxl - 4, fontWeight: '800',
-    letterSpacing: -0.5, lineHeight: 32,
-    marginBottom: spacing.md,
+    color: colors.textPrimary,
+    fontSize: fontSizes.xxl,
+    fontFamily: fonts.title,
+    letterSpacing: -0.5,
+    lineHeight: 36,
   },
   sportIcon: { fontSize: 20 },
   sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
@@ -1181,10 +1270,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  joinButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md },
-  fullButton: { flexDirection: 'row', backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.md, borderWidth: 1, borderColor: colors.error },
+  joinButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  fullButton: { flexDirection: 'row', backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderWidth: 1, borderColor: colors.error },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: '700' },
-  leaveButton: { backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md, borderWidth: 1, borderColor: colors.borderStrong },
+  leaveButton: { backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', borderWidth: 1, borderColor: colors.borderStrong },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   joinButtonText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

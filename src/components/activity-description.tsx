@@ -1,59 +1,76 @@
-import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fontSizes, radius, spacing } from '@/constants/theme';
-import { useColors, useResolvedTheme } from '@/hooks/use-theme';
+import { fontSizes, spacing } from '@/constants/theme';
+import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
 interface Props {
   description: string | null | undefined;
 }
 
+const COLLAPSED_LINES = 4;
+
 export function ActivityDescription({ description }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
-  const theme = useResolvedTheme();
-  const styles = useMemo(() => createStyles(colors, theme), [colors, theme]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+
+  // Render once with no clamp to measure, then clamp on subsequent
+  // renders. Only show the Voir-plus toggle if content actually
+  // exceeds the collapsed line count.
+  const onTextLayout = (e: LayoutChangeEvent & { nativeEvent: { lines: { length: number }[] } }) => {
+    const lineCount = (e.nativeEvent.lines as unknown as unknown[]).length;
+    if (lineCount > COLLAPSED_LINES && !overflowing) setOverflowing(true);
+  };
 
   if (!description) return null;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('activity.description')}</Text>
-      <View style={styles.divider} />
-      <Text style={styles.body}>{description}</Text>
+      <Text
+        style={styles.body}
+        numberOfLines={expanded ? undefined : COLLAPSED_LINES}
+        onTextLayout={onTextLayout as never}
+      >
+        {description}
+      </Text>
+      {overflowing && (
+        <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={6}>
+          <Text style={styles.toggle}>
+            {expanded ? t('activity.descSeeLess', { defaultValue: 'Voir moins' }) : t('activity.descSeeMore', { defaultValue: 'Voir plus' })}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
 
-const createStyles = (colors: AppColors, theme: 'dark' | 'light') => StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    // Flat — parent (Where card in the info tab) provides the outline.
+    marginTop: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    letterSpacing: 1,
     textTransform: 'uppercase',
-    textAlign: 'center',
-  },
-  divider: {
-    alignSelf: 'center',
-    width: 48,
-    height: 1,
-    backgroundColor: colors.borderMuted,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   body: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,
     lineHeight: 22,
+  },
+  toggle: {
+    color: colors.cta,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    marginTop: spacing.xs,
   },
 });
