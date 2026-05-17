@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { type Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
@@ -15,6 +16,7 @@ interface AuthState {
 }
 
 export function useAuth(): AuthState {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -65,7 +67,14 @@ export function useAuth(): AuthState {
       }
     })();
 
-    const { data: { subscription } } = authService.onAuthStateChange(async (_event, s) => {
+    const { data: { subscription } } = authService.onAuthStateChange(async (event, s) => {
+      // Wipe the query cache on every sign-out / user-change. Without this,
+      // signing in as a different user on the same device shows the previous
+      // user's cached activities, messages, notifications etc. until each
+      // query refetches. AUDIT_SECURITY_2 C1.
+      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED' || !s) {
+        queryClient.clear();
+      }
       if (s) {
         // Propagate the session synchronously so AuthGate re-renders + routes
         // immediately. Status check runs in the background and may flip
@@ -85,7 +94,7 @@ export function useAuth(): AuthState {
       clearTimeout(timeout);
       subscription.unsubscribe();
     };
-  }, [checkUserStatus]);
+  }, [checkUserStatus, queryClient]);
 
   useEffect(() => {
     if (refreshTick === 0) return;

@@ -1,16 +1,32 @@
 import { useEffect } from 'react';
 
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
 import { ActivityDetail } from '@/components/activity-detail';
 import { supabase } from '@/services/supabase';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AuthActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const { isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
+
+  // Per-screen auth gate. AuthGate at the root handles routing, but a cold
+  // deep-link (`juntoapp://activity/abc`) can briefly mount this screen
+  // before AuthGate's redirect lands. Short-circuit here so unauthenticated
+  // or suspended users never see content. AUDIT_SECURITY_2 C2.
+  if (authLoading) {
+    return <ActivityDetailSkeleton />;
+  }
+  if (!isAuthenticated) {
+    return <Redirect href="/(visitor)/login" />;
+  }
+  if (isSuspended) {
+    return <Redirect href="/(visitor)/suspended" />;
+  }
 
   // Lazy transition — check if this activity needs a status update
   useEffect(() => {
@@ -52,7 +68,7 @@ export default function AuthActivityScreen() {
       activity={activity}
       participation={participation ?? null}
       isCreator={user?.id === activity.creator_id}
-      isAuthenticated={true}
+      isAuthenticated={isAuthenticated}
     />
   );
 }
