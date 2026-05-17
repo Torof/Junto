@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -10,23 +10,21 @@ interface Props {
 }
 
 const COLLAPSED_LINES = 4;
+// Heuristic — line breaks plus a ~50-char-per-line average over the
+// visible width. Avoids the onTextLayout measure dance which behaves
+// inconsistently across RN versions when numberOfLines is set.
+const OVERFLOW_CHAR_THRESHOLD = 200;
 
 export function ActivityDescription({ description }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
-  const [overflowing, setOverflowing] = useState(false);
-
-  // Render once with no clamp to measure, then clamp on subsequent
-  // renders. Only show the Voir-plus toggle if content actually
-  // exceeds the collapsed line count.
-  const onTextLayout = (e: LayoutChangeEvent & { nativeEvent: { lines: { length: number }[] } }) => {
-    const lineCount = (e.nativeEvent.lines as unknown as unknown[]).length;
-    if (lineCount > COLLAPSED_LINES && !overflowing) setOverflowing(true);
-  };
 
   if (!description) return null;
+
+  const overflowing =
+    description.length > OVERFLOW_CHAR_THRESHOLD || description.split('\n').length > COLLAPSED_LINES;
 
   return (
     <View style={styles.container}>
@@ -34,7 +32,6 @@ export function ActivityDescription({ description }: Props) {
       <Text
         style={styles.body}
         numberOfLines={expanded ? undefined : COLLAPSED_LINES}
-        onTextLayout={onTextLayout as never}
       >
         {description}
       </Text>
