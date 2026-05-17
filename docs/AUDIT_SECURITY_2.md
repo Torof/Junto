@@ -34,42 +34,29 @@ On a shared device, signing out and signing in as a different user shows the pre
 
 ## High
 
-### H1 — `accept_seat_request` doesn't check `ROW_COUNT` on requester transport clear
-[00235:359-365](../supabase/migrations/00235_logistics_lock_grace_period.sql#L359-L365) — if the requester left the activity between the initial SELECT and the transport-clear UPDATE, the UPDATE silently no-ops and the function returns success. Soft inconsistency.
-**Fix:** `GET DIAGNOSTICS v_count = ROW_COUNT; IF v_count = 0 THEN RAISE ...` after the requester transport UPDATE.
+### ✅ H1 — `accept_seat_request` doesn't check `ROW_COUNT` on requester transport clear
+**Shipped** (migration 00238). Function now raises if the requester left between the earlier SELECT and the clear UPDATE.
 
-### H2 — `join_activity` capacity check / INSERT race
-[00117_notif_overhaul.sql:314-352](../supabase/migrations/00117_notif_overhaul.sql#L314-L352) — `FOR UPDATE` on the activity row serializes joins but doesn't strictly prevent count > max_participants under concurrent bursts (the count happens once, the INSERT happens later). Soft constraint breach possible.
-**Fix:** Re-check capacity immediately before INSERT, with the activity row still locked; raise if exceeded.
+### ✅ H2 — `join_activity` capacity check / INSERT race
+**Shipped** (migration 00238). Re-checks capacity immediately before INSERT/UPDATE with the activity row still locked.
 
-### H3 — `delete-account` edge function leaks `user_id` in error response
-[supabase/functions/delete-account/index.ts:65](../supabase/functions/delete-account/index.ts#L65) — error JSON includes the caller's `user_id` if `auth.admin.deleteUser` fails. Caller already knows their ID, but reflecting it back is a habit worth breaking.
-**Fix:** Drop `user_id` from the response body; log it server-side via Sentry/console for operator debugging.
+### ✅ H3 — `delete-account` edge function leaks `user_id` in error response
+**Shipped** (deployed). Error responses no longer echo `user_id`; operator log retains it via `console.warn`.
 
-### H4 — `send-push` console-logs raw error messages
-[send-push/index.ts:151, :155](../supabase/functions/send-push/index.ts#L151) — dead-token cleanup logs `delErr.message` and the generic Expo response `e` verbatim. Function logs may carry stack traces / tokens / internal paths.
-**Fix:** Scrub or replace with generic messages; or pipe through Sentry's redaction layer.
+### ✅ H4 — `send-push` console-logs raw error messages
+**Shipped** (deployed). Replaced `delErr.message` / `e` with stable labels + counts.
 
-### H5 — User-content fields with CHECK constraint but no HTML strip
-Stored XSS-safe only when the renderer escapes — but if anything renders `dangerouslySetInnerHTML` (none today, but the safety net is missing):
-- `participations.transport_from_name` — only trimmed in [00235:91-93](../supabase/migrations/00235_logistics_lock_grace_period.sql#L91-L93)
-- `seat_requests.pickup_from` — only trimmed in [request_seat](../supabase/migrations/00235_logistics_lock_grace_period.sql#L150-L260) (message field IS stripped, pickup isn't)
-- `activity_gear.gear_name` — only trimmed in [set_activity_gear](../supabase/migrations/00235_logistics_lock_grace_period.sql#L99-L160)
-- `reports.reason` — only trimmed in `create_report`
+### ✅ H5 — HTML stripping on four trim-only RPC fields
+**Shipped** (migration 00238). `set_participation_transport.transport_from_name`, `request_seat.pickup_from`, `set_activity_gear` gear_name, `create_report.reason` all now go through `regexp_replace(..., '<[^>]*>', '', 'g')`.
 
-**Fix:** Apply `regexp_replace(..., '<[^>]*>', '', 'g')` in each RPC right before the INSERT/UPDATE (same pattern as 00006 wall + 00099 DM).
+### ✅ H6 — column-level CHECK on `conversations.request_message`
+**Shipped** (migration 00238). Added `CHECK (char_length(request_message) BETWEEN 1 AND 500)`.
 
-### H6 — `conversations.request_message` column lacks a CHECK constraint
-[00072_connection_request_system.sql:15](../supabase/migrations/00072_connection_request_system.sql#L15) — RPC validates 1–500 chars, column itself has no upper bound. If a future codepath bypasses the RPC, no DB backstop.
-**Fix:** `ALTER TABLE conversations ADD CONSTRAINT request_message_len CHECK (request_message IS NULL OR char_length(request_message) BETWEEN 1 AND 500);`.
+### ✅ H7 — `set_activity_gear` accepts an unbounded JSONB array
+**Shipped** (migration 00238). Caps at 50 items.
 
-### H7 — `set_activity_gear` accepts an unbounded JSONB array
-[00235:99-160](../supabase/migrations/00235_logistics_lock_grace_period.sql#L99-L160) — no `jsonb_array_length` guard; an attacker passing a million-item array triggers an unbounded loop.
-**Fix:** `IF jsonb_array_length(p_items) > 50 THEN RAISE EXCEPTION 'Operation not permitted'; END IF;` at the top of the loop block.
-
-### H8 — `npm audit`: `@xmldom/xmldom` + `fast-uri` high-severity CVEs
-Both are *transitive build-time* dependencies (`expo-updates → plist`, `expo-dev-client → ajv`). Not in the app's runtime path on user devices, but they ship in dev builds and could affect local dev environments.
-**Fix:** Wait for Expo to bump them in a stable SDK release, or override via `package.json` `"overrides"` if a security review is needed sooner. Low urgency since the app's GPX parser uses regex, not xmldom.
+### ⊘ H8 — `npm audit` CVEs
+**Deferred.** Both `@xmldom/xmldom` and `fast-uri` are transitive build-only deps via Expo (`expo-updates → plist`, `expo-dev-client → ajv`). Not in runtime path. Wait for Expo SDK bump.
 
 ---
 
