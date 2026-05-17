@@ -14,10 +14,43 @@ export default function AuthActivityScreen() {
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
 
-  // Per-screen auth gate. AuthGate at the root handles routing, but a cold
-  // deep-link (`juntoapp://activity/abc`) can briefly mount this screen
-  // before AuthGate's redirect lands. Short-circuit here so unauthenticated
-  // or suspended users never see content. AUDIT_SECURITY_2 C2.
+  // Lazy transition — check if this activity needs a status update.
+  // Must be declared before any early return per Rules of Hooks.
+  useEffect(() => {
+    if (!id) return;
+    supabase.rpc('transition_single_activity' as 'join_activity', {
+      p_activity_id: id,
+    } as unknown as { p_activity_id: string }).then((result) => {
+      if (result.data) {
+        queryClient.invalidateQueries({ queryKey: ['activity', id] });
+      }
+    });
+  }, [id, queryClient]);
+
+  const { data: activity, isLoading: activityLoading } = useQuery({
+    queryKey: ['activity', id],
+    queryFn: () => activityService.getById(id ?? ''),
+    enabled: !!id && isAuthenticated,
+  });
+
+  const { data: participation, isLoading: participationLoading } = useQuery({
+    queryKey: ['participation', id],
+    queryFn: () => participationService.getMyStatus(id ?? ''),
+    enabled: !!id && isAuthenticated,
+    staleTime: 0,
+  });
+
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser-auth'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user,
+    enabled: isAuthenticated,
+  });
+
+  // Per-screen auth gate. AuthGate at the root handles routing, but a
+  // cold deep-link (`juntoapp://activity/abc`) can briefly mount this
+  // screen before AuthGate's redirect lands. Short-circuit here so
+  // unauthenticated or suspended users never see content. AUDIT_SECURITY_2 C2.
+  // (All hooks above must execute regardless — React Rules of Hooks.)
   if (authLoading) {
     return <ActivityDetailSkeleton />;
   }
@@ -27,37 +60,6 @@ export default function AuthActivityScreen() {
   if (isSuspended) {
     return <Redirect href="/(visitor)/suspended" />;
   }
-
-  // Lazy transition — check if this activity needs a status update
-  useEffect(() => {
-    if (!id) return;
-    supabase.rpc('transition_single_activity' as 'join_activity', {
-      p_activity_id: id,
-    } as unknown as { p_activity_id: string }).then((result) => {
-      if (result.data) {
-        // Refetch activity if status changed
-        queryClient.invalidateQueries({ queryKey: ['activity', id] });
-      }
-    });
-  }, [id, queryClient]);
-
-  const { data: activity, isLoading: activityLoading } = useQuery({
-    queryKey: ['activity', id],
-    queryFn: () => activityService.getById(id ?? ''),
-    enabled: !!id,
-  });
-
-  const { data: participation, isLoading: participationLoading } = useQuery({
-    queryKey: ['participation', id],
-    queryFn: () => participationService.getMyStatus(id ?? ''),
-    enabled: !!id,
-    staleTime: 0,
-  });
-
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['currentUser-auth'],
-    queryFn: async () => (await supabase.auth.getUser()).data.user,
-  });
 
   if (activityLoading || participationLoading || userLoading || !activity) {
     return <ActivityDetailSkeleton />;
