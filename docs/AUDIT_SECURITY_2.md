@@ -10,29 +10,25 @@ Severities reflect *my* triage of the agent findings — some agent "Critical" c
 
 ## Critical
 
-### C1 — `queryClient` not cleared on logout (cross-user data bleed)
+### ✅ C1 — `queryClient` not cleared on logout (cross-user data bleed)
+**Shipped** (commit 6b63e1b). `use-auth` now clears the query cache on every `SIGNED_OUT` / `USER_UPDATED` / null-session event.
 On a shared device, signing out and signing in as a different user shows the previous user's cached activities, messages, notifications and profile until each query refetches. [settings-drawer.tsx:152-155](../src/components/settings-drawer.tsx#L152-L155), [use-auth.ts onAuthStateChange:68-82](../src/hooks/use-auth.ts#L68-L82), plus the suspended / delete-account exit paths.
 **Fix:** Centralize signOut behind a wrapper that calls `queryClient.clear()` first. Also call it inside `onAuthStateChange` on `SIGNED_OUT` events.
 
-### C2 — Deep-link bypass into `/(auth)/activity/[id]` before auth resolves
-Cold-launching `juntoapp://activity/abc123` while unauthenticated briefly renders the protected screen before AuthGate detects the empty session and redirects. The activity screen itself does no auth check. [_layout.tsx:56-59](../app/_layout.tsx#L56-L59), [activity/[id].tsx:28-56](../app/(auth)/activity/[id].tsx#L28-L56).
-**Fix:** Add an early `if (!isAuthenticated) return <Redirect href="/(visitor)/login" />` inside the screen, OR guarantee the AuthGate splash overlay is on screen until auth state resolves (extend the 8s timeout, gate `isReady` on auth-resolved).
+### ✅ C2 — Deep-link bypass into `/(auth)/activity/[id]` before auth resolves
+**Shipped** (commit 6b63e1b). Per-screen auth gate added at the top of the screen — returns `<Redirect href="/(visitor)/login">` (or `/suspended`) before any query fires.
 
-### C3 — `confirm_presence_via_token` creator auto-flip is not row-locked
-[00163_confirm_presence_idempotent.sql:173-179](../supabase/migrations/00163_confirm_presence_idempotent.sql#L173-L179) — auto-confirms the creator's participation with `UPDATE ... WHERE confirmed_present IS NULL` without a prior `FOR UPDATE` on that row. Concurrent peer-validation / QR / geofence calls can interleave and produce stale-read state.
-**Fix:** Acquire `FOR UPDATE` on the creator's participation row before the conditional UPDATE, or fold the creator flip into the initial participation SELECT.
+### ⊘ C3 — `confirm_presence_via_token` creator auto-flip
+**Dropped (over-flagged).** Re-reading 00167:187-199 shows the creator flip is already race-safe via `UPDATE ... WHERE confirmed_present IS NULL` + `GET DIAGNOSTICS ROW_COUNT > 0` gating the notification. Only one concurrent caller's UPDATE actually flips; others see zero ROW_COUNT and don't double-notify. No fix needed.
 
-### C4 — `peer_validate_presence` vote count race
-[00140_peer_validate_drop_creator_privilege.sql:116-122](../supabase/migrations/00140_peer_validate_drop_creator_privilege.sql#L116-L122) — INSERTs the vote, then counts votes for the same target, then conditionally flips presence. Two simultaneous voters can both see "count = threshold" and race the flip UPDATE. Only one succeeds because of the `confirmed_present IS NULL` predicate, but the threshold semantics get fuzzy under load.
-**Fix:** Wrap insert + count + flip in `pg_advisory_xact_lock(hashtext('peer_validate:' || p_activity_id::text || ':' || p_voted_id::text))`.
+### ✅ C4 — `peer_validate_presence` vote count race
+**Shipped** (migration 00237). Added `pg_advisory_xact_lock(hashtext('peer_validate:' || p_activity_id::text || ':' || p_voted_id::text))` at function entry to serialize concurrent voters on the same target.
 
-### C5 — `request_seat` has no rate limit
-[00235:147](../supabase/migrations/00235_logistics_lock_grace_period.sql#L147) — a malicious user can spam every driver of every activity with seat requests, generating unbounded notifications + DMs. Per-driver/per-requester window cap is missing.
-**Fix:** Advisory lock + count-in-window (e.g., 5 / 5min / requester) before the INSERT.
+### ✅ C5 — `request_seat` rate limit
+**Shipped** (migration 00237). 5 requests / 5 minutes per requester, advisory-locked.
 
-### C6 — `give_reputation_badge` has no rate limit
-[00159_dead_artifact_sweep.sql:212-291](../supabase/migrations/00159_dead_artifact_sweep.sql#L212-L291) — UNIQUE constraint prevents same-badge duplicates per (voter, voted, activity), but a malicious voter can hit every completed activity at scale to dump negative badges.
-**Fix:** Advisory lock + 20 / day / voter cap.
+### ✅ C6 — `give_reputation_badge` rate limit
+**Shipped** (migration 00237). 20 votes / 24h per voter, advisory-locked.
 
 ---
 
