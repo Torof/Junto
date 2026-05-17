@@ -62,31 +62,26 @@ On a shared device, signing out and signing in as a different user shows the pre
 
 ## Medium
 
-### M1 — Realtime: `tabs-badges` global subscription for notifications + private_messages
-[(tabs)/_layout.tsx:128](../app/(auth)/(tabs)/_layout.tsx#L128) — the agent's read is partly right: subscribing without a `filter` means the server pushes events for ALL rows, and RLS filters at row read time. Event timing therefore leaks (someone is messaging someone, somewhere) even though row content is RLS-gated.
-**Fix:** Filter the subscription on `user_id=eq.${currentUserId}` for notifications and `receiver_id=eq.${currentUserId}` for private_messages. Same pattern as `messagerie-incoming`.
+### ✅ M1 — Realtime: `tabs-badges` global subscription for notifications + private_messages
+**Shipped** (commit 2f82a61). Channel name is now per-user (`tabs-badges:{userId}`) and both subscriptions filter on `user_id=eq.{userId}` / `receiver_id=eq.{userId}`.
 
-### M2 — Realtime: `activities-nearby` global subscription
-[use-nearby-activities.ts:24](../src/hooks/use-nearby-activities.ts#L24) — same event-timing leak shape, but lower stakes (an activity's existence is public info anyway).
-**Fix:** Acceptable for now; would require a per-bbox filter that doesn't exist in postgres_changes natively.
+### ⊘ M2 — Realtime: `activities-nearby` global subscription
+**Acceptable** (lower stakes — activity existence is public info anyway). Would need a per-bbox filter that postgres_changes doesn't expose natively.
 
-### M3 — Auth-flow: `checkUserStatus` is fire-and-forget
-[use-auth.ts:55-58](../src/hooks/use-auth.ts#L55-L58) — `isAuthenticated` resolves before `needsOnboarding` / `isSuspended`. AuthGate can route into `/(auth)` before knowing the user is suspended or hasn't onboarded; the flash is brief but visible.
-**Fix:** Await `checkUserStatus` before setting `isLoading = false`. AuthGate already has guards, this just removes the race.
+### ✅ M3 — Auth-flow: `checkUserStatus` is fire-and-forget
+**Shipped** (commit 2f82a61). `use-auth` now `await`s the status check before setting `isLoading = false`. The 8s safety timeout still unblocks if the RPC hangs.
 
-### M4 — `set_date_of_birth` / `accept_tos` lack advisory locks
-[00009_auth_functions.sql:6, :46](../supabase/migrations/00009_auth_functions.sql#L6) — one-time-only checks without a lock; in theory two concurrent calls could both pass the "not yet set" check. Unlikely with normal clients but defence-in-depth.
-**Fix:** `PERFORM pg_advisory_xact_lock(hashtext('auth:' || v_user_id::text));` at the top.
+### ✅ M4 — `set_date_of_birth` / `accept_tos` lack advisory locks
+**Shipped** (migration 00239). Per-user advisory lock at function entry.
 
-### M5 — `send_contact_request` pending-cap is not time-windowed
-[00221_send_contact_request_strip_html.sql:73](../supabase/migrations/00221_send_contact_request_strip_html.sql#L73) — 10-pending hard cap, but no per-day rate. An aggressor can keep the cap full by sending fresh ones as old ones expire. Belt-and-suspenders: add 5/day window.
+### ✅ M5 — `send_contact_request` pending-cap is not time-windowed
+**Shipped** (migration 00239). 5 / 24h daily cap added on top of the existing 10-pending bound, behind the same advisory lock.
 
-### M6 — Suspended user can briefly view `(auth)` content via back button
-[_layout.tsx:79-81](../app/_layout.tsx#L79-L81) — AuthGate redirects on suspension detection but a back-button after the redirect can re-render the previous screen for a frame.
-**Fix:** Add a second guard inside `(auth)/_layout.tsx` that returns `<Redirect href="/(visitor)/suspended" />` if `isSuspended`.
+### ✅ M6 — Suspended user can briefly view `(auth)` content via back button
+**Shipped** (commit 2f82a61). Second-layer guard inside `(auth)/_layout.tsx` returns `<Redirect href="/(visitor)/suspended" />` before any child screen mounts.
 
-### M7 — `npm audit`: `postcss` moderate XSS in stringify
-Build-time dep via `@expo/metro-config`. Affects bundler output theoretically; not exploitable at runtime by a user. Will resolve on next Expo SDK upgrade.
+### ⊘ M7 — `npm audit`: `postcss` moderate XSS in stringify
+**Deferred** (same as H8). Build-time dep; not runtime-exploitable. Awaits Expo SDK bump.
 
 ---
 
