@@ -49,8 +49,9 @@ Deno.serve(async (req) => {
   // their participants.
   const { error: rpcErr } = await userClient.rpc('delete_own_account');
   if (rpcErr) {
+    console.warn(`[delete-account] rpc failed for user ${userId}: ${rpcErr.message}`);
     return new Response(
-      JSON.stringify({ stage: 'rpc', error: rpcErr.message }),
+      JSON.stringify({ stage: 'rpc', error: 'Operation not permitted' }),
       { status: 500, headers: { 'content-type': 'application/json' } },
     );
   }
@@ -61,8 +62,12 @@ Deno.serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { error: deleteErr } = await adminClient.auth.admin.deleteUser(userId);
   if (deleteErr) {
+    // Don't echo user_id back — caller knows their own ID, and reflecting
+    // it in an error response is a habit worth avoiding. Operator log
+    // below carries it for debugging.
+    console.warn(`[delete-account] auth-delete failed for user ${userId}`);
     return new Response(
-      JSON.stringify({ stage: 'auth-delete', user_id: userId, error: deleteErr.message }),
+      JSON.stringify({ stage: 'auth-delete', error: 'Operation not permitted' }),
       { status: 500, headers: { 'content-type': 'application/json' } },
     );
   }

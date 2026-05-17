@@ -148,11 +148,17 @@ Deno.serve(async (req) => {
           .delete()
           .in('token', deadTokens);
         if (delErr) {
-          console.warn('push_tokens delete failed', delErr.message);
+          // Don't log delErr.message — Supabase errors can carry stack
+          // traces, internal paths, etc. that we don't want in function
+          // logs. The count + a stable label are enough for diagnosis.
+          console.warn(`[send-push] push_tokens delete failed for ${deadTokens.length} token(s)`);
         }
       }
-    } catch (e) {
-      console.warn('expo response parse failed', e);
+    } catch {
+      // Same — don't dump the raw Expo parse error. The shape of the
+      // response is documented; if it changes we'll catch it via tests,
+      // not via log spelunking.
+      console.warn('[send-push] expo response parse failed');
     }
   }
 
