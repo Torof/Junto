@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
+import { useAuth } from '@/hooks/use-auth';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
 import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from '@/components/background-location-prompt';
 
 export default function AuthLayout() {
   const colors = useColors();
+  const { isSuspended } = useAuth();
+
+  // Second-layer guard: if the root AuthGate is mid-resolve when a back-
+  // button or transition lands here, intercept suspended users before any
+  // child screen renders. AUDIT_SECURITY_2 M6.
+  if (isSuspended) {
+    return <Redirect href="/(visitor)/suspended" />;
+  }
   const screenOptions = useMemo(() => ({
     headerStyle: { backgroundColor: colors.background },
     headerTintColor: colors.textPrimary,

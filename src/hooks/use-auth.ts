@@ -54,10 +54,12 @@ export function useAuth(): AuthState {
         setSession(s);
         if (s) {
           setSentryUser(s.user.id);
-          // Don't block initial render on user-status check — let AuthGate
-          // route based on session, status will arrive shortly and redirect
-          // again if needed.
-          checkUserStatus(s.user.id).catch(() => {});
+          // Block initial render on the status check so AuthGate never
+          // routes the user into an authenticated screen before we know
+          // whether they're suspended or unfinished. AUDIT_SECURITY_2 M3.
+          // Errors are swallowed — the 8s safety timeout above unblocks
+          // the app if the RPC hangs.
+          await checkUserStatus(s.user.id).catch(() => {});
         }
       } catch {
         // Swallow — render the visitor screen

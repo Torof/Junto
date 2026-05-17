@@ -113,22 +113,35 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
+  // Needed to scope the realtime subscriptions below to this user.
+  const { data: currentUserId } = useQuery({
+    queryKey: ['currentUser-id'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
+  });
+
   // Realtime invalidation for the persistent tab-bar badges. Mounted at
   // the layout level (not inside the animated tab-icon components) so it
   // doesn't race with their wiggle Animated.sequence — that race was the
   // root of the launch-time crash on the original slice 2.
   //
-  // Both notifications and private_messages have RLS that already gates
-  // delivery to the row owner / conversation participant, so plain
-  // postgres_changes is the right primitive here. No filter on the
-  // subscription — RLS does the per-row filtering server-side.
+  // Both subscriptions are filtered per-user so the realtime server only
+  // forwards events that match this user. Without the filter, every event
+  // on these tables would be broadcast to every subscriber — RLS gates
+  // realtime.messages access but doesn't suppress the broadcast itself,
+  // leaking event-timing metadata. AUDIT_SECURITY_2 M1.
   // Migration 00184 ensures both tables are in supabase_realtime.
   useEffect(() => {
+    if (!currentUserId) return;
     const channel = supabase
-      .channel('tabs-badges')
+      .channel(`tabs-badges:${currentUserId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications' },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`,
+        },
         () => {
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
@@ -136,7 +149,12 @@ export default function TabsLayout() {
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'private_messages' },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'private_messages',
+          filter: `receiver_id=eq.${currentUserId}`,
+        },
         () => {
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
           queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
@@ -146,7 +164,7 @@ export default function TabsLayout() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, currentUserId]);
 
   return (
     <Tabs
