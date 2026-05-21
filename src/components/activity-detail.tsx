@@ -621,26 +621,31 @@ export function ActivityDetail({
               </Pressable>
             )}
 
-            {/* === HERO CARD === Title + sport + when + visibility */}
-            <View style={[styles.infoCard, styles.heroCard, { borderLeftColor: sportAccent }]}>
-              <Text style={styles.titleLarge}>{activity.title}</Text>
-              <View style={styles.heroMetaRow}>
-                <View style={[styles.sportPill, { borderColor: sportAccent }]}>
-                  <Text style={styles.sportPillIcon}>{getSportIcon(activity.sport_key)}</Text>
-                  <Text style={[styles.sportPillText, { color: sportAccent }]}>{t(`sports.${activity.sport_key}`, activity.sport_key)}</Text>
-                </View>
-                <Text style={styles.heroMetaDot}>·</Text>
+            {/* === HERO CARD === Banner-style: sport-color block holds the
+                title and decorative sport-icon; footer row carries date +
+                visibility on a plain background. */}
+            <View style={styles.heroCard}>
+              <View style={[styles.heroBanner, { backgroundColor: sportAccent }]}>
+                <Text style={styles.heroSportDecor}>{getSportIcon(activity.sport_key)}</Text>
+                <Text style={styles.heroSportLabel}>
+                  {t(`sports.${activity.sport_key}`, activity.sport_key)}
+                </Text>
+                <Text style={styles.heroTitleInverse}>{activity.title}</Text>
+              </View>
+              <View style={styles.heroFooter}>
+                <Calendar size={14} color={colors.textPrimary} strokeWidth={2.4} />
                 <Text style={styles.heroDateText} numberOfLines={1}>
                   {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                 </Text>
                 <View style={styles.heroVisibility}>
                   {activity.visibility === 'public' ? (
-                    <Globe size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                    <Globe size={13} color={colors.textSecondary} strokeWidth={2.2} />
                   ) : activity.visibility === 'approval' ? (
-                    <Hand size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                    <Hand size={13} color={colors.textSecondary} strokeWidth={2.2} />
                   ) : (
-                    <Lock size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                    <Lock size={13} color={colors.textSecondary} strokeWidth={2.2} />
                   )}
+                  <Text style={styles.heroVisibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
                 </View>
               </View>
             </View>
@@ -649,22 +654,22 @@ export function ActivityDetail({
             <View style={styles.infoCard}>
               {(() => {
                 const startChip: MetaChip = activity.start_name
-                  ? { id: 'start', icon: MapPinIcon, accent: colors.textSecondary, label: t('meta.startPoint'), value: activity.start_name }
+                  ? { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: activity.start_name }
                   : activity.objective_name
-                  ? { id: 'objective', icon: Flag, accent: colors.textSecondary, label: t('meta.objective'), value: activity.objective_name }
-                  : { id: 'start', icon: MapPinIcon, accent: colors.textSecondary, label: t('meta.startPoint'), value: '—' };
+                  ? { id: 'objective', icon: Flag, accent: '#F5A623', label: t('meta.objective'), value: activity.objective_name }
+                  : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
 
                 const chips: MetaChip[] = [
-                  { id: 'level', icon: BarChart3, accent: colors.textSecondary, label: t('meta.level'), value: activity.level },
-                  { id: 'places', icon: Users, accent: colors.textSecondary, label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
-                  { id: 'duration', icon: Clock, accent: colors.textSecondary, label: t('meta.duration'), value: formatDuration(activity.duration) },
+                  { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: activity.level },
+                  { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
+                  { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
                   startChip,
                 ];
                 if (activity.distance_km != null && activity.distance_km > 0) {
-                  chips.push({ id: 'distance', icon: Route, accent: colors.textSecondary, label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
+                  chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
                 }
                 if (activity.elevation_gain_m != null && activity.elevation_gain_m > 0) {
-                  chips.push({ id: 'elev', icon: Mountain, accent: colors.textSecondary, label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
+                  chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
                 }
                 return <MetaChipsGrid chips={chips} />;
               })()}
@@ -691,8 +696,10 @@ export function ActivityDetail({
               })()}
             </View>
 
-            {/* === PEOPLE CARD === Organizer + avatar stack */}
-            <View style={styles.infoCard}>
+            {/* === PEOPLE CARD === Organizer + avatar stack. Left-edge
+                sport-category stripe matches the hero so the color
+                identity carries through the page. */}
+            <View style={[styles.infoCard, styles.cardAccented, { borderLeftColor: sportAccent }]}>
               <OrganizerCard
                 activityId={activity.id}
                 creatorId={activity.creator_id}
@@ -1070,29 +1077,76 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  // Hero gets a sport-category color stripe on its left edge —
-  // same visual idiom as the activity card, scaled up.
+  // Hero — banner-style card. Color block on top carries the brand-
+  // moment (sport-category color, decorative sport icon, oversized
+  // inverted title). Footer below stays neutral with date + visibility.
   heroCard: {
-    borderLeftWidth: 4,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
   },
-  heroMetaRow: {
+  heroBanner: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    position: 'relative',
+  },
+  // Decorative sport icon at top-right of the banner. Big, low-key
+  // so it adds character without competing with the title.
+  heroSportDecor: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.md,
+    fontSize: 56,
+    opacity: 0.35,
+  },
+  heroSportLabel: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    opacity: 0.9,
+    marginBottom: spacing.xs,
+  },
+  heroTitleInverse: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.xxl,
+    fontFamily: fonts.title,
+    letterSpacing: -0.5,
+    lineHeight: 36,
+    paddingRight: 64, // leave room for the decorative icon
+  },
+  heroFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: spacing.sm,
-  },
-  heroMetaDot: {
-    color: colors.textMuted,
-    fontSize: fontSizes.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
   },
   heroDateText: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
   },
   heroVisibility: {
-    paddingHorizontal: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroVisibilityText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+  },
+  // Accented card — used on the People card to carry sport-category
+  // color identity beyond the hero. Same visual idiom as the activity
+  // drawer card.
+  cardAccented: {
+    borderLeftWidth: 4,
   },
 
   // Status banner — full-width above the hero. Replaces the old

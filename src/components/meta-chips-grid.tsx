@@ -43,7 +43,7 @@ export function MetaChipsGrid({ chips }: Props) {
               accessibilityLabel={`${chip.label}: ${chip.value}`}
             >
               <View style={styles.iconRow}>
-                <Icon size={14} color={colors.textSecondary} strokeWidth={2.4} />
+                <Icon size={14} color={chip.accent} strokeWidth={2.4} />
                 <Text style={styles.label}>{chip.label}</Text>
               </View>
               <Text style={styles.value} numberOfLines={1}>{chip.value}</Text>
