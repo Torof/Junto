@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Info, Car, Backpack, MessageSquare } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -44,7 +44,6 @@ import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
 import { distanceMeters } from '@/utils/geo';
-import { Car } from 'lucide-react-native';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -502,8 +501,7 @@ export function ActivityDetail({
     ]);
   };
 
-  const [activeTab, setActiveTab] = useState<'info' | 'organization' | 'chat'>('info');
-  const [orgSubTab, setOrgSubTab] = useState<'transport' | 'gear'>('transport');
+  const [activeTab, setActiveTab] = useState<'info' | 'transport' | 'gear' | 'chat'>('info');
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
   const myOutingCardRef = useRef<MyOutingCardHandle>(null);
@@ -556,31 +554,45 @@ export function ActivityDetail({
 
   return (
     <View style={styles.container}>
-      {/* Tab bar — only for participants/creator */}
+      {/* Tab bar — only for participants/creator. Four tabs since we
+          split Organisation into Transport + Matériel; presence/QR dot
+          moves to Info where the widget now lives. */}
       {showTabs && (
         <View style={styles.tabBar}>
-          {(['info', 'organization', 'chat'] as const).map((tab) => (
-            <Pressable
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === tab }}
-              accessibilityLabel={t(`activity.tab.${tab}`)}
-            >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {t(`activity.tab.${tab}`)}
-              </Text>
-              {tab === 'organization' && (canCheckIn || (isCreator && isQrAvailable)) && (
-                <View style={styles.tabDot} />
-              )}
-              {tab === 'chat' && wallUnreadCount > 0 && activeTab !== 'chat' && (
-                <View style={styles.tabBadge}>
-                  <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
-                </View>
-              )}
-            </Pressable>
-          ))}
+          {(['info', 'transport', 'gear', 'chat'] as const).map((tab) => {
+            const Icon = tab === 'info' ? Info
+              : tab === 'transport' ? Car
+              : tab === 'gear' ? Backpack
+              : MessageSquare;
+            const isActiveTab = activeTab === tab;
+            return (
+              <Pressable
+                key={tab}
+                style={[styles.tab, isActiveTab && styles.tabActive]}
+                onPress={() => setActiveTab(tab)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActiveTab }}
+                accessibilityLabel={t(`activity.tab.${tab}`)}
+              >
+                <Icon
+                  size={15}
+                  color={isActiveTab ? colors.textPrimary : colors.textSecondary}
+                  strokeWidth={isActiveTab ? 2.4 : 2}
+                />
+                <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
+                  {t(`activity.tab.${tab}`)}
+                </Text>
+                {tab === 'info' && (canCheckIn || (isCreator && isQrAvailable)) && (
+                  <View style={styles.tabDot} />
+                )}
+                {tab === 'chat' && wallUnreadCount > 0 && !isActiveTab && (
+                  <View style={styles.tabBadge}>
+                    <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
       )}
 
@@ -611,13 +623,44 @@ export function ActivityDetail({
                 <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
               </View>
             )}
-            {!alreadyConfirmed && canCheckIn && (
-              <Pressable
-                style={({ pressed }) => [styles.statusBannerTop, styles.statusBannerCheckIn, pressed && { opacity: 0.7 }]}
-                onPress={() => setActiveTab('organization')}
-              >
-                <MapPinCheck size={14} color={colors.cta} strokeWidth={2.4} />
-                <Text style={[styles.statusBannerText, { color: colors.cta }]}>{t('presence.confirmMyPresence')}</Text>
+            {/* Presence widget — moved back to the Info tab so the
+                "where do I stand on this outing" answer is co-located
+                with the activity context. Replaces the old check-in
+                banner that linked to Organization. */}
+            {canCheckIn && (
+              <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
+                <View style={styles.presenceHeader}>
+                  <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
+                  <Text style={styles.presenceTitle}>
+                    {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
+                  </Text>
+                </View>
+                <Text style={styles.presenceSubtitle}>
+                  {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
+                </Text>
+                <View style={styles.presenceActions}>
+                  {canConfirmGeo && (
+                    <Pressable
+                      style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
+                      onPress={handleCheckIn}
+                      disabled={isConfirming}
+                    >
+                      <Text style={styles.presenceButtonText} numberOfLines={1}>
+                        {isConfirming ? '...' : t('presence.confirm')}
+                      </Text>
+                    </Pressable>
+                  )}
+                  {canScanQr && (
+                    <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+                      <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            )}
+            {isCreator && isQrAvailable && (
+              <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+                <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
               </Pressable>
             )}
 
@@ -789,59 +832,11 @@ export function ActivityDetail({
         </View>
       )}
 
-      {/* ===== ORGANIZATION TAB ===== */}
-      {showTabs && activeTab === 'organization' && (
+      {/* ===== TRANSPORT TAB ===== Mine + Group showing only the
+          transport half. Sub-tab bar inside GroupCard is hidden since
+          the top-level tabs already do that job. */}
+      {showTabs && activeTab === 'transport' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* Presence verification */}
-          {canCheckIn && (
-            <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
-              <View style={styles.presenceHeader}>
-                <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
-                <Text style={styles.presenceTitle}>
-                  {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
-                </Text>
-              </View>
-              <Text style={styles.presenceSubtitle}>
-                {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
-              </Text>
-              <View style={styles.presenceActions}>
-                {canConfirmGeo && (
-                  <Pressable
-                    style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
-                    onPress={handleCheckIn}
-                    disabled={isConfirming}
-                  >
-                    <Text style={styles.presenceButtonText} numberOfLines={1}>
-                      {isConfirming ? '...' : t('presence.confirm')}
-                    </Text>
-                  </Pressable>
-                )}
-                {canScanQr && (
-                  <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
-                    <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-          )}
-
-          {isCreator && isQrAvailable && (
-            <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
-              <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
-            </Pressable>
-          )}
-
-          {alreadyConfirmed && (
-            <View style={styles.presenceDone}>
-              <MapPinCheck size={16} color={colors.success} strokeWidth={2.4} />
-              <Text style={styles.presenceDoneText}>{t('presence.alreadyConfirmed')}</Text>
-            </View>
-          )}
-
-          {/* Two-card composition: Mine (your role for this outing) on top,
-              Group (drivers, gear, where the coordination happens) below.
-              TransportSection and GearSection are mounted invisibly as
-              modal-only hosts driven by imperative refs from the cards. */}
           <MyOutingCard
             ref={myOutingCardRef}
             activityId={activity.id}
@@ -849,6 +844,7 @@ export function ActivityDetail({
             status={activity.status}
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
+            view="transport"
             onEditTransport={() => transportSectionRef.current?.openEditor()}
             onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
             onAddMaterial={() => gearSectionRef.current?.openCustomSheet()}
@@ -859,8 +855,9 @@ export function ActivityDetail({
             currentUserId={currentUserId ?? null}
             isParticipant={isCreator || isAccepted}
             isActive={canEditLogistics}
-            activeSubTab={orgSubTab}
-            onActiveSubTabChange={setOrgSubTab}
+            activeSubTab="transport"
+            onActiveSubTabChange={() => {/* top-level tabs handle this */}}
+            showSubTabBar={false}
             onReserveSeat={(driverId) => {
               if (myOutingCardRef.current?.requestCancelIfNeeded()) return;
               const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
@@ -875,6 +872,42 @@ export function ActivityDetail({
             activityId={activity.id}
             currentUserId={currentUserId ?? null}
           />
+        </ScrollView>
+      )}
+
+      {/* ===== GEAR TAB ===== Mine + Group showing only the gear half. */}
+      {showTabs && activeTab === 'gear' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          <MyOutingCard
+            ref={myOutingCardRef}
+            activityId={activity.id}
+            startsAt={activity.starts_at}
+            status={activity.status}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+            view="gear"
+            onEditTransport={() => transportSectionRef.current?.openEditor()}
+            onEditGearItem={(name) => gearSectionRef.current?.openItemByName(name)}
+            onAddMaterial={() => gearSectionRef.current?.openCustomSheet()}
+          />
+
+          <GroupCard
+            activityId={activity.id}
+            currentUserId={currentUserId ?? null}
+            isParticipant={isCreator || isAccepted}
+            isActive={canEditLogistics}
+            activeSubTab="gear"
+            onActiveSubTabChange={() => {/* top-level tabs handle this */}}
+            showSubTabBar={false}
+            onReserveSeat={(driverId) => {
+              if (myOutingCardRef.current?.requestCancelIfNeeded()) return;
+              const myFrom = (orgTransportParticipants ?? []).find((p) => p.user_id === currentUserId)?.transport_from_name;
+              transportSectionRef.current?.openRequestSheet(driverId, myFrom);
+            }}
+            onAddGear={() => gearSectionRef.current?.openCustomSheet()}
+            onEditGearItem={(name, isShared) => gearSectionRef.current?.openItemByName(name, isShared)}
+          />
+
           <GearSection
             ref={gearSectionRef}
             activityId={activity.id}

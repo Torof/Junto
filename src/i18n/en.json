@@ -77,6 +77,8 @@
     "navigate": "Navigate",
     "tab": {
       "info": "Info",
+      "transport": "Transport",
+      "gear": "Gear",
       "organization": "Organization",
       "chat": "Chat"
     },

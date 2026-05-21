@@ -37,6 +37,10 @@ interface Props {
   onEditTransport: () => void;
   onEditGearItem: (name: string) => void;
   onAddMaterial: () => void;
+  // When set, only the matching stamp renders — used by the split
+  // Transport / Matériel tabs so each tab shows only its half of
+  // "what I'm doing for this outing".
+  view?: 'transport' | 'gear';
 }
 
 // Imperative handle so the parent (and sibling components like the
@@ -131,6 +135,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   onEditTransport,
   onEditGearItem,
   onAddMaterial,
+  view,
 }, ref) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -505,20 +510,24 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         </View>
         <View style={styles.body}>
           <View style={styles.stampsRow}>
-            <Stamp
-              stamp={transportStamp}
-              onPress={handleTransportStampPress}
-              colors={colors}
-              styles={styles}
-              t={t}
-            />
-            <Stamp
-              stamp={materialStamp}
-              onPress={() => setShowMyGear(true)}
-              colors={colors}
-              styles={styles}
-              t={t}
-            />
+            {view !== 'gear' && (
+              <Stamp
+                stamp={transportStamp}
+                onPress={handleTransportStampPress}
+                colors={colors}
+                styles={styles}
+                t={t}
+              />
+            )}
+            {view !== 'transport' && (
+              <Stamp
+                stamp={materialStamp}
+                onPress={() => setShowMyGear(true)}
+                colors={colors}
+                styles={styles}
+                t={t}
+              />
+            )}
           </View>
         </View>
       </View>

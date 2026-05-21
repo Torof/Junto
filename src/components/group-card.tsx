@@ -30,6 +30,11 @@ interface Props {
   onReserveSeat: (driverId: string) => void;
   onAddGear: () => void;
   onEditGearItem: (name: string, isShared?: boolean) => void;
+  // When false, hides the internal folder-style sub-tab bar — used by
+  // the parent when the top-level activity tabs (Transport / Matériel)
+  // already do that job and rendering a second tab strip would be
+  // visually redundant. Defaults to true for backwards compat.
+  showSubTabBar?: boolean;
 }
 
 const CAR_TYPES = ['car', 'carpool'] as const;
@@ -54,6 +59,7 @@ export function GroupCard({
   onReserveSeat,
   onAddGear,
   onEditGearItem,
+  showSubTabBar = true,
 }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -398,32 +404,34 @@ export function GroupCard({
             classic "open folder" look where the active tab visually
             merges with content. Inactive tab stays on the surfaceAlt
             band with a visible divider beneath, looking tucked. */}
-        <View style={styles.tabBand}>
-          <Pressable
-            onPress={() => onActiveSubTabChange('transport')}
-            style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
-            hitSlop={4}
-          >
-            <Text style={[
-              styles.folderTabLabel,
-              activeSubTab === 'transport' && styles.folderTabLabelActive,
-            ]}>
-              {t('group.transport', { defaultValue: 'Transport' })}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onActiveSubTabChange('gear')}
-            style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
-            hitSlop={4}
-          >
-            <Text style={[
-              styles.folderTabLabel,
-              activeSubTab === 'gear' && styles.folderTabLabelActive,
-            ]}>
-              {t('group.gear', { defaultValue: 'Matériel' })}
-            </Text>
-          </Pressable>
-        </View>
+        {showSubTabBar && (
+          <View style={styles.tabBand}>
+            <Pressable
+              onPress={() => onActiveSubTabChange('transport')}
+              style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
+              hitSlop={4}
+            >
+              <Text style={[
+                styles.folderTabLabel,
+                activeSubTab === 'transport' && styles.folderTabLabelActive,
+              ]}>
+                {t('group.transport', { defaultValue: 'Transport' })}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onActiveSubTabChange('gear')}
+              style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
+              hitSlop={4}
+            >
+              <Text style={[
+                styles.folderTabLabel,
+                activeSubTab === 'gear' && styles.folderTabLabelActive,
+              ]}>
+                {t('group.gear', { defaultValue: 'Matériel' })}
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {activeSubTab === 'transport' && (
           <View style={styles.tabContent}>
