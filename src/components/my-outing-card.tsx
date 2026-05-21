@@ -480,7 +480,12 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
     };
   }, [myGearItems, t]);
 
-  const isReady = transportStamp.state === 'set';
+  // "Prêt" seal stays scoped to the transport context — gear has no
+  // notion of "ready" (it's an open-ended list, can't be measured),
+  // so the seal hides entirely on the gear view. AND we don't show
+  // it on a combined view either; transport-set is no longer treated
+  // as a proxy for overall readiness.
+  const isReady = view === 'transport' && transportStamp.state === 'set';
 
   if (!isParticipant) return null;
 

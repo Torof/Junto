@@ -378,8 +378,10 @@ export function GroupCard({
 
   if (!isParticipant) return null;
 
-  const hasAnyContent = drivers.length > 0 || selfMovers.length > 0 || gearDeclared.length > 0;
-  if (!hasAnyContent) return null;
+  // Render the card even when both transport and gear are empty —
+  // it carries the per-section empty hints that tell the user nothing
+  // has been added yet. Hiding the whole card made the surface read
+  // as broken on fresh activities.
 
   return (
     <View style={styles.cardWrapper}>
@@ -972,6 +974,13 @@ export function GroupCard({
               </View>
             )}
 
+            {groupItems.length === 0 && bringers.length === 0 && (
+              <Text style={styles.emptyHint}>
+                {t('group.noGearYet', {
+                  defaultValue: 'Personne n\'a encore listé de matériel',
+                })}
+              </Text>
+            )}
           </View>
         )}
 

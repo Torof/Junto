@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Info, Car, Backpack, MessageSquare } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -556,14 +556,11 @@ export function ActivityDetail({
     <View style={styles.container}>
       {/* Tab bar — only for participants/creator. Four tabs since we
           split Organisation into Transport + Matériel; presence/QR dot
-          moves to Info where the widget now lives. */}
+          moves to Info where the widget now lives. Text-only — icons
+          were tried and removed (felt visually noisy at this scale). */}
       {showTabs && (
         <View style={styles.tabBar}>
           {(['info', 'transport', 'gear', 'chat'] as const).map((tab) => {
-            const Icon = tab === 'info' ? Info
-              : tab === 'transport' ? Car
-              : tab === 'gear' ? Backpack
-              : MessageSquare;
             const isActiveTab = activeTab === tab;
             return (
               <Pressable
@@ -574,11 +571,6 @@ export function ActivityDetail({
                 accessibilityState={{ selected: isActiveTab }}
                 accessibilityLabel={t(`activity.tab.${tab}`)}
               >
-                <Icon
-                  size={15}
-                  color={isActiveTab ? colors.textPrimary : colors.textSecondary}
-                  strokeWidth={isActiveTab ? 2.4 : 2}
-                />
                 <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                   {t(`activity.tab.${tab}`)}
                 </Text>
