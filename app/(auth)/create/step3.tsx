@@ -35,13 +35,6 @@ export default function CreateStep3() {
   });
 
   const isPremium = user?.tier === 'premium' || user?.tier === 'pro';
-  const isPro = user?.tier === 'pro';
-
-  const RECURRENCE_PRESETS = [
-    { key: 'weekly', days: 7 },
-    { key: 'biweekly', days: 14 },
-    { key: 'monthly', days: 30 },
-  ] as const;
 
   return (
     <View style={styles.container}>
@@ -95,50 +88,6 @@ export default function CreateStep3() {
         </View>
       </Pressable>
 
-      {/* Recurring storefront — pro only. Hidden entirely for non-pros so
-          we don't tease a paid capability. */}
-      {isPro && (
-        <View style={styles.recurringSection}>
-          <Pressable
-            style={[styles.toggleRow]}
-            onPress={() => {
-              const next = !(form.is_recurring ?? false);
-              updateForm({
-                is_recurring: next,
-                recurrence_days: next ? (form.recurrence_days ?? 7) : null,
-              });
-            }}
-          >
-            <View style={{ flex: 1, marginRight: spacing.md }}>
-              <Text style={styles.toggleTitle}>{t('create.recurringTitle')}</Text>
-              <Text style={styles.toggleDesc}>{t('create.recurringDesc')}</Text>
-            </View>
-            <View style={[styles.toggleSwitch, (form.is_recurring ?? false) && styles.toggleSwitchOn]}>
-              <View style={[styles.toggleKnob, (form.is_recurring ?? false) && styles.toggleKnobOn]} />
-            </View>
-          </Pressable>
-
-          {(form.is_recurring ?? false) && (
-            <View style={styles.recurrenceRow}>
-              {RECURRENCE_PRESETS.map((preset) => {
-                const active = (form.recurrence_days ?? 7) === preset.days;
-                return (
-                  <Pressable
-                    key={preset.key}
-                    style={[styles.recurrenceChip, active && styles.recurrenceChipActive]}
-                    onPress={() => updateForm({ recurrence_days: preset.days })}
-                  >
-                    <Text style={[styles.recurrenceChipText, active && styles.recurrenceChipTextActive]}>
-                      {t(`create.recurrence.${preset.key}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
-        </View>
-      )}
-
       <Pressable
         style={styles.nextButton}
         onPress={() => router.push('/(auth)/create/step4')}
@@ -188,17 +137,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary,
   },
   toggleKnobOn: { backgroundColor: '#FFFFFF', alignSelf: 'flex-end' },
-  recurringSection: { marginTop: spacing.md },
-  recurrenceRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  recurrenceChip: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    alignItems: 'center',
-  },
-  recurrenceChipActive: { borderColor: colors.cta, borderWidth: 2 },
-  recurrenceChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-  recurrenceChipTextActive: { color: colors.cta },
 });

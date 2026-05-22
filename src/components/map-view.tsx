@@ -5,7 +5,6 @@ import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
 import { type NearbyPro } from '@/services/pro-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
-import { RecurringActivityPin, RECURRING_ACTIVITY_PIN_ANCHOR } from './recurring-activity-pin';
 import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
@@ -411,25 +410,20 @@ export function JuntoMapView({
         const isSelected = selectedActivity?.id === activity.id;
         const viewCenter = (bounds[0] + bounds[2]) / 2;
         const isOnRight = lng > viewCenter;
-        const isRecurring = activity.is_recurring === true;
 
         return (
           <Mapbox.MarkerView
             key={activity.id}
             id={activity.id}
             coordinate={[lng, lat]}
-            anchor={isRecurring ? RECURRING_ACTIVITY_PIN_ANCHOR : ACTIVITY_PIN_ANCHOR}
+            anchor={ACTIVITY_PIN_ANCHOR}
             allowOverlap={isSelected}
           >
             <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
               <Pressable onPress={() => {
                 onActivityPress?.(activity);
               }}>
-                {isRecurring ? (
-                  <RecurringActivityPin activity={activity} />
-                ) : (
-                  <ActivityPin activity={activity} />
-                )}
+                <ActivityPin activity={activity} />
               </Pressable>
             </View>
           </Mapbox.MarkerView>

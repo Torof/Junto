@@ -51,7 +51,6 @@ export type Database = {
           elevation_gain_m: number | null
           id: string
           invite_token: string
-          is_recurring: boolean
           level: string
           location_end: unknown
           location_meeting: unknown
@@ -59,7 +58,6 @@ export type Database = {
           location_start: unknown
           max_participants: number | null
           objective_name: string | null
-          recurrence_days: number | null
           requires_presence: boolean
           route: unknown
           sport_id: string
@@ -82,7 +80,6 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
-          is_recurring?: boolean
           level: string
           location_end?: unknown
           location_meeting?: unknown
@@ -90,7 +87,6 @@ export type Database = {
           location_start: unknown
           max_participants?: number | null
           objective_name?: string | null
-          recurrence_days?: number | null
           requires_presence?: boolean
           route?: unknown
           sport_id: string
@@ -113,7 +109,6 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
-          is_recurring?: boolean
           level?: string
           location_end?: unknown
           location_meeting?: unknown
@@ -121,7 +116,6 @@ export type Database = {
           location_start?: unknown
           max_participants?: number | null
           objective_name?: string | null
-          recurrence_days?: number | null
           requires_presence?: boolean
           route?: unknown
           sport_id?: string
@@ -1484,7 +1478,6 @@ export type Database = {
           end_lat: number | null
           end_lng: number | null
           id: string | null
-          is_recurring: boolean | null
           lat: number | null
           level: string | null
           lng: number | null
@@ -1495,7 +1488,6 @@ export type Database = {
           objective_lng: number | null
           objective_name: string | null
           participant_count: number | null
-          recurrence_days: number | null
           requires_presence: boolean | null
           sport_category: string | null
           sport_icon: string | null
@@ -1679,7 +1671,6 @@ export type Database = {
           end_lat: number | null
           end_lng: number | null
           id: string | null
-          is_recurring: boolean | null
           lat: number | null
           level: string | null
           lng: number | null
@@ -1690,7 +1681,6 @@ export type Database = {
           objective_lng: number | null
           objective_name: string | null
           participant_count: number | null
-          recurrence_days: number | null
           requires_presence: boolean | null
           sport_category: string | null
           sport_icon: string | null
@@ -1744,7 +1734,6 @@ export type Database = {
           end_lat: number | null
           end_lng: number | null
           id: string | null
-          is_recurring: boolean | null
           lat: number | null
           level: string | null
           lng: number | null
@@ -1755,7 +1744,6 @@ export type Database = {
           objective_lng: number | null
           objective_name: string | null
           participant_count: number | null
-          recurrence_days: number | null
           requires_presence: boolean | null
           sport_category: string | null
           sport_icon: string | null
@@ -1809,7 +1797,6 @@ export type Database = {
           end_lat: number | null
           end_lng: number | null
           id: string | null
-          is_recurring: boolean | null
           lat: number | null
           level: string | null
           lng: number | null
@@ -1820,7 +1807,6 @@ export type Database = {
           objective_lng: number | null
           objective_name: string | null
           participant_count: number | null
-          recurrence_days: number | null
           requires_presence: boolean | null
           sport_category: string | null
           sport_icon: string | null
@@ -2154,7 +2140,6 @@ export type Database = {
           p_elevation_gain_m?: number
           p_end_lat?: number
           p_end_lng?: number
-          p_is_recurring?: boolean
           p_level: string
           p_max_participants: number
           p_meeting_lat?: number
@@ -2162,7 +2147,6 @@ export type Database = {
           p_objective_lat?: number
           p_objective_lng?: number
           p_objective_name?: string
-          p_recurrence_days?: number
           p_requires_presence?: boolean
           p_sport_id: string
           p_start_lat: number
