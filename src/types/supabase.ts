@@ -866,6 +866,7 @@ export type Database = {
       }
       pro_profiles: {
         Row: {
+          banner_url: string | null
           created_at: string
           description: string | null
           display_name: string
@@ -884,6 +885,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          banner_url?: string | null
           created_at?: string
           description?: string | null
           display_name: string
@@ -902,6 +904,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          banner_url?: string | null
           created_at?: string
           description?: string | null
           display_name?: string
@@ -2686,6 +2689,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_pro_banner: { Args: { p_banner_url?: string }; Returns: undefined }
       share_activity_message: {
         Args: { p_activity_id: string; p_conversation_id: string }
         Returns: string

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation } from 'lucide-react-native';
@@ -23,7 +23,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'activities' | 'reviews'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'activities' | 'reviews'>('info');
   const [showFullMap, setShowFullMap] = useState(false);
 
   const hasContact = Boolean(pro.phone || pro.email || pro.website || pro.instagram || pro.facebook);
@@ -34,9 +34,15 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Tab bar — same idiom as activity-detail. Text-only, brutalist. */}
-      <View style={styles.tabBar}>
-        {(['info', 'activities', 'reviews'] as const).map((tab) => {
+      {/* Tab bar — text-only, brutalist. Pictures sits between Info and
+          Activités: info → context → offer → social-proof. */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabBarScroll}
+        contentContainerStyle={styles.tabBar}
+      >
+        {(['info', 'pictures', 'activities', 'reviews'] as const).map((tab) => {
           const isActiveTab = activeTab === tab;
           return (
             <Pressable
@@ -49,17 +55,33 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
             >
               <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                 {t(`pro.tab.${tab}`, {
-                  defaultValue: tab === 'info' ? 'Infos' : tab === 'activities' ? 'Activités' : 'Avis',
+                  defaultValue:
+                    tab === 'info' ? 'Infos'
+                      : tab === 'pictures' ? 'Photos'
+                      : tab === 'activities' ? 'Activités'
+                      : 'Avis',
                 })}
               </Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          {/* === BANNER === Full-width, edge-to-edge, above the hero.
+              The brand-moment for the page. Hidden when no banner is
+              set; layout collapses to just the hero. */}
+          {pro.banner_url && (
+            <Image
+              source={{ uri: pro.banner_url }}
+              style={styles.banner}
+              resizeMode="cover"
+              accessibilityLabel={`${pro.display_name} — bannière`}
+            />
+          )}
+
           {/* === HERO — full-width edge-to-edge, no horizontal margins. === */}
           <View style={[styles.heroCard, styles.heroFullBleed]}>
             <View style={styles.heroHeader}>
@@ -170,6 +192,20 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
         </ScrollView>
       )}
 
+      {/* ===== PICTURES TAB ===== Phase 4 wires the gallery (25 max
+          per AUDIT decision). For now, a clear placeholder. */}
+      {activeTab === 'pictures' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          <View style={styles.paddedSection}>
+            <View style={styles.infoCard}>
+              <Text style={styles.placeholderText}>
+                {t('pro.picturesPlaceholder', { defaultValue: 'Bientôt — la galerie de photos arrive.' })}
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+      )}
+
       {/* ===== ACTIVITIES TAB ===== Phase 3 wires this. */}
       {activeTab === 'activities' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
@@ -241,9 +277,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.lg,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
   },
   tab: {
     paddingVertical: spacing.sm,
@@ -273,8 +306,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   heroCard: {
     backgroundColor: 'transparent',
     padding: spacing.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.cta,
+    // No left stripe — the PRO label + the banner above already
+    // carry the brand identity; the stripe was visually redundant.
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+  },
+  // Banner — full-width 3:1 magazine cover above the hero.
+  banner: {
+    width: '100%',
+    aspectRatio: 3,
+  },
+  tabBarScroll: {
+    flexGrow: 0,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },

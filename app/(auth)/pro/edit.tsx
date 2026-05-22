@@ -10,13 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check } from 'lucide-react-native';
+import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -25,6 +26,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { pickAndUploadProBanner, removeProBanner } from '@/utils/pro-banner-upload';
 
 export default function ProEditScreen() {
   const { t } = useTranslation();
@@ -57,6 +59,10 @@ export default function ProEditScreen() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
+  // Banner state — local override of existing.banner_url so the
+  // upload preview shows immediately even before the query refetches.
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [bannerBusy, setBannerBusy] = useState(false);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -73,7 +79,40 @@ export default function ProEditScreen() {
     setLocationName(existing.primary_location_name);
     setPinLng(existing.primary_lng);
     setPinLat(existing.primary_lat);
+    setBannerUrl(existing.banner_url);
   }, [existing]);
+
+  const handlePickBanner = async () => {
+    if (bannerBusy) return;
+    setBannerBusy(true);
+    try {
+      const newUrl = await pickAndUploadProBanner();
+      if (newUrl) {
+        setBannerUrl(newUrl);
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+      }
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setBannerBusy(false);
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    if (bannerBusy) return;
+    setBannerBusy(true);
+    try {
+      await removeProBanner();
+      setBannerUrl(null);
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setBannerBusy(false);
+    }
+  };
 
   const openMapPicker = () => {
     if (locationLocked) return;
@@ -174,6 +213,51 @@ export default function ProEditScreen() {
             defaultValue: 'Crée la page publique de ton activité, club ou structure.',
           })}
         </Text>
+
+        {/* Banner picker — only on update. New pros land here from
+            "Devenir pro" without a banner; they upload one on their
+            next visit. Keeps the first-time registration flow short. */}
+        {isUpdate && (
+          <View style={styles.bannerSection}>
+            <Text style={styles.section}>{t('pro.bannerSection', { defaultValue: 'Bannière' })}</Text>
+            <Pressable
+              style={styles.bannerSlot}
+              onPress={handlePickBanner}
+              disabled={bannerBusy}
+            >
+              {bannerUrl ? (
+                <Image source={{ uri: bannerUrl }} style={styles.bannerImage} resizeMode="cover" />
+              ) : (
+                <View style={styles.bannerEmpty}>
+                  <ImagePlus size={28} color={colors.textSecondary} strokeWidth={2.2} />
+                  <Text style={styles.bannerEmptyText}>
+                    {t('pro.bannerAdd', { defaultValue: 'Ajouter une bannière' })}
+                  </Text>
+                </View>
+              )}
+              {bannerBusy && (
+                <View style={styles.bannerOverlay}>
+                  <LogoSpinner size={32} />
+                </View>
+              )}
+            </Pressable>
+            {bannerUrl && !bannerBusy && (
+              <View style={styles.bannerActions}>
+                <Pressable onPress={handlePickBanner} hitSlop={6}>
+                  <Text style={styles.bannerActionText}>
+                    {t('pro.bannerReplace', { defaultValue: 'Remplacer' })}
+                  </Text>
+                </Pressable>
+                <Pressable onPress={handleRemoveBanner} hitSlop={6} style={styles.bannerActionRow}>
+                  <Trash2 size={12} color={colors.error} strokeWidth={2.4} />
+                  <Text style={[styles.bannerActionText, { color: colors.error }]}>
+                    {t('pro.bannerRemove', { defaultValue: 'Supprimer' })}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        )}
 
         <Field label={t('pro.fieldName', { defaultValue: 'Nom *' })} styles={styles}>
           <TextInput
@@ -434,6 +518,47 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSizes.xs,
     marginBottom: spacing.sm,
+  },
+  bannerSection: { marginBottom: spacing.md },
+  // 3:1 aspect matches the upload util's crop ratio.
+  bannerSlot: {
+    aspectRatio: 3,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
+  bannerImage: { width: '100%', height: '100%' },
+  bannerEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  bannerEmptyText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  bannerOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: colors.overlay,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  bannerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.xs + 2,
+  },
+  bannerActionRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  bannerActionText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   field: { marginBottom: spacing.md },
   fieldLabel: {
