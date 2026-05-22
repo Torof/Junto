@@ -34,23 +34,29 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
 
   return (
     <View style={styles.wrapper}>
+      {pinImageUrl ? (
+        // Image fills the full badge head — the SVG just provides the
+        // border and the tip. The image View is absolutely positioned
+        // to match the SVG path's head rectangle exactly.
+        <View style={styles.imageClip}>
+          <Image source={{ uri: pinImageUrl }} style={styles.imageFull} resizeMode="cover" />
+        </View>
+      ) : null}
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Path
           d={PIN_PATH}
-          fill={colors.cta}
+          fill={pinImageUrl ? 'transparent' : colors.cta}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
           strokeLinejoin="round"
         />
       </Svg>
-      <View style={styles.content}>
-        {pinImageUrl ? (
-          <Image source={{ uri: pinImageUrl }} style={styles.image} />
-        ) : (
+      {!pinImageUrl && (
+        <View style={styles.content}>
           <Text style={styles.letter}>{initial}</Text>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -81,13 +87,21 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
-  // Sized to fit inside the badge head with a tiny inset so the SVG
-  // border stays visible around the photo.
-  image: {
-    width: 30,
-    height: 30,
+  // Clipping container that exactly matches the SVG badge-head
+  // rectangle (viewBox x=2..48, y=2..46, corner radius 4). Image
+  // fills this area so the photo reads as the pin itself rather
+  // than a tiny inset thumbnail.
+  imageClip: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: VIEWBOX_W - 4,
+    height: 44,
     borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  imageFull: {
+    width: '100%',
+    height: '100%',
   },
 });
