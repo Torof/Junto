@@ -21,11 +21,13 @@ const PIN_WIDTH = 56;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 const ICON_CENTER_Y_VBX = 32;
 
-// Pointy-top hexagon, anchored on the bottom vertex (27, 60).
-// Vertices, clockwise from top:
-//   top (27, 4) → top-right (50, 18) → bottom-right (50, 46)
-//   → bottom (27, 60) → bottom-left (4, 46) → top-left (4, 18) → close
-const PIN_PATH = 'M 27 4 L 50 18 L 50 46 L 27 60 L 4 46 L 4 18 Z';
+// Pointy-top hexagon with rounded corners, anchored on the bottom
+// vertex. Sharp vertices are softened with quadratic Bezier curves
+// (r≈3 in viewBox units) — the polygon's corner positions are
+// preserved, only the immediate join is curved. Cleaner read than
+// the sharp version while keeping the silhouette unambiguous.
+const PIN_PATH =
+  'M 6.6 16.4 L 24.4 5.6 Q 27 4 29.6 5.6 L 47.4 16.4 Q 50 18 50 21 L 50 43 Q 50 46 47.4 47.6 L 29.6 58.4 Q 27 60 24.4 58.4 L 6.6 47.6 Q 4 46 4 43 L 4 21 Q 4 18 6.6 16.4 Z';
 
 export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
 

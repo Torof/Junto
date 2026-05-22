@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useState } from 'react';
-import { Pencil, MapPin, Clock, Users, Calendar, TrendingUp, Mountain, ChevronRight } from 'lucide-react-native';
+import { Pencil, MapPin, Calendar, ChevronRight } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -112,37 +112,23 @@ export default function ProOfferingDetailScreen() {
       {/* INFO TAB */}
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* Banner */}
-          {offering.image_url ? (
+          {/* Banner — only rendered when the pro uploaded an image.
+              No placeholder; an empty hero looks cleaner than a
+              decorative color block. */}
+          {offering.image_url && (
             <Image source={{ uri: offering.image_url }} style={styles.banner} resizeMode="cover" />
-          ) : (
-            <View style={[styles.banner, { backgroundColor: `${accentColor}22` }]}>
-              <Text style={styles.bannerEmoji}>{getSportIcon(offering.sport_key)}</Text>
-            </View>
           )}
 
-          {/* Hero card — big title with sport emoji + accent stripe */}
+          {/* Main info card — title, location/schedule, and a labeled
+              meta grid with all stats (level, distance, elevation,
+              duration, max participants). One source of truth instead
+              of split across hero + secondary card. */}
           <View style={styles.heroCard}>
             <View style={[styles.accentStripe, { backgroundColor: accentColor }]} />
             <View style={styles.heroBody}>
               <View style={styles.heroHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.heroTitle}>{offering.title}</Text>
-                  <View style={styles.chipRow}>
-                    <Text style={[styles.sportChip, { color: accentColor, borderColor: accentColor }]}>
-                      {getSportIcon(offering.sport_key)}  {offering.level}
-                    </Text>
-                    {offering.distance_km != null && (
-                      <Text style={styles.metaChip}>
-                        <TrendingUp size={11} color={colors.textSecondary} />  {offering.distance_km} km
-                      </Text>
-                    )}
-                    {offering.elevation_gain_m != null && (
-                      <Text style={styles.metaChip}>
-                        <Mountain size={11} color={colors.textSecondary} />  {offering.elevation_gain_m} m
-                      </Text>
-                    )}
-                  </View>
                 </View>
                 {isOwner && (
                   <Pressable
@@ -164,6 +150,34 @@ export default function ProOfferingDetailScreen() {
                   <Text style={styles.heroRowText}>{offering.schedule_text}</Text>
                 </View>
               )}
+
+              {/* Labeled meta grid — wraps to multiple rows as needed.
+                  Sport+level uses the accent color, everything else
+                  is neutral. */}
+              <View style={styles.metaGrid}>
+                <MetaCell
+                  label={t('proOffering.sport')}
+                  value={`${getSportIcon(offering.sport_key)} ${offering.level}`}
+                  accentColor={accentColor}
+                  styles={styles}
+                />
+                {offering.distance_km != null && (
+                  <MetaCell label={t('proOffering.distance')} value={`${offering.distance_km} km`} styles={styles} />
+                )}
+                {offering.elevation_gain_m != null && (
+                  <MetaCell label={t('proOffering.elevation')} value={`${offering.elevation_gain_m} m`} styles={styles} />
+                )}
+                {formattedDuration && (
+                  <MetaCell label={t('proOffering.duration')} value={formattedDuration} styles={styles} />
+                )}
+                {offering.max_participants != null && (
+                  <MetaCell
+                    label={t('proOffering.maxParticipants')}
+                    value={`${offering.max_participants}`}
+                    styles={styles}
+                  />
+                )}
+              </View>
             </View>
           </View>
 
@@ -200,24 +214,6 @@ export default function ProOfferingDetailScreen() {
               <Text style={styles.body}>{offering.description}</Text>
             </View>
           )}
-
-          {/* Secondary meta — only rows not already in the hero card */}
-          {(formattedDuration || offering.max_participants) && (
-            <View style={styles.card}>
-              {formattedDuration && (
-                <Row icon={<Clock size={16} color={colors.textSecondary} />}
-                     label={t('proOffering.duration')}
-                     value={formattedDuration}
-                     styles={styles} />
-              )}
-              {offering.max_participants != null && (
-                <Row icon={<Users size={16} color={colors.textSecondary} />}
-                     label={t('proOffering.maxParticipants')}
-                     value={`${offering.max_participants}`}
-                     styles={styles} />
-              )}
-            </View>
-          )}
         </ScrollView>
       )}
 
@@ -250,24 +246,23 @@ export default function ProOfferingDetailScreen() {
   );
 }
 
-function Row({
-  icon,
+function MetaCell({
   label,
   value,
+  accentColor,
   styles,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: string;
+  accentColor?: string;
   styles: ReturnType<typeof createStyles>;
 }) {
   return (
-    <View style={styles.row}>
-      <View style={styles.rowIcon}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowValue}>{value}</Text>
-      </View>
+    <View style={styles.metaCell}>
+      <Text style={styles.metaCellLabel}>{label}</Text>
+      <Text style={[styles.metaCellValue, accentColor ? { color: accentColor } : null]}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -298,8 +293,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '500' },
   tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
 
-  banner: { width: '100%', aspectRatio: 3, alignItems: 'center', justifyContent: 'center' },
-  bannerEmoji: { fontSize: 72 },
+  banner: { width: '100%', aspectRatio: 3 },
 
   heroCard: {
     flexDirection: 'row',
@@ -321,29 +315,38 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     lineHeight: 30,
     marginBottom: spacing.xs,
   },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 2 },
-  sportChip: {
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    paddingVertical: 3,
-    paddingHorizontal: spacing.xs + 2,
-    borderRadius: radius.sm,
-    borderWidth: 1.5,
-    overflow: 'hidden',
-  },
-  metaChip: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    paddingVertical: 3,
-    paddingHorizontal: spacing.xs + 2,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    overflow: 'hidden',
-  },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
   heroRowText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+
+  // Labeled meta grid — each cell is "LABEL" / value stacked. Wraps
+  // across multiple rows since some offerings have no distance/
+  // elevation (indoor sports). flex-basis: 30% fits 3 per row.
+  metaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
+  },
+  metaCell: {
+    minWidth: '33%',
+    paddingRight: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  metaCellLabel: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  metaCellValue: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+  },
 
   identityCard: {
     flexDirection: 'row',
@@ -388,13 +391,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   body: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   placeholderText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
-  rowIcon: { width: 28, alignItems: 'center' },
-  rowLabel: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  rowValue: { color: colors.textPrimary, fontSize: fontSizes.md, marginTop: 1 },
 });
