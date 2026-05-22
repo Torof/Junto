@@ -125,6 +125,8 @@ export const activityService = {
       p_elevation_gain_m: form.elevation_gain_m ?? undefined,
       p_start_name: form.start_name || undefined,
       p_trace_geojson: form.trace_geojson ?? undefined,
+      p_is_recurring: form.is_recurring ?? false,
+      p_recurrence_days: form.is_recurring ? form.recurrence_days ?? undefined : undefined,
     });
     if (error) throw error;
     return data as string;

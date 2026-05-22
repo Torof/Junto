@@ -47,6 +47,8 @@ export const activityFormSchema = z.object({
   // Step 3
   visibility: z.enum(['public', 'approval', 'private_link', 'private_link_approval']),
   requires_presence: z.boolean().default(true).optional(),
+  is_recurring: z.boolean().default(false).optional(),
+  recurrence_days: z.number().int().min(1).max(365).nullable().optional(),
 });
 
 export type ActivityFormData = z.infer<typeof activityFormSchema>;

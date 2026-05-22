@@ -21,6 +21,8 @@ interface CreateFormState {
   duration_minutes: number;
   visibility: 'public' | 'approval' | 'private_link' | 'private_link_approval';
   requires_presence: boolean;
+  is_recurring: boolean;
+  recurrence_days: number | null;
 }
 
 interface CreateStore {
@@ -49,6 +51,8 @@ const DEFAULT_FORM: CreateFormState = {
   duration_minutes: 0,
   visibility: 'public',
   requires_presence: true,
+  is_recurring: false,
+  recurrence_days: null,
 };
 
 export const useCreateStore = create<CreateStore>((set) => ({

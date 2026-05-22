@@ -1092,6 +1092,13 @@
     "step3Title": "Visibility",
     "presenceTitle": "Presence verification",
     "presenceDesc": "Enabled by default. Turn off for very casual outings (gym, slackline, coffee…).",
+    "recurringTitle": "Recurring activity",
+    "recurringDesc": "The activity auto-restarts on the chosen cadence. Pro accounts only.",
+    "recurrence": {
+      "weekly": "Weekly",
+      "biweekly": "Bi-weekly",
+      "monthly": "Monthly"
+    },
     "step4Title": "Summary",
     "sport": "Sport",
     "title": "Title",

@@ -1094,6 +1094,13 @@
     "step3Title": "Visibilité",
     "presenceTitle": "Vérification de présence",
     "presenceDesc": "Activée par défaut. Désactive pour les sorties très informelles (gym, slackline, café…).",
+    "recurringTitle": "Activité récurrente",
+    "recurringDesc": "L'activité repart automatiquement à la fréquence choisie. Réservé aux comptes pro.",
+    "recurrence": {
+      "weekly": "Hebdo",
+      "biweekly": "Bi-mensuel",
+      "monthly": "Mensuel"
+    },
     "step4Title": "Récapitulatif",
     "sport": "Sport",
     "title": "Titre",

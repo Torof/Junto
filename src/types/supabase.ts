@@ -2146,6 +2146,7 @@ export type Database = {
           p_elevation_gain_m?: number
           p_end_lat?: number
           p_end_lng?: number
+          p_is_recurring?: boolean
           p_level: string
           p_max_participants: number
           p_meeting_lat?: number
@@ -2153,6 +2154,7 @@ export type Database = {
           p_objective_lat?: number
           p_objective_lng?: number
           p_objective_name?: string
+          p_recurrence_days?: number
           p_requires_presence?: boolean
           p_sport_id: string
           p_start_lat: number
