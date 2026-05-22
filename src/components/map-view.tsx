@@ -4,8 +4,10 @@ import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
 import { type NearbyPro } from '@/services/pro-service';
+import { type ProOffering } from '@/services/pro-offering-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
+import { ProOfferingPin, PRO_OFFERING_PIN_ANCHOR } from './pro-offering-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
@@ -46,6 +48,7 @@ interface MapViewProps {
   zoom?: number;
   activities?: NearbyActivity[];
   pros?: NearbyPro[];
+  proOfferings?: ProOffering[];
   routeLine?: [number, number][];
   pins?: MapPin[];
   userLocation?: [number, number] | null;
@@ -55,6 +58,7 @@ interface MapViewProps {
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
   onProPress?: (pro: NearbyPro) => void;
+  onProOfferingPress?: (offering: ProOffering) => void;
   onPinPress?: (pin: MapPin) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
@@ -74,6 +78,7 @@ export function JuntoMapView({
   zoom = DEFAULT_ZOOM,
   activities = [],
   pros = [],
+  proOfferings = [],
   routeLine,
   pins = [],
   userLocation,
@@ -83,6 +88,7 @@ export function JuntoMapView({
   tapMarkerContent,
   onActivityPress,
   onProPress,
+  onProOfferingPress,
   onPinPress,
   onMapPress,
   onBoundsChange,
@@ -202,6 +208,33 @@ export function JuntoMapView({
   const proClusters = useMemo(
     () => proCluster.getClusters(bounds, Math.floor(currentZoom)),
     [proCluster, bounds, currentZoom],
+  );
+
+  // Pro offerings — separate Supercluster instance from activities and
+  // pro storefronts. Same rationale: mixed-content clusters would be
+  // ambiguous on tap. Same 60px radius for visual consistency.
+  const offeringMap = useMemo(
+    () => new Map(proOfferings.map((o) => [o.id, o])),
+    [proOfferings],
+  );
+
+  const offeringCluster = useMemo(() => {
+    const sc = new Supercluster<{ id: string }>({
+      radius: 60,
+      maxZoom: 20,
+    });
+    const points: Supercluster.PointFeature<{ id: string }>[] = proOfferings.map((o) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [o.lng, o.lat] },
+      properties: { id: o.id },
+    }));
+    sc.load(points);
+    return sc;
+  }, [proOfferings]);
+
+  const offeringClusters = useMemo(
+    () => offeringCluster.getClusters(bounds, Math.floor(currentZoom)),
+    [offeringCluster, bounds, currentZoom],
   );
 
   useEffect(() => {
@@ -475,6 +508,54 @@ export function JuntoMapView({
           >
             <Pressable onPress={() => onProPress?.(pro)}>
               <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
+            </Pressable>
+          </Mapbox.MarkerView>
+        );
+      })}
+
+      {/* Pro offering pins — third independent Supercluster instance.
+          Lozenge silhouette differentiates from the activity teardrop
+          and the pro storefront square. */}
+      {offeringClusters.map((c) => {
+        const [lng, lat] = c.geometry.coordinates as [number, number];
+        const props = c.properties as Supercluster.ClusterProperties & { id?: string };
+        if (props.cluster) {
+          const count = props.point_count;
+          const clusterId = props.cluster_id;
+          return (
+            <Mapbox.MarkerView
+              key={`offering-cluster-${clusterId}`}
+              id={`offering-cluster-${clusterId}`}
+              coordinate={[lng, lat]}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <Pressable onPress={() => {
+                const expansionZoom = offeringCluster.getClusterExpansionZoom(clusterId);
+                const targetZoom = Math.min(expansionZoom + 1, 20);
+                cameraRef.current?.setCamera({
+                  centerCoordinate: [lng, lat],
+                  zoomLevel: targetZoom,
+                  animationDuration: 300,
+                });
+              }}>
+                <ClusterPin count={count} />
+              </Pressable>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        const offering = offeringMap.get((props as { id: string }).id);
+        if (!offering) return null;
+
+        return (
+          <Mapbox.MarkerView
+            key={`offering-${offering.id}`}
+            id={`offering-${offering.id}`}
+            coordinate={[lng, lat]}
+            anchor={PRO_OFFERING_PIN_ANCHOR}
+          >
+            <Pressable onPress={() => onProOfferingPress?.(offering)}>
+              <ProOfferingPin offering={offering} />
             </Pressable>
           </Mapbox.MarkerView>
         );

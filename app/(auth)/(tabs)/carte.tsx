@@ -17,6 +17,7 @@ import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useNearbyPros } from '@/hooks/use-nearby-pros';
+import { useNearbyProOfferings } from '@/hooks/use-nearby-pro-offerings';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -91,6 +92,7 @@ export default function CarteScreen() {
 
   const { data: activities } = useNearbyActivities(searchBounds);
   const { data: pros } = useNearbyPros(searchBounds);
+  const { data: proOfferings } = useNearbyProOfferings(searchBounds);
   const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
   const radiusKm = useMapStore((s) => s.filters.radiusKm);
 
@@ -270,6 +272,8 @@ export default function CarteScreen() {
               activities={filtered}
               pros={pros ?? []}
               onProPress={(pro) => router.push(`/(auth)/pro/${pro.user_id}`)}
+              proOfferings={proOfferings ?? []}
+              onProOfferingPress={(offering) => router.push(`/(auth)/pro/offering/${offering.id}`)}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
               radiusCenter={currentLocation ?? center}
