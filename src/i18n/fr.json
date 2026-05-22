@@ -1187,6 +1187,14 @@
     "edit": "Modifier",
     "duration": "Durée",
     "notFound": "Activité introuvable",
-    "contactPro": "Contacter le pro"
+    "contactPro": "Contacter le pro",
+    "byPro": "Proposé par",
+    "tab": {
+      "info": "Infos",
+      "pictures": "Photos",
+      "reviews": "Avis"
+    },
+    "picturesPlaceholder": "Bientôt — la galerie photo arrivera ici.",
+    "reviewsPlaceholder": "Bientôt — les avis des participants apparaîtront ici."
   }
 }

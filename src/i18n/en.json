@@ -1185,6 +1185,14 @@
     "edit": "Edit",
     "duration": "Duration",
     "notFound": "Activity not found",
-    "contactPro": "Contact the pro"
+    "contactPro": "Contact the pro",
+    "byPro": "By",
+    "tab": {
+      "info": "Info",
+      "pictures": "Photos",
+      "reviews": "Reviews"
+    },
+    "picturesPlaceholder": "Coming soon — the photo gallery will live here.",
+    "reviewsPlaceholder": "Coming soon — participant reviews will appear here."
   }
 }

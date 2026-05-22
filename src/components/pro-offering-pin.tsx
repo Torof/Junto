@@ -10,8 +10,8 @@ interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Lozenge pin — visually distinct from the activity teardrop and the
-// pro storefront square. Reads as "catalog item / fixed offering"
+// Hexagon pin — visually distinct from the activity teardrop and the
+// pro storefront square. Reads as "fixed POI / faceted offering"
 // rather than "event happening now". Sport-category color so the eye
 // still scans by sport across all three pin types.
 
@@ -21,10 +21,13 @@ const PIN_WIDTH = 56;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 const ICON_CENTER_Y_VBX = 32;
 
-// Four-point diamond: top, right, bottom (anchor), left.
-const PIN_PATH = 'M 27 2 L 50 32 L 27 62 L 4 32 Z';
+// Pointy-top hexagon, anchored on the bottom vertex (27, 60).
+// Vertices, clockwise from top:
+//   top (27, 4) → top-right (50, 18) → bottom-right (50, 46)
+//   → bottom (27, 60) → bottom-left (4, 46) → top-left (4, 18) → close
+const PIN_PATH = 'M 27 4 L 50 18 L 50 46 L 27 60 L 4 46 L 4 18 Z';
 
-export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 62 / VIEWBOX_H };
+export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
