@@ -9,11 +9,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
+import { Check } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -30,6 +33,7 @@ export default function ProEditScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { center } = useInitialLocation();
+  const insets = useSafeAreaInsets();
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['pro-profile-mine'],
@@ -50,6 +54,9 @@ export default function ProEditScreen() {
   const [pinLng, setPinLng] = useState<number | null>(null);
   const [pinLat, setPinLat] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
+  const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -68,9 +75,19 @@ export default function ProEditScreen() {
     setPinLat(existing.primary_lat);
   }, [existing]);
 
-  const handleMapPress = (lng: number, lat: number) => {
-    setPinLng(lng);
-    setPinLat(lat);
+  const openMapPicker = () => {
+    if (locationLocked) return;
+    setPickerPinLng(pinLng);
+    setPickerPinLat(pinLat);
+    setShowMapPicker(true);
+  };
+
+  const confirmMapPick = () => {
+    if (pickerPinLng !== null && pickerPinLat !== null) {
+      setPinLng(pickerPinLng);
+      setPinLat(pickerPinLat);
+    }
+    setShowMapPicker(false);
   };
 
   // Location-change rate limit is enforced at the DB level; surface it
@@ -265,18 +282,32 @@ export default function ProEditScreen() {
             : t('pro.locationHelper', { defaultValue: 'Tape sur la carte pour placer ton emplacement principal.' })}
         </Text>
 
-        <View style={[styles.mapContainer, locationLocked && styles.mapContainerLocked]}>
+        {/* Inline preview — taps open the full-screen picker. Read-only
+            mini-map here; the actual location is set in the modal. */}
+        <Pressable
+          style={[styles.mapPreview, locationLocked && styles.mapContainerLocked]}
+          onPress={openMapPicker}
+          disabled={locationLocked}
+        >
           <JuntoMapView
             center={pinLng !== null && pinLat !== null ? [pinLng, pinLat] : center}
             zoom={12}
-            onMapPress={locationLocked ? undefined : handleMapPress}
             pins={
               pinLng !== null && pinLat !== null
                 ? [{ id: 'pro', coordinate: [pinLng, pinLat], color: colors.cta }]
                 : []
             }
+            compassEnabled={false}
           />
-        </View>
+          <View style={styles.mapPreviewOverlay} pointerEvents="box-only" />
+          <View style={styles.mapPreviewHint} pointerEvents="none">
+            <Text style={styles.mapPreviewHintText}>
+              {pinLng !== null
+                ? t('pro.locationChangeOnMap', { defaultValue: 'Modifier sur la carte' })
+                : t('pro.locationPickOnMap', { defaultValue: 'Choisir sur la carte' })}
+            </Text>
+          </View>
+        </Pressable>
 
         <Field label={t('pro.fieldLocationName', { defaultValue: 'Adresse / ville *' })} styles={styles}>
           <TextInput
@@ -303,6 +334,57 @@ export default function ProEditScreen() {
           </Text>
         </Pressable>
       </ScrollView>
+
+      {/* Full-screen map picker — replaces the tiny inline square that
+          was too cramped to position a pin precisely. Drop pin anywhere
+          on the map; "Confirmer" promotes the picker pin to the form. */}
+      <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
+        <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
+          <JuntoMapView
+            center={
+              pickerPinLng !== null && pickerPinLat !== null
+                ? [pickerPinLng, pickerPinLat]
+                : pinLng !== null && pinLat !== null
+                  ? [pinLng, pinLat]
+                  : center
+            }
+            zoom={12}
+            onMapPress={(lng, lat) => {
+              setPickerPinLng(lng);
+              setPickerPinLat(lat);
+            }}
+            pins={
+              pickerPinLng !== null && pickerPinLat !== null
+                ? [{ id: 'pro-picker', coordinate: [pickerPinLng, pickerPinLat], color: colors.cta }]
+                : []
+            }
+          />
+          <Pressable
+            style={styles.fullMapCloseBtn}
+            onPress={() => setShowMapPicker(false)}
+            hitSlop={8}
+          >
+            <Text style={styles.fullMapCloseText}>✕</Text>
+          </Pressable>
+          <View style={[styles.fullMapHint, { top: insets.top + spacing.sm + 4 + 44 }]} pointerEvents="none">
+            <Text style={styles.fullMapHintText}>
+              {pickerPinLng !== null
+                ? t('pro.locationConfirmHint', { defaultValue: 'Tape pour repositionner, ou confirme.' })
+                : t('pro.locationFirstTapHint', { defaultValue: 'Tape sur la carte pour placer le pin.' })}
+            </Text>
+          </View>
+          <Pressable
+            style={[styles.fullMapConfirm, { bottom: insets.bottom + 24 }, pickerPinLng === null && styles.fullMapConfirmDisabled]}
+            onPress={confirmMapPick}
+            disabled={pickerPinLng === null}
+          >
+            <Check size={16} color={colors.textPrimary} strokeWidth={2.6} />
+            <Text style={styles.fullMapConfirmText}>
+              {t('pro.locationConfirm', { defaultValue: 'Confirmer' })}
+            </Text>
+          </Pressable>
+        </SafeAreaView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -373,16 +455,72 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   textarea: {
     minHeight: 110,
   },
-  mapContainer: {
-    height: 220,
+  // Inline preview — clearly read-only; taps open the full-screen
+  // picker where the actual placement happens.
+  mapPreview: {
+    height: 180,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.borderMuted,
     overflow: 'hidden',
     marginBottom: spacing.md,
   },
+  mapPreviewOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+  },
+  mapPreviewHint: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    alignSelf: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
+  mapPreviewHintText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   mapContainerLocked: {
     opacity: 0.55,
+  },
+  fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  fullMapCloseBtn: {
+    position: 'absolute', top: spacing.sm + 4, left: spacing.md,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: colors.borderMuted,
+  },
+  fullMapCloseText: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
+  fullMapHint: {
+    position: 'absolute', alignSelf: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.borderMuted,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
+  },
+  fullMapHintText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+  },
+  fullMapConfirm: {
+    position: 'absolute', alignSelf: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: colors.cta,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2,
+  },
+  fullMapConfirmDisabled: { opacity: 0.4 },
+  fullMapConfirmText: {
+    color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 0.6,
   },
   submit: {
     backgroundColor: colors.cta,
