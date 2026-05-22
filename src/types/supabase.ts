@@ -51,6 +51,7 @@ export type Database = {
           elevation_gain_m: number | null
           id: string
           invite_token: string
+          is_recurring: boolean
           level: string
           location_end: unknown
           location_meeting: unknown
@@ -58,6 +59,7 @@ export type Database = {
           location_start: unknown
           max_participants: number | null
           objective_name: string | null
+          recurrence_days: number | null
           requires_presence: boolean
           route: unknown
           sport_id: string
@@ -80,6 +82,7 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
+          is_recurring?: boolean
           level: string
           location_end?: unknown
           location_meeting?: unknown
@@ -87,6 +90,7 @@ export type Database = {
           location_start: unknown
           max_participants?: number | null
           objective_name?: string | null
+          recurrence_days?: number | null
           requires_presence?: boolean
           route?: unknown
           sport_id: string
@@ -109,6 +113,7 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
+          is_recurring?: boolean
           level?: string
           location_end?: unknown
           location_meeting?: unknown
@@ -116,6 +121,7 @@ export type Database = {
           location_start?: unknown
           max_participants?: number | null
           objective_name?: string | null
+          recurrence_days?: number | null
           requires_presence?: boolean
           route?: unknown
           sport_id?: string
@@ -853,6 +859,78 @@ export type Database = {
             foreignKeyName: "private_messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_profiles: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          email: string | null
+          facebook: string | null
+          instagram: string | null
+          last_location_change_at: string
+          phone: string | null
+          primary_lat: number
+          primary_lng: number
+          primary_location: unknown
+          primary_location_name: string
+          tagline: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          email?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_location_change_at?: string
+          phone?: string | null
+          primary_lat: number
+          primary_lng: number
+          primary_location: unknown
+          primary_location_name: string
+          tagline?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          email?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_location_change_at?: string
+          phone?: string | null
+          primary_lat?: number
+          primary_lng?: number
+          primary_location?: unknown
+          primary_location_name?: string
+          tagline?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -2533,6 +2611,22 @@ export type Database = {
         Args: { p_participation_id: string }
         Returns: undefined
       }
+      register_as_pro: {
+        Args: {
+          p_description?: string
+          p_display_name: string
+          p_email?: string
+          p_facebook?: string
+          p_instagram?: string
+          p_phone?: string
+          p_primary_lat?: number
+          p_primary_lng?: number
+          p_primary_location_name?: string
+          p_tagline?: string
+          p_website?: string
+        }
+        Returns: undefined
+      }
       register_push_token: {
         Args: { p_device_id?: string; p_token: string }
         Returns: undefined
@@ -3191,6 +3285,7 @@ export type Database = {
       }
       transition_statuses_only: { Args: never; Returns: undefined }
       unlockrows: { Args: { "": string }; Returns: number }
+      unregister_as_pro: { Args: never; Returns: undefined }
       update_activity: {
         Args: {
           p_activity_id: string
@@ -3210,6 +3305,22 @@ export type Database = {
       }
       update_activity_trace: {
         Args: { p_activity_id: string; p_trace_geojson: Json }
+        Returns: undefined
+      }
+      update_pro_profile: {
+        Args: {
+          p_description?: string
+          p_display_name?: string
+          p_email?: string
+          p_facebook?: string
+          p_instagram?: string
+          p_phone?: string
+          p_primary_lat?: number
+          p_primary_lng?: number
+          p_primary_location_name?: string
+          p_tagline?: string
+          p_website?: string
+        }
         Returns: undefined
       }
       updategeometrysrid: {
