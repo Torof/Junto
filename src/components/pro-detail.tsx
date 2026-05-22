@@ -2,11 +2,15 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
+import { proOfferingService } from '@/services/pro-offering-service';
+import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView } from './map-view';
 
 interface Props {
@@ -20,11 +24,18 @@ const COLLAPSED_DESCRIPTION_CHARS = 280;
 export function ProDetail({ pro, isOwner, onEdit }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'activities' | 'reviews'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'catalog' | 'reviews'>('info');
   const [showFullMap, setShowFullMap] = useState(false);
+
+  const { data: offerings = [] } = useQuery({
+    queryKey: ['pro-offerings', 'by-pro', pro.user_id],
+    queryFn: () => proOfferingService.getByProId(pro.user_id),
+    enabled: activeTab === 'catalog',
+  });
 
   const hasContact = Boolean(pro.phone || pro.email || pro.website || pro.instagram || pro.facebook);
   const description = pro.description ?? '';
@@ -42,7 +53,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
         style={styles.tabBarScroll}
         contentContainerStyle={styles.tabBar}
       >
-        {(['info', 'pictures', 'activities', 'reviews'] as const).map((tab) => {
+        {(['info', 'pictures', 'catalog', 'reviews'] as const).map((tab) => {
           const isActiveTab = activeTab === tab;
           return (
             <Pressable
@@ -58,7 +69,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
                   defaultValue:
                     tab === 'info' ? 'Infos'
                       : tab === 'pictures' ? 'Photos'
-                      : tab === 'activities' ? 'Activités'
+                      : tab === 'catalog' ? 'Catalogue'
                       : 'Avis',
                 })}
               </Text>
@@ -206,15 +217,57 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
         </ScrollView>
       )}
 
-      {/* ===== ACTIVITIES TAB ===== Phase 3 wires this. */}
-      {activeTab === 'activities' && (
+      {/* ===== CATALOG TAB ===== List of pro_offerings authored by this
+          pro. Owner gets a "+ create" button at the top; everyone else
+          just sees the cards. Tapping a card routes to the offering
+          detail page. */}
+      {activeTab === 'catalog' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.paddedSection}>
-            <View style={styles.infoCard}>
-              <Text style={styles.placeholderText}>
-                {t('pro.activitiesPlaceholder', { defaultValue: 'Bientôt — les activités récurrentes apparaîtront ici.' })}
-              </Text>
-            </View>
+            {isOwner && (
+              <Pressable
+                style={styles.catalogCreateButton}
+                onPress={() => router.push('/(auth)/pro/offering/edit')}
+              >
+                <Plus size={16} color={colors.cta} strokeWidth={2.5} />
+                <Text style={styles.catalogCreateText}>
+                  {t('pro.catalogCreate', { defaultValue: 'Nouvelle activité' })}
+                </Text>
+              </Pressable>
+            )}
+
+            {offerings.length === 0 ? (
+              <View style={styles.infoCard}>
+                <Text style={styles.placeholderText}>
+                  {isOwner
+                    ? t('pro.catalogEmptyOwner', { defaultValue: 'Aucune activité au catalogue. Ajoute-en une pour qu\'elle apparaisse sur la carte.' })
+                    : t('pro.catalogEmpty', { defaultValue: 'Le catalogue est encore vide.' })}
+                </Text>
+              </View>
+            ) : (
+              offerings.map((o) => (
+                <Pressable
+                  key={o.id}
+                  style={styles.catalogCard}
+                  onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
+                >
+                  {o.image_url ? (
+                    <Image source={{ uri: o.image_url }} style={styles.catalogCardImage} resizeMode="cover" />
+                  ) : (
+                    <View style={[styles.catalogCardImage, styles.catalogCardPlaceholder]}>
+                      <Text style={styles.catalogCardEmoji}>{getSportIcon(o.sport_key)}</Text>
+                    </View>
+                  )}
+                  <View style={styles.catalogCardBody}>
+                    <Text style={styles.catalogCardTitle} numberOfLines={1}>{o.title}</Text>
+                    <Text style={styles.catalogCardLocation} numberOfLines={1}>{o.location_name}</Text>
+                    {o.schedule_text && (
+                      <Text style={styles.catalogCardSchedule} numberOfLines={1}>{o.schedule_text}</Text>
+                    )}
+                  </View>
+                </Pressable>
+              ))
+            )}
           </View>
         </ScrollView>
       )}
@@ -408,6 +461,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm,
     fontStyle: 'italic',
   },
+  catalogCreateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.sm,
+    borderWidth: 2,
+    borderColor: colors.cta,
+    marginBottom: spacing.md,
+  },
+  catalogCreateText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
+  catalogCard: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+    marginBottom: spacing.sm,
+  },
+  catalogCardImage: { width: 100, aspectRatio: 1, backgroundColor: colors.background },
+  catalogCardPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  catalogCardEmoji: { fontSize: 36 },
+  catalogCardBody: { flex: 1, padding: spacing.sm, justifyContent: 'center' },
+  catalogCardTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  catalogCardLocation: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
+  catalogCardSchedule: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 2 },
   mapContainer: {
     height: 180,
     borderRadius: radius.md,
