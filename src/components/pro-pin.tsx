@@ -34,25 +34,23 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
 
   return (
     <View style={styles.wrapper}>
-      {pinImageUrl ? (
-        // Image fills the full badge head — the SVG just provides the
-        // border and the tip. The image View is absolutely positioned
-        // to match the SVG path's head rectangle exactly.
-        <View style={styles.imageClip}>
-          <Image source={{ uri: pinImageUrl }} style={styles.imageFull} resizeMode="cover" />
-        </View>
-      ) : null}
+      {/* SVG renders first (behind). Always filled CTA so the tip stays
+          opaque — the image just covers the head area on top. */}
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Path
           d={PIN_PATH}
-          fill={pinImageUrl ? 'transparent' : colors.cta}
+          fill={colors.cta}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
           strokeLinejoin="round"
         />
       </Svg>
-      {!pinImageUrl && (
+      {pinImageUrl ? (
+        <View style={styles.imageClip}>
+          <Image source={{ uri: pinImageUrl }} style={styles.imageFull} resizeMode="cover" />
+        </View>
+      ) : (
         <View style={styles.content}>
           <Text style={styles.letter}>{initial}</Text>
         </View>
