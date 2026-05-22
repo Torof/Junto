@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useState } from 'react';
-import { Pencil, MapPin, Calendar, ChevronRight } from 'lucide-react-native';
+import { Pencil, MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -20,17 +20,13 @@ import { proService } from '@/services/pro-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
 
-// Public detail view of a pro_offering.
-//
-// Layout:
-//   - Banner (image or sport-emoji placeholder)
-//   - Hero card: big title, sport emoji, sport-color accent stripe,
-//     compact location/schedule rows, chips for level/distance/elevation
-//   - Identity card: "Par {pro name}" with thumbnail, tagline, chevron —
-//     taps through to /pro/[id] where contact links live
-//   - Tab bar: Infos / Photos / Avis (Photos + Avis are Phase 4)
-//   - Infos tab: description + secondary meta (duration, max participants)
+// Public detail view of a pro_offering. Hero mirrors the spontaneous
+// activity-detail layout: sport-color banner with a big decorative
+// sport icon, white uppercase sport label, big white title; plain
+// footer below with location + schedule. Stats live in a brutalist
+// MetaChipsGrid card directly under the hero.
 export default function ProOfferingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -81,10 +77,29 @@ export default function ProOfferingDetailScreen() {
 
   const formattedDuration = formatDuration(offering.duration);
   const proThumbUrl = pro?.pin_image_url ?? pro?.banner_url ?? null;
+  const sportLabel = t(`sports.${offering.sport_key}`, offering.sport_key);
+
+  // Build the chip list. Same per-stat accent palette as activity-detail
+  // so the visual language is consistent across spontaneous + catalog.
+  const chips: MetaChip[] = [
+    { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level', { defaultValue: 'Niveau' }), value: offering.level },
+  ];
+  if (offering.distance_km != null && offering.distance_km > 0) {
+    chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance', { defaultValue: 'Distance' }), value: `${offering.distance_km} km` });
+  }
+  if (offering.elevation_gain_m != null && offering.elevation_gain_m > 0) {
+    chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation', { defaultValue: 'D+' }), value: `${offering.elevation_gain_m} m` });
+  }
+  if (formattedDuration) {
+    chips.push({ id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration', { defaultValue: 'Durée' }), value: formattedDuration });
+  }
+  if (offering.max_participants != null) {
+    chips.push({ id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places', { defaultValue: 'Places' }), value: `${offering.max_participants}` });
+  }
 
   return (
     <View style={styles.container}>
-      {/* Tab bar — mirror the pro page's tab pattern. */}
+      {/* Tab bar */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -109,79 +124,55 @@ export default function ProOfferingDetailScreen() {
         })}
       </ScrollView>
 
-      {/* INFO TAB */}
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* Banner — only rendered when the pro uploaded an image.
-              No placeholder; an empty hero looks cleaner than a
-              decorative color block. */}
+          {/* Banner only if the pro uploaded an image. Phase 4 swaps this
+              for the gallery's first photo. */}
           {offering.image_url && (
             <Image source={{ uri: offering.image_url }} style={styles.banner} resizeMode="cover" />
           )}
 
-          {/* Main info card — title, location/schedule, and a labeled
-              meta grid with all stats (level, distance, elevation,
-              duration, max participants). One source of truth instead
-              of split across hero + secondary card. */}
+          {/* === HERO === sport-color banner + plain footer, mirrors
+              activity-detail's hero so the offering reads as "same
+              family as a spontaneous activity, just permanent". */}
           <View style={styles.heroCard}>
-            <View style={[styles.accentStripe, { backgroundColor: accentColor }]} />
-            <View style={styles.heroBody}>
-              <View style={styles.heroHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.heroTitle}>{offering.title}</Text>
-                </View>
-                {isOwner && (
-                  <Pressable
-                    onPress={() => router.push({ pathname: '/(auth)/pro/offering/edit', params: { id: offering.id } })}
-                    hitSlop={10}
-                  >
-                    <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
-                  </Pressable>
-                )}
-              </View>
-
-              <View style={styles.heroRow}>
-                <MapPin size={14} color={colors.textSecondary} strokeWidth={2.4} />
-                <Text style={styles.heroRowText} numberOfLines={2}>{offering.location_name}</Text>
-              </View>
-              {offering.schedule_text && (
+            <View style={[styles.heroBanner, { backgroundColor: accentColor }]}>
+              <Text style={styles.heroSportDecor}>{getSportIcon(offering.sport_key)}</Text>
+              <Text style={styles.heroSportLabel}>{sportLabel}</Text>
+              <Text style={styles.heroTitleInverse}>{offering.title}</Text>
+            </View>
+            <View style={styles.heroFooter}>
+              <View style={styles.heroFooterLeft}>
                 <View style={styles.heroRow}>
-                  <Calendar size={14} color={colors.textSecondary} strokeWidth={2.4} />
-                  <Text style={styles.heroRowText}>{offering.schedule_text}</Text>
+                  <MapPin size={14} color={colors.textPrimary} strokeWidth={2.4} />
+                  <Text style={styles.heroRowText} numberOfLines={2}>{offering.location_name}</Text>
                 </View>
-              )}
-
-              {/* Labeled meta grid — wraps to multiple rows as needed.
-                  Sport+level uses the accent color, everything else
-                  is neutral. */}
-              <View style={styles.metaGrid}>
-                <MetaCell
-                  label={t('proOffering.sport')}
-                  value={`${getSportIcon(offering.sport_key)} ${offering.level}`}
-                  accentColor={accentColor}
-                  styles={styles}
-                />
-                {offering.distance_km != null && (
-                  <MetaCell label={t('proOffering.distance')} value={`${offering.distance_km} km`} styles={styles} />
-                )}
-                {offering.elevation_gain_m != null && (
-                  <MetaCell label={t('proOffering.elevation')} value={`${offering.elevation_gain_m} m`} styles={styles} />
-                )}
-                {formattedDuration && (
-                  <MetaCell label={t('proOffering.duration')} value={formattedDuration} styles={styles} />
-                )}
-                {offering.max_participants != null && (
-                  <MetaCell
-                    label={t('proOffering.maxParticipants')}
-                    value={`${offering.max_participants}`}
-                    styles={styles}
-                  />
+                {offering.schedule_text && (
+                  <View style={styles.heroRow}>
+                    <Calendar size={14} color={colors.textPrimary} strokeWidth={2.4} />
+                    <Text style={styles.heroRowText}>{offering.schedule_text}</Text>
+                  </View>
                 )}
               </View>
+              {isOwner && (
+                <Pressable
+                  onPress={() => router.push({ pathname: '/(auth)/pro/offering/edit', params: { id: offering.id } })}
+                  hitSlop={10}
+                  style={styles.heroEditBtn}
+                >
+                  <Pencil size={16} color={colors.textSecondary} strokeWidth={2.4} />
+                </Pressable>
+              )}
             </View>
           </View>
 
-          {/* Identity card — taps through to pro page where contact lives */}
+          {/* Stats — brutalist tiled chips, same component the activity
+              detail page uses. */}
+          <View style={styles.card}>
+            <MetaChipsGrid chips={chips} />
+          </View>
+
+          {/* Identity card — taps through to pro page */}
           {pro && (
             <Pressable
               style={styles.identityCard}
@@ -217,7 +208,6 @@ export default function ProOfferingDetailScreen() {
         </ScrollView>
       )}
 
-      {/* PICTURES TAB — Phase 4 wires the gallery */}
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.card}>
@@ -230,7 +220,6 @@ export default function ProOfferingDetailScreen() {
         </ScrollView>
       )}
 
-      {/* REVIEWS TAB — Phase 4 wires the review system */}
       {activeTab === 'reviews' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.card}>
@@ -242,27 +231,6 @@ export default function ProOfferingDetailScreen() {
           </View>
         </ScrollView>
       )}
-    </View>
-  );
-}
-
-function MetaCell({
-  label,
-  value,
-  accentColor,
-  styles,
-}: {
-  label: string;
-  value: string;
-  accentColor?: string;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  return (
-    <View style={styles.metaCell}>
-      <Text style={styles.metaCellLabel}>{label}</Text>
-      <Text style={[styles.metaCellValue, accentColor ? { color: accentColor } : null]}>
-        {value}
-      </Text>
     </View>
   );
 }
@@ -295,57 +263,65 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   banner: { width: '100%', aspectRatio: 3 },
 
+  // === Hero — sport-color banner on top, plain footer below.
+  // Mirrors activity-detail.tsx heroCard/heroBanner/heroFooter.
   heroCard: {
-    flexDirection: 'row',
     marginTop: spacing.md,
     marginHorizontal: spacing.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.borderMuted,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
-  accentStripe: { width: 4 },
-  heroBody: { flex: 1, padding: spacing.md },
-  heroHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.sm },
-  heroTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xl,
-    fontFamily: fonts.title,
-    lineHeight: 30,
+  heroBanner: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    position: 'relative',
+  },
+  heroSportDecor: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.md,
+    fontSize: 56,
+    opacity: 0.35,
+  },
+  heroSportLabel: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    opacity: 0.9,
     marginBottom: spacing.xs,
   },
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  heroRowText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
-
-  // Labeled meta grid — each cell is "LABEL" / value stacked. Wraps
-  // across multiple rows since some offerings have no distance/
-  // elevation (indoor sports). flex-basis: 30% fits 3 per row.
-  metaGrid: {
+  heroTitleInverse: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.xxl,
+    fontFamily: fonts.title,
+    letterSpacing: -0.5,
+    lineHeight: 36,
+    paddingRight: 64, // leave room for the decorative sport icon
+  },
+  heroFooter: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderMuted,
+    alignItems: 'flex-start',
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
-  metaCell: {
-    minWidth: '33%',
-    paddingRight: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  metaCellLabel: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  metaCellValue: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
+  heroFooterLeft: { flex: 1 },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 4 },
+  heroRowText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+  heroEditBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   identityCard: {
