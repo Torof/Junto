@@ -3,7 +3,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
+import { type NearbyPro } from '@/services/pro-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
+import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
@@ -43,6 +45,7 @@ interface MapViewProps {
   center?: [number, number];
   zoom?: number;
   activities?: NearbyActivity[];
+  pros?: NearbyPro[];
   routeLine?: [number, number][];
   pins?: MapPin[];
   userLocation?: [number, number] | null;
@@ -51,6 +54,7 @@ interface MapViewProps {
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
+  onProPress?: (pro: NearbyPro) => void;
   onPinPress?: (pin: MapPin) => void;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
@@ -69,6 +73,7 @@ export function JuntoMapView({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   activities = [],
+  pros = [],
   routeLine,
   pins = [],
   userLocation,
@@ -77,6 +82,7 @@ export function JuntoMapView({
   tapMarker,
   tapMarkerContent,
   onActivityPress,
+  onProPress,
   onPinPress,
   onMapPress,
   onBoundsChange,
@@ -395,6 +401,22 @@ export function JuntoMapView({
           </Mapbox.MarkerView>
         );
       })}
+
+      {/* Pro pins — rendered after activity pins so they layer in
+          predictable z-order. No clustering for v1 (the pin count is
+          tiny pre-launch). Tap routes to the pro page via onProPress. */}
+      {pros.map((pro) => (
+        <Mapbox.MarkerView
+          key={`pro-${pro.user_id}`}
+          id={`pro-${pro.user_id}`}
+          coordinate={[pro.primary_lng, pro.primary_lat]}
+          anchor={PRO_PIN_ANCHOR}
+        >
+          <Pressable onPress={() => onProPress?.(pro)}>
+            <ProPin displayName={pro.display_name} />
+          </Pressable>
+        </Mapbox.MarkerView>
+      ))}
 
       {/* Popup rendered as a separate MarkerView AFTER all pins so it always stacks on top */}
       {selectedActivity && popupContent && (() => {

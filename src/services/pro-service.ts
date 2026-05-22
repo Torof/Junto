@@ -34,6 +34,15 @@ export interface RegisterAsProInput {
 
 export type UpdateProProfileInput = Partial<RegisterAsProInput>;
 
+// Lightweight shape returned by getNearby — just what the pin needs.
+// Tap on the pin loads the full ProProfile via getById.
+export interface NearbyPro {
+  user_id: string;
+  display_name: string;
+  primary_lng: number;
+  primary_lat: number;
+}
+
 export const proService = {
   // Fetch a pro's profile. Returns null when the user isn't a pro or
   // is suspended (the RLS policy hides those rows; the missing row
@@ -96,5 +105,30 @@ export const proService = {
   unregister: async (): Promise<void> => {
     const { error } = await supabase.rpc('unregister_as_pro');
     if (error) throw error;
+  },
+
+  // Pros within the map viewport. Returns the minimal fields needed to
+  // place the pin; the full profile is fetched on tap.
+  getNearby: async (bounds?: {
+    swLng: number;
+    swLat: number;
+    neLng: number;
+    neLat: number;
+  }): Promise<NearbyPro[]> => {
+    let query = supabase
+      .from('pro_profiles')
+      .select('user_id, display_name, primary_lng, primary_lat');
+
+    if (bounds) {
+      query = query
+        .gte('primary_lng', bounds.swLng)
+        .lte('primary_lng', bounds.neLng)
+        .gte('primary_lat', bounds.swLat)
+        .lte('primary_lat', bounds.neLat);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
   },
 };

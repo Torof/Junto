@@ -16,6 +16,7 @@ import { MapStyleButton } from '@/components/map-style-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
+import { useNearbyPros } from '@/hooks/use-nearby-pros';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -89,6 +90,7 @@ export default function CarteScreen() {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
+  const { data: pros } = useNearbyPros(searchBounds);
   const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
   const radiusKm = useMapStore((s) => s.filters.radiusKm);
 
@@ -266,6 +268,8 @@ export default function CarteScreen() {
             <JuntoMapView
               center={center}
               activities={filtered}
+              pros={pros ?? []}
+              onProPress={(pro) => router.push(`/(auth)/pro/${pro.user_id}`)}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
               radiusCenter={currentLocation ?? center}
