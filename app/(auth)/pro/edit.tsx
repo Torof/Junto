@@ -27,6 +27,8 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { pickAndUploadProBanner, removeProBanner } from '@/utils/pro-banner-upload';
+import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
+import { ProPin } from '@/components/pro-pin';
 
 export default function ProEditScreen() {
   const { t } = useTranslation();
@@ -63,6 +65,8 @@ export default function ProEditScreen() {
   // upload preview shows immediately even before the query refetches.
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bannerBusy, setBannerBusy] = useState(false);
+  const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
+  const [pinImageBusy, setPinImageBusy] = useState(false);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -80,6 +84,7 @@ export default function ProEditScreen() {
     setPinLng(existing.primary_lng);
     setPinLat(existing.primary_lat);
     setBannerUrl(existing.banner_url);
+    setPinImageUrl(existing.pin_image_url);
   }, [existing]);
 
   const handlePickBanner = async () => {
@@ -111,6 +116,40 @@ export default function ProEditScreen() {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setBannerBusy(false);
+    }
+  };
+
+  const handlePickPinImage = async () => {
+    if (pinImageBusy) return;
+    setPinImageBusy(true);
+    try {
+      const newUrl = await pickAndUploadProPinImage();
+      if (newUrl) {
+        setPinImageUrl(newUrl);
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+        await queryClient.invalidateQueries({ queryKey: ['pros'] });
+      }
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setPinImageBusy(false);
+    }
+  };
+
+  const handleRemovePinImage = async () => {
+    if (pinImageBusy) return;
+    setPinImageBusy(true);
+    try {
+      await removeProPinImage();
+      setPinImageUrl(null);
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+      await queryClient.invalidateQueries({ queryKey: ['pros'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setPinImageBusy(false);
     }
   };
 
@@ -256,6 +295,50 @@ export default function ProEditScreen() {
                 </Pressable>
               </View>
             )}
+          </View>
+        )}
+
+        {/* Pin image — square photo that replaces the initial inside the
+            pro pin on the map. Update-mode only, same as banner. */}
+        {isUpdate && (
+          <View style={styles.bannerSection}>
+            <Text style={styles.section}>{t('pro.pinImageSection', { defaultValue: 'Image du pin' })}</Text>
+            <Text style={styles.helper}>
+              {t('pro.pinImageHelper', { defaultValue: "S'affiche dans ton pin sur la carte." })}
+            </Text>
+            <View style={styles.pinImageRow}>
+              <View style={styles.pinPreviewWrap}>
+                <ProPin displayName={displayName || 'P'} pinImageUrl={pinImageUrl} />
+              </View>
+              <Pressable
+                style={styles.pinImagePickBtn}
+                onPress={handlePickPinImage}
+                disabled={pinImageBusy}
+              >
+                {pinImageBusy ? (
+                  <LogoSpinner size={20} />
+                ) : (
+                  <>
+                    <ImagePlus size={16} color={colors.cta} strokeWidth={2.4} />
+                    <Text style={styles.pinImagePickText}>
+                      {pinImageUrl
+                        ? t('pro.pinImageReplace', { defaultValue: 'Remplacer' })
+                        : t('pro.pinImageAdd', { defaultValue: 'Choisir' })}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+              {pinImageUrl && !pinImageBusy && (
+                <Pressable
+                  style={styles.pinImageRemoveBtn}
+                  onPress={handleRemovePinImage}
+                  hitSlop={6}
+                  accessibilityLabel={t('pro.pinImageRemove', { defaultValue: 'Supprimer' })}
+                >
+                  <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
+                </Pressable>
+              )}
+            </View>
           </View>
         )}
 
@@ -559,6 +642,41 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  pinImageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  // Live preview of how the pro pin will look on the map with the
+  // currently-picked image.
+  pinPreviewWrap: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  pinImagePickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  pinImagePickText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  pinImageRemoveBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: radius.sm,
   },
   field: { marginBottom: spacing.md },
   fieldLabel: {

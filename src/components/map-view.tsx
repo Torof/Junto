@@ -176,6 +176,34 @@ export function JuntoMapView({
     [cluster, bounds, currentZoom],
   );
 
+  // Pros get their own Supercluster — distinct from activities so a
+  // mixed-content cluster pin can't happen (pro vs activity is a
+  // different mental model; clustering them together would be
+  // ambiguous on tap).
+  const proMap = useMemo(
+    () => new Map(pros.map((p) => [p.user_id, p])),
+    [pros],
+  );
+
+  const proCluster = useMemo(() => {
+    const sc = new Supercluster<{ id: string }>({
+      radius: 60,
+      maxZoom: 20,
+    });
+    const points: Supercluster.PointFeature<{ id: string }>[] = pros.map((p) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [p.primary_lng, p.primary_lat] },
+      properties: { id: p.user_id },
+    }));
+    sc.load(points);
+    return sc;
+  }, [pros]);
+
+  const proClusters = useMemo(
+    () => proCluster.getClusters(bounds, Math.floor(currentZoom)),
+    [proCluster, bounds, currentZoom],
+  );
+
   useEffect(() => {
     if (flyTo && cameraRef.current) {
       const targetZoom = flyTo.zoom ?? Math.max(13, currentZoom);
@@ -402,21 +430,55 @@ export function JuntoMapView({
         );
       })}
 
-      {/* Pro pins — rendered after activity pins so they layer in
-          predictable z-order. No clustering for v1 (the pin count is
-          tiny pre-launch). Tap routes to the pro page via onProPress. */}
-      {pros.map((pro) => (
-        <Mapbox.MarkerView
-          key={`pro-${pro.user_id}`}
-          id={`pro-${pro.user_id}`}
-          coordinate={[pro.primary_lng, pro.primary_lat]}
-          anchor={PRO_PIN_ANCHOR}
-        >
-          <Pressable onPress={() => onProPress?.(pro)}>
-            <ProPin displayName={pro.display_name} />
-          </Pressable>
-        </Mapbox.MarkerView>
-      ))}
+      {/* Pro pins — clustered separately from activities so a tap on a
+          group never mixes the two entity types. Cluster pin reuses
+          the activity ClusterPin shape since the visual idiom carries
+          (a number-pill), but the geographic location is the
+          disambiguator (no activity pin sits at the same coord). */}
+      {proClusters.map((c) => {
+        const [lng, lat] = c.geometry.coordinates as [number, number];
+        const props = c.properties as Supercluster.ClusterProperties & { id?: string };
+        if (props.cluster) {
+          const count = props.point_count;
+          const clusterId = props.cluster_id;
+          return (
+            <Mapbox.MarkerView
+              key={`pro-cluster-${clusterId}`}
+              id={`pro-cluster-${clusterId}`}
+              coordinate={[lng, lat]}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <Pressable onPress={() => {
+                const expansionZoom = proCluster.getClusterExpansionZoom(clusterId);
+                const targetZoom = Math.min(expansionZoom + 1, 20);
+                cameraRef.current?.setCamera({
+                  centerCoordinate: [lng, lat],
+                  zoomLevel: targetZoom,
+                  animationDuration: 300,
+                });
+              }}>
+                <ClusterPin count={count} />
+              </Pressable>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        const pro = proMap.get((props as { id: string }).id);
+        if (!pro) return null;
+
+        return (
+          <Mapbox.MarkerView
+            key={`pro-${pro.user_id}`}
+            id={`pro-${pro.user_id}`}
+            coordinate={[lng, lat]}
+            anchor={PRO_PIN_ANCHOR}
+          >
+            <Pressable onPress={() => onProPress?.(pro)}>
+              <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
+            </Pressable>
+          </Mapbox.MarkerView>
+        );
+      })}
 
       {/* Popup rendered as a separate MarkerView AFTER all pins so it always stacks on top */}
       {selectedActivity && popupContent && (() => {

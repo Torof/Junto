@@ -875,6 +875,7 @@ export type Database = {
           instagram: string | null
           last_location_change_at: string
           phone: string | null
+          pin_image_url: string | null
           primary_lat: number
           primary_lng: number
           primary_location: unknown
@@ -894,6 +895,7 @@ export type Database = {
           instagram?: string | null
           last_location_change_at?: string
           phone?: string | null
+          pin_image_url?: string | null
           primary_lat: number
           primary_lng: number
           primary_location: unknown
@@ -913,6 +915,7 @@ export type Database = {
           instagram?: string | null
           last_location_change_at?: string
           phone?: string | null
+          pin_image_url?: string | null
           primary_lat?: number
           primary_lng?: number
           primary_location?: unknown
@@ -2690,6 +2693,10 @@ export type Database = {
         Returns: undefined
       }
       set_pro_banner: { Args: { p_banner_url?: string }; Returns: undefined }
+      set_pro_pin_image: {
+        Args: { p_pin_image_url?: string }
+        Returns: undefined
+      }
       share_activity_message: {
         Args: { p_activity_id: string; p_conversation_id: string }
         Returns: string
