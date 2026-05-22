@@ -858,6 +858,78 @@ export type Database = {
           },
         ]
       }
+      pro_offerings: {
+        Row: {
+          created_at: string
+          description: string
+          distance_km: number | null
+          duration: unknown | null
+          elevation_gain_m: number | null
+          id: string
+          image_url: string | null
+          level: string
+          location: unknown
+          location_name: string
+          max_participants: number | null
+          pro_id: string
+          schedule_text: string | null
+          sport_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          distance_km?: number | null
+          duration?: unknown | null
+          elevation_gain_m?: number | null
+          id?: string
+          image_url?: string | null
+          level: string
+          location: unknown
+          location_name: string
+          max_participants?: number | null
+          pro_id: string
+          schedule_text?: string | null
+          sport_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          distance_km?: number | null
+          duration?: unknown | null
+          elevation_gain_m?: number | null
+          id?: string
+          image_url?: string | null
+          level?: string
+          location?: unknown
+          location_name?: string
+          max_participants?: number | null
+          pro_id?: string
+          schedule_text?: string | null
+          sport_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_offerings_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pro_offerings_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pro_profiles: {
         Row: {
           banner_url: string | null
@@ -1846,6 +1918,47 @@ export type Database = {
           },
         ]
       }
+      pro_offerings_with_coords: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          distance_km: number | null
+          duration: unknown | null
+          elevation_gain_m: number | null
+          id: string | null
+          image_url: string | null
+          lat: number | null
+          level: string | null
+          lng: number | null
+          location_name: string | null
+          max_participants: number | null
+          pro_id: string | null
+          pro_name: string | null
+          schedule_text: string | null
+          sport_category: string | null
+          sport_icon: string | null
+          sport_id: string | null
+          sport_key: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_offerings_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pro_offerings_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_participants: {
         Row: {
           activity_id: string | null
@@ -2185,6 +2298,23 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: string
       }
+      create_pro_offering: {
+        Args: {
+          p_description: string
+          p_distance_km?: number
+          p_duration?: string
+          p_elevation_gain_m?: number
+          p_level: string
+          p_location_lat: number
+          p_location_lng: number
+          p_location_name: string
+          p_max_participants?: number
+          p_schedule_text?: string
+          p_sport_id: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_report: {
         Args: { p_reason: string; p_target_id: string; p_target_type: string }
         Returns: string
@@ -2198,6 +2328,10 @@ export type Database = {
         Returns: undefined
       }
       delete_own_account: { Args: never; Returns: undefined }
+      delete_pro_offering: {
+        Args: { p_offering_id: string }
+        Returns: undefined
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -2687,6 +2821,10 @@ export type Database = {
         Returns: undefined
       }
       set_pro_banner: { Args: { p_banner_url?: string }; Returns: undefined }
+      set_pro_offering_image: {
+        Args: { p_image_url?: string; p_offering_id: string }
+        Returns: undefined
+      }
       set_pro_pin_image: {
         Args: { p_pin_image_url?: string }
         Returns: undefined
@@ -3310,6 +3448,24 @@ export type Database = {
       }
       update_activity_trace: {
         Args: { p_activity_id: string; p_trace_geojson: Json }
+        Returns: undefined
+      }
+      update_pro_offering: {
+        Args: {
+          p_description: string
+          p_distance_km?: number
+          p_duration?: string
+          p_elevation_gain_m?: number
+          p_level: string
+          p_location_lat: number
+          p_location_lng: number
+          p_location_name: string
+          p_max_participants?: number
+          p_offering_id: string
+          p_schedule_text?: string
+          p_sport_id: string
+          p_title: string
+        }
         Returns: undefined
       }
       update_pro_profile: {
