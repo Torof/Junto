@@ -207,6 +207,29 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>
             </View>
 
+            {/* Pro entry — routes to /(auth)/pro/[user_id] for existing
+                pros (view + edit affordance), or to /(auth)/pro/edit
+                for the register form when not yet a pro. */}
+            <Pressable
+              style={styles.row}
+              onPress={async () => {
+                onClose();
+                if (user?.tier === 'pro') {
+                  const uid = (await supabase.auth.getUser()).data.user?.id;
+                  if (uid) router.push(`/(auth)/pro/${uid}`);
+                } else {
+                  router.push('/(auth)/pro/edit');
+                }
+              }}
+            >
+              <Text style={styles.rowLabel}>
+                {user?.tier === 'pro'
+                  ? t('drawer.myProPage', { defaultValue: 'Ma page pro' })
+                  : t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
+              </Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
+
             {/* Preferences section */}
             <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
 

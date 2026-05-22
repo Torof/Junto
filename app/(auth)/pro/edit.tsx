@@ -1,39 +1,400 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useMemo } from 'react';
+import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { proService } from '@/services/pro-service';
+import { getFriendlyError } from '@/utils/friendly-error';
+import { LogoSpinner } from '@/components/logo-spinner';
+import { JuntoMapView } from '@/components/map-view';
+import { useInitialLocation } from '@/hooks/use-initial-location';
 
-// Placeholder — the register / edit form lands in Phase 1.5.
-// Existing pros land here when they tap the pencil on their own page.
-// New pros will land here from the settings drawer's "Register as pro"
-// entry once that's wired.
 export default function ProEditScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { center } = useInitialLocation();
+
+  const { data: existing, isLoading } = useQuery({
+    queryKey: ['pro-profile-mine'],
+    queryFn: () => proService.getMine(),
+  });
+
+  const isUpdate = !!existing;
+
+  const [displayName, setDisplayName] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [description, setDescription] = useState('');
+  const [website, setWebsite] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [pinLng, setPinLng] = useState<number | null>(null);
+  const [pinLat, setPinLat] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Once the existing profile loads, hydrate the form. Falling through
+  // to defaults if the user is new (no profile yet).
+  useEffect(() => {
+    if (!existing) return;
+    setDisplayName(existing.display_name);
+    setTagline(existing.tagline ?? '');
+    setDescription(existing.description ?? '');
+    setWebsite(existing.website ?? '');
+    setEmail(existing.email ?? '');
+    setPhone(existing.phone ?? '');
+    setInstagram(existing.instagram ?? '');
+    setFacebook(existing.facebook ?? '');
+    setLocationName(existing.primary_location_name);
+    setPinLng(existing.primary_lng);
+    setPinLat(existing.primary_lat);
+  }, [existing]);
+
+  const handleMapPress = (lng: number, lat: number) => {
+    setPinLng(lng);
+    setPinLat(lat);
+  };
+
+  // Location-change rate limit is enforced at the DB level; surface it
+  // to the user before submit so they don't get a generic "not
+  // permitted" toast.
+  const lastChange = existing?.last_location_change_at;
+  const locationLocked = useMemo(() => {
+    if (!lastChange) return false;
+    const elapsed = Date.now() - new Date(lastChange).getTime();
+    return elapsed < 30 * 24 * 60 * 60 * 1000;
+  }, [lastChange]);
+  const locationChanged =
+    existing != null &&
+    (pinLng !== existing.primary_lng || pinLat !== existing.primary_lat || locationName.trim() !== existing.primary_location_name);
+
+  const canSubmit =
+    displayName.trim().length >= 1 &&
+    pinLng !== null &&
+    pinLat !== null &&
+    locationName.trim().length >= 1 &&
+    !(locationChanged && locationLocked) &&
+    !saving;
+
+  const handleSubmit = async () => {
+    if (!canSubmit || pinLng === null || pinLat === null) return;
+    setSaving(true);
+    try {
+      const payload = {
+        display_name: displayName.trim(),
+        tagline: tagline.trim() || null,
+        description: description.trim() || null,
+        website: website.trim() || null,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        instagram: instagram.trim() || null,
+        facebook: facebook.trim() || null,
+        primary_lng: pinLng,
+        primary_lat: pinLat,
+        primary_location_name: locationName.trim(),
+      };
+      if (isUpdate) {
+        // Only send location when it actually changed — otherwise the
+        // RPC's "primary_lng/lat must come together" guard rejects.
+        if (!locationChanged) {
+          await proService.update({
+            display_name: payload.display_name,
+            tagline: payload.tagline,
+            description: payload.description,
+            website: payload.website,
+            email: payload.email,
+            phone: payload.phone,
+            instagram: payload.instagram,
+            facebook: payload.facebook,
+          });
+        } else {
+          await proService.update(payload);
+        }
+      } else {
+        await proService.register(payload);
+      }
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      Burnt.toast({ title: t('pro.saved', { defaultValue: 'Page pro enregistrée' }), preset: 'done' });
+      router.back();
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return <View style={styles.center}><LogoSpinner size={48} /></View>;
+  }
+
   return (
-    <View style={styles.center}>
-      <Text style={styles.placeholder}>
-        {t('pro.editComingSoon', { defaultValue: 'Édition de la page pro — bientôt.' })}
-      </Text>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>
+          {isUpdate ? t('pro.editTitle', { defaultValue: 'Modifier ta page pro' }) : t('pro.registerTitle', { defaultValue: 'Devenir pro' })}
+        </Text>
+        <Text style={styles.subtitle}>
+          {t('pro.registerSubtitle', {
+            defaultValue: 'Crée la page publique de ton activité, club ou structure.',
+          })}
+        </Text>
+
+        <Field label={t('pro.fieldName', { defaultValue: 'Nom *' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder={t('pro.fieldNamePlaceholder', { defaultValue: 'Junto Alpine School' })}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={100}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldTagline', { defaultValue: 'Slogan' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={tagline}
+            onChangeText={setTagline}
+            placeholder={t('pro.fieldTaglinePlaceholder', { defaultValue: 'Une phrase courte qui te décrit' })}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={120}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldDescription', { defaultValue: 'Description' })} styles={styles}>
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder={t('pro.fieldDescriptionPlaceholder', { defaultValue: 'Présente ce que tu proposes en détail.' })}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={2000}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+          />
+        </Field>
+
+        <Text style={styles.section}>{t('pro.contactSection', { defaultValue: 'Contact' })}</Text>
+
+        <Field label={t('pro.fieldWebsite', { defaultValue: 'Site web' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={website}
+            onChangeText={setWebsite}
+            placeholder="https://..."
+            placeholderTextColor={colors.textSecondary}
+            autoCapitalize="none"
+            keyboardType="url"
+            maxLength={200}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldEmail', { defaultValue: 'Email' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="contact@..."
+            placeholderTextColor={colors.textSecondary}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            maxLength={200}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldPhone', { defaultValue: 'Téléphone' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="+33 6 ..."
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="phone-pad"
+            maxLength={30}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldInstagram', { defaultValue: 'Instagram' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={instagram}
+            onChangeText={setInstagram}
+            placeholder="@junto.alpine"
+            placeholderTextColor={colors.textSecondary}
+            autoCapitalize="none"
+            maxLength={100}
+          />
+        </Field>
+
+        <Field label={t('pro.fieldFacebook', { defaultValue: 'Facebook' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={facebook}
+            onChangeText={setFacebook}
+            placeholder="page-ou-url"
+            placeholderTextColor={colors.textSecondary}
+            autoCapitalize="none"
+            maxLength={200}
+          />
+        </Field>
+
+        <Text style={styles.section}>{t('pro.locationSection', { defaultValue: 'Localisation *' })}</Text>
+        <Text style={styles.helper}>
+          {locationLocked
+            ? t('pro.locationLocked', { defaultValue: 'Tu pourras déplacer ton emplacement après 30 jours.' })
+            : t('pro.locationHelper', { defaultValue: 'Tape sur la carte pour placer ton emplacement principal.' })}
+        </Text>
+
+        <View style={[styles.mapContainer, locationLocked && styles.mapContainerLocked]}>
+          <JuntoMapView
+            center={pinLng !== null && pinLat !== null ? [pinLng, pinLat] : center}
+            zoom={12}
+            onMapPress={locationLocked ? undefined : handleMapPress}
+            pins={
+              pinLng !== null && pinLat !== null
+                ? [{ id: 'pro', coordinate: [pinLng, pinLat], color: colors.cta }]
+                : []
+            }
+          />
+        </View>
+
+        <Field label={t('pro.fieldLocationName', { defaultValue: 'Adresse / ville *' })} styles={styles}>
+          <TextInput
+            style={styles.input}
+            value={locationName}
+            onChangeText={setLocationName}
+            placeholder={t('pro.fieldLocationNamePlaceholder', { defaultValue: 'Briançon, Hautes-Alpes' })}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={200}
+          />
+        </Field>
+
+        <Pressable
+          style={[styles.submit, (!canSubmit) && styles.submitDisabled]}
+          onPress={handleSubmit}
+          disabled={!canSubmit}
+        >
+          <Text style={styles.submitText}>
+            {saving
+              ? '...'
+              : isUpdate
+                ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
+                : t('pro.register', { defaultValue: 'Devenir pro' })}
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function Field({
+  label,
+  children,
+  styles,
+}: {
+  label: string;
+  children: React.ReactNode;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      {children}
     </View>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  title: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xl,
+    fontFamily: fonts.title,
+    marginBottom: spacing.xs,
   },
-  placeholder: {
+  subtitle: {
     color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    marginBottom: spacing.lg,
+  },
+  section: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  helper: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    marginBottom: spacing.sm,
+  },
+  field: { marginBottom: spacing.md },
+  fieldLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    marginBottom: spacing.xs - 2,
+  },
+  input: {
+    backgroundColor: 'transparent',
+    color: colors.textPrimary,
     fontSize: fontSizes.md,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.sm,
+  },
+  textarea: {
+    minHeight: 110,
+  },
+  mapContainer: {
+    height: 220,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  mapContainerLocked: {
+    opacity: 0.55,
+  },
+  submit: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  submitDisabled: { opacity: 0.4 },
+  submitText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
   },
 });
