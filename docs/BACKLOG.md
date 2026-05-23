@@ -6,7 +6,7 @@
 
 ## Statut actuel
 
-L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth email/password (avec reset password via deep link, login redesigné), carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority, activités open sans cap), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests (avec auto-expiry 30j) + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges + auto-expiry des demandes pending), gear declaration system, **présence V3** (geofencing background + foreground watcher + offline replay + QR + peer review threshold-based), **notif spine simplifié** (pre_warning T-2h / validate_now T0 / validate_warning T+duration/2 / peer_review_closing T+22h), reliability score Bayésien, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark + segmented pill, tutorial, **badges progression V2** (joined/created/sport × t1-t5), reputation badges peer-voted, web landing page (getjunto.app) avec auth callback + reset password bridges, pages légales, Sentry breadcrumbs sur le presence flow.
+L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth email/password (avec reset password via deep link, login redesigné), carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority, activités open sans cap), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests (avec auto-expiry 30j) + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges + auto-expiry des demandes pending), gear declaration system, **présence V3** (geofencing background + foreground watcher + offline replay + QR + peer review threshold-based), **notif spine simplifié** (pre_warning T-2h / validate_now T0 / validate_warning T+duration/2 / peer_review_closing T+22h), reliability score Bayésien, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark + segmented pill, tutorial, **badges progression V2** (joined/created/sport × t1-t5), reputation badges peer-voted, **Pro V1** (vitrine `pro_profiles` + catalogue `pro_offerings`, pin hexagone sur la carte, écrans détail + édition), web landing page (getjunto.app) avec auth callback + reset password bridges, pages légales, Sentry breadcrumbs sur le presence flow.
 
 **Ce qui reste avant launch public** : Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), CGU finalisées, Play Store prep, custom SMTP pour le sender email.
 
@@ -27,6 +27,10 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
+
+### Pro — Phase 4 (galerie photo + avis)
+- [ ] **Galerie photo** par offering et par pro (cap 25 photos / surface). Table `pro_offering_photos` + `pro_profile_photos`, multi-pick upload, réordonnancement, suppression. Remplace le `image_url` standalone sur `pro_offerings` (la 1ère photo de la galerie devient le hero — voir memory `project_phase4_offering_gallery.md`). Onglets "Photos" sur `pro/[id]` et `pro/offering/[id]` sont des placeholders qui attendent ce chantier.
+- [ ] **Système d'avis** (`pro_reviews` + `offering_reviews`). Gating par présence confirmée (un user ne peut laisser un avis que sur une activité où il a participé, ou via un mécanisme analogue pour les offerings — Scott à fixer). Onglets "Avis" sur `pro/[id]` et `pro/offering/[id]` attendent.
 
 
 ## Reliability score — questions ouvertes

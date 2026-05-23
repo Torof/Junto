@@ -13,7 +13,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
@@ -60,8 +60,10 @@ export default function ProOfferingEditScreen() {
   });
 
   // Guard: only pros can be here. If the user lost pro tier or never
-  // had a pro profile, bounce back. Server enforces this too.
-  const { data: pro } = useQuery({
+  // had a pro profile, bounce back. Server enforces this too — this is
+  // UX so a non-pro who lands on the URL doesn't sit on an infinite
+  // spinner.
+  const { data: pro, isLoading: isProLoading } = useQuery({
     queryKey: ['pro-profile-mine'],
     queryFn: () => proService.getMine(),
   });
@@ -257,15 +259,18 @@ export default function ProOfferingEditScreen() {
     }
   };
 
-  if (!pro) {
-    // Either still loading or not a pro. In either case nothing to
-    // show; server enforces tier anyway so showing a spinner during
-    // the brief loading window is safe.
+  if (isProLoading) {
     return (
       <SafeAreaView style={styles.center}>
         <LogoSpinner />
       </SafeAreaView>
     );
+  }
+  if (!pro) {
+    // Loaded but the user has no pro profile — they shouldn't be on
+    // this screen. Bounce to the map; the create button on the pro
+    // page is the canonical entry point.
+    return <Redirect href="/(auth)/(tabs)/carte" />;
   }
 
   if (isEdit && isLoading) {
