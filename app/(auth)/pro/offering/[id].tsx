@@ -132,14 +132,20 @@ export default function ProOfferingDetailScreen() {
             <Image source={{ uri: offering.image_url }} style={styles.banner} resizeMode="cover" />
           )}
 
-          {/* === HERO === sport-color banner + plain footer, mirrors
-              activity-detail's hero so the offering reads as "same
-              family as a spontaneous activity, just permanent". */}
+          {/* === HERO === Restrained variant — keeps the structure of
+              the activity-detail hero (sport label, decorative icon,
+              big title) but drops the full sport-color background.
+              Sport identity comes through the accent-colored label
+              and a low-opacity decorative emoji. */}
           <View style={styles.heroCard}>
-            <View style={[styles.heroBanner, { backgroundColor: accentColor }]}>
-              <Text style={styles.heroSportDecor}>{getSportIcon(offering.sport_key)}</Text>
-              <Text style={styles.heroSportLabel}>{sportLabel}</Text>
-              <Text style={styles.heroTitleInverse}>{offering.title}</Text>
+            <View style={styles.heroBanner}>
+              <Text style={[styles.heroSportDecor, { color: accentColor }]}>
+                {getSportIcon(offering.sport_key)}
+              </Text>
+              <Text style={[styles.heroSportLabel, { color: accentColor }]}>
+                {sportLabel}
+              </Text>
+              <Text style={styles.heroTitle}>{offering.title}</Text>
             </View>
             <View style={styles.heroFooter}>
               <View style={styles.heroFooterLeft}>
@@ -274,29 +280,31 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
   heroBanner: {
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.md,
     position: 'relative',
   },
+  // Decorative sport emoji at top-right. Same low opacity as the
+  // activity-detail decor so the page reads as quietly sport-flavored
+  // instead of shouting the category color.
   heroSportDecor: {
     position: 'absolute',
     top: spacing.sm,
     right: spacing.md,
     fontSize: 56,
-    opacity: 0.35,
+    opacity: 0.18,
   },
   heroSportLabel: {
-    color: '#FFFFFF',
     fontSize: fontSizes.xs,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    opacity: 0.9,
     marginBottom: spacing.xs,
   },
-  heroTitleInverse: {
-    color: '#FFFFFF',
+  heroTitle: {
+    color: colors.textPrimary,
     fontSize: fontSizes.xxl,
     fontFamily: fonts.title,
     letterSpacing: -0.5,
@@ -310,6 +318,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMuted,
   },
   heroFooterLeft: { flex: 1 },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 4 },

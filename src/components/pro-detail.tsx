@@ -10,6 +10,7 @@ import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
 import { proOfferingService } from '@/services/pro-offering-service';
+import { userService } from '@/services/user-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView } from './map-view';
 
@@ -35,6 +36,13 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
     queryFn: () => proOfferingService.getByProId(pro.user_id),
     enabled: activeTab === 'catalog',
+  });
+
+  // Underlying human behind the pro brand — exposed as a small avatar
+  // in the hero so visitors can jump to the user's personal profile.
+  const { data: ownerProfile } = useQuery({
+    queryKey: ['public-profile', pro.user_id],
+    queryFn: () => userService.getPublicProfile(pro.user_id),
   });
 
   const hasContact = Boolean(pro.phone || pro.email || pro.website || pro.instagram || pro.facebook);
@@ -100,15 +108,38 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
                 <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
                 <Text style={styles.heroTitle}>{pro.display_name}</Text>
               </View>
-              {isOwner && onEdit && (
-                <Pressable
-                  onPress={onEdit}
-                  hitSlop={10}
-                  accessibilityLabel={t('pro.editPage', { defaultValue: 'Edit pro page' })}
-                >
-                  <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
-                </Pressable>
-              )}
+              <View style={styles.heroActions}>
+                {/* Owner's user avatar — discloses the human behind the
+                    pro brand. Taps through to /profile/[user_id]. Shown
+                    to everyone (including the owner — they can still
+                    visit their own profile from here). */}
+                {ownerProfile && (
+                  <Pressable
+                    onPress={() => router.push(`/(auth)/profile/${pro.user_id}`)}
+                    hitSlop={6}
+                    accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}
+                  >
+                    {ownerProfile.avatar_url ? (
+                      <Image source={{ uri: ownerProfile.avatar_url }} style={styles.ownerAvatar} />
+                    ) : (
+                      <View style={[styles.ownerAvatar, styles.ownerAvatarPlaceholder]}>
+                        <Text style={styles.ownerAvatarInitial}>
+                          {ownerProfile.display_name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
+                )}
+                {isOwner && onEdit && (
+                  <Pressable
+                    onPress={onEdit}
+                    hitSlop={10}
+                    accessibilityLabel={t('pro.editPage', { defaultValue: 'Edit pro page' })}
+                  >
+                    <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
+                  </Pressable>
+                )}
+              </View>
             </View>
             {pro.tagline && <Text style={styles.tagline}>{pro.tagline}</Text>}
             <View style={styles.locationRow}>
@@ -384,6 +415,32 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  // Small circular avatar — discloses the owner of the pro brand
+  // without competing with the pro identity. Tap = jump to the user's
+  // personal profile.
+  ownerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  ownerAvatarPlaceholder: {
+    backgroundColor: colors.cta,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ownerAvatarInitial: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
   },
   proLabel: {
     color: colors.cta,
