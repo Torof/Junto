@@ -53,6 +53,13 @@ interface ActivityDetailProps {
   onJoinRedirect?: () => void;
 }
 
+// Per-session memory of activities whose creator QR has already been
+// auto-opened. Prevents re-opening the modal when the user dismisses
+// it, navigates away, and returns to the same activity later in the
+// session. Resets on app restart — a fresh launch gets a fresh shot
+// at the auto-show.
+const autoShownQrFor = new Set<string>();
+
 export function ActivityDetail({
   activity,
   participation,
@@ -365,6 +372,38 @@ export function ActivityDetail({
       clearInterval(interval);
     };
   }, [canCheckIn, canConfirmGeo, activity.id, activity.lat, activity.lng, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, queryClient, t]);
+
+  // Auto-show the creator's QR modal once the QR window opens
+  // (T-15min). Reduces dependency on the reminder push + the manual
+  // "Show QR" tap — if the creator is on the screen when T-15min
+  // arrives, the modal opens itself. autoShownQrFor scopes the
+  // "shown" memory to the session, so the modal doesn't reopen after
+  // the creator closes it and navigates away + back.
+  useEffect(() => {
+    if (!isCreator || !requiresPresence) return;
+    if (autoShownQrFor.has(activity.id)) return;
+
+    const openAtMs = startsAtMs - 15 * 60 * 1000;
+    const closeAtMs = startsAtMs + durationMs + 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (now >= closeAtMs) return; // window already past
+
+    if (now >= openAtMs) {
+      autoShownQrFor.add(activity.id);
+      setShowQrModal(true);
+      return;
+    }
+
+    // Window opens in the future — schedule the auto-show.
+    const timer = setTimeout(() => {
+      if (autoShownQrFor.has(activity.id)) return;
+      autoShownQrFor.add(activity.id);
+      setShowQrModal(true);
+    }, openAtMs - now);
+
+    return () => clearTimeout(timer);
+  }, [isCreator, requiresPresence, activity.id, startsAtMs, durationMs]);
 
   const handleCheckIn = async () => {
     setIsConfirming(true);
