@@ -5,6 +5,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
+import { authService } from '@/services/auth-service';
 
 const SUPPORT_EMAIL = 'support@junto.app';
 
@@ -14,7 +15,7 @@ export default function SuspendedScreen() {
   const { t } = useTranslation();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await authService.signOut();
   };
 
   const handleContact = () => {
@@ -36,7 +37,7 @@ export default function SuspendedScreen() {
               onPress: async () => {
                 try {
                   await supabase.rpc('delete_own_account' as 'accept_tos');
-                  await supabase.auth.signOut();
+                  await authService.signOut();
                 } catch {
                   Alert.alert(t('auth.error'), t('auth.unknownError'));
                 }

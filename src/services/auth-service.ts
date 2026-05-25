@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { pushTokenService } from './push-token-service';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
 
@@ -22,6 +23,11 @@ export const authService = {
   },
 
   signOut: async () => {
+    // Best-effort: revoke this device's push token BEFORE clearing
+    // the session so the RPC runs while we still have auth. If the
+    // session is already gone, the revoke silently no-ops inside the
+    // service.
+    await pushTokenService.revokeForCurrentDevice();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },

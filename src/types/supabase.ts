@@ -2781,6 +2781,10 @@ export type Database = {
         Returns: string
       }
       revoke_push_token: { Args: { p_token: string }; Returns: undefined }
+      revoke_push_token_for_device: {
+        Args: { p_device_id: string }
+        Returns: undefined
+      }
       revoke_reputation_badge: {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
         Returns: undefined

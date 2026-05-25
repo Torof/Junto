@@ -356,7 +356,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                                 // RPC alone leaves auth orphaned). AUDIT.md C1.
                                 const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
                                 if (error) throw error;
-                                await supabase.auth.signOut();
+                                await authService.signOut();
                                 onClose();
                               } catch {
                                 Alert.alert(t('auth.error'), t('auth.unknownError'));
