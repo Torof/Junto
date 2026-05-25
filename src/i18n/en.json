@@ -1036,6 +1036,7 @@
     "atActivity": "You're at the activity location",
     "atActivitySubtitle": "Your position was detected — confirm to record your presence.",
     "mustBeAtLocation": "You must be at the activity location to confirm.",
+    "distanceAway": "{{distance}} away from the meeting point · get within 150 m to confirm.",
     "alreadyConfirmed": "Presence confirmed",
     "locationPermissionDenied": "Enable location to confirm your presence.",
     "scanQr": "Scan QR",

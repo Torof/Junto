@@ -176,6 +176,11 @@ export function ActivityDetail({
   const [showFullMap, setShowFullMap] = useState(false);
   const [fullMapFly, setFullMapFly] = useState<{ coordinate: [number, number]; key: number; zoom?: number } | null>(null);
   const [isAtActivity, setIsAtActivity] = useState(false);
+  // Foreground distance to the nearest meeting point. null until the
+  // first position fix lands; surfaced in the presence widget so a
+  // user fails-loud at 160m rather than wondering why nothing
+  // confirms automatically.
+  const [distanceToActivityM, setDistanceToActivityM] = useState<number | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -317,6 +322,7 @@ export function ActivityDetail({
         const nowAt = minDist <= 150;
         if (cancelled) return;
         setIsAtActivity(nowAt);
+        setDistanceToActivityM(Math.round(minDist));
 
         // Fire once when the user enters the zone (transition false → true)
         if (nowAt && !alertedAt) {
@@ -628,7 +634,16 @@ export function ActivityDetail({
                   </Text>
                 </View>
                 <Text style={styles.presenceSubtitle}>
-                  {isAtActivity ? t('presence.atActivitySubtitle') : t('presence.mustBeAtLocation')}
+                  {isAtActivity
+                    ? t('presence.atActivitySubtitle')
+                    : distanceToActivityM != null
+                      ? t('presence.distanceAway', {
+                          distance: distanceToActivityM < 1000
+                            ? `${distanceToActivityM} m`
+                            : `${(distanceToActivityM / 1000).toFixed(1)} km`,
+                          defaultValue: `À ${distanceToActivityM < 1000 ? `${distanceToActivityM} m` : `${(distanceToActivityM / 1000).toFixed(1)} km`} du point de rendez-vous`,
+                        })
+                      : t('presence.mustBeAtLocation')}
                 </Text>
                 <View style={styles.presenceActions}>
                   {canConfirmGeo && (
