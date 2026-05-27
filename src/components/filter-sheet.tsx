@@ -39,6 +39,10 @@ interface FilterSheetProps {
   // state). mes-activites passes useMyActivitiesFilterStore so its
   // filter modal operates on independent state.
   useStore?: typeof useMapStore;
+  // Show the Activités/Pros entity-type checkboxes. Defaults true
+  // (map context). mes-activites passes false — that screen surfaces
+  // catalog via a dedicated sub-tab, not the entity filter.
+  showEntityFilter?: boolean;
 }
 
 export function FilterSheet({
@@ -47,6 +51,7 @@ export function FilterSheet({
   hideAlertsTab = false,
   showSortTab = false,
   useStore = useMapStore,
+  showEntityFilter = true,
 }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -61,6 +66,8 @@ export function FilterSheet({
     setRadiusKm,
     setSortBy,
     setSortDir,
+    toggleShowActivities,
+    toggleShowProOfferings,
     resetFilters,
   } = useStore();
   const [showRangeFrom, setShowRangeFrom] = useState(false);
@@ -133,6 +140,9 @@ export function FilterSheet({
               setRadiusKm={setRadiusKm}
               setSortBy={setSortBy}
               setSortDir={setSortDir}
+              toggleShowActivities={toggleShowActivities}
+              toggleShowProOfferings={toggleShowProOfferings}
+              showEntityFilter={showEntityFilter}
               resetFilters={resetFilters}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
@@ -182,6 +192,9 @@ interface FiltersTabProps {
   setRadiusKm: (km: number | null) => void;
   setSortBy: (s: SortBy) => void;
   setSortDir: (d: SortDir) => void;
+  toggleShowActivities: () => void;
+  toggleShowProOfferings: () => void;
+  showEntityFilter: boolean;
   resetFilters: () => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
@@ -197,7 +210,8 @@ interface FiltersTabProps {
 
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
-  toggleLevelTier, setRadiusKm, setSortBy, setSortDir, resetFilters,
+  toggleLevelTier, setRadiusKm, setSortBy, setSortDir,
+  toggleShowActivities, toggleShowProOfferings, showEntityFilter, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors, useStore,
 }: FiltersTabProps) {
@@ -283,6 +297,44 @@ function FiltersTab({
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Entity-type filter — controls what shows on the map AND in
+            the drawer. Both on by default; user opts out per type.
+            Hidden in mes-activites context (no offerings shown there
+            via this filter; the Catalogue sub-tab handles it). */}
+        {showEntityFilter && (
+        <View style={styles.typeSection}>
+          <Text style={styles.sectionTitle}>{t('map.showLabel', { defaultValue: 'Afficher' })}</Text>
+          <View style={styles.typeRow}>
+            <Pressable
+              style={[styles.typeChip, filters.showActivities && styles.typeChipActive]}
+              onPress={toggleShowActivities}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: filters.showActivities }}
+            >
+              <View style={[styles.typeCheckbox, filters.showActivities && styles.typeCheckboxOn]}>
+                {filters.showActivities && <Text style={styles.typeCheckboxMark}>✓</Text>}
+              </View>
+              <Text style={[styles.typeChipText, filters.showActivities && styles.typeChipTextActive]}>
+                {t('map.typeActivities', { defaultValue: 'Activités' })}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.typeChip, filters.showProOfferings && styles.typeChipActive]}
+              onPress={toggleShowProOfferings}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: filters.showProOfferings }}
+            >
+              <View style={[styles.typeCheckbox, filters.showProOfferings && styles.typeCheckboxOn]}>
+                {filters.showProOfferings && <Text style={styles.typeCheckboxMark}>✓</Text>}
+              </View>
+              <Text style={[styles.typeChipText, filters.showProOfferings && styles.typeChipTextActive]}>
+                {t('map.typePros', { defaultValue: 'Pros' })}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+        )}
+
         {/* Radius */}
         <View style={styles.radiusHeader}>
           <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
@@ -618,6 +670,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
 
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.sm, marginTop: spacing.sm },
+  typeSection: { marginBottom: spacing.sm },
+  typeRow: { flexDirection: 'row', gap: spacing.sm },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.sm + 2,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    flex: 1,
+  },
+  typeChipActive: { borderColor: colors.cta, borderWidth: 2 },
+  typeChipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  typeChipTextActive: { color: colors.textPrimary, fontWeight: '700' },
+  typeCheckbox: {
+    width: 18, height: 18, borderRadius: 3,
+    borderWidth: 1.5, borderColor: colors.borderMuted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  typeCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  typeCheckboxMark: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
   radiusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: spacing.sm, marginBottom: spacing.sm },
   radiusValue: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },

@@ -23,6 +23,12 @@ interface MapFilters {
   radiusKm: number | null;
   sortBy: SortBy;
   sortDir: SortDir;
+  // Carried only to keep the structural contract with useMapStore
+  // (the FilterSheet types its `useStore` prop against that). Never
+  // surfaced in the mes-activites filter sheet — the entity-type
+  // section is hidden there via showEntityFilter=false.
+  showActivities: boolean;
+  showProOfferings: boolean;
 }
 
 interface FilterStore {
@@ -36,6 +42,8 @@ interface FilterStore {
   setRadiusKm: (km: number | null) => void;
   setSortBy: (sort: SortBy) => void;
   setSortDir: (dir: SortDir) => void;
+  toggleShowActivities: () => void;
+  toggleShowProOfferings: () => void;
   resetFilters: () => void;
 }
 
@@ -50,6 +58,8 @@ const DEFAULT_FILTERS: MapFilters = {
   radiusKm: null,
   sortBy: null,
   sortDir: 'asc',
+  showActivities: true,
+  showProOfferings: true,
 };
 
 export const useMyActivitiesFilterStore = create<FilterStore>((set) => ({
@@ -93,5 +103,9 @@ export const useMyActivitiesFilterStore = create<FilterStore>((set) => ({
     set((state) => ({ filters: { ...state.filters, sortBy } })),
   setSortDir: (sortDir) =>
     set((state) => ({ filters: { ...state.filters, sortDir } })),
+  toggleShowActivities: () =>
+    set((state) => ({ filters: { ...state.filters, showActivities: !state.filters.showActivities } })),
+  toggleShowProOfferings: () =>
+    set((state) => ({ filters: { ...state.filters, showProOfferings: !state.filters.showProOfferings } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));

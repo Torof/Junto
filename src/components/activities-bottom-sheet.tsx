@@ -8,18 +8,29 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { type ProOffering } from '@/services/pro-offering-service';
 import { distanceMeters } from '@/utils/geo';
 import { ActivityCard } from './activity-card';
+import { ProOfferingCard } from './pro-offering-card';
 import { DrawerFilterBar } from './drawer-filter-bar';
 
 interface Props {
   activities: NearbyActivity[];
+  proOfferings?: ProOffering[];
   userLocation: [number, number];
   onItemPress?: (activity: NearbyActivity) => void;
+  onProOfferingPress?: (offering: ProOffering) => void;
   filterLabel?: string;
   onClearFilter?: () => void;
   onCollapse?: () => void;
 }
+
+// Unified item shape so the FlatList can render either entity in the
+// same scroll. Activities come first (time-pressing), offerings after
+// (always-available catalog).
+type ListItem =
+  | { kind: 'activity'; data: NearbyActivity; distance: number }
+  | { kind: 'offering'; data: ProOffering; distance: number };
 
 export interface ActivitiesBottomSheetHandle {
   expand: () => void;
@@ -63,7 +74,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
 
 export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
   function ActivitiesBottomSheet(
-    { activities, userLocation, onItemPress, filterLabel, onClearFilter, onCollapse },
+    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, filterLabel, onClearFilter, onCollapse },
     ref,
   ) {
   const { t } = useTranslation();
@@ -79,14 +90,25 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     collapse: () => sheetRef.current?.snapToIndex(0),
   }), []);
 
-  // The parent (useFilteredActivities) already applies the user's chosen
-  // sort. We only enrich each row with a distance value here for display.
-  const sorted = useMemo(() => {
-    return activities.map((a) => ({
-      ...a,
+  // Activities keep the parent's chosen sort (useFilteredActivities).
+  // Offerings are sorted by distance ascending — they're atemporal so
+  // there's no other meaningful axis. Concatenated activities-first
+  // so the time-pressing surface stays at the top.
+  const items = useMemo<ListItem[]>(() => {
+    const acts: ListItem[] = activities.map((a) => ({
+      kind: 'activity',
+      data: a,
       distance: distanceMeters(userLocation[1], userLocation[0], a.lat, a.lng) / 1000,
     }));
-  }, [activities, userLocation]);
+    const offs: ListItem[] = proOfferings
+      .map((o) => ({
+        kind: 'offering' as const,
+        data: o,
+        distance: distanceMeters(userLocation[1], userLocation[0], o.lat, o.lng) / 1000,
+      }))
+      .sort((a, b) => a.distance - b.distance);
+    return [...acts, ...offs];
+  }, [activities, proOfferings, userLocation]);
 
   return (
     <BottomSheet
@@ -97,7 +119,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => (
         <TabHandle
-          count={sorted.length}
+          count={items.length}
           label={t('map.seeList')}
           onExpand={() => sheetRef.current?.snapToIndex(2)}
           filterLabel={filterLabel}
@@ -117,22 +139,36 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       activeOffsetY={[-10, 10]}
     >
       <BottomSheetFlatList
-        data={sorted}
-        keyExtractor={(item) => item.id}
+        data={items}
+        keyExtractor={(item) => `${item.kind}-${item.data.id}`}
         contentContainerStyle={styles.list}
         ListHeaderComponent={DrawerFilterBar}
         stickyHeaderIndices={[0]}
-        renderItem={({ item }) => (
-          <ActivityCard
-            activity={item}
-            distanceKm={item.distance}
-            showCreator={false}
-            onPress={() => {
-              if (onItemPress) onItemPress(item);
-              router.push(`/(auth)/activity/${item.id}`);
-            }}
-          />
-        )}
+        renderItem={({ item }) => {
+          if (item.kind === 'activity') {
+            return (
+              <ActivityCard
+                activity={item.data}
+                distanceKm={item.distance}
+                showCreator={false}
+                onPress={() => {
+                  if (onItemPress) onItemPress(item.data);
+                  router.push(`/(auth)/activity/${item.data.id}`);
+                }}
+              />
+            );
+          }
+          return (
+            <ProOfferingCard
+              offering={item.data}
+              distanceKm={item.distance}
+              onPress={() => {
+                if (onProOfferingPress) onProOfferingPress(item.data);
+                router.push(`/(auth)/pro/offering/${item.data.id}`);
+              }}
+            />
+          );
+        }}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyText}>{t('search.noResults')}</Text>

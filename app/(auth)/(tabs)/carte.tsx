@@ -95,6 +95,13 @@ export default function CarteScreen() {
   const { data: proOfferings } = useNearbyProOfferings(searchBounds);
   const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
   const radiusKm = useMapStore((s) => s.filters.radiusKm);
+  // Entity-type filter — both default true; the filter sheet's
+  // Activités / Pros checkboxes flip these. Empty arrays go to both
+  // the map (no pins of that type) and the bottom-sheet drawer.
+  const showActivities = useMapStore((s) => s.filters.showActivities);
+  const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
+  const filteredActivitiesByType = showActivities ? filtered : [];
+  const filteredOfferingsByType = showProOfferings ? (proOfferings ?? []) : [];
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -269,10 +276,10 @@ export default function CarteScreen() {
 
             <JuntoMapView
               center={center}
-              activities={filtered}
+              activities={filteredActivitiesByType}
               pros={pros ?? []}
               onProPress={(pro) => router.push(`/(auth)/pro/${pro.user_id}`)}
-              proOfferings={proOfferings ?? []}
+              proOfferings={filteredOfferingsByType}
               onProOfferingPress={(offering) => router.push(`/(auth)/pro/offering/${offering.id}`)}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
@@ -392,7 +399,8 @@ export default function CarteScreen() {
 
         <ActivitiesBottomSheet
           ref={sheetRef}
-          activities={clusterFilter ?? filtered}
+          activities={clusterFilter ?? filteredActivitiesByType}
+          proOfferings={filteredOfferingsByType}
           userLocation={currentLocation ?? center}
           filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}
           onClearFilter={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}

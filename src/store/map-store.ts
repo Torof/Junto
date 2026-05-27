@@ -18,6 +18,11 @@ interface MapFilters {
   radiusKm: number | null;       // null = no radius filter
   sortBy: SortBy;                // default 'date'
   sortDir: SortDir;              // default 'asc'
+  // Entity-type filter — controls both map pins and drawer list.
+  // Defaults both true: a fresh user sees everything until they
+  // narrow it down.
+  showActivities: boolean;
+  showProOfferings: boolean;
 }
 
 interface MapStore {
@@ -31,6 +36,8 @@ interface MapStore {
   setRadiusKm: (km: number | null) => void;
   setSortBy: (sort: SortBy) => void;
   setSortDir: (dir: SortDir) => void;
+  toggleShowActivities: () => void;
+  toggleShowProOfferings: () => void;
   resetFilters: () => void;
 }
 
@@ -45,6 +52,8 @@ const DEFAULT_FILTERS: MapFilters = {
   radiusKm: null,
   sortBy: null,
   sortDir: 'asc',
+  showActivities: true,
+  showProOfferings: true,
 };
 
 export const useMapStore = create<MapStore>((set) => ({
@@ -88,5 +97,9 @@ export const useMapStore = create<MapStore>((set) => ({
     set((state) => ({ filters: { ...state.filters, sortBy } })),
   setSortDir: (sortDir) =>
     set((state) => ({ filters: { ...state.filters, sortDir } })),
+  toggleShowActivities: () =>
+    set((state) => ({ filters: { ...state.filters, showActivities: !state.filters.showActivities } })),
+  toggleShowProOfferings: () =>
+    set((state) => ({ filters: { ...state.filters, showProOfferings: !state.filters.showProOfferings } })),
   resetFilters: () => set({ filters: DEFAULT_FILTERS }),
 }));
