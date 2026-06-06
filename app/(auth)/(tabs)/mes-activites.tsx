@@ -10,10 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
-import { proService } from '@/services/pro-service';
-import { proOfferingService, type ProOffering } from '@/services/pro-offering-service';
 import { ActivityCard } from '@/components/activity-card';
-import { ProOfferingCard } from '@/components/pro-offering-card';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { FilterSheet } from '@/components/filter-sheet';
 import { useMyActivitiesFilterStore } from '@/store/my-activities-filter-store';
@@ -22,7 +19,7 @@ import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-type MainTab = 'created' | 'joined' | 'pending' | 'catalog';
+type MainTab = 'created' | 'joined' | 'pending';
 type TimeFilter = 'upcoming' | 'finished';
 
 const OPEN_LEVEL = 'Tous niveaux';
@@ -56,32 +53,9 @@ export default function MesActivitesScreen() {
     queryFn: () => activityService.getMyPending(),
   });
 
-  // Pro profile gates the "Catalogue" tab. Non-pros never see it.
-  const { data: pro } = useQuery({
-    queryKey: ['pro-profile-mine'],
-    queryFn: () => proService.getMine(),
-  });
-  const isPro = !!pro;
-
-  // Pro's catalog — only fetched when the user is a pro AND the tab
-  // is selected, to keep the network footprint minimal for non-pros.
-  const { data: catalog = [], isLoading: loadingCatalog, error: errorCatalog } = useQuery({
-    queryKey: ['pro-offerings', 'by-pro', pro?.user_id],
-    queryFn: () => proOfferingService.getByProId(pro!.user_id),
-    enabled: isPro && mainTab === 'catalog',
-  });
-
-  const activities = mainTab === 'created' ? created : mainTab === 'joined' ? joined : mainTab === 'pending' ? pending : undefined;
-  const isLoading =
-    mainTab === 'created' ? loadingCreated
-    : mainTab === 'joined' ? loadingJoined
-    : mainTab === 'pending' ? loadingPending
-    : loadingCatalog;
-  const error =
-    mainTab === 'created' ? errorCreated
-    : mainTab === 'joined' ? errorJoined
-    : mainTab === 'pending' ? errorPending
-    : errorCatalog;
+  const activities = mainTab === 'created' ? created : mainTab === 'joined' ? joined : pending;
+  const isLoading = mainTab === 'created' ? loadingCreated : mainTab === 'joined' ? loadingJoined : loadingPending;
+  const error = mainTab === 'created' ? errorCreated : mainTab === 'joined' ? errorJoined : errorPending;
 
   const userLocation = currentLocation ?? center;
 
@@ -175,7 +149,6 @@ export default function MesActivitesScreen() {
     await queryClient.invalidateQueries({ queryKey: ['activities', 'my-created'] });
     await queryClient.invalidateQueries({ queryKey: ['activities', 'my-joined'] });
     await queryClient.invalidateQueries({ queryKey: ['activities', 'my-pending'] });
-    if (isPro) await queryClient.invalidateQueries({ queryKey: ['pro-offerings', 'by-pro', pro?.user_id] });
     setRefreshing(false);
   };
 
@@ -211,19 +184,6 @@ export default function MesActivitesScreen() {
             </View>
           )}
         </Pressable>
-        {/* Catalogue tab — pros only, gates on having a pro_profiles
-            row. Hidden entirely for non-pros so the tab list stays
-            stable for the vast majority of users. */}
-        {isPro && (
-          <Pressable
-            style={[styles.mainTab, mainTab === 'catalog' && styles.mainTabActive]}
-            onPress={() => setMainTab('catalog')}
-          >
-            <Text style={[styles.mainTabText, mainTab === 'catalog' && styles.mainTabTextActive]}>
-              {t('myActivities.catalog', { defaultValue: 'Catalogue' })}
-            </Text>
-          </Pressable>
-        )}
         <View style={styles.tabSpacer} />
         <Pressable style={styles.filterToggle} onPress={() => setShowFilters(true)}>
           <View style={styles.filterIconWrap}>
@@ -234,9 +194,8 @@ export default function MesActivitesScreen() {
       </View>
 
       {/* Time refinement — only meaningful for created/joined; pending
-          requests are upcoming by definition; catalog items are
-          atemporal. */}
-      {mainTab !== 'pending' && mainTab !== 'catalog' && (
+          requests are upcoming by definition. */}
+      {mainTab !== 'pending' && (
         <View style={styles.timeTabs}>
           <Pressable
             style={[styles.timeTab, timeFilter === 'upcoming' && styles.timeTabActive]}
@@ -274,37 +233,6 @@ export default function MesActivitesScreen() {
         <View style={styles.center}>
           <Text style={styles.emptyText}>{getFriendlyError(error, 'generic')}</Text>
         </View>
-      ) : mainTab === 'catalog' ? (
-        // Catalog branch — atemporal offerings, no time/sort/level
-        // filter applies. ProOfferingCard mirrors ActivityCard's
-        // rhythm so the visual continuity holds across tab switches.
-        catalog.length === 0 ? (
-          <View style={styles.center}>
-            <Text style={styles.emptyText}>
-              {t('myActivities.catalogEmpty', { defaultValue: 'Aucune activité dans ton catalogue. Ajoute-en depuis ta page Pro.' })}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={catalog}
-            keyExtractor={(item: ProOffering) => item.id}
-            renderItem={({ item }) => (
-              <ProOfferingCard
-                offering={item}
-                onPress={() => router.push(`/(auth)/pro/offering/${item.id}`)}
-              />
-            )}
-            contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.md }]}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.cta}
-                colors={[colors.cta]}
-              />
-            }
-          />
-        )
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.emptyText}>{emptyMessage()}</Text>
