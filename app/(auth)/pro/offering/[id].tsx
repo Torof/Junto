@@ -1,4 +1,4 @@
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import {
   View,
@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useLayoutEffect } from 'react';
 import { Pencil, MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -34,6 +34,7 @@ export default function ProOfferingDetailScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { session, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'reviews'>('info');
 
   const { data: offering, isLoading } = useQuery({
@@ -47,6 +48,23 @@ export default function ProOfferingDetailScreen() {
     queryFn: () => proService.getById(offering!.pro_id),
     enabled: !!offering?.pro_id,
   });
+
+  // Fill the navbar with the sport icon + offering title so the back
+  // button isn't paired with empty space. Same useLayoutEffect pattern
+  // as the conversation screen.
+  const headerSportIcon = offering ? getSportIcon(offering.sport_key) : '';
+  const headerTitle = offering?.title ?? '';
+  useLayoutEffect(() => {
+    if (!offering) return;
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={styles.headerRow}>
+          <Text style={styles.headerIcon}>{headerSportIcon}</Text>
+          <Text style={styles.headerTitleText} numberOfLines={1}>{headerTitle}</Text>
+        </View>
+      ),
+    });
+  }, [navigation, offering, headerSportIcon, headerTitle, styles]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -246,6 +264,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { paddingBottom: spacing.xl + 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   notFound: { color: colors.textSecondary, fontSize: fontSizes.md },
+
+  // Navbar header — sport icon + offering title, replaces the empty
+  // title slot so the page reads identified even without scrolling
+  // into the hero.
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    maxWidth: 220,
+  },
+  headerIcon: {
+    fontSize: 18,
+  },
+  headerTitleText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    flexShrink: 1,
+  },
 
   tabBarScroll: {
     flexGrow: 0,
