@@ -86,14 +86,14 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.5,
   },
   // Clipping container that exactly matches the SVG square (viewBox
-  // x=2..48, y=2..44, corner radius 4). Image fills this area so the
-  // photo reads as the pin itself.
+  // x=2..48, y=2..46, corner radius 4). Image fills this area so the
+  // photo reads as the pin itself — no orange showing through.
   imageClip: {
     position: 'absolute',
     top: 2,
     left: 2,
     width: VIEWBOX_W - 4,
-    height: VIEWBOX_H - 4,
+    height: VIEWBOX_H - 2,
     borderRadius: 4,
     overflow: 'hidden',
   },
