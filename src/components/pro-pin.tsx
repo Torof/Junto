@@ -9,23 +9,23 @@ interface ProPinProps {
   pinImageUrl?: string | null;
 }
 
-// Visually distinct from the activity pin (teardrop). Pro pins are
-// square-shouldered badges with a downward chat-bubble tip — reads as
-// "permanent business storefront" vs "ephemeral activity".
+// Visually distinct from the activity pin (teardrop) and the offering
+// pin (hexagon). Pro pins are square-shouldered badges — reads as
+// "permanent business storefront". Anchored on the bottom edge so the
+// pin sits on the geographic point.
 //
-// Content inside the badge head is either the pro's first initial
-// (default) or a small square photo when pin_image_url is set.
+// Content inside the badge is either the pro's first initial
+// (default) or a square photo when pin_image_url is set.
 
 const VIEWBOX_W = 50;
-const VIEWBOX_H = 60;
+const VIEWBOX_H = 46;
 const PIN_WIDTH = 50;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-const LETTER_CENTER_Y_VBX = 22;
 
 const PIN_PATH =
-  'M 6 2 L 44 2 Q 48 2 48 6 L 48 42 Q 48 46 44 46 L 30 46 L 25 60 L 20 46 L 6 46 Q 2 46 2 42 L 2 6 Q 2 2 6 2 Z';
+  'M 6 2 L 44 2 Q 48 2 48 6 L 48 42 Q 48 46 44 46 L 6 46 Q 2 46 2 42 L 2 6 Q 2 2 6 2 Z';
 
-export const PRO_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
+export const PRO_PIN_ANCHOR = { x: 0.5, y: 1.0 };
 
 export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
   const colors = useColors();
@@ -75,7 +75,7 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: PIN_HEIGHT * (1 - 2 * (LETTER_CENTER_Y_VBX / VIEWBOX_H)),
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -85,16 +85,15 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
-  // Clipping container that exactly matches the SVG badge-head
-  // rectangle (viewBox x=2..48, y=2..46, corner radius 4). Image
-  // fills this area so the photo reads as the pin itself rather
-  // than a tiny inset thumbnail.
+  // Clipping container that exactly matches the SVG square (viewBox
+  // x=2..48, y=2..44, corner radius 4). Image fills this area so the
+  // photo reads as the pin itself.
   imageClip: {
     position: 'absolute',
     top: 2,
     left: 2,
     width: VIEWBOX_W - 4,
-    height: 44,
+    height: VIEWBOX_H - 4,
     borderRadius: 4,
     overflow: 'hidden',
   },
