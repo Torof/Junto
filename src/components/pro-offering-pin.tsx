@@ -10,10 +10,12 @@ interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Hexagon pin — visually distinct from the activity teardrop and the
-// pro storefront square. Reads as "fixed POI / faceted offering"
-// rather than "event happening now". Sport-category color so the eye
-// still scans by sport across all three pin types.
+// Octagon pin — visually distinct from the activity teardrop and the
+// pro storefront square. Reads as "fixed POI / faceted offering".
+// Stop-sign orientation with flat top + bottom edges (anchors on the
+// center of the bottom edge, which gives a grounded feel vs the hex's
+// diamond-like point anchor). Same sport-category color treatment as
+// the rest of the pin family.
 
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
@@ -21,13 +23,13 @@ const PIN_WIDTH = 56;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 const ICON_CENTER_Y_VBX = 32;
 
-// Pointy-top hexagon with rounded corners, anchored on the bottom
-// vertex. Sharp vertices are softened with quadratic Bezier curves
-// (r≈3 in viewBox units) — the polygon's corner positions are
-// preserved, only the immediate join is curved. Cleaner read than
-// the sharp version while keeping the silhouette unambiguous.
+// Stretched stop-sign octagon (width 46, height 56) with rounded
+// corners (r≈3 in viewBox units) for consistency with the previous
+// hex's curved-vertex treatment. Eight vertices, 13-unit corner cuts,
+// each vertex softened with a quadratic Bezier so the silhouette
+// reads smooth instead of jagged.
 const PIN_PATH =
-  'M 6.6 16.4 L 24.4 5.6 Q 27 4 29.6 5.6 L 47.4 16.4 Q 50 18 50 21 L 50 43 Q 50 46 47.4 47.6 L 29.6 58.4 Q 27 60 24.4 58.4 L 6.6 47.6 Q 4 46 4 43 L 4 21 Q 4 18 6.6 16.4 Z';
+  'M 20 4 L 34 4 Q 37 4 39.1 6.1 L 47.9 14.9 Q 50 17 50 20 L 50 44 Q 50 47 47.9 49.1 L 39.1 57.9 Q 37 60 34 60 L 20 60 Q 17 60 14.9 57.9 L 6.1 49.1 Q 4 47 4 44 L 4 20 Q 4 17 6.1 14.9 L 14.9 6.1 Q 17 4 20 4 Z';
 
 export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
 
