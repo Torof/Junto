@@ -71,7 +71,13 @@ interface MapViewProps {
   radiusCenter?: [number, number] | null;
 }
 
-type ActivityPoint = Supercluster.PointFeature<{ id: string }>;
+// Single point shape with a type discriminator. The unified Supercluster
+// groups activities, pros, and offerings by spatial proximity regardless
+// of type — a cluster shows total count; at expansion zoom, individual
+// typed pins emerge (teardrop / square / hexagon).
+type PinType = 'activity' | 'pro' | 'offering';
+type PinPointProps = { type: PinType; id: string };
+type PinPoint = Supercluster.PointFeature<PinPointProps>;
 
 export function JuntoMapView({
   center = DEFAULT_CENTER,
@@ -158,83 +164,55 @@ export function JuntoMapView({
     return () => timers.forEach(clearTimeout);
   }, [center, zoom, onBoundsChange]);
 
+  // Per-type lookup maps so we can fetch the original entity from a
+  // PinPoint's (type, id) pair when rendering individual pins. The
+  // unified Supercluster only carries lightweight `{type, id}` per
+  // point — the full row stays here.
   const activityMap = useMemo(
     () => new Map(activities.map((a) => [a.id, a])),
     [activities],
   );
-
-  const cluster = useMemo(() => {
-    const sc = new Supercluster<{ id: string }>({
-      radius: 60,
-      maxZoom: 20,
-    });
-    const points: ActivityPoint[] = activities.map((a) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
-      properties: { id: a.id },
-    }));
-    sc.load(points);
-    return sc;
-  }, [activities]);
-
-  const clusters = useMemo(
-    () => cluster.getClusters(bounds, Math.floor(currentZoom)),
-    [cluster, bounds, currentZoom],
-  );
-
-  // Pros get their own Supercluster — distinct from activities so a
-  // mixed-content cluster pin can't happen (pro vs activity is a
-  // different mental model; clustering them together would be
-  // ambiguous on tap).
   const proMap = useMemo(
     () => new Map(pros.map((p) => [p.user_id, p])),
     [pros],
   );
-
-  const proCluster = useMemo(() => {
-    const sc = new Supercluster<{ id: string }>({
-      radius: 60,
-      maxZoom: 20,
-    });
-    const points: Supercluster.PointFeature<{ id: string }>[] = pros.map((p) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [p.primary_lng, p.primary_lat] },
-      properties: { id: p.user_id },
-    }));
-    sc.load(points);
-    return sc;
-  }, [pros]);
-
-  const proClusters = useMemo(
-    () => proCluster.getClusters(bounds, Math.floor(currentZoom)),
-    [proCluster, bounds, currentZoom],
-  );
-
-  // Pro offerings — separate Supercluster instance from activities and
-  // pro storefronts. Same rationale: mixed-content clusters would be
-  // ambiguous on tap. Same 60px radius for visual consistency.
   const offeringMap = useMemo(
     () => new Map(proOfferings.map((o) => [o.id, o])),
     [proOfferings],
   );
 
-  const offeringCluster = useMemo(() => {
-    const sc = new Supercluster<{ id: string }>({
+  // Single Supercluster instance covering all three entity types. A
+  // cluster pin at low zoom shows the total count regardless of type;
+  // tapping zooms to expansion so the typed individual pins emerge.
+  const cluster = useMemo(() => {
+    const sc = new Supercluster<PinPointProps>({
       radius: 60,
       maxZoom: 20,
     });
-    const points: Supercluster.PointFeature<{ id: string }>[] = proOfferings.map((o) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [o.lng, o.lat] },
-      properties: { id: o.id },
-    }));
+    const points: PinPoint[] = [
+      ...activities.map<PinPoint>((a) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
+        properties: { type: 'activity', id: a.id },
+      })),
+      ...pros.map<PinPoint>((p) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [p.primary_lng, p.primary_lat] },
+        properties: { type: 'pro', id: p.user_id },
+      })),
+      ...proOfferings.map<PinPoint>((o) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [o.lng, o.lat] },
+        properties: { type: 'offering', id: o.id },
+      })),
+    ];
     sc.load(points);
     return sc;
-  }, [proOfferings]);
+  }, [activities, pros, proOfferings]);
 
-  const offeringClusters = useMemo(
-    () => offeringCluster.getClusters(bounds, Math.floor(currentZoom)),
-    [offeringCluster, bounds, currentZoom],
+  const clusters = useMemo(
+    () => cluster.getClusters(bounds, Math.floor(currentZoom)),
+    [cluster, bounds, currentZoom],
   );
 
   useEffect(() => {
@@ -389,11 +367,16 @@ export function JuntoMapView({
         </Mapbox.MarkerView>
       ))}
 
+      {/* Unified render loop. Mixes activity, pro storefront, and pro
+          offering pins. Cluster pins show total count regardless of
+          type; tap zooms to expansion so typed individual pins emerge. */}
       {[...clusters]
         .sort((a, b) => {
           // Selected activity rendered last so its popup sits on top of other pins
-          const aSel = !('cluster' in a.properties && a.properties.cluster) && (a.properties as { id: string }).id === selectedActivity?.id;
-          const bSel = !('cluster' in b.properties && b.properties.cluster) && (b.properties as { id: string }).id === selectedActivity?.id;
+          const aProps = a.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
+          const bProps = b.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
+          const aSel = !('cluster' in aProps && aProps.cluster) && 'type' in aProps && aProps.type === 'activity' && aProps.id === selectedActivity?.id;
+          const bSel = !('cluster' in bProps && bProps.cluster) && 'type' in bProps && bProps.type === 'activity' && bProps.id === selectedActivity?.id;
           if (aSel === bSel) return 0;
           return aSel ? 1 : -1;
         })
@@ -416,11 +399,15 @@ export function JuntoMapView({
                 const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
                 const targetZoom = Math.min(expansionZoom + 1, 20);
                 // Stuck cluster: zooming further wouldn't break it apart.
-                // Fall through to the drawer with just the leaf activities.
+                // Fall through to the drawer with the leaf ACTIVITIES (pros
+                // + offerings don't surface in the drawer's stuck-cluster
+                // fallback yet; they cluster fine via spatial proximity at
+                // higher zoom levels in practice).
                 if (targetZoom <= currentZoom + 0.1 && onStuckClusterPress) {
                   const leaves = cluster.getLeaves(clusterId, Infinity);
                   const stuckActivities = leaves
-                    .map((leaf) => activityMap.get((leaf.properties as { id: string }).id))
+                    .filter((leaf) => (leaf.properties as PinPointProps).type === 'activity')
+                    .map((leaf) => activityMap.get((leaf.properties as PinPointProps).id))
                     .filter((a): a is NearbyActivity => a !== undefined);
                   onStuckClusterPress(stuckActivities);
                   return;
@@ -437,116 +424,52 @@ export function JuntoMapView({
           );
         }
 
-        const activity = activityMap.get((props as { id: string }).id);
-        if (!activity) return null;
+        // Individual pin — branch on type for shape + tap handler.
+        const pinProps = props as PinPointProps;
 
-        const isSelected = selectedActivity?.id === activity.id;
-        const viewCenter = (bounds[0] + bounds[2]) / 2;
-        const isOnRight = lng > viewCenter;
-
-        return (
-          <Mapbox.MarkerView
-            key={activity.id}
-            id={activity.id}
-            coordinate={[lng, lat]}
-            anchor={ACTIVITY_PIN_ANCHOR}
-            allowOverlap={isSelected}
-          >
-            <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
-              <Pressable onPress={() => {
-                onActivityPress?.(activity);
-              }}>
-                <ActivityPin activity={activity} />
-              </Pressable>
-            </View>
-          </Mapbox.MarkerView>
-        );
-      })}
-
-      {/* Pro pins — clustered separately from activities so a tap on a
-          group never mixes the two entity types. Cluster pin reuses
-          the activity ClusterPin shape since the visual idiom carries
-          (a number-pill), but the geographic location is the
-          disambiguator (no activity pin sits at the same coord). */}
-      {proClusters.map((c) => {
-        const [lng, lat] = c.geometry.coordinates as [number, number];
-        const props = c.properties as Supercluster.ClusterProperties & { id?: string };
-        if (props.cluster) {
-          const count = props.point_count;
-          const clusterId = props.cluster_id;
+        if (pinProps.type === 'activity') {
+          const activity = activityMap.get(pinProps.id);
+          if (!activity) return null;
+          const isSelected = selectedActivity?.id === activity.id;
+          const viewCenter = (bounds[0] + bounds[2]) / 2;
+          const isOnRight = lng > viewCenter;
           return (
             <Mapbox.MarkerView
-              key={`pro-cluster-${clusterId}`}
-              id={`pro-cluster-${clusterId}`}
+              key={`activity-${activity.id}`}
+              id={`activity-${activity.id}`}
               coordinate={[lng, lat]}
-              anchor={{ x: 0.5, y: 0.5 }}
+              anchor={ACTIVITY_PIN_ANCHOR}
+              allowOverlap={isSelected}
             >
-              <Pressable onPress={() => {
-                const expansionZoom = proCluster.getClusterExpansionZoom(clusterId);
-                const targetZoom = Math.min(expansionZoom + 1, 20);
-                cameraRef.current?.setCamera({
-                  centerCoordinate: [lng, lat],
-                  zoomLevel: targetZoom,
-                  animationDuration: 300,
-                });
-              }}>
-                <ClusterPin count={count} />
+              <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
+                <Pressable onPress={() => onActivityPress?.(activity)}>
+                  <ActivityPin activity={activity} />
+                </Pressable>
+              </View>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        if (pinProps.type === 'pro') {
+          const pro = proMap.get(pinProps.id);
+          if (!pro) return null;
+          return (
+            <Mapbox.MarkerView
+              key={`pro-${pro.user_id}`}
+              id={`pro-${pro.user_id}`}
+              coordinate={[lng, lat]}
+              anchor={PRO_PIN_ANCHOR}
+            >
+              <Pressable onPress={() => onProPress?.(pro)}>
+                <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
               </Pressable>
             </Mapbox.MarkerView>
           );
         }
 
-        const pro = proMap.get((props as { id: string }).id);
-        if (!pro) return null;
-
-        return (
-          <Mapbox.MarkerView
-            key={`pro-${pro.user_id}`}
-            id={`pro-${pro.user_id}`}
-            coordinate={[lng, lat]}
-            anchor={PRO_PIN_ANCHOR}
-          >
-            <Pressable onPress={() => onProPress?.(pro)}>
-              <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
-            </Pressable>
-          </Mapbox.MarkerView>
-        );
-      })}
-
-      {/* Pro offering pins — third independent Supercluster instance.
-          Lozenge silhouette differentiates from the activity teardrop
-          and the pro storefront square. */}
-      {offeringClusters.map((c) => {
-        const [lng, lat] = c.geometry.coordinates as [number, number];
-        const props = c.properties as Supercluster.ClusterProperties & { id?: string };
-        if (props.cluster) {
-          const count = props.point_count;
-          const clusterId = props.cluster_id;
-          return (
-            <Mapbox.MarkerView
-              key={`offering-cluster-${clusterId}`}
-              id={`offering-cluster-${clusterId}`}
-              coordinate={[lng, lat]}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <Pressable onPress={() => {
-                const expansionZoom = offeringCluster.getClusterExpansionZoom(clusterId);
-                const targetZoom = Math.min(expansionZoom + 1, 20);
-                cameraRef.current?.setCamera({
-                  centerCoordinate: [lng, lat],
-                  zoomLevel: targetZoom,
-                  animationDuration: 300,
-                });
-              }}>
-                <ClusterPin count={count} />
-              </Pressable>
-            </Mapbox.MarkerView>
-          );
-        }
-
-        const offering = offeringMap.get((props as { id: string }).id);
+        // pinProps.type === 'offering'
+        const offering = offeringMap.get(pinProps.id);
         if (!offering) return null;
-
         return (
           <Mapbox.MarkerView
             key={`offering-${offering.id}`}
