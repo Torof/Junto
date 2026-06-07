@@ -21,6 +21,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
+import { PageTypeBadge } from '@/components/page-type-badge';
 
 // Public detail view of a pro_offering. Hero mirrors the spontaneous
 // activity-detail layout: sport-color banner with a big decorative
@@ -49,22 +50,13 @@ export default function ProOfferingDetailScreen() {
     enabled: !!offering?.pro_id,
   });
 
-  // Fill the navbar with the sport icon + offering title so the back
-  // button isn't paired with empty space. Same useLayoutEffect pattern
-  // as the conversation screen.
-  const headerSportIcon = offering ? getSportIcon(offering.sport_key) : '';
-  const headerTitle = offering?.title ?? '';
+  // Page-type badge in the navbar — small octagon + "OFFRE" label,
+  // matching the map's pin vocabulary.
   useLayoutEffect(() => {
-    if (!offering) return;
     navigation.setOptions({
-      headerTitle: () => (
-        <View style={styles.headerRow}>
-          <Text style={styles.headerIcon}>{headerSportIcon}</Text>
-          <Text style={styles.headerTitleText} numberOfLines={1}>{headerTitle}</Text>
-        </View>
-      ),
+      headerTitle: () => <PageTypeBadge type="offering" />,
     });
-  }, [navigation, offering, headerSportIcon, headerTitle, styles]);
+  }, [navigation]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -264,25 +256,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { paddingBottom: spacing.xl + 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   notFound: { color: colors.textSecondary, fontSize: fontSizes.md },
-
-  // Navbar header — sport icon + offering title, replaces the empty
-  // title slot so the page reads identified even without scrolling
-  // into the hero.
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    maxWidth: 220,
-  },
-  headerIcon: {
-    fontSize: 18,
-  },
-  headerTitleText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-    flexShrink: 1,
-  },
 
   tabBarScroll: {
     flexGrow: 0,

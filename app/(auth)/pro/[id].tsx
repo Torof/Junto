@@ -1,15 +1,16 @@
 import { Redirect, useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useLayoutEffect } from 'react';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proService } from '@/services/pro-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ProDetail } from '@/components/pro-detail';
+import { PageTypeBadge } from '@/components/page-type-badge';
 
 export default function ProPageScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,29 +27,14 @@ export default function ProPageScreen() {
     enabled: !!id && isAuthenticated,
   });
 
-  // Fill the navbar with the pro's identity instead of an empty title.
-  // Avatar uses pin_image_url first (the square photo the pro picked
-  // for the map pin), falling back to a CTA-colored letter chip.
-  const headerLabel = pro?.display_name ?? '';
-  const headerThumb = pro?.pin_image_url ?? null;
-  const headerInitial = (pro?.display_name?.trim().charAt(0) ?? '?').toUpperCase();
+  // Page-type badge in the navbar — small square pin + "PRO" label,
+  // matching the map's pin vocabulary so the user can see at a glance
+  // what kind of page they're on.
   useLayoutEffect(() => {
-    if (!pro) return;
     navigation.setOptions({
-      headerTitle: () => (
-        <View style={styles.headerRow}>
-          {headerThumb ? (
-            <Image source={{ uri: headerThumb }} style={styles.headerThumb} />
-          ) : (
-            <View style={[styles.headerThumb, styles.headerThumbPlaceholder]}>
-              <Text style={styles.headerThumbInitial}>{headerInitial}</Text>
-            </View>
-          )}
-          <Text style={styles.headerName} numberOfLines={1}>{headerLabel}</Text>
-        </View>
-      ),
+      headerTitle: () => <PageTypeBadge type="pro" />,
     });
-  }, [navigation, pro, headerLabel, headerThumb, headerInitial, styles]);
+  }, [navigation]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -87,33 +73,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   notFound: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    maxWidth: 220,
-  },
-  headerThumb: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
-  },
-  headerThumbPlaceholder: {
-    backgroundColor: colors.cta,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerThumbInitial: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.sm,
-    fontWeight: '800',
-  },
-  headerName: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-    flexShrink: 1,
   },
 });
