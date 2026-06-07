@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Calendar, User } from 'lucide-react-native';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type ProOffering } from '@/services/pro-offering-service';
@@ -14,15 +14,16 @@ interface ProOfferingCardProps {
   distanceKm?: number;
 }
 
-// Mirrors ActivityCard's row anatomy so mixed drawer lists read as one
-// surface: borderBottom row (no card surface), thin left status bar,
-// middle column with title (Montserrat) + sport pill (uppercase) +
-// meta row, outlined pill in the right slot. Differences from activity:
-//   - Status bar always renders with the sport accent (offerings have
-//     no time-status states, so the bar carries the sport identity
-//     full-time instead of staying hidden).
-//   - Right slot shows a "PRO" pill instead of the X/Y participants
-//     counter (offerings have no participants concept).
+// Surface-card variant for the bottom-sheet drawer + the pro's
+// Catalogue tab. Visually distinct from ActivityCard (which sits as a
+// borderless row with a bottom divider) so the eye can tell at a
+// glance "this is a catalog offering, not a scheduled event":
+//   - Full outlined card surface with margin between siblings.
+//   - Left bar always shows the sport-category accent (no time-status
+//     concept — offerings are atemporal).
+//   - Schedule_text replaces the date row when set.
+//   - Right slot shows a "PRO" pill instead of the participants
+//     counter (offerings have no participants).
 export function ProOfferingCard({ offering, onPress, distanceKm }: ProOfferingCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -31,7 +32,7 @@ export function ProOfferingCard({ offering, onPress, distanceKm }: ProOfferingCa
 
   return (
     <Pressable style={styles.row} onPress={onPress}>
-      <View style={[styles.statusBar, { backgroundColor: accent }]} />
+      <View style={[styles.accentBar, { backgroundColor: accent }]} />
 
       <View style={styles.middleCol}>
         <Text style={styles.title} numberOfLines={1}>{offering.title}</Text>
@@ -79,95 +80,39 @@ export function ProOfferingCard({ offering, onPress, distanceKm }: ProOfferingCa
 const createStyles = (colors: AppColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingRight: spacing.md,
-    gap: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
+    alignItems: 'stretch',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
   },
-  statusBar: {
-    width: 3,
-    alignSelf: 'stretch',
-    marginRight: spacing.sm,
-  },
-  middleCol: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 2,
-    minWidth: 0,
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontFamily: fonts.title,
-    letterSpacing: -0.2,
-  },
-  sportRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'nowrap',
-  },
+  accentBar: { width: 4 },
+  middleCol: { flex: 1, padding: spacing.sm, gap: 4 },
+  title: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  sportRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   sportPill: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 1,
-    backgroundColor: 'transparent',
-    alignSelf: 'flex-start',
-    flexShrink: 1,
-    minWidth: 0,
+    paddingVertical: 2,
   },
-  sport: {
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    flexShrink: 0,
-  },
-  levelSep: {
-    fontSize: fontSizes.xs - 1,
-  },
-  level: {
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    flexShrink: 1,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'nowrap',
-    gap: spacing.sm,
-    marginTop: 1,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    flexShrink: 0,
-  },
-  metaText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '500',
-  },
+  sport: { fontSize: fontSizes.xs, fontWeight: '700' },
+  levelSep: { fontSize: fontSizes.xs },
+  level: { fontSize: fontSizes.xs, fontWeight: '600' },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: 2 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   proPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: radius.sm,
+    alignSelf: 'center',
+    marginRight: spacing.sm,
     paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 3,
-    backgroundColor: 'transparent',
+    paddingVertical: 2,
+    borderWidth: 1.5,
+    borderRadius: radius.sm,
   },
-  proPillText: {
-    fontSize: fontSizes.xs - 1,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
+  proPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 1 },
 });
