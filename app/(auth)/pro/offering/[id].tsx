@@ -50,13 +50,13 @@ export default function ProOfferingDetailScreen() {
     enabled: !!offering?.pro_id,
   });
 
-  // Page-type badge in the navbar — small octagon + "OFFRE" label,
-  // matching the map's pin vocabulary.
+  // Navbar header — small octagon + "Activité récurrente · {title}".
   useLayoutEffect(() => {
+    if (!offering) return;
     navigation.setOptions({
-      headerTitle: () => <PageTypeBadge type="offering" />,
+      headerTitle: () => <PageTypeBadge type="offering" name={offering.title} />,
     });
-  }, [navigation]);
+  }, [navigation, offering]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;

@@ -32,7 +32,6 @@ import { MapLegend } from './map-legend';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
 import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
-import { PageTypeBadge } from './page-type-badge';
 import { ActivityWall } from './activity-wall';
 import { wallService } from '@/services/wall-service';
 import { useMessageStore } from '@/store/message-store';
@@ -229,7 +228,6 @@ export function ActivityDetail({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <PageTypeBadge type="activity" />,
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
           <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>

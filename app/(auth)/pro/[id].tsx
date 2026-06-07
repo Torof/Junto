@@ -27,14 +27,15 @@ export default function ProPageScreen() {
     enabled: !!id && isAuthenticated,
   });
 
-  // Page-type badge in the navbar — small square pin + "PRO" label,
-  // matching the map's pin vocabulary so the user can see at a glance
-  // what kind of page they're on.
+  // Navbar header — small square pin + "Page pro · {display_name}".
+  // Matches the map's pin vocabulary so the user knows what kind of
+  // page they're on AND which specific pro it is.
   useLayoutEffect(() => {
+    if (!pro) return;
     navigation.setOptions({
-      headerTitle: () => <PageTypeBadge type="pro" />,
+      headerTitle: () => <PageTypeBadge type="pro" name={pro.display_name} />,
     });
-  }, [navigation]);
+  }, [navigation, pro]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
