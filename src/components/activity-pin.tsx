@@ -12,9 +12,11 @@ interface ActivityPinProps {
 }
 
 // Render size (preserves the 54x64 design viewBox aspect ratio).
+// Shrunk from 56 to 40 (~28%) for a less cluttered map — three
+// silhouettes at the previous size dominated the visual field.
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
-const PIN_WIDTH = 56;
+const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
@@ -77,6 +79,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 16,
+    fontSize: 12,
   },
 });

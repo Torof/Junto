@@ -19,7 +19,11 @@ interface ProPinProps {
 
 const VIEWBOX_W = 50;
 const VIEWBOX_H = 46;
-const PIN_WIDTH = 50;
+// Shrunk from 50 to 36 to match the activity/offering pins' lighter
+// footprint. The image clip below is ratio-based so it scales with
+// the new wrapper size — pin-image overlay still covers the square
+// edge to edge.
+const PIN_WIDTH = 36;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
 const PIN_PATH =
@@ -81,20 +85,21 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
   },
   letter: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   // Clipping container that exactly matches the SVG square (viewBox
-  // x=2..48, y=2..46, corner radius 4). Image fills this area so the
-  // photo reads as the pin itself — no orange showing through.
+  // x=2..48, y=2..46, corner radius 4). Ratio-based so it scales
+  // proportionally with PIN_WIDTH/HEIGHT — image fills the rendered
+  // square edge to edge regardless of the wrapper size.
   imageClip: {
     position: 'absolute',
-    top: 2,
-    left: 2,
-    width: VIEWBOX_W - 4,
-    height: VIEWBOX_H - 2,
-    borderRadius: 4,
+    top: PIN_HEIGHT * 2 / VIEWBOX_H,
+    left: PIN_WIDTH * 2 / VIEWBOX_W,
+    width: PIN_WIDTH * (VIEWBOX_W - 4) / VIEWBOX_W,
+    height: PIN_HEIGHT * (VIEWBOX_H - 2) / VIEWBOX_H,
+    borderRadius: 4 * PIN_WIDTH / VIEWBOX_W,
     overflow: 'hidden',
   },
   imageFull: {

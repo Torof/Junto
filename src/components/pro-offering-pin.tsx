@@ -19,7 +19,8 @@ interface ProOfferingPinProps {
 
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
-const PIN_WIDTH = 56;
+// Shrunk from 56 to 40 to match the activity pin's lighter footprint.
+const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // Geometric center of the new octagon body (y range 14..60).
 const ICON_CENTER_Y_VBX = 37;
@@ -78,6 +79,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 16,
+    fontSize: 12,
   },
 });
