@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivityPopup } from '@/components/activity-popup';
+import { PinPreviewCard } from '@/components/pin-preview-card';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
@@ -69,6 +70,13 @@ export default function CarteScreen() {
   const queryClient = useQueryClient();
   const { center, currentLocation } = useInitialLocation();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
+  // Preview selection for pro / offering pins — first tap shows the
+  // PinPreviewCard at the bottom of the screen; second tap on the
+  // same pin (or anywhere on the preview card) opens the detail page.
+  // Tap on the map elsewhere dismisses. Mutually exclusive with the
+  // activity selection — picking one clears the other.
+  const [previewPro, setPreviewPro] = useState<import('@/services/pro-service').NearbyPro | null>(null);
+  const [previewOffering, setPreviewOffering] = useState<import('@/services/pro-offering-service').ProOffering | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
@@ -278,9 +286,39 @@ export default function CarteScreen() {
               center={center}
               activities={filteredActivitiesByType}
               pros={pros ?? []}
-              onProPress={(pro) => router.push(`/(auth)/pro/${pro.user_id}`)}
+              onProPress={(pro) => {
+                setTappedPoint(null);
+                setSelectedActivity(null);
+                setPreviewOffering(null);
+                if (previewPro?.user_id === pro.user_id) {
+                  // Second tap: open the full pro page.
+                  suppressMapPressUntil.current = Date.now() + 400;
+                  router.push(`/(auth)/pro/${pro.user_id}`);
+                  setPreviewPro(null);
+                } else {
+                  setFlyTarget([pro.primary_lng, pro.primary_lat]);
+                  setFlyOffset({ y: 0.18 });
+                  setFlyToKey((k) => k + 1);
+                  setPreviewPro(pro);
+                }
+              }}
               proOfferings={filteredOfferingsByType}
-              onProOfferingPress={(offering) => router.push(`/(auth)/pro/offering/${offering.id}`)}
+              onProOfferingPress={(offering) => {
+                setTappedPoint(null);
+                setSelectedActivity(null);
+                setPreviewPro(null);
+                if (previewOffering?.id === offering.id) {
+                  // Second tap: open the full offering page.
+                  suppressMapPressUntil.current = Date.now() + 400;
+                  router.push(`/(auth)/pro/offering/${offering.id}`);
+                  setPreviewOffering(null);
+                } else {
+                  setFlyTarget([offering.lng, offering.lat]);
+                  setFlyOffset({ y: 0.18 });
+                  setFlyToKey((k) => k + 1);
+                  setPreviewOffering(offering);
+                }
+              }}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
               radiusCenter={currentLocation ?? center}
@@ -344,6 +382,8 @@ export default function CarteScreen() {
               ) : undefined}
               onActivityPress={(a) => {
                 setTappedPoint(null);
+                setPreviewPro(null);
+                setPreviewOffering(null);
                 if (selectedActivity?.id === a.id) {
                   // Second tap on the same pin → open the activity page
                   suppressMapPressUntil.current = Date.now() + 400;
@@ -365,6 +405,12 @@ export default function CarteScreen() {
               }}
               onMapPress={(lng, lat) => {
                 if (Date.now() < suppressMapPressUntil.current) return;
+                // Pro / offering previews dismiss on any map press.
+                if (previewPro || previewOffering) {
+                  setPreviewPro(null);
+                  setPreviewOffering(null);
+                  return;
+                }
                 if (selectedActivity) {
                   const dLng = Math.abs(lng - selectedActivity.lng);
                   const dLat = Math.abs(lat - selectedActivity.lat);
@@ -411,6 +457,36 @@ export default function CarteScreen() {
             setFlyToKey((k) => k + 1);
           }}
         />
+
+        {/* Pro / offering preview card — sits above the bottom-sheet
+            handle. Tap the card OR re-tap the originating pin to open
+            the full detail page. Tap anywhere on the map dismisses. */}
+        {(previewPro || previewOffering) && (
+          <View style={styles.previewSlot} pointerEvents="box-none">
+            {previewPro && (
+              <PinPreviewCard
+                variant="pro"
+                pro={previewPro}
+                onPress={() => {
+                  suppressMapPressUntil.current = Date.now() + 400;
+                  router.push(`/(auth)/pro/${previewPro.user_id}`);
+                  setPreviewPro(null);
+                }}
+              />
+            )}
+            {previewOffering && (
+              <PinPreviewCard
+                variant="offering"
+                offering={previewOffering}
+                onPress={() => {
+                  suppressMapPressUntil.current = Date.now() + 400;
+                  router.push(`/(auth)/pro/offering/${previewOffering.id}`);
+                  setPreviewOffering(null);
+                }}
+              />
+            )}
+          </View>
+        )}
 
         {tutorialStep === 'click_activity' && (
           <TutorialTooltip
@@ -466,6 +542,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tapMarkerContent: {
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  // Preview card slot — floats above the bottom-sheet handle. The
+  // sheet's collapsed snap point is '2%' so we leave ~70px of clearance
+  // so the card doesn't overlap the "Voir liste · N" tab.
+  previewSlot: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 70,
+    zIndex: 30,
   },
   createTooltipCard: {
     backgroundColor: colors.background,
