@@ -317,7 +317,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
   },
   heroBanner: {
-    backgroundColor: colors.surface,
+    // Transparent body — only the outer card's border carries the
+    // surface. Glass-effect matches the activity-detail + pro-detail
+    // surfaces; the filled-surface look on the offering page was the
+    // odd one out.
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
@@ -351,7 +354,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   heroFooter: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
@@ -381,7 +383,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
   },
   identityThumb: { width: 48, height: 48, borderRadius: radius.sm, backgroundColor: colors.background },
   identityThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta },
@@ -402,7 +403,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
   },
   section: {
     color: colors.textSecondary,
