@@ -21,15 +21,16 @@ const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
 const PIN_WIDTH = 56;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-const ICON_CENTER_Y_VBX = 32;
+// Geometric center of the new octagon body (y range 14..60).
+const ICON_CENTER_Y_VBX = 37;
 
-// Stretched stop-sign octagon (width 46, height 56) with rounded
-// corners (r≈3 in viewBox units) for consistency with the previous
-// hex's curved-vertex treatment. Eight vertices, 13-unit corner cuts,
-// each vertex softened with a quadratic Bezier so the silhouette
-// reads smooth instead of jagged.
+// Regular stop-sign octagon — 46x46 (all 8 sides ≈19 viewBox units).
+// Positioned at x=4..50, y=14..60 so the bottom edge anchor stays at
+// (27, 60), matching the previous pin's geographic registration.
+// Rounded corners (r≈3) keep the silhouette smooth without breaking
+// regularity.
 const PIN_PATH =
-  'M 20 4 L 34 4 Q 37 4 39.1 6.1 L 47.9 14.9 Q 50 17 50 20 L 50 44 Q 50 47 47.9 49.1 L 39.1 57.9 Q 37 60 34 60 L 20 60 Q 17 60 14.9 57.9 L 6.1 49.1 Q 4 47 4 44 L 4 20 Q 4 17 6.1 14.9 L 14.9 6.1 Q 17 4 20 4 Z';
+  'M 20.5 14 L 33.5 14 Q 36.5 14 38.6 16.1 L 47.9 25.4 Q 50 27.5 50 30.5 L 50 43.5 Q 50 46.5 47.9 48.6 L 38.6 57.9 Q 36.5 60 33.5 60 L 20.5 60 Q 17.5 60 15.4 57.9 L 6.1 48.6 Q 4 46.5 4 43.5 L 4 30.5 Q 4 27.5 6.1 25.4 L 15.4 16.1 Q 17.5 14 20.5 14 Z';
 
 export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
 
