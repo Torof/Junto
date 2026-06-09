@@ -79,7 +79,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tile: {
     width: TILE_SIZE,
-    aspectRatio: 1,
+    height: TILE_SIZE,
     borderRadius: radius.md,
     overflow: 'hidden',
     borderWidth: 1,
