@@ -1146,13 +1146,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
 
-  // Info-tab cards — each visible section is its own brutalist outlined
-  // box with air between. No shadows, no fills.
+  // Info-tab sections — borders removed (Scott 2026-06-10). Each
+  // section sits flat with its own padding + margin; cardAccented
+  // still adds a left stripe on the People card as a quiet brutalist
+  // accent.
   infoCard: {
-    backgroundColor: 'transparent',
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
     padding: spacing.md,
     marginBottom: spacing.md,
   },

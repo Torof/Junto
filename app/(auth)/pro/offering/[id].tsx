@@ -426,13 +426,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   identityName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
   identityTagline: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
 
+  // Bordered container removed (Scott 2026-06-10). Each section now
+  // sits flat — only padding + margins remain so spacing carries.
   card: {
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
     padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.md,
   },
   section: {
     color: colors.textSecondary,
