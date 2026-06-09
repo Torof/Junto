@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -189,7 +189,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // FlatList of scroll events.
       enableContentPanningGesture={false}
     >
-      <BottomSheetView style={styles.sheetContent}>
+      <View style={styles.sheetContent}>
       <FlatList
         ref={listRef}
         data={items}
@@ -231,7 +231,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
           </View>
         }
       />
-      </BottomSheetView>
+      </View>
     </BottomSheet>
   );
 });
