@@ -14,6 +14,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { LogoSpinner } from './logo-spinner';
+import { PhotoLightbox } from './photo-lightbox';
 
 interface ManagedPhoto {
   id: string;
@@ -53,6 +54,7 @@ export function PhotoManager({
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [busy, setBusy] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const remaining = Math.max(0, maxCount - photos.length);
   const canAdd = remaining > 0;
@@ -152,11 +154,26 @@ export function PhotoManager({
         <View style={styles.grid}>
           {photos.map((photo, index) => (
             <View key={photo.id} style={styles.tile}>
-              <Image source={{ uri: photo.photo_url }} style={styles.tileImage} resizeMode="cover" />
+              {/* Tap the photo itself (anywhere except the corner
+                  controls) to open the fullscreen viewer. The corner
+                  Pressables are absolutely positioned above this one
+                  so their own taps don't bubble through. */}
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={() => setViewerIndex(index)}
+                disabled={busy}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={t('photoGallery.openPhoto', {
+                  defaultValue: 'Ouvrir la photo {{n}}',
+                  n: index + 1,
+                })}
+              >
+                <Image source={{ uri: photo.photo_url }} style={styles.tileImage} resizeMode="cover" />
+              </Pressable>
 
               {/* Position chip — top-left. Makes the order explicit so
                   the user knows what they're rearranging. */}
-              <View style={styles.positionChip}>
+              <View style={styles.positionChip} pointerEvents="none">
                 <Text style={styles.positionText}>{index + 1}</Text>
               </View>
 
@@ -192,7 +209,7 @@ export function PhotoManager({
               </View>
 
               {busy && (
-                <View style={styles.tileOverlay}>
+                <View style={styles.tileOverlay} pointerEvents="none">
                   <LogoSpinner size={20} />
                 </View>
               )}
@@ -200,6 +217,8 @@ export function PhotoManager({
           ))}
         </View>
       )}
+
+      <PhotoLightbox photos={photos} index={viewerIndex} onIndexChange={setViewerIndex} />
 
       <Text style={styles.helper}>
         {t('photoManager.helper', {
@@ -211,7 +230,9 @@ export function PhotoManager({
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: { gap: spacing.sm },
+  // Own its horizontal padding so the tile-width math stays correct
+  // regardless of how the parent wraps it.
+  container: { gap: spacing.sm, paddingHorizontal: SIDE_PADDING },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

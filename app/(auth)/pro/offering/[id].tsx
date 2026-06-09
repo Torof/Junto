@@ -273,7 +273,7 @@ export default function ProOfferingDetailScreen() {
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {isOwner ? (
-            <View style={styles.managerWrap}>
+            <View style={styles.galleryWrap}>
               <PhotoManager
                 photos={photos}
                 maxCount={GALLERY_MAX}
@@ -445,5 +445,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   body: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   placeholderText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
   galleryWrap: { paddingTop: spacing.md },
-  managerWrap: { paddingTop: spacing.md, paddingHorizontal: spacing.md },
 });

@@ -283,7 +283,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {isOwner ? (
-            <View style={styles.paddedSection}>
+            <View style={styles.galleryWrap}>
               <PhotoManager
                 photos={photos}
                 maxCount={GALLERY_MAX}

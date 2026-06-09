@@ -4,17 +4,14 @@ import {
   Text,
   Image,
   Pressable,
-  FlatList,
-  Modal,
   StyleSheet,
   Dimensions,
-  StatusBar,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius } from '@/constants/theme';
+import { PhotoLightbox } from './photo-lightbox';
 
 interface GalleryPhoto {
   id: string;
@@ -23,17 +20,16 @@ interface GalleryPhoto {
 
 interface PhotoGalleryProps {
   photos: GalleryPhoto[];
-  // Optional empty-state copy override per surface (pro page vs offering).
   emptyText?: string;
 }
 
-const THUMB_WIDTH = 220;
-const THUMB_ASPECT = 4 / 3;
 const SCREEN = Dimensions.get('window');
+const COLUMN_GAP = spacing.sm;
+const SIDE_PADDING = spacing.md;
+const TILE_SIZE = (SCREEN.width - SIDE_PADDING * 2 - COLUMN_GAP) / 2;
 
-// Read-only photo gallery — horizontal carousel of curated thumbs, tap
-// any thumb to open the full-screen pager. Order honors the photo's
-// order_index so the pro's curation reads as intended (first = hero).
+// Read-only gallery — 2-column square grid (Instagram-ish). Tap any
+// tile to open the fullscreen pager (PhotoLightbox).
 export function PhotoGallery({ photos, emptyText }: PhotoGalleryProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -52,103 +48,45 @@ export function PhotoGallery({ photos, emptyText }: PhotoGalleryProps) {
 
   return (
     <>
-      <FlatList
-        data={photos}
-        keyExtractor={(p) => p.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carousel}
-        renderItem={({ item, index }) => (
+      <View style={styles.grid}>
+        {photos.map((photo, i) => (
           <Pressable
-            style={styles.thumb}
-            onPress={() => setViewerIndex(index)}
+            key={photo.id}
+            style={styles.tile}
+            onPress={() => setViewerIndex(i)}
             accessibilityRole="imagebutton"
             accessibilityLabel={t('photoGallery.openPhoto', {
               defaultValue: 'Ouvrir la photo {{n}}',
-              n: index + 1,
+              n: i + 1,
             })}
           >
-            <Image source={{ uri: item.photo_url }} style={styles.thumbImage} resizeMode="cover" />
+            <Image source={{ uri: photo.photo_url }} style={styles.tileImage} resizeMode="cover" />
           </Pressable>
-        )}
-      />
+        ))}
+      </View>
 
-      <Modal
-        visible={viewerIndex !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setViewerIndex(null)}
-        statusBarTranslucent
-      >
-        <StatusBar barStyle="light-content" />
-        <View style={styles.viewer}>
-          <FlatList
-            data={photos}
-            keyExtractor={(p) => p.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            initialScrollIndex={viewerIndex ?? 0}
-            getItemLayout={(_, index) => ({
-              length: SCREEN.width,
-              offset: SCREEN.width * index,
-              index,
-            })}
-            onMomentumScrollEnd={(e) => {
-              const i = Math.round(e.nativeEvent.contentOffset.x / SCREEN.width);
-              setViewerIndex(i);
-            }}
-            renderItem={({ item }) => (
-              <Pressable
-                style={styles.viewerPage}
-                onPress={() => setViewerIndex(null)}
-              >
-                <Image
-                  source={{ uri: item.photo_url }}
-                  style={styles.viewerImage}
-                  resizeMode="contain"
-                />
-              </Pressable>
-            )}
-          />
-
-          <Pressable
-            style={styles.viewerClose}
-            onPress={() => setViewerIndex(null)}
-            hitSlop={10}
-            accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}
-          >
-            <X size={24} color="#FFFFFF" strokeWidth={2.6} />
-          </Pressable>
-
-          {photos.length > 1 && viewerIndex !== null && (
-            <View style={styles.viewerCounter} pointerEvents="none">
-              <Text style={styles.viewerCounterText}>
-                {viewerIndex + 1} / {photos.length}
-              </Text>
-            </View>
-          )}
-        </View>
-      </Modal>
+      <PhotoLightbox photos={photos} index={viewerIndex} onIndexChange={setViewerIndex} />
     </>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  carousel: {
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm + 2,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: COLUMN_GAP,
+    paddingHorizontal: SIDE_PADDING,
   },
-  thumb: {
-    width: THUMB_WIDTH,
-    aspectRatio: THUMB_ASPECT,
+  tile: {
+    width: TILE_SIZE,
+    aspectRatio: 1,
     borderRadius: radius.md,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
   },
-  thumbImage: { width: '100%', height: '100%' },
+  tileImage: { width: '100%', height: '100%' },
   empty: {
     marginHorizontal: spacing.md,
     padding: spacing.md,
@@ -160,42 +98,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSizes.sm,
     fontStyle: 'italic',
-  },
-  viewer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  viewerPage: {
-    width: SCREEN.width,
-    height: SCREEN.height,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewerImage: { width: SCREEN.width, height: SCREEN.height },
-  viewerClose: {
-    position: 'absolute',
-    top: spacing.xl,
-    right: spacing.md,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewerCounter: {
-    position: 'absolute',
-    bottom: spacing.xl + 16,
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  viewerCounterText: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 0.4,
   },
 });
