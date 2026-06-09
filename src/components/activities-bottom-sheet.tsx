@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
@@ -90,6 +90,21 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const snapPoints = useMemo(() => ['2%', '50%', '92%'], []);
+
+  // gorhom v5 with enableDynamicSizing=false sizes the sheet's internal
+  // content container to the MAX snap height. Anything below the
+  // current snap edge is rendered off-screen, so the FlatList's scroll
+  // range counts items that physically sit below the visible area and
+  // can never be brought into view. Constraining the inner container
+  // to the current snap height in pixels makes the FlatList's scroll
+  // math match what the user can actually see.
+  const SNAP_RATIOS = [0.02, 0.5, 0.92];
+  const screenHeight = Dimensions.get('window').height;
+  const HANDLE_HEIGHT = 12; // matches handleContainer style
+  const innerHeight = Math.max(
+    0,
+    screenHeight * (SNAP_RATIOS[snapIndex] ?? 0.5) - HANDLE_HEIGHT,
+  );
 
   const handleToggleSnap = () => {
     // 92% → 50% (collapse to mid for the see-map + read-list flow).
@@ -189,7 +204,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // FlatList of scroll events.
       enableContentPanningGesture={false}
     >
-      <View style={styles.sheetContent}>
+      <View style={[styles.sheetContent, { height: innerHeight }]}>
       <FlatList
         ref={listRef}
         data={items}
