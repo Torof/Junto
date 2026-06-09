@@ -90,7 +90,7 @@ export default function ProOfferingDetailScreen() {
   };
 
   const formattedDuration = formatDuration(offering.duration);
-  const proThumbUrl = pro?.pin_image_url ?? pro?.banner_url ?? null;
+  const proThumbUrl = pro?.pin_image_url ?? null;
   const sportLabel = t(`sports.${offering.sport_key}`, offering.sport_key);
 
   // Build the chip list. Same per-stat accent palette as activity-detail
@@ -140,10 +140,9 @@ export default function ProOfferingDetailScreen() {
 
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* Banner only if the pro uploaded an image. Phase 4 swaps this
-              for the gallery's first photo. */}
-          {offering.image_url && (
-            <Image source={{ uri: offering.image_url }} style={styles.banner} resizeMode="cover" />
+          {/* Banner = first gallery photo (Phase 4A consolidation). */}
+          {photos[0] && (
+            <Image source={{ uri: photos[0].photo_url }} style={styles.banner} resizeMode="cover" />
           )}
 
           {/* === HERO === Restrained variant — keeps the structure of

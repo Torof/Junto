@@ -93,12 +93,12 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* === BANNER === Full-width, edge-to-edge, above the hero.
-              The brand-moment for the page. Hidden when no banner is
-              set; layout collapses to just the hero. */}
-          {pro.banner_url && (
+          {/* === BANNER === First gallery photo doubles as the hero
+              (Phase 4A consolidation). Hidden when the gallery is
+              empty; layout collapses to just the hero. */}
+          {photos[0] && (
             <Image
-              source={{ uri: pro.banner_url }}
+              source={{ uri: photos[0].photo_url }}
               style={styles.banner}
               resizeMode="cover"
               accessibilityLabel={`${pro.display_name} — bannière`}
