@@ -482,9 +482,12 @@ export default function CarteScreen() {
             setPreviewPro(null);
             setPreviewOffering(null);
             setHighlightedPinId(a.id);
-            // Fly the map so the pin lands above the drawer area.
+            // Fly the map so the pin lands at ~22% from the top —
+            // well above the 50% drawer line and clearly visible in
+            // the top half. Negative y shifts the camera south so the
+            // pin moves UP on screen relative to center.
             setFlyTarget([a.lng, a.lat]);
-            setFlyOffset({ y: 0.25 });
+            setFlyOffset({ y: -0.28 });
             setFlyToKey((k) => k + 1);
           }}
           onProOfferingPress={(o) => {
@@ -499,7 +502,7 @@ export default function CarteScreen() {
             setPreviewOffering(null);
             setHighlightedPinId(o.id);
             setFlyTarget([o.lng, o.lat]);
-            setFlyOffset({ y: 0.25 });
+            setFlyOffset({ y: -0.28 });
             setFlyToKey((k) => k + 1);
           }}
         />
