@@ -1,6 +1,6 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -82,14 +82,21 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   ) {
   const { t } = useTranslation();
   const sheetRef = useRef<BottomSheet>(null);
-  // BottomSheetFlatList exposes FlatList's scroll methods (scrollToIndex etc).
-  // Typed loose because @gorhom/bottom-sheet's ref type generics don't expose
-  // the underlying FlatList methods cleanly across versions.
-  const listRef = useRef<{ scrollToIndex: (p: { index: number; animated?: boolean; viewPosition?: number }) => void } | null>(null);
+  const listRef = useRef<FlatList<ListItem>>(null);
+  // Track snap index so the handle tap can toggle between 50% (mid)
+  // and 92% (full list). gorhom drives this via onChange below.
+  const [snapIndex, setSnapIndex] = useState(0);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const snapPoints = useMemo(() => ['2%', '50%', '92%'], []);
+
+  const handleToggleSnap = () => {
+    // 92% → 50% (collapse to mid for the see-map + read-list flow).
+    // 50% or 2% → 92% (open fully).
+    if (snapIndex === 2) sheetRef.current?.snapToIndex(1);
+    else sheetRef.current?.snapToIndex(2);
+  };
 
   useImperativeHandle(ref, () => ({
     expand: () => sheetRef.current?.snapToIndex(1),
@@ -152,13 +159,16 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       ref={sheetRef}
       index={0}
       snapPoints={snapPoints}
-      onChange={(idx) => { if (idx === 0) onCollapse?.(); }}
+      onChange={(idx) => {
+        setSnapIndex(idx);
+        if (idx === 0) onCollapse?.();
+      }}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => (
         <TabHandle
           count={items.length}
           label={t('map.seeList')}
-          onExpand={() => sheetRef.current?.snapToIndex(2)}
+          onExpand={handleToggleSnap}
           filterLabel={filterLabel}
           onClearFilter={onClearFilter}
         />
@@ -168,20 +178,26 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // content (ignoring snapPoints when shorter, overshooting when
       // longer). Off = snap points are absolute, list scrolls inside.
       enableDynamicSizing={false}
-      // Let horizontal gestures escape the sheet's pan so the radius
-      // slider (and any future horizontal control) keeps working. The
-      // pan still activates on vertical drags as soon as direction is
-      // disambiguated.
+      // Decouple the list's pan from the sheet's snap so the FlatList
+      // scrolls independently at any snap point. At 50% snap, scrolling
+      // the list scrolls it instead of pulling the sheet up to 92%.
+      // Snap changes happen via the tab handle (tap to toggle 50% ↔ 92%,
+      // drag for fine control).
+      enableContentPanningGesture={false}
       failOffsetX={[-5, 5]}
       activeOffsetY={[-10, 10]}
     >
-      <BottomSheetFlatList
-        ref={listRef as unknown as React.Ref<never>}
+      <BottomSheetView style={styles.sheetContent}>
+      <FlatList
+        ref={listRef}
         data={items}
         keyExtractor={(item) => `${item.kind}-${item.data.id}`}
+        style={styles.flatList}
         contentContainerStyle={styles.list}
         ListHeaderComponent={DrawerFilterBar}
         stickyHeaderIndices={[0]}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator
         renderItem={({ item }) => {
           // Tap behavior is now owned by the parent — no inline router.push.
           // Parent decides "peek (highlight pin) vs navigate (open page)"
@@ -213,6 +229,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
           </View>
         }
       />
+      </BottomSheetView>
     </BottomSheet>
   );
 });
@@ -220,6 +237,12 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
 const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetContainer: {
     zIndex: 20,
+  },
+  sheetContent: {
+    flex: 1,
+  },
+  flatList: {
+    flex: 1,
   },
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
