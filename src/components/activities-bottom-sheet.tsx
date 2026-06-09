@@ -182,10 +182,12 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       // scrolls independently at any snap point. At 50% snap, scrolling
       // the list scrolls it instead of pulling the sheet up to 92%.
       // Snap changes happen via the tab handle (tap to toggle 50% ↔ 92%,
-      // drag for fine control).
+      // drag for fine control). The failOffsetX/activeOffsetY configs
+      // from the canonical-content-panning path are intentionally
+      // absent here — with content panning off, they'd just disable
+      // the gesture handler wrapping the list and starve the native
+      // FlatList of scroll events.
       enableContentPanningGesture={false}
-      failOffsetX={[-5, 5]}
-      activeOffsetY={[-10, 10]}
     >
       <BottomSheetView style={styles.sheetContent}>
       <FlatList
