@@ -313,9 +313,10 @@ export default function CarteScreen() {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
                   const cb = currentBounds.current;
-                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : pro.primary_lng;
-                  const offsetX = pro.primary_lng < viewCenter ? 0.25 : -0.25;
-                  setFlyTarget([pro.primary_lng, pro.primary_lat]);
+                  const currentLat = cb ? (cb.swLat + cb.neLat) / 2 : pro.primary_lat;
+                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : pro.primary_lng;
+                  const offsetX = pro.primary_lng < viewCenterLng ? 0.25 : -0.25;
+                  setFlyTarget([pro.primary_lng, currentLat]);
                   setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedPro(pro);
@@ -338,9 +339,10 @@ export default function CarteScreen() {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
                   const cb = currentBounds.current;
-                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : offering.lng;
-                  const offsetX = offering.lng < viewCenter ? 0.25 : -0.25;
-                  setFlyTarget([offering.lng, offering.lat]);
+                  const currentLat = cb ? (cb.swLat + cb.neLat) / 2 : offering.lat;
+                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : offering.lng;
+                  const offsetX = offering.lng < viewCenterLng ? 0.25 : -0.25;
+                  setFlyTarget([offering.lng, currentLat]);
                   setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedOffering(offering);
@@ -448,14 +450,17 @@ export default function CarteScreen() {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
                   // Shift sideways so the popup gets a clear horizontal
-                  // runway. If the pin currently sits on the left half
-                  // of the viewport land it at 25% from the left (popup
-                  // extends right); else at 75% (popup extends left).
-                  // Vertical position is left alone.
+                  // runway. Pin on the left half of the viewport lands
+                  // at 25% from the left (popup extends right); right
+                  // half → 75% (popup extends left). Vertical position
+                  // is locked: flyTo's coordinate.lat is set to the
+                  // CURRENT viewport's center lat, not the pin's, so
+                  // the camera only zooms + slides horizontally.
                   const cb = currentBounds.current;
-                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : a.lng;
-                  const offsetX = a.lng < viewCenter ? 0.25 : -0.25;
-                  setFlyTarget([a.lng, a.lat]);
+                  const currentLat = cb ? (cb.swLat + cb.neLat) / 2 : a.lat;
+                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : a.lng;
+                  const offsetX = a.lng < viewCenterLng ? 0.25 : -0.25;
+                  setFlyTarget([a.lng, currentLat]);
                   setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedActivity(a);
