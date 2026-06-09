@@ -160,13 +160,16 @@ export default function CarteScreen() {
     }
 
     // Close the popup on zoom-out: track the smallest viewport span since selection,
-    // close when the current viewport grows 30%+ above that minimum.
+    // close when the current viewport grows 30%+ above that minimum. Same rule
+    // for all three popup types (activity / pro / offering).
     if (selectionBoundsSpan.current !== null) {
       const newSpan = Math.abs(bounds.neLng - bounds.swLng);
       if (newSpan < selectionBoundsSpan.current) {
         selectionBoundsSpan.current = newSpan;
       } else if (newSpan > selectionBoundsSpan.current * 1.3) {
         setSelectedActivity(null);
+        setSelectedPro(null);
+        setSelectedOffering(null);
         selectionBoundsSpan.current = null;
       }
     }
@@ -304,9 +307,16 @@ export default function CarteScreen() {
                   suppressMapPressUntil.current = Date.now() + 400;
                   router.push(`/(auth)/pro/${pro.user_id}`);
                   setSelectedPro(null);
+                  selectionBoundsSpan.current = null;
                 } else {
+                  // Snapshot viewport span so a later zoom-out dismisses.
+                  if (currentBounds.current) {
+                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
+                  }
+                  // Land the pin in the top third of the screen (matches
+                  // the card-tap centering — predictable across surfaces).
                   setFlyTarget([pro.primary_lng, pro.primary_lat]);
-                  setFlyOffset({ y: 0.18 });
+                  setFlyOffset({ y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedPro(pro);
                 }
@@ -322,9 +332,13 @@ export default function CarteScreen() {
                   suppressMapPressUntil.current = Date.now() + 400;
                   router.push(`/(auth)/pro/offering/${offering.id}`);
                   setSelectedOffering(null);
+                  selectionBoundsSpan.current = null;
                 } else {
+                  if (currentBounds.current) {
+                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
+                  }
                   setFlyTarget([offering.lng, offering.lat]);
-                  setFlyOffset({ y: 0.18 });
+                  setFlyOffset({ y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedOffering(offering);
                 }
@@ -430,9 +444,10 @@ export default function CarteScreen() {
                   if (currentBounds.current) {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
-                  // First tap: fly to the pin (offset to land at ~40% horizontally)
+                  // Land the pin in the top third of the screen (matches
+                  // pro / offering pin taps and the card-peek centering).
                   setFlyTarget([a.lng, a.lat]);
-                  setFlyOffset({ x: 0.1 });
+                  setFlyOffset({ y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedActivity(a);
                 }

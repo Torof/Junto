@@ -481,13 +481,14 @@ export function JuntoMapView({
         if (pinProps.type === 'pro') {
           const pro = proMap.get(pinProps.id);
           if (!pro) return null;
+          const isProSelected = selectedPro?.user_id === pro.user_id;
           return (
             <Mapbox.MarkerView
               key={`pro-${pro.user_id}`}
               id={`pro-${pro.user_id}`}
               coordinate={[lng, lat]}
               anchor={PRO_PIN_ANCHOR}
-              allowOverlap={isHighlighted}
+              allowOverlap={isHighlighted || isProSelected}
             >
               <View style={highlightStyle}>
                 <Pressable onPress={() => onProPress?.(pro)}>
@@ -501,13 +502,14 @@ export function JuntoMapView({
         // pinProps.type === 'offering'
         const offering = offeringMap.get(pinProps.id);
         if (!offering) return null;
+        const isOfferingSelected = selectedOffering?.id === offering.id;
         return (
           <Mapbox.MarkerView
             key={`offering-${offering.id}`}
             id={`offering-${offering.id}`}
             coordinate={[lng, lat]}
             anchor={PRO_OFFERING_PIN_ANCHOR}
-            allowOverlap={isHighlighted}
+            allowOverlap={isHighlighted || isOfferingSelected}
           >
             <View style={highlightStyle}>
               <Pressable onPress={() => onProOfferingPress?.(offering)}>
