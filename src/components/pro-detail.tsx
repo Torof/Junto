@@ -11,8 +11,10 @@ import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { userService } from '@/services/user-service';
+import { useProPhotos } from '@/hooks/use-pro-photos';
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView } from './map-view';
+import { PhotoGallery } from './photo-gallery';
 
 interface Props {
   pro: ProProfile;
@@ -37,6 +39,8 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
     queryFn: () => proOfferingService.getByProId(pro.user_id),
     enabled: activeTab === 'catalog',
   });
+
+  const { data: photos = [] } = useProPhotos(pro.user_id);
 
   // Underlying human behind the pro brand — exposed as a small avatar
   // in the hero so visitors can jump to the user's personal profile.
@@ -234,16 +238,19 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
         </ScrollView>
       )}
 
-      {/* ===== PICTURES TAB ===== Phase 4 wires the gallery (25 max
-          per AUDIT decision). For now, a clear placeholder. */}
+      {/* ===== PICTURES TAB ===== Read-only gallery (owner manages from
+          the edit screen). Empty-state copy nudges the owner to add some. */}
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.paddedSection}>
-            <View style={styles.infoCard}>
-              <Text style={styles.placeholderText}>
-                {t('pro.picturesPlaceholder', { defaultValue: 'Bientôt — la galerie de photos arrive.' })}
-              </Text>
-            </View>
+          <View style={styles.galleryWrap}>
+            <PhotoGallery
+              photos={photos}
+              emptyText={
+                isOwner
+                  ? t('pro.picturesEmptyOwner', { defaultValue: 'Aucune photo. Ajoute-en depuis l\'écran de modification.' })
+                  : t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })
+              }
+            />
           </View>
         </ScrollView>
       )}
@@ -377,6 +384,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // hero can be edge-to-edge.
   paddedSection: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  // The gallery carousel has its own horizontal padding so the cards
+  // can scroll edge-to-edge; we just need top breathing room.
+  galleryWrap: {
     paddingTop: spacing.md,
   },
   infoCard: {

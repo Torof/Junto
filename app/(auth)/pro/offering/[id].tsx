@@ -17,11 +17,13 @@ import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
+import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
 import { PageTypeBadge } from '@/components/page-type-badge';
+import { PhotoGallery } from '@/components/photo-gallery';
 
 // Public detail view of a pro_offering. Hero mirrors the spontaneous
 // activity-detail layout: sport-color banner with a big decorative
@@ -49,6 +51,8 @@ export default function ProOfferingDetailScreen() {
     queryFn: () => proService.getById(offering!.pro_id),
     enabled: !!offering?.pro_id,
   });
+
+  const { data: photos = [] } = useProOfferingPhotos(offering?.id);
 
   // Navbar header — small octagon + "Activité récurrente · {title}".
   useLayoutEffect(() => {
@@ -226,12 +230,15 @@ export default function ProOfferingDetailScreen() {
 
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.placeholderText}>
-              {t('proOffering.picturesPlaceholder', {
-                defaultValue: 'Bientôt — la galerie photo arrivera ici.',
-              })}
-            </Text>
+          <View style={styles.galleryWrap}>
+            <PhotoGallery
+              photos={photos}
+              emptyText={
+                isOwner
+                  ? t('proOffering.picturesEmptyOwner', { defaultValue: 'Aucune photo. Ajoute-en depuis l\'écran de modification.' })
+                  : t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })
+              }
+            />
           </View>
         </ScrollView>
       )}
@@ -387,4 +394,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   body: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   placeholderText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
+  galleryWrap: { paddingTop: spacing.md },
 });
