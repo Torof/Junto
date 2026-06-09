@@ -53,13 +53,21 @@ interface MapViewProps {
   pins?: MapPin[];
   userLocation?: [number, number] | null;
   selectedActivity?: NearbyActivity | null;
+  // Pro / offering pins use the same pin-anchored tooltip pattern as
+  // activities. Setting any of these renders a popup next to the
+  // matching pin. Mutually exclusive in practice (parent state),
+  // though the component renders all that are non-null.
+  selectedPro?: NearbyPro | null;
+  selectedOffering?: ProOffering | null;
   // Id of the pin currently in "peeked" mode (highlighted by a card
   // tap in the bottom-sheet list). The matching pin scales up to draw
-  // the eye; no tooltip or preview because the originating card
-  // already shows the info. Separate from selectedActivity, which
-  // governs the popup-on-pin-tap flow.
+  // the eye; no tooltip because the originating card already shows
+  // the info. Separate from the selected* states, which govern the
+  // popup-on-pin-tap flow.
   highlightedPinId?: string | null;
   popupContent?: React.ReactNode;
+  proPopupContent?: React.ReactNode;
+  offeringPopupContent?: React.ReactNode;
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
@@ -95,8 +103,12 @@ export function JuntoMapView({
   pins = [],
   userLocation,
   selectedActivity,
+  selectedPro,
+  selectedOffering,
   highlightedPinId,
   popupContent,
+  proPopupContent,
+  offeringPopupContent,
   tapMarker,
   tapMarkerContent,
   onActivityPress,
@@ -506,10 +518,12 @@ export function JuntoMapView({
         );
       })}
 
-      {/* Popup rendered as a separate MarkerView AFTER all pins so it always stacks on top */}
+      {/* Popups rendered as separate MarkerViews AFTER all pins so
+          they always stack on top. Same auto-anchor logic for all
+          three: popup extends to the side away from the screen edge
+          to avoid clipping. */}
       {selectedActivity && popupContent && (() => {
         const popupOnRight = selectedActivity.lng <= (bounds[0] + bounds[2]) / 2;
-        // Anchor on the side facing the pin so the popup extends away from it
         const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
         return (
           <Mapbox.MarkerView
@@ -524,6 +538,48 @@ export function JuntoMapView({
               pointerEvents="box-none"
             >
               {popupContent}
+            </View>
+          </Mapbox.MarkerView>
+        );
+      })()}
+
+      {selectedPro && proPopupContent && (() => {
+        const popupOnRight = selectedPro.primary_lng <= (bounds[0] + bounds[2]) / 2;
+        const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
+        return (
+          <Mapbox.MarkerView
+            key={`popup-pro-${selectedPro.user_id}`}
+            id={`popup-pro-${selectedPro.user_id}`}
+            coordinate={[selectedPro.primary_lng, selectedPro.primary_lat]}
+            allowOverlap
+            anchor={anchor}
+          >
+            <View
+              style={popupOnRight ? { marginLeft: 26 } : { marginRight: 26 }}
+              pointerEvents="box-none"
+            >
+              {proPopupContent}
+            </View>
+          </Mapbox.MarkerView>
+        );
+      })()}
+
+      {selectedOffering && offeringPopupContent && (() => {
+        const popupOnRight = selectedOffering.lng <= (bounds[0] + bounds[2]) / 2;
+        const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
+        return (
+          <Mapbox.MarkerView
+            key={`popup-offering-${selectedOffering.id}`}
+            id={`popup-offering-${selectedOffering.id}`}
+            coordinate={[selectedOffering.lng, selectedOffering.lat]}
+            allowOverlap
+            anchor={anchor}
+          >
+            <View
+              style={popupOnRight ? { marginLeft: 28 } : { marginRight: 28 }}
+              pointerEvents="box-none"
+            >
+              {offeringPopupContent}
             </View>
           </Mapbox.MarkerView>
         );
