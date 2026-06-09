@@ -789,7 +789,7 @@ export function ActivityDetail({
             {/* === PEOPLE CARD === Organizer + avatar stack. Left-edge
                 sport-category stripe matches the hero so the color
                 identity carries through the page. */}
-            <View style={[styles.infoCard, styles.cardAccented, { borderLeftColor: sportAccent }]}>
+            <View style={styles.infoCard}>
               <OrganizerCard
                 activityId={activity.id}
                 creatorId={activity.creator_id}
@@ -1227,13 +1227,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '600',
   },
-  // Accented card — used on the People card to carry sport-category
-  // color identity beyond the hero. Same visual idiom as the activity
-  // drawer card.
-  cardAccented: {
-    borderLeftWidth: 4,
-  },
-
   // Status banner — full-width above the hero. Replaces the old
   // inactive/pending/accepted banners + presence pills.
   statusBannerTop: {
