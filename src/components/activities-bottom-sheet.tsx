@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -82,6 +82,10 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   ) {
   const { t } = useTranslation();
   const sheetRef = useRef<BottomSheet>(null);
+  // BottomSheetFlatList exposes FlatList's scroll methods (scrollToIndex etc).
+  // Typed loose because @gorhom/bottom-sheet's ref type generics don't expose
+  // the underlying FlatList methods cleanly across versions.
+  const listRef = useRef<{ scrollToIndex: (p: { index: number; animated?: boolean; viewPosition?: number }) => void } | null>(null);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -112,6 +116,26 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     return [...acts, ...offs];
   }, [activities, proOfferings, userLocation]);
 
+  // When the highlighted item changes, scroll it to the top of the
+  // visible list so the user sees the highlighted card and the
+  // highlighted pin in mirror positions (top of map, top of drawer).
+  useEffect(() => {
+    if (!highlightedItemId) return;
+    const idx = items.findIndex((it) => it.data.id === highlightedItemId);
+    if (idx < 0) return;
+    // Defer to next frame — the bottom-sheet's snap animation can
+    // race with scrollToIndex on the same tick and swallow it.
+    requestAnimationFrame(() => {
+      try {
+        listRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0 });
+      } catch {
+        // scrollToIndex can throw if the row hasn't been measured yet
+        // (rare in practice — items are cards with consistent height).
+        // Silent fallback; the highlight tint on the card still works.
+      }
+    });
+  }, [highlightedItemId, items]);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -141,6 +165,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       activeOffsetY={[-10, 10]}
     >
       <BottomSheetFlatList
+        ref={listRef as unknown as React.Ref<never>}
         data={items}
         keyExtractor={(item) => `${item.kind}-${item.data.id}`}
         contentContainerStyle={styles.list}
