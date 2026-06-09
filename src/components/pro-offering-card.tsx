@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Calendar, User } from 'lucide-react-native';
+import { MapPin, Calendar } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -52,26 +52,22 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
             <Text style={[styles.level, { color: accent }]} numberOfLines={1}>{offering.level}</Text>
           </View>
         </View>
-        <View style={styles.metaRow}>
+        {/* Meta stacked vertically — each piece on its own row so the
+            often-long schedule_text ("Tous les samedis 9h-17h") never
+            gets truncated. Distance, when present, inlines with the
+            location since both are short. */}
+        <View style={styles.metaList}>
           <View style={styles.metaItem}>
             <MapPin size={11} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.metaText} numberOfLines={1}>{offering.location_name}</Text>
+            <Text style={styles.metaText} numberOfLines={1}>
+              {offering.location_name}
+              {distanceKm !== undefined ? ` · ${distanceKm.toFixed(1)} km` : ''}
+            </Text>
           </View>
           {offering.schedule_text && (
             <View style={styles.metaItem}>
               <Calendar size={11} color={colors.textSecondary} strokeWidth={2.4} />
               <Text style={styles.metaText} numberOfLines={1}>{offering.schedule_text}</Text>
-            </View>
-          )}
-          {distanceKm !== undefined && (
-            <View style={styles.metaItem}>
-              <Text style={styles.metaText} numberOfLines={1}>· {distanceKm.toFixed(1)} km</Text>
-            </View>
-          )}
-          {!offering.schedule_text && distanceKm === undefined && (
-            <View style={[styles.metaItem, { flexShrink: 1 }]}>
-              <User size={11} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{offering.pro_name}</Text>
             </View>
           )}
         </View>
@@ -132,14 +128,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sport: { fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 0 },
   levelSep: { fontSize: fontSizes.xs },
   level: { fontSize: fontSizes.xs, fontWeight: '600', flexShrink: 1 },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'nowrap',
-    gap: spacing.sm,
+  metaList: {
     marginTop: 2,
+    gap: 2,
   },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
   proPill: {
     flexDirection: 'row',
