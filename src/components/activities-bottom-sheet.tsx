@@ -213,7 +213,6 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         contentContainerStyle={styles.list}
         ListHeaderComponent={DrawerFilterBar}
         stickyHeaderIndices={[0]}
-        nestedScrollEnabled
         showsVerticalScrollIndicator
         renderItem={({ item }) => {
           // Tap behavior is now owned by the parent — no inline router.push.
@@ -256,7 +255,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 20,
   },
   sheetContent: {
-    flex: 1,
+    // No flex — the inline `height` from innerHeight sets the absolute
+    // pixel height matching the current snap, and flex would fight it.
+    overflow: 'hidden',
   },
   flatList: {
     flex: 1,
