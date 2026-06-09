@@ -739,8 +739,9 @@ export function ActivityDetail({
               </View>
             </View>
 
-            {/* === STATS GRID === */}
-            <View style={styles.infoCard}>
+            {/* === STATS GRID === Borderless per the info-tab polish
+                (Scott 2026-06-10) — People + Where keep their cards. */}
+            <View style={styles.statsBlock}>
               {(() => {
                 const startChip: MetaChip = activity.start_name
                   ? { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: activity.start_name }
@@ -1146,11 +1147,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
 
-  // Info-tab sections — borders removed (Scott 2026-06-10). Each
-  // section sits flat with its own padding + margin; cardAccented
-  // still adds a left stripe on the People card as a quiet brutalist
-  // accent.
+  // Info-tab cards — each visible section is its own brutalist outlined
+  // box with air between. No shadows, no fills.
   infoCard: {
+    backgroundColor: 'transparent',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  // Stats block — same outer geometry as infoCard, no border. Scott
+  // only wanted the box removed from the info chips, not from People /
+  // Where (2026-06-10).
+  statsBlock: {
     padding: spacing.md,
     marginBottom: spacing.md,
   },

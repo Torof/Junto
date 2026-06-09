@@ -228,9 +228,10 @@ export default function ProOfferingDetailScreen() {
             </View>
           </View>
 
-          {/* Stats — brutalist tiled chips, same component the activity
-              detail page uses. */}
-          <View style={styles.card}>
+          {/* Stats — brutalist tiled chips. Borderless per Scott's
+              info-tab polish (2026-06-10); description + identity keep
+              their bordered card. */}
+          <View style={styles.statsBlock}>
             <MetaChipsGrid chips={chips} />
           </View>
 
@@ -426,9 +427,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   identityName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
   identityTagline: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
 
-  // Bordered container removed (Scott 2026-06-10). Each section now
-  // sits flat — only padding + margins remain so spacing carries.
   card: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.md,
+  },
+  // Stats block — same outer geometry as card but borderless. Scott
+  // only wanted the box removed from the info chips, not from
+  // description/identity (2026-06-10).
+  statsBlock: {
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
     padding: spacing.md,
