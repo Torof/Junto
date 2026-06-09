@@ -588,16 +588,15 @@ export default function CarteScreen() {
         {tutorialStep === 'click_alert' && !selectedActivity && showAlertTooltip && (
           <TutorialTooltip
             text={t('tutorial.clickAlert')}
-            position="bottom"
-            anchor={{ bottom: 240, right: 8 }}
-            arrowAlign="right"
+            position="top"
+            anchor={{ top: 70, left: 24, right: 24 }}
           />
         )}
         {tutorialStep === 'create_activity_hint' && !tappedPoint && (
           <TutorialTooltip
             text={t('tutorial.createActivity')}
             position="bottom"
-            anchor={{ bottom: 260, left: 24, right: 24 }}
+            anchor={{ bottom: 140, left: 24, right: 24 }}
           />
         )}
 

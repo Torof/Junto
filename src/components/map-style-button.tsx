@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react-native';
 import { spacing, radius, fontSizes } from '@/constants/theme';
@@ -7,10 +8,13 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey } from '@/store/map-style-store';
 
+// Top-right corner — settings-like, infrequent. Modal panel anchors
+// from the same corner so the user's eye stays put.
 export function MapStyleButton() {
   const { t } = useTranslation();
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
   const [open, setOpen] = useState(false);
   const current = useMapStyleStore((s) => s.style);
   const setStyle = useMapStyleStore((s) => s.setStyle);
@@ -18,7 +22,7 @@ export function MapStyleButton() {
   return (
     <>
       <Pressable style={styles.button} onPress={() => setOpen(true)} hitSlop={8} accessibilityLabel={t('drawer.mapStyle')}>
-        <Layers size={22} color={colors.textPrimary} strokeWidth={2.2} />
+        <Layers size={20} color={colors.textPrimary} strokeWidth={2.2} />
       </Pressable>
 
       <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}>
@@ -46,10 +50,10 @@ export function MapStyleButton() {
   );
 }
 
-const createStyles = (colors: AppColors) => StyleSheet.create({
+const createStyles = (colors: AppColors, safeTop: number) => StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 170,
+    top: spacing.md,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
@@ -60,14 +64,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
+  // Backdrop spans the whole modal (full screen) — paddingTop drops
+  // the panel just below the button position.
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,
+    paddingTop: safeTop + spacing.md + 40 + spacing.xs,
+    paddingRight: spacing.md,
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    paddingRight: spacing.md + 50,
-    paddingBottom: 170,
   },
   panel: {
     backgroundColor: colors.surface,

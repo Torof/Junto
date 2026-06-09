@@ -23,10 +23,12 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  // Bottom-right, just above the create FAB. 8px gap so the two read
+  // as a stack but the FAB stays visually dominant.
   button: {
     position: 'absolute',
-    bottom: 70,
-    right: spacing.md,
+    bottom: 130,
+    right: spacing.md + 6,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
     width: 40,
@@ -36,5 +38,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
 });

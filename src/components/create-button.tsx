@@ -27,24 +27,32 @@ export function CreateButton() {
       hitSlop={8}
       accessibilityLabel={t('map.createActivityCta', { defaultValue: 'Create activity' })}
     >
-      <Plus size={24} color={colors.textPrimary} strokeWidth={2.5} />
+      <Plus size={28} color={colors.textPrimary} strokeWidth={2.6} />
     </Pressable>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  // FAB — bottom-right, primary CTA. Bigger than the secondary
+  // recenter button above so the eye reads the action hierarchy
+  // (Scott 2026-06-10).
   button: {
     position: 'absolute',
-    bottom: 220,
+    bottom: 70,
     right: spacing.md,
     backgroundColor: colors.cta,
     borderRadius: radius.full,
-    width: 40,
-    height: 40,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
 });
