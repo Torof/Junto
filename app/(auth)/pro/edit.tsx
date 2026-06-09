@@ -26,9 +26,14 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { pickAndUploadProBanner, removeProBanner } from '@/utils/pro-banner-upload';
 import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
+import { pickAndUploadProPhotos, removeProPhoto } from '@/utils/pro-photo-upload';
+import { useProPhotos } from '@/hooks/use-pro-photos';
+import { proPhotoService } from '@/services/pro-photo-service';
+import { PhotoManager } from '@/components/photo-manager';
 import { ProPin } from '@/components/pro-pin';
+
+const GALLERY_MAX = 25;
 
 export default function ProEditScreen() {
   const { t } = useTranslation();
@@ -61,12 +66,10 @@ export default function ProEditScreen() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
-  // Banner state — local override of existing.banner_url so the
-  // upload preview shows immediately even before the query refetches.
-  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [bannerBusy, setBannerBusy] = useState(false);
   const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
   const [pinImageBusy, setPinImageBusy] = useState(false);
+
+  const { data: photos = [] } = useProPhotos(existing?.user_id);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -83,39 +86,38 @@ export default function ProEditScreen() {
     setLocationName(existing.primary_location_name);
     setPinLng(existing.primary_lng);
     setPinLat(existing.primary_lat);
-    setBannerUrl(existing.banner_url);
     setPinImageUrl(existing.pin_image_url);
   }, [existing]);
 
-  const handlePickBanner = async () => {
-    if (bannerBusy) return;
-    setBannerBusy(true);
+  const invalidatePhotos = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['pro-photos', existing?.user_id] });
+  };
+
+  const handleGalleryAdd = async () => {
     try {
-      const newUrl = await pickAndUploadProBanner();
-      if (newUrl) {
-        setBannerUrl(newUrl);
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
-      }
+      const remaining = GALLERY_MAX - photos.length;
+      await pickAndUploadProPhotos(remaining);
+      await invalidatePhotos();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setBannerBusy(false);
     }
   };
 
-  const handleRemoveBanner = async () => {
-    if (bannerBusy) return;
-    setBannerBusy(true);
+  const handleGalleryRemove = async (photoId: string) => {
     try {
-      await removeProBanner();
-      setBannerUrl(null);
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+      await removeProPhoto(photoId);
+      await invalidatePhotos();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setBannerBusy(false);
+    }
+  };
+
+  const handleGalleryReorder = async (orderedIds: string[]) => {
+    try {
+      await proPhotoService.reorder(orderedIds);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     }
   };
 
@@ -253,48 +255,19 @@ export default function ProEditScreen() {
           })}
         </Text>
 
-        {/* Banner picker — only on update. New pros land here from
-            "Devenir pro" without a banner; they upload one on their
-            next visit. Keeps the first-time registration flow short. */}
+        {/* Photo gallery (edit mode only — needs a pro_profiles row).
+            First photo becomes the page hero; remaining photos populate
+            the Photos tab. */}
         {isUpdate && (
           <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('pro.bannerSection', { defaultValue: 'Bannière' })}</Text>
-            <Pressable
-              style={styles.bannerSlot}
-              onPress={handlePickBanner}
-              disabled={bannerBusy}
-            >
-              {bannerUrl ? (
-                <Image source={{ uri: bannerUrl }} style={styles.bannerImage} resizeMode="cover" />
-              ) : (
-                <View style={styles.bannerEmpty}>
-                  <ImagePlus size={28} color={colors.textSecondary} strokeWidth={2.2} />
-                  <Text style={styles.bannerEmptyText}>
-                    {t('pro.bannerAdd', { defaultValue: 'Ajouter une bannière' })}
-                  </Text>
-                </View>
-              )}
-              {bannerBusy && (
-                <View style={styles.bannerOverlay}>
-                  <LogoSpinner size={32} />
-                </View>
-              )}
-            </Pressable>
-            {bannerUrl && !bannerBusy && (
-              <View style={styles.bannerActions}>
-                <Pressable onPress={handlePickBanner} hitSlop={6}>
-                  <Text style={styles.bannerActionText}>
-                    {t('pro.bannerReplace', { defaultValue: 'Remplacer' })}
-                  </Text>
-                </Pressable>
-                <Pressable onPress={handleRemoveBanner} hitSlop={6} style={styles.bannerActionRow}>
-                  <Trash2 size={12} color={colors.error} strokeWidth={2.4} />
-                  <Text style={[styles.bannerActionText, { color: colors.error }]}>
-                    {t('pro.bannerRemove', { defaultValue: 'Supprimer' })}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
+            <Text style={styles.section}>{t('pro.photosSection', { defaultValue: 'Photos' })}</Text>
+            <PhotoManager
+              photos={photos}
+              maxCount={GALLERY_MAX}
+              onAdd={handleGalleryAdd}
+              onRemove={handleGalleryRemove}
+              onReorder={handleGalleryReorder}
+            />
           </View>
         )}
 
@@ -603,46 +576,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   bannerSection: { marginBottom: spacing.md },
-  // 3:1 aspect matches the upload util's crop ratio.
-  bannerSlot: {
-    aspectRatio: 3,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-  },
-  bannerImage: { width: '100%', height: '100%' },
-  bannerEmpty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  bannerEmptyText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-  },
-  bannerOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: colors.overlay,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  bannerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginTop: spacing.xs + 2,
-  },
-  bannerActionRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  bannerActionText: {
-    color: colors.cta,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
   pinImageRow: {
     flexDirection: 'row',
     alignItems: 'center',
