@@ -32,6 +32,9 @@ export function ProOfferingPopup({ offering, onPress }: ProOfferingPopupProps) {
             {t(`sports.${offering.sport_key}`, offering.sport_key)}
           </Text>
         </View>
+        <View style={styles.proChip}>
+          <Text style={styles.proChipText}>PRO</Text>
+        </View>
       </View>
 
       <View style={styles.row}>
@@ -84,6 +87,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 999,
   },
   sportChipText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  proChip: {
+    backgroundColor: colors.cta + '1F',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  proChipText: {
+    color: colors.cta,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.6,

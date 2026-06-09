@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -10,31 +10,23 @@ interface ProPopupProps {
   onPress: () => void;
 }
 
-// Pin-anchored tooltip for the pro storefront pin. Same surface style
-// + chip pattern as ActivityPopup so the three pin types speak the
-// same visual language. Tap → opens /pro/[id].
+// Pin-anchored tooltip for the pro storefront pin. Drops the
+// thumbnail (the pin itself already carries the photo) and replaces
+// it with the "à propos" excerpt so the popup actually adds info
+// beyond what the pin shows. Tap → opens /pro/[id].
 export function ProPopup({ pro, onPress }: ProPopupProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const initial = (pro.display_name?.trim().charAt(0) ?? '?').toUpperCase();
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.headerRow}>
-        {pro.pin_image_url ? (
-          <Image source={{ uri: pro.pin_image_url }} style={styles.thumb} />
-        ) : (
-          <View style={[styles.thumb, styles.thumbPlaceholder]}>
-            <Text style={styles.thumbInitial}>{initial}</Text>
-          </View>
-        )}
-        <View style={styles.headerBody}>
-          <View style={styles.kickerChip}>
-            <Text style={styles.kickerChipText}>PRO</Text>
-          </View>
-          <Text style={styles.title} numberOfLines={1}>{pro.display_name}</Text>
-        </View>
+      <View style={styles.kickerChip}>
+        <Text style={styles.kickerChipText}>PRO</Text>
       </View>
+      <Text style={styles.title} numberOfLines={1}>{pro.display_name}</Text>
+      {pro.description && (
+        <Text style={styles.about} numberOfLines={2}>{pro.description}</Text>
+      )}
     </Pressable>
   );
 }
@@ -53,25 +45,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 170,
+    maxWidth: 240,
+    gap: 4,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  thumb: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    backgroundColor: colors.background,
-  },
-  thumbPlaceholder: {
-    backgroundColor: colors.cta,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbInitial: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
-  headerBody: { flex: 1, gap: 2 },
   kickerChip: {
     alignSelf: 'flex-start',
     backgroundColor: colors.cta + '1F',
@@ -90,5 +66,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
     fontWeight: 'bold',
+    marginTop: 2,
+  },
+  about: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    lineHeight: 16,
+    marginTop: 2,
   },
 });

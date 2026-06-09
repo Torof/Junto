@@ -36,14 +36,18 @@ export interface RegisterAsProInput {
 
 export type UpdateProProfileInput = Partial<RegisterAsProInput>;
 
-// Lightweight shape returned by getNearby — just what the pin needs.
-// Tap on the pin loads the full ProProfile via getById.
+// Lightweight shape returned by getNearby — just what the pin + tooltip
+// need. Tap on the pin loads the full ProProfile via getById.
+// description is included so the pin-anchored tooltip can show a short
+// "à propos" line without a second roundtrip; cost is ~1KB per pro in
+// the viewport which is acceptable at expected densities.
 export interface NearbyPro {
   user_id: string;
   display_name: string;
   primary_lng: number;
   primary_lat: number;
   pin_image_url: string | null;
+  description: string | null;
 }
 
 export const proService = {
@@ -134,7 +138,7 @@ export const proService = {
   }): Promise<NearbyPro[]> => {
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url');
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, description');
 
     if (bounds) {
       query = query
