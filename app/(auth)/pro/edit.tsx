@@ -27,13 +27,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
-import { pickAndUploadProPhotos, removeProPhoto } from '@/utils/pro-photo-upload';
-import { useProPhotos } from '@/hooks/use-pro-photos';
-import { proPhotoService } from '@/services/pro-photo-service';
-import { PhotoManager } from '@/components/photo-manager';
 import { ProPin } from '@/components/pro-pin';
-
-const GALLERY_MAX = 25;
 
 export default function ProEditScreen() {
   const { t } = useTranslation();
@@ -69,8 +63,6 @@ export default function ProEditScreen() {
   const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
   const [pinImageBusy, setPinImageBusy] = useState(false);
 
-  const { data: photos = [] } = useProPhotos(existing?.user_id);
-
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
   useEffect(() => {
@@ -89,37 +81,6 @@ export default function ProEditScreen() {
     setPinImageUrl(existing.pin_image_url);
   }, [existing]);
 
-  const invalidatePhotos = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['pro-photos', existing?.user_id] });
-  };
-
-  const handleGalleryAdd = async () => {
-    try {
-      const remaining = GALLERY_MAX - photos.length;
-      await pickAndUploadProPhotos(remaining);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
-
-  const handleGalleryRemove = async (photoId: string) => {
-    try {
-      await removeProPhoto(photoId);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
-
-  const handleGalleryReorder = async (orderedIds: string[]) => {
-    try {
-      await proPhotoService.reorder(orderedIds);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
 
   const handlePickPinImage = async () => {
     if (pinImageBusy) return;
@@ -255,21 +216,6 @@ export default function ProEditScreen() {
           })}
         </Text>
 
-        {/* Photo gallery (edit mode only — needs a pro_profiles row).
-            First photo becomes the page hero; remaining photos populate
-            the Photos tab. */}
-        {isUpdate && (
-          <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('pro.photosSection', { defaultValue: 'Photos' })}</Text>
-            <PhotoManager
-              photos={photos}
-              maxCount={GALLERY_MAX}
-              onAdd={handleGalleryAdd}
-              onRemove={handleGalleryRemove}
-              onReorder={handleGalleryReorder}
-            />
-          </View>
-        )}
 
         {/* Pin image — square photo that replaces the initial inside the
             pro pin on the map. Update-mode only, same as banner. */}

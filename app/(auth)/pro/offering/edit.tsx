@@ -28,12 +28,6 @@ import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { LEVELS } from '@/types/activity-form';
-import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
-import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
-import { proOfferingPhotoService } from '@/services/pro-photo-service';
-import { PhotoManager } from '@/components/photo-manager';
-
-const GALLERY_MAX = 25;
 
 // Single-screen form, mode keyed off the optional ?id= query param.
 // New offering → empty form, calls create. Existing → pre-filled, calls
@@ -92,8 +86,6 @@ export default function ProOfferingEditScreen() {
   const [distanceKm, setDistanceKm] = useState<string>('');
   const [elevationGainM, setElevationGainM] = useState<string>('');
   const [saving, setSaving] = useState(false);
-
-  const { data: photos = [] } = useProOfferingPhotos(offeringId);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
@@ -138,40 +130,6 @@ export default function ProOfferingEditScreen() {
       setLocationLat(pickerPinLat);
     }
     setShowMapPicker(false);
-  };
-
-  const invalidatePhotos = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', offeringId] });
-  };
-
-  const handleGalleryAdd = async () => {
-    if (!offeringId) return;
-    try {
-      const remaining = GALLERY_MAX - photos.length;
-      await pickAndUploadProOfferingPhotos(offeringId, remaining);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
-
-  const handleGalleryRemove = async (photoId: string) => {
-    try {
-      await removeProOfferingPhoto(photoId);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
-  };
-
-  const handleGalleryReorder = async (orderedIds: string[]) => {
-    if (!offeringId) return;
-    try {
-      await proOfferingPhotoService.reorder(offeringId, orderedIds);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    }
   };
 
   const handleDelete = () => {
@@ -242,10 +200,11 @@ export default function ProOfferingEditScreen() {
       } else {
         const newId = await proOfferingService.create(payload);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
-        // Redirect into edit mode for the newly-created row so the
-        // image picker becomes available (it needs the row id to
-        // namespace the upload path).
-        router.replace(`/(auth)/pro/offering/edit?id=${newId}`);
+        // Land on the detail page so the freshly-created offering is
+        // visible AND the user is one tap from the Photos tab where
+        // they manage the gallery. (Edit-then-rewind-to-detail felt
+        // longer than necessary.)
+        router.replace(`/(auth)/pro/offering/${newId}`);
       }
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -289,22 +248,6 @@ export default function ProOfferingEditScreen() {
           {isEdit ? t('proOffering.editTitle') : t('proOffering.createTitle')}
         </Text>
         <Text style={styles.subtitle}>{t('proOffering.subtitle')}</Text>
-
-        {/* Photo gallery (edit mode only — needs the row id). First
-            photo becomes the offering hero; the rest populate the
-            Photos tab on the detail page. */}
-        {isEdit && offeringId && (
-          <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('proOffering.photos', { defaultValue: 'Photos' })}</Text>
-            <PhotoManager
-              photos={photos}
-              maxCount={GALLERY_MAX}
-              onAdd={handleGalleryAdd}
-              onRemove={handleGalleryRemove}
-              onReorder={handleGalleryReorder}
-            />
-          </View>
-        )}
 
         <Text style={styles.section}>{t('proOffering.sectionBasics')}</Text>
 
@@ -553,7 +496,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   helper: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.xs },
-  bannerSection: { marginBottom: spacing.md },
   field: { marginBottom: spacing.md },
   fieldLabel: {
     color: colors.textSecondary,
