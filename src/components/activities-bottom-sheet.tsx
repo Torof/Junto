@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -100,10 +101,15 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   // math match what the user can actually see.
   const SNAP_RATIOS = [0.02, 0.5, 0.92];
   const screenHeight = Dimensions.get('window').height;
+  const tabBarHeight = useBottomTabBarHeight();
   const HANDLE_HEIGHT = 12; // matches handleContainer style
+  // The sheet sits inside the carte tab screen which sits above the
+  // bottom tab bar — gorhom's snap percentages are of THIS area, not
+  // the full window. Subtract the tab bar height so innerHeight
+  // matches what's actually visible above the bar.
   const innerHeight = Math.max(
     0,
-    screenHeight * (SNAP_RATIOS[snapIndex] ?? 0.5) - HANDLE_HEIGHT,
+    (screenHeight - tabBarHeight) * (SNAP_RATIOS[snapIndex] ?? 0.5) - HANDLE_HEIGHT,
   );
 
   const handleToggleSnap = () => {
