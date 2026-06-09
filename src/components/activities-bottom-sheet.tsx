@@ -113,8 +113,19 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         distance: distanceMeters(userLocation[1], userLocation[0], o.lat, o.lng) / 1000,
       }))
       .sort((a, b) => a.distance - b.distance);
-    return [...acts, ...offs];
-  }, [activities, proOfferings, userLocation]);
+    const base: ListItem[] = [...acts, ...offs];
+
+    // Surface the highlighted item to index 0 so it actually IS first
+    // in the list — not just scrolled there. Scrolling the list past
+    // it after selection no longer reveals other items above it.
+    if (!highlightedItemId) return base;
+    const idx = base.findIndex((it) => it.data.id === highlightedItemId);
+    if (idx <= 0) return base; // not present, or already first
+    const reordered = [...base];
+    const [selected] = reordered.splice(idx, 1);
+    if (selected) reordered.unshift(selected);
+    return reordered;
+  }, [activities, proOfferings, userLocation, highlightedItemId]);
 
   // When the highlighted item changes, scroll it to the top of the
   // visible list so the user sees the highlighted card and the
