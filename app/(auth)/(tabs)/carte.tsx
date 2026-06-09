@@ -71,27 +71,6 @@ export default function CarteScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { center, currentLocation } = useInitialLocation();
-  // Compute the camera lat for a flyTo that preserves the pin's screen
-  // Y position across the zoom change. The pin's distance from camera
-  // in degrees must scale with the viewport span, so:
-  //   newCameraLat = pinLat + (oldCameraLat - pinLat) * (newSpan/oldSpan)
-  // where the span ratio approximates 2^(oldZoom - newZoom) (Web
-  // Mercator standard tiles). Cosine correction for latitude is
-  // ignored — the relative change is negligible for the small lat
-  // shifts in play here.
-  const flyLatPreservingScreenY = useCallback((pinLat: number) => {
-    const cb = currentBounds.current;
-    if (!cb) return pinLat;
-    const oldLngSpan = cb.neLng - cb.swLng;
-    if (oldLngSpan <= 0) return pinLat;
-    const oldZoom = Math.log2(360 / oldLngSpan);
-    const TARGET_MIN_ZOOM = 13;
-    const newZoom = Math.max(TARGET_MIN_ZOOM, oldZoom);
-    const ratio = 1 / Math.pow(2, newZoom - oldZoom);
-    const cameraOldLat = (cb.swLat + cb.neLat) / 2;
-    return pinLat + (cameraOldLat - pinLat) * ratio;
-  }, []);
-
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   // Preview selection for pro / offering pins — first tap shows the
   // PinPreviewCard at the bottom of the screen; second tap on the
@@ -336,8 +315,8 @@ export default function CarteScreen() {
                   const cb = currentBounds.current;
                   const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : pro.primary_lng;
                   const offsetX = pro.primary_lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([pro.primary_lng, flyLatPreservingScreenY(pro.primary_lat)]);
-                  setFlyOffset({ x: offsetX });
+                  setFlyTarget([pro.primary_lng, pro.primary_lat]);
+                  setFlyOffset({ x: offsetX, y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedPro(pro);
                 }
@@ -361,8 +340,8 @@ export default function CarteScreen() {
                   const cb = currentBounds.current;
                   const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : offering.lng;
                   const offsetX = offering.lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([offering.lng, flyLatPreservingScreenY(offering.lat)]);
-                  setFlyOffset({ x: offsetX });
+                  setFlyTarget([offering.lng, offering.lat]);
+                  setFlyOffset({ x: offsetX, y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedOffering(offering);
                 }
@@ -475,11 +454,14 @@ export default function CarteScreen() {
                   // is locked: flyTo's coordinate.lat is set to the
                   // CURRENT viewport's center lat, not the pin's, so
                   // the camera only zooms + slides horizontally.
+                  // Land the pin at a fixed position: top third
+                  // vertically (y: -0.28) and 25% or 75% horizontally
+                  // depending on which side it currently sits on.
                   const cb = currentBounds.current;
                   const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : a.lng;
                   const offsetX = a.lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([a.lng, flyLatPreservingScreenY(a.lat)]);
-                  setFlyOffset({ x: offsetX });
+                  setFlyTarget([a.lng, a.lat]);
+                  setFlyOffset({ x: offsetX, y: -0.28 });
                   setFlyToKey((k) => k + 1);
                   setSelectedActivity(a);
                 }
