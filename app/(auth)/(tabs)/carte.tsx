@@ -309,14 +309,14 @@ export default function CarteScreen() {
                   setSelectedPro(null);
                   selectionBoundsSpan.current = null;
                 } else {
-                  // Snapshot viewport span so a later zoom-out dismisses.
                   if (currentBounds.current) {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
-                  // Land the pin in the top third of the screen (matches
-                  // the card-tap centering — predictable across surfaces).
+                  const cb = currentBounds.current;
+                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : pro.primary_lng;
+                  const offsetX = pro.primary_lng < viewCenter ? 0.25 : -0.25;
                   setFlyTarget([pro.primary_lng, pro.primary_lat]);
-                  setFlyOffset({ y: -0.28 });
+                  setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedPro(pro);
                 }
@@ -337,8 +337,11 @@ export default function CarteScreen() {
                   if (currentBounds.current) {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
+                  const cb = currentBounds.current;
+                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : offering.lng;
+                  const offsetX = offering.lng < viewCenter ? 0.25 : -0.25;
                   setFlyTarget([offering.lng, offering.lat]);
-                  setFlyOffset({ y: -0.28 });
+                  setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedOffering(offering);
                 }
@@ -444,10 +447,16 @@ export default function CarteScreen() {
                   if (currentBounds.current) {
                     selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
                   }
-                  // Land the pin in the top third of the screen (matches
-                  // pro / offering pin taps and the card-peek centering).
+                  // Shift sideways so the popup gets a clear horizontal
+                  // runway. If the pin currently sits on the left half
+                  // of the viewport land it at 25% from the left (popup
+                  // extends right); else at 75% (popup extends left).
+                  // Vertical position is left alone.
+                  const cb = currentBounds.current;
+                  const viewCenter = cb ? (cb.swLng + cb.neLng) / 2 : a.lng;
+                  const offsetX = a.lng < viewCenter ? 0.25 : -0.25;
                   setFlyTarget([a.lng, a.lat]);
-                  setFlyOffset({ y: -0.28 });
+                  setFlyOffset({ x: offsetX });
                   setFlyToKey((k) => k + 1);
                   setSelectedActivity(a);
                 }

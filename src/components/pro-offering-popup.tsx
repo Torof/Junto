@@ -33,7 +33,7 @@ export function ProOfferingPopup({ offering, onPress }: ProOfferingPopupProps) {
           </Text>
         </View>
         <View style={styles.proChip}>
-          <Text style={styles.proChipText}>PRO</Text>
+          <Text style={styles.proChipText}>SORTIE PRO</Text>
         </View>
       </View>
 
