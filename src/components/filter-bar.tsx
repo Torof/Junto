@@ -12,10 +12,9 @@ interface Props {
   blink?: boolean;
 }
 
-// Top-center "Filtres" pill (Scott 2026-06-10). Replaces the bottom-
-// right icon-only button so the discovery action sits near the eye
-// line rather than buried in the bottom stack. Active count rides as
-// a numeric badge on the leading icon.
+// "Filtres" pill. Positioned by the parent (carte.tsx) inside the
+// top-left controls row so it sits next to the map-style icon instead
+// of alone in the middle (Scott 2026-06-10).
 export function FilterButton({ onPress, blink = false }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -54,7 +53,7 @@ export function FilterButton({ onPress, blink = false }: Props) {
   }, [blink, scale, opacity]);
 
   return (
-    <Animated.View style={[styles.wrapper, { transform: [{ scale }], opacity }]}>
+    <Animated.View style={{ transform: [{ scale }], opacity }}>
       <Pressable
         style={[styles.button, hasActive && styles.buttonActive]}
         onPress={onPress}
@@ -78,15 +77,6 @@ export function FilterButton({ onPress, blink = false }: Props) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  // Full-width wrapper so the chip itself can self-center horizontally.
-  wrapper: {
-    position: 'absolute',
-    top: spacing.md,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-  },
   button: {
     flexDirection: 'row',
     alignItems: 'center',

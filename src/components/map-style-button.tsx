@@ -8,8 +8,9 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey } from '@/store/map-style-store';
 
-// Top-right corner — settings-like, infrequent. Modal panel anchors
-// from the same corner so the user's eye stays put.
+// Positioned by the parent (carte.tsx) inside the top-left controls
+// row. The modal panel still anchors near the button's real screen
+// position via safeArea + the row's expected top offset.
 export function MapStyleButton() {
   const { t } = useTranslation();
   const colors = useColors();
@@ -52,16 +53,12 @@ export function MapStyleButton() {
 
 const createStyles = (colors: AppColors, safeTop: number) => StyleSheet.create({
   button: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
     borderWidth: 1,
     borderColor: colors.border,
     elevation: 4,
@@ -70,14 +67,17 @@ const createStyles = (colors: AppColors, safeTop: number) => StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
-  // Backdrop spans the whole modal (full screen) — paddingTop drops
-  // the panel just below the button position.
+  // The button is rendered inside the parent's absolutely-positioned
+  // top-left row at top: spacing.md inside the content view (which
+  // already sits below the SafeAreaView spacer). Modal coordinates
+  // are screen-relative, so drop the panel just under the button:
+  //   safeTop + row top offset + button height + small gap.
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,
     paddingTop: safeTop + spacing.md + 40 + spacing.xs,
-    paddingRight: spacing.md,
-    alignItems: 'flex-end',
+    paddingLeft: spacing.md + 40 + spacing.sm,
+    alignItems: 'flex-start',
   },
   panel: {
     backgroundColor: colors.surface,

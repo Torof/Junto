@@ -287,9 +287,16 @@ export default function CarteScreen() {
 
       <View style={styles.content}>
         <CreateButton />
-        <MapStyleButton />
-        <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
         <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+
+        {/* Top-left controls row — filters chip + map style icon
+            (Scott 2026-06-10). Sits at the left edge so the centered
+            chip doesn't read as lonely and we stay clear of the
+            Mapbox compass at top-right. */}
+        <View style={styles.topControls}>
+          <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
+          <MapStyleButton />
+        </View>
 
         <>
 
@@ -590,6 +597,7 @@ export default function CarteScreen() {
             text={t('tutorial.clickAlert')}
             position="top"
             anchor={{ top: 70, left: 24, right: 24 }}
+            arrowAlign="left"
           />
         )}
         {tutorialStep === 'create_activity_hint' && !tappedPoint && (
@@ -659,6 +667,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  topControls: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    zIndex: 10,
   },
 });
 
