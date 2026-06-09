@@ -142,12 +142,4 @@ export const proOfferingService = {
     });
     if (error) throw error;
   },
-
-  setImage: async (offeringId: string, imageUrl: string | null): Promise<void> => {
-    const { error } = await supabase.rpc('set_pro_offering_image', {
-      p_offering_id: offeringId,
-      p_image_url: imageUrl ?? undefined,
-    });
-    if (error) throw error;
-  },
 };

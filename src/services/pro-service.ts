@@ -13,7 +13,6 @@ export interface ProProfile {
   primary_lng: number;
   primary_lat: number;
   primary_location_name: string;
-  banner_url: string | null;
   pin_image_url: string | null;
   last_location_change_at: string;
   created_at: string;
@@ -58,7 +57,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, banner_url, pin_image_url, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, last_location_change_at, created_at, updated_at',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -111,13 +110,6 @@ export const proService = {
 
   unregister: async (): Promise<void> => {
     const { error } = await supabase.rpc('unregister_as_pro');
-    if (error) throw error;
-  },
-
-  setBanner: async (bannerUrl: string | null): Promise<void> => {
-    const { error } = await supabase.rpc('set_pro_banner', {
-      p_banner_url: bannerUrl ?? undefined,
-    });
     if (error) throw error;
   },
 
