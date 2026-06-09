@@ -35,10 +35,12 @@ export function CreateButton() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   // FAB — bottom-right, primary CTA. Bigger than the secondary
   // recenter button above so the eye reads the action hierarchy
-  // (Scott 2026-06-10).
+  // (Scott 2026-06-10). Sits just above the bottom-sheet drawer's
+  // 2% snap (drawer reaches ~14-18px depending on screen size); 28
+  // gives an ~10px clearance.
   button: {
     position: 'absolute',
-    bottom: 70,
+    bottom: 28,
     right: spacing.md,
     backgroundColor: colors.cta,
     borderRadius: radius.full,

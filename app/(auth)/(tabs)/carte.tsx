@@ -604,7 +604,7 @@ export default function CarteScreen() {
           <TutorialTooltip
             text={t('tutorial.createActivity')}
             position="bottom"
-            anchor={{ bottom: 140, left: 24, right: 24 }}
+            anchor={{ bottom: 100, left: 24, right: 24 }}
           />
         )}
 

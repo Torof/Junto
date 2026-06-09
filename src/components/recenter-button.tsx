@@ -27,7 +27,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // as a stack but the FAB stays visually dominant.
   button: {
     position: 'absolute',
-    bottom: 130,
+    bottom: 28 + 52 + 8,
     right: spacing.md + 6,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
