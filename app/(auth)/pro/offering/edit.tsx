@@ -10,13 +10,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -29,7 +28,12 @@ import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { LEVELS } from '@/types/activity-form';
-import { pickAndUploadProOfferingImage, removeProOfferingImage } from '@/utils/pro-offering-image-upload';
+import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
+import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
+import { proOfferingPhotoService } from '@/services/pro-photo-service';
+import { PhotoManager } from '@/components/photo-manager';
+
+const GALLERY_MAX = 25;
 
 // Single-screen form, mode keyed off the optional ?id= query param.
 // New offering → empty form, calls create. Existing → pre-filled, calls
@@ -87,9 +91,9 @@ export default function ProOfferingEditScreen() {
   const [scheduleText, setScheduleText] = useState('');
   const [distanceKm, setDistanceKm] = useState<string>('');
   const [elevationGainM, setElevationGainM] = useState<string>('');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageBusy, setImageBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { data: photos = [] } = useProOfferingPhotos(offeringId);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
@@ -118,7 +122,6 @@ export default function ProOfferingEditScreen() {
     setScheduleText(existing.schedule_text ?? '');
     setDistanceKm(existing.distance_km?.toString() ?? '');
     setElevationGainM(existing.elevation_gain_m?.toString() ?? '');
-    setImageUrl(existing.image_url);
   }, [existing]);
 
   const selectedSportKey = sports?.find((s) => s.id === sportId)?.key ?? '';
@@ -137,45 +140,37 @@ export default function ProOfferingEditScreen() {
     setShowMapPicker(false);
   };
 
-  const handlePickImage = async () => {
-    if (imageBusy || !isEdit || !offeringId) {
-      // Image upload requires an offering id (we upload under
-      // {user_id}/offering/{id}/...). For create flow, defer image
-      // upload until after save — the screen auto-redirects to edit
-      // mode once the row exists.
-      Alert.alert(
-        t('proOffering.imageAfterSaveTitle'),
-        t('proOffering.imageAfterSaveBody'),
-      );
-      return;
-    }
-    setImageBusy(true);
+  const invalidatePhotos = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', offeringId] });
+  };
+
+  const handleGalleryAdd = async () => {
+    if (!offeringId) return;
     try {
-      const newUrl = await pickAndUploadProOfferingImage(offeringId);
-      if (newUrl) {
-        setImageUrl(newUrl);
-        await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
-        await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
-      }
+      const remaining = GALLERY_MAX - photos.length;
+      await pickAndUploadProOfferingPhotos(offeringId, remaining);
+      await invalidatePhotos();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setImageBusy(false);
     }
   };
 
-  const handleRemoveImage = async () => {
-    if (imageBusy || !offeringId) return;
-    setImageBusy(true);
+  const handleGalleryRemove = async (photoId: string) => {
     try {
-      await removeProOfferingImage(offeringId);
-      setImageUrl(null);
-      await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
-      await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
+      await removeProOfferingPhoto(photoId);
+      await invalidatePhotos();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setImageBusy(false);
+    }
+  };
+
+  const handleGalleryReorder = async (orderedIds: string[]) => {
+    if (!offeringId) return;
+    try {
+      await proOfferingPhotoService.reorder(offeringId, orderedIds);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     }
   };
 
@@ -295,30 +290,19 @@ export default function ProOfferingEditScreen() {
         </Text>
         <Text style={styles.subtitle}>{t('proOffering.subtitle')}</Text>
 
-        {/* Banner image (edit mode only — needs the row id) */}
-        {isEdit && (
+        {/* Photo gallery (edit mode only — needs the row id). First
+            photo becomes the offering hero; the rest populate the
+            Photos tab on the detail page. */}
+        {isEdit && offeringId && (
           <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('proOffering.image')}</Text>
-            <Pressable
-              style={styles.bannerSlot}
-              onPress={handlePickImage}
-              disabled={imageBusy}
-            >
-              {imageUrl ? (
-                <Image source={{ uri: imageUrl }} style={styles.bannerImage} resizeMode="cover" />
-              ) : (
-                <View style={styles.bannerEmpty}>
-                  <ImagePlus size={28} color={colors.textMuted} strokeWidth={2} />
-                  <Text style={styles.bannerEmptyText}>{t('proOffering.imageAdd')}</Text>
-                </View>
-              )}
-            </Pressable>
-            {imageUrl && (
-              <Pressable style={styles.bannerRemove} onPress={handleRemoveImage} disabled={imageBusy}>
-                <Trash2 size={14} color={colors.error} strokeWidth={2} />
-                <Text style={styles.bannerRemoveText}>{t('proOffering.imageRemove')}</Text>
-              </Pressable>
-            )}
+            <Text style={styles.section}>{t('proOffering.photos', { defaultValue: 'Photos' })}</Text>
+            <PhotoManager
+              photos={photos}
+              maxCount={GALLERY_MAX}
+              onAdd={handleGalleryAdd}
+              onRemove={handleGalleryRemove}
+              onReorder={handleGalleryReorder}
+            />
           </View>
         )}
 
@@ -570,25 +554,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   helper: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.xs },
   bannerSection: { marginBottom: spacing.md },
-  bannerSlot: {
-    aspectRatio: 3,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-  },
-  bannerImage: { width: '100%', height: '100%' },
-  bannerEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  bannerEmptyText: { color: colors.textMuted, fontSize: fontSizes.sm, marginTop: spacing.xs },
-  bannerRemove: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    alignSelf: 'flex-start',
-    marginTop: spacing.xs,
-  },
-  bannerRemoveText: { color: colors.error, fontSize: fontSizes.xs, fontWeight: '600' },
   field: { marginBottom: spacing.md },
   fieldLabel: {
     color: colors.textSecondary,
