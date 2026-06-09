@@ -435,13 +435,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
   },
-  // Stats block — same outer geometry as card but borderless. Scott
-  // only wanted the box removed from the info chips, not from
-  // description/identity (2026-06-10).
+  // Stats block — borderless. Drops the card's inner padding so the
+  // chips visually align with the bordered cards' OUTER edge (their
+  // border sits at marginHorizontal; this content sits there too).
   statsBlock: {
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
-    padding: spacing.md,
   },
   section: {
     color: colors.textSecondary,

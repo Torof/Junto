@@ -1157,11 +1157,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  // Stats block — same outer geometry as infoCard, no border. Scott
-  // only wanted the box removed from the info chips, not from People /
-  // Where (2026-06-10).
+  // Stats block — borderless. Drops infoCard's inner padding so the
+  // chips line up with the bordered cards' OUTER edge.
   statsBlock: {
-    padding: spacing.md,
     marginBottom: spacing.md,
   },
   // Hero — banner-style card. Color block on top carries the brand-
