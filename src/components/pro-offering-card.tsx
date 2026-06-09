@@ -12,6 +12,9 @@ interface ProOfferingCardProps {
   offering: ProOffering;
   onPress: () => void;
   distanceKm?: number;
+  // When true, renders a CTA-color tint to mark the link between this
+  // card and the highlighted pin on the map. Tap-to-peek pattern.
+  isHighlighted?: boolean;
 }
 
 // Surface-card variant for the bottom-sheet drawer + the pro's
@@ -24,14 +27,17 @@ interface ProOfferingCardProps {
 //   - Schedule_text replaces the date row when set.
 //   - Right slot shows a "PRO" pill instead of the participants
 //     counter (offerings have no participants).
-export function ProOfferingCard({ offering, onPress, distanceKm }: ProOfferingCardProps) {
+export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted = false }: ProOfferingCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
 
   return (
-    <Pressable style={styles.row} onPress={onPress}>
+    <Pressable
+      style={[styles.row, isHighlighted && { borderColor: colors.cta, borderWidth: 2 }]}
+      onPress={onPress}
+    >
       <View style={[styles.accentBar, { backgroundColor: accent }]} />
 
       <View style={styles.middleCol}>

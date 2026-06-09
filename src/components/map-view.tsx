@@ -53,6 +53,12 @@ interface MapViewProps {
   pins?: MapPin[];
   userLocation?: [number, number] | null;
   selectedActivity?: NearbyActivity | null;
+  // Id of the pin currently in "peeked" mode (highlighted by a card
+  // tap in the bottom-sheet list). The matching pin scales up to draw
+  // the eye; no tooltip or preview because the originating card
+  // already shows the info. Separate from selectedActivity, which
+  // governs the popup-on-pin-tap flow.
+  highlightedPinId?: string | null;
   popupContent?: React.ReactNode;
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
@@ -89,6 +95,7 @@ export function JuntoMapView({
   pins = [],
   userLocation,
   selectedActivity,
+  highlightedPinId,
   popupContent,
   tapMarker,
   tapMarkerContent,
@@ -427,6 +434,15 @@ export function JuntoMapView({
         // Individual pin — branch on type for shape + tap handler.
         const pinProps = props as PinPointProps;
 
+        // Highlighted pin shared style — scaled 1.3x and stacked on top.
+        // The slight downward drift from center-scaling is a few pixels at
+        // this size and reads as "the pin grew up out of the location",
+        // which is the right metaphor for the peek state.
+        const isHighlighted = highlightedPinId === pinProps.id;
+        const highlightStyle = isHighlighted
+          ? { transform: [{ scale: 1.3 }], elevation: 998, zIndex: 998 }
+          : undefined;
+
         if (pinProps.type === 'activity') {
           const activity = activityMap.get(pinProps.id);
           if (!activity) return null;
@@ -439,9 +455,9 @@ export function JuntoMapView({
               id={`activity-${activity.id}`}
               coordinate={[lng, lat]}
               anchor={ACTIVITY_PIN_ANCHOR}
-              allowOverlap={isSelected}
+              allowOverlap={isSelected || isHighlighted}
             >
-              <View style={isSelected ? { elevation: 999, zIndex: 999 } : undefined}>
+              <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
                 <Pressable onPress={() => onActivityPress?.(activity)}>
                   <ActivityPin activity={activity} />
                 </Pressable>
@@ -459,10 +475,13 @@ export function JuntoMapView({
               id={`pro-${pro.user_id}`}
               coordinate={[lng, lat]}
               anchor={PRO_PIN_ANCHOR}
+              allowOverlap={isHighlighted}
             >
-              <Pressable onPress={() => onProPress?.(pro)}>
-                <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
-              </Pressable>
+              <View style={highlightStyle}>
+                <Pressable onPress={() => onProPress?.(pro)}>
+                  <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
+                </Pressable>
+              </View>
             </Mapbox.MarkerView>
           );
         }
@@ -476,10 +495,13 @@ export function JuntoMapView({
             id={`offering-${offering.id}`}
             coordinate={[lng, lat]}
             anchor={PRO_OFFERING_PIN_ANCHOR}
+            allowOverlap={isHighlighted}
           >
-            <Pressable onPress={() => onProOfferingPress?.(offering)}>
-              <ProOfferingPin offering={offering} />
-            </Pressable>
+            <View style={highlightStyle}>
+              <Pressable onPress={() => onProOfferingPress?.(offering)}>
+                <ProOfferingPin offering={offering} />
+              </Pressable>
+            </View>
           </Mapbox.MarkerView>
         );
       })}

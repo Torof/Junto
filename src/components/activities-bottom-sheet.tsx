@@ -1,7 +1,6 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -20,6 +19,10 @@ interface Props {
   userLocation: [number, number];
   onItemPress?: (activity: NearbyActivity) => void;
   onProOfferingPress?: (offering: ProOffering) => void;
+  // Id (activity id or offering id) of the currently "peeked" item.
+  // Renders a CTA-color border on the matching card so the user can
+  // see the link between this card and the highlighted pin on the map.
+  highlightedItemId?: string | null;
   filterLabel?: string;
   onClearFilter?: () => void;
   onCollapse?: () => void;
@@ -74,11 +77,10 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
 
 export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
   function ActivitiesBottomSheet(
-    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, filterLabel, onClearFilter, onCollapse },
+    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, highlightedItemId, filterLabel, onClearFilter, onCollapse },
     ref,
   ) {
   const { t } = useTranslation();
-  const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -145,16 +147,18 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         ListHeaderComponent={DrawerFilterBar}
         stickyHeaderIndices={[0]}
         renderItem={({ item }) => {
+          // Tap behavior is now owned by the parent — no inline router.push.
+          // Parent decides "peek (highlight pin) vs navigate (open page)"
+          // based on whether the same id was already highlighted.
+          const isHighlighted = highlightedItemId === item.data.id;
           if (item.kind === 'activity') {
             return (
               <ActivityCard
                 activity={item.data}
                 distanceKm={item.distance}
                 showCreator={false}
-                onPress={() => {
-                  if (onItemPress) onItemPress(item.data);
-                  router.push(`/(auth)/activity/${item.data.id}`);
-                }}
+                isHighlighted={isHighlighted}
+                onPress={() => onItemPress?.(item.data)}
               />
             );
           }
@@ -162,10 +166,8 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
             <ProOfferingCard
               offering={item.data}
               distanceKm={item.distance}
-              onPress={() => {
-                if (onProOfferingPress) onProOfferingPress(item.data);
-                router.push(`/(auth)/pro/offering/${item.data.id}`);
-              }}
+              isHighlighted={isHighlighted}
+              onPress={() => onProOfferingPress?.(item.data)}
             />
           );
         }}

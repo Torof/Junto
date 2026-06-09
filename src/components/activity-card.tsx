@@ -17,11 +17,15 @@ interface ActivityCardProps {
   onPress: () => void;
   distanceKm?: number;
   showCreator?: boolean;
+  // When true, renders a CTA-color outline to mark the link between
+  // this card and the highlighted pin on the map. Tap-to-peek pattern:
+  // first tap → highlight + fly to pin; second tap → open detail page.
+  isHighlighted?: boolean;
 }
 
 const ATTENTION_STATES: ReadonlySet<ActivityTimeStatus> = new Set(['in_progress', 'soon', 'cancelled']);
 
-export function ActivityCard({ activity, onPress, distanceKm, showCreator = true }: ActivityCardProps) {
+export function ActivityCard({ activity, onPress, distanceKm, showCreator = true, isHighlighted = false }: ActivityCardProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -36,7 +40,14 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
   const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
 
   return (
-    <Pressable style={[styles.row, isFull && styles.rowFull]} onPress={onPress}>
+    <Pressable
+      style={[
+        styles.row,
+        isFull && styles.rowFull,
+        isHighlighted && { backgroundColor: colors.cta + '1F' },
+      ]}
+      onPress={onPress}
+    >
       <View style={[styles.statusBar, !showStatusBar && styles.statusBarHidden, showStatusBar && { backgroundColor: statusColor }]} />
 
       <View style={styles.middleCol}>

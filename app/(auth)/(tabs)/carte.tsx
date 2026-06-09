@@ -77,6 +77,11 @@ export default function CarteScreen() {
   // activity selection — picking one clears the other.
   const [previewPro, setPreviewPro] = useState<import('@/services/pro-service').NearbyPro | null>(null);
   const [previewOffering, setPreviewOffering] = useState<import('@/services/pro-offering-service').ProOffering | null>(null);
+  // Drawer-list "peek" state — when the user taps a card, the matching
+  // pin scales up and the card gets a CTA tint. Second tap on the
+  // same card opens the detail page. Cards already carry the info the
+  // tooltip would, so no popup fires for card taps.
+  const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
@@ -290,6 +295,7 @@ export default function CarteScreen() {
                 setTappedPoint(null);
                 setSelectedActivity(null);
                 setPreviewOffering(null);
+                setHighlightedPinId(null);
                 if (previewPro?.user_id === pro.user_id) {
                   // Second tap: open the full pro page.
                   suppressMapPressUntil.current = Date.now() + 400;
@@ -307,6 +313,7 @@ export default function CarteScreen() {
                 setTappedPoint(null);
                 setSelectedActivity(null);
                 setPreviewPro(null);
+                setHighlightedPinId(null);
                 if (previewOffering?.id === offering.id) {
                   // Second tap: open the full offering page.
                   suppressMapPressUntil.current = Date.now() + 400;
@@ -369,6 +376,7 @@ export default function CarteScreen() {
               ) : undefined}
               flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
               selectedActivity={selectedActivity}
+              highlightedPinId={highlightedPinId}
               popupContent={selectedActivity ? (
                 <ActivityPopup
                   activity={selectedActivity}
@@ -384,6 +392,7 @@ export default function CarteScreen() {
                 setTappedPoint(null);
                 setPreviewPro(null);
                 setPreviewOffering(null);
+                setHighlightedPinId(null);
                 if (selectedActivity?.id === a.id) {
                   // Second tap on the same pin → open the activity page
                   suppressMapPressUntil.current = Date.now() + 400;
@@ -405,6 +414,11 @@ export default function CarteScreen() {
               }}
               onMapPress={(lng, lat) => {
                 if (Date.now() < suppressMapPressUntil.current) return;
+                // Card-peek highlight dismisses on any map press too.
+                if (highlightedPinId) {
+                  setHighlightedPinId(null);
+                  return;
+                }
                 // Pro / offering previews dismiss on any map press.
                 if (previewPro || previewOffering) {
                   setPreviewPro(null);
@@ -448,12 +462,44 @@ export default function CarteScreen() {
           activities={clusterFilter ?? filteredActivitiesByType}
           proOfferings={filteredOfferingsByType}
           userLocation={currentLocation ?? center}
+          highlightedItemId={highlightedPinId}
           filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}
           onClearFilter={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
           onCollapse={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
           onItemPress={(a) => {
+            // Tap-to-peek: first tap on a card highlights the pin on
+            // the map; second tap on the same card opens the detail
+            // page. Cards already carry the info the tooltip would, so
+            // no popup is fired for card taps.
+            if (highlightedPinId === a.id) {
+              suppressMapPressUntil.current = Date.now() + 400;
+              router.push(`/(auth)/activity/${a.id}`);
+              setHighlightedPinId(null);
+              return;
+            }
+            // Clear any pin-tap state (mutually exclusive with peek).
+            setSelectedActivity(null);
+            setPreviewPro(null);
+            setPreviewOffering(null);
+            setHighlightedPinId(a.id);
+            // Fly the map so the pin lands above the drawer area.
             setFlyTarget([a.lng, a.lat]);
-            setFlyOffset({ x: 0.1 });
+            setFlyOffset({ y: 0.25 });
+            setFlyToKey((k) => k + 1);
+          }}
+          onProOfferingPress={(o) => {
+            if (highlightedPinId === o.id) {
+              suppressMapPressUntil.current = Date.now() + 400;
+              router.push(`/(auth)/pro/offering/${o.id}`);
+              setHighlightedPinId(null);
+              return;
+            }
+            setSelectedActivity(null);
+            setPreviewPro(null);
+            setPreviewOffering(null);
+            setHighlightedPinId(o.id);
+            setFlyTarget([o.lng, o.lat]);
+            setFlyOffset({ y: 0.25 });
             setFlyToKey((k) => k + 1);
           }}
         />
