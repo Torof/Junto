@@ -858,15 +858,53 @@ export type Database = {
           },
         ]
       }
+      pro_offering_photos: {
+        Row: {
+          created_at: string
+          id: string
+          offering_id: string
+          order_index: number
+          photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          offering_id: string
+          order_index: number
+          photo_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          offering_id?: string
+          order_index?: number
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_offering_photos_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_offering_photos_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pro_offerings: {
         Row: {
           created_at: string
           description: string
           distance_km: number | null
-          duration: unknown | null
+          duration: string | null
           elevation_gain_m: number | null
           id: string
-          image_url: string | null
           level: string
           location: unknown
           location_name: string
@@ -881,10 +919,9 @@ export type Database = {
           created_at?: string
           description: string
           distance_km?: number | null
-          duration?: unknown | null
+          duration?: string | null
           elevation_gain_m?: number | null
           id?: string
-          image_url?: string | null
           level: string
           location: unknown
           location_name: string
@@ -899,10 +936,9 @@ export type Database = {
           created_at?: string
           description?: string
           distance_km?: number | null
-          duration?: unknown | null
+          duration?: string | null
           elevation_gain_m?: number | null
           id?: string
-          image_url?: string | null
           level?: string
           location?: unknown
           location_name?: string
@@ -930,9 +966,40 @@ export type Database = {
           },
         ]
       }
+      pro_profile_photos: {
+        Row: {
+          created_at: string
+          id: string
+          order_index: number
+          photo_url: string
+          pro_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_index: number
+          photo_url: string
+          pro_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_index?: number
+          photo_url?: string
+          pro_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_profile_photos_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       pro_profiles: {
         Row: {
-          banner_url: string | null
           created_at: string
           description: string | null
           display_name: string
@@ -952,7 +1019,6 @@ export type Database = {
           website: string | null
         }
         Insert: {
-          banner_url?: string | null
           created_at?: string
           description?: string | null
           display_name: string
@@ -972,7 +1038,6 @@ export type Database = {
           website?: string | null
         }
         Update: {
-          banner_url?: string | null
           created_at?: string
           description?: string | null
           display_name?: string
@@ -1923,7 +1988,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           distance_km: number | null
-          duration: unknown | null
+          duration: string | null
           elevation_gain_m: number | null
           id: string | null
           image_url: string | null
@@ -2162,6 +2227,11 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
+      add_pro_offering_photo: {
+        Args: { p_offering_id: string; p_photo_url: string }
+        Returns: string
+      }
+      add_pro_photo: { Args: { p_photo_url: string }; Returns: string }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -2770,6 +2840,19 @@ export type Database = {
         Args: { p_participation_id: string }
         Returns: undefined
       }
+      remove_pro_offering_photo: {
+        Args: { p_photo_id: string }
+        Returns: undefined
+      }
+      remove_pro_photo: { Args: { p_photo_id: string }; Returns: undefined }
+      reorder_pro_offering_photos: {
+        Args: { p_offering_id: string; p_photo_ids: string[] }
+        Returns: undefined
+      }
+      reorder_pro_photos: {
+        Args: { p_photo_ids: string[] }
+        Returns: undefined
+      }
       request_seat: {
         Args: {
           p_activity_id: string
@@ -2824,9 +2907,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      set_pro_banner: { Args: { p_banner_url?: string }; Returns: undefined }
-      set_pro_offering_image: {
-        Args: { p_image_url?: string; p_offering_id: string }
+      set_pro_offering_photo_url: {
+        Args: { p_photo_id: string; p_photo_url: string }
+        Returns: undefined
+      }
+      set_pro_photo_url: {
+        Args: { p_photo_id: string; p_photo_url: string }
         Returns: undefined
       }
       set_pro_pin_image: {
