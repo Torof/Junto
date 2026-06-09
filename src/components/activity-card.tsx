@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, User, Users } from 'lucide-react-native';
-import { fontSizes, spacing, radius, fonts } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -108,7 +108,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     paddingRight: spacing.md,
     gap: spacing.sm,
     borderBottomWidth: 1,
@@ -128,17 +128,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   middleCol: {
     flex: 1,
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
     minWidth: 0,
   },
-  // Title — the unique row anchor. Uses the title font (Montserrat)
-  // so the typography itself carries weight without needing extra
-  // boldness or color — fits the theme without shouting.
+  // Title — fontWeight 700 in the default font; less shouty than
+  // Montserrat-title, reads cleaner in a dense list.
   title: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,
-    fontFamily: fonts.title,
-    letterSpacing: -0.2,
+    fontWeight: '700',
   },
   // Sport row — outlined pill (border only, no fill) with category-
   // colored border + text. Carries the pre-attentive 'what sport'
@@ -163,22 +161,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   sport: {
     color: colors.cta,
-    fontSize: fontSizes.xs - 1,
+    fontSize: fontSizes.xs,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
     flexShrink: 0,
   },
   levelSep: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs - 1,
+    fontSize: fontSizes.xs,
   },
   level: {
     color: colors.textSecondary,
-    fontSize: fontSizes.xs - 1,
+    fontSize: fontSizes.xs,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
     flexShrink: 1,
   },
   fullPill: {
@@ -203,7 +197,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'nowrap',
     gap: spacing.sm,
-    marginTop: 1,
+    marginTop: 2,
   },
   metaItem: {
     flexDirection: 'row',

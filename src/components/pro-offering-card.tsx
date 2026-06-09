@@ -17,16 +17,15 @@ interface ProOfferingCardProps {
   isHighlighted?: boolean;
 }
 
-// Surface-card variant for the bottom-sheet drawer + the pro's
-// Catalogue tab. Visually distinct from ActivityCard (which sits as a
-// borderless row with a bottom divider) so the eye can tell at a
-// glance "this is a catalog offering, not a scheduled event":
-//   - Full outlined card surface with margin between siblings.
-//   - Left bar always shows the sport-category accent (no time-status
-//     concept — offerings are atemporal).
-//   - Schedule_text replaces the date row when set.
-//   - Right slot shows a "PRO" pill instead of the participants
-//     counter (offerings have no participants).
+// Shares the borderless-row anatomy with ActivityCard so the mixed
+// drawer list reads as a single surface. Same title weight, same
+// sport-pill style, same meta layout. Only the right slot differs —
+// a "PRO" pill replaces the participant counter (offerings have no
+// participants concept).
+//
+// Offerings have no time-status equivalent, so the left status bar
+// stays transparent (just keeps the horizontal alignment consistent
+// with activity rows).
 export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted = false }: ProOfferingCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -35,10 +34,12 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
 
   return (
     <Pressable
-      style={[styles.row, isHighlighted && { borderColor: colors.cta, borderWidth: 2 }]}
+      style={[styles.row, isHighlighted && { backgroundColor: colors.cta + '1F' }]}
       onPress={onPress}
     >
-      <View style={[styles.accentBar, { backgroundColor: accent }]} />
+      {/* Reserved 3px left slot kept transparent so the row aligns with
+          ActivityCard rows that conditionally show a status bar here. */}
+      <View style={styles.statusBar} />
 
       <View style={styles.middleCol}>
         <Text style={styles.title} numberOfLines={1}>{offering.title}</Text>
@@ -86,39 +87,67 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
 const createStyles = (colors: AppColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.md,
-    marginBottom: spacing.sm,
-    overflow: 'hidden',
+    alignItems: 'center',
+    paddingVertical: spacing.sm + 2,
+    paddingRight: spacing.md,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
-  accentBar: { width: 4 },
-  middleCol: { flex: 1, padding: spacing.sm, gap: 4 },
-  title: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
-  sportRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  statusBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    marginRight: spacing.sm,
+    backgroundColor: 'transparent',
+  },
+  middleCol: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 4,
+    minWidth: 0,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+  },
+  sportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'nowrap',
+  },
   sportPill: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 2,
+    paddingVertical: 1,
+    backgroundColor: 'transparent',
+    alignSelf: 'flex-start',
+    flexShrink: 1,
+    minWidth: 0,
   },
-  sport: { fontSize: fontSizes.xs, fontWeight: '700' },
+  sport: { fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 0 },
   levelSep: { fontSize: fontSizes.xs },
-  level: { fontSize: fontSizes.xs, fontWeight: '600' },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: 2 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  level: { fontSize: fontSizes.xs, fontWeight: '600', flexShrink: 1 },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
   proPill: {
-    alignSelf: 'center',
-    marginRight: spacing.sm,
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1.5,
     borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: 3,
   },
   proPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 1 },
 });
