@@ -20,6 +20,7 @@ import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-
 import { useNearbyPros } from '@/hooks/use-nearby-pros';
 import { useNearbyProOfferings } from '@/hooks/use-nearby-pro-offerings';
 import { useFilteredActivities } from '@/hooks/use-filtered-activities';
+import { useFilteredOfferings } from '@/hooks/use-filtered-offerings';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
@@ -107,6 +108,7 @@ export default function CarteScreen() {
   const { data: pros } = useNearbyPros(searchBounds);
   const { data: proOfferings } = useNearbyProOfferings(searchBounds);
   const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
+  const filteredOfferings = useFilteredOfferings(proOfferings ?? [], currentLocation ?? center);
   const radiusKm = useMapStore((s) => s.filters.radiusKm);
   // Entity-type filter — both default true; the filter sheet's
   // Activités / Pros checkboxes flip these. Empty arrays go to both
@@ -114,7 +116,7 @@ export default function CarteScreen() {
   const showActivities = useMapStore((s) => s.filters.showActivities);
   const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
   const filteredActivitiesByType = showActivities ? filtered : [];
-  const filteredOfferingsByType = showProOfferings ? (proOfferings ?? []) : [];
+  const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
