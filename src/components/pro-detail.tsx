@@ -1,20 +1,26 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Image, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
 import { proOfferingService } from '@/services/pro-offering-service';
+import { proPhotoService } from '@/services/pro-photo-service';
 import { userService } from '@/services/user-service';
 import { useProPhotos } from '@/hooks/use-pro-photos';
+import { pickAndUploadProPhotos, removeProPhoto } from '@/utils/pro-photo-upload';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView } from './map-view';
 import { PhotoGallery } from './photo-gallery';
+import { PhotoManager } from './photo-manager';
+
+const GALLERY_MAX = 25;
 
 interface Props {
   pro: ProProfile;
@@ -29,6 +35,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'catalog' | 'reviews'>('info');
@@ -41,6 +48,38 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
   });
 
   const { data: photos = [] } = useProPhotos(pro.user_id);
+
+  const invalidatePhotos = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['pro-photos', pro.user_id] });
+  };
+
+  const handleGalleryAdd = async () => {
+    try {
+      const remaining = GALLERY_MAX - photos.length;
+      await pickAndUploadProPhotos(remaining);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  const handleGalleryRemove = async (photoId: string) => {
+    try {
+      await removeProPhoto(photoId);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  const handleGalleryReorder = async (orderedIds: string[]) => {
+    try {
+      await proPhotoService.reorder(orderedIds);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
 
   // Underlying human behind the pro brand — exposed as a small avatar
   // in the hero so visitors can jump to the user's personal profile.
@@ -238,20 +277,29 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
         </ScrollView>
       )}
 
-      {/* ===== PICTURES TAB ===== Read-only gallery (owner manages from
-          the edit screen). Empty-state copy nudges the owner to add some. */}
+      {/* ===== PICTURES TAB ===== Owner sees the PhotoManager (edit in
+          place); visitors see the read-only PhotoGallery. Same tab,
+          mode switches on ownership. */}
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.galleryWrap}>
-            <PhotoGallery
-              photos={photos}
-              emptyText={
-                isOwner
-                  ? t('pro.picturesEmptyOwner', { defaultValue: 'Aucune photo. Ajoute-en depuis l\'écran de modification.' })
-                  : t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })
-              }
-            />
-          </View>
+          {isOwner ? (
+            <View style={styles.paddedSection}>
+              <PhotoManager
+                photos={photos}
+                maxCount={GALLERY_MAX}
+                onAdd={handleGalleryAdd}
+                onRemove={handleGalleryRemove}
+                onReorder={handleGalleryReorder}
+              />
+            </View>
+          ) : (
+            <View style={styles.galleryWrap}>
+              <PhotoGallery
+                photos={photos}
+                emptyText={t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
+              />
+            </View>
+          )}
         </ScrollView>
       )}
 

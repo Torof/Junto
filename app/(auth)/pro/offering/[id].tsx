@@ -1,5 +1,5 @@
 import { Redirect, useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   Pressable,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useState, useLayoutEffect } from 'react';
@@ -17,13 +18,19 @@ import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
+import { proOfferingPhotoService } from '@/services/pro-photo-service';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
+import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
 import { PageTypeBadge } from '@/components/page-type-badge';
 import { PhotoGallery } from '@/components/photo-gallery';
+import { PhotoManager } from '@/components/photo-manager';
+
+const GALLERY_MAX = 25;
 
 // Public detail view of a pro_offering. Hero mirrors the spontaneous
 // activity-detail layout: sport-color banner with a big decorative
@@ -38,6 +45,7 @@ export default function ProOfferingDetailScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { session, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'reviews'>('info');
 
   const { data: offering, isLoading } = useQuery({
@@ -53,6 +61,41 @@ export default function ProOfferingDetailScreen() {
   });
 
   const { data: photos = [] } = useProOfferingPhotos(offering?.id);
+
+  const invalidatePhotos = async () => {
+    if (!offering?.id) return;
+    await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', offering.id] });
+  };
+
+  const handleGalleryAdd = async () => {
+    if (!offering?.id) return;
+    try {
+      const remaining = GALLERY_MAX - photos.length;
+      await pickAndUploadProOfferingPhotos(offering.id, remaining);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  const handleGalleryRemove = async (photoId: string) => {
+    try {
+      await removeProOfferingPhoto(photoId);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  const handleGalleryReorder = async (orderedIds: string[]) => {
+    if (!offering?.id) return;
+    try {
+      await proOfferingPhotoService.reorder(offering.id, orderedIds);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
 
   // Navbar header — small octagon + "Activité récurrente · {title}".
   useLayoutEffect(() => {
@@ -229,16 +272,24 @@ export default function ProOfferingDetailScreen() {
 
       {activeTab === 'pictures' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.galleryWrap}>
-            <PhotoGallery
-              photos={photos}
-              emptyText={
-                isOwner
-                  ? t('proOffering.picturesEmptyOwner', { defaultValue: 'Aucune photo. Ajoute-en depuis l\'écran de modification.' })
-                  : t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })
-              }
-            />
-          </View>
+          {isOwner ? (
+            <View style={styles.managerWrap}>
+              <PhotoManager
+                photos={photos}
+                maxCount={GALLERY_MAX}
+                onAdd={handleGalleryAdd}
+                onRemove={handleGalleryRemove}
+                onReorder={handleGalleryReorder}
+              />
+            </View>
+          ) : (
+            <View style={styles.galleryWrap}>
+              <PhotoGallery
+                photos={photos}
+                emptyText={t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
+              />
+            </View>
+          )}
         </ScrollView>
       )}
 
@@ -394,4 +445,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   body: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
   placeholderText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
   galleryWrap: { paddingTop: spacing.md },
+  managerWrap: { paddingTop: spacing.md, paddingHorizontal: spacing.md },
 });
