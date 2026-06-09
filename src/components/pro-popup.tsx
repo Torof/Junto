@@ -25,7 +25,7 @@ export function ProPopup({ pro, onPress }: ProPopupProps) {
       </View>
       <Text style={styles.title} numberOfLines={1}>{pro.display_name}</Text>
       {pro.description && (
-        <Text style={styles.about} numberOfLines={2}>{pro.description}</Text>
+        <Text style={styles.about} numberOfLines={3}>{pro.description}</Text>
       )}
     </Pressable>
   );
