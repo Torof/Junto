@@ -44,7 +44,7 @@ import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
 import { distanceMeters } from '@/utils/geo';
-import { useKeyboardVisible } from '@/hooks/use-keyboard-visible';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -72,7 +72,7 @@ export function ActivityDetail({
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const keyboardVisible = useKeyboardVisible();
+  const keyboardHeight = useKeyboardHeight();
   const queryClient = useQueryClient();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -969,18 +969,24 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
+        // iOS: classic KAV 'padding' + header offset. Android: KAV disabled —
+        // under enforced edge-to-edge its frame math is unreliable, so the
+        // dock is positioned deterministically via the reported keyboard
+        // height (paddingBottom below).
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+          behavior="padding"
+          keyboardVerticalOffset={100}
+          enabled={Platform.OS === 'ios'}
         >
           <View style={{
             flex: 1,
             paddingHorizontal: spacing.lg,
             paddingTop: spacing.lg,
-            // Nav-bar inset only matters while the keyboard is down — the
-            // KAV already ends the layout at the IME top when it's up.
-            paddingBottom: keyboardVisible ? spacing.sm : Math.max(spacing.lg, insets.bottom + spacing.xs),
+            paddingBottom:
+              Platform.OS === 'android' && keyboardHeight > 0
+                ? keyboardHeight + spacing.sm
+                : Math.max(spacing.lg, insets.bottom + spacing.xs),
           }}>
             <ActivityWall
               activityId={activity.id}

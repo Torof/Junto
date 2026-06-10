@@ -18,7 +18,7 @@ import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
-import { useKeyboardVisible } from '@/hooks/use-keyboard-visible';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
@@ -47,7 +47,7 @@ export default function ConversationScreen() {
   const [isEditMode, setIsEditMode] = useState(false);
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
-  const keyboardVisible = useKeyboardVisible();
+  const keyboardHeight = useKeyboardHeight();
   const { markConversationRead } = useMessageStore();
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
@@ -434,17 +434,27 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    // Same KAV grammar as the activity-wall chat (which works), and the
-    // outer wrapper handles the bottom safe-area padding so the IME
-    // gap stays consistent.
+    // iOS: classic KAV 'padding' + header offset. Android: KAV disabled —
+    // under enforced edge-to-edge its frame math is unreliable, so the
+    // dock is positioned deterministically via the reported keyboard
+    // height (paddingBottom below).
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      behavior="padding"
+      keyboardVerticalOffset={100}
+      enabled={Platform.OS === 'ios'}
     >
-      {/* Nav-bar inset only while the keyboard is down — when it's up the
-          KAV already ends the layout at the IME top. */}
-      <View style={[styles.containerInner, { paddingBottom: keyboardVisible ? spacing.sm : insets.bottom + spacing.sm }]}>
+      <View
+        style={[
+          styles.containerInner,
+          {
+            paddingBottom:
+              Platform.OS === 'android' && keyboardHeight > 0
+                ? keyboardHeight + spacing.sm
+                : insets.bottom + spacing.sm,
+          },
+        ]}
+      >
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
