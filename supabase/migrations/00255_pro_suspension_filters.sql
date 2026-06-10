@@ -1,7 +1,7 @@
 -- Migration 00255: hide suspended pros' offerings in the catalog view.
 --
--- Audit finding: pro_offerings_with_coords (00250) has no suspension
--- filter. The parent pro_profiles SELECT policy (00240) was meant to
+-- Audit finding: pro_offerings_with_coords (00250, reshaped in 00254)
+-- has no suspension filter. The parent pro_profiles SELECT policy (00240) was meant to
 -- hide suspended pros, but the view runs with owner privileges (no
 -- security_invoker, owner = postgres with BYPASSRLS) so no table RLS
 -- applies through it — same failure mode as the 00214
@@ -37,7 +37,13 @@ SELECT
   o.schedule_text,
   o.distance_km,
   o.elevation_gain_m,
-  o.image_url,
+  (
+    SELECT photo_url
+    FROM pro_offering_photos p
+    WHERE p.offering_id = o.id
+    ORDER BY order_index ASC
+    LIMIT 1
+  ) AS image_url,
   o.created_at,
   o.updated_at,
   ST_X(o.location::geometry) AS lng,
