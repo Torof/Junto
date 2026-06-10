@@ -742,6 +742,24 @@
     "reportUser": "Report this user",
     "reportActivity": "Report this activity"
   },
+  "reviews": {
+    "count_one": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "empty": "No reviews yet.",
+    "writeOne": "Write a review",
+    "editMine": "Edit my review",
+    "bodyPlaceholder": "Share your experience (optional)...",
+    "ratingRequired": "Pick a rating from 1 to 5 stars",
+    "submit": "Publish",
+    "cancel": "Cancel",
+    "saved": "Review published",
+    "deleteTitle": "Delete review",
+    "deleteMessage": "Your review will be permanently deleted.",
+    "proReply": "Owner's reply",
+    "reply": "Reply",
+    "replyPlaceholder": "Reply publicly to this review...",
+    "removeReply": "Remove reply"
+  },
   "drawer": {
     "account": "Account",
     "email": "Email",

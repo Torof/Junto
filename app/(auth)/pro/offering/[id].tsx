@@ -23,6 +23,7 @@ import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { ReviewSection } from '@/components/review-section';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
@@ -296,13 +297,12 @@ export default function ProOfferingDetailScreen() {
 
       {activeTab === 'reviews' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.placeholderText}>
-              {t('proOffering.reviewsPlaceholder', {
-                defaultValue: 'Bientôt — les avis des participants apparaîtront ici.',
-              })}
-            </Text>
-          </View>
+          <ReviewSection
+            targetType="offering"
+            targetId={offering.id}
+            isOwner={isOwner}
+            currentUserId={session?.user?.id ?? null}
+          />
         </ScrollView>
       )}
     </View>

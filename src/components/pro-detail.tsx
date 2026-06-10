@@ -14,6 +14,10 @@ import { proOfferingService } from '@/services/pro-offering-service';
 import { proPhotoService } from '@/services/pro-photo-service';
 import { userService } from '@/services/user-service';
 import { useProPhotos } from '@/hooks/use-pro-photos';
+import { useAuth } from '@/hooks/use-auth';
+import { reviewService } from '@/services/review-service';
+import { ReviewSection } from './review-section';
+import { StarRating } from './star-rating';
 import { pickAndUploadProPhotos, removeProPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -34,6 +38,7 @@ const COLLAPSED_DESCRIPTION_CHARS = 280;
 export function ProDetail({ pro, isOwner, onEdit }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
+  const { session } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -49,6 +54,11 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
   });
 
   const { data: photos = [] } = useProPhotos(pro.user_id);
+
+  const { data: reviewStats } = useQuery({
+    queryKey: ['review-stats', 'pro', pro.user_id],
+    queryFn: () => reviewService.getProStats(pro.user_id),
+  });
 
   const invalidatePhotos = async () => {
     await queryClient.invalidateQueries({ queryKey: ['pro-photos', pro.user_id] });
@@ -151,6 +161,13 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
                 <Text style={styles.heroTitle}>{pro.display_name}</Text>
+                {reviewStats && reviewStats.review_count > 0 && (
+                  <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
+                    <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                    <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                    <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
+                  </Pressable>
+                )}
               </View>
               <View style={styles.heroActions}>
                 {/* Owner's user avatar — discloses the human behind the
@@ -362,13 +379,12 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
       {/* ===== REVIEWS TAB ===== Phase 4 wires this. */}
       {activeTab === 'reviews' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          <View style={styles.paddedSection}>
-            <View style={styles.infoCard}>
-              <Text style={styles.placeholderText}>
-                {t('pro.reviewsPlaceholder', { defaultValue: 'Bientôt — les avis des participants apparaîtront ici.' })}
-              </Text>
-            </View>
-          </View>
+          <ReviewSection
+            targetType="pro"
+            targetId={pro.user_id}
+            isOwner={isOwner}
+            currentUserId={session?.user?.id ?? null}
+          />
         </ScrollView>
       )}
 
@@ -516,6 +532,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontFamily: fonts.title,
     letterSpacing: -0.5,
     lineHeight: 36,
+  },
+  heroStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  heroStatsAvg: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  heroStatsCount: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
   },
   tagline: {
     color: colors.textSecondary,

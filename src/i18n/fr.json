@@ -742,6 +742,24 @@
     "reportUser": "Signaler cet utilisateur",
     "reportActivity": "Signaler cette activité"
   },
+  "reviews": {
+    "count_one": "{{count}} avis",
+    "count_other": "{{count}} avis",
+    "empty": "Aucun avis pour le moment.",
+    "writeOne": "Écrire un avis",
+    "editMine": "Modifier mon avis",
+    "bodyPlaceholder": "Partage ton expérience (optionnel)...",
+    "ratingRequired": "Choisis une note de 1 à 5 étoiles",
+    "submit": "Publier",
+    "cancel": "Annuler",
+    "saved": "Avis publié",
+    "deleteTitle": "Supprimer l'avis",
+    "deleteMessage": "Ton avis sera définitivement supprimé.",
+    "proReply": "Réponse du pro",
+    "reply": "Répondre",
+    "replyPlaceholder": "Réponds publiquement à cet avis...",
+    "removeReply": "Supprimer la réponse"
+  },
   "drawer": {
     "account": "Compte",
     "email": "Email",
