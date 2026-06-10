@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   Pressable,
   Alert,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { ImagePlus, Trash2, ChevronUp, ChevronDown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -168,7 +168,7 @@ export function PhotoManager({
                   n: index + 1,
                 })}
               >
-                <Image source={{ uri: photo.photo_url }} style={styles.tileImage} resizeMode="cover" />
+                <Image source={{ uri: photo.photo_url }} style={styles.tileImage} contentFit="cover" />
               </Pressable>
 
               {/* Position chip — top-left. Makes the order explicit so

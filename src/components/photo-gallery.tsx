@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   Pressable,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -60,7 +60,7 @@ export function PhotoGallery({ photos, emptyText }: PhotoGalleryProps) {
               n: i + 1,
             })}
           >
-            <Image source={{ uri: photo.photo_url }} style={styles.tileImage} resizeMode="cover" />
+            <Image source={{ uri: photo.photo_url }} style={styles.tileImage} contentFit="cover" />
           </Pressable>
         ))}
       </View>

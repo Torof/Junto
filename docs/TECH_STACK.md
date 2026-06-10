@@ -221,7 +221,7 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 | Notifs | `expo-notifications@~0.32.16` |
 | Storage | `@react-native-async-storage/async-storage@2.2.0`, `expo-secure-store@~15.0.8` |
 | Network | `@react-native-community/netinfo@11.4.1` |
-| Diagnostic | `@sentry/react-native@~7.2.0` |
+| Diagnostic | `@sentry/react-native@^8.10.0` |
 | Camera (QR) | `expo-camera@~17.0.10` |
 | Files | `expo-file-system`, `expo-document-picker`, `expo-sharing`, `expo-image-manipulator`, `expo-image-picker` |
 | UI primitives | `@gorhom/bottom-sheet`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-reanimated`, `react-native-gesture-handler`, `lucide-react-native` |

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Image, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -139,7 +140,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
             <Image
               source={{ uri: photos[0].photo_url }}
               style={styles.banner}
-              resizeMode="cover"
+              contentFit="cover"
               accessibilityLabel={`${pro.display_name} — bannière`}
             />
           )}
@@ -338,7 +339,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
                   onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
                 >
                   {o.image_url ? (
-                    <Image source={{ uri: o.image_url }} style={styles.catalogCardImage} resizeMode="cover" />
+                    <Image source={{ uri: o.image_url }} style={styles.catalogCardImage} contentFit="cover" />
                   ) : (
                     <View style={[styles.catalogCardImage, styles.catalogCardPlaceholder]}>
                       <Text style={styles.catalogCardEmoji}>{getSportIcon(o.sport_key)}</Text>

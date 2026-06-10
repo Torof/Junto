@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import {
@@ -1099,7 +1100,7 @@ function VoterAvatarStack({
               key={v.voter_id}
               source={{ uri: v.avatar_url }}
               style={ring}
-              resizeMode="cover"
+              contentFit="cover"
             />
           );
         }

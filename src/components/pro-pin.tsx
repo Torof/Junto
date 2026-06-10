@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Path } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -52,7 +53,7 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
       </Svg>
       {pinImageUrl ? (
         <View style={styles.imageClip}>
-          <Image source={{ uri: pinImageUrl }} style={styles.imageFull} resizeMode="cover" />
+          <Image source={{ uri: pinImageUrl }} style={styles.imageFull} contentFit="cover" />
         </View>
       ) : (
         <View style={styles.content}>

@@ -5,10 +5,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useState, useLayoutEffect } from 'react';
 import { Pencil, MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain } from 'lucide-react-native';
@@ -185,7 +185,7 @@ export default function ProOfferingDetailScreen() {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {/* Banner = first gallery photo (Phase 4A consolidation). */}
           {photos[0] && (
-            <Image source={{ uri: photos[0].photo_url }} style={styles.banner} resizeMode="cover" />
+            <Image source={{ uri: photos[0].photo_url }} style={styles.banner} contentFit="cover" />
           )}
 
           {/* === HERO === Restrained variant — keeps the structure of

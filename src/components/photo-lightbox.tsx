@@ -1,4 +1,5 @@
-import { View, Text, Image, Pressable, FlatList, Modal, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { View, Text, Pressable, FlatList, Modal, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { fontSizes, spacing } from '@/constants/theme';
@@ -51,7 +52,7 @@ export function PhotoLightbox({ photos, index, onIndexChange }: PhotoLightboxPro
           }}
           renderItem={({ item }) => (
             <Pressable style={styles.viewerPage} onPress={() => onIndexChange(null)}>
-              <Image source={{ uri: item.photo_url }} style={styles.viewerImage} resizeMode="contain" />
+              <Image source={{ uri: item.photo_url }} style={styles.viewerImage} contentFit="contain" />
             </Pressable>
           )}
         />
