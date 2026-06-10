@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { LocateFixed } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { spacing, radius } from '@/constants/theme';
@@ -17,10 +17,9 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 
   return (
     <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.recenter')}>
-      {/* Blue halo behind the target icon — Google-Maps-style GPS
-          dot association without recoloring the crosshair itself. */}
-      <View style={styles.halo} />
-      <LocateFixed size={24} color={colors.textPrimary} strokeWidth={2.2} />
+      {/* Google-Maps-style GPS blue. The crosshair itself carries the
+          'my position' association — no halo needed. */}
+      <LocateFixed size={24} color="#4285F4" strokeWidth={2.4} />
     </Pressable>
   );
 }
@@ -46,14 +45,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
-  },
-  // Blue circle sits behind the LocateFixed icon. Slightly bigger
-  // than the icon's outer ring so it reads as a halo, not a clip.
-  halo: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#4285F4',
   },
 });
