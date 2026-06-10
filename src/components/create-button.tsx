@@ -43,7 +43,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     bottom: 28,
     right: spacing.md,
     backgroundColor: colors.cta,
-    borderRadius: radius.full,
+    borderRadius: radius.md,
     width: 52,
     height: 52,
     alignItems: 'center',
