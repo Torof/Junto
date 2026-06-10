@@ -17,7 +17,9 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 
   return (
     <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.recenter')}>
-      <LocateFixed size={24} color={colors.textPrimary} strokeWidth={2.2} />
+      {/* Google-Maps-style blue (#4285F4). Trades the neutral text
+          color for the universally-read "my GPS position" hue. */}
+      <LocateFixed size={24} color="#4285F4" strokeWidth={2.4} />
     </Pressable>
   );
 }
