@@ -122,6 +122,19 @@ WHERE suspended_at IS NULL;
 - Toutes les queries publiques passent par la vue
 - L'accès direct à la table `users` est réservé à `auth.uid() = id` et aux fonctions admin
 
+### Limitation RLS : sous-requêtes cross-table dans les policies
+Les expressions de policy s'exécutent avec les droits de l'utilisateur qui fait la requête, et le RLS des tables référencées s'applique **récursivement**. Conséquence : une policy qui fait `NOT EXISTS (SELECT 1 FROM users WHERE id = <autre user> AND suspended_at IS NOT NULL)` ne voit aucune ligne (à cause de `users_select_own`) et retourne toujours TRUE — **no-op silencieux**. Découvert à l'audit de juin 2026 (mig 00256) ; affectait `activities_select_authenticated` et `pro_profiles_select`. Les checks own-row (`id = auth.uid()`) ne sont pas affectés.
+
+**Règle : jamais de sous-requête directe sur `users` (ou toute table à RLS restrictif) dans une policy.** Utiliser le prédicat dédié :
+```sql
+USING ( NOT private.user_is_suspended(<user_id>) )
+```
+`private.user_is_suspended(UUID)` est SECURITY DEFINER dans le schéma `private`, non exposé par PostgREST (seul `public` l'est) — appelable depuis les policies, pas depuis `/rest/v1/rpc`. GRANT EXECUTE TO authenticated uniquement.
+
+Cas particulier exploitable : une sous-requête sur une table dont le RLS filtre déjà ce qu'on veut **hérite** de ce filtre. Pattern parent-visibility : `USING (EXISTS (SELECT 1 FROM pro_offerings o WHERE o.id = offering_id))` — la photo n'est visible que si l'offering parent l'est. Attention à la forme `NOT EXISTS (... suspended ...)` qui **s'inverse** sous récursion (parent caché → photos réapparaissent).
+
+**Rappel vues :** une vue sans `security_invoker` s'exécute avec les droits du owner (postgres, BYPASSRLS) — aucune policy ne s'applique à travers elle. Tout filtre de sécurité d'une vue doit vivre dans son corps (cf. 00214, 00255, 00256).
+
 ### Création du profil utilisateur — trigger serveur uniquement
 La ligne dans `public.users` est créée par un trigger Postgres sur `auth.users`, jamais par un INSERT client.
 
@@ -371,6 +384,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 - `push_notification_to_device` (trigger)
 - `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
 - `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
+- `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO authenticated (requis pour être appelable depuis les expressions de policy), mais non exposé via PostgREST car hors du schéma `public` (mig 00256)
 
 ### Fonctions privilégiées admin
 
