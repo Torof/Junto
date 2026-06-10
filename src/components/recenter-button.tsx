@@ -27,7 +27,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the FAB so they read as a uniform pair, only the fill changes.
   button: {
     position: 'absolute',
-    bottom: 28 + 48 + 8,
+    bottom: 28 + 48 + 14,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: 14,
