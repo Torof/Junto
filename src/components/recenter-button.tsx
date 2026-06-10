@@ -17,22 +17,22 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 
   return (
     <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.recenter')}>
-      <LocateFixed size={22} color={colors.textPrimary} strokeWidth={2.2} />
+      <LocateFixed size={24} color={colors.textPrimary} strokeWidth={2.2} />
     </Pressable>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  // Bottom-right, just above the create FAB. 8px gap so the two read
-  // as a stack but the FAB stays visually dominant.
+  // Bottom-right, just above the create FAB. Same size + radius as
+  // the FAB so they read as a uniform pair, only the fill changes.
   button: {
     position: 'absolute',
-    bottom: 28 + 52 + 8,
-    right: spacing.md + 6,
+    bottom: 28 + 48 + 8,
+    right: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    width: 40,
-    height: 40,
+    borderRadius: 14,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
