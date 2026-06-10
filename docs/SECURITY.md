@@ -129,7 +129,7 @@ Les expressions de policy s'exécutent avec les droits de l'utilisateur qui fait
 ```sql
 USING ( NOT private.user_is_suspended(<user_id>) )
 ```
-`private.user_is_suspended(UUID)` est SECURITY DEFINER dans le schéma `private`, non exposé par PostgREST (seul `public` l'est) — appelable depuis les policies, pas depuis `/rest/v1/rpc`. GRANT EXECUTE TO authenticated uniquement.
+`private.user_is_suspended(UUID)` est SECURITY DEFINER dans le schéma `private`, non exposé par PostgREST (seul `public` l'est) — appelable depuis les policies et les corps de vues, pas depuis `/rest/v1/rpc`. GRANT EXECUTE TO anon, authenticated (mig 00257 : les appels de fonction dans un corps de vue s'exécutent avec les droits de l'appelant, contrairement aux accès tables — anon en a donc besoin pour `activities_with_coords`).
 
 Cas particulier exploitable : une sous-requête sur une table dont le RLS filtre déjà ce qu'on veut **hérite** de ce filtre. Pattern parent-visibility : `USING (EXISTS (SELECT 1 FROM pro_offerings o WHERE o.id = offering_id))` — la photo n'est visible que si l'offering parent l'est. Attention à la forme `NOT EXISTS (... suspended ...)` qui **s'inverse** sous récursion (parent caché → photos réapparaissent).
 
@@ -384,7 +384,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 - `push_notification_to_device` (trigger)
 - `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
 - `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
-- `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO authenticated (requis pour être appelable depuis les expressions de policy), mais non exposé via PostgREST car hors du schéma `public` (mig 00256)
+- `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO anon, authenticated (requis pour être appelable depuis les expressions de policy et les corps de vues), mais non exposé via PostgREST car hors du schéma `public` (mig 00256 + 00257)
 
 ### Fonctions privilégiées admin
 
