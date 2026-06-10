@@ -61,12 +61,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-localization',
     'expo-secure-store',
     '@react-native-community/datetimepicker',
-    [
-      '@rnmapbox/maps',
-      {
-        RNMapboxMapsDownloadToken: process.env.MAPBOX_DOWNLOAD_TOKEN,
-      },
-    ],
+    // Download token comes from the RNMAPBOX_MAPS_DOWNLOAD_TOKEN env var
+    // (EAS secret + local .env) — the plugin prop form is deprecated.
+    '@rnmapbox/maps',
     [
       'expo-notifications',
       {
