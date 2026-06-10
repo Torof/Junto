@@ -44,6 +44,7 @@ import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
 import { distanceMeters } from '@/utils/geo';
+import { useKeyboardVisible } from '@/hooks/use-keyboard-visible';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -71,6 +72,7 @@ export function ActivityDetail({
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardVisible();
   const queryClient = useQueryClient();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -967,12 +969,18 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={100}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        >
           <View style={{
             flex: 1,
             paddingHorizontal: spacing.lg,
             paddingTop: spacing.lg,
-            paddingBottom: Math.max(spacing.lg, insets.bottom + spacing.xs),
+            // Nav-bar inset only matters while the keyboard is down — the
+            // KAV already ends the layout at the IME top when it's up.
+            paddingBottom: keyboardVisible ? spacing.sm : Math.max(spacing.lg, insets.bottom + spacing.xs),
           }}>
             <ActivityWall
               activityId={activity.id}
