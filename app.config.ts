@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Junto',
   slug: 'junto',
-  version: '0.1.2',
+  version: '0.1.3',
   orientation: 'portrait',
   icon: './assets/junto_icon_square.png',
   userInterfaceStyle: 'dark',

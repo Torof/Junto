@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, Platform } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
@@ -969,24 +970,21 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
-        // iOS: classic KAV 'padding' + header offset. Android: KAV disabled —
-        // under enforced edge-to-edge its frame math is unreliable, so the
-        // dock is positioned deterministically via the reported keyboard
-        // height (paddingBottom below).
+        // keyboard-controller KAV — reads the real IME inset from the native
+        // window (edge-to-edge safe, OEM-robust) and animates with it. The
+        // RN KeyboardAvoidingView's frame math was unreliable here.
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior="padding"
-          keyboardVerticalOffset={100}
-          enabled={Platform.OS === 'ios'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
           <View style={{
             flex: 1,
             paddingHorizontal: spacing.lg,
             paddingTop: spacing.lg,
-            paddingBottom:
-              Platform.OS === 'android' && keyboardHeight > 0
-                ? keyboardHeight + spacing.sm
-                : Math.max(spacing.lg, insets.bottom + spacing.xs),
+            // Nav-bar inset only while the keyboard is down — the KAV
+            // already ends the layout at the IME top when it's up.
+            paddingBottom: keyboardHeight > 0 ? spacing.sm : Math.max(spacing.lg, insets.bottom + spacing.xs),
           }}>
             <ActivityWall
               activityId={activity.id}

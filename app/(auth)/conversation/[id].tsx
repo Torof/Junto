@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
@@ -434,25 +435,20 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    // iOS: classic KAV 'padding' + header offset. Android: KAV disabled —
-    // under enforced edge-to-edge its frame math is unreliable, so the
-    // dock is positioned deterministically via the reported keyboard
-    // height (paddingBottom below).
+    // keyboard-controller KAV — reads the real IME inset from the native
+    // window (edge-to-edge safe, OEM-robust) and animates with it. The
+    // RN KeyboardAvoidingView's frame math was unreliable here.
     <KeyboardAvoidingView
       style={styles.container}
       behavior="padding"
-      keyboardVerticalOffset={100}
-      enabled={Platform.OS === 'ios'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
+      {/* Nav-bar inset only while the keyboard is down — the KAV already
+          ends the layout at the IME top when it's up. */}
       <View
         style={[
           styles.containerInner,
-          {
-            paddingBottom:
-              Platform.OS === 'android' && keyboardHeight > 0
-                ? keyboardHeight + spacing.sm
-                : insets.bottom + spacing.sm,
-          },
+          { paddingBottom: keyboardHeight > 0 ? spacing.sm : insets.bottom + spacing.sm },
         ]}
       >
       {isLoading ? (
