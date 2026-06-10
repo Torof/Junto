@@ -248,3 +248,17 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Alternative considérée :** Foreground service permanent type Strava — rejeté, batterie + UX (notif persistante 24/7) trop coûteux pour une app sociale logistique pre-launch.
 
 **Migrations :** 00165 (spine v2 + helpers), 00166 (cleanup + qr_reminder timing + peer_review_closing gate), 00167 (status + deleted_at gates sur confirm fns), 00168 (notif_preferences DEFAULT sync).
+
+---
+
+## 2026-06-10 — Avis Pro : modèle Google Maps, non gated, avec réponse du pro
+
+**Décision :** Les avis (vitrine pro + offerings) sont ouverts à tout utilisateur authentifié non-owner, sans gating par participation. 1-5 étoiles + texte optionnel ≤1000, un avis par (reviewer, cible), modifiable sans fenêtre, CASCADE à la suppression du compte reviewer. Le pro dispose d'une réponse éditable par avis (modèle owner-response Google). Les blocks n'affectent PAS la visibilité des avis — sinon bloquer ses critiques deviendrait du blanchiment d'avis. Anti-abus : unicité par cible, 10 créations/24h (combinées), avis reportables (`target_type` `pro_review` / `offering_review`), modération existante.
+
+**Pourquoi :** Le système Pro est une devanture — booking et sorties entièrement hors app, donc aucune preuve de participation in-app sur laquelle gater. Gater irait contre la simplicité/accessibilité ; Google Maps fait tourner ce modèle depuis des années. Exception **cadrée** au principe no-social-scoring : les avis ne touchent que la vitrine Pro (un business), jamais les users ni les activités — la fiabilité peer reste le seul signal de confiance entre utilisateurs.
+
+**Clarification modèle Pro (même session) :** un Pro = utilisateur normal + privilège vitrine (storefront + pins offerings permanents). Une activité normale créée par un pro reste une activité normale — le "badge Sortie Pro sur les pins" de PRODUCT.md était périmé, retiré.
+
+**Alternative considérée :** Gating par présence confirmée sur une activité du pro — rejeté (modèle storefront = pas de participation) ; avis offerings via invitation émise par le pro (QR/lien) — gardé en réserve si abus observé.
+
+**Migrations :** 00258 (tables + RPCs + vues + reports), 00259 (REVOKE public, cf. 00018).

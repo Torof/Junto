@@ -25,11 +25,11 @@ Tout utilisateur connecté est à la fois potentiellement créateur et participa
 ### Pro (Professionnel vérifié)
 - Tout le Premium
 - Badge "Guide Professionnel Vérifié" — validation manuelle de Junto sur présentation de documents (SIRET, BPJEPS, etc.)
-- Vitrine professionnelle complète (liens externes, certifications, spécialités)
-- Historique des sorties organisées
-- Avis des participants
+- Vitrine professionnelle complète (liens externes, certifications, spécialités) + galerie photos + catalogue d'offerings (pins permanents sur la carte)
+- Avis style Google Maps sur la vitrine et chaque offering — non gated (tout utilisateur connecté, 1-5 étoiles + texte optionnel, un avis par cible, modifiable), avec une réponse du pro par avis. Exception cadrée au no-social-scoring : les avis ne concernent que la vitrine Pro, jamais les users ni les activités.
 - Paiement géré entièrement hors app — Junto est vitrine, pas intermédiaire financier
-- Sur les pins : badge distinctif "Sortie Pro" visible par tous
+
+**Modèle clarifié (2026-06-10) :** un Pro est un utilisateur normal + le privilège vitrine. Le système Pro est une devanture (storefront) — pas de booking, pas de participation, pas de chat sur les offerings. Une activité normale créée par un pro est une activité normale, sans badge ni traitement particulier.
 
 ### Admin
 - Bypass du rate limit `create_activity` (mig 00144) — usage : modération, comptes de test

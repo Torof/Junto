@@ -127,3 +127,5 @@ All operations via SECURITY DEFINER functions only:
 - `activity_gear` (INSERT, UPDATE, DELETE)
 - `reports` (INSERT via `create_report`, DELETE never)
 - `user_badge_progression` (INSERT, UPDATE, DELETE) — auto-managed via trigger
+- `pro_reviews` (INSERT, UPDATE, DELETE)
+- `offering_reviews` (INSERT, UPDATE, DELETE)

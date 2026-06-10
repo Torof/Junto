@@ -530,6 +530,71 @@ export type Database = {
           },
         ]
       }
+      offering_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          offering_id: string
+          pro_reply: string | null
+          pro_reply_at: string | null
+          rating: number
+          reviewer_id: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          offering_id: string
+          pro_reply?: string | null
+          pro_reply_at?: string | null
+          rating: number
+          reviewer_id: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          offering_id?: string
+          pro_reply?: string | null
+          pro_reply_at?: string | null
+          rating?: number
+          reviewer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participations: {
         Row: {
           activity_id: string
@@ -1068,6 +1133,64 @@ export type Database = {
             foreignKeyName: "pro_profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          pro_id: string
+          pro_reply: string | null
+          pro_reply_at: string | null
+          rating: number
+          reviewer_id: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          pro_id: string
+          pro_reply?: string | null
+          pro_reply_at?: string | null
+          rating: number
+          reviewer_id: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          pro_id?: string
+          pro_reply?: string | null
+          pro_reply_at?: string | null
+          rating?: number
+          reviewer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_reviews_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pro_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1983,6 +2106,74 @@ export type Database = {
           },
         ]
       }
+      offering_review_stats: {
+        Row: {
+          avg_rating: number | null
+          offering_id: string | null
+          review_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offering_reviews_with_profiles: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string | null
+          offering_id: string | null
+          pro_reply: string | null
+          pro_reply_at: string | null
+          rating: number | null
+          reviewer_avatar: string | null
+          reviewer_id: string | null
+          reviewer_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pro_offerings_with_coords: {
         Row: {
           created_at: string | null
@@ -2020,6 +2211,60 @@ export type Database = {
             columns: ["sport_id"]
             isOneToOne: false
             referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_review_stats: {
+        Row: {
+          avg_rating: number | null
+          pro_id: string | null
+          review_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_reviews_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      pro_reviews_with_profiles: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string | null
+          pro_id: string | null
+          pro_reply: string | null
+          pro_reply_at: string | null
+          rating: number | null
+          reviewer_avatar: string | null
+          reviewer_id: string | null
+          reviewer_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_reviews_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pro_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2364,6 +2609,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_offering_review: {
+        Args: { p_body?: string; p_offering_id: string; p_rating: number }
+        Returns: string
+      }
       create_presence_token: {
         Args: { p_activity_id: string }
         Returns: string
@@ -2385,6 +2634,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_pro_review: {
+        Args: { p_body?: string; p_pro_id: string; p_rating: number }
+        Returns: string
+      }
       create_report: {
         Args: { p_reason: string; p_target_id: string; p_target_type: string }
         Returns: string
@@ -2397,11 +2650,16 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      delete_offering_review: {
+        Args: { p_review_id: string }
+        Returns: undefined
+      }
       delete_own_account: { Args: never; Returns: undefined }
       delete_pro_offering: {
         Args: { p_offering_id: string }
         Returns: undefined
       }
+      delete_pro_review: { Args: { p_review_id: string }; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -2851,6 +3109,14 @@ export type Database = {
       }
       reorder_pro_photos: {
         Args: { p_photo_ids: string[] }
+        Returns: undefined
+      }
+      reply_to_offering_review: {
+        Args: { p_reply?: string; p_review_id: string }
+        Returns: undefined
+      }
+      reply_to_pro_review: {
+        Args: { p_reply?: string; p_review_id: string }
         Returns: undefined
       }
       request_seat: {
@@ -3540,6 +3806,10 @@ export type Database = {
         Args: { p_activity_id: string; p_trace_geojson: Json }
         Returns: undefined
       }
+      update_offering_review: {
+        Args: { p_body?: string; p_rating: number; p_review_id: string }
+        Returns: undefined
+      }
       update_pro_offering: {
         Args: {
           p_description: string
@@ -3572,6 +3842,10 @@ export type Database = {
           p_tagline?: string
           p_website?: string
         }
+        Returns: undefined
+      }
+      update_pro_review: {
+        Args: { p_body?: string; p_rating: number; p_review_id: string }
         Returns: undefined
       }
       updategeometrysrid: {

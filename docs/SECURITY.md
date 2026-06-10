@@ -351,6 +351,24 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Bayesian score avec PRIOR = 3
 - Stocke dans `users.reliability_score` (privilégiée, jamais write client)
 
+### Avis Pro (mig 00258 — modèle Google Maps, non gated par décision 2026-06-10)
+
+**`create_pro_review(p_pro_id, p_rating, p_body)`** / **`create_offering_review(p_offering_id, p_rating, p_body)`** :
+1. `auth.uid()` non NULL + caller non suspendu
+2. Cible existe (pro_profile / offering) ; pro cible non suspendu
+3. Pas de self-review (caller ≠ pro de la cible)
+4. Rating 1-5 ; body strippé HTML + trim, vide → NULL, ≤ 1000
+5. Advisory lock `(user || '_reviews')` → unicité (reviewer, cible) + rate limit **10 créations / 24h combinées** sur les deux tables, atomiques
+6. reviewer_id / created_at hardcodés serveur ; backstop `unique_violation` → erreur générique
+
+**`update_pro_review` / `update_offering_review`** : auth → non suspendu → **owner du review** → validation identique → UPDATE rating/body uniquement (trigger whitelist force le reste à OLD).
+
+**`delete_pro_review` / `delete_offering_review`** : auth → non suspendu → owner → DELETE.
+
+**`reply_to_pro_review` / `reply_to_offering_review`** : auth → non suspendu → caller est **le pro cible** (pro_id du review / de l'offering parent) → reply strippé ≤ 1000, NULL/vide efface → set `pro_reply` + `pro_reply_at` via bypass_lock (le touch trigger skippe sous bypass : une réponse ne bump pas `updated_at`).
+
+**Décisions structurantes :** les blocks n'affectent PAS la visibilité des reviews (sinon bloquer ses critiques = blanchiment d'avis). Suppression de compte → CASCADE (les avis partent avec le reviewer). Exception cadrée au principe no-social-scoring : les avis ne touchent que la vitrine Pro, jamais les users/activités.
+
 ---
 
 ## Exposition des fonctions via PostgREST
@@ -370,6 +388,8 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 **Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`
 
 **User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `get_user_sport_breakdown`
+
+**Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` (REVOKE from public ET anon — mig 00259, cf. 00018 "REVOKE didn't stick")
 
 **Cron-on-foreground :** `check_activity_transitions`
 
@@ -422,6 +442,8 @@ AS $$ ... $$;
 | `private_messages` | INSERT, UPDATE, DELETE | Bypass rate limit, blocked check | `send_private_message`, `edit_private_message`, `delete_private_message`, `share_trace_message` |
 | `participations` | INSERT, UPDATE, DELETE | Bypass concurrent join, status, removal rules | `join_activity`, `accept_*`, `refuse_*`, `remove_participant`, `leave_activity`, `set_participation_transport`, `confirm_presence_via_*`, `peer_validate_presence` |
 | `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check | `create_or_get_conversation`, `accept_contact_request`, `decline_contact_request`, `send_private_message` (last_message_at), `hide_conversation` |
+| `pro_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, pro), rate limit, self-review, reply ownership | `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review` |
+| `offering_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, offering), rate limit, self-review, reply ownership | `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` |
 | `peer_validations` | INSERT, UPDATE, DELETE | Bypass voter-presence + threshold logic | `peer_validate_presence` |
 | `reputation_votes` | INSERT, UPDATE, DELETE | Bypass UNIQUE + window check | `give_reputation_badge`, `revoke_reputation_badge` |
 | `presence_tokens` | INSERT, UPDATE, DELETE | Tokens issus uniquement par le créateur | `create_presence_token` |
