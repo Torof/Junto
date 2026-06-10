@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
@@ -19,7 +18,7 @@ import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
-import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
@@ -48,7 +47,7 @@ export default function ConversationScreen() {
   const [isEditMode, setIsEditMode] = useState(false);
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
-  const keyboardHeight = useKeyboardHeight();
+  const dockPadding = useKeyboardDockPadding(insets.bottom + spacing.sm);
   const { markConversationRead } = useMessageStore();
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
@@ -435,22 +434,10 @@ export default function ConversationScreen() {
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
 
   return (
-    // keyboard-controller KAV — reads the real IME inset from the native
-    // window (edge-to-edge safe, OEM-robust) and animates with it. The
-    // RN KeyboardAvoidingView's frame math was unreliable here.
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-    >
-      {/* Nav-bar inset only while the keyboard is down — the KAV already
-          ends the layout at the IME top when it's up. */}
-      <View
-        style={[
-          styles.containerInner,
-          { paddingBottom: keyboardHeight > 0 ? spacing.sm : insets.bottom + spacing.sm },
-        ]}
-      >
+    // No KeyboardAvoidingView — the dock's bottom padding animates with
+    // the exact IME inset via useKeyboardDockPadding (reanimated).
+    <View style={styles.container}>
+      <Animated.View style={[styles.containerInner, dockPadding]}>
       {isLoading ? (
         <View style={styles.center}>
           <LogoSpinner />
@@ -654,8 +641,8 @@ export default function ConversationScreen() {
           </Pressable>
         </View>
       )}
-      </View>
-    </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
   );
 }
 

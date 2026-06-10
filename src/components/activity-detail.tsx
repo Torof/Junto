@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, Platform } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
@@ -45,7 +45,7 @@ import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
 import { distanceMeters } from '@/utils/geo';
-import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -73,7 +73,7 @@ export function ActivityDetail({
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const keyboardHeight = useKeyboardHeight();
+  const chatDockPadding = useKeyboardDockPadding(Math.max(spacing.lg, insets.bottom + spacing.xs));
   const queryClient = useQueryClient();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -970,29 +970,24 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
-        // keyboard-controller KAV — reads the real IME inset from the native
-        // window (edge-to-edge safe, OEM-robust) and animates with it. The
-        // RN KeyboardAvoidingView's frame math was unreliable here.
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior="padding"
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        // No KeyboardAvoidingView — the dock's bottom padding animates with
+        // the exact IME inset via useKeyboardDockPadding (reanimated).
+        <Animated.View
+          style={[
+            {
+              flex: 1,
+              paddingHorizontal: spacing.lg,
+              paddingTop: spacing.lg,
+            },
+            chatDockPadding,
+          ]}
         >
-          <View style={{
-            flex: 1,
-            paddingHorizontal: spacing.lg,
-            paddingTop: spacing.lg,
-            // Nav-bar inset only while the keyboard is down — the KAV
-            // already ends the layout at the IME top when it's up.
-            paddingBottom: keyboardHeight > 0 ? spacing.sm : Math.max(spacing.lg, insets.bottom + spacing.xs),
-          }}>
-            <ActivityWall
-              activityId={activity.id}
-              isActive={['published', 'in_progress'].includes(activity.status)}
-              currentUserId={currentUserId ?? null}
-            />
-          </View>
-        </KeyboardAvoidingView>
+          <ActivityWall
+            activityId={activity.id}
+            isActive={['published', 'in_progress'].includes(activity.status)}
+            currentUserId={currentUserId ?? null}
+          />
+        </Animated.View>
       )}
 
       {/* Modals — shared across all tabs */}

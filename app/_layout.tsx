@@ -15,7 +15,6 @@ import { AppState, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useAuth } from '@/hooks/use-auth';
 import { useNetworkAwareness } from '@/hooks/use-network';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
@@ -144,15 +143,13 @@ function AuthGate() {
 function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <SafeAreaProvider>
-          <ThemeProvider>
-            <QueryClientProvider client={queryClient}>
-              <AuthGate />
-            </QueryClientProvider>
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </KeyboardProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthGate />
+          </QueryClientProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
