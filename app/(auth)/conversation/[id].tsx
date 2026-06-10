@@ -437,7 +437,7 @@ export default function ConversationScreen() {
     // gap stays consistent.
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >
       <View style={[styles.containerInner, { paddingBottom: insets.bottom + spacing.sm }]}>

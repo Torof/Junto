@@ -967,7 +967,7 @@ export function ActivityDetail({
 
       {/* ===== CHAT TAB ===== */}
       {showTabs && activeTab === 'chat' && (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={100}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={100}>
           <View style={{
             flex: 1,
             paddingHorizontal: spacing.lg,
