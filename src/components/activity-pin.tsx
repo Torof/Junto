@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
@@ -50,6 +50,12 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           strokeOpacity={0.55}
           strokeLinejoin="round"
         />
+        {/* Ivory content plate — completes the universal pin grammar
+            (outline → frame → plate → glyph). The status color now
+            draws a round frame instead of flooding the bulb, so the
+            sport emoji always sits on ivory. In the default state the
+            frame is ivory-on-ivory: identical to the classic pin. */}
+        <Circle cx={27} cy={24} r={18.5} fill={colors.pinBackground} />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
