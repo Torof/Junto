@@ -19,11 +19,13 @@ export const darkColors = {
 
   pinBackground: '#F5F5F0',
   pinBorder: '#0D1B2A',
-  // Default UA frame — a stone tone one step under the ivory plate,
-  // so the frame construction stays visible in the published state
+  // Default UA frame — warm beige, visible against the ivory plate
   // without competing with the status colors (green/amber) that
-  // replace it when the activity is soon / in progress.
-  pinFrame: '#DCD8D0',
+  // replace it when the activity is soon / in progress. Deliberately
+  // WARM: Mapbox geography tones are cool/desaturated, so a cool
+  // stone (#DCD8D0, rejected on-device) blended into terrain while
+  // warmth reads as a designed element.
+  pinFrame: '#E0D2B4',
   // Pro family pins (PP storefront + RA offerings) — light indigo
   // frame, light outline. Indigo is the one calm-catchy hue nothing
   // on an outdoor map owns (green/amber = statuses, blue = water,
@@ -69,7 +71,7 @@ export const lightColors = {
 
   pinBackground: '#FFFFFF',
   pinBorder: '#1A1A1A',
-  pinFrame: '#DCD8D0',
+  pinFrame: '#E0D2B4',
   pinProBackground: '#8B93F8',
   pinProBorder: '#F5F5F0',
   border: '#9E9A95',
