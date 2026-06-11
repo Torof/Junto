@@ -15,6 +15,12 @@ export function useKeyboardDockPadding(restPadding: number) {
   });
 
   return useAnimatedStyle(() => ({
-    paddingBottom: Math.max(keyboard.height.value + spacing.sm, restPadding),
+    // The breathing gap only applies while the IME is up, so a
+    // restPadding of 0 (bottom sheets flush with the screen edge)
+    // stays exactly 0 at rest.
+    paddingBottom: Math.max(
+      keyboard.height.value > 0 ? keyboard.height.value + spacing.sm : 0,
+      restPadding,
+    ),
   }));
 }

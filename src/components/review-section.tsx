@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Flag, Pencil, Trash2, CornerUpLeft } from 'lucide-react-native';
@@ -39,6 +41,8 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
   const [replyTarget, setReplyTarget] = useState<Review | null>(null);
   const [draftReply, setDraftReply] = useState('');
   const [reportTargetId, setReportTargetId] = useState<string | null>(null);
+  // Lifts the bottom sheets above the IME while typing (flush at rest).
+  const imePadding = useKeyboardDockPadding(0);
 
   const { data: reviews = [] } = useQuery({
     queryKey: ['reviews', targetType, targetId],
@@ -219,6 +223,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
       {/* Composer — write / edit own review */}
       <Modal visible={composerOpen} animationType="slide" transparent onRequestClose={() => setComposerOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setComposerOpen(false)}>
+          <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
             <Text style={styles.sheetTitle}>
@@ -247,6 +252,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
               </Pressable>
             </View>
           </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
 
@@ -258,6 +264,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
         onRequestClose={() => setReplyTarget(null)}
       >
         <Pressable style={styles.backdrop} onPress={() => setReplyTarget(null)}>
+          <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
             <Text style={styles.sheetTitle}>{t('reviews.reply')}</Text>
@@ -291,6 +298,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
               </Pressable>
             </View>
           </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
 

@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -21,6 +23,8 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
   const [reason, setReason] = useState('');
   const [isSending, setIsSending] = useState(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Lifts the sheet above the IME while typing (flush at rest).
+  const imePadding = useKeyboardDockPadding(0);
 
   const handleSubmit = async () => {
     if (reason.trim().length < 10) {
@@ -43,6 +47,7 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable style={styles.backdrop} onPress={onClose}>
+        <Animated.View style={imePadding}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
           <Text style={styles.title}>{t('report.title')}</Text>
@@ -68,6 +73,7 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
             <Text style={styles.submitText}>{isSending ? '...' : t('report.submit')}</Text>
           </Pressable>
         </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );
