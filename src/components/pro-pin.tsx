@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { Image } from 'expo-image';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -10,37 +10,36 @@ interface ProPinProps {
   pinImageUrl?: string | null;
 }
 
-// Pin system v2 (2026-06-11): circle with a tail — an avatar planted
-// on the map. Circle = identity ("this pro is established here"),
-// mirroring the circular avatars used everywhere in the app. Pro
-// family signature: dark navy body + light outline (luminance
-// inversion of the peer pins). PP is deliberately the quietest pin —
-// users scan for offerings (RA), not for specific pros.
+// Pin system v3.1 (2026-06-11): a literal pushpin — round photo head
+// on a thin metal needle, "pinned to the map". Scott's call: the v2/v3
+// circle-with-triangle-tail read as a speech bubble; a pushpin says
+// "permanent establishment", which is exactly what a storefront is.
+// Pro-badge blue ring around the head matches the RA teardrop frames.
 //
-// Content: the pro's pin image clipped in the circle, or their first
+// Content: the pro's pin image clipped in the head, or their first
 // initial as fallback.
 
 const VIEWBOX_W = 54;
-const VIEWBOX_H = 60;
-// Bumped 36 → 42 (2026-06-11): the photo-in-circle read as cramped at
-// 36. PP stays the quiet pin through its treatment, not its size.
+const VIEWBOX_H = 70;
+// Head Ø unchanged from the 42-width era ("small and big enough");
+// the needle adds height below it.
 const PIN_WIDTH = 42;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
-// Circle c(27,25) r21 with a tail to (27,56). The tail meets the
-// circle at ±20° off vertical; the arc travels the long way over the
-// top (large-arc, counterclockwise in y-down coords).
-const PIN_PATH = 'M 19.8 44.7 L 27 56 L 34.2 44.7 A 21 21 0 1 0 19.8 44.7 Z';
+// Head: circle c(27,23) r21 (y 2..44). Needle: slim taper from under
+// the head down to the tip at (27,67) — the geographic anchor. The top
+// of the needle tucks 1 unit behind the head so the joint is hidden.
+const NEEDLE_PATH = 'M 25.2 43 L 27 67 L 28.8 43 Z';
 
-// Circle geometry in render units, for clipping the photo.
+// Geometry in render units, for clipping the photo.
 const SCALE = PIN_WIDTH / VIEWBOX_W;
 const CIRCLE_CX = 27 * SCALE;
-const CIRCLE_CY = 25 * SCALE;
+const CIRCLE_CY = 23 * SCALE;
 // Near-full-bleed photo — inset only 1.5 viewBox units, just enough
-// for the light outline to ring it.
+// for the ring to stay visible.
 const PHOTO_R = 19.5 * SCALE;
 
-export const PRO_PIN_ANCHOR = { x: 0.5, y: 56 / VIEWBOX_H };
+export const PRO_PIN_ANCHOR = { x: 0.5, y: 67 / VIEWBOX_H };
 
 export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
   const colors = useColors();
@@ -50,13 +49,16 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <Path
-          d={PIN_PATH}
+        {/* Needle first — the head renders over its hidden top joint. */}
+        <Path d={NEEDLE_PATH} fill={colors.pinBorder} />
+        <Circle
+          cx={27}
+          cy={23}
+          r={21}
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
-          strokeLinejoin="round"
         />
       </Svg>
       {pinImageUrl ? (
