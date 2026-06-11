@@ -40,10 +40,10 @@ Génère un sentiment outdoor sans surcharger.
 ### Light theme
 Background `#F5F5F0`, surfaces blanches, mêmes accents (CTA orange invariant).
 
-### Pins de découverte (carte principale) — système v3, clos 2026-06-11
+### Pins de découverte (carte principale) — système v3.1, clos 2026-06-11 (« simple, powerful & intuitive » — validé Scott)
 Grammaire universelle : **contour sombre → frame colorée → plaque ivoire → glyphe**. La silhouette dit la nature, la couleur du frame est LE canal sémantique unique :
 - **Teardrop = quelque chose à faire.** Frame : beige `pinFrame` (à venir) / vert `success` (en cours) / ambre `#FBBF24` (dans <2h) / **bleu `pinProBackground` #3b82f6 (offre pro permanente — RA)**. RA = géométrie pixel-identique aux UA, seul le frame diffère.
-- **Cercle + tail = un pro (PP).** Photo full-bleed ou initiale, ring bleu pro.
+- **Punaise = un pro (PP).** Tête ronde photo full-bleed (ou initiale) cerclée de bleu pro, sur une aiguille fine sombre — « épinglé sur la carte » = établissement permanent. (Le cercle + queue triangulaire v2/v3 lisait comme une bulle de message — rejeté.)
 - Le bleu = la couleur du badge pro sur les profils — une couleur, un sens, partout.
 - Propriété émergente voulue : les couleurs de statut sont RARES en proportion (ambre 2h, vert pendant l'activité) → la carte au repos est calme (beige + bleu), la densité de couleurs chaudes EST la carte de chaleur du "maintenant".
 - Historique des rejets (ne pas re-proposer) : hexagone/octogone (sans sémantique), carte-avec-tail (désunifiait), orange (urgence), navy + indigo saturé (trop sombre), indigo clair #8B93F8 (bonne sensation, mauvaise teinte).
