@@ -53,9 +53,9 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
         <Path
           d={PIN_PATH}
           fill={colors.pinProBackground}
-          stroke={colors.pinProBorder}
+          stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
       </Svg>
@@ -95,7 +95,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   letter: {
-    color: colors.pinProBorder,
+    // Dark on the light indigo body — pinProBorder (ivory) washed out.
+    color: colors.pinBorder,
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.5,

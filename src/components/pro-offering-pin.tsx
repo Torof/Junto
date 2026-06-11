@@ -45,15 +45,17 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
         <Path
           d={PIN_PATH}
           fill={colors.pinProBackground}
-          stroke={colors.pinProBorder}
+          stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
         {/* Ivory content plate — the indigo reads as a frame (same
             grammar as the PP circle ringing its photo) and the sport
-            emoji gets full contrast on light ground. */}
-        <Rect x={10} y={16} width={34} height={34} rx={5} fill={colors.pinBackground} />
+            emoji gets full contrast on light ground. Outline + plate
+            match the UA teardrop exactly; only the slim indigo frame
+            is new information. */}
+        <Rect x={9} y={15} width={36} height={36} rx={6} fill={colors.pinBackground} />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>

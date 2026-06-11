@@ -19,13 +19,15 @@ export const darkColors = {
 
   pinBackground: '#F5F5F0',
   pinBorder: '#0D1B2A',
-  // Pro family pins (PP storefront + RA offerings) — indigo body,
-  // light outline. Indigo is the one calm-catchy hue nothing on an
-  // outdoor map owns (green/amber = statuses, blue = water, orange =
-  // too urgent, navy = too dark — rejected on-device 2026-06-11).
+  // Pro family pins (PP storefront + RA offerings) — light indigo
+  // frame, light outline. Indigo is the one calm-catchy hue nothing
+  // on an outdoor map owns (green/amber = statuses, blue = water,
+  // orange = too urgent). Navy and saturated indigo #4F46E5 both
+  // rejected on-device 2026-06-11 as too dark/heavy next to the
+  // ivory peer pins.
   // Same values in both themes: pins sit on the map, whose style is
   // user-chosen independently of the app theme.
-  pinProBackground: '#4F46E5',
+  pinProBackground: '#8B93F8',
   pinProBorder: '#F5F5F0',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
@@ -62,7 +64,7 @@ export const lightColors = {
 
   pinBackground: '#FFFFFF',
   pinBorder: '#1A1A1A',
-  pinProBackground: '#4F46E5',
+  pinProBackground: '#8B93F8',
   pinProBorder: '#F5F5F0',
   border: '#9E9A95',
   line: 'rgba(0,0,0,0.08)',
