@@ -118,6 +118,9 @@ export default function CarteScreen() {
   const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
   const filteredActivitiesByType = showActivities ? filtered : [];
   const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
+  // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
+  // AND offering pins (RA). It used to hide only the offerings.
+  const filteredProsByType = showProOfferings ? (pros ?? []) : [];
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -303,7 +306,7 @@ export default function CarteScreen() {
             <JuntoMapView
               center={center}
               activities={filteredActivitiesByType}
-              pros={pros ?? []}
+              pros={filteredProsByType}
               onProPress={(pro) => {
                 setTappedPoint(null);
                 setSelectedActivity(null);

@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
-import { SlidersHorizontal } from 'lucide-react-native';
-import { spacing, radius } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
 import { FilterSheet } from './filter-sheet';
+import { FilterButton } from './filter-bar';
 
 export function DrawerFilterBar() {
   const { t } = useTranslation();
@@ -17,25 +17,12 @@ export function DrawerFilterBar() {
   const setRadiusKm = useMapStore((s) => s.setRadiusKm);
   const [showSheet, setShowSheet] = useState(false);
 
-  const filtersActive =
-    filters.sportKeys.length > 0 ||
-    filters.dateMode !== 'all' ||
-    filters.levelTiers.length > 0 ||
-    filters.visibilities.length > 0 ||
-    filters.radiusKm !== null;
-
   return (
     <>
       <View style={styles.bar}>
-        <Pressable
-          style={styles.filtersBtn}
-          onPress={() => setShowSheet(true)}
-          accessibilityLabel={t('map.filtersBtn')}
-          hitSlop={6}
-        >
-          <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2.2} />
-          {filtersActive && <View style={styles.activeDot} />}
-        </Pressable>
+        {/* Same "Filtres" pill as the map (Scott 2026-06-11) — the old
+            bare square + icon read as ambiguous. */}
+        <FilterButton onPress={() => setShowSheet(true)} />
 
         <View style={styles.sliderWrap}>
           <View style={styles.sliderLabelsRow}>
@@ -106,24 +93,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   slider: {
     width: '100%',
     height: 28,
-  },
-  filtersBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    backgroundColor: 'transparent',
-  },
-  activeDot: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 6,
-    height: 6,
-    borderRadius: radius.xs,
-    backgroundColor: colors.cta,
   },
 });
