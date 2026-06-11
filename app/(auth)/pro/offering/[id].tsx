@@ -24,6 +24,8 @@ import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ReviewSection } from '@/components/review-section';
+import { StarRating } from '@/components/star-rating';
+import { reviewService } from '@/services/review-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { MetaChipsGrid, type MetaChip } from '@/components/meta-chips-grid';
@@ -62,6 +64,12 @@ export default function ProOfferingDetailScreen() {
   });
 
   const { data: photos = [] } = useProOfferingPhotos(offering?.id);
+
+  const { data: reviewStats } = useQuery({
+    queryKey: ['review-stats', 'offering', offering?.id],
+    queryFn: () => reviewService.getOfferingStats(offering!.id),
+    enabled: !!offering?.id,
+  });
 
   const invalidatePhotos = async () => {
     if (!offering?.id) return;
@@ -203,6 +211,13 @@ export default function ProOfferingDetailScreen() {
                 {sportLabel}
               </Text>
               <Text style={styles.heroTitle}>{offering.title}</Text>
+              {reviewStats && reviewStats.review_count > 0 && (
+                <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
+                  <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                  <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                  <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
+                </Pressable>
+              )}
             </View>
             <View style={styles.heroFooter}>
               <View style={styles.heroFooterLeft}>
@@ -381,6 +396,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.5,
     lineHeight: 36,
     paddingRight: 64, // leave room for the decorative sport icon
+  },
+  heroStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  heroStatsAvg: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  heroStatsCount: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
   },
   heroFooter: {
     flexDirection: 'row',
