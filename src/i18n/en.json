@@ -769,6 +769,7 @@
     "subscription": "Subscription",
     "preferences": "Preferences",
     "myLocation": "My location",
+    "crashReports": "Share crash reports",
     "theme": "Theme",
     "themeOption": {
       "system": "Auto",

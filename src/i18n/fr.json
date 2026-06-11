@@ -769,6 +769,7 @@
     "subscription": "Abonnement",
     "preferences": "Préférences",
     "myLocation": "Ma position",
+    "crashReports": "Partager les rapports de plantage",
     "theme": "Thème",
     "themeOption": {
       "system": "Auto",

@@ -1,6 +1,12 @@
 import * as Sentry from '@sentry/react-native';
 import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Production consent (RGPD Art. 7) — diagnostics are OFF by default and
+// only initialize after the user opts in via the settings toggle.
+// Preview builds keep auto-consent for dogfooding (DECISIONS 2026-05).
+const CONSENT_KEY = 'junto.sentry_consent';
 
 const SENSITIVE_KEYS = [
   'presence_token',
@@ -57,19 +63,60 @@ function scrub(obj: unknown, depth = 0): unknown {
 let eventCount = 0;
 const MAX_EVENTS_PER_SESSION = 50;
 
+let initialized = false;
+
 export function initSentry() {
   if (__DEV__) return;
+
+  const channel = Updates.channel || 'unknown';
+
+  if (channel === 'preview') {
+    // Dogfooding builds: auto-consent, init synchronously at boot.
+    initializeSentry();
+    return;
+  }
+
+  // Production: init only if the user previously opted in. Fire-and-
+  // forget — losing the first few ms of crash coverage is acceptable;
+  // collecting before consent is not.
+  AsyncStorage.getItem(CONSENT_KEY)
+    .then((v) => {
+      if (v === 'true') initializeSentry();
+    })
+    .catch(() => {});
+}
+
+export async function getSentryConsent(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(CONSENT_KEY)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+// Settings toggle entry point. Granting initializes Sentry live;
+// revoking stops the client and clears the stored consent (full stop
+// takes effect on next app start for anything already buffered).
+export async function setSentryConsent(granted: boolean): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CONSENT_KEY, granted ? 'true' : 'false');
+  } catch {}
+  if (__DEV__) return;
+  if (granted) {
+    initializeSentry();
+  } else if (initialized) {
+    await Sentry.close().catch(() => {});
+    initialized = false;
+  }
+}
+
+function initializeSentry() {
+  if (initialized) return;
 
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   if (!dsn) return;
 
   const channel = Updates.channel || 'unknown';
-
-  // Temporary: auto-consent for preview builds during pre-launch dogfooding.
-  // Production requires explicit user consent (ToS + settings toggle).
-  const autoConsent = channel === 'preview';
-  if (!autoConsent) return;
-
   const version = Constants.expoConfig?.version ?? '0.0.0';
   const buildNumber =
     Constants.expoConfig?.android?.versionCode?.toString() ??
@@ -116,6 +163,8 @@ export function initSentry() {
     level: 'info',
     extra: { channel, version, buildNumber },
   });
+
+  initialized = true;
 }
 
 export function setSentryUser(userId: string | null) {

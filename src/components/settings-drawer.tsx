@@ -11,6 +11,7 @@ import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
+import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -58,6 +59,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
+  const [sentryConsent, setSentryConsentState] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -65,9 +67,16 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     (async () => {
       const bg = await Location.getBackgroundPermissionsAsync();
       if (!cancelled) setBgLocationGranted(bg.status === 'granted');
+      const consent = await getSentryConsent();
+      if (!cancelled) setSentryConsentState(consent);
     })();
     return () => { cancelled = true; };
   }, [visible]);
+
+  const handleToggleSentryConsent = async (granted: boolean) => {
+    setSentryConsentState(granted);
+    await setSentryConsent(granted);
+  };
 
   const handleToggleBgLocation = async () => {
     if (bgLocationGranted) {
@@ -265,6 +274,18 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 ))}
               </View>
             )}
+
+            {/* Crash-report consent (RGPD) — default OFF in production;
+                preview builds auto-consent regardless of this toggle. */}
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>{t('drawer.crashReports')}</Text>
+              <Switch
+                value={sentryConsent}
+                onValueChange={handleToggleSentryConsent}
+                trackColor={{ false: colors.surface, true: colors.cta }}
+                thumbColor="#fff"
+              />
+            </View>
 
             {/* Theme — segmented pill */}
             <View style={styles.row}>
