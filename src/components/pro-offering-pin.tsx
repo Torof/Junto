@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -50,6 +50,10 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           strokeOpacity={0.9}
           strokeLinejoin="round"
         />
+        {/* Ivory content plate — the indigo reads as a frame (same
+            grammar as the PP circle ringing its photo) and the sport
+            emoji gets full contrast on light ground. */}
+        <Rect x={10} y={16} width={34} height={34} rx={5} fill={colors.pinBackground} />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
@@ -79,6 +83,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 13,
+    fontSize: 14,
   },
 });
