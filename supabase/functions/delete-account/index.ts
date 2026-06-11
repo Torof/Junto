@@ -56,10 +56,42 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Step 2: delete auth.users with service_role. Anything that goes
+  // Step 2: purge the user's storage objects (RGPD Art. 17 — prod
+  // audit B2, 2026-06-11: avatars and pro photos survived account
+  // deletion). Both buckets prefix paths with the user id. Best-effort:
+  // a storage failure must not strand the user in a half-deleted state
+  // where public-schema data is gone but the auth row survives, so we
+  // log and continue rather than abort.
+  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  for (const bucket of ['avatars', 'pro-photos']) {
+    try {
+      const paths: string[] = [];
+      // list() is per-folder; walk the user's folder tree (depth is
+      // bounded: avatars/<uid>/file, pro-photos/<uid>/<surface>/<id>/gallery/file).
+      const walk = async (prefix: string) => {
+        const { data: entries, error } = await adminClient.storage.from(bucket).list(prefix, { limit: 1000 });
+        if (error || !entries) return;
+        for (const entry of entries) {
+          const full = prefix ? `${prefix}/${entry.name}` : entry.name;
+          // Files carry an id; folders come back with id null.
+          if (entry.id) paths.push(full);
+          else await walk(full);
+        }
+      };
+      await walk(userId);
+      if (paths.length > 0) {
+        const { error: rmErr } = await adminClient.storage.from(bucket).remove(paths);
+        if (rmErr) console.warn(`[delete-account] storage purge failed for ${bucket} (${paths.length} objects), user ${userId}`);
+      }
+    } catch (_e) {
+      console.warn(`[delete-account] storage walk threw for ${bucket}, user ${userId}`);
+    }
+  }
+
+  // Step 3: delete auth.users with service_role. Anything that goes
   // wrong here leaves the public-schema deletion intact (irreversible),
   // so we report it explicitly — operator must clean up by hand.
-  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { error: deleteErr } = await adminClient.auth.admin.deleteUser(userId);
   if (deleteErr) {
     // Don't echo user_id back — caller knows their own ID, and reflecting
