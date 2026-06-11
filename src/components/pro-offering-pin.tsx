@@ -6,34 +6,34 @@ import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
 import { type ProOffering } from '@/services/pro-offering-service';
 
+// Pin system v2 (2026-06-11): rounded-square card with a tail.
+// The pro family signature is luminance inversion — peer pins are
+// light-bodied (pinBackground), pro pins are dark navy
+// (pinProBackground) with a light outline. Silhouette categorizes
+// (square card = offer, teardrop = event, circle = pro identity),
+// the dark/light split affiliates, and the sport emoji stays the
+// single scan target across both worlds: a user hunting kayak scans
+// for one glyph, the body tells them peer vs pro.
+
 interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Octagon pin — visually distinct from the activity teardrop and the
-// pro storefront square. Reads as "fixed POI / faceted offering".
-// Stop-sign orientation with flat top + bottom edges (anchors on the
-// center of the bottom edge, which gives a grounded feel vs the hex's
-// diamond-like point anchor). Same sport-category color treatment as
-// the rest of the pin family.
-
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
-// Shrunk from 56 to 40 to match the activity pin's lighter footprint.
+// Same footprint as the activity teardrop — sizes are locked.
 const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-// Geometric center of the new octagon body (y range 14..60).
-const ICON_CENTER_Y_VBX = 37;
+// Geometric center of the card body (y range 12..54).
+const ICON_CENTER_Y_VBX = 33;
 
-// Regular stop-sign octagon — 46x46 (all 8 sides ≈19 viewBox units).
-// Positioned at x=4..50, y=14..60 so the bottom edge anchor stays at
-// (27, 60), matching the previous pin's geographic registration.
-// Rounded corners (r≈3) keep the silhouette smooth without breaking
-// regularity.
+// Rounded-square card (x 6..48, y 12..54, r 8) with a small tail
+// down to (27, 62) — the geographic anchor, matching the teardrop's
+// registration so the swap is drop-in.
 const PIN_PATH =
-  'M 20.5 14 L 33.5 14 Q 36.5 14 38.6 16.1 L 47.9 25.4 Q 50 27.5 50 30.5 L 50 43.5 Q 50 46.5 47.9 48.6 L 38.6 57.9 Q 36.5 60 33.5 60 L 20.5 60 Q 17.5 60 15.4 57.9 L 6.1 48.6 Q 4 46.5 4 43.5 L 4 30.5 Q 4 27.5 6.1 25.4 L 15.4 16.1 Q 17.5 14 20.5 14 Z';
+  'M 14 12 L 40 12 Q 48 12 48 20 L 48 46 Q 48 54 40 54 L 33 54 L 27 62 L 21 54 L 14 54 Q 6 54 6 46 L 6 20 Q 6 12 14 12 Z';
 
-export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 60 / VIEWBOX_H };
+export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 62 / VIEWBOX_H };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
@@ -44,10 +44,10 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Path
           d={PIN_PATH}
-          fill={colors.pinBackground}
-          stroke={colors.pinBorder}
+          fill={colors.pinProBackground}
+          stroke={colors.pinProBorder}
           strokeWidth={2}
-          strokeOpacity={0.55}
+          strokeOpacity={0.9}
           strokeLinejoin="round"
         />
       </Svg>
@@ -79,6 +79,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 12,
+    fontSize: 13,
   },
 });

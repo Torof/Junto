@@ -19,6 +19,12 @@ export const darkColors = {
 
   pinBackground: '#F5F5F0',
   pinBorder: '#0D1B2A',
+  // Pro family pins (PP storefront + RA offerings) — luminance
+  // inversion of the peer pins: dark navy body, light outline.
+  // Same values in both themes: pins sit on the map, whose style is
+  // user-chosen independently of the app theme.
+  pinProBackground: '#0D1B2A',
+  pinProBorder: '#F5F5F0',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
   // 2× alpha of `line` — for elements that need a clearly contained
@@ -54,6 +60,8 @@ export const lightColors = {
 
   pinBackground: '#FFFFFF',
   pinBorder: '#1A1A1A',
+  pinProBackground: '#0D1B2A',
+  pinProBorder: '#F5F5F0',
   border: '#9E9A95',
   line: 'rgba(0,0,0,0.08)',
   lineStrong: 'rgba(0,0,0,0.18)',
