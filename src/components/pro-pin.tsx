@@ -22,7 +22,9 @@ interface ProPinProps {
 
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 60;
-const PIN_WIDTH = 36;
+// Bumped 36 → 42 (2026-06-11): the photo-in-circle read as cramped at
+// 36. PP stays the quiet pin through its treatment, not its size.
+const PIN_WIDTH = 42;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
 // Circle c(27,25) r21 with a tail to (27,56). The tail meets the
@@ -34,9 +36,9 @@ const PIN_PATH = 'M 19.8 44.7 L 27 56 L 34.2 44.7 A 21 21 0 1 0 19.8 44.7 Z';
 const SCALE = PIN_WIDTH / VIEWBOX_W;
 const CIRCLE_CX = 27 * SCALE;
 const CIRCLE_CY = 25 * SCALE;
-// Inset 2.5 viewBox units so the light outline stays visible around
-// the photo edge.
-const PHOTO_R = 18.5 * SCALE;
+// Near-full-bleed photo — inset only 1.5 viewBox units, just enough
+// for the light outline to ring it.
+const PHOTO_R = 19.5 * SCALE;
 
 export const PRO_PIN_ANCHOR = { x: 0.5, y: 56 / VIEWBOX_H };
 
