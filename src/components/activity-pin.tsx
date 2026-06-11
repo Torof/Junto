@@ -37,7 +37,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       ? colors.success
       : timeStatus === 'soon'
         ? '#FBBF24'
-        : colors.pinBackground;
+        : colors.pinFrame;
 
   return (
     <View style={styles.wrapper}>
