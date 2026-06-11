@@ -30,9 +30,8 @@ getjunto.app n'a que /legal/privacy et /legal/terms. Les mentions légales (édi
 `submit.production.android.serviceAccountKeyPath: './google-services.json'` = config client FCM, pas une clé de compte de service Play Developer API. `eas submit` échouera.
 **Fix repo livré :** eas.json pointe sur ./play-service-account.json (gitignoré). ⚠️ Reste à Scott : créer le service account (Google Cloud Console → IAM, lier dans Play Console → API access), télécharger la clé JSON → `./play-service-account.json` (gitignoré, pattern à ajouter), corriger eas.json. ⚠️ Action console Scott.
 
-### B5. Auto-premium (mig 00051) — à inverser au launch
-`handle_new_user` donne `tier='premium'` à tout signup (mode test). À inverser AVANT le premier utilisateur public, pas avant (les testeurs actuels en profitent).
-**Fix :** mig `revert_auto_premium` prête à appliquer le jour J (tier → 'free').
+### B5. ✅ REQUALIFIÉ EN DÉCISION (2026-06-11) — Auto-premium (mig 00051)
+`handle_new_user` donne `tier='premium'` à tout signup. **Décision (cf. DECISIONS 2026-06-11) : ce n'est plus un blocker de release store.** L'auto-premium EST l'implémentation de "tout gratuit au lancement + grandfathering à vie". La mig de revert (tier → 'free' pour les nouveaux signups) part avec Stripe/Play Billing, le jour où Premium devient achetable — pas avant.
 
 ### B6. ✅ FAIT (2026-06-11) — Sentry production = totalement désactivé
 `autoConsent = channel === 'preview'` → en production Sentry ne s'initialise jamais : zéro visibilité crash au launch, et la consent UI (RGPD) n'existe pas.

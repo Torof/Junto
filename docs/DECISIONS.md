@@ -262,3 +262,22 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Alternative considérée :** Gating par présence confirmée sur une activité du pro — rejeté (modèle storefront = pas de participation) ; avis offerings via invitation émise par le pro (QR/lien) — gardé en réserve si abus observé.
 
 **Migrations :** 00258 (tables + RPCs + vues + reports), 00259 (REVOKE public, cf. 00018).
+
+---
+
+## 2026-06-11 — Monétisation : lancement 100% gratuit, one-time user / abonnement pro, et limites produit définitives
+
+**Décision (posture de lancement) :** Tout est gratuit au lancement via le maintien de l'auto-premium (mig 00051) — c'est l'implémentation la plus propre de "free for now + grandfather" : un seul interrupteur, et tous les comptes créés avant l'arrivée du paiement gardent Premium à vie. La migration de revert (tier → 'free' pour les NOUVEAUX signups) ne part PAS avec la release store : elle part avec Stripe/Play Billing, le jour où Premium devient achetable.
+
+**Décision (forme du paiement futur) :** Utilisateurs réguliers = **achat unique** (supporter, type topo-guide — conviennent aux features de confort : alertes, sorties privées, futurs stats/GPX ; zéro gestion de churn pour un opérateur solo). Pros = **abonnement mensuel** (+ annuel remisé) — ils achètent un canal de vente continu (vitrine + pins permanents + avis + leads), et le mensuel respecte leur saisonnalité. ⚠️ À l'implémentation : Play Billing probablement obligatoire pour les deux (politique Google sur les biens/services numériques, 15-30% — Stripe pour des features in-app ferait retirer l'app). À rechercher sérieusement à ce moment-là.
+
+**Décision (Premium — contenu) :** "Mise en avant sur la carte" est ABANDONNÉE (pay-for-attention, collision frontale avec le principe no-social-scoring). "Création illimitée" est abandonnée comme feature premium (l'offre est sacrée pré-réseau ; le "4/mois free" de PRODUCT.md n'a d'ailleurs jamais été implémenté). Premium = tier supporter : alertes, activités privées par lien, et features de confort à venir.
+
+**Décision (limites produit, mig 00262) :**
+- Création d'activités : cap anti-abus 10/24h (était 20) + **15/30 jours** (nouveau — borne le rayon de dégâts d'un compte spam avant signalement/suspension) + horizon starts_at ≤ 6 mois (nouveau — le junk daté futur ne s'auto-expire pas)
+- Offerings pro (RA) : **12 par pro** (était 50). Les pins RA sont permanents et s'accumulent ; 12 couvre le cas réel et force la curation. Ratchet : on peut relever sans douleur, jamais abaisser.
+- Gate premium private_link : désormais enforced côté DB (était UI-only, violation de la règle maison)
+- Filtres : gratuits, tous, pour toujours (la découverte est le produit)
+- Alertes 10/user + 3 notifs/jour, photos 25/surface : inchangés
+
+**Pourquoi maintenant :** les chiffres d'origine étaient des placeholders posés sans réflexion ("une base sans trop réfléchir") ; la session pré-release est le bon moment pour les fixer en conscience, avec l'asymétrie du ratchet en tête.

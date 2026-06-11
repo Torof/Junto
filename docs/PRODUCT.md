@@ -10,17 +10,20 @@ Tout utilisateur connecté est à la fois potentiellement créateur et participa
 
 ## Les 3 tiers
 
+> **Posture de lancement (2026-06-11, cf. DECISIONS) :** tout est gratuit au lancement — l'auto-premium (mig 00051) reste actif jusqu'à l'arrivée du paiement. Tous les comptes pré-paiement gardent Premium à vie (grandfathering). Forme future : achat unique pour les utilisateurs, abonnement mensuel (+ annuel) pour les pros.
+
 ### Free
 - Rejoindre des activités : illimité
-- Créer des activités : 4 par mois (business rule) + cap système 20/24h pour tous les non-admins
+- Créer des activités : libre — seuls des caps anti-abus s'appliquent (10/24h, 15/30 jours, `starts_at` ≤ 6 mois — mig 00262 ; la distinction est participer vs créer : personne ne crée 15 sorties/mois légitimement)
+- Tous les filtres (la découverte est le produit — jamais paywallée)
 - Fonctionnalités de base
 
-### Premium
-- Rejoindre / créer : illimité (modulo le cap 20/24h anti-abus)
-- Activités privées par lien
-- Mise en avant sur la carte
-- Création d'alertes (saved searches géolocalisées)
-- Profil enrichi
+### Premium (tier "supporter" — conforts, pas des capacités)
+- Activités privées par lien (enforced DB depuis mig 00262)
+- Création d'alertes (saved searches géolocalisées, cap 10)
+- Features de confort à venir (stats annuelles, bibliothèque GPX…)
+- ~~Mise en avant sur la carte~~ — abandonnée (pay-for-attention, contraire au principe no-social-scoring)
+- ~~Création illimitée~~ — abandonnée comme feature premium (l'offre est sacrée pré-réseau)
 
 ### Pro (Professionnel vérifié)
 - Tout le Premium
