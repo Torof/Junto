@@ -17,7 +17,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'app.getjunto',
-    versionCode: 4,
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {

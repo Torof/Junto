@@ -43,3 +43,4 @@ Thumbs.db
 supabase/.temp/
 google-services.json
 *firebase-adminsdk*.json
+play-service-account*.json
