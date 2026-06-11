@@ -579,7 +579,9 @@
       "seat_request_expired": "Demande de covoiturage expirée",
       "driver_left": "Conducteur parti",
       "contact_request": "Demande de contact",
-      "contact_request_accepted": "Contact accepté"
+      "contact_request_accepted": "Contact accepté",
+      "review_received": "Nouvel avis sur ta vitrine pro",
+      "review_reply": "Réponse du pro à ton avis"
     }
   },
   "participants": {

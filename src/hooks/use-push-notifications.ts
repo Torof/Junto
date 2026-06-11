@@ -85,6 +85,8 @@ export function usePushNotifications(enabled: boolean) {
       const data = response.notification.request.content.data as {
         activity_id?: string;
         conversation_id?: string;
+        pro_id?: string;
+        offering_id?: string;
         type?: string;
       };
       // Seat-request push: land the driver on the chat thread (00206
@@ -100,6 +102,12 @@ export function usePushNotifications(enabled: boolean) {
         router.push('/(auth)/(tabs)/messagerie');
       } else if (data?.conversation_id) {
         router.push(`/(auth)/conversation/${data.conversation_id}`);
+      } else if (data?.offering_id) {
+        // review_received / review_reply on an offering
+        router.push(`/(auth)/pro/offering/${data.offering_id}`);
+      } else if (data?.pro_id) {
+        // review_received / review_reply on the pro page
+        router.push(`/(auth)/pro/${data.pro_id}`);
       } else if (data?.activity_id) {
         router.push(`/(auth)/activity/${data.activity_id}`);
       }

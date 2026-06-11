@@ -579,7 +579,9 @@
       "seat_request_expired": "Seat request expired",
       "driver_left": "Driver left",
       "contact_request": "Contact request",
-      "contact_request_accepted": "Contact accepted"
+      "contact_request_accepted": "Contact accepted",
+      "review_received": "New review on your pro page",
+      "review_reply": "Pro's reply to your review"
     }
   },
   "participants": {

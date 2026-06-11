@@ -41,6 +41,8 @@ const NOTIFICATION_TYPES = [
   'contact_request',
   'contact_request_accepted',
   'alert_match',
+  'review_received',
+  'review_reply',
 ] as const;
 
 type NotificationPreferences = Record<string, boolean>;

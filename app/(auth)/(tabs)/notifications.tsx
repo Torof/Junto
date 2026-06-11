@@ -137,6 +137,12 @@ export default function NotificationsScreen() {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
+    } else if (notification.data?.offering_id) {
+      // review_received / review_reply on an offering
+      router.push(`/(auth)/pro/offering/${notification.data.offering_id}`);
+    } else if (notification.data?.pro_id) {
+      // review_received / review_reply on the pro page
+      router.push(`/(auth)/pro/${notification.data.pro_id}`);
     } else if (notification.data?.activity_id) {
       router.push(`/(auth)/activity/${notification.data.activity_id}`);
     }

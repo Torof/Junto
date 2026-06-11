@@ -369,6 +369,8 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 **Décisions structurantes :** les blocks n'affectent PAS la visibilité des reviews (sinon bloquer ses critiques = blanchiment d'avis). Suppression de compte → CASCADE (les avis partent avec le reviewer). Exception cadrée au principe no-social-scoring : les avis ne touchent que la vitrine Pro, jamais les users/activités.
 
+**Notifications (mig 00260) :** `review_received` (au pro, à la création — pas aux edits) et `review_reply` (au reviewer, à la PREMIÈRE réponse seulement — edits/clear silencieux). Via `create_notification` (gate prefs + suspension + sanitize) → push trigger standard. Prefs DEFAULT + backfill synchronisés (pattern 00168).
+
 ---
 
 ## Exposition des fonctions via PostgREST
@@ -404,6 +406,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 - `push_notification_to_device` (trigger)
 - `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
 - `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
+- `notify_review_received`, `notify_review_reply` (mig 00260)
 - `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO anon, authenticated (requis pour être appelable depuis les expressions de policy et les corps de vues), mais non exposé via PostgREST car hors du schéma `public` (mig 00256 + 00257)
 
 ### Fonctions privilégiées admin
