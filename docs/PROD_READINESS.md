@@ -14,44 +14,44 @@
 
 ## 🔴 BLOCKERS
 
-### B1. Page web de demande de suppression de compte — Play policy
+### B1. ✅ FAIT (2026-06-11) — Page web de demande de suppression de compte — Play policy
 La suppression in-app existe (Edge Function `delete-account` ✅) mais Play exige AUSSI une URL web de demande de suppression, liée depuis la fiche store. Aucune route sur getjunto.app.
-**Fix :** route `web/app/account-deletion/page.tsx` — formulaire email sans login, délai de traitement annoncé, lien privacy policy. Lier dans Play Console à la soumission.
+**Fix livré :** route `/legal/account-deletion` (in-app path + demande par email, inventaire supprimé/anonymisé/conservé) + lien footer. Reste : la lier dans Play Console à la soumission. Route originale proposée : `web/app/account-deletion/page.tsx` — formulaire email sans login, délai de traitement annoncé, lien privacy policy. Lier dans Play Console à la soumission.
 
-### B2. La suppression de compte ne purge PAS le storage — RGPD Art. 17
+### B2. ✅ FAIT (2026-06-11) — La suppression de compte ne purge PAS le storage — RGPD Art. 17
 Vérifié : ni `delete_own_account` (mig 00042) ni l'Edge Function ne touchent `storage.objects`. Les avatars (`avatars/{user_id}/…`) et les photos pro (`pro-photos/{user_id}/…`) survivent à la suppression du compte.
-**Fix :** dans l'Edge Function delete-account (déjà service_role), lister + supprimer les objets des deux buckets préfixés par user_id AVANT le delete auth. + mention dans la privacy policy.
+**Fix livré et déployé :** l'Edge Function purge les deux buckets (walk récursif des dossiers user) avant le delete auth, best-effort. Privacy policy mise à jour. Détail original : dans l'Edge Function delete-account (déjà service_role), lister + supprimer les objets des deux buckets préfixés par user_id AVANT le delete auth. + mention dans la privacy policy.
 
-### B3. Mentions légales manquantes — droit français
+### B3. 🟡 SCAFFOLDÉ (2026-06-11) — Mentions légales manquantes — droit français
 getjunto.app n'a que /legal/privacy et /legal/terms. Les mentions légales (éditeur, contact, hébergeurs, directeur de publication, SIRET le cas échéant) sont obligatoires pour un site exploité en France.
-**Fix :** route `web/app/legal/mentions/page.tsx` + lien footer. ⚠️ Nécessite les infos de Scott : forme juridique/nom, adresse, SIRET éventuel, email de contact.
+**Fix livré :** page `/legal/mentions` + footer, avec [PLACEHOLDERS]. ⚠️ Reste à Scott : remplir les infos entité : forme juridique/nom, adresse, SIRET éventuel, email de contact.
 
-### B4. eas.json — serviceAccountKeyPath pointe sur le mauvais fichier
+### B4. 🟡 CÔTÉ REPO FAIT (2026-06-11) — eas.json — serviceAccountKeyPath pointe sur le mauvais fichier
 `submit.production.android.serviceAccountKeyPath: './google-services.json'` = config client FCM, pas une clé de compte de service Play Developer API. `eas submit` échouera.
-**Fix :** créer le service account (Google Cloud Console → IAM, lier dans Play Console → API access), télécharger la clé JSON → `./play-service-account.json` (gitignoré, pattern à ajouter), corriger eas.json. ⚠️ Action console Scott.
+**Fix repo livré :** eas.json pointe sur ./play-service-account.json (gitignoré). ⚠️ Reste à Scott : créer le service account (Google Cloud Console → IAM, lier dans Play Console → API access), télécharger la clé JSON → `./play-service-account.json` (gitignoré, pattern à ajouter), corriger eas.json. ⚠️ Action console Scott.
 
 ### B5. Auto-premium (mig 00051) — à inverser au launch
 `handle_new_user` donne `tier='premium'` à tout signup (mode test). À inverser AVANT le premier utilisateur public, pas avant (les testeurs actuels en profitent).
 **Fix :** mig `revert_auto_premium` prête à appliquer le jour J (tier → 'free').
 
-### B6. Sentry production = totalement désactivé
+### B6. ✅ FAIT (2026-06-11) — Sentry production = totalement désactivé
 `autoConsent = channel === 'preview'` → en production Sentry ne s'initialise jamais : zéro visibilité crash au launch, et la consent UI (RGPD) n'existe pas.
-**Fix :** toggle consentement dans Settings (default OFF, RGPD Art. 7), persisté (`sentry_consent` local + re-init au boot), texte dans la privacy policy. Item BACKLOG existant, maintenant bloquant.
+**Fix livré :** toggle « Partager les rapports de plantage » dans Settings (default OFF, init live au grant, Sentry.close() au retrait, persistance AsyncStorage) ; preview garde l'auto-consent. Détail original : toggle consentement dans Settings (default OFF, RGPD Art. 7), persisté (`sentry_consent` local + re-init au boot), texte dans la privacy policy. Item BACKLOG existant, maintenant bloquant.
 
-### B7. SOP violation de données — RGPD Art. 33/34
+### B7. 🟡 SOP RÉDIGÉE (2026-06-11) — SOP violation de données — RGPD Art. 33/34
 Aucune procédure documentée (notification CNIL 72h, canal de contact, accès aux logs).
-**Fix :** `docs/INCIDENT_RESPONSE.md` (détection → notification CNIL 72h → notification users → forensics) + alias email dédié + vérifier la rétention des logs Supabase (dashboard).
+**Fix livré :** docs/INCIDENT_RESPONSE.md (détection → containment → CNIL 72h → users → post-mortem). ⚠️ Reste à Scott : vérifier rétention logs Supabase au dashboard. Détail original : `docs/INCIDENT_RESPONSE.md` (détection → notification CNIL 72h → notification users → forensics) + alias email dédié + vérifier la rétention des logs Supabase (dashboard).
 
 ---
 
 ## 🟠 REQUIRED — avant soumission
 
 ### Perf (audit D — les 3 qui feront mal au mois 1, vérifiés)
-- [ ] **Index participations** : AUCUN index côté activity (le UNIQUE est user-leading). Le `participant_count` de `activities_with_coords` est une sous-requête corrélée par ligne → scan complet par activité affichée. Mig : `(activity_id, status)` + `(activity_id, user_id)`. 15 min, gain majeur.
-- [ ] **Invalidation realtime trop large** : `invalidateQueries({queryKey:['activities']})` sur chaque event postgres_changes → tempête de refetch multi-clients. Scoper aux clés `['activities','nearby']` et compagnie.
-- [ ] **Polling redondant avec le realtime** : DM 10s (`conversation/[id].tsx`), wall 15s, alors que les subscriptions realtime couvrent déjà. Supprimer les refetchInterval (garder un fallback long si on veut, 60s+).
-- [ ] Pagination : reviews (aucune limite), wall (aucune limite), conversations — `.limit()` + cursor là où les listes peuvent grossir.
-- [ ] Error boundaries : zéro dans l'app — en ajouter autour des écrans à risque (detail, conversation, map).
+- [x] **Index participations** (mig 00261, appliquée) : AUCUN index côté activity (le UNIQUE est user-leading). Le `participant_count` de `activities_with_coords` est une sous-requête corrélée par ligne → scan complet par activité affichée. Mig : `(activity_id, status)` + `(activity_id, user_id)`. 15 min, gain majeur.
+- [x] **Invalidation realtime trop large** (scopée nearby + throttle 2s) : `invalidateQueries({queryKey:['activities']})` sur chaque event postgres_changes → tempête de refetch multi-clients. Scoper aux clés `['activities','nearby']` et compagnie.
+- [x] **Polling redondant avec le realtime** (DM/wall → fallback 60s) : DM 10s (`conversation/[id].tsx`), wall 15s, alors que les subscriptions realtime couvrent déjà. Supprimer les refetchInterval (garder un fallback long si on veut, 60s+).
+- [x] Pagination (caps) : reviews 100, messages/wall latest-200 ; cursor pagination plus tard si besoin. Détail original : reviews (aucune limite), wall (aucune limite), conversations — `.limit()` + cursor là où les listes peuvent grossir.
+- [x] Error boundary racine (reset + report Sentry). Détail original : zéro dans l'app — en ajouter autour des écrans à risque (detail, conversation, map).
 - [ ] Requêtes géo : les filtres lng/lat sur la vue ne profitent pas du GIST. Acceptable au launch (échelle 05), à optimiser avec une RPC `ST_MakeEnvelope` quand le volume montera.
 
 ### Play Console (paperasse — Scott, avec les inventaires fournis par l'audit A)
@@ -61,7 +61,7 @@ Aucune procédure documentée (notification CNIL 72h, canal de contact, accès a
 - [ ] Compte de test pour l'équipe review (pré-onboardé) + instructions presence flow
 - [ ] Vérifier la déclaration FGS `location` dans le manifest du premier build prod (expo-location la pose normalement — contrôler l'APK/AAB)
 
-### Privacy policy — compléments (textes existent et sont substantiels, contrairement au claim de l'audit E)
+### Privacy policy — compléments ✅ FAITS sur le web (2026-06-11) — ⚠️ découverte : les pages légales IN-APP sont des copies indépendantes déjà en dérive (contact support@junto.app vs contact@getjunto.app) → décision à prendre : synchroniser les copies ou faire pointer l'app vers getjunto.app/legal (textes existent et sont substantiels, contrairement au claim de l'audit E)
 - [ ] Rétention Sentry + mention suppression
 - [ ] Fenêtre géofencing background explicite (T-15min → fin+3h, arrêt auto, app fermée)
 - [ ] Messages wall anonymisés survivent à la suppression ; reports conservés (modération)
@@ -71,8 +71,8 @@ Aucune procédure documentée (notification CNIL 72h, canal de contact, accès a
 ### Release engineering
 - [ ] `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY` est **vide** (.env) et absent des env EAS — générer + restreindre (package + SHA1) + env EAS production. ⚠️ Vérifier si la recherche de lieux marche actuellement !
 - [ ] Keystore backup : `eas credentials` → download → chiffrer → stockage hors repo (procédure à documenter)
-- [ ] `versionCode: 4` dans app.config : ignoré avec appVersionSource remote — supprimer la ligne (warning de build)
-- [ ] Renommer `.env` `AUTH_TOKEN_SENTRY` → `SENTRY_AUTH_TOKEN` (cosmétique local ; l'EAS secret est déjà bien nommé)
+- [x] `versionCode` supprimé d'app.config. Détail original : `versionCode: 4` dans app.config : ignoré avec appVersionSource remote — supprimer la ligne (warning de build)
+- [x] `.env` renommé. Détail original : renommer `.env` `AUTH_TOKEN_SENTRY` → `SENTRY_AUTH_TOKEN` (cosmétique local ; l'EAS secret est déjà bien nommé)
 - [ ] Feature graphic 1024×500 (manquant ; screenshots ✅, listing draft ✅ docs/play-store-listing.md)
 - [ ] App Links : APRÈS le premier build Play, ajouter le fingerprint **Play App Signing** (Play Console → App integrity) à assetlinks.json (garder celui d'EAS pour les builds preview)
 - [ ] `NEXT_PUBLIC_APK_DOWNLOAD_URL` (Vercel) → URL Play Store après publication
