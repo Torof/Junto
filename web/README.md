@@ -10,12 +10,8 @@ Next.js app deployed on Vercel.
 
 ## Deploy
 
-1. Push the repo to GitHub.
-2. On Vercel, import the project. Set **Root Directory** to `web`.
-3. Add environment variables on Vercel:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_APK_DOWNLOAD_URL` (e.g. EAS build URL)
-4. Deploy.
-5. Note the Vercel URL (e.g. `junto.vercel.app`) — set it on the app side as `JUNTO_WEB_HOST` (EAS env), then rebuild the APK.
-6. Once you have the SHA-256 fingerprint of your Android signing key (`eas credentials → Android → preview`), edit `public/.well-known/assetlinks.json` and replace the placeholder.
+**Vercel auto-deploys on every push to `main`** (project linked, Root Directory = `web`). No manual steps.
+
+Env vars (Vercel project settings): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APK_DOWNLOAD_URL` (point at the Play Store listing once live).
+
+`public/.well-known/assetlinks.json` carries the real EAS signing fingerprint (verified 2026-06-11). At store release, ADD the Play App Signing cert fingerprint alongside it (Play Console → App integrity).

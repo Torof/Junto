@@ -173,7 +173,7 @@ export default function Hero() {
               fontWeight: 700,
             }}
           >
-            Rejoindre la bêta
+            Télécharger l'app
           </a>
         </div>
       </nav>
@@ -253,7 +253,7 @@ export default function Hero() {
                 boxShadow: '0 10px 30px -8px rgba(242,107,46,0.5)',
               }}
             >
-              Rejoindre la bêta
+              Télécharger l'app
               <svg
                 width="18"
                 height="18"

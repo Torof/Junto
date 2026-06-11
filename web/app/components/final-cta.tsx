@@ -39,7 +39,7 @@ export default async function FinalCTA() {
 
       <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', textAlign: 'center' }}>
         <div style={{ display: 'inline-block' }}>
-          <SectionLabel color={ORANGE_SOFT}>Rejoins la bêta</SectionLabel>
+          <SectionLabel color={ORANGE_SOFT}>Télécharge Junto</SectionLabel>
         </div>
         <h2
           className="display junto-cta-title"
@@ -138,12 +138,12 @@ export default async function FinalCTA() {
         </div>
 
         <div style={{ fontSize: 13, opacity: 0.55, marginTop: 48 }}>
-          iOS bientôt —{' '}
+          Android d&apos;abord — iOS arrivera avec la communauté.{' '}
           <a
             href="mailto:contact@getjunto.app"
             style={{ color: ORANGE_SOFT, textDecoration: 'underline' }}
           >
-            demande TestFlight
+            Écris-nous
           </a>
         </div>
       </div>
