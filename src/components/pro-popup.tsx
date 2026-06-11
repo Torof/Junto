@@ -21,7 +21,7 @@ export function ProPopup({ pro, onPress }: ProPopupProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.kickerChip}>
-        <Text style={styles.kickerChipText}>PRO</Text>
+        <Text style={styles.kickerChipText}>PAGE PRO</Text>
       </View>
       <Text style={styles.title} numberOfLines={1}>{pro.display_name}</Text>
       {pro.description && (
