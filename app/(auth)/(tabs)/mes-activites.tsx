@@ -64,8 +64,10 @@ export default function MesActivitesScreen() {
     const now = dayjs();
 
     const filteredList = activities.filter((a: NearbyActivity) => {
-      // Time filter — only for created/joined (pending requests can only
-      // be in-the-future by definition; the chip row is hidden for pending).
+      // Time filter — only for created/joined. Pending entries are
+      // active-only since mig 00263 (stale requests auto-expire on
+      // activity end + the view filters by status); the chip row is
+      // hidden for pending.
       if (mainTab !== 'pending') {
         const isUpcoming = dayjs(a.starts_at).isAfter(now) && !['completed', 'cancelled', 'expired'].includes(a.status);
         if (timeFilter === 'upcoming' && !isUpcoming) return false;
