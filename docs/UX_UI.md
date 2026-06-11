@@ -40,11 +40,16 @@ Génère un sentiment outdoor sans surcharger.
 ### Light theme
 Background `#F5F5F0`, surfaces blanches, mêmes accents (CTA orange invariant).
 
-### Pins de carte
-- Orange (`#F4642A`) — meeting point (RDV)
-- Vert (`#2ECC71`) — start
-- Bleu — end
-- Couleur sport — objectif
+### Pins de découverte (carte principale) — système v3, clos 2026-06-11
+Grammaire universelle : **contour sombre → frame colorée → plaque ivoire → glyphe**. La silhouette dit la nature, la couleur du frame est LE canal sémantique unique :
+- **Teardrop = quelque chose à faire.** Frame : beige `pinFrame` (à venir) / vert `success` (en cours) / ambre `#FBBF24` (dans <2h) / **bleu `pinProBackground` #3b82f6 (offre pro permanente — RA)**. RA = géométrie pixel-identique aux UA, seul le frame diffère.
+- **Cercle + tail = un pro (PP).** Photo full-bleed ou initiale, ring bleu pro.
+- Le bleu = la couleur du badge pro sur les profils — une couleur, un sens, partout.
+- Propriété émergente voulue : les couleurs de statut sont RARES en proportion (ambre 2h, vert pendant l'activité) → la carte au repos est calme (beige + bleu), la densité de couleurs chaudes EST la carte de chaleur du "maintenant".
+- Historique des rejets (ne pas re-proposer) : hexagone/octogone (sans sémantique), carte-avec-tail (désunifiait), orange (urgence), navy + indigo saturé (trop sombre), indigo clair #8B93F8 (bonne sensation, mauvaise teinte).
+
+### Pins de localisation (carte de détail d'activité)
+Tokens `colors.pin*` : vert `pinStart` #22c55e (départ) / bleu `pinMeeting` #3b82f6 (RDV) / rouge `pinEnd` #ef4444 (arrivée) / ambre `pinObjective` #F5A623 (objectif). Contexte séparé de la découverte — la collision bleu RDV / bleu pro est assumée (jamais sur la même carte).
 
 ---
 

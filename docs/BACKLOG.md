@@ -27,7 +27,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P2 — UX clarifications & redesigns
 
-- [ ] **Pins — teintes finales.** Le système v2 (grammaire frame) est validé ; restent deux teintes "proches mais pas parfaites" à fixer après feedback utilisateurs : l'indigo famille pro (`pinProBackground` #8B93F8 — "pas la bonne couleur mais good enough for now") et le beige frame UA (`pinFrame` #E0D2B4). Itération = 1 ligne + OTA.
+- [ ] **Pin beige UA — teinte finale.** Le système v3 est CLOS (2026-06-11) : RA = teardrop identique à UA avec frame toujours bleu pro-badge #3b82f6 (= couleur du badge pro profil, idée Scott), PP = cercle bleu. Le canal sémantique unique = couleur du frame (beige à venir / vert en cours / ambre bientôt / bleu pro permanent). Reste UNIQUEMENT le beige `pinFrame` #E0D2B4 ("proche mais pas parfait") — à fixer après feedback testeurs. 1 ligne + OTA.
 - [ ] **Session UX messagerie + demandes de covoit** (parqué 2026-05-05, migré du fichier memory au walk #1) — interface messagerie "pas engageante, pas claire" ; flow seat-request "raw, ugly and difficult" : affichage des demandes (deux côtés), affordances accept/decline/cancel, construction du seed message. Déclencheur : après le retour des testeurs (c'est LA surface qu'ils vont critiquer). Note : le bug "popup bloque l'écriture" du même jour est résolu (cause = rate limit 1/min, perdu au rework reply, réinstauré sain à 15/min — mig 00264).
 - [ ] **expo-system-ui + sync thème OS** — `userInterfaceStyle` n'est pas appliqué sur Android (warning prebuild). Défer délibéré : le faire proprement = synchroniser l'apparence OS avec le store de thème in-app, sinon dialogs système dark sur app light. Cf. session 2026-06-10.
 
