@@ -90,6 +90,12 @@ export default function Footer() {
               <a href="/legal/terms" style={{ opacity: 0.8, textDecoration: 'none' }}>
                 Conditions
               </a>
+              <a href="/legal/mentions" style={{ opacity: 0.8, textDecoration: 'none' }}>
+                Mentions légales
+              </a>
+              <a href="/legal/account-deletion" style={{ opacity: 0.8, textDecoration: 'none' }}>
+                Suppression de compte
+              </a>
             </div>
           </div>
         </div>

@@ -42,8 +42,10 @@ export default function PrivacyPage() {
       </Ul>
       <P><B>Données techniques :</B></P>
       <Ul>
-        <li>Géolocalisation (pour afficher les activités à proximité)</li>
+        <li>Géolocalisation (pour afficher les activités à proximité et valider la présence aux activités)</li>
         <li>Données de session (token d'authentification stocké de manière sécurisée sur l'appareil)</li>
+        <li>Identifiant d'appareil et token de notification push (livraison des notifications)</li>
+        <li>Rapports de diagnostic et de plantage (uniquement si vous activez le partage dans les paramètres — voir section 9)</li>
       </Ul>
 
       <H2>3. Finalités du traitement</H2>
@@ -73,24 +75,38 @@ export default function PrivacyPage() {
       </Ul>
       <P><B>Données NON visibles par les autres utilisateurs :</B></P>
       <Ul>
-        <li>Adresse email, date de naissance, numéro de téléphone</li>
+        <li>Adresse email, date de naissance</li>
       </Ul>
       <P><B>Sous-traitants :</B></P>
       <Ul>
         <li>Supabase (hébergement, base de données, authentification — serveurs UE)</li>
-        <li>Mapbox (affichage cartographique — reçoit des coordonnées de requête)</li>
-        <li>Google Places (recherche de lieux — reçoit des requêtes de recherche)</li>
+        <li>Mapbox (affichage cartographique — reçoit des coordonnées de requête ; États-Unis)</li>
+        <li>Google Places (recherche de lieux — reçoit des requêtes de recherche ; États-Unis)</li>
+        <li>Expo / Google Firebase Cloud Messaging (livraison des notifications push — reçoit le token d'appareil ; États-Unis)</li>
+        <li>Sentry (rapports de plantage, si activés — données ingérées en Allemagne, PII filtrées avant envoi)</li>
+        <li>Vercel (hébergement du site web getjunto.app ; États-Unis)</li>
       </Ul>
+      <P>
+        Les transferts de données vers des sous-traitants situés hors de l'Union européenne sont
+        encadrés par les Clauses Contractuelles Types de la Commission européenne et/ou le EU-US
+        Data Privacy Framework, selon le sous-traitant.
+      </P>
       <P>Nous ne vendons jamais vos données à des tiers.</P>
 
       <H2>6. Durée de conservation</H2>
       <Ul>
         <li>Données de compte : conservées tant que le compte est actif</li>
         <li>Données d'activité : conservées tant que l'activité existe</li>
-        <li>Messages du mur : anonymisés en cas de suppression du compte</li>
+        <li>Messages du mur : anonymisés en cas de suppression du compte (le contenu reste, sans lien avec vous)</li>
         <li>Signalements : conservés même après suppression du compte (obligation de modération)</li>
-        <li>Après suppression du compte : toutes les données personnelles sont supprimées sous 30 jours maximum</li>
+        <li>Notifications : purgées automatiquement après 7 jours</li>
+        <li>Rapports de diagnostic (Sentry, si activés) : conservés 90 jours maximum chez Sentry</li>
+        <li>Après suppression du compte : données et médias (photos de profil, galeries) supprimés immédiatement ; toute donnée résiduelle sous 30 jours maximum</li>
       </Ul>
+      <P>
+        La suppression de compte se fait depuis les paramètres de l'application, ou{' '}
+        <A href="/legal/account-deletion">sur demande sans accès à l'application</A>.
+      </P>
 
       <H2>7. Sécurité des données</H2>
       <Ul>
@@ -121,15 +137,32 @@ export default function PrivacyPage() {
         Vous pouvez également introduire une réclamation auprès de la CNIL (<A href="https://www.cnil.fr">www.cnil.fr</A>).
       </P>
 
-      <H2>9. Géolocalisation</H2>
+      <H2>9. Géolocalisation et diagnostics</H2>
       <P>L'Application utilise votre position géographique pour :</P>
       <Ul>
         <li>Afficher les activités à proximité sur la carte</li>
         <li>Calculer la distance entre vous et les activités</li>
         <li>Centrer la carte sur votre position</li>
+        <li>Valider automatiquement votre présence aux activités auxquelles vous participez</li>
       </Ul>
       <P>
-        Votre position n'est jamais stockée de manière permanente. Vous pouvez désactiver la géolocalisation dans les paramètres de votre appareil. Un fallback par IP est utilisé si la géolocalisation est désactivée.
+        <B>Géolocalisation en arrière-plan :</B> si vous l'autorisez explicitement, l'Application
+        peut détecter votre arrivée sur le lieu d'une activité <B>même lorsqu'elle est fermée</B>,
+        uniquement pendant la fenêtre de validation de présence (de 2 heures avant le début de
+        l'activité jusqu'à 3 heures après sa fin). La surveillance s'arrête automatiquement en
+        dehors de cette fenêtre. Cette autorisation est optionnelle (la présence peut aussi être
+        validée par QR code ou par les autres participants) et révocable à tout moment dans les
+        paramètres de votre appareil.
+      </P>
+      <P>
+        Votre position n'est jamais stockée de manière permanente. Un fallback par IP est utilisé
+        si la géolocalisation est désactivée.
+      </P>
+      <P>
+        <B>Rapports de diagnostic :</B> le partage de rapports de plantage (Sentry) est désactivé
+        par défaut et ne s'active que si vous l'autorisez dans les paramètres de l'application.
+        Les données sensibles (position, identifiants, contenus de messages) sont filtrées avant
+        envoi. Vous pouvez retirer votre consentement à tout moment.
       </P>
 
       <H2>10. Mineurs</H2>
