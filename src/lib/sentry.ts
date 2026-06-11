@@ -61,7 +61,7 @@ function scrub(obj: unknown, depth = 0): unknown {
 }
 
 let eventCount = 0;
-const MAX_EVENTS_PER_SESSION = 50;
+const MAX_EVENTS_PER_SESSION = 150;
 
 let initialized = false;
 

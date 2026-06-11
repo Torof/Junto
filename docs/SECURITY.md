@@ -885,17 +885,17 @@ Validation client :
 ## Rate Limiting
 
 ### Création d'activité
-- Free / Premium / Pro : **20/24h** par défaut (mig 00144)
+- Tous tiers : **10/24h** + **15/30 jours** + horizon `starts_at` ≤ 6 mois (mig 00262 — le "4/mois free" n'a jamais été implémenté et est officiellement abandonné, cf. DECISIONS 2026-06-11)
 - **Admin** : illimité (skipé)
-- Free tier additional cap : 4/mois (business rule)
 - Advisory lock par user pour sérialiser concurrent creates
 
 ### Wall messages (mig 00095)
 - 30 messages / minute / activité / user
 - Advisory lock pour sérialisation
 
-### Private messages
-- Pattern similaire au wall (rate par minute par conversation)
+### Private messages (mig 00264)
+- **15 messages / minute / conversation / user** + advisory lock
+- Histoire : la limite originelle 1/min cassait les conversations (bug "popup bloque l'écriture", 2026-05-05) ; le rework reply (00208-00220) l'a perdue entièrement (zéro limite + zéro lock) ; 00264 réinstaure à un niveau sain
 
 ### Création de conversation
 - 10 demandes pending par sender (rolling, pas par heure — les pending occupent le quota)
