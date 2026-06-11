@@ -1,12 +1,14 @@
 # Junto — Backlog
 
-> Réécrit le 2026-04-26, refresh 2026-04-28. Le plan Sprint 1-8 d'origine a guidé le démarrage mais l'app a depuis dépassé largement ce cadre (~149 migrations). Ce document reflète l'état réel et ce qu'il reste à faire. L'historique sprint complet est récupérable via `git log`.
+> Réécrit le 2026-04-26, refresh 2026-04-28, refresh 2026-06-11 (260 migrations). Le plan Sprint 1-8 d'origine a guidé le démarrage mais l'app a depuis dépassé largement ce cadre. Ce document reflète l'état réel et ce qu'il reste à faire. L'historique sprint complet est récupérable via `git log`.
 
 ---
 
 ## Statut actuel
 
 L'app est en **préparation Play Store**. La grande majorité des features V1 sont livrées : auth email/password (avec reset password via deep link, login redesigné), carte interactive + clustering + 5 styles de carte, création d'activité 4 étapes (avec GPX, objectif, pin priority, activités open sans cap), rejoindre/demander/accepter, mur d'événement + Realtime, messagerie privée + connection requests (avec auto-expiry 30j) + partage activité/trace, profil V4 avec reliability ring + per-sport endorsements, transport coordination (covoit + sièges + auto-expiry des demandes pending), gear declaration system, **présence V3** (geofencing background + foreground watcher + offline replay + QR + peer review threshold-based), **notif spine simplifié** (pre_warning T-2h / validate_now T0 / validate_warning T+duration/2 / peer_review_closing T+22h), reliability score Bayésien, reports & moderation, suspension, settings RGPD + suppression de compte, theme light/dark + segmented pill, tutorial, **badges progression V2** (joined/created/sport × t1-t5), reputation badges peer-voted, **Pro V1** (vitrine `pro_profiles` + catalogue `pro_offerings`, pin hexagone sur la carte, écrans détail + édition), web landing page (getjunto.app) avec auth callback + reset password bridges, pages légales, Sentry breadcrumbs sur le presence flow.
+
+**Ajouts du sprint 2026-06-10/11** : audit complet (4 reviewers parallèles) + fixes — assetlinks package name corrigé (`app.getjunto`), i18n badges EN, **audit RLS** : découverte du no-op des sous-requêtes `users` dans les policies → prédicat `private.user_is_suspended` + sweep policies + filtres vues (migs 00255-00257, cf. SECURITY.md "sous-requêtes cross-table") ; **expo-image** adopté (cache disque, 8 composants) ; **saga clavier** résolue → hook `useKeyboardDockPadding` (reanimated IME inset), KAV banni des chat docks et bottom sheets ; **avis Pro complet** (Phase 4B, migs 00258-00260) — modèle Google Maps non gated, pro_reviews + offering_reviews, réponse du pro, stats héros PP + RA, notifications `review_received`/`review_reply`, reportable ; **pin system v2** — grammaire universelle outline → frame → plaque ivoire → glyphe (teardrop UA / carte RA / cercle photo PP, frame = statut sur UA, indigo sur la famille pro) ; Sentry 8 ; Mapbox token migré `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` ; runtime 0.1.3.
 
 **Ce qui reste avant launch public** : Stripe intégration (Premium/Pro), Discovery tab (Phase B-E), CGU finalisées, Play Store prep, custom SMTP pour le sender email.
 
@@ -18,19 +20,19 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P1 — Polish & easy wins
 
-- [ ] **Wire `revoke_push_token` into push-perm-denied + sign-out paths.** RPC existe (mig 00076) mais n'est jamais appelée. Quand l'utilisateur désactive les notifs (toggle, deny système, sign-out), ses tokens restent dans `push_tokens` et la edge function `send-push` continue de les cibler. Touche `use-push-notifications.ts` (déjà gère `register_push_token`), le flow auth (sign-out), et le toggle perm UI. Audit notif round 2 (2026-05-01).
-- [ ] **Ouvrir profil depuis l'INTÉRIEUR d'une conversation** — pour l'instant l'écran conversation a un header vide (`title: ''`), donc rien à taper. À faire : custom header avec avatar + nom du correspondant, tappable → profil. Côté liste des conversations, la nav avatar→profil est déjà en place.
 - [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
 - [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.
+- [ ] **Retirer `react-native-keyboard-controller`** de package.json au prochain build natif — installé pendant la saga clavier (2026-06-10), inerte sur device, gardé uniquement pour la compat OTA du runtime 0.1.3. Le retirer = bump version + build.
 
 ## P2 — UX clarifications & redesigns
 
+- [ ] **Pins — teintes finales.** Le système v2 (grammaire frame) est validé ; restent deux teintes "proches mais pas parfaites" à fixer après feedback utilisateurs : l'indigo famille pro (`pinProBackground` #8B93F8 — "pas la bonne couleur mais good enough for now") et le beige frame UA (`pinFrame` #E0D2B4). Itération = 1 ligne + OTA.
+- [ ] **expo-system-ui + sync thème OS** — `userInterfaceStyle` n'est pas appliqué sur Android (warning prebuild). Défer délibéré : le faire proprement = synchroniser l'apparence OS avec le store de thème in-app, sinon dialogs système dark sur app light. Cf. session 2026-06-10.
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
-### Pro — Phase 4 (galerie photo + avis)
-- [ ] **Galerie photo** par offering et par pro (cap 25 photos / surface). Table `pro_offering_photos` + `pro_profile_photos`, multi-pick upload, réordonnancement, suppression. Remplace le `image_url` standalone sur `pro_offerings` (la 1ère photo de la galerie devient le hero — voir memory `project_phase4_offering_gallery.md`). Onglets "Photos" sur `pro/[id]` et `pro/offering/[id]` sont des placeholders qui attendent ce chantier.
-- [ ] **Système d'avis** (`pro_reviews` + `offering_reviews`). Gating par présence confirmée (un user ne peut laisser un avis que sur une activité où il a participé, ou via un mécanisme analogue pour les offerings — Scott à fixer). Onglets "Avis" sur `pro/[id]` et `pro/offering/[id]` attendent.
+### Doc debt
+- [ ] **SECURITY.md — classification des fonctions Pro V1.** Les ~15 RPCs pro (mig 00240-00254 : pro_profiles, offerings, photos) n'ont jamais été ajoutées aux tables "Fonctions client-callable" / chaînes d'autorisation. Les entrées avis (00258-00260) sont à jour ; le rattrapage Pro V1 reste à faire.
 
 
 ## Reliability score — questions ouvertes
@@ -45,7 +47,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 - [ ] **Discovery tab — Phase B-E** (cf. `docs/sprint-discovery.md`). Phase A figée, connection request system livré (migration 00072). Reste : RPCs `get_discovery_partners`, `update_discovery_settings`, écrans opt-in / settings / liste partenaires / inbox demandes, swap `BellPlus` → `Radar`.
 - [ ] **API key restrictions** — Google Places + Mapbox (package signature), à faire avant tout test externe.
 - [ ] **Keystore backup sécurisé**.
-- [ ] **Android App Links** vérifiés par domaine (universal links déjà configurés sur `getjunto.app/activity/*` et `/invite/*`, vérifier la digital asset link).
+- [ ] **Android App Links** — le package name d'assetlinks.json est corrigé dans le repo (`com.junto.app` → `app.getjunto`, 2026-06-10) mais PAS encore déployé sur getjunto.app. Reste : (1) redéployer le site web, (2) vérifier que le fingerprint SHA256 correspond au keystore EAS (`eas credentials`), (3) ajouter le fingerprint du cert Play App Signing avant la release store. Tant que ce n'est pas fait, les liens `/activity/*` et `/invite/*` ouvrent le navigateur, pas l'app.
 - [ ] **CGU + Politique de confidentialité finalisées** — textes hébergés sur `getjunto.app/legal/*` (web landing en place, FR + EN à compléter).
 - [ ] **Custom SMTP pour le sender email** — actuellement "Supabase Auth" via shared SMTP. Setup Resend / Mailgun / etc. avec DNS records sur OVH pour avoir `Junto <noreply@getjunto.app>`. Décision attendue.
 - [ ] **Sentry consent UI** — toggle dans settings + ToS update. Preview channel auto-consent OK pour dogfooding ; production attend cette UI.
