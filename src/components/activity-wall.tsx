@@ -42,7 +42,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
   const { data: messages, isLoading } = useQuery({
     queryKey: ['wall', activityId],
     queryFn: () => wallService.getMessages(activityId),
-    refetchInterval: 15000,
+    // Realtime subscription is the primary update path — 60s is a
+    // safety net for missed events only (prod audit D).
+    refetchInterval: 60000,
   });
 
   // Reuse the participants query so we can decorate message authors whose

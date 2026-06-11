@@ -177,7 +177,10 @@ export default function ConversationScreen() {
     queryKey: ['messages', id],
     queryFn: () => messageService.getMessages(id ?? ''),
     enabled: !!id,
-    refetchInterval: 10000,
+    // Realtime INSERT subscription below is the primary update path —
+    // this is only a safety net for missed events (prod audit D: the
+    // 10s poll multiplied into thousands of queries/hour at scale).
+    refetchInterval: 60000,
   });
 
   // Realtime subscription

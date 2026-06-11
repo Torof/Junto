@@ -23,12 +23,17 @@ import { useMessageStore } from '@/store/message-store';
 import { useMapStyleStore } from '@/store/map-style-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { useColors } from '@/hooks/use-theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
+      // 60s: long enough to cover screen-switch remounts, short enough
+      // that returning to a tab shows fresh data. The previous 5min
+      // window made re-visited screens feel stale (prod audit D).
+      staleTime: 1000 * 60,
+      gcTime: 1000 * 60 * 5,
       retry: 2,
     },
   },
@@ -143,13 +148,15 @@ function AuthGate() {
 function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthGate />
-          </QueryClientProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthGate />
+            </QueryClientProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

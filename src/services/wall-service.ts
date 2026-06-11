@@ -22,8 +22,12 @@ export const wallService = {
       .select('id, activity_id, user_id, content, edited_at, deleted_at, created_at')
       .eq('activity_id', activityId)
       .is('deleted_at', null)
-      .order('created_at', { ascending: true });
+      // Latest 200, served oldest-first for the UI. Hard cap so a busy
+      // wall doesn't fetch unbounded history (prod audit D).
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (error) throw error;
+    messages?.reverse();
 
     // Resolve display names from public_profiles
     const userIds = [...new Set((messages ?? []).map((m) => m.user_id).filter(Boolean))] as string[];

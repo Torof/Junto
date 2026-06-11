@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { activityService } from '@/services/activity-service';
 import { supabase } from '@/services/supabase';
+import { makeDebouncedInvalidator } from '@/utils/debounced-invalidate';
 
 export interface MapBounds {
   swLng: number;
@@ -13,27 +14,31 @@ export interface MapBounds {
 export function useNearbyActivities(bounds?: MapBounds | null) {
   const queryClient = useQueryClient();
 
-  // Realtime: invalidate every ['activities', ...] cache (TanStack matches
-  // by prefix) on any activity create/edit/delete. The map / list re-fetches
-  // for the current bounds so new activities appear without manual pan.
-  // Migration 00186 ensures activities is in the publication. No per-user
-  // filter — pre-launch traffic is low; geographic scoping (PostGIS bbox)
-  // can come later if volume warrants.
+  // Realtime: refresh the map's nearby caches on activity create/edit/
+  // delete. Scoped to ['activities','nearby'] (the broad ['activities']
+  // prefix dragged every list/detail query into each event) and
+  // throttled — one invalidation per 2s window per client, not one per
+  // row event (prod audit D). Migration 00186 ensures activities is in
+  // the publication.
+  const invalidateNearby = useMemo(
+    () => makeDebouncedInvalidator(queryClient, ['activities', 'nearby']),
+    [queryClient],
+  );
+
   useEffect(() => {
     const channel = supabase
       .channel('activities-nearby')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'activities' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['activities'] });
-        },
+        invalidateNearby,
       )
       .subscribe();
     return () => {
+      invalidateNearby.cancel();
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [invalidateNearby]);
 
   return useQuery({
     queryKey: ['activities', 'nearby', bounds],

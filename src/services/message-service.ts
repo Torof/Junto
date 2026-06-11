@@ -52,8 +52,12 @@ export const messageService = {
       `)
       .eq('conversation_id', conversationId)
       .is('deleted_at', null)
-      .order('created_at', { ascending: true });
+      // Latest 200, served oldest-first for the UI. Hard cap so a long
+      // thread doesn't fetch unbounded history (prod audit D).
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (error) throw error;
+    data?.reverse();
     // Supabase types the foreign-key embed as an array even on
     // single-row joins via a self-FK — flatten it.
     return ((data ?? []) as unknown as RawMessageRow[]).map((row) => ({

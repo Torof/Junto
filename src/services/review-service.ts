@@ -33,7 +33,8 @@ export const reviewService = {
       .from('pro_reviews_with_profiles')
       .select(REVIEW_COLUMNS)
       .eq('pro_id', proId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
     if (error) throw error;
     return (data ?? []) as Review[];
   },
@@ -43,7 +44,8 @@ export const reviewService = {
       .from('offering_reviews_with_profiles')
       .select(REVIEW_COLUMNS)
       .eq('offering_id', offeringId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
     if (error) throw error;
     return (data ?? []) as Review[];
   },
