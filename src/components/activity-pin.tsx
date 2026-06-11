@@ -51,10 +51,11 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           strokeLinejoin="round"
         />
         {/* Ivory content plate — completes the universal pin grammar
-            (outline → frame → plate → glyph). The status color now
-            draws a round frame instead of flooding the bulb, so the
-            sport emoji always sits on ivory. In the default state the
-            frame is ivory-on-ivory: identical to the classic pin. */}
+            (outline → frame → plate → glyph). The status color draws
+            the round frame instead of flooding the bulb, so the sport
+            emoji always sits on ivory. Default (published) state shows
+            a subtle stone frame (pinFrame) to keep the construction
+            visible. */}
         <Circle cx={27} cy={24} r={18.5} fill={colors.pinBackground} />
       </Svg>
       <View style={styles.iconWrap}>
