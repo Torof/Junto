@@ -26,15 +26,16 @@ export const darkColors = {
   // stone (#DCD8D0, rejected on-device) blended into terrain while
   // warmth reads as a designed element.
   pinFrame: '#E0D2B4',
-  // Pro family pins (PP storefront + RA offerings) — light indigo
-  // frame, light outline. Indigo is the one calm-catchy hue nothing
-  // on an outdoor map owns (green/amber = statuses, blue = water,
-  // orange = too urgent). Navy and saturated indigo #4F46E5 both
-  // rejected on-device 2026-06-11 as too dark/heavy next to the
-  // ivory peer pins.
+  // Pro family pins (PP storefront + RA offerings) — the SAME blue as
+  // the pro tier badge on profiles (= pinMeeting), Scott's call
+  // 2026-06-11: one color, one meaning ("pro") across surfaces, so the
+  // map teaches itself. Water-collision risk is mitigated by the frame
+  // grammar (slim blue frame + dark outline + ivory plate, not a blue
+  // blob). History: orange (too urgent), navy + #4F46E5 (too dark),
+  // #8B93F8 (right feel, wrong hue) all rejected on-device.
   // Same values in both themes: pins sit on the map, whose style is
   // user-chosen independently of the app theme.
-  pinProBackground: '#8B93F8',
+  pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
@@ -72,7 +73,7 @@ export const lightColors = {
   pinBackground: '#FFFFFF',
   pinBorder: '#1A1A1A',
   pinFrame: '#E0D2B4',
-  pinProBackground: '#8B93F8',
+  pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
   border: '#9E9A95',
   line: 'rgba(0,0,0,0.08)',

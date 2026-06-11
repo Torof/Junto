@@ -95,8 +95,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   letter: {
-    // Dark on the light indigo body — pinProBorder (ivory) washed out.
-    color: colors.pinBorder,
+    // Ivory on the saturated pro blue (#3b82f6) — the dark letter was
+    // for the lighter indigo era.
+    color: colors.pinProBorder,
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.5,
