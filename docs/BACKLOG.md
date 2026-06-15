@@ -59,7 +59,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 ## V2+ — Backlog futur
 
 ### V2 — post-launch
-- [ ] **Discovery tab Phase B-E** — descopé du launch au walk #1 (2026-06-11) : "for now it has no value… added workload for something we're not even sure would be desired". Déclencheur : traction réelle + demande utilisateurs. Phase A + connection requests restent livrés.
+- [ ] **Itinéraire — création de trace pour l'organisation** (décidé 2026-06-11, cf. DECISIONS). Outil "Dessiner l'itinéraire" : tap des waypoints sur la carte → LineString → même stockage `trace_geojson` que l'import (réutilise Mapbox + utils geojson↔gpx existants). Tracé INDICATIF (style pointillé / label "indicatif", multi-waypoints pour approximer), pour ORGANISER une sortie — jamais un enregistrement de performance. **Ligne à ne pas franchir : PAS d'enregistrement GPS (Strava), PAS de routing snap-to-trail (Komoot).** Couple import + dessin dans une étape "Itinéraire → [Importer un GPX] · [Dessiner]" → règle aussi la découvrabilité de l'import (peu instinctif aujourd'hui). Forte demande utilisateurs. Pas un bloquant launch ; fast-follow.
 - [ ] **Fixed spots (POIs permanents)** — migré du memory ; note walk #1 : candidat sérieux au slot "premier outil de croissance" (contenu carte indépendant du volume d'activités) maintenant que Discovery est conditionnel.
 - [ ] **Gear presets / inventaire perso** + **gear requests (revival from scratch)** — migrés du memory.
 - [ ] iOS (App Store) — codebase prête, déclencheur = user base meaningful

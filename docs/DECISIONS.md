@@ -281,3 +281,18 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 - Alertes 10/user + 3 notifs/jour, photos 25/surface : inchangés
 
 **Pourquoi maintenant :** les chiffres d'origine étaient des placeholders posés sans réflexion ("une base sans trop réfléchir") ; la session pré-release est le bon moment pour les fixer en conscience, avec l'asymétrie du ratchet en tête.
+
+---
+
+## 2026-06-11 — Création de trace GPX pour l'organisation (oui, cadré) — reversal d'une décision conversationnelle
+
+**Décision :** On AJOUTE un outil de création de trace, post-launch. La décision conversationnelle antérieure ("pas d'outil de création GPX, trop complexe + compétition avec d'autres apps") était juste pour une mauvaise cible : elle confondait trois features distinctes.
+- **Enregistrement GPS (type Strava)** — record-while-moving. **NON, jamais.** Compète frontalement (cœur de Strava/Garmin), dur (batterie, GPS background, précision), et hors sujet : Junto n'enregistre ni la perf ni l'activité.
+- **Routing snap-to-trail (type Komoot)** — moteur de routing sur sentiers connus. **NON.** Compète, complexe, ET inutile pour le cas Junto (alpin/hors-sentier = pas de données de routing).
+- **Dessiner l'itinéraire** — tap des waypoints → ligne → GPX. **OUI.** Ne compète avec personne, simple, réutilise l'infra existante (Mapbox + import `trace_geojson`).
+
+**Pourquoi le revirement :** retours utilisateurs unanimes (tout le monde trouve l'import génial et ne comprend pas l'absence de création), et la raison "compétition" ne tient pas pour le dessin : but différent (organiser UNE sortie, pas tracker sa perf ni découvrir des itinéraires). C'est un complément à l'import, pas un concurrent. L'import ne sert que ceux qui ont DÉJÀ un GPX ailleurs ; le dessin comble le trou pour l'organisateur qui connaît la route mais ne l'a jamais enregistrée.
+
+**Cadrage (Scott) :** "La trace GPX n'est pas à enregistrer mais à créer pour l'organisation, rien de plus. Feature importante mais pas l'âme de l'app — un super ajout qui fait sens." → Pas un bloquant launch ; fast-follow post-launch. Le tracé est INDICATIF (style pointillé, multi-waypoints, label clair) ; les traces précises viennent toujours de l'import.
+
+**Bonus :** l'UI couplée "Itinéraire → [Importer] · [Dessiner]" règle la découvrabilité de l'import (peu instinctif aujourd'hui). Backlog V2.
