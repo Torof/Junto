@@ -35,8 +35,9 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
   const parseToken = (raw: string): string | null => {
     const match = raw.match(/token=([a-f0-9]+)/i);
     if (match) return match[1] ?? null;
-    // Fallback: if it's just the token itself
-    if (/^[a-f0-9]{20,}$/i.test(raw)) return raw;
+    // Fallback: if it's just the bare token (12 hex since mig 00124, or the
+    // legacy 32-char UUID form) with no URL wrapper.
+    if (/^[a-f0-9]{12,}$/i.test(raw)) return raw;
     return null;
   };
 
