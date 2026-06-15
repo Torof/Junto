@@ -473,13 +473,24 @@ RAISE EXCEPTION 'Privileged columns can only be changed via dedicated functions'
 RAISE EXCEPTION 'Operation not permitted';
 ```
 
-**Exception :** quelques fonctions présence renvoient des codes spécifiques à des contraintes UX-actionnables (mig 00139). Ces codes ne révèlent pas d'implémentation, juste une catégorie d'état :
-- `peer_review_window_not_open` (avant T+15min après end)
-- `peer_review_window_closed` (après T+24h)
-- `peer_voter_not_present` (le voter n'est pas confirmed_present)
-- `peer_already_validated` (target déjà validé)
+### Taxonomie SAFE / SENSITIVE — codes `junto.<code>`
 
-Sécurité inchangée : auth, suspension, self-vote, target-not-in-activity, activity-not-eligible → tous `Operation not permitted` générique.
+La règle générique ne s'applique qu'aux échecs **sensibles**. Les échecs **user-actionnables et non sensibles** renvoient un code stable que le client mappe vers un message clair — ils ne fuient rien d'exploitable (c'est l'état de l'utilisateur lui-même, qui doit le connaître pour agir).
+
+| Catégorie | Exemples | Quoi `RAISE` |
+|---|---|---|
+| **SENSIBLE → générique** | auth manquante, suspension, ownership, participant-status, accès privé, tamper guard (valeur hors whitelist) | `RAISE EXCEPTION 'Operation not permitted'` |
+| **USER-ACTIONABLE → codé** | rate limits, validation d'input (date, longueur, plage), capacité pleine, gate premium | `RAISE EXCEPTION 'junto.<code>'` |
+
+**Mécanisme client :** `getFriendlyError` (src/utils/friendly-error.ts) extrait `junto\.([a-z_]+)` du message et mappe vers `errors.code.<code>` (i18n FR+EN). Si pas de mapping → fallback générique par action. Donc tout nouveau code DOIT avoir sa clé `errors.code.<code>` en FR et EN.
+
+**Codes actuels :**
+- `create_activity` (mig 00268) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`
+- Présence (mig 00139, convention antérieure — codes nus sans préfixe `junto.`, mappés à part) : `peer_review_window_not_open`, `peer_review_window_closed`, `peer_voter_not_present`, `peer_already_validated`
+
+Sécurité inchangée pour les checks sensibles : auth, suspension, self-vote, ownership, target-not-in-activity → tous `Operation not permitted`.
+
+**Reste à balayer (post-create_activity) :** les autres RPCs (join/leave/cancel, messagerie, pro offering cap 12, reviews 10/24h, alerts cap 10, transport/seat, gear) ont encore des `Operation not permitted` génériques sur des échecs user-actionnables — sweep en cours, classer chaque RAISE safe/sensitive.
 
 ---
 

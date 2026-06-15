@@ -189,6 +189,15 @@
     }
   },
   "errors": {
+    "code": {
+      "limit_monthly": "You've reached your activity creation limit for this month.",
+      "limit_daily": "You've reached your activity creation limit for today. Try again tomorrow.",
+      "date_in_past": "The outing date must be in the future.",
+      "date_too_far": "The date can't be more than 6 months out.",
+      "participants_range": "The number of spots must be between 2 and 50.",
+      "premium_required": "Private link activities are a Premium feature.",
+      "title_too_short": "The title must be at least 3 characters."
+    },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
     "sessionExpired": "Your session expired, sign in again.",

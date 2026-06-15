@@ -11,7 +11,7 @@
 - **All JOINs with user data** must use `public_profiles` view, NOT `users` table.
 - **All functions are SECURITY DEFINER** + `SET search_path = public`. Authorization chains are the ONLY defense.
 - **Whitelist triggers on users + activities** — force privileged columns to OLD values. New columns protected by default.
-- **Generic error messages only** — "Operation not permitted", never reveal implementation details.
+- **Generic errors for SENSITIVE failures** (auth, ownership, participant-status, suspension, access) — "Operation not permitted", never reveal implementation details or another user's state. **User-actionable, NON-sensitive failures** (rate limits, input validation, capacity, premium gates) may `RAISE EXCEPTION 'junto.<code>'` — a stable token the client maps to a friendly message (`errors.code.<code>`). These leak nothing exploitable (the user's own limit/input state). See SECURITY.md "Messages d'erreur".
 
 ## When to Read Which Doc
 
@@ -93,7 +93,7 @@
 4. Include ALL checks from the authorization chain — there is no RLS backup
 5. Use `SECURITY DEFINER` + `SET search_path = public`
 6. Hardcode privileged fields (status, creator_id, created_at) — never accept from client
-7. Use generic error messages only ("Operation not permitted")
+7. Generic "Operation not permitted" for sensitive checks; `RAISE EXCEPTION 'junto.<code>'` for user-actionable non-sensitive ones (limits/validation/capacity/premium) + add `errors.code.<code>` i18n (FR+EN)
 8. Use advisory locks where needed for race conditions (rate limiting)
 9. Use `set_config('junto.bypass_lock', 'true', true)` if the function needs to modify trigger-protected fields
 10. REVOKE EXECUTE from anon. Internal functions: REVOKE from authenticated too.

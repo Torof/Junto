@@ -193,6 +193,15 @@
     "rateLimit": "Tu vas trop vite, réessaie dans quelques instants.",
     "sessionExpired": "Ta session a expiré, reconnecte-toi.",
     "generic": "Une erreur est survenue, réessaie.",
+    "code": {
+      "limit_monthly": "Tu as atteint ta limite de création d'activités pour ce mois-ci.",
+      "limit_daily": "Tu as atteint ta limite de création d'activités pour aujourd'hui. Réessaie demain.",
+      "date_in_past": "La date de la sortie doit être dans le futur.",
+      "date_too_far": "La date ne peut pas être à plus de 6 mois.",
+      "participants_range": "Le nombre de places doit être entre 2 et 50.",
+      "premium_required": "Les activités privées par lien sont réservées aux membres Premium.",
+      "title_too_short": "Le titre doit faire au moins 3 caractères."
+    },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
     "joinActivity": "Impossible de rejoindre cette activité — elle est peut-être complète ou annulée.",
