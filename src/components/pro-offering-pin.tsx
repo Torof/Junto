@@ -44,10 +44,18 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
-        <Circle cx={27} cy={24} r={18.5} fill={colors.pinBackground} />
+        <Circle
+          cx={27}
+          cy={24}
+          r={18.5}
+          fill={colors.pinBackground}
+          stroke={colors.pinBorder}
+          strokeWidth={1.5}
+          strokeOpacity={0.9}
+        />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>

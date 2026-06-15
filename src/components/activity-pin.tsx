@@ -47,7 +47,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           fill={fillColor}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
         {/* Ivory content plate — completes the universal pin grammar
@@ -55,8 +55,16 @@ export function ActivityPin({ activity }: ActivityPinProps) {
             the round frame instead of flooding the bulb, so the sport
             emoji always sits on ivory. Default (published) state shows
             a subtle stone frame (pinFrame) to keep the construction
-            visible. */}
-        <Circle cx={27} cy={24} r={18.5} fill={colors.pinBackground} />
+            visible. A thin near-black ring outlines the emoji disc. */}
+        <Circle
+          cx={27}
+          cy={24}
+          r={18.5}
+          fill={colors.pinBackground}
+          stroke={colors.pinBorder}
+          strokeWidth={1.5}
+          strokeOpacity={0.9}
+        />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
