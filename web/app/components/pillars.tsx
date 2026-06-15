@@ -276,7 +276,7 @@ export default function Pillars() {
       <TopoLines opacity={0.05} color={NAVY} count={10} />
       <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
         <div className="junto-pillars-header" style={{ marginBottom: 80, maxWidth: 820 }}>
-          <SectionLabel>Comment ça marche</SectionLabel>
+          <SectionLabel>Entre particuliers</SectionLabel>
           <h2
             className="display junto-pillars-title"
             style={{

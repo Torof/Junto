@@ -156,7 +156,7 @@ export default function Pro() {
         }}
       >
         <div>
-          <SectionLabel color={PRO_BLUE}>Les pros sur Junto</SectionLabel>
+          <SectionLabel color={PRO_BLUE}>Avec des pros</SectionLabel>
           <h2
             className="display junto-pro-title"
             style={{
