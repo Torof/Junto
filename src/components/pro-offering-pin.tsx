@@ -53,8 +53,8 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           r={18.5}
           fill={colors.pinBackground}
           stroke={colors.pinBorder}
-          strokeWidth={1.5}
-          strokeOpacity={0.9}
+          strokeWidth={1.25}
+          strokeOpacity={0.6}
         />
       </Svg>
       <View style={styles.iconWrap}>
