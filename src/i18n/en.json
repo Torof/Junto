@@ -568,6 +568,7 @@
       "presence_pre_warning_10min": "Starting in 10 min",
       "presence_validate_warning": "Validate your presence — last warning",
       "presence_validate_overdue": "You haven't validated your presence",
+      "presence_validate_final": "Last chance: presence not validated",
       "presence_confirmed": "Presence confirmed",
       "qr_create_reminder": "Show your QR for the activity",
       "badge_unlocked": "Badge unlocked",

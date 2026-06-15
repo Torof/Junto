@@ -30,6 +30,7 @@ const NOTIFICATION_TYPES = [
   'presence_pre_warning_10min',
   'presence_validate_warning',
   'presence_validate_overdue',
+  'presence_validate_final',
   'presence_confirmed',
   'badge_unlocked',
   'qr_create_reminder',
