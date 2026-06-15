@@ -484,13 +484,15 @@ La règle générique ne s'applique qu'aux échecs **sensibles**. Les échecs **
 
 **Mécanisme client :** `getFriendlyError` (src/utils/friendly-error.ts) extrait `junto\.([a-z_]+)` du message et mappe vers `errors.code.<code>` (i18n FR+EN). Si pas de mapping → fallback générique par action. Donc tout nouveau code DOIT avoir sa clé `errors.code.<code>` en FR et EN.
 
-**Codes actuels :**
-- `create_activity` (mig 00268) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`
-- Présence (mig 00139, convention antérieure — codes nus sans préfixe `junto.`, mappés à part) : `peer_review_window_not_open`, `peer_review_window_closed`, `peer_voter_not_present`, `peer_already_validated`
+**Codes actuels** (sweep complet migs 00268-00272) :
+- **Activité** (00268/00269) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`, `activity_full`, `join_rate_limit`, `already_joined`, `refuse_cooldown`, `cancel_reason_invalid`
+- **Transport/seat/alerte** (00270) : `activity_locked`, `seat_rate_limit`, `no_seats_available`, `seats_exhausted`, `seat_already_requested`, `seats_still_active`, `pickup_out_of_window`, `depart_out_of_window`, `alert_limit_reached`, `alert_date_invalid`
+- **Messagerie/report/onboarding** (00271) : `wall_rate_limit`, `dm_rate_limit`, `trace_rate_limit`, `contact_request_pending_cap`, `contact_request_daily_cap`, `report_reason_too_short`, `report_already_filed`, `report_rate_limit`, `dob_underage`
+- **Pro/présence/badge** (00272) : `offering_cap`, `photo_cap`, `review_duplicate`, `review_rate_limit`, `presence_unavailable`, `presence_window_closed`, `presence_too_far`, `presence_token_invalid`, `presence_token_window_closed`, `peer_review_window_not_open`, `peer_review_window_closed`, `peer_already_validated`, `peer_voter_not_present`, `badge_rate_limit`, `badge_window_not_open`, `badge_window_closed`
 
-Sécurité inchangée pour les checks sensibles : auth, suspension, self-vote, ownership, target-not-in-activity → tous `Operation not permitted`.
+Note : les codes présence/peer venaient de mig 00139 SANS préfixe `junto.` (jamais captés par `getFriendlyError`) ; 00272 les a préfixés.
 
-**Reste à balayer (post-create_activity) :** les autres RPCs (join/leave/cancel, messagerie, pro offering cap 12, reviews 10/24h, alerts cap 10, transport/seat, gear) ont encore des `Operation not permitted` génériques sur des échecs user-actionnables — sweep en cours, classer chaque RAISE safe/sensitive.
+Sécurité inchangée pour les checks sensibles : auth, suspension, self-vote, ownership, target-not-in-activity, participant-status, blocage (jamais révélé), tamper guards (valeurs hors whitelist, races unique_violation) → tous `Operation not permitted`. Surfaces volontairement non touchées : `set_activity_gear` (flow org parké), idempotence `dob_already_set`/`tos_already_accepted`, `already_removed` (décision de modération non rappelée), `get_activity_by_invite_token` (0 ligne, pas d'exception).
 
 ---
 
