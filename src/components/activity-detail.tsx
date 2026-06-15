@@ -302,6 +302,29 @@ export function ActivityDetail({
   const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
   const canCheckIn = canConfirmGeo || canScanQr;
 
+  // Presence fallback visibility (prod audit 2026-06-11). Two silent
+  // gaps the audit found: (1) once the geo/QR windows close, an
+  // unvalidated attendee gets no UI and never learns peer review can
+  // still save them — so they may eat an unfair no-show penalty unaware
+  // the backstop exists; (2) if background location is denied,
+  // auto-validation silently never runs with no explanation.
+  const endMs = startsAtMs + durationMs;
+  const inPeerReviewWindow = nowMs >= endMs + 15 * 60 * 1000 && nowMs <= endMs + 24 * 60 * 60 * 1000;
+  const hasPeers = (activity.participant_count ?? 0) >= 2; // solo activities can't be peer-validated (mig 00229) — no banner
+  const notValidated = participation?.status === 'accepted' && participation?.confirmed_present == null;
+  const showPeerBackstop = requiresPresence && notValidated && hasPeers && !canCheckIn && inPeerReviewWindow;
+
+  const [bgLocationDenied, setBgLocationDenied] = useState(false);
+  useEffect(() => {
+    if (!requiresPresence || !isAccepted || alreadyConfirmed || !isInQrWindow) return;
+    let cancelled = false;
+    Location.getBackgroundPermissionsAsync()
+      .then((p) => { if (!cancelled) setBgLocationDenied(p.status !== 'granted'); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [requiresPresence, isAccepted, alreadyConfirmed, isInQrWindow]);
+  const showBgLocationHint = canScanQr && bgLocationDenied;
+
   // Passive geo detection: periodically check if the user is at the activity location.
   // Fires a local notification + haptic on the transition from "not at" to "at" so the
   // user doesn't have to remember to open the app and validate.
@@ -663,10 +686,37 @@ export function ActivityDetail({
                 <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
               </View>
             )}
+            {/* Peer-review backstop — surfaced when the auto/QR windows
+                have closed but an unvalidated attendee (with peers) can
+                still be saved by peer testimony. Prod audit 2026-06-11:
+                without this the backstop is invisible at the moment of
+                need. */}
+            {showPeerBackstop && (
+              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left' }]}>
+                  {t('presence.backstopHint')}
+                </Text>
+                <Pressable
+                  style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
+                  onPress={() => router.push(`/(auth)/peer-review/${activity.id}`)}
+                >
+                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                    {t('presence.openPeerReview')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
             {/* Presence widget — moved back to the Info tab so the
                 "where do I stand on this outing" answer is co-located
                 with the activity context. Replaces the old check-in
                 banner that linked to Organization. */}
+            {showBgLocationHint && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                  {t('presence.bgLocationHint')}
+                </Text>
+              </View>
+            )}
             {canCheckIn && (
               <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
                 <View style={styles.presenceHeader}>
