@@ -47,7 +47,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           fill={fillColor}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.55}
+          strokeOpacity={0.9}
           strokeLinejoin="round"
         />
         {/* Ivory content plate — completes the universal pin grammar
