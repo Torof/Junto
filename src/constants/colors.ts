@@ -51,15 +51,21 @@ export const darkColors = {
   overlay: 'rgba(0,0,0,0.65)',
 };
 
+// Warmed 2026-06-11 (light is now the default theme): shifted from a
+// cool grey-white off-white toward the website's warm cream family —
+// the cool palette read "clinical / too bright / harsh". Warming the
+// canvas + greys calms perceived saturation and unifies app ↔ web.
+// Pins, semantic colors (success/error/warning) and CTA hue left as the
+// validated tokens; only the canvas, surfaces and neutral greys warm.
 export const lightColors = {
-  background: '#F5F5F0',
-  surface: '#E0DDD8',
-  surfaceAlt: '#D4D0CB',
-  cta: '#F4642A',
+  background: '#F5EEDF',
+  surface: '#EDE4D2',
+  surfaceAlt: '#E3D9C4',
+  cta: '#F26B2E',
 
-  textPrimary: '#1A1A1A',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
+  textPrimary: '#1F1A15',
+  textSecondary: '#6F665A',
+  textMuted: '#A0968A',
 
   success: '#2ECC71',
   error: '#E74C3C',
@@ -71,16 +77,16 @@ export const lightColors = {
   pinObjective: '#F5A623',
 
   pinBackground: '#FFFFFF',
-  pinBorder: '#1A1A1A',
+  pinBorder: '#1F1A15',
   pinFrame: '#E0D2B4',
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
-  border: '#9E9A95',
-  line: 'rgba(0,0,0,0.08)',
-  lineStrong: 'rgba(0,0,0,0.18)',
+  border: '#B3AC9C',
+  line: 'rgba(31,26,21,0.08)',
+  lineStrong: 'rgba(31,26,21,0.16)',
   // Brutalist 1px-solid border (near-opposite of bg).
-  borderStrong: '#1A1A1A',
-  borderMuted: 'rgba(0,0,0,0.18)',
+  borderStrong: '#1F1A15',
+  borderMuted: 'rgba(31,26,21,0.16)',
   overlay: 'rgba(0,0,0,0.5)',
 };
 
