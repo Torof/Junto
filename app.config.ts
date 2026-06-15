@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '0.1.3',
   orientation: 'portrait',
   icon: './assets/junto_icon_square.png',
-  userInterfaceStyle: 'dark',
+  userInterfaceStyle: 'light',
   scheme: 'junto',
   newArchEnabled: true,
   splash: {
