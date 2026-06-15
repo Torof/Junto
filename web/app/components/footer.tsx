@@ -66,6 +66,9 @@ export default function Footer() {
               <a href="#sorties" style={{ opacity: 0.8, textDecoration: 'none' }}>
                 Sorties
               </a>
+              <a href="#pro" style={{ opacity: 0.8, textDecoration: 'none' }}>
+                Pour les pros
+              </a>
               <a href="#beta" style={{ opacity: 0.8, textDecoration: 'none' }}>
                 Télécharger
               </a>

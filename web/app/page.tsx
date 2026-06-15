@@ -3,6 +3,7 @@ import Footer from './components/footer';
 import Hero from './components/hero';
 import HowItWorks from './components/how-it-works';
 import Pillars from './components/pillars';
+import Pro from './components/pro';
 import Screenshots from './components/screenshots';
 import Sports from './components/sports';
 import UpcomingTrips from './components/upcoming-trips';
@@ -19,6 +20,7 @@ export default function Home() {
       <UpcomingTrips />
       <Screenshots />
       <Sports />
+      <Pro />
       <FinalCTA />
       <Footer />
     </main>

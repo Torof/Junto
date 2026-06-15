@@ -213,6 +213,21 @@ img { display: block; max-width: 100%; }
     font-size: 15px !important;
   }
 
+  /* ---------- Pro ---------- */
+  .junto-pro {
+    padding: 80px 20px !important;
+  }
+  .junto-pro-grid {
+    grid-template-columns: 1fr !important;
+    gap: 48px !important;
+  }
+  .junto-pro-title {
+    font-size: 36px !important;
+  }
+  .junto-pro-art {
+    order: -1;
+  }
+
   /* ---------- Final CTA ---------- */
   .junto-cta {
     padding: 60px 20px !important;
