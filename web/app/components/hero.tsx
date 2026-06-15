@@ -156,10 +156,10 @@ export default function Hero() {
           }}
         >
           <a className="junto-hero-nav-link" href="#comment" style={{ textDecoration: 'none', opacity: 0.85 }}>
-            Comment ça marche
+            Particuliers
           </a>
-          <a className="junto-hero-nav-link" href="#sorties" style={{ textDecoration: 'none', opacity: 0.85 }}>
-            Sorties
+          <a className="junto-hero-nav-link" href="#pro" style={{ textDecoration: 'none', opacity: 0.85 }}>
+            Pros
           </a>
           <a
             className="junto-hero-nav-cta"
