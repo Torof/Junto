@@ -1,7 +1,7 @@
 import FinalCTA from './components/final-cta';
 import Footer from './components/footer';
 import Hero from './components/hero';
-import Pillars from './components/pillars';
+import Particuliers from './components/particuliers';
 import Pro from './components/pro';
 import Screenshots from './components/screenshots';
 import Sports from './components/sports';
@@ -20,7 +20,7 @@ export default function Home() {
     <main>
       <Hero />
       <TwoWorlds />
-      <Pillars />
+      <Particuliers />
       <UpcomingTrips />
       <Pro />
       <Sports />

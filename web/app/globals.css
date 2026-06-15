@@ -49,6 +49,11 @@ img { display: block; max-width: 100%; }
 .display { font-family: 'Archivo', sans-serif; font-stretch: 125%; }
 .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
+/* Native <details> unfold (sports) — strip the default disclosure marker */
+.junto-sports-more summary { list-style: none; }
+.junto-sports-more summary::-webkit-details-marker { display: none; }
+.junto-sports-more summary::marker { content: ''; }
+
 /* ---------------------------------------------------------------- */
 /* Responsive overrides                                             */
 /* Inline styles have infinite specificity, so we use !important    */
@@ -89,35 +94,19 @@ img { display: block; max-width: 100%; }
     font-size: 15px !important;
   }
 
-  /* ---------- Pillars ---------- */
-  .junto-pillars {
+  /* ---------- Particuliers ---------- */
+  .junto-part {
     padding: 80px 20px !important;
   }
-  .junto-pillars-header {
-    margin-bottom: 40px !important;
-  }
-  .junto-pillars-title {
-    font-size: 36px !important;
-  }
-  .junto-pillars-list {
-    gap: 16px !important;
-  }
-  .junto-pillars-card {
+  .junto-part-grid {
     grid-template-columns: 1fr !important;
-    padding: 28px 20px !important;
-    gap: 24px !important;
+    gap: 48px !important;
   }
-  .junto-pillars-number {
+  .junto-part-title {
     font-size: 40px !important;
   }
-  .junto-pillars-kicker {
-    font-size: 22px !important;
-  }
-  .junto-pillars-card-title {
-    font-size: 24px !important;
-  }
-  .junto-pillars-art {
-    height: 180px !important;
+  .junto-part-art {
+    order: -1;
   }
 
   /* ---------- Two worlds ---------- */
@@ -234,7 +223,7 @@ img { display: block; max-width: 100%; }
   .junto-hero-title {
     font-size: 40px !important;
   }
-  .junto-pillars-title,
+  .junto-part-title,
   .junto-worlds-title,
   .junto-pro-title,
   .junto-trips-title,

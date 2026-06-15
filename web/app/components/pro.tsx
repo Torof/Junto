@@ -1,4 +1,4 @@
-import { CREAM, NAVY, SectionLabel, TopoLines } from './shared';
+import { CREAM, NAVY, TopoLines } from './shared';
 
 // Pro layer of Junto on the landing (added 2026-06-11 — the storefront /
 // offerings / reviews surface, ~a third of the app, was unmentioned).
@@ -156,33 +156,32 @@ export default function Pro() {
         }}
       >
         <div>
-          <SectionLabel color={PRO_BLUE}>Avec des pros</SectionLabel>
           <h2
             className="display junto-pro-title"
             style={{
-              fontSize: 'clamp(40px, 6vw, 64px)',
+              fontSize: 'clamp(44px, 6.5vw, 68px)',
               lineHeight: 0.98,
-              margin: '0 0 24px',
+              margin: '0 0 16px',
               fontWeight: 800,
               letterSpacing: '-0.035em',
-              color: '#FFF',
+              color: PRO_BLUE_SOFT,
               textWrap: 'balance',
             }}
           >
-            Guides, écoles, moniteurs.{' '}
-            <span style={{ color: PRO_BLUE_SOFT }}>Sur la carte.</span>
+            Avec des pros
           </h2>
           <p
             style={{
-              fontSize: 18,
-              lineHeight: 1.55,
-              margin: '0 0 36px',
-              color: 'rgba(245,245,240,0.72)',
+              fontSize: 19,
+              lineHeight: 1.5,
+              margin: '0 0 40px',
+              color: '#FFF',
+              fontWeight: 500,
               maxWidth: 520,
             }}
           >
-            Junto, ce ne sont pas que des sorties entre particuliers. Les pros de l&apos;outdoor y
-            ont une page vérifiée et posent leurs prestations directement sur la carte.
+            Guides diplômés, écoles, moniteurs — vérifiés à la main, avec leur catalogue de
+            prestations posé directement sur la carte.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginBottom: 36 }}>
