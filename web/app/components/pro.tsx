@@ -13,7 +13,7 @@ const FEATURES: { icon: string; title: string; body: string }[] = [
   {
     icon: '✓',
     title: 'Une vitrine vérifiée',
-    body: 'Guides diplômés, écoles, moniteurs — validés à la main par Junto. Pas de faux pros.',
+    body: 'Guides diplômés, écoles, moniteurs — vérifiés par Junto. Pas de faux pros.',
   },
   {
     icon: '📍',
@@ -180,8 +180,8 @@ export default function Pro() {
               maxWidth: 520,
             }}
           >
-            Guides diplômés, écoles, moniteurs — vérifiés à la main, avec leur catalogue de
-            prestations posé directement sur la carte.
+            Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé
+            directement sur la carte.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginBottom: 36 }}>

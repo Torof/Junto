@@ -76,7 +76,7 @@ const WORLDS = [
   {
     accent: PRO_BLUE,
     kicker: 'Avec des pros',
-    body: 'Guides diplômés, écoles, moniteurs — vérifiés à la main, avec leur catalogue de prestations posé directement sur la carte.',
+    body: 'Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé directement sur la carte.',
     Scene: ProsScene,
   },
 ];
