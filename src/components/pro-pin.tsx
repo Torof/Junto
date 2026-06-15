@@ -58,7 +58,7 @@ export function ProPin({ displayName, pinImageUrl }: ProPinProps) {
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.55}
+          strokeOpacity={0.9}
         />
       </Svg>
       {pinImageUrl ? (
