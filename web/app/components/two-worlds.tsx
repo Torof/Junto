@@ -122,14 +122,14 @@ export default function TwoWorlds() {
               key={w.kicker}
               style={{
                 background: '#FFF',
-                border: '1px solid var(--line)',
+                border: `2px solid ${w.accent}`,
                 borderRadius: 20,
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
-              <div style={{ height: 180, position: 'relative', borderBottom: `3px solid ${w.accent}` }}>
+              <div style={{ height: 180, position: 'relative', borderBottom: `1px solid var(--line)` }}>
                 <w.Scene />
               </div>
               <div style={{ padding: '32px 36px 38px' }}>

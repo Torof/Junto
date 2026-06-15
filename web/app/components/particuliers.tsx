@@ -6,19 +6,21 @@ import { NAVY, ORANGE, TopoLines } from './shared';
 // (orange) + light background, not by a different layout. World name is
 // the headline (not a small eyebrow) so the section's identity leads.
 
+// Clean monochrome glyphs (rendered in orange via the chip's color),
+// matching the pro section's ✓ / 📍 / ★ — not colorful pictographic emoji.
 const FEATURES: { icon: string; title: string; body: string }[] = [
   {
-    icon: '🗺️',
+    icon: '◎',
     title: 'Trouve',
     body: 'Une carte vivante des sorties autour de toi. Filtre par sport, date, niveau — vois qui part où, quand.',
   },
   {
-    icon: '✏️',
+    icon: '+',
     title: 'Crée',
     body: 'Lance ta propre sortie en 30 secondes. Fixe le RDV, le niveau, les places — les autres rejoignent.',
   },
   {
-    icon: '🤝',
+    icon: '⇄',
     title: 'Organise',
     body: 'Covoiturage, chat, matériel — tout vit dans la sortie. Plus de groupes WhatsApp à 40.',
   },
@@ -177,10 +179,12 @@ export default function Particuliers() {
                     height: 34,
                     borderRadius: 10,
                     background: ORANGE + '1E',
+                    color: ORANGE,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 16,
+                    fontSize: 17,
+                    fontWeight: 700,
                     flexShrink: 0,
                   }}
                 >
