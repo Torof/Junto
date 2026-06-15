@@ -14,7 +14,7 @@ Tout utilisateur connecté est à la fois potentiellement créateur et participa
 
 ### Free
 - Rejoindre des activités : illimité
-- Créer des activités : libre — seuls des caps anti-abus s'appliquent (10/24h, 15/30 jours, `starts_at` ≤ 6 mois — mig 00262 ; la distinction est participer vs créer : personne ne crée 15 sorties/mois légitimement)
+- Créer des activités : libre — seuls des caps anti-abus s'appliquent (10/24h + 30/30 jours + `starts_at` ≤ 6 mois — mig 00262, monthly relevé à 30 en 00267). Distinction clé : créer une activité = chercher des partenaires pour UNE sortie (rarement >10/mois) ; le programme régulier d'un pro/club vit sur le catalogue d'offerings (RA), mécanisme séparé. Le cap mensuel = pur plafond anti-spam (n'a jamais bloqué qu'un dev en dogfooding).
 - Tous les filtres (la découverte est le produit — jamais paywallée)
 - Fonctionnalités de base
 

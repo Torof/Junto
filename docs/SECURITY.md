@@ -885,7 +885,7 @@ Validation client :
 ## Rate Limiting
 
 ### Création d'activité
-- Tous tiers : **10/24h** + **15/30 jours** + horizon `starts_at` ≤ 6 mois (mig 00262 — le "4/mois free" n'a jamais été implémenté et est officiellement abandonné, cf. DECISIONS 2026-06-11)
+- Tous tiers : **10/24h** + **30/30 jours** + horizon `starts_at` ≤ 6 mois (mig 00262 — le "4/mois free" n'a jamais été implémenté et est officiellement abandonné, cf. DECISIONS 2026-06-11)
 - **Admin** : illimité (skipé)
 - Advisory lock par user pour sérialiser concurrent creates
 

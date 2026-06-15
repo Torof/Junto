@@ -274,7 +274,7 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Décision (Premium — contenu) :** "Mise en avant sur la carte" est ABANDONNÉE (pay-for-attention, collision frontale avec le principe no-social-scoring). "Création illimitée" est abandonnée comme feature premium (l'offre est sacrée pré-réseau ; le "4/mois free" de PRODUCT.md n'a d'ailleurs jamais été implémenté). Premium = tier supporter : alertes, activités privées par lien, et features de confort à venir.
 
 **Décision (limites produit, mig 00262) :**
-- Création d'activités : cap anti-abus 10/24h (était 20) + **15/30 jours** (nouveau — borne le rayon de dégâts d'un compte spam avant signalement/suspension) + horizon starts_at ≤ 6 mois (nouveau — le junk daté futur ne s'auto-expire pas)
+- Création d'activités : cap anti-abus 10/24h (était 20) + **30/30 jours** (nouveau — borne le rayon de dégâts d'un compte spam avant signalement/suspension) + horizon starts_at ≤ 6 mois (nouveau — le junk daté futur ne s'auto-expire pas)
 - Offerings pro (RA) : **12 par pro** (était 50). Les pins RA sont permanents et s'accumulent ; 12 couvre le cas réel et force la curation. Ratchet : on peut relever sans douleur, jamais abaisser.
 - Gate premium private_link : désormais enforced côté DB (était UI-only, violation de la règle maison)
 - Filtres : gratuits, tous, pour toujours (la découverte est le produit)
@@ -296,3 +296,11 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Cadrage (Scott) :** "La trace GPX n'est pas à enregistrer mais à créer pour l'organisation, rien de plus. Feature importante mais pas l'âme de l'app — un super ajout qui fait sens." → Pas un bloquant launch ; fast-follow post-launch. Le tracé est INDICATIF (style pointillé, multi-waypoints, label clair) ; les traces précises viennent toujours de l'import.
 
 **Bonus :** l'UI couplée "Itinéraire → [Importer] · [Dessiner]" règle la découvrabilité de l'import (peu instinctif aujourd'hui). Backlog V2.
+
+---
+
+## 2026-06-11 (addendum) — cap mensuel de création relevé 15 → 30 (mig 00267)
+
+**Décision :** Le cap mensuel `create_activity` passe de 15 à 30/30 jours. (Les entrées 00262 ci-dessus ont été mises à jour au nouveau chiffre ; historiquement c'était 15.)
+
+**Pourquoi :** 15 a bloqué le dev en dogfooding (18 créées/30j → mig 00266 a passé le compte operator en admin). Clarification de Scott qui recadre le raisonnement : créer une activité = chercher des partenaires pour UNE sortie précise (rarement >10/mois pour un usage légitime) ; le programme régulier d'un pro/club ne passe PAS par là mais par le catalogue d'**offerings** (RA, mécanisme séparé). Donc le cap mensuel est un pur plafond anti-spam, pas une contrainte d'usage — 15 était inutilement serré. 30 = 3× le plafond d'usage légitime ; le cap journalier 10/24h reste le vrai garde anti-rafale. Erreur générique au dépassement = à améliorer un jour (faible priorité maintenant que 30 ne bloque plus aucun usage réel).
