@@ -49,9 +49,6 @@ img { display: block; max-width: 100%; }
 .display { font-family: 'Archivo', sans-serif; font-stretch: 125%; }
 .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
-/* Hide mobile-only steps by default (HowItWorks alternative) */
-.junto-hiw-steps-mobile { display: none; }
-
 /* ---------------------------------------------------------------- */
 /* Responsive overrides                                             */
 /* Inline styles have infinite specificity, so we use !important    */
@@ -123,39 +120,6 @@ img { display: block; max-width: 100%; }
     height: 180px !important;
   }
 
-  /* ---------- How it works ---------- */
-  .junto-hiw {
-    padding: 80px 20px !important;
-  }
-  .junto-hiw-title {
-    font-size: 36px !important;
-  }
-  .junto-hiw-map {
-    display: none !important;
-  }
-  .junto-hiw-steps-mobile {
-    display: flex !important;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 8px;
-  }
-  .junto-hiw-step-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-  }
-  .junto-hiw-step-pin {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .junto-hiw-step-body {
-    flex: 1;
-    min-width: 0;
-  }
 
   /* ---------- Upcoming trips ---------- */
   .junto-trips {
@@ -204,13 +168,8 @@ img { display: block; max-width: 100%; }
   .junto-sports-title {
     font-size: 36px !important;
   }
-  .junto-sports-row {
+  .junto-sports-grid {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
-    padding: 24px 0 !important;
-  }
-  .junto-sports-list {
-    font-size: 15px !important;
   }
 
   /* ---------- Pro ---------- */
@@ -266,7 +225,7 @@ img { display: block; max-width: 100%; }
     font-size: 40px !important;
   }
   .junto-pillars-title,
-  .junto-hiw-title,
+  .junto-pro-title,
   .junto-trips-title,
   .junto-shots-title,
   .junto-sports-title {

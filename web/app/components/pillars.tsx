@@ -264,6 +264,7 @@ function PillarArt({ kind }: { kind: ArtKind }) {
 export default function Pillars() {
   return (
     <section
+      id="comment"
       className="junto-pillars"
       style={{
         padding: '140px 40px',
@@ -275,7 +276,7 @@ export default function Pillars() {
       <TopoLines opacity={0.05} color={NAVY} count={10} />
       <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
         <div className="junto-pillars-header" style={{ marginBottom: 80, maxWidth: 820 }}>
-          <SectionLabel>Ce que tu fais avec Junto</SectionLabel>
+          <SectionLabel>Comment ça marche</SectionLabel>
           <h2
             className="display junto-pillars-title"
             style={{

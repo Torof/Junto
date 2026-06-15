@@ -1,67 +1,25 @@
 import { NAVY, ORANGE, SectionLabel, TopoLines } from './shared';
 
-const CATEGORIES = [
-  {
-    name: 'Montagne',
-    accent: '#F26B2E',
-    sports: [
-      'Randonnée',
-      'Escalade',
-      'Ski de rando',
-      'Trail',
-      'Alpinisme',
-      'Via ferrata',
-      'Cascade de glace',
-      'Canyoning',
-      'Slackline',
-    ],
-  },
-  {
-    name: 'Eau',
-    accent: '#4B7CB8',
-    sports: ['Kayak', 'Surf', 'Voile', 'Stand-up Paddle', 'Rafting', 'Plongée', 'Natation'],
-  },
-  {
-    name: 'Neige',
-    accent: '#9DB7D4',
-    sports: ['Ski', 'Snowboard', 'Ski de fond'],
-  },
-  {
-    name: 'Air',
-    accent: '#F4A373',
-    sports: ['Parapente', 'Parachutisme'],
-  },
-  {
-    name: 'Vélo',
-    accent: '#7EC8A3',
-    sports: ['Vélo', 'VTT'],
-  },
-  {
-    name: 'Terrain',
-    accent: '#D4B46A',
-    sports: [
-      'Course à pied',
-      'Football',
-      'Tennis',
-      'Volleyball',
-      'Badminton',
-      'Équitation',
-      'Skateboard',
-      'Triathlon',
-      'CrossFit',
-      'Pêche en roche',
-    ],
-  },
+// Condensed 2026-06-11 (Scott: full per-sport enumeration took too much
+// space / too much info). Now category chips with a count + two
+// examples each — keeps the breadth proof, drops the exhaustive list.
+const CATEGORIES: { name: string; accent: string; count: number; sample: string }[] = [
+  { name: 'Montagne', accent: '#F26B2E', count: 9, sample: 'Escalade, alpinisme…' },
+  { name: 'Eau', accent: '#4B7CB8', count: 7, sample: 'Kayak, surf…' },
+  { name: 'Neige', accent: '#9DB7D4', count: 3, sample: 'Ski, snowboard…' },
+  { name: 'Air', accent: '#F4A373', count: 2, sample: 'Parapente, parachutisme' },
+  { name: 'Vélo', accent: '#7EC8A3', count: 2, sample: 'Vélo, VTT' },
+  { name: 'Terrain', accent: '#D4B46A', count: 10, sample: 'Course, tennis…' },
 ];
 
 export default function Sports() {
-  const total = CATEGORIES.reduce((n, c) => n + c.sports.length, 0);
+  const total = CATEGORIES.reduce((n, c) => n + c.count, 0);
 
   return (
     <section
       className="junto-sports"
       style={{
-        padding: '140px 40px',
+        padding: '110px 40px',
         background: 'var(--cream)',
         position: 'relative',
         overflow: 'hidden',
@@ -69,8 +27,8 @@ export default function Sports() {
     >
       <TopoLines opacity={0.05} color={NAVY} count={10} />
       <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
-        <div style={{ marginBottom: 72, maxWidth: 820 }}>
-          <SectionLabel>Catalogue</SectionLabel>
+        <div style={{ marginBottom: 48, maxWidth: 820 }}>
+          <SectionLabel>Les sports</SectionLabel>
           <h2
             className="display junto-sports-title"
             style={{
@@ -83,86 +41,56 @@ export default function Sports() {
               textWrap: 'balance',
             }}
           >
-            <span style={{ color: ORANGE }}>{total} sports</span> — et ça grandit.
+            <span style={{ color: ORANGE }}>{total} sports</span>, 6 univers — et ça grandit.
           </h2>
         </div>
 
         <div
+          className="junto-sports-grid"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0,
-            borderTop: '1px solid rgba(30,47,77,0.12)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 16,
           }}
         >
-          {CATEGORIES.map((cat, i) => (
+          {CATEGORIES.map((cat) => (
             <div
-              key={i}
-              className="junto-sports-row"
+              key={cat.name}
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(180px, 200px) minmax(0, 1fr)',
-                gap: 40,
-                padding: '32px 0',
-                borderBottom: '1px solid rgba(30,47,77,0.12)',
-                alignItems: 'baseline',
+                background: '#FFF',
+                border: '1px solid var(--line)',
+                borderRadius: 16,
+                padding: '20px 22px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: '50%',
-                    background: cat.accent,
-                    flexShrink: 0,
-                  }}
-                />
-                <span
+              <span
+                style={{ width: 12, height: 12, borderRadius: '50%', background: cat.accent, flexShrink: 0 }}
+              />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div
                   className="display"
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 800,
-                    color: NAVY,
-                    letterSpacing: '-0.02em',
-                  }}
+                  style={{ fontSize: 18, fontWeight: 800, color: NAVY, letterSpacing: '-0.02em', lineHeight: 1.1 }}
                 >
                   {cat.name}
-                </span>
-                <span
-                  className="mono"
-                  style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em' }}
-                >
-                  {String(cat.sports.length).padStart(2, '0')}
-                </span>
+                </div>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.04em', marginTop: 2 }}>
+                  {cat.sample}
+                </div>
               </div>
-
-              <div
-                className="junto-sports-list"
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '12px 20px',
-                  fontSize: 17,
-                  fontWeight: 500,
-                  color: NAVY,
-                  lineHeight: 1.4,
-                }}
+              <span
+                className="display"
+                style={{ fontSize: 22, fontWeight: 800, color: cat.accent, letterSpacing: '-0.02em' }}
               >
-                {cat.sports.map((s, j) => (
-                  <span key={j} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    {s}
-                    {j < cat.sports.length - 1 && (
-                      <span style={{ marginLeft: 20, color: 'rgba(30,47,77,0.2)' }}>·</span>
-                    )}
-                  </span>
-                ))}
-              </div>
+                {cat.count}
+              </span>
             </div>
           ))}
         </div>
 
-        <div style={{ marginTop: 32, fontSize: 14, color: 'var(--muted)' }}>
+        <div style={{ marginTop: 28, fontSize: 14, color: 'var(--muted)' }}>
           Un sport manque ?{' '}
           <a href="mailto:contact@getjunto.app" style={{ color: ORANGE, textDecoration: 'underline' }}>
             Dis-le nous
