@@ -120,6 +120,16 @@ img { display: block; max-width: 100%; }
     height: 180px !important;
   }
 
+  /* ---------- Two worlds ---------- */
+  .junto-worlds {
+    padding: 72px 20px !important;
+  }
+  .junto-worlds-title {
+    font-size: 36px !important;
+  }
+  .junto-worlds-grid {
+    grid-template-columns: 1fr !important;
+  }
 
   /* ---------- Upcoming trips ---------- */
   .junto-trips {
@@ -225,6 +235,7 @@ img { display: block; max-width: 100%; }
     font-size: 40px !important;
   }
   .junto-pillars-title,
+  .junto-worlds-title,
   .junto-pro-title,
   .junto-trips-title,
   .junto-shots-title,

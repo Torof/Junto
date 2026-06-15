@@ -1,4 +1,4 @@
-import { CREAM_SOFT, NAVY, SectionLabel, TopoLines } from './shared';
+import { CREAM, NAVY, SectionLabel, TopoLines } from './shared';
 
 // Pro layer of Junto on the landing (added 2026-06-11 — the storefront /
 // offerings / reviews surface, ~a third of the app, was unmentioned).
@@ -137,12 +137,12 @@ export default function Pro() {
       className="junto-pro"
       style={{
         padding: '140px 40px',
-        background: CREAM_SOFT,
+        background: NAVY,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      <TopoLines opacity={0.05} color={PRO_BLUE} count={10} />
+      <TopoLines opacity={0.05} color={CREAM} count={10} />
       <div
         className="junto-pro-grid"
         style={{
@@ -165,19 +165,19 @@ export default function Pro() {
               margin: '0 0 24px',
               fontWeight: 800,
               letterSpacing: '-0.035em',
-              color: NAVY,
+              color: '#FFF',
               textWrap: 'balance',
             }}
           >
             Guides, écoles, moniteurs.{' '}
-            <span style={{ color: PRO_BLUE }}>Sur la carte.</span>
+            <span style={{ color: PRO_BLUE_SOFT }}>Sur la carte.</span>
           </h2>
           <p
             style={{
               fontSize: 18,
               lineHeight: 1.55,
               margin: '0 0 36px',
-              color: 'var(--muted)',
+              color: 'rgba(245,245,240,0.72)',
               maxWidth: 520,
             }}
           >
@@ -193,8 +193,8 @@ export default function Pro() {
                     width: 34,
                     height: 34,
                     borderRadius: 10,
-                    background: PRO_BLUE + '18',
-                    color: PRO_BLUE,
+                    background: PRO_BLUE + '33',
+                    color: PRO_BLUE_SOFT,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -208,11 +208,11 @@ export default function Pro() {
                 <div>
                   <div
                     className="display"
-                    style={{ fontSize: 19, fontWeight: 800, color: NAVY, letterSpacing: '-0.015em', marginBottom: 3 }}
+                    style={{ fontSize: 19, fontWeight: 800, color: '#FFF', letterSpacing: '-0.015em', marginBottom: 3 }}
                   >
                     {f.title}
                   </div>
-                  <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--muted)', maxWidth: 460 }}>
+                  <div style={{ fontSize: 15, lineHeight: 1.5, color: 'rgba(245,245,240,0.62)', maxWidth: 460 }}>
                     {f.body}
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export default function Pro() {
             style={{
               fontSize: 13,
               lineHeight: 1.5,
-              color: 'var(--muted)',
+              color: 'rgba(245,245,240,0.5)',
               fontStyle: 'italic',
               margin: '0 0 28px',
               maxWidth: 480,

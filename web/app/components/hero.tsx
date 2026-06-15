@@ -232,7 +232,8 @@ export default function Hero() {
               opacity: 0.82,
             }}
           >
-            Trouve, crée, organise tes sorties outdoor. Près de chez toi.
+            La carte des sorties outdoor près de toi. Entre particuliers, et avec des pros
+            vérifiés.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
