@@ -16,7 +16,6 @@ import {
   Compass,
   Clock,
   Check,
-  Minus,
   Plus,
   ChevronRight,
   MapPin,
@@ -759,10 +758,17 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
       <View style={styles.stampMarkRow}>
         {stamp.state === 'set' && <Check size={14} color={accent} strokeWidth={3} />}
         {stamp.state === 'pending' && <Clock size={14} color={accent} strokeWidth={2.4} />}
-        {stamp.state === 'todo' && (
-          <View style={[styles.stampDottedDot, { borderColor: accent }]} />
+        {/* Empty states (nothing set yet) surface an explicit "Ajouter"
+            chip instead of a subtle dot — makes the tap-to-add obvious.
+            The chip is visual; the whole stamp is the press target. */}
+        {(stamp.state === 'todo' || stamp.state === 'neutral') && (
+          <View style={styles.addStampChip}>
+            <Plus size={12} color={colors.cta} strokeWidth={2.6} />
+            <Text style={styles.addStampChipText}>
+              {t('myOuting.addChip', { defaultValue: 'Ajouter' })}
+            </Text>
+          </View>
         )}
-        {stamp.state === 'neutral' && <Minus size={14} color={colors.textMuted} strokeWidth={2.4} />}
       </View>
     </Pressable>
   );
@@ -916,13 +922,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  stampDottedDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    backgroundColor: 'transparent',
+  addStampChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.cta + '14',
+    borderRadius: radius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  addStampChipText: {
+    color: colors.cta,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 
   // My-gear modal — centered floating card on a near-opaque scrim so

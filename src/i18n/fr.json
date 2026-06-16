@@ -371,6 +371,7 @@
     "gearListTitle": "Ton matériel",
     "gearListEmpty": "Tu n'apportes rien pour le moment.",
     "addMaterial": "Ajouter du matériel",
+    "addChip": "Ajouter",
     "cancelTransport": {
       "keep": "Garder",
       "toastDone": "Annulé",
