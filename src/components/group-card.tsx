@@ -80,32 +80,10 @@ export function GroupCard({
     });
   };
 
-  // Per-driver expand state for the passenger thread inside each
-  // driver pill. Collapsed by default — the pill stays compact and
-  // a small "Passagers · N ▾" row reveals the list on tap.
-  const [expandedPassengersByDriver, setExpandedPassengersByDriver] = useState<Set<string>>(new Set());
-  const togglePassengersForDriver = (driverId: string) => {
-    setExpandedPassengersByDriver((prev) => {
-      const next = new Set(prev);
-      if (next.has(driverId)) next.delete(driverId);
-      else next.add(driverId);
-      return next;
-    });
-  };
-
-  // Driver pill collapsed vs expanded. Collapsed = name + city + time
-  // wrapped on one inline row (skim view). Expanded = the meta gets
-  // its own rows for full-length display. Toggled by tapping the pill
-  // body; avatar/reserve/passengers keep their own handlers.
-  const [expandedDrivers, setExpandedDrivers] = useState<Set<string>>(new Set());
-  const toggleDriver = (driverId: string) => {
-    setExpandedDrivers((prev) => {
-      const next = new Set(prev);
-      if (next.has(driverId)) next.delete(driverId);
-      else next.add(driverId);
-      return next;
-    });
-  };
+  // Driver pills and their passenger threads always render fully expanded.
+  // Testers never tapped to reveal the hidden meta, so all transport info
+  // (full name, departure city + time, passenger list) is shown
+  // unconditionally — no collapse, no toggle affordance.
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -536,17 +514,14 @@ export function GroupCard({
               const score = reliabilityById.get(d.user_id) ?? null;
               const ringColor = score !== null ? ringColorFor(score) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
-              const isExpanded = expandedDrivers.has(d.user_id);
+              const isExpanded = true;
               const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (
                 <View key={d.user_id} style={styles.driverPill}>
                   {/* Pill body — tap to expand/collapse. Avatar / status
                       pill / reserve / passengers keep their own handlers
                       via stopPropagation on their own press events. */}
-                  <Pressable
-                    onPress={() => hasMeta && toggleDriver(d.user_id)}
-                    style={styles.pillBody}
-                  >
+                  <View style={styles.pillBody}>
                     <View style={styles.pillHeader}>
                       <Pressable
                         style={[
@@ -605,18 +580,9 @@ export function GroupCard({
                           </Text>
                         </View>
                       )}
-                      {hasMeta && (
-                        <ChevronDown
-                          size={14}
-                          color={colors.textMuted}
-                          strokeWidth={2.2}
-                          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
-                        />
-                      )}
                     </View>
 
-                    {/* Expanded: meta on its own rows under the avatar,
-                        full-length text. */}
+                    {/* Meta on its own rows under the avatar, full-length text. */}
                     {isExpanded && hasMeta && (
                       <View style={styles.pillMetaRows}>
                         {d.transport_from_name && (
@@ -637,7 +603,7 @@ export function GroupCard({
                         )}
                       </View>
                     )}
-                  </Pressable>
+                  </View>
 
                   {/* Pill footer — seats count on the left, action CTA
                       on the right (Reserve / Complet). Hidden for self
@@ -670,35 +636,21 @@ export function GroupCard({
                     )}
                   </View>
 
-                  {/* Passengers — collapsible. The driver pill stays
-                      compact by default; the toggle row reveals the
-                      passenger blocks on tap. Each block: 2 lines
+                  {/* Passengers — always shown. A static "N passagers"
+                      header labels the list; each block is 2 lines
                       (avatar + name on top, pickup meta beneath).
                       Tap a block → that passenger's profile. */}
-                  {driverPassengers.length > 0 && (() => {
-                    const expanded = expandedPassengersByDriver.has(d.user_id);
-                    return (
-                      <>
-                        <Pressable
-                          style={styles.passengersToggleRow}
-                          onPress={(e) => { e.stopPropagation(); togglePassengersForDriver(d.user_id); }}
-                          hitSlop={4}
-                        >
-                          <Text style={styles.passengersToggleText}>
-                            {t('group.passengersCount', {
-                              count: driverPassengers.length,
-                              defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
-                            })}
-                          </Text>
-                          <ChevronDown
-                            size={14}
-                            color={colors.textMuted}
-                            strokeWidth={2.2}
-                            style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}
-                          />
-                        </Pressable>
-                        {expanded && (
-                          <View style={styles.passengersList}>
+                  {driverPassengers.length > 0 && (
+                    <>
+                      <View style={styles.passengersToggleRow}>
+                        <Text style={styles.passengersToggleText}>
+                          {t('group.passengersCount', {
+                            count: driverPassengers.length,
+                            defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
+                          })}
+                        </Text>
+                      </View>
+                      <View style={styles.passengersList}>
                             {driverPassengers.map((p) => (
                               <Pressable
                                 key={p.id}
@@ -741,11 +693,9 @@ export function GroupCard({
                                 )}
                               </Pressable>
                             ))}
-                          </View>
-                        )}
-                      </>
-                    );
-                  })()}
+                      </View>
+                    </>
+                  )}
                 </View>
               );
             })}
