@@ -35,8 +35,10 @@ const NEEDLE_PATH = 'M 25.2 43 L 27 67 L 28.8 43 Z';
 const SCALE = PIN_WIDTH / VIEWBOX_W;
 const CIRCLE_CX = 27 * SCALE;
 const CIRCLE_CY = 23 * SCALE;
-// Near-full-bleed photo — inset only 1.5 viewBox units, just enough
-// for the ring to stay visible.
+// Near-full-bleed photo — inset 1.5 viewBox units so it sits just
+// inside the black border. The blue pinProBackground isn't a visible
+// ring under a photo; it's only the fallback fill behind the initial
+// letter when a pro hasn't set a pin photo.
 const PHOTO_R = 19.5 * SCALE;
 
 export const PRO_PIN_ANCHOR = { x: 0.5, y: 67 / VIEWBOX_H };
