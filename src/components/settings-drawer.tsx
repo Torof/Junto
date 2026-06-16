@@ -11,6 +11,7 @@ import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
+import { useIntroStore } from '@/store/intro-store';
 import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -57,6 +58,7 @@ interface SettingsDrawerProps {
 export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const requestReplay = useIntroStore((s) => s.requestReplay);
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
@@ -332,6 +334,11 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
             {/* Legal */}
             <Text style={styles.sectionTitle}>{t('drawer.legal')}</Text>
+            <Pressable style={styles.row} onPress={() => { onClose(); requestReplay(); }}>
+              <Text style={styles.rowLabel}>{t('intro.replay')}</Text>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
+
             <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }}>
               <Text style={styles.rowLabel}>{t('legal.faq')}</Text>
               <Text style={styles.arrow}>›</Text>

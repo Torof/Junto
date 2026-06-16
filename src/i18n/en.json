@@ -500,9 +500,12 @@
     "skip": "Skip",
     "next": "Next",
     "start": "Get started",
+    "replay": "Replay the intro",
     "pins": {
       "title": "Activities on the map",
-      "ua": "A member's outing.",
+      "ua": "A member's outing. Its colour tells you when:",
+      "soon": "Soon",
+      "inProgress": "In progress",
       "ra": "A pro's outing.",
       "pp": "A pro's page."
     },

@@ -40,6 +40,7 @@ const DEMO_RA = { sport_key: 'yoga' } as unknown as ProOffering;
 interface IntroBlock {
   visual: ReactNode;
   text: string;
+  legend?: { color: string; label: string }[];
 }
 interface IntroPage {
   title: string;
@@ -63,7 +64,14 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       {
         title: t('intro.pins.title'),
         blocks: [
-          { visual: <ActivityPin activity={DEMO_UA} />, text: t('intro.pins.ua') },
+          {
+            visual: <ActivityPin activity={DEMO_UA} />,
+            text: t('intro.pins.ua'),
+            legend: [
+              { color: '#FBBF24', label: t('intro.pins.soon') },
+              { color: colors.success, label: t('intro.pins.inProgress') },
+            ],
+          },
           { visual: <ProOfferingPin offering={DEMO_RA} />, text: t('intro.pins.ra') },
           { visual: <ProPin displayName="M" pinImageUrl={null} />, text: t('intro.pins.pp') },
         ],
@@ -116,7 +124,19 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         {item.blocks.map((block, i) => (
           <View key={i} style={styles.block}>
             <View style={styles.blockVisual}>{block.visual}</View>
-            <Text style={styles.blockText}>{block.text}</Text>
+            <View style={styles.blockBody}>
+              <Text style={styles.blockText}>{block.text}</Text>
+              {block.legend && (
+                <View style={styles.legendRow}>
+                  {block.legend.map((l, j) => (
+                    <View key={j} style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: l.color }]} />
+                      <Text style={styles.legendLabel}>{l.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
         ))}
       </View>
@@ -226,11 +246,23 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    blockBody: { flex: 1, gap: 6 },
     blockText: {
-      flex: 1,
       color: colors.textPrimary,
       fontSize: fontSizes.md,
       lineHeight: 22,
+    },
+    legendRow: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      marginTop: 2,
+    },
+    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    legendDot: { width: 12, height: 12, borderRadius: 6 },
+    legendLabel: {
+      color: colors.textSecondary,
+      fontSize: fontSizes.sm,
+      fontWeight: '600',
     },
     cropSlot: {
       width: 56,

@@ -500,9 +500,12 @@
     "skip": "Passer",
     "next": "Suivant",
     "start": "Commencer",
+    "replay": "Revoir l'intro",
     "pins": {
       "title": "Les activités sur la carte",
-      "ua": "La sortie d'un membre.",
+      "ua": "La sortie d'un membre. Sa couleur indique le moment :",
+      "soon": "Bientôt",
+      "inProgress": "En cours",
       "ra": "La sortie d'un pro.",
       "pp": "La page d'un pro."
     },

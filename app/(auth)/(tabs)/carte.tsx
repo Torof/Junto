@@ -26,6 +26,7 @@ import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
 import { IntroCarousel } from '@/components/intro-carousel';
+import { useIntroStore } from '@/store/intro-store';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -91,6 +92,8 @@ export default function CarteScreen() {
   const selectionBoundsSpan = useRef<number | null>(null);
   const introChecked = useRef(false);
   const [showIntro, setShowIntro] = useState(false);
+  const replayRequested = useIntroStore((s) => s.replayRequested);
+  const clearReplay = useIntroStore((s) => s.clearReplay);
 
   const [clusterFilter, setClusterFilter] = useState<NearbyActivity[] | null>(null);
   const clusterFilterAnchor = useRef<MapBounds | null>(null);
@@ -222,6 +225,14 @@ export default function CarteScreen() {
     setShowIntro(false);
     void supabase.rpc('mark_tutorial_seen' as 'accept_tos');
   }, []);
+
+  // Replay requested from the settings drawer ("Revoir l'intro").
+  useEffect(() => {
+    if (replayRequested) {
+      setShowIntro(true);
+      clearReplay();
+    }
+  }, [replayRequested, clearReplay]);
 
   // Refresh activity statuses every time the map tab gets focus
   useFocusEffect(
