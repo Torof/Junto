@@ -414,6 +414,8 @@
     }
   },
   "group": {
+    "seeAllPassengers": "See all…",
+    "seeLess": "See less",
     "cardTitle": "Group prep",
     "title": "The group",
     "peopleCount_one": "{{count}} person",

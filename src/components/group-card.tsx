@@ -80,10 +80,19 @@ export function GroupCard({
     });
   };
 
-  // Driver pills and their passenger threads always render fully expanded.
-  // Testers never tapped to reveal the hidden meta, so all transport info
-  // (full name, departure city + time, passenger list) is shown
-  // unconditionally — no collapse, no toggle affordance.
+  // Driver pills always render fully expanded (full name, departure city +
+  // time on their own rows) — no collapse. The passenger thread stays
+  // collapsed behind an explicit "Voir tous…" button (a bare chevron got
+  // missed in testing; the labelled button reads as tappable).
+  const [expandedPassengersByDriver, setExpandedPassengersByDriver] = useState<Set<string>>(new Set());
+  const togglePassengersForDriver = (driverId: string) => {
+    setExpandedPassengersByDriver((prev) => {
+      const next = new Set(prev);
+      if (next.has(driverId)) next.delete(driverId);
+      else next.add(driverId);
+      return next;
+    });
+  };
 
   const { data: transports = [] } = useQuery({
     queryKey: ['transport', activityId],
@@ -636,21 +645,41 @@ export function GroupCard({
                     )}
                   </View>
 
-                  {/* Passengers — always shown. A static "N passagers"
-                      header labels the list; each block is 2 lines
-                      (avatar + name on top, pickup meta beneath).
-                      Tap a block → that passenger's profile. */}
-                  {driverPassengers.length > 0 && (
-                    <>
-                      <View style={styles.passengersToggleRow}>
-                        <Text style={styles.passengersToggleText}>
-                          {t('group.passengersCount', {
-                            count: driverPassengers.length,
-                            defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
-                          })}
-                        </Text>
-                      </View>
-                      <View style={styles.passengersList}>
+                  {/* Passengers — collapsed by default behind a labelled
+                      "Voir tous…" button. Each block is 2 lines (avatar +
+                      name on top, pickup meta beneath). Tap a block → that
+                      passenger's profile. */}
+                  {driverPassengers.length > 0 && (() => {
+                    const expanded = expandedPassengersByDriver.has(d.user_id);
+                    return (
+                      <>
+                        <Pressable
+                          style={styles.passengersToggleRow}
+                          onPress={(e) => { e.stopPropagation(); togglePassengersForDriver(d.user_id); }}
+                          hitSlop={4}
+                        >
+                          <Text style={styles.passengersToggleText}>
+                            {t('group.passengersCount', {
+                              count: driverPassengers.length,
+                              defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
+                            })}
+                          </Text>
+                          <View style={styles.passengersSeeAll}>
+                            <Text style={styles.passengersSeeAllText}>
+                              {expanded
+                                ? t('group.seeLess', { defaultValue: 'Voir moins' })
+                                : t('group.seeAllPassengers', { defaultValue: 'Voir tous…' })}
+                            </Text>
+                            <ChevronDown
+                              size={13}
+                              color={colors.cta}
+                              strokeWidth={2.4}
+                              style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}
+                            />
+                          </View>
+                        </Pressable>
+                        {expanded && (
+                          <View style={styles.passengersList}>
                             {driverPassengers.map((p) => (
                               <Pressable
                                 key={p.id}
@@ -693,9 +722,11 @@ export function GroupCard({
                                 )}
                               </Pressable>
                             ))}
-                      </View>
-                    </>
-                  )}
+                          </View>
+                        )}
+                      </>
+                    );
+                  })()}
                 </View>
               );
             })}
@@ -1273,6 +1304,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+  passengersSeeAll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  passengersSeeAllText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
   // Passengers under each driver — nested inside the pill. The driver
   // pill's containing border already signals "these belong together",
