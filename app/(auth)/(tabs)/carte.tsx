@@ -25,13 +25,11 @@ import { useFilteredOfferings } from '@/hooks/use-filtered-offerings';
 import { useMapStore } from '@/store/map-store';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
-import { useTutorialStore } from '@/store/tutorial-store';
-import { TutorialTooltip } from '@/components/tutorial-tooltip';
+import { IntroCarousel } from '@/components/intro-carousel';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { distanceMeters } from '@/utils/geo';
 
 const BUFFER = 0.5; // 50% buffer around viewport
 
@@ -91,10 +89,8 @@ export default function CarteScreen() {
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
   const suppressMapPressUntil = useRef(0);
   const selectionBoundsSpan = useRef<number | null>(null);
-  const tutorialStep = useTutorialStore((s) => s.step);
-  const setTutorialStep = useTutorialStore((s) => s.setStep);
-  const tutorialChecked = useRef(false);
-  const [showAlertTooltip, setShowAlertTooltip] = useState(false);
+  const introChecked = useRef(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   const [clusterFilter, setClusterFilter] = useState<NearbyActivity[] | null>(null);
   const clusterFilterAnchor = useRef<MapBounds | null>(null);
@@ -208,59 +204,24 @@ export default function CarteScreen() {
     }
   }, [searchBounds, doSearch, scheduleSearch, clusterFilter]);
 
-  // Tutorial bootstrap: first visit check
+  // First-run intro: show the one-time carousel if the user hasn't seen it.
+  // No element anchoring or step machinery — it's a self-contained overlay.
   useEffect(() => {
-    if (tutorialChecked.current) return;
-    if (!activities) return; // wait for first fetch
-    tutorialChecked.current = true;
-
+    if (introChecked.current) return;
+    introChecked.current = true;
     (async () => {
       const { data: userRow } = await supabase
         .from('users')
         .select('tutorial_seen_at')
         .single() as { data: { tutorial_seen_at: string | null } | null };
-
-      if (userRow?.tutorial_seen_at) return;
-
-      // Find the closest real activity around the user — tutorial uses it as target.
-      // No demo activity is created (avoids polluting other users' maps).
-      const list = activities ?? [];
-      if (list.length > 0) {
-        let nearest = list[0]!;
-        let nearestDist = distanceMeters(center[1], center[0], nearest.lat, nearest.lng);
-        for (const a of list) {
-          const d = distanceMeters(center[1], center[0], a.lat, a.lng);
-          if (d < nearestDist) {
-            nearest = a;
-            nearestDist = d;
-          }
-        }
-        useTutorialStore.getState().setDemoActivityId(nearest.id);
-        setTutorialStep('click_activity');
-      } else {
-        // No real activity nearby — skip the click-activity + open-popup steps,
-        // go straight to the alert step which is the most valuable part of the tutorial.
-        setTutorialStep('click_alert');
-      }
+      if (!userRow?.tutorial_seen_at) setShowIntro(true);
     })();
-  }, [activities, center, setTutorialStep]);
+  }, []);
 
-  // Advance tutorial when user taps a pin (popup appears)
-  useEffect(() => {
-    if (tutorialStep === 'click_activity' && selectedActivity) {
-      setTutorialStep('open_popup');
-    }
-  }, [tutorialStep, selectedActivity, setTutorialStep]);
-
-  // Delay the click_alert tooltip so it appears AFTER the activity screen transition finishes
-  useEffect(() => {
-    if (tutorialStep !== 'click_alert') {
-      setShowAlertTooltip(false);
-      return;
-    }
-    const timer = setTimeout(() => setShowAlertTooltip(true), 800);
-    return () => clearTimeout(timer);
-  }, [tutorialStep]);
+  const dismissIntro = useCallback(() => {
+    setShowIntro(false);
+    void supabase.rpc('mark_tutorial_seen' as 'accept_tos');
+  }, []);
 
   // Refresh activity statuses every time the map tab gets focus
   useFocusEffect(
@@ -272,17 +233,6 @@ export default function CarteScreen() {
       })();
     }, [queryClient])
   );
-
-  // Final step: user taps the map → wrap up the tutorial
-  useEffect(() => {
-    if (tutorialStep === 'create_activity_hint' && tappedPoint) {
-      (async () => {
-        await supabase.rpc('mark_tutorial_seen' as 'accept_tos');
-        useTutorialStore.getState().setDemoActivityId(null);
-        setTutorialStep('done');
-      })();
-    }
-  }, [tutorialStep, tappedPoint, setTutorialStep]);
 
   return (
     <View style={styles.container}>
@@ -297,7 +247,7 @@ export default function CarteScreen() {
             chip doesn't read as lonely and we stay clear of the
             Mapbox compass at top-right. */}
         <View style={styles.topControls}>
-          <FilterButton onPress={() => setShowFilters(true)} blink={tutorialStep === 'click_alert' && showAlertTooltip} />
+          <FilterButton onPress={() => setShowFilters(true)} />
           <MapStyleButton />
         </View>
 
@@ -414,7 +364,6 @@ export default function CarteScreen() {
                   activity={selectedActivity}
                   onPress={() => {
                     suppressMapPressUntil.current = Date.now() + 400;
-                    if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
                     router.push(`/(auth)/activity/${selectedActivity.id}`);
                     setSelectedActivity(null);
                   }}
@@ -448,7 +397,6 @@ export default function CarteScreen() {
                 if (selectedActivity?.id === a.id) {
                   // Second tap on the same pin → open the activity page
                   suppressMapPressUntil.current = Date.now() + 400;
-                  if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
                   router.push(`/(auth)/activity/${a.id}`);
                   setSelectedActivity(null);
                   selectionBoundsSpan.current = null;
@@ -497,7 +445,6 @@ export default function CarteScreen() {
                     : 0.01;
                   if (dLng < viewportSpan * 0.05 && dLat < viewportSpan * 0.05) {
                     suppressMapPressUntil.current = Date.now() + 400;
-                    if (tutorialStep === 'open_popup') setTutorialStep('click_alert');
                     router.push(`/(auth)/activity/${selectedActivity.id}`);
                     setSelectedActivity(null);
                     selectionBoundsSpan.current = null;
@@ -571,48 +518,10 @@ export default function CarteScreen() {
           }}
         />
 
-        {tutorialStep === 'click_activity' && (
-          <TutorialTooltip
-            text={t('tutorial.clickActivity')}
-            position="bottom"
-            anchor={{ top: 100, left: 24, right: 24 }}
-            onDismiss={() => {
-              const demoId = useTutorialStore.getState().demoActivityId;
-              const demo = filtered.find((a) => a.id === demoId);
-              if (demo) {
-                // Camera south of pin → pin renders in upper area of the screen, just below the tooltip
-                setFlyTarget([demo.lng, demo.lat]);
-                setFlyOffset({ y: -0.2 });
-                setFlyToKey((k) => k + 1);
-              }
-            }}
-          />
-        )}
-        {tutorialStep === 'open_popup' && (
-          <TutorialTooltip
-            text={t('tutorial.openPopup')}
-            position="bottom"
-            anchor={{ top: 100, left: 24, right: 24 }}
-          />
-        )}
-        {tutorialStep === 'click_alert' && !selectedActivity && showAlertTooltip && (
-          <TutorialTooltip
-            text={t('tutorial.clickAlert')}
-            position="top"
-            anchor={{ top: 70, left: 24, right: 24 }}
-            arrowAlign="left"
-          />
-        )}
-        {tutorialStep === 'create_activity_hint' && !tappedPoint && (
-          <TutorialTooltip
-            text={t('tutorial.createActivity')}
-            position="bottom"
-            anchor={{ bottom: 100, left: 24, right: 24 }}
-          />
-        )}
-
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>
+
+      {showIntro && <IntroCarousel onDone={dismissIntro} />}
     </View>
   );
 }

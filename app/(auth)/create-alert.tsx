@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
-import { useRouter, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,8 +16,6 @@ import { alertService } from '@/services/alert-service';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { useTutorialStore } from '@/store/tutorial-store';
-import { TutorialTooltip } from '@/components/tutorial-tooltip';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LEVELS } from '@/types/activity-form';
 
@@ -25,7 +23,6 @@ export default function CreateAlertScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { center } = useInitialLocation();
 
@@ -39,21 +36,6 @@ export default function CreateAlertScreen() {
   const [endsOn, setEndsOn] = useState<Date | null>(null);
   const [showStartsPicker, setShowStartsPicker] = useState(false);
   const [showEndsPicker, setShowEndsPicker] = useState(false);
-  const tutorialStep = useTutorialStore((s) => s.step);
-  const setTutorialStep = useTutorialStore((s) => s.setStep);
-
-  useEffect(() => {
-    if (tutorialStep === 'click_alert') {
-      if (!location) setLocation({ lng: center[0], lat: center[1] });
-      setTutorialStep('set_radius');
-    }
-  }, [tutorialStep, location, center, setTutorialStep]);
-
-  useEffect(() => {
-    if (tutorialStep === 'set_radius' && radiusKm >= 200) {
-      setTutorialStep('validate_alert');
-    }
-  }, [tutorialStep, radiusKm, setTutorialStep]);
 
   const toggleLevel = (l: string) => {
     setLevels((prev) => prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l]);
@@ -96,11 +78,6 @@ export default function CreateAlertScreen() {
       setLocation(null);
       setStartsOn(null);
       setEndsOn(null);
-
-      if (tutorialStep === 'validate_alert') {
-        setTutorialStep('create_activity_hint');
-        router.back();
-      }
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'createAlert'));
     } finally {
@@ -117,20 +94,6 @@ export default function CreateAlertScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerTitle: t('alerts.title') }} />
-      {tutorialStep === 'set_radius' && (
-        <TutorialTooltip
-          text={t('tutorial.setRadius')}
-          position="bottom"
-          anchor={{ top: 240, left: 24, right: 24 }}
-        />
-      )}
-      {tutorialStep === 'validate_alert' && (
-        <TutorialTooltip
-          text={t('tutorial.validate')}
-          position="bottom"
-          anchor={{ bottom: 145, left: 24, right: 24 }}
-        />
-      )}
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerBlock}>
           <Text style={styles.screenSubtitle}>{t('alerts.subtitle')}</Text>

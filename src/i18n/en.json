@@ -496,13 +496,33 @@
     "helpStart": "Your score doesn't have enough data yet to be precise, so it starts at a neutral level and refines over your outings. Don't worry if you see “New” on your profile — that's normal for a fresh account.",
     "helpDismiss": "Got it"
   },
-  "tutorial": {
-    "clickActivity": "👋 Welcome! Orange pins are activities starting soon, green ones are in progress. Tap a pin to check it out",
-    "openPopup": "Tap the popup to open the activity",
-    "clickAlert": "Great! Now create an alert to get notified of new activities near you",
-    "setRadius": "Slide the cursor up to 200 km",
-    "validate": "Perfect — validate to enable the alert",
-    "createActivity": "Now create your first activity — tap anywhere on the map"
+  "intro": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get started",
+    "pins": {
+      "title": "Activities on the map",
+      "ua": "A member's outing.",
+      "ra": "A pro's outing.",
+      "pp": "A pro's page."
+    },
+    "join": {
+      "title": "Join an outing",
+      "tap": "Tap a pin, then \"See more\" to open the outing.",
+      "inside": "You'll find it all inside: info, carpooling, gear and the group chat. Joining takes one tap."
+    },
+    "create": {
+      "title": "Create your outing",
+      "body": "Tap the + button, pick your sport, the spot and the date — and publish. Others can join you."
+    },
+    "alert": {
+      "title": "Never miss out",
+      "body": "Create an alert and get notified the moment an outing matches near you."
+    },
+    "profile": {
+      "title": "Your profile",
+      "body": "Your reliability score and badges tell others you're someone they can count on."
+    }
   },
   "search": {
     "title": "Search",

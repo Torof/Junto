@@ -496,13 +496,33 @@
     "helpStart": "Ton score n'a pas encore assez de données pour être précis, alors il démarre à un niveau neutre et s'affine au fil de tes sorties. Pas d'inquiétude si tu vois « Nouveau » sur ton profil — c'est normal pour un nouveau compte.",
     "helpDismiss": "Compris"
   },
-  "tutorial": {
-    "clickActivity": "👋 Bienvenue ! Les pins oranges sont des activités imminentes, les verts en cours. Appuie sur un pin pour le découvrir",
-    "openPopup": "Appuie sur le pop-up pour ouvrir l'activité",
-    "clickAlert": "Super ! Maintenant crée une alerte pour être notifié des nouvelles activités près de chez toi",
-    "setRadius": "Fais glisser le curseur jusqu'à 200 km",
-    "validate": "Parfait — valide pour activer l'alerte",
-    "createActivity": "Et maintenant crée ta première activité — tape n'importe où sur la carte"
+  "intro": {
+    "skip": "Passer",
+    "next": "Suivant",
+    "start": "Commencer",
+    "pins": {
+      "title": "Les activités sur la carte",
+      "ua": "La sortie d'un membre.",
+      "ra": "La sortie d'un pro.",
+      "pp": "La page d'un pro."
+    },
+    "join": {
+      "title": "Rejoindre une sortie",
+      "tap": "Tape une épingle, puis « Voir plus » pour ouvrir la sortie.",
+      "inside": "Tu y trouves tout : infos, covoiturage, matériel et la discussion du groupe. Rejoindre prend un tap."
+    },
+    "create": {
+      "title": "Crée ta sortie",
+      "body": "Tape le bouton +, choisis ton sport, le lieu et la date — et publie. Les autres peuvent te rejoindre."
+    },
+    "alert": {
+      "title": "Ne rate plus rien",
+      "body": "Crée une alerte et reçois une notification dès qu'une sortie correspond près de chez toi."
+    },
+    "profile": {
+      "title": "Ton profil",
+      "body": "Ton score de fiabilité et tes badges disent aux autres que tu es quelqu'un de sérieux."
+    }
   },
   "search": {
     "title": "Rechercher",
