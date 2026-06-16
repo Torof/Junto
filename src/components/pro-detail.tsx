@@ -436,12 +436,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tab: {
     paddingVertical: spacing.sm,
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   tabActive: { borderBottomColor: colors.cta },
   tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
-  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
+  tabTextActive: { color: colors.cta, fontWeight: '800' },
   content: {
     paddingBottom: spacing.xl + 32,
   },
