@@ -109,7 +109,12 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
     <View style={styles.container}>
       {/* Tab bar — text-only, brutalist. Pictures sits between Info and
           Activités: info → context → offer → social-proof. */}
-      <View style={styles.tabBar}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabBarScroll}
+        contentContainerStyle={styles.tabBar}
+      >
         {(['info', 'pictures', 'catalog', 'reviews'] as const).map((tab) => {
           const isActiveTab = activeTab === tab;
           return (
@@ -121,7 +126,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
               accessibilityState={{ selected: isActiveTab }}
               accessibilityLabel={t(`pro.tab.${tab}`, { defaultValue: tab })}
             >
-              <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]} numberOfLines={1}>
+              <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                 {t(`pro.tab.${tab}`, {
                   defaultValue:
                     tab === 'info' ? 'Infos'
@@ -133,7 +138,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
@@ -422,28 +427,21 @@ function ContactRow({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  // Segmented control (house pattern, cf. settings-drawer) — boxed tabs so
-  // the control reads as tappable; testers stayed on Info otherwise.
   tabBar: {
     flexDirection: 'row',
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
+    alignItems: 'center',
+    gap: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: spacing.sm,
-    borderRadius: radius.xs,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: { backgroundColor: colors.cta },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  tabTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  tabActive: { borderBottomColor: colors.cta },
+  tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   content: {
     paddingBottom: spacing.xl + 32,
   },

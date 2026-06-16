@@ -642,7 +642,7 @@ export function ActivityDetail({
                 accessibilityState={{ selected: isActiveTab }}
                 accessibilityLabel={t(`activity.tab.${tab}`)}
               >
-                <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]} numberOfLines={1}>
+                <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                   {t(`activity.tab.${tab}`)}
                 </Text>
                 {tab === 'info' && (canCheckIn || (isCreator && isQrAvailable)) && (
@@ -1151,32 +1151,27 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
-  // Segmented control (house pattern, cf. settings-drawer): outlined pill,
-  // equal-width segments, active = CTA fill. Testers stayed on Info and
-  // never tried the other tabs — the old faded-underline tabs didn't read
-  // as a tappable control. Boxed segments do.
   tabBar: {
     flexDirection: 'row',
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
+    alignItems: 'center',
+    gap: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   tab: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
-    borderRadius: radius.xs,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: { backgroundColor: colors.cta },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  tabTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  tabActive: { borderBottomColor: colors.cta },
+  tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   tabDot: { width: 6, height: 6, borderRadius: radius.xs, backgroundColor: colors.cta },
   tabBadge: {
     backgroundColor: colors.cta, borderRadius: radius.sm,

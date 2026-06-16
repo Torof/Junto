@@ -166,7 +166,12 @@ export default function ProOfferingDetailScreen() {
   return (
     <View style={styles.container}>
       {/* Tab bar */}
-      <View style={styles.tabBar}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabBarScroll}
+        contentContainerStyle={styles.tabBar}
+      >
         {(['info', 'pictures', 'reviews'] as const).map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -175,7 +180,7 @@ export default function ProOfferingDetailScreen() {
               style={[styles.tab, isActive && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]} numberOfLines={1}>
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
                 {t(`proOffering.tab.${tab}`, {
                   defaultValue: tab === 'info' ? 'Infos' : tab === 'pictures' ? 'Photos' : 'Avis',
                 })}
@@ -183,7 +188,7 @@ export default function ProOfferingDetailScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {activeTab === 'info' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
@@ -331,28 +336,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomColor: colors.borderMuted,
     backgroundColor: colors.background,
   },
-  // Segmented control (house pattern, cf. settings-drawer) — boxed tabs so
-  // the control reads as tappable; testers stayed on Info otherwise.
   tabBar: {
     flexDirection: 'row',
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
   },
   tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: radius.xs,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabActive: { backgroundColor: colors.cta },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  tabTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  tabActive: { borderBottomColor: colors.cta },
+  tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
 
   banner: { width: '100%', aspectRatio: 3 },
 
