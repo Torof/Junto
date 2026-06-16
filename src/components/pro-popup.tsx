@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ChevronRight } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -15,6 +17,7 @@ interface ProPopupProps {
 // it with the "à propos" excerpt so the popup actually adds info
 // beyond what the pin shows. Tap → opens /pro/[id].
 export function ProPopup({ pro, onPress }: ProPopupProps) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -27,6 +30,11 @@ export function ProPopup({ pro, onPress }: ProPopupProps) {
       {pro.description && (
         <Text style={styles.about} numberOfLines={3}>{pro.description}</Text>
       )}
+
+      <View style={styles.seeMore}>
+        <Text style={styles.seeMoreText}>{t('map.seeMore')}</Text>
+        <ChevronRight size={12} color={colors.cta} strokeWidth={2.5} />
+      </View>
     </Pressable>
   );
 }
@@ -73,5 +81,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     lineHeight: 16,
     marginTop: 2,
+  },
+  seeMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+    marginTop: 2,
+  },
+  seeMoreText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
 });

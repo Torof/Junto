@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2 } from 'lucide-react-native';
+import { Calendar, BarChart2, ChevronRight } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -73,6 +73,13 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
           </>
         );
       })()}
+
+      {/* Affordance — testers tapped pins but not the open popup; this
+          makes "tap to open the full activity" explicit. */}
+      <View style={styles.seeMore}>
+        <Text style={styles.seeMoreText}>{t('map.seeMore')}</Text>
+        <ChevronRight size={12} color={colors.cta} strokeWidth={2.5} />
+      </View>
     </Pressable>
   );
 }
@@ -158,6 +165,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.textSecondary,
     opacity: 0.35,
     marginVertical: 2,
+  },
+  seeMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+    marginTop: 2,
+  },
+  seeMoreText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
   spacer: {
     width: spacing.sm,

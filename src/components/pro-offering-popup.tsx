@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Calendar } from 'lucide-react-native';
+import { MapPin, Calendar, ChevronRight } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -48,6 +48,11 @@ export function ProOfferingPopup({ offering, onPress }: ProOfferingPopupProps) {
           <Text style={styles.value} numberOfLines={1}>{offering.schedule_text}</Text>
         </View>
       )}
+
+      <View style={styles.seeMore}>
+        <Text style={styles.seeMoreText}>{t('map.seeMore')}</Text>
+        <ChevronRight size={12} color={colors.cta} strokeWidth={2.5} />
+      </View>
     </Pressable>
   );
 }
@@ -114,5 +119,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
     flexShrink: 1,
+  },
+  seeMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+    marginTop: 2,
+  },
+  seeMoreText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
   },
 });

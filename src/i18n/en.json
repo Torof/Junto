@@ -512,6 +512,7 @@
     "selected": "sports"
   },
   "map": {
+    "seeMore": "See more…",
     "seeList": "See list",
     "createActivityCta": "Create activity",
     "activitiesAtPoint_one": "{{count}} activity at this spot",
