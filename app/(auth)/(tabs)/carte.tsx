@@ -222,9 +222,16 @@ export default function CarteScreen() {
     })();
   }, []);
 
-  const dismissIntro = useCallback(() => {
+  const dismissIntro = useCallback(async () => {
     setShowIntro(false);
-    void supabase.rpc('mark_tutorial_seen' as 'accept_tos');
+    // Must await (or .then) — supabase builders are lazy and don't fire
+    // the request otherwise, so the "seen" flag never persisted and the
+    // intro re-showed on every launch.
+    try {
+      await supabase.rpc('mark_tutorial_seen' as 'accept_tos');
+    } catch {
+      // Non-fatal: worst case the intro shows again next launch.
+    }
   }, []);
 
   // Replay requested from the settings drawer ("Revoir l'intro").
