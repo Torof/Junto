@@ -591,6 +591,8 @@
       "deleted": "Alert deleted"
     },
     "resetFilters": "Reset",
+    "typeActivities": "Users",
+    "typePros": "Pros",
     "apply": "Apply",
     "createHere": "Create activity here",
     "recenter": "Recenter on my location",

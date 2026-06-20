@@ -24,7 +24,12 @@ export function FilterButton({ onPress, blink = false }: Props) {
     + (filters.dateMode !== 'all' ? 1 : 0)
     + filters.levelTiers.length
     + filters.visibilities.length
-    + (filters.radiusKm !== null ? 1 : 0);
+    + (filters.radiusKm !== null ? 1 : 0)
+    // A hidden entity-type category is an active filter too — otherwise a
+    // user who unchecks Utilisateurs/Pros sees no badge and doesn't realise
+    // a whole category is hidden.
+    + (!filters.showActivities ? 1 : 0)
+    + (!filters.showProOfferings ? 1 : 0);
   const hasActive = activeCount > 0;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const scale = useRef(new Animated.Value(1)).current;
