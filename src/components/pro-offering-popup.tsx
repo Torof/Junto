@@ -27,7 +27,7 @@ export function ProOfferingPopup({ offering, onPress }: ProOfferingPopupProps) {
       <Text style={styles.title} numberOfLines={2}>{offering.title}</Text>
 
       <View style={styles.chipsRow}>
-        <View style={[styles.sportChip, { backgroundColor: accent + '1F' }]}>
+        <View style={[styles.sportChip, { backgroundColor: accent + '40', borderColor: accent }]}>
           <Text style={[styles.sportChipText, { color: accent }]}>
             {t(`sports.${offering.sport_key}`, offering.sport_key)}
           </Text>
@@ -38,13 +38,13 @@ export function ProOfferingPopup({ offering, onPress }: ProOfferingPopupProps) {
       </View>
 
       <View style={styles.row}>
-        <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
+        <MapPin size={12} color={colors.textPrimary} strokeWidth={2} />
         <Text style={styles.value} numberOfLines={1}>{offering.location_name}</Text>
       </View>
 
       {offering.schedule_text && (
         <View style={styles.row}>
-          <Calendar size={12} color={colors.textSecondary} strokeWidth={2} />
+          <Calendar size={12} color={colors.textPrimary} strokeWidth={2} />
           <Text style={styles.value} numberOfLines={1}>{offering.schedule_text}</Text>
         </View>
       )}
@@ -76,7 +76,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.md,
     fontWeight: 'bold',
     marginBottom: 2,
   },
@@ -90,15 +90,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
+    borderWidth: 1,
   },
   sportChipText: {
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   proChip: {
-    backgroundColor: colors.cta + '1F',
+    backgroundColor: colors.cta + '33',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
@@ -118,6 +119,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   value: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
+    fontWeight: '600',
     flexShrink: 1,
   },
   seeMore: {

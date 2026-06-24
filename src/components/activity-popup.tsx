@@ -35,7 +35,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Sport + places chips on same row */}
       <View style={styles.chipsRow}>
-        <View style={[styles.sportChip, { backgroundColor: sportAccent + '33' }]}>
+        <View style={[styles.sportChip, { backgroundColor: sportAccent + '40', borderColor: sportAccent }]}>
           <Text style={[styles.sportChipText, { color: sportAccent }]}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
@@ -111,6 +111,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
+    borderWidth: 1,
   },
   sportChipText: {
     color: colors.cta,
