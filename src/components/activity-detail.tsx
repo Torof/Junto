@@ -617,6 +617,12 @@ export function ActivityDetail({
   const mapCenter: [number, number] = [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2];
   const mapSpread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
   const mapZoom = mapSpread > 0.1 ? 10 : mapSpread > 0.01 ? 12 : 14;
+  // The mini-preview centres on the objective (where you're headed); the
+  // fullscreen map keeps the fit-all centroid so the whole route shows.
+  const miniMapCenter: [number, number] =
+    activity.objective_lng != null && activity.objective_lat != null
+      ? [activity.objective_lng, activity.objective_lat]
+      : mapCenter;
   const mapRouteLine: [number, number][] | undefined = activity.trace_geojson
     ? activity.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number])
     : activity.end_lng && activity.end_lat && activity.start_lng && activity.start_lat
@@ -858,7 +864,7 @@ export function ActivityDetail({
               <View style={styles.infoCard}>
                 {showTabs && (
                   <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-                    <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
+                    <JuntoMapView center={miniMapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                     <View style={styles.mapTapOverlay} pointerEvents="box-only" />
                     <View style={styles.mapControls} pointerEvents="box-none">
                       <Pressable
@@ -1413,7 +1419,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the full-screen map + Google-Maps directions. Floats bottom-left so
   // it doesn't collide with the creator's trace tools (top-right).
   mapControls: {
-    position: 'absolute', top: spacing.sm, right: spacing.sm,
+    position: 'absolute', bottom: spacing.sm, left: spacing.sm,
     flexDirection: 'column', alignItems: 'center',
     backgroundColor: colors.background,
     borderWidth: 1, borderColor: colors.borderStrong,
