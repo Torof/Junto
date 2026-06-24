@@ -211,13 +211,13 @@ export function JuntoMapView({
   // tapping zooms to expansion so the typed individual pins emerge.
   const cluster = useMemo(() => {
     const sc = new Supercluster<PinPointProps>({
-      // "See what's around at a glance" is the product. radius was 60px —
-      // far wider than a ~40px pin, so pins merged long before they'd
-      // actually overlap. 38 ≈ the pin width: strong overlaps cluster,
-      // but near-neighbours still kiss at the edges (a little overlap is
-      // eye-catching and invites the tap). Dial down (32/28) for more
-      // declustering, up (44) if it gets busy.
-      radius: 38,
+      // "See what's around at a glance" is the product. History: 60px
+      // merged pins long before they'd overlap; 38 (≈ one pin width) let
+      // near-neighbours kiss at the edges, which read as too busy in real
+      // use. 50 ≈ 1.3 pin widths — pins only split once there's a real gap
+      // between them, so the declustered field stays clean. Dial down
+      // (44/40) for more declustering, up (56) if it still feels busy.
+      radius: 50,
       maxZoom: 20,
     });
     const points: PinPoint[] = [
