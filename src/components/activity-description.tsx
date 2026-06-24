@@ -58,16 +58,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   body: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,
     lineHeight: 22,
+    textAlign: 'center',
   },
   toggle: {
     color: colors.cta,
     fontSize: fontSizes.sm,
     fontWeight: '700',
     marginTop: spacing.xs,
+    textAlign: 'center',
   },
 });

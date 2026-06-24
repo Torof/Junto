@@ -80,6 +80,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2,
     flexGrow: 1, flexBasis: '47%', minWidth: 140,
     gap: 4,
+    alignItems: 'center',
   },
   chipFull: { flexBasis: '100%' },
   iconRow: {
@@ -87,11 +88,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   label: {
     color: colors.textSecondary, fontSize: 10, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 1,
+    textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center',
   },
   value: {
     color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700',
-    letterSpacing: -0.2,
+    letterSpacing: -0.2, textAlign: 'center',
   },
   tooltipBackdrop: {
     flex: 1,

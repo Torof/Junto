@@ -1278,6 +1278,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1.5,
     opacity: 0.9,
     marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   heroTitleInverse: {
     color: '#FFFFFF',
@@ -1285,11 +1286,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontFamily: fonts.title,
     letterSpacing: -0.5,
     lineHeight: 36,
-    paddingRight: 64, // leave room for the decorative icon
+    textAlign: 'center',
   },
   heroFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
@@ -1298,7 +1300,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
     fontWeight: '700',
-    flex: 1,
   },
   heroVisibility: {
     flexDirection: 'row',
@@ -1442,9 +1443,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   presenceBlockActive: {
     borderColor: colors.success, backgroundColor: colors.success + '20',
   },
-  presenceHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  presenceTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
-  presenceSubtitle: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  presenceHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  presenceTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textAlign: 'center' },
+  presenceSubtitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textAlign: 'center' },
   presenceActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   presenceButton: {
     flex: 1, backgroundColor: colors.cta, borderRadius: radius.sm,
