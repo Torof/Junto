@@ -846,9 +846,9 @@ export function ActivityDetail({
               })()}
             </View>
 
-            {/* === PEOPLE CARD === Organizer + avatar stack. Left-edge
-                sport-category stripe matches the hero so the color
-                identity carries through the page. */}
+            {/* === PEOPLE CARD === One row: avatar stack (organizer first,
+                marked) · participant count + free slots · Voir tous. Tapping
+                opens the full participant list modal. */}
             <View style={styles.infoCard}>
               <OrganizerCard
                 activityId={activity.id}
