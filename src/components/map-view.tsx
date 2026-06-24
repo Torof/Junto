@@ -372,7 +372,7 @@ export function JuntoMapView({
       )}
 
       {userLocation && (
-        <Mapbox.MarkerView id="user-location" coordinate={userLocation}>
+        <Mapbox.MarkerView id="user-location" coordinate={userLocation} allowOverlap>
           <View style={styles.userDotOuter}>
             <View style={styles.userDotInner} />
           </View>
@@ -380,13 +380,13 @@ export function JuntoMapView({
       )}
 
       {tapMarker && (
-        <Mapbox.MarkerView id="tap-marker" coordinate={tapMarker} anchor={{ x: 0.5, y: 0 }}>
+        <Mapbox.MarkerView id="tap-marker" coordinate={tapMarker} anchor={{ x: 0.5, y: 0 }} allowOverlap>
           <View>{tapMarkerContent ?? <Text style={styles.tapMarker}>✕</Text>}</View>
         </Mapbox.MarkerView>
       )}
 
       {pins.map((pin) => (
-        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR}>
+        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR} allowOverlap>
           <Pressable onPress={() => onPinPress?.(pin)} hitSlop={10}>
             <MapPinIcon color={pin.color} />
           </Pressable>
