@@ -207,10 +207,11 @@ export function JuntoMapView({
     const sc = new Supercluster<PinPointProps>({
       // "See what's around at a glance" is the product. radius was 60px —
       // far wider than a ~40px pin, so pins merged long before they'd
-      // actually overlap. 32 clusters only when pins would genuinely
-      // collide; below that they stay individual. Dial down further
-      // (28/24) for even earlier declustering, up (40) if it gets busy.
-      radius: 32,
+      // actually overlap. 38 ≈ the pin width: strong overlaps cluster,
+      // but near-neighbours still kiss at the edges (a little overlap is
+      // eye-catching and invites the tap). Dial down (32/28) for more
+      // declustering, up (44) if it gets busy.
+      radius: 38,
       maxZoom: 20,
     });
     const points: PinPoint[] = [
