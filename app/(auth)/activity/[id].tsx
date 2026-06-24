@@ -6,6 +6,7 @@ import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
 import { ActivityDetail } from '@/components/activity-detail';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -61,7 +62,16 @@ export default function AuthActivityScreen() {
     return <Redirect href="/(visitor)/suspended" />;
   }
 
-  if (activityLoading || participationLoading || userLoading || !activity) {
+  // Activity still resolving → skeleton. Resolved to nothing (finished,
+  // deleted, or no longer accessible — e.g. a notification to an outing that
+  // has ended) → graceful "unavailable" rather than an endless skeleton.
+  if (activityLoading) {
+    return <ActivityDetailSkeleton />;
+  }
+  if (!activity) {
+    return <ActivityUnavailable fallbackHref="/(auth)/(tabs)/carte" />;
+  }
+  if (participationLoading || userLoading) {
     return <ActivityDetailSkeleton />;
   }
 

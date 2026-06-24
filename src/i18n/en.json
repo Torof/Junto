@@ -1294,6 +1294,8 @@
     "edit": "Edit",
     "duration": "Duration",
     "notFound": "Activity not found",
+    "notFoundBody": "This activity has ended or is no longer available.",
+    "notFoundCta": "View map",
     "contactPro": "Contact the pro",
     "byPro": "By",
     "tab": {

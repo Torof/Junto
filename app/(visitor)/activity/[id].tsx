@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { ActivityDetail } from '@/components/activity-detail';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
 
 export default function VisitorActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,8 +15,11 @@ export default function VisitorActivityScreen() {
     enabled: !!id,
   });
 
-  if (isLoading || !activity) {
+  if (isLoading) {
     return <ActivityDetailSkeleton />;
+  }
+  if (!activity) {
+    return <ActivityUnavailable fallbackHref="/(visitor)" />;
   }
 
   return (
