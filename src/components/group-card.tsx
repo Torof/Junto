@@ -488,7 +488,7 @@ export function GroupCard({
             {drivers.length > 0 && (
               <View style={styles.transportCategory}>
                 <View style={styles.transportCategoryHeader}>
-                  <Car size={12} color={colors.textSecondary} strokeWidth={2.4} />
+                  <Car size={13} color={colors.textPrimary} strokeWidth={2.4} />
                   <Text style={styles.transportCategoryLabel}>
                     {t('group.transportCategory.car', { defaultValue: 'Voitures' })}
                   </Text>
@@ -748,7 +748,7 @@ export function GroupCard({
               return (
                 <View key={bucket} style={styles.transportCategory}>
                   <View style={styles.transportCategoryHeader}>
-                    <Icon size={11} color={colors.textSecondary} strokeWidth={2.4} />
+                    <Icon size={13} color={colors.textPrimary} strokeWidth={2.4} />
                     <Text style={styles.transportCategoryLabel}>
                       {t(`group.transportCategory.${bucket}`, { defaultValue: bucket })}
                     </Text>
@@ -1274,11 +1274,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    marginTop: 4,
+    marginTop: 14,
   },
   transportCategoryLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
+    color: colors.textPrimary,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
