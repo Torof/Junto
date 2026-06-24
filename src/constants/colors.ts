@@ -47,7 +47,7 @@ export const darkColors = {
   // notif rows, inputs and other surfaces that should read as
   // sharply-defined containers, not floating soft shapes.
   borderStrong: '#F5F5F0',
-  borderMuted: 'rgba(255,255,255,0.18)',
+  borderMuted: 'rgba(255,255,255,0.34)',
   overlay: 'rgba(0,0,0,0.65)',
 };
 
@@ -86,7 +86,7 @@ export const lightColors = {
   lineStrong: 'rgba(31,26,21,0.16)',
   // Brutalist 1px-solid border (near-opposite of bg).
   borderStrong: '#1F1A15',
-  borderMuted: 'rgba(31,26,21,0.16)',
+  borderMuted: 'rgba(31,26,21,0.34)',
   overlay: 'rgba(0,0,0,0.5)',
 };
 
