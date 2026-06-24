@@ -16,7 +16,7 @@ interface ActivityPinProps {
 // silhouettes at the previous size dominated the visual field.
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
-const PIN_WIDTH = 44;
+const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
@@ -47,7 +47,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           fill={fillColor}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
         {/* Ivory content plate — completes the universal pin grammar
@@ -62,8 +62,8 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           r={18.5}
           fill={colors.pinBackground}
           stroke={colors.pinBorder}
-          strokeWidth={1.25}
-          strokeOpacity={0.6}
+          strokeWidth={1.5}
+          strokeOpacity={0.95}
         />
       </Svg>
       <View style={styles.iconWrap}>
@@ -94,6 +94,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 13,
+    fontSize: 12,
   },
 });

@@ -44,7 +44,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.9}
+          strokeOpacity={0.55}
           strokeLinejoin="round"
         />
         <Circle
@@ -53,8 +53,8 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           r={18.5}
           fill={colors.pinBackground}
           stroke={colors.pinBorder}
-          strokeWidth={1.25}
-          strokeOpacity={0.6}
+          strokeWidth={1.5}
+          strokeOpacity={0.95}
         />
       </Svg>
       <View style={styles.iconWrap}>
@@ -85,6 +85,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 13,
+    fontSize: 12,
   },
 });
