@@ -32,6 +32,8 @@ import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
+import { MessageCircleOff } from 'lucide-react-native';
 
 export default function ConversationScreen() {
   const colors = useColors();
@@ -68,7 +70,10 @@ export default function ConversationScreen() {
   // Other party of this DM — used by the header (avatar + name, tap
   // to profile) so the conversation has context instead of an empty
   // top bar.
-  const { data: otherUser } = useQuery({
+  // Conversation context for the header. `exists` distinguishes an
+  // inaccessible/deleted thread (→ unavailable screen) from a thread whose
+  // other party deleted their account (profile null, but still readable).
+  const { data: convMeta, isLoading: convLoading } = useQuery({
     queryKey: ['conversation-other-user', id, currentUser ?? null],
     queryFn: async () => {
       if (!id || !currentUser) return null;
@@ -77,18 +82,19 @@ export default function ConversationScreen() {
         .select('user_1, user_2')
         .eq('id', id)
         .maybeSingle();
-      if (!conv) return null;
+      if (!conv) return { exists: false, profile: null };
       const otherId = conv.user_1 === currentUser ? conv.user_2 : conv.user_1;
       const { data: profile } = await supabase
         .from('public_profiles')
         .select('id, display_name, avatar_url')
         .eq('id', otherId)
         .maybeSingle();
-      return profile;
+      return { exists: true, profile };
     },
     enabled: !!id && !!currentUser,
     staleTime: 60_000,
   });
+  const otherUser = convMeta?.profile ?? null;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -435,6 +441,25 @@ export default function ConversationScreen() {
   };
 
   const isOwnMessage = (msg: PrivateMessage) => msg.sender_id === currentUser;
+
+  // Conversation gone or inaccessible (deleted, or you're no longer a
+  // participant) → graceful screen instead of an empty thread the user could
+  // type into. A deleted-account other party keeps exists=true, so the thread
+  // stays readable.
+  if (convLoading) {
+    return <View style={styles.center}><LogoSpinner /></View>;
+  }
+  if (convMeta && !convMeta.exists) {
+    return (
+      <ActivityUnavailable
+        fallbackHref="/(auth)/(tabs)/messagerie"
+        icon={MessageCircleOff}
+        title={t('messagerie.unavailableTitle')}
+        body={t('messagerie.unavailableBody')}
+        ctaLabel={t('messagerie.unavailableCta')}
+      />
+    );
+  }
 
   return (
     // No KeyboardAvoidingView — the dock's bottom padding animates with

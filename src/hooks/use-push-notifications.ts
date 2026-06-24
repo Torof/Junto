@@ -89,12 +89,17 @@ export function usePushNotifications(enabled: boolean) {
         offering_id?: string;
         type?: string;
       };
+      // Peer-review pushes land on the review screen (mirrors the in-app
+      // notification router) — not the activity detail.
+      if ((data?.type === 'rate_participants' || data?.type === 'peer_review_closing') && data.activity_id) {
+        router.push(`/(auth)/peer-review/${data.activity_id}`);
+      }
       // Seat-request push: land the driver on the chat thread (00206
       // seeds the conversation on request creation) so they can talk
       // before the accept/decline. Falls back to the requests tab for
       // older notifs that don't carry conversation_id, and for the
       // edge case where requester+driver were blocked at request time.
-      if (data?.type === 'seat_request' && data.conversation_id) {
+      else if (data?.type === 'seat_request' && data.conversation_id) {
         router.push(`/(auth)/conversation/${data.conversation_id}`);
       } else if (data?.type === 'contact_request' || data?.type === 'seat_request') {
         router.push('/(auth)/(tabs)/messagerie?tab=requests');

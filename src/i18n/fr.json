@@ -715,6 +715,9 @@
   },
   "messagerie": {
     "empty": "Aucune conversation",
+    "unavailableTitle": "Conversation indisponible",
+    "unavailableBody": "Cette conversation n'existe plus ou n'est plus accessible.",
+    "unavailableCta": "Retour aux messages",
     "noMessages": "Aucun message — commencez la conversation !",
     "placeholder": "Écrire un message...",
     "edited": "modifié",

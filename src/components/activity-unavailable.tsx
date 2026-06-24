@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { CalendarX2 } from 'lucide-react-native';
+import { CalendarX2, type LucideIcon } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -10,18 +10,27 @@ import type { AppColors } from '@/constants/colors';
 interface Props {
   /** Where the CTA lands — the map for signed-in users, the visitor home otherwise. */
   fallbackHref: Href;
+  /** Overrides — default to activity wording; pass these to reuse for other entities. */
+  icon?: LucideIcon;
+  title?: string;
+  body?: string;
+  ctaLabel?: string;
 }
 
 /**
- * Shown when an activity can't be loaded — finished, deleted, or no longer
- * accessible (e.g. a notification deep-link to an outing that has since ended).
- * Replaces the perpetual skeleton that otherwise read as a blank page.
+ * Shown when an entity can't be loaded — finished, deleted, or no longer
+ * accessible (e.g. a notification deep-link to an outing that has since ended,
+ * or a conversation that no longer exists). Replaces the perpetual
+ * skeleton/empty state that otherwise reads as a blank page. Defaults to
+ * activity copy; override icon/title/body/ctaLabel to reuse elsewhere.
  */
-export function ActivityUnavailable({ fallbackHref }: Props) {
+export function ActivityUnavailable({ fallbackHref, icon, title, body, ctaLabel }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const router = useRouter();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const Icon = icon ?? CalendarX2;
 
   const goHome = () => {
     if (router.canGoBack()) router.back();
@@ -31,12 +40,12 @@ export function ActivityUnavailable({ fallbackHref }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.iconWrap}>
-        <CalendarX2 size={40} color={colors.textSecondary} strokeWidth={1.8} />
+        <Icon size={40} color={colors.textSecondary} strokeWidth={1.8} />
       </View>
-      <Text style={styles.title}>{t('activity.notFound')}</Text>
-      <Text style={styles.body}>{t('activity.notFoundBody')}</Text>
+      <Text style={styles.title}>{title ?? t('activity.notFound')}</Text>
+      <Text style={styles.body}>{body ?? t('activity.notFoundBody')}</Text>
       <Pressable style={styles.cta} onPress={goHome}>
-        <Text style={styles.ctaText}>{t('activity.notFoundCta')}</Text>
+        <Text style={styles.ctaText}>{ctaLabel ?? t('activity.notFoundCta')}</Text>
       </Pressable>
     </View>
   );
