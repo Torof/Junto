@@ -420,6 +420,7 @@ export function JuntoMapView({
               key={`cluster-${clusterId}`}
               id={`cluster-${clusterId}`}
               coordinate={[lng, lat]}
+              allowOverlap
             >
               <Pressable onPress={() => {
                 const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
