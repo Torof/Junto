@@ -242,11 +242,9 @@ export function JuntoMapView({
   }, [activities, pros, proOfferings]);
 
   const clusters = useMemo(
-    // floor: hold clusters together until a full zoom level is crossed, so
-    // pins only split once there's real room. Pairs with the wider radius
-    // (50) to keep the declustered field clean. (round declustered ~half a
-    // level earlier but let pins overlap mid-zoom.)
-    () => cluster.getClusters(bounds, Math.floor(currentZoom)),
+    // round (not floor) so declustering happens ~half a zoom level earlier
+    // — floor made pins feel "stuck" clustered until a full level crossed.
+    () => cluster.getClusters(bounds, Math.round(currentZoom)),
     [cluster, bounds, currentZoom],
   );
 
