@@ -35,8 +35,8 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Sport + places chips on same row */}
       <View style={styles.chipsRow}>
-        <View style={[styles.sportChip, { backgroundColor: sportAccent + '1F' }]}>
-          <Text style={[styles.sportChipText, { color: sportAccent }]}>
+        <View style={[styles.sportChip, { backgroundColor: sportAccent }]}>
+          <Text style={[styles.sportChipText, { color: '#FFFFFF' }]}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
           </Text>
         </View>
@@ -53,7 +53,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Date */}
       <View style={styles.row}>
-        <Calendar size={12} color={colors.textSecondary} strokeWidth={2} />
+        <Calendar size={12} color={colors.textPrimary} strokeWidth={2} />
         <Text style={styles.value}>
           {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
         </Text>
@@ -67,7 +67,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
           <>
             <View style={styles.divider} />
             <View style={styles.row}>
-              <BarChart2 size={12} color={colors.textSecondary} strokeWidth={2} />
+              <BarChart2 size={12} color={colors.textPrimary} strokeWidth={2} />
               <Text style={styles.value}>{signal}</Text>
             </View>
           </>
@@ -114,19 +114,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   sportChipText: {
     color: colors.cta,
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   placesChip: {
-    backgroundColor: colors.success + '1F',
+    backgroundColor: colors.success + '33',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
   },
   placesChipFull: {
-    backgroundColor: colors.error + '1F',
+    backgroundColor: colors.error + '33',
   },
   placesChipText: {
     color: colors.success,
@@ -139,7 +139,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.md,
     fontWeight: 'bold',
     marginBottom: 2,
   },
