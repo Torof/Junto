@@ -20,6 +20,7 @@ import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
 
 // Per-trait Lucide icons — match the profile's vouched line for the
 // positives, distinct shapes for the negatives that don't collide with
@@ -63,7 +64,7 @@ export default function PeerReviewScreen() {
   const toggleCollapse = (userId: string) =>
     setCollapsed((prev) => ({ ...prev, [userId]: !prev[userId] }));
 
-  const { data: activity } = useQuery({
+  const { data: activity, isLoading: activityLoading } = useQuery({
     queryKey: ['activity', id],
     queryFn: () => activityService.getById(id ?? ''),
     enabled: !!id,
@@ -160,7 +161,16 @@ export default function PeerReviewScreen() {
     });
   }, [navigation, activity, urgencyLabel, colors, t]);
 
-  if (isLoading || !activity) {
+  // Activity still resolving → spinner. Resolved to nothing (deleted, expired,
+  // or no longer accessible) → graceful unavailable instead of an endless
+  // spinner. (Finished activities themselves now load via getById's fallback.)
+  if (activityLoading) {
+    return <View style={styles.center}><LogoSpinner /></View>;
+  }
+  if (!activity) {
+    return <ActivityUnavailable fallbackHref="/(auth)/(tabs)/notifications" />;
+  }
+  if (isLoading) {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
 
