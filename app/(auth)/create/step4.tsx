@@ -9,6 +9,7 @@ import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
+import { formatLevelRange } from '@/constants/sport-levels';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { activityService } from '@/services/activity-service';
@@ -96,7 +97,7 @@ export default function CreateStep4() {
 
       <View style={styles.recap}>
         <RecapRow label={t('create.title')} value={form.title} />
-        <RecapRow label={t('create.level')} value={form.level} />
+        <RecapRow label={t('create.level')} value={formatLevelRange(form.level, form.level_max)} />
         <RecapRow label={t('create.maxParticipants')} value={form.max_participants === null ? t('create.openActivityValue') : `${form.max_participants}`} />
         <RecapRow
           label={t('create.dateTime')}

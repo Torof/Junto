@@ -810,7 +810,7 @@ export function ActivityDetail({
                   : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
 
                 const chips: MetaChip[] = [
-                  { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: formatLevelRange(activity.level, activity.level_max) },
+                  { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: formatLevelRange(activity.level, activity.level_max), span: activity.level_max ? 'full' : undefined },
                   { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
                   { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
                   startChip,
