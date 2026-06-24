@@ -205,7 +205,12 @@ export function JuntoMapView({
   // tapping zooms to expansion so the typed individual pins emerge.
   const cluster = useMemo(() => {
     const sc = new Supercluster<PinPointProps>({
-      radius: 60,
+      // "See what's around at a glance" is the product. radius was 60px —
+      // far wider than a ~40px pin, so pins merged long before they'd
+      // actually overlap. 32 clusters only when pins would genuinely
+      // collide; below that they stay individual. Dial down further
+      // (28/24) for even earlier declustering, up (40) if it gets busy.
+      radius: 32,
       maxZoom: 20,
     });
     const points: PinPoint[] = [
@@ -230,7 +235,9 @@ export function JuntoMapView({
   }, [activities, pros, proOfferings]);
 
   const clusters = useMemo(
-    () => cluster.getClusters(bounds, Math.floor(currentZoom)),
+    // round (not floor) so declustering happens ~half a zoom level earlier
+    // — floor made pins feel "stuck" clustered until a full level crossed.
+    () => cluster.getClusters(bounds, Math.round(currentZoom)),
     [cluster, bounds, currentZoom],
   );
 
