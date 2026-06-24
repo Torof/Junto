@@ -1134,9 +1134,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // flat list of rows. Visually outranks the self-mover chips since
   // drivers are where the user takes action (reserving a seat).
   driverPill: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.lineStrong,
+    borderColor: colors.borderMuted,
     borderRadius: radius.md,
     padding: spacing.sm + 2,
     gap: 6,
@@ -1268,7 +1268,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Autre). Each non-empty bucket gets its own caption header followed
   // by the cars' driver-rows or the self-movers' chip strip.
   transportCategory: {
-    gap: 6,
+    gap: 10,
   },
   transportCategoryHeader: {
     flexDirection: 'row',
@@ -1401,7 +1401,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // `lineStrong` used on driver pills) signals tappability without
   // competing with the driver pills which carry the action.
   selfMoversList: {
-    gap: 6,
+    gap: 8,
     marginTop: 4,
   },
   selfMoverRow: {
@@ -1410,8 +1410,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 8,
     paddingVertical: 6,
     paddingHorizontal: 8,
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.borderMuted,
     borderRadius: radius.md,
   },
   selfMoverInfo: {
@@ -1528,16 +1529,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // heavier lineStrong used on bringer pills) since this is info /
   // quick-edit, not the primary action surface.
   inventoryList: {
-    gap: 4,
+    gap: 8,
   },
   inventoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 4,
+    paddingVertical: 6,
     paddingHorizontal: 8,
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.borderMuted,
     borderRadius: radius.sm,
   },
   inventoryItemName: {
