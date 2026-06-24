@@ -75,6 +75,8 @@
     "description": "Description",
     "location": "Localisation",
     "navigate": "Y aller",
+    "fullscreen": "Plein écran",
+    "traceGpx": "Trace GPX",
     "tab": {
       "info": "Infos",
       "transport": "Transport",

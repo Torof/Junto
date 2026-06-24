@@ -12,7 +12,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -864,28 +864,38 @@ export function ActivityDetail({
                       <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
                       <Text style={styles.mapNavHintText}>{t('activity.navigate')}</Text>
                     </View>
-                    {isCreator && (
-                      <View style={styles.traceIconRow} pointerEvents="box-none">
+                    <View style={styles.mapControls} pointerEvents="box-none">
+                      <Pressable
+                        style={styles.mapControlBtn}
+                        onPress={(e) => { e.stopPropagation(); setShowFullMap(true); }}
+                        accessibilityLabel={t('activity.fullscreen', { defaultValue: 'Plein écran' })}
+                        hitSlop={6}
+                      >
+                        <Maximize2 size={13} color={colors.textPrimary} strokeWidth={2.4} />
+                        <Text style={styles.mapControlText}>{t('activity.fullscreen', { defaultValue: 'Plein écran' })}</Text>
+                      </Pressable>
+                      {isCreator && (
                         <Pressable
-                          style={styles.traceIconButton}
-                          onPress={handlePickTrace}
+                          style={styles.mapControlBtn}
+                          onPress={(e) => { e.stopPropagation(); handlePickTrace(); }}
                           accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
                           hitSlop={6}
                         >
-                          <Route size={18} color={colors.cta} strokeWidth={2.4} />
+                          <Route size={13} color={colors.cta} strokeWidth={2.4} />
+                          <Text style={styles.mapControlText}>{t('activity.traceGpx', { defaultValue: 'Trace GPX' })}</Text>
                         </Pressable>
-                        {activity.trace_geojson && (
-                          <Pressable
-                            style={styles.traceIconButton}
-                            onPress={handleClearTrace}
-                            accessibilityLabel={t('activity.traceRemove')}
-                            hitSlop={6}
-                          >
-                            <Trash2 size={18} color={colors.error} strokeWidth={2.4} />
-                          </Pressable>
-                        )}
-                      </View>
-                    )}
+                      )}
+                      {isCreator && activity.trace_geojson && (
+                        <Pressable
+                          style={styles.traceIconButton}
+                          onPress={(e) => { e.stopPropagation(); handleClearTrace(); }}
+                          accessibilityLabel={t('activity.traceRemove')}
+                          hitSlop={6}
+                        >
+                          <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
+                        </Pressable>
+                      )}
+                    </View>
                   </Pressable>
                 )}
                 <ActivityDescription description={activity.description} />
@@ -1411,7 +1421,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
   },
-  traceIconRow: { position: 'absolute', top: spacing.sm, right: spacing.sm, flexDirection: 'row', gap: 6 },
+  mapControls: { position: 'absolute', top: spacing.sm, right: spacing.sm, gap: 6, alignItems: 'flex-end' },
+  mapControlBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.background,
+    borderWidth: 1, borderColor: colors.borderStrong,
+    borderRadius: radius.sm,
+    paddingHorizontal: 8, paddingVertical: 5,
+  },
+  mapControlText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
   traceIconButton: {
     width: 32, height: 32, borderRadius: radius.sm,
     backgroundColor: colors.background,
