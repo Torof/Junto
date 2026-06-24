@@ -24,7 +24,7 @@ interface ProOfferingPinProps {
 
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 64;
-const PIN_WIDTH = 40;
+const PIN_WIDTH = 44;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 const ICON_CENTER_Y_VBX = 24;
 
@@ -44,7 +44,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
-          strokeOpacity={0.55}
+          strokeOpacity={0.9}
           strokeLinejoin="round"
         />
         <Circle
@@ -70,10 +70,10 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     height: PIN_HEIGHT,
     overflow: 'visible',
     shadowColor: '#0A0F1A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 4,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 10,
   },
   iconWrap: {
     position: 'absolute',
@@ -85,6 +85,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 12,
+    fontSize: 13,
   },
 });
