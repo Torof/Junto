@@ -39,6 +39,7 @@ export default function CreateStep4() {
         title: form.title,
         description: form.description || undefined,
         level: form.level,
+        level_max: form.level_max,
         distance_km: form.distance_km,
         elevation_gain_m: form.elevation_gain_m,
         max_participants: form.max_participants,

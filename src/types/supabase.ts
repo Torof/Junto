@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       activities: {
@@ -52,6 +27,7 @@ export type Database = {
           id: string
           invite_token: string
           level: string
+          level_max: string | null
           location_end: unknown
           location_meeting: unknown
           location_objective: unknown
@@ -81,6 +57,7 @@ export type Database = {
           id?: string
           invite_token?: string
           level: string
+          level_max?: string | null
           location_end?: unknown
           location_meeting?: unknown
           location_objective?: unknown
@@ -110,6 +87,7 @@ export type Database = {
           id?: string
           invite_token?: string
           level?: string
+          level_max?: string | null
           location_end?: unknown
           location_meeting?: unknown
           location_objective?: unknown
@@ -1740,6 +1718,7 @@ export type Database = {
           id: string | null
           lat: number | null
           level: string | null
+          level_max: string | null
           lng: number | null
           max_participants: number | null
           meeting_lat: number | null
@@ -1933,6 +1912,7 @@ export type Database = {
           id: string | null
           lat: number | null
           level: string | null
+          level_max: string | null
           lng: number | null
           max_participants: number | null
           meeting_lat: number | null
@@ -1996,6 +1976,7 @@ export type Database = {
           id: string | null
           lat: number | null
           level: string | null
+          level_max: string | null
           lng: number | null
           max_participants: number | null
           meeting_lat: number | null
@@ -2059,6 +2040,7 @@ export type Database = {
           id: string | null
           lat: number | null
           level: string | null
+          level_max: string | null
           lng: number | null
           max_participants: number | null
           meeting_lat: number | null
@@ -2569,6 +2551,7 @@ export type Database = {
           p_end_lat?: number
           p_end_lng?: number
           p_level: string
+          p_level_max?: string
           p_max_participants: number
           p_meeting_lat?: number
           p_meeting_lng?: number
@@ -2818,6 +2801,7 @@ export type Database = {
           id: string
           lat: number
           level: string
+          level_max: string
           lng: number
           max_participants: number
           participant_count: number
@@ -3018,6 +3002,25 @@ export type Database = {
       }
       notify_presence_validate_warning: {
         Args: { p_activity_id: string }
+        Returns: undefined
+      }
+      notify_review_received: {
+        Args: {
+          p_data: Json
+          p_pro_id: string
+          p_rating: number
+          p_reviewer_name: string
+          p_target_label: string
+        }
+        Returns: undefined
+      }
+      notify_review_reply: {
+        Args: {
+          p_data: Json
+          p_pro_name: string
+          p_reviewer_id: string
+          p_target_label: string
+        }
         Returns: undefined
       }
       peer_validate_presence: {
@@ -3791,6 +3794,7 @@ export type Database = {
           p_description?: string
           p_duration?: string
           p_level?: string
+          p_level_max?: string
           p_max_participants?: number
           p_meeting_lat?: number
           p_meeting_lng?: number
@@ -3998,9 +4002,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

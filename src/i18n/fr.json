@@ -1207,6 +1207,7 @@
     "description": "Description",
     "descriptionPlaceholder": "Décris ton activité...",
     "level": "Niveau",
+    "levelRangeHint": "Touchez un niveau — ou deux pour définir une plage",
     "distance": "Distance (km)",
     "elevation": "D+ (m)",
     "maxParticipants": "Participants max",

@@ -1207,6 +1207,7 @@
     "description": "Description",
     "descriptionPlaceholder": "Describe your activity...",
     "level": "Level",
+    "levelRangeHint": "Tap a level — or two to set a range",
     "distance": "Distance (km)",
     "elevation": "Elevation gain (m)",
     "maxParticipants": "Max participants",

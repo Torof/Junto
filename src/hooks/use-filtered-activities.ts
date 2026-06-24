@@ -2,10 +2,8 @@ import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import { type NearbyActivity } from '@/services/activity-service';
 import { useMapStore } from '@/store/map-store';
-import { getLevelScale } from '@/constants/sport-levels';
+import { levelSpanMatchesTiers } from '@/constants/sport-levels';
 import { distanceMeters } from '@/utils/geo';
-
-const OPEN_LEVEL = 'Tous niveaux';
 
 export function useFilteredActivities(
   activities: NearbyActivity[],
@@ -38,17 +36,12 @@ export function useFilteredActivities(
       });
     }
 
-    // Level tier filter (soft-fail: activities whose level can't be mapped to any
-    // scale option pass through — prevents accidentally hiding activities with
-    // free-form or missing level data)
+    // Level tier filter — an activity matches if its level span [level, level_max]
+    // overlaps any selected tier (open / unmappable levels soft-fail).
     if (filters.levelTiers.length > 0) {
-      filtered = filtered.filter((a) => {
-        if (!a.level || a.level === OPEN_LEVEL) return true;
-        const scale = getLevelScale(a.sport_key);
-        const option = scale.find((o) => o.label === a.level);
-        if (!option?.description) return true; // soft-fail
-        return filters.levelTiers.includes(option.description as typeof filters.levelTiers[number]);
-      });
+      filtered = filtered.filter((a) =>
+        levelSpanMatchesTiers(a.sport_key, a.level, a.level_max, filters.levelTiers),
+      );
     }
 
     // Visibility filter

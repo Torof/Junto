@@ -14,15 +14,13 @@ import { ActivityCard } from '@/components/activity-card';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { FilterSheet } from '@/components/filter-sheet';
 import { useMyActivitiesFilterStore } from '@/store/my-activities-filter-store';
-import { getLevelScale } from '@/constants/sport-levels';
+import { levelSpanMatchesTiers } from '@/constants/sport-levels';
 import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { getFriendlyError } from '@/utils/friendly-error';
 
 type MainTab = 'created' | 'joined' | 'pending';
 type TimeFilter = 'upcoming' | 'finished';
-
-const OPEN_LEVEL = 'Tous niveaux';
 
 export default function MesActivitesScreen() {
   const colors = useColors();
@@ -87,15 +85,7 @@ export default function MesActivitesScreen() {
         if (!(d.isAfter(from) && d.isBefore(to))) return false;
       }
 
-      if (filters.levelTiers.length > 0) {
-        if (a.level && a.level !== OPEN_LEVEL) {
-          const scale = getLevelScale(a.sport_key);
-          const option = scale.find((o) => o.label === a.level);
-          if (option?.description && !filters.levelTiers.includes(option.description as typeof filters.levelTiers[number])) {
-            return false;
-          }
-        }
-      }
+      if (!levelSpanMatchesTiers(a.sport_key, a.level, a.level_max, filters.levelTiers)) return false;
 
       if (filters.radiusKm !== null) {
         const limit = filters.radiusKm * 1000;

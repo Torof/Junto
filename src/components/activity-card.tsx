@@ -58,7 +58,7 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
               {t(`sports.${activity.sport_key}`, activity.sport_key)}
             </Text>
             {(() => {
-              const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
+              const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m, activity.level_max);
               if (!signal) return null;
               return (
                 <>

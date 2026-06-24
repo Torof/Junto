@@ -9,7 +9,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { getLevelScale, sportHasDistance, sportHasElevation } from '@/constants/sport-levels';
+import { getLevelScale, sportHasDistance, sportHasElevation, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 
 export default function CreateStep1() {
   const colors = useColors();
@@ -35,6 +35,29 @@ export default function CreateStep1() {
   const showDistance = sportHasDistance(selectedSportKey);
   const showElevation = sportHasElevation(selectedSportKey);
   const isValid = form.sport_id && form.title.length >= 3 && form.level && (form.max_participants === null || form.max_participants >= 2);
+
+  // Range picker — tap a level to set the low end, tap a second to span the
+  // two. "Tous niveaux" is a one-tap open selection (no high end).
+  const lowIdx = levelScale.findIndex((o) => o.label === form.level);
+  const highIdx = form.level_max ? levelScale.findIndex((o) => o.label === form.level_max) : lowIdx;
+  const rangeLabel = formatLevelRange(form.level, form.level_max);
+
+  const handleLevelTap = (label: string, idx: number) => {
+    if (label === OPEN_LEVEL) {
+      updateForm({ level: OPEN_LEVEL, level_max: null });
+      return;
+    }
+    // Fresh start: nothing chosen, "Tous niveaux" was selected, or a full
+    // range already exists → this tap becomes the new single low end.
+    if (lowIdx === -1 || form.level === OPEN_LEVEL || form.level_max) {
+      updateForm({ level: label, level_max: null });
+      return;
+    }
+    if (idx === lowIdx) return; // re-tapping the single selection keeps it
+    const lowOpt = levelScale[Math.min(idx, lowIdx)];
+    const highOpt = levelScale[Math.max(idx, lowIdx)];
+    if (lowOpt && highOpt) updateForm({ level: lowOpt.label, level_max: highOpt.label });
+  };
 
   return (
     <KeyboardAvoidingView
@@ -82,23 +105,29 @@ export default function CreateStep1() {
 
       <Text style={styles.label}>{t('create.level')}</Text>
       <View style={styles.chipRow}>
-        {levelScale.map((opt) => (
-          <Pressable
-            key={opt.label}
-            style={[styles.chip, form.level === opt.label && styles.chipActive]}
-            onPress={() => updateForm({ level: opt.label })}
-          >
-            <Text style={[styles.chipText, form.level === opt.label && styles.chipTextActive]}>
-              {opt.label}
-            </Text>
-            {opt.description && (
-              <Text style={[styles.chipHint, form.level === opt.label && styles.chipHintActive]}>
-                {opt.description}
+        {levelScale.map((opt, idx) => {
+          const active = lowIdx !== -1 && idx >= lowIdx && idx <= highIdx;
+          return (
+            <Pressable
+              key={opt.label}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => handleLevelTap(opt.label, idx)}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                {opt.label}
               </Text>
-            )}
-          </Pressable>
-        ))}
+              {opt.description && (
+                <Text style={[styles.chipHint, active && styles.chipHintActive]}>
+                  {opt.description}
+                </Text>
+              )}
+            </Pressable>
+          );
+        })}
       </View>
+      <Text style={styles.rangeHint}>
+        {rangeLabel || t('create.levelRangeHint', { defaultValue: 'Touchez un niveau — ou deux pour définir une plage' })}
+      </Text>
 
       {(showDistance || showElevation) && (
         <View style={styles.metricRow}>
@@ -206,6 +235,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   chipHint: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 2 },
   chipHintActive: { color: '#FFFFFF', opacity: 0.85 },
+  rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
   metricRow: { flexDirection: 'row', gap: spacing.md },
   metricField: { flex: 1 },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },

@@ -99,9 +99,69 @@ export const SPORT_LEVEL_SCALES: Record<string, LevelOption[]> = {
   'ice-climbing': ICE_CLIMBING,
 };
 
+/** The explicit "open to everyone" option — index 0 of every scale. */
+export const OPEN_LEVEL = 'Tous niveaux';
+
+/** Coarse difficulty tiers used by the map/list level filter. */
+export const LEVEL_TIERS = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'] as const;
+
+/**
+ * Map a level label to its tier index (0–3), or null when it should match any
+ * tier — i.e. "Tous niveaux", missing, or a label that maps to no known tier
+ * (soft-fail, so free-form data is never hidden).
+ */
+function levelTierIndex(sportKey: string, label: string | null | undefined): number | null {
+  if (!label || label === OPEN_LEVEL) return null;
+  const option = getLevelScale(sportKey).find((o) => o.label === label);
+  const tierName = option?.description ?? option?.label;
+  const idx = tierName ? (LEVEL_TIERS as readonly string[]).indexOf(tierName) : -1;
+  return idx === -1 ? null : idx;
+}
+
+/**
+ * Does an activity's level span [level, levelMax] overlap any of the selected
+ * tiers? Empty selection matches everything; open / unmappable levels soft-fail
+ * (match), so free-form or missing data is never hidden.
+ */
+export function levelSpanMatchesTiers(
+  sportKey: string,
+  level: string | null | undefined,
+  levelMax: string | null | undefined,
+  selectedTiers: readonly string[],
+): boolean {
+  if (selectedTiers.length === 0) return true;
+  const lo = levelTierIndex(sportKey, level);
+  if (lo === null) return true;
+  const hiRaw = levelTierIndex(sportKey, levelMax);
+  const hi = hiRaw ?? lo;
+  const low = Math.min(lo, hi);
+  const high = Math.max(lo, hi);
+  return selectedTiers.some((tier) => {
+    const i = (LEVEL_TIERS as readonly string[]).indexOf(tier);
+    return i >= low && i <= high;
+  });
+}
+
 /** Get the appropriate level scale for a given sport. Falls back to generic. */
 export function getLevelScale(sportKey: string): LevelOption[] {
   return SPORT_LEVEL_SCALES[sportKey] ?? GENERIC;
+}
+
+/**
+ * Format a level span for display.
+ *   - open / empty        → "Tous niveaux" (or '')
+ *   - single level        → "Avancé"
+ *   - contiguous range    → "Débutant → Avancé"
+ * level is the low end, levelMax the high end (NULL when single).
+ */
+export function formatLevelRange(
+  level: string | null | undefined,
+  levelMax: string | null | undefined,
+): string {
+  if (!level) return '';
+  if (level === OPEN_LEVEL) return OPEN_LEVEL;
+  if (!levelMax || levelMax === level) return level;
+  return `${level} → ${levelMax}`;
 }
 
 /**
@@ -147,6 +207,7 @@ export function formatDifficultySignal(
   level: string | null | undefined,
   distanceKm: number | null | undefined,
   elevationGainM: number | null | undefined,
+  levelMax?: string | null,
 ): string {
   const parts: string[] = [];
   if (sportHasDistance(sportKey) && distanceKm != null && distanceKm > 0) {
@@ -156,5 +217,5 @@ export function formatDifficultySignal(
     parts.push(`D+ ${elevationGainM.toLocaleString('fr-FR')} m`);
   }
   if (parts.length > 0) return parts.join(' · ');
-  return level || '';
+  return formatLevelRange(level, levelMax);
 }

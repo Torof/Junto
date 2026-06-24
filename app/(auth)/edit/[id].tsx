@@ -11,7 +11,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { supabase } from '@/services/supabase';
-import { LEVELS } from '@/types/activity-form';
+import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 
@@ -49,6 +49,7 @@ export default function EditActivityScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [level, setLevel] = useState('');
+  const [levelMax, setLevelMax] = useState<string | null>(null);
   const [maxParticipants, setMaxParticipants] = useState<number | null>(4);
   const [startsAt, setStartsAt] = useState<Date | null>(null);
   const [durationHours, setDurationHours] = useState(2);
@@ -64,6 +65,7 @@ export default function EditActivityScreen() {
     setTitle(activity.title);
     setDescription(activity.description ?? '');
     setLevel(activity.level);
+    setLevelMax(activity.level_max);
     setMaxParticipants(activity.max_participants);
     setStartsAt(new Date(activity.starts_at));
     setVisibility(activity.visibility);
@@ -76,6 +78,22 @@ export default function EditActivityScreen() {
     setInitialized(true);
   }
 
+  // Level range picker — mirrors create/step1. Locked when participants exist.
+  const levelScale = useMemo(() => getLevelScale(activity?.sport_key ?? ''), [activity?.sport_key]);
+  const lowIdx = levelScale.findIndex((o) => o.label === level);
+  const highIdx = levelMax ? levelScale.findIndex((o) => o.label === levelMax) : lowIdx;
+  const rangeLabel = formatLevelRange(level, levelMax);
+
+  const handleLevelTap = (label: string, idx: number) => {
+    if (hasParticipants) return;
+    if (label === OPEN_LEVEL) { setLevel(OPEN_LEVEL); setLevelMax(null); return; }
+    if (lowIdx === -1 || level === OPEN_LEVEL || levelMax) { setLevel(label); setLevelMax(null); return; }
+    if (idx === lowIdx) return;
+    const lowOpt = levelScale[Math.min(idx, lowIdx)];
+    const highOpt = levelScale[Math.max(idx, lowIdx)];
+    if (lowOpt && highOpt) { setLevel(lowOpt.label); setLevelMax(highOpt.label); }
+  };
+
   const handleSave = async () => {
     if (!activity || !id) return;
     setIsSaving(true);
@@ -85,6 +103,7 @@ export default function EditActivityScreen() {
         title,
         description,
         level,
+        level_max: levelMax,
         max_participants: maxParticipants,
         starts_at: startsAt?.toISOString(),
         duration: durationStr,
@@ -132,18 +151,23 @@ export default function EditActivityScreen() {
 
       <Text style={styles.label}>{t('create.level')}</Text>
       <View style={[styles.chipRow, hasParticipants && styles.locked]}>
-        {LEVELS.map((l) => (
-          <Pressable
-            key={l}
-            style={[styles.chip, level === l && styles.chipActive]}
-            onPress={() => !hasParticipants && setLevel(l)}
-            disabled={hasParticipants}
-          >
-            <Text style={[styles.chipText, level === l && styles.chipTextActive]}>{l}</Text>
-          </Pressable>
-        ))}
+        {levelScale.map((opt, idx) => {
+          const active = lowIdx !== -1 && idx >= lowIdx && idx <= highIdx;
+          return (
+            <Pressable
+              key={opt.label}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => handleLevelTap(opt.label, idx)}
+              disabled={hasParticipants}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{opt.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
-      {hasParticipants && <Text style={styles.lockedHint}>{t('edit.lockedHint')}</Text>}
+      {hasParticipants
+        ? <Text style={styles.lockedHint}>{t('edit.lockedHint')}</Text>
+        : <Text style={styles.rangeHint}>{rangeLabel || t('create.levelRangeHint')}</Text>}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
       <Pressable
@@ -313,6 +337,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dateValue: { color: colors.textPrimary, fontSize: fontSizes.md },
   locked: { opacity: 0.4 },
   lockedHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs, fontStyle: 'italic' },
+  rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
   saveButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
   saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

@@ -61,7 +61,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
 
       {/* Difficulty signal — sport-adaptive */}
       {(() => {
-        const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m);
+        const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m, activity.level_max);
         if (!signal) return null;
         return (
           <>

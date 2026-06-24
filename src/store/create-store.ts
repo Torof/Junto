@@ -6,6 +6,7 @@ interface CreateFormState {
   title: string;
   description: string;
   level: string;
+  level_max: string | null;
   distance_km: number | null;
   elevation_gain_m: number | null;
   max_participants: number | null;
@@ -34,6 +35,7 @@ const DEFAULT_FORM: CreateFormState = {
   title: '',
   description: '',
   level: '',
+  level_max: null,
   distance_km: null,
   elevation_gain_m: null,
   max_participants: 4,
