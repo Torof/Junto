@@ -130,6 +130,9 @@ export function JuntoMapView({
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
   const lastCamera = useRef<{ center: [number, number]; zoom: number } | null>(null);
+  // Once the user takes camera control (taps a pin/cluster → flyTo/setCamera),
+  // the startup centre-bumps + late-GPS follow must stop yanking the camera back.
+  const cameraTouched = useRef(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // When the radius filter changes, fit the camera to its bounding box so
@@ -171,6 +174,9 @@ export function JuntoMapView({
     const delays = isFirst ? [250, 1000, 2500] : [0];
     for (const delay of delays) {
       timers.push(setTimeout(() => {
+        // The user has grabbed the camera (tapped a pin/cluster) — don't
+        // rewind their zoom with a late startup bump or GPS-follow.
+        if (cameraTouched.current) return;
         cameraRef.current?.setCamera({
           centerCoordinate: isFirst
             ? [center[0] + (delay / 100000), center[1]]
@@ -244,6 +250,7 @@ export function JuntoMapView({
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
+      cameraTouched.current = true;
       const targetZoom = flyTo.zoom ?? Math.max(13, currentZoom);
       // Approximate viewport span in degrees at the target zoom (Web Mercator).
       // ~360 / 2^zoom is the longitudinal width of one base tile across the screen.
@@ -440,6 +447,7 @@ export function JuntoMapView({
                   onStuckClusterPress(stuckActivities);
                   return;
                 }
+                cameraTouched.current = true;
                 cameraRef.current?.setCamera({
                   centerCoordinate: [lng, lat],
                   zoomLevel: targetZoom,
