@@ -869,28 +869,28 @@ export function ActivityDetail({
                         style={styles.mapControlBtn}
                         onPress={(e) => { e.stopPropagation(); setShowFullMap(true); }}
                         accessibilityLabel={t('activity.fullscreen', { defaultValue: 'Plein écran' })}
-                        hitSlop={6}
+                        hitSlop={4}
                       >
-                        <Maximize2 size={13} color={colors.textPrimary} strokeWidth={2.4} />
-                        <Text style={styles.mapControlText}>{t('activity.fullscreen', { defaultValue: 'Plein écran' })}</Text>
+                        <Maximize2 size={16} color={colors.textPrimary} strokeWidth={2.4} />
                       </Pressable>
+                      {isCreator && <View style={styles.mapControlDivider} />}
                       {isCreator && (
                         <Pressable
                           style={styles.mapControlBtn}
                           onPress={(e) => { e.stopPropagation(); handlePickTrace(); }}
                           accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
-                          hitSlop={6}
+                          hitSlop={4}
                         >
-                          <Route size={13} color={colors.cta} strokeWidth={2.4} />
-                          <Text style={styles.mapControlText}>{t('activity.traceGpx', { defaultValue: 'Trace GPX' })}</Text>
+                          <Route size={16} color={colors.cta} strokeWidth={2.4} />
                         </Pressable>
                       )}
+                      {isCreator && activity.trace_geojson && <View style={styles.mapControlDivider} />}
                       {isCreator && activity.trace_geojson && (
                         <Pressable
-                          style={styles.traceIconButton}
+                          style={styles.mapControlBtn}
                           onPress={(e) => { e.stopPropagation(); handleClearTrace(); }}
                           accessibilityLabel={t('activity.traceRemove')}
-                          hitSlop={6}
+                          hitSlop={4}
                         >
                           <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
                         </Pressable>
@@ -1421,21 +1421,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
   },
-  mapControls: { position: 'absolute', top: spacing.sm, right: spacing.sm, gap: 6, alignItems: 'flex-end' },
-  mapControlBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
+  mapControls: {
+    position: 'absolute', top: spacing.sm, right: spacing.sm,
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.background,
     borderWidth: 1, borderColor: colors.borderStrong,
     borderRadius: radius.sm,
-    paddingHorizontal: 8, paddingVertical: 5,
+    overflow: 'hidden',
   },
-  mapControlText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
-  traceIconButton: {
-    width: 32, height: 32, borderRadius: radius.sm,
-    backgroundColor: colors.background,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: colors.borderStrong,
-  },
+  mapControlBtn: { width: 34, height: 32, alignItems: 'center', justifyContent: 'center' },
+  mapControlDivider: { width: 1, height: 18, backgroundColor: colors.borderMuted },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
