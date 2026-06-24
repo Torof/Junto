@@ -431,15 +431,23 @@ export function JuntoMapView({
               allowOverlap
             >
               <Pressable onPress={() => {
-                const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
-                const targetZoom = Math.min(expansionZoom + 1, 20);
-                // Stuck cluster: zooming further wouldn't break it apart.
-                // Fall through to the drawer with the leaf ACTIVITIES (pros
-                // + offerings don't surface in the drawer's stuck-cluster
-                // fallback yet; they cluster fine via spatial proximity at
-                // higher zoom levels in practice).
-                if (targetZoom <= currentZoom + 0.1 && onStuckClusterPress) {
-                  const leaves = cluster.getLeaves(clusterId, Infinity);
+                const leaves = cluster.getLeaves(clusterId, Infinity);
+                // Bounding box of every point under this cluster.
+                let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+                for (const leaf of leaves) {
+                  const llng = leaf.geometry.coordinates[0] ?? 0;
+                  const llat = leaf.geometry.coordinates[1] ?? 0;
+                  if (llng < minLng) minLng = llng;
+                  if (llng > maxLng) maxLng = llng;
+                  if (llat < minLat) minLat = llat;
+                  if (llat > maxLat) maxLat = llat;
+                }
+                // ~3e-5° ≈ 3m, below the pin footprint even at max zoom: these
+                // points can never visually separate, so hand the leaf
+                // ACTIVITIES to the drawer instead (pros/offerings cluster fine
+                // via spatial proximity and aren't surfaced here yet).
+                const separable = Number.isFinite(minLng) && (maxLng - minLng > 3e-5 || maxLat - minLat > 3e-5);
+                if (!separable && onStuckClusterPress) {
                   const stuckActivities = leaves
                     .filter((leaf) => (leaf.properties as PinPointProps).type === 'activity')
                     .map((leaf) => activityMap.get((leaf.properties as PinPointProps).id))
@@ -448,11 +456,14 @@ export function JuntoMapView({
                   return;
                 }
                 cameraTouched.current = true;
-                cameraRef.current?.setCamera({
-                  centerCoordinate: [lng, lat],
-                  zoomLevel: targetZoom,
-                  animationDuration: 300,
-                });
+                if (separable) {
+                  // Frame the whole cluster in one tap so its pins spread across
+                  // the viewport and decluster at once. (expansionZoom+1 could
+                  // land on a sub-cluster — that's what forced the 2nd tap.)
+                  cameraRef.current?.fitBounds([maxLng, maxLat], [minLng, minLat], 80, 400);
+                } else {
+                  cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], zoomLevel: 18, animationDuration: 300 });
+                }
               }}>
                 <ClusterPin count={count} />
               </Pressable>
