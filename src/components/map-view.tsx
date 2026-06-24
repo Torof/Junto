@@ -217,7 +217,7 @@ export function JuntoMapView({
       // declustered too eagerly. 50 ≈ 1.3 pin widths — pins only split once
       // there's a real gap between them, so the declustered field stays
       // clean. Dial down (44/40) for more declustering, up (56) if busy.
-      radius: 50,
+      radius: 48,
       maxZoom: 20,
     });
     const points: PinPoint[] = [
