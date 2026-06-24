@@ -2815,6 +2815,54 @@ export type Database = {
           visibility: string
         }[]
       }
+      get_activity_detail: {
+        Args: { p_activity_id: string }
+        Returns: {
+          created_at: string | null
+          creator_avatar: string | null
+          creator_id: string | null
+          creator_name: string | null
+          deleted_at: string | null
+          description: string | null
+          distance_km: number | null
+          duration: string | null
+          elevation_gain_m: number | null
+          end_lat: number | null
+          end_lng: number | null
+          id: string | null
+          lat: number | null
+          level: string | null
+          level_max: string | null
+          lng: number | null
+          max_participants: number | null
+          meeting_lat: number | null
+          meeting_lng: number | null
+          objective_lat: number | null
+          objective_lng: number | null
+          objective_name: string | null
+          participant_count: number | null
+          requires_presence: boolean | null
+          sport_category: string | null
+          sport_icon: string | null
+          sport_id: string | null
+          sport_key: string | null
+          start_lat: number | null
+          start_lng: number | null
+          start_name: string | null
+          starts_at: string | null
+          status: string | null
+          title: string | null
+          trace_geojson: Json | null
+          updated_at: string | null
+          visibility: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "activities_with_coords"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_activity_participants: {
         Args: { p_activity_id: string }
         Returns: {

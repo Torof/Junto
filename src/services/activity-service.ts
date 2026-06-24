@@ -180,6 +180,13 @@ export const activityService = {
       .maybeSingle();
     if (joinedData) return joinedData as unknown as NearbyActivity;
 
+    // Final fallback: finished/terminal activities (completed, cancelled,
+    // expired) are hidden from the views above for non-creator / non-accepted
+    // viewers. get_activity_detail loads a single one with proper access
+    // control (involved, or public/approval visibility). See migration 00275.
+    const { data: detailData } = await supabase.rpc('get_activity_detail', { p_activity_id: id });
+    if (detailData && detailData.length > 0) return detailData[0] as unknown as NearbyActivity;
+
     if (error) throw error;
     return null;
   },
