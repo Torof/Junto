@@ -860,11 +860,21 @@ export function ActivityDetail({
                   <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
                     <JuntoMapView center={mapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
                     <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-                    <View style={styles.mapNavHint} pointerEvents="none">
-                      <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
-                      <Text style={styles.mapNavHintText}>{t('activity.navigate')}</Text>
-                    </View>
                     <View style={styles.mapControls} pointerEvents="box-none">
+                      <Pressable
+                        style={styles.mapControlBtn}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          const navLat = activity.meeting_lat ?? activity.lat;
+                          const navLng = activity.meeting_lng ?? activity.lng;
+                          Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
+                        }}
+                        accessibilityLabel={t('activity.navigate')}
+                        hitSlop={4}
+                      >
+                        <Navigation size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                      </Pressable>
+                      <View style={styles.mapControlDivider} />
                       <Pressable
                         style={styles.mapControlBtn}
                         onPress={(e) => { e.stopPropagation(); setShowFullMap(true); }}
@@ -1402,35 +1412,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Affordance badge: tells the user that tapping the preview leads to
   // the full-screen map + Google-Maps directions. Floats bottom-left so
   // it doesn't collide with the creator's trace tools (top-right).
-  mapNavHint: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    left: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 4,
-  },
-  mapNavHintText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
   mapControls: {
     position: 'absolute', top: spacing.sm, right: spacing.sm,
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'column', alignItems: 'center',
     backgroundColor: colors.background,
     borderWidth: 1, borderColor: colors.borderStrong,
     borderRadius: radius.sm,
     overflow: 'hidden',
   },
   mapControlBtn: { width: 34, height: 32, alignItems: 'center', justifyContent: 'center' },
-  mapControlDivider: { width: 1, height: 18, backgroundColor: colors.borderMuted },
+  mapControlDivider: { height: 1, alignSelf: 'stretch', backgroundColor: colors.borderMuted },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
