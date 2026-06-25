@@ -518,6 +518,9 @@ export function ActivityDetail({
     try {
       await participationService.cancel(activity.id, reason);
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+      // Refresh THIS activity too, else the creator keeps seeing the cancelled
+      // outing rendered as live (join/share/QR) until a manual refresh.
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
       Burnt.toast({ title: t('toast.activityCancelled') });
       setShowCancelModal(false);
     } catch (err) {

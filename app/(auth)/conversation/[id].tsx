@@ -432,9 +432,13 @@ export default function ConversationScreen() {
         text: t('activity.yes'),
         style: 'destructive',
         onPress: async () => {
-          await messageService.deleteMessage(msgId);
-          await queryClient.invalidateQueries({ queryKey: ['messages', id] });
-          Burnt.toast({ title: t('messagerie.messageDeleted') });
+          try {
+            await messageService.deleteMessage(msgId);
+            await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+            Burnt.toast({ title: t('messagerie.messageDeleted') });
+          } catch (err) {
+            Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+          }
         },
       },
     ]);

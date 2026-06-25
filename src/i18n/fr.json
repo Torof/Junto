@@ -775,7 +775,10 @@
     "blockConfirmTitle": "Bloquer cet utilisateur ?",
     "blockConfirmMessage": "Vous ne verrez plus ses activités ni ses messages.",
     "blocked": "Utilisateur bloqué",
-    "unblocked": "Utilisateur débloqué"
+    "unblocked": "Utilisateur débloqué",
+    "unavailableTitle": "Profil indisponible",
+    "unavailableBody": "Ce profil n'existe plus ou n'est plus accessible.",
+    "unavailableCta": "Retour"
   },
   "account": {
     "delete": "Supprimer mon compte",

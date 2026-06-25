@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, TextInput } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { MoreHorizontal } from 'lucide-react-native';
+import { MoreHorizontal, UserX } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileHero } from '@/components/profile-hero';
 import { BadgeDisplay } from '@/components/badge-display';
 import { ReportModal } from '@/components/report-modal';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
 
 export default function PublicProfileScreen() {
@@ -134,9 +135,17 @@ export default function PublicProfileScreen() {
         text: t('activity.yes'),
         style: 'destructive',
         onPress: async () => {
-          await userService.blockUser(id ?? '');
-          await queryClient.invalidateQueries({ queryKey: ['is-blocked', id] });
-          Burnt.toast({ title: t('publicProfile.blocked') });
+          try {
+            await userService.blockUser(id ?? '');
+            await queryClient.invalidateQueries({ queryKey: ['is-blocked', id] });
+            // Conversations + walls are RLS-filtered by blocked_users — refresh
+            // them so the blocked user disappears without an app restart.
+            await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            await queryClient.invalidateQueries({ queryKey: ['wall'] });
+            Burnt.toast({ title: t('publicProfile.blocked') });
+          } catch (err) {
+            Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+          }
         },
       },
     ]);
@@ -164,13 +173,33 @@ export default function PublicProfileScreen() {
   };
 
   const handleUnblock = async () => {
-    await userService.unblockUser(id ?? '');
-    await queryClient.invalidateQueries({ queryKey: ['is-blocked', id] });
-    Burnt.toast({ title: t('publicProfile.unblocked') });
+    try {
+      await userService.unblockUser(id ?? '');
+      await queryClient.invalidateQueries({ queryKey: ['is-blocked', id] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['wall'] });
+      Burnt.toast({ title: t('publicProfile.unblocked') });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    }
   };
 
-  if (isLoading || !profile) {
+  // Loading → skeleton. Resolved to nothing (user suspended or deleted —
+  // public_profiles excludes them) → graceful unavailable instead of an
+  // endless skeleton.
+  if (isLoading) {
     return <ProfileSkeleton />;
+  }
+  if (!profile) {
+    return (
+      <ActivityUnavailable
+        fallbackHref="/(auth)/(tabs)/carte"
+        icon={UserX}
+        title={t('publicProfile.unavailableTitle')}
+        body={t('publicProfile.unavailableBody')}
+        ctaLabel={t('publicProfile.unavailableCta')}
+      />
+    );
   }
 
   return (

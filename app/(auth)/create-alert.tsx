@@ -86,9 +86,13 @@ export default function CreateAlertScreen() {
   };
 
   const handleDelete = async (alertId: string) => {
-    await alertService.delete(alertId);
-    await queryClient.invalidateQueries({ queryKey: ['activity-alerts'] });
-    Burnt.toast({ title: t('alerts.deleted') });
+    try {
+      await alertService.delete(alertId);
+      await queryClient.invalidateQueries({ queryKey: ['activity-alerts'] });
+      Burnt.toast({ title: t('alerts.deleted') });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    }
   };
 
   return (
