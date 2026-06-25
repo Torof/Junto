@@ -13,8 +13,10 @@ interface State {
 // App-level error boundary (prod audit D: there were none — any render
 // error meant a silent white screen). Catches render-phase errors,
 // reports them, and offers a reset instead of a dead app. Kept
-// deliberately theme-independent: if theming itself is what crashed,
-// this screen must still render.
+// deliberately theme-independent (hardcoded palette, no useColors): if
+// theming itself is what crashed, a hook-based fallback would re-crash.
+// Colors are hardcoded to the LIGHT theme's values so the crash screen
+// matches the app's default appearance instead of jarring dark.
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
@@ -53,14 +55,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D1B2A',
+    backgroundColor: '#F5EEDF', // light theme background
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
     gap: 12,
   },
-  title: { color: '#F5F5F0', fontSize: 28, fontWeight: '800' },
-  body: { color: 'rgba(245,245,240,0.7)', fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  title: { color: '#1F1A15', fontSize: 28, fontWeight: '800' },
+  body: { color: 'rgba(31,26,21,0.7)', fontSize: 15, textAlign: 'center', lineHeight: 22 },
   button: {
     marginTop: 12,
     backgroundColor: '#F4642A',
@@ -68,5 +70,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 32,
   },
-  buttonText: { color: '#0D1B2A', fontSize: 16, fontWeight: '700' },
+  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
