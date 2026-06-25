@@ -301,6 +301,8 @@ export default function PublicProfileScreen() {
               try {
                 await conversationService.sendContactRequest(id ?? '', requestMessage.trim(), 'profile');
                 await queryClient.invalidateQueries({ queryKey: ['conversation-state', id] });
+                // Surface the new pending thread in the sender's messagerie list.
+                await queryClient.invalidateQueries({ queryKey: ['conversations'] });
                 setShowRequestModal(false);
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
               } catch (err) {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -106,6 +106,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
+  const savingPrefRef = useRef(false);
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const colors = useColors();
@@ -128,6 +129,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const prefs = user?.notification_preferences ?? {};
 
   const togglePref = async (type: string) => {
+    // Serialize writes — each toggle writes the whole prefs object, so two
+    // overlapping writes could land out of order and drop a change.
+    if (savingPrefRef.current) return;
+    savingPrefRef.current = true;
     const current = prefs[type] !== false;
     const updated = { ...prefs, [type]: !current };
     try {
@@ -138,6 +143,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     } catch (err) {
       Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    } finally {
+      savingPrefRef.current = false;
     }
   };
 

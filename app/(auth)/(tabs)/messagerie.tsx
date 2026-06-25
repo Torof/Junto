@@ -158,6 +158,11 @@ export default function MessagerieScreen() {
       const conversationId = await transportService.acceptSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['transport'] });
+      // Keep a mounted activity-detail / group-card in sync (broad keys cover
+      // the relevant activity id we don't have in scope here).
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests'] });
+      await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted'] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       await queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
       Burnt.toast({ title: t('transport.seatAccepted'), preset: 'done' });

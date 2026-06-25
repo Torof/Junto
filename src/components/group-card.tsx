@@ -15,6 +15,7 @@ import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 import { ringColorFor } from './profile-hero';
 import { supabase } from '@/services/supabase';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 interface Props {
   activityId: string;
@@ -328,12 +329,13 @@ export function GroupCard({
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary', activityId] });
       Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
       if (conversationId) {
         router.push(`/(auth)/conversation/${conversationId}`);
       }
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setPendingActionId(null);
     }
@@ -344,8 +346,8 @@ export function GroupCard({
     try {
       await transportService.declineSeatRequest(requestId);
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setPendingActionId(null);
     }
@@ -931,9 +933,14 @@ export function GroupCard({
                           · {b.items.length}
                         </Text>
                         <View style={styles.collapsibleSpacer} />
+                        <Text style={styles.bringerToggleText}>
+                          {isExpanded
+                            ? t('group.seeLess', { defaultValue: 'Voir moins' })
+                            : t('group.seeItems', { defaultValue: 'Voir…' })}
+                        </Text>
                         <ChevronDown
                           size={13}
-                          color={colors.textMuted}
+                          color={colors.cta}
                           strokeWidth={2}
                           style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
                         />
@@ -1314,6 +1321,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.cta,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+  },
+  bringerToggleText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    marginRight: 4,
   },
   // Passengers under each driver — nested inside the pill. The driver
   // pill's containing border already signals "these belong together",

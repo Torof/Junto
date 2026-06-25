@@ -26,6 +26,7 @@ import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 interface Props {
   activityId: string;
@@ -246,8 +247,8 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         title: t('myOuting.cancelTransport.toastDone', { defaultValue: 'Annulé' }),
         preset: 'done',
       });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError', { defaultValue: 'Erreur' }) });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setCancellingPending(false);
     }

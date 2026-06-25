@@ -129,6 +129,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         departsAt ? departsAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary', activityId] });
       setShowEditor(false);
       Burnt.toast({ title: t('transport.saved'), preset: 'done' });
     } catch (err) {
@@ -150,6 +151,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         requestedPickupAt ? requestedPickupAt.toISOString() : null,
       );
       await queryClient.invalidateQueries({ queryKey: ['seat-requests', activityId] });
+      await queryClient.invalidateQueries({ queryKey: ['transport-summary', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setRequestingFromDriver(null);
       Burnt.toast({ title: t('transport.seatRequested'), preset: 'done' });
@@ -160,8 +162,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       if (conversationId) {
         router.push(`/(auth)/conversation/${conversationId}`);
       }
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setRequestSending(false);
     }

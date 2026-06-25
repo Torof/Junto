@@ -1,4 +1,4 @@
-import { useMemo, useLayoutEffect, useState } from 'react';
+import { useMemo, useLayoutEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -84,7 +84,14 @@ export default function PeerReviewScreen() {
     queryClient.invalidateQueries({ queryKey: ['public-profile'] });
   };
 
+  // Per-(target, key) in-flight guard so a rapid double-tap before refresh()
+  // lands can't fire give-then-give on the same vote.
+  const votingRef = useRef<Set<string>>(new Set());
+
   const handleBadgeTap = async (target: PeerReviewParticipant, badgeKey: string) => {
+    const guardKey = `${target.user_id}:${badgeKey}`;
+    if (votingRef.current.has(guardKey)) return;
+    votingRef.current.add(guardKey);
     const alreadyVoted = target.my_badge_votes.includes(badgeKey);
     try {
       if (alreadyVoted) {
@@ -96,6 +103,8 @@ export default function PeerReviewScreen() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
+    } finally {
+      votingRef.current.delete(guardKey);
     }
   };
 
@@ -103,6 +112,9 @@ export default function PeerReviewScreen() {
   // level_* vote replaces any previous one from this voter for this target
   // on this activity. Tapping the same key revokes (toggle off).
   const handleLevelTap = async (target: PeerReviewParticipant, levelKey: string) => {
+    const guardKey = `${target.user_id}:${levelKey}`;
+    if (votingRef.current.has(guardKey)) return;
+    votingRef.current.add(guardKey);
     const alreadyVoted = target.my_badge_votes.includes(levelKey);
     try {
       if (alreadyVoted) {
@@ -114,6 +126,8 @@ export default function PeerReviewScreen() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
+    } finally {
+      votingRef.current.delete(guardKey);
     }
   };
 

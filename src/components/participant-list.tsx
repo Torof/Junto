@@ -161,7 +161,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
             <View key={p.participation_id} style={styles.pendingRow}>
               <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
               <View style={styles.lateLeaverInfo}>
-                <Text style={styles.pendingName}>{p.display_name}</Text>
+                <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
                 {p.left_reason && (
                   <Text style={styles.lateLeaverReason} numberOfLines={2}>{p.left_reason}</Text>
                 )}
