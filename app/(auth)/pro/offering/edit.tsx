@@ -175,6 +175,26 @@ export default function ProOfferingEditScreen() {
 
   const handleSubmit = async () => {
     if (!canSubmit || locationLng === null || locationLat === null) return;
+
+    // Validate numeric fields client-side so an invalid value gets a clear
+    // message instead of the DB's opaque generic rejection. Bounds mirror the
+    // pro_offerings CHECK constraints (migration 00249).
+    const parsedMax = maxParticipants ? parseInt(maxParticipants, 10) : null;
+    const parsedDist = distanceKm ? parseFloat(distanceKm) : null;
+    const parsedElev = elevationGainM ? parseInt(elevationGainM, 10) : null;
+    if (parsedMax !== null && (!Number.isFinite(parsedMax) || parsedMax < 1 || parsedMax > 50)) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidParticipants', { defaultValue: 'Le nombre de participants doit être entre 1 et 50.' }));
+      return;
+    }
+    if (parsedDist !== null && (!Number.isFinite(parsedDist) || parsedDist <= 0 || parsedDist > 9999)) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidDistance', { defaultValue: 'La distance doit être comprise entre 0 et 9999 km.' }));
+      return;
+    }
+    if (parsedElev !== null && (!Number.isFinite(parsedElev) || parsedElev <= 0 || parsedElev > 99999)) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidElevation', { defaultValue: 'Le dénivelé doit être supérieur à 0.' }));
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
@@ -186,10 +206,10 @@ export default function ProOfferingEditScreen() {
         location_lat: locationLat,
         location_name: locationName.trim(),
         duration: parseDurationString(),
-        max_participants: maxParticipants ? parseInt(maxParticipants, 10) : null,
+        max_participants: parsedMax,
         schedule_text: scheduleText.trim() || null,
-        distance_km: distanceKm ? parseFloat(distanceKm) : null,
-        elevation_gain_m: elevationGainM ? parseInt(elevationGainM, 10) : null,
+        distance_km: parsedDist,
+        elevation_gain_m: parsedElev,
       };
 
       if (isEdit && offeringId) {

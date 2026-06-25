@@ -14,6 +14,7 @@ import { supabase } from '@/services/supabase';
 import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { ActivityUnavailable } from '@/components/activity-unavailable';
 
 const VISIBILITIES = ['public', 'approval', 'private_link', 'private_link_approval'] as const;
 
@@ -120,12 +121,15 @@ export default function EditActivityScreen() {
     }
   };
 
-  if (activityLoading || !activity) {
+  if (activityLoading) {
     return (
       <View style={styles.center}>
         <LogoSpinner size={48} />
       </View>
     );
+  }
+  if (!activity) {
+    return <ActivityUnavailable fallbackHref="/(auth)/(tabs)/carte" />;
   }
 
   return (

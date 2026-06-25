@@ -78,6 +78,8 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       else await participationService.remove(participationId);
 
       await queryClient.refetchQueries({ queryKey: ['participants', activityId] });
+      // Accept/refuse removes the row from the pending section — refresh it too.
+      await queryClient.invalidateQueries({ queryKey: ['participants-pending', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       const toastKey = action === 'accept' ? 'toast.participantAccepted'
         : action === 'refuse' ? 'toast.participantRefused'

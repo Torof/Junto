@@ -105,6 +105,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   };
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const colors = useColors();
@@ -146,20 +147,29 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   };
 
   const handleSaveName = async () => {
+    if (isSavingName) return; // in-flight guard — block double-tap
     if (newName.trim().length < 2) {
       Alert.alert(t('auth.error'), t('profil.nameTooShort'));
       return;
     }
+    setIsSavingName(true);
     try {
       await supabase
         .from('users')
         .update({ display_name: newName.trim() })
         .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      // Display name is rendered everywhere from public_profiles — refresh
+      // those caches so the new name shows in participant lists, wall,
+      // conversation headers, etc. without an app restart.
+      await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants'] });
       setEditingName(false);
       Burnt.toast({ title: t('toast.profileUpdated'), preset: 'done' });
     } catch (err) {
       Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    } finally {
+      setIsSavingName(false);
     }
   };
 
@@ -201,7 +211,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                     maxLength={30}
                     autoFocus
                   />
-                  <Pressable onPress={handleSaveName}>
+                  <Pressable onPress={handleSaveName} disabled={isSavingName} style={isSavingName && { opacity: 0.4 }}>
                     <Text style={styles.saveLink}>✓</Text>
                   </Pressable>
                   <Pressable onPress={() => setEditingName(false)}>

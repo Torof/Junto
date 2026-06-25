@@ -47,6 +47,10 @@ export default function ConversationScreen() {
   const [selectedMessage, setSelectedMessage] = useState<PrivateMessage | null>(null);
   const [editContent, setEditContent] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
+  // The message being edited — kept separate from selectedMessage, which the
+  // long-press sheet clears when edit mode opens.
+  const [editingMessage, setEditingMessage] = useState<PrivateMessage | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const flatListRef = useRef<FlatList<PrivateMessage>>(null);
   const insets = useSafeAreaInsets();
   const dockPadding = useKeyboardDockPadding(insets.bottom + spacing.sm);
@@ -403,23 +407,28 @@ export default function ConversationScreen() {
 
   const handleEdit = () => {
     if (!selectedMessage) return;
+    setEditingMessage(selectedMessage);
     setEditContent(selectedMessage.content);
     setIsEditMode(true);
     setSelectedMessage(null);
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedMessage || !editContent.trim()) return;
+    if (isSavingEdit || !editingMessage || !editContent.trim()) return;
+    setIsSavingEdit(true);
     try {
-      await messageService.edit(selectedMessage.id, editContent.trim());
+      await messageService.edit(editingMessage.id, editContent.trim());
       await queryClient.invalidateQueries({ queryKey: ['messages', id] });
       Burnt.toast({ title: t('messagerie.messageEdited'), preset: 'done' });
+      setIsEditMode(false);
+      setEditContent('');
+      setEditingMessage(null);
     } catch (err) {
+      // Keep the edit bar open on failure so the user can retry.
       Alert.alert(t('auth.error'), getFriendlyError(err, 'sendMessage'));
+    } finally {
+      setIsSavingEdit(false);
     }
-    setIsEditMode(false);
-    setEditContent('');
-    setSelectedMessage(null);
   };
 
   const handleDelete = () => {
@@ -665,10 +674,10 @@ export default function ConversationScreen() {
             multiline
             maxLength={2000}
           />
-          <Pressable style={styles.sendButton} onPress={handleSaveEdit}>
+          <Pressable style={[styles.sendButton, isSavingEdit && { opacity: 0.4 }]} onPress={handleSaveEdit} disabled={isSavingEdit}>
             <Text style={styles.sendText}>✓</Text>
           </Pressable>
-          <Pressable onPress={() => { setIsEditMode(false); setSelectedMessage(null); }}>
+          <Pressable onPress={() => { setIsEditMode(false); setEditingMessage(null); setEditContent(''); }}>
             <Text style={styles.cancelText}>✕</Text>
           </Pressable>
         </View>

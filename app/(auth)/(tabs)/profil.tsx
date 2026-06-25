@@ -14,6 +14,7 @@ import { supabase } from '@/services/supabase';
 import { userService } from '@/services/user-service';
 import { badgeService } from '@/services/badge-service';
 import { ProfileHero, reliabilityTierFromScore } from '@/components/profile-hero';
+import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { BadgeDisplay } from '@/components/badge-display';
 import { BadgeCheck, Pencil } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -131,6 +132,10 @@ export default function ProfilScreen() {
       const url = await pickAndUploadAvatar();
       if (url) {
         await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        // Avatar is rendered everywhere from public_profiles — refresh those
+        // caches so the new photo propagates beyond this screen.
+        await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+        await queryClient.invalidateQueries({ queryKey: ['participants'] });
         Burnt.toast({ title: t('toast.avatarUpdated'), preset: 'done' });
       }
     } catch (err) {
@@ -139,6 +144,12 @@ export default function ProfilScreen() {
       setUploading(false);
     }
   };
+
+  // Gate on the user row so the hero doesn't flash empty ('' name, blank
+  // avatar, "newcomer" badges) before data lands on cold start.
+  if (!user) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <>
