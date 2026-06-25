@@ -15,9 +15,9 @@ const MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Demande de
 // the app) and linked from the Play Store listing.
 export default function AccountDeletionPage() {
   return (
-    <article style={{ color: 'var(--text)', lineHeight: 1.6 }}>
+    <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Suppression de compte</h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 32 }}>
+      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>
         Application Junto (app.getjunto)
       </p>
 
@@ -69,16 +69,16 @@ function H2({ children }: { children: React.ReactNode }) {
   return <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 32, marginBottom: 12 }}>{children}</h2>;
 }
 function P({ children }: { children: React.ReactNode }) {
-  return <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 12 }}>{children}</p>;
+  return <p style={{ color: 'var(--muted)', fontSize: 15, marginBottom: 12 }}>{children}</p>;
 }
 function Ul({ children }: { children: React.ReactNode }) {
-  return <ul style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 12, paddingLeft: 20 }}>{children}</ul>;
+  return <ul style={{ color: 'var(--muted)', fontSize: 15, marginBottom: 12, paddingLeft: 20 }}>{children}</ul>;
 }
 function Ol({ children }: { children: React.ReactNode }) {
-  return <ol style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 12, paddingLeft: 20 }}>{children}</ol>;
+  return <ol style={{ color: 'var(--muted)', fontSize: 15, marginBottom: 12, paddingLeft: 20 }}>{children}</ol>;
 }
 function B({ children }: { children: React.ReactNode }) {
-  return <strong style={{ color: 'var(--text)' }}>{children}</strong>;
+  return <strong style={{ color: 'var(--ink)' }}>{children}</strong>;
 }
 function A({ href, children }: { href: string; children: React.ReactNode }) {
   return <a href={href} style={{ color: 'var(--cta)', textDecoration: 'underline' }}>{children}</a>;
