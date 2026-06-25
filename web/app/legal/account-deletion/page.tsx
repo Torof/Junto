@@ -52,6 +52,23 @@ export default function AccountDeletionPage() {
         suppression, afin de vérifier que la demande provient bien du titulaire.
       </P>
 
+      <H2>Supprimer seulement une partie de vos données</H2>
+      <P>
+        Vous pouvez aussi supprimer certaines données sans supprimer votre compte, directement
+        dans l&apos;application :
+      </P>
+      <Ul>
+        <li><B>Messages privés :</B> appui long sur le message → Supprimer</li>
+        <li><B>Activités que vous avez créées :</B> ouvrez l&apos;activité → Modifier → Supprimer</li>
+        <li><B>Alertes :</B> écran Alertes → supprimer l&apos;alerte concernée</li>
+        <li><B>Photo et informations de profil :</B> Profil → Paramètres → modifier ou remplacer</li>
+        <li><B>Participation à une activité :</B> quittez l&apos;activité pour retirer votre participation</li>
+      </Ul>
+      <P>
+        Vous pouvez également demander la suppression d&apos;une partie de vos données par email à{' '}
+        <A href={MAILTO}>{CONTACT_EMAIL}</A>, traitée sous 30 jours maximum.
+      </P>
+
       <H2>Ce qui est supprimé, ce qui est conservé</H2>
       <Ul>
         <li><B>Supprimé :</B> compte, profil, photos (avatar et galeries pro), activités créées, participations, messages privés, avis publiés, notifications, tokens de notification</li>
