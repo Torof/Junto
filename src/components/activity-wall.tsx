@@ -500,13 +500,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs + 2,
-    flex: 1,
   },
   authorName: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
     fontWeight: '700',
-    flex: 1,
   },
   messageContent: {
     color: colors.textPrimary,
