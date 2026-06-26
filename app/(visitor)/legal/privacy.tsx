@@ -67,11 +67,12 @@ export default function PrivacyScreen() {
         • Score de fiabilité, badges de réputation et trophées{'\n'}
         • Activités publiées (titre, lieu, date, sport, niveau){'\n\n'}
         <Text style={styles.bold}>Données NON visibles par les autres utilisateurs :</Text>{'\n'}
-        • Adresse email, date de naissance, numéro de téléphone{'\n\n'}
+        • Adresse email, date de naissance{'\n\n'}
         <Text style={styles.bold}>Sous-traitants :</Text>{'\n'}
         • Supabase (hébergement, base de données, authentification — serveurs UE){'\n'}
         • Mapbox (affichage cartographique — reçoit des coordonnées de requête){'\n'}
-        • Google Places (recherche de lieux — reçoit des requêtes de recherche){'\n\n'}
+        • Expo / Google Firebase Cloud Messaging (notifications push — reçoit le token d'appareil){'\n'}
+        • Sentry (rapports de plantage, si activés — PII filtrées avant envoi){'\n\n'}
         Nous ne vendons jamais vos données à des tiers.
       </Text>
 

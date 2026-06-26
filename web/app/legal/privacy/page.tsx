@@ -81,7 +81,6 @@ export default function PrivacyPage() {
       <Ul>
         <li>Supabase (hébergement, base de données, authentification — serveurs UE)</li>
         <li>Mapbox (affichage cartographique — reçoit des coordonnées de requête ; États-Unis)</li>
-        <li>Google Places (recherche de lieux — reçoit des requêtes de recherche ; États-Unis)</li>
         <li>Expo / Google Firebase Cloud Messaging (livraison des notifications push — reçoit le token d'appareil ; États-Unis)</li>
         <li>Sentry (rapports de plantage, si activés — données ingérées en Allemagne, PII filtrées avant envoi)</li>
         <li>Vercel (hébergement du site web getjunto.app ; États-Unis)</li>
