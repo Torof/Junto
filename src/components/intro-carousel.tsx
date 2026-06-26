@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, type ReactNode } from 'react';
 import {
   View,
   Text,
+  Image,
   Pressable,
   StyleSheet,
   FlatList,
@@ -64,9 +65,10 @@ interface IntroRow {
 }
 interface IntroPage {
   title: string;
-  hero?: ReactNode; // big single hero (pages 2–5)
+  welcome?: { tagline: string; body: string }; // opening manifesto page
+  hero?: ReactNode; // big single hero
   caption?: string;
-  rows?: IntroRow[]; // multi-row explainer (page 1)
+  rows?: IntroRow[]; // multi-row explainer (pins page)
 }
 
 interface IntroCarouselProps {
@@ -83,6 +85,13 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
 
   const pages = useMemo<IntroPage[]>(
     () => [
+      {
+        title: '',
+        welcome: {
+          tagline: t('intro.welcome.tagline'),
+          body: t('intro.welcome.body'),
+        },
+      },
       {
         title: t('intro.pins.title'),
         rows: [
@@ -151,7 +160,20 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
     setIndex(next);
   };
 
-  const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => (
+  const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => {
+    if (item.welcome) {
+      return (
+        <View style={[styles.page, styles.welcomePage, { width }]}>
+          <Image
+            source={require('../../assets/junto_icon_round.png')}
+            style={styles.welcomeLogo}
+          />
+          <Text style={styles.welcomeTagline}>{item.welcome.tagline}</Text>
+          <Text style={styles.welcomeBody}>{item.welcome.body}</Text>
+        </View>
+      );
+    }
+    return (
     <View style={[styles.page, { width }]}>
       <Text style={styles.pageTitle}>{item.title}</Text>
 
@@ -185,7 +207,8 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         </View>
       )}
     </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.overlay}>
@@ -250,6 +273,31 @@ const createStyles = (colors: AppColors) =>
       flex: 1,
       paddingHorizontal: spacing.lg,
       justifyContent: 'center',
+    },
+    // Opening manifesto page — logo + tagline + mission, centered.
+    welcomePage: {
+      alignItems: 'center',
+    },
+    welcomeLogo: {
+      width: 104,
+      height: 104,
+      borderRadius: 26,
+      marginBottom: spacing.xl,
+    },
+    welcomeTagline: {
+      color: colors.textPrimary,
+      fontSize: fontSizes.xxl,
+      fontWeight: '800',
+      letterSpacing: 0.2,
+      lineHeight: 38,
+      textAlign: 'center',
+      marginBottom: spacing.lg,
+    },
+    welcomeBody: {
+      color: colors.textSecondary,
+      fontSize: fontSizes.md,
+      lineHeight: 24,
+      textAlign: 'center',
     },
     pageTitle: {
       color: colors.textPrimary,

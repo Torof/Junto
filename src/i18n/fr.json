@@ -504,6 +504,10 @@
     "next": "Suivant",
     "start": "Commencer",
     "replay": "Revoir l'intro",
+    "welcome": {
+      "tagline": "Le sport, c'est mieux ensemble.",
+      "body": "Junto réunit les gens près de chez toi qui ont envie de bouger. Trouve un partenaire pour ta prochaine sortie, organise tout au même endroit — covoiturage, matériel, rendez-vous — et retrouvez-vous en vrai."
+    },
     "pins": {
       "title": "Les activités sur la carte",
       "ua": "La sortie d'un membre. Sa couleur indique le moment :",

@@ -504,6 +504,10 @@
     "next": "Next",
     "start": "Get started",
     "replay": "Replay the intro",
+    "welcome": {
+      "tagline": "Sport is better together.",
+      "body": "Junto brings together people near you who want to get moving. Find a partner for your next outing, organize everything in one place — carpooling, gear, meeting point — and meet up for real."
+    },
     "pins": {
       "title": "Activities on the map",
       "ua": "A member's outing. Its colour tells you when:",
