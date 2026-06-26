@@ -10,41 +10,63 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Plus, BellRing, Layers, UserRound } from 'lucide-react-native';
+import { Plus, BellRing } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { ActivityPin } from './activity-pin';
 import { ProOfferingPin } from './pro-offering-pin';
 import { ProPin } from './pro-pin';
+import { ActivityPopup } from './activity-popup';
+import { ReliabilityRing } from './reliability-ring';
+import { UserAvatar } from './user-avatar';
 import type { NearbyActivity } from '@/services/activity-service';
 import type { ProOffering } from '@/services/pro-offering-service';
 
 // First-run intro shown once on the map (gated by users.tutorial_seen_at).
 // A pure next-tap carousel — NO element anchoring, NO interaction beyond
 // paging — so it can't break or trap a user when the UI changes (unlike
-// the coach-mark tutorial it replaces). Element visuals are live
-// components where possible (pins, etc.) and small screenshot crops
-// elsewhere; explanatory copy lives in i18n, never baked into an image.
+// the coach-mark tutorial it replaces). Visuals are LIVE components (the
+// real pins, popup, reliability ring…) so the intro always matches the
+// app; explanatory copy lives in i18n, never baked into an image.
 
-// Display-only stubs — the pin components read only sport_key / status /
-// starts_at, so a minimal cast is enough to render them live (and they
-// stay in sync with the real map pins automatically).
+// Display-only stubs. The components read only the fields below, so a
+// minimal cast is enough to render them live (and they stay in sync with
+// the real map/popup automatically). All heroes are pointerEvents:none.
 const DEMO_UA = {
   starts_at: '2030-06-15T10:00:00.000Z',
   status: 'published',
   sport_key: 'escalade',
 } as unknown as NearbyActivity;
 const DEMO_RA = { sport_key: 'yoga' } as unknown as ProOffering;
+const DEMO_POPUP = {
+  id: 'intro-demo',
+  title: 'Couenne au Saix',
+  sport_key: 'escalade',
+  starts_at: '2030-06-15T09:00:00.000Z',
+  status: 'published',
+  visibility: 'public',
+  max_participants: 6,
+  participant_count: 3,
+  level: '6a - 6b',
+  level_max: null,
+  distance_km: null,
+  elevation_gain_m: null,
+  objective_name: 'Le Saix',
+  lng: 0,
+  lat: 0,
+} as unknown as NearbyActivity;
 
-interface IntroBlock {
+interface IntroRow {
   visual: ReactNode;
   text: string;
   legend?: { color: string; label: string }[];
 }
 interface IntroPage {
   title: string;
-  blocks: IntroBlock[];
+  hero?: ReactNode; // big single hero (pages 2–5)
+  caption?: string;
+  rows?: IntroRow[]; // multi-row explainer (page 1)
 }
 
 interface IntroCarouselProps {
@@ -63,7 +85,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
     () => [
       {
         title: t('intro.pins.title'),
-        blocks: [
+        rows: [
           {
             visual: <ActivityPin activity={DEMO_UA} />,
             text: t('intro.pins.ua'),
@@ -78,28 +100,40 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       },
       {
         title: t('intro.join.title'),
-        blocks: [
-          { visual: <CropSlot label="popup + Voir plus" icon={<Layers size={22} color={colors.textMuted} strokeWidth={2} />} styles={styles} />, text: t('intro.join.tap') },
-          { visual: <CropSlot label="onglets" icon={<Layers size={22} color={colors.textMuted} strokeWidth={2} />} styles={styles} />, text: t('intro.join.inside') },
-        ],
+        hero: <ActivityPopup activity={DEMO_POPUP} onPress={() => {}} />,
+        caption: `${t('intro.join.tap')}\n\n${t('intro.join.inside')}`,
       },
       {
         title: t('intro.create.title'),
-        blocks: [
-          { visual: <CropSlot label="bouton +" icon={<Plus size={22} color={colors.cta} strokeWidth={2.6} />} styles={styles} />, text: t('intro.create.body') },
-        ],
+        hero: (
+          <View style={styles.fabDemo}>
+            <Plus size={38} color="#FFFFFF" strokeWidth={2.6} />
+          </View>
+        ),
+        caption: t('intro.create.body'),
       },
       {
         title: t('intro.alert.title'),
-        blocks: [
-          { visual: <CropSlot label="alerte" icon={<BellRing size={22} color={colors.cta} strokeWidth={2.2} />} styles={styles} />, text: t('intro.alert.body') },
-        ],
+        hero: (
+          <View style={styles.alertDemo}>
+            <View style={styles.alertBell}>
+              <BellRing size={26} color={colors.cta} strokeWidth={2.2} />
+            </View>
+            <View style={styles.alertChip}>
+              <Text style={styles.alertChipText}>Escalade · 30 km</Text>
+            </View>
+          </View>
+        ),
+        caption: t('intro.alert.body'),
       },
       {
         title: t('intro.profile.title'),
-        blocks: [
-          { visual: <CropSlot label="profil · fiabilité" icon={<UserRound size={22} color={colors.textMuted} strokeWidth={2} />} styles={styles} />, text: t('intro.profile.body') },
-        ],
+        hero: (
+          <ReliabilityRing score={82} size={134} strokeWidth={12} showLabel>
+            <UserAvatar name="M" avatarUrl={null} size={86} />
+          </ReliabilityRing>
+        ),
+        caption: t('intro.profile.body'),
       },
     ],
     [t, colors, styles],
@@ -120,26 +154,36 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => (
     <View style={[styles.page, { width }]}>
       <Text style={styles.pageTitle}>{item.title}</Text>
-      <View style={styles.blocks}>
-        {item.blocks.map((block, i) => (
-          <View key={i} style={styles.block}>
-            <View style={styles.blockVisual}>{block.visual}</View>
-            <View style={styles.blockBody}>
-              <Text style={styles.blockText}>{block.text}</Text>
-              {block.legend && (
-                <View style={styles.legendRow}>
-                  {block.legend.map((l, j) => (
-                    <View key={j} style={styles.legendItem}>
-                      <View style={[styles.legendDot, { backgroundColor: l.color }]} />
-                      <Text style={styles.legendLabel}>{l.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
+
+      {item.hero ? (
+        <>
+          <View style={styles.heroStage} pointerEvents="none">
+            {item.hero}
           </View>
-        ))}
-      </View>
+          {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
+        </>
+      ) : (
+        <View style={styles.rowsStage} pointerEvents="none">
+          {item.rows?.map((row, i) => (
+            <View key={i} style={styles.rowBlock}>
+              <View style={styles.rowVisual}>{row.visual}</View>
+              <View style={styles.rowBody}>
+                <Text style={styles.rowText}>{row.text}</Text>
+                {row.legend && (
+                  <View style={styles.legendRow}>
+                    {row.legend.map((l, j) => (
+                      <View key={j} style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: l.color }]} />
+                        <Text style={styles.legendLabel}>{l.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
@@ -182,26 +226,6 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   );
 }
 
-// Placeholder for a screenshot crop to be slotted in. Renders a dashed
-// card with a hint icon + label so the flow reads end-to-end before the
-// real crops land.
-function CropSlot({
-  label,
-  icon,
-  styles,
-}: {
-  label: string;
-  icon: ReactNode;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  return (
-    <View style={styles.cropSlot}>
-      {icon}
-      <Text style={styles.cropLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     overlay: {
@@ -235,19 +259,49 @@ const createStyles = (colors: AppColors) =>
       marginBottom: spacing.xl,
       textAlign: 'center',
     },
-    blocks: { gap: spacing.lg },
-    block: {
+    // Big hero stage — a brutalist outlined "stage" the live component
+    // sits on. Tall enough to give the popup / ring room to breathe.
+    heroStage: {
+      alignSelf: 'stretch',
+      minHeight: 240,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderMuted,
+      backgroundColor: colors.surfaceAlt,
+      paddingVertical: spacing.xl,
+      paddingHorizontal: spacing.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.xl,
+    },
+    caption: {
+      color: colors.textPrimary,
+      fontSize: fontSizes.md,
+      lineHeight: 22,
+      textAlign: 'center',
+      paddingHorizontal: spacing.sm,
+    },
+    // Page 1 — the pin legend, on its own stage.
+    rowsStage: {
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderMuted,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.lg,
+      gap: spacing.lg,
+    },
+    rowBlock: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
     },
-    blockVisual: {
+    rowVisual: {
       width: 64,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    blockBody: { flex: 1, gap: 6 },
-    blockText: {
+    rowBody: { flex: 1, gap: 6 },
+    rowText: {
       color: colors.textPrimary,
       fontSize: fontSizes.md,
       lineHeight: 22,
@@ -264,21 +318,44 @@ const createStyles = (colors: AppColors) =>
       fontSize: fontSizes.sm,
       fontWeight: '600',
     },
-    cropSlot: {
-      width: 56,
-      height: 56,
-      borderRadius: radius.sm,
-      borderWidth: 1.5,
-      borderColor: colors.borderMuted,
-      borderStyle: 'dashed',
+    // Create page — a non-interactive replica of the + FAB.
+    fabDemo: {
+      width: 76,
+      height: 76,
+      borderRadius: 38,
+      backgroundColor: colors.cta,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 2,
+      shadowColor: '#0A0F1A',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      elevation: 8,
     },
-    cropLabel: {
-      color: colors.textMuted,
-      fontSize: 7,
-      textAlign: 'center',
+    // Alert page — a small mock: bell + a sample criteria chip.
+    alertDemo: { alignItems: 'center', gap: spacing.md },
+    alertBell: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.cta + '1F',
+      borderWidth: 1,
+      borderColor: colors.cta,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    alertChip: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: colors.borderMuted,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 6,
+    },
+    alertChipText: {
+      color: colors.textPrimary,
+      fontSize: fontSizes.sm,
+      fontWeight: '700',
     },
     dots: {
       flexDirection: 'row',
