@@ -15,7 +15,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Check, Trash2 } from 'lucide-react-native';
+import { Check, Trash2, MapPin } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -174,7 +174,24 @@ export default function ProOfferingEditScreen() {
     !saving;
 
   const handleSubmit = async () => {
-    if (!canSubmit || locationLng === null || locationLat === null) return;
+    if (saving) return;
+    // Incomplete → tell the user exactly what's missing instead of a dead button.
+    if (!canSubmit || locationLng === null || locationLat === null) {
+      const missing: string[] = [];
+      if (!sportId) missing.push(t('proOffering.sport'));
+      if (title.trim().length < 3) missing.push(t('proOffering.title'));
+      if (description.length === 0) missing.push(t('proOffering.description'));
+      if (level.length === 0) missing.push(t('proOffering.level'));
+      if (locationLng === null || locationLat === null) {
+        missing.push(t('proOffering.locationField', { defaultValue: 'Lieu sur la carte' }));
+      }
+      if (locationName.trim().length === 0) missing.push(t('proOffering.locationName'));
+      Alert.alert(
+        t('proOffering.incompleteTitle', { defaultValue: 'Informations manquantes' }),
+        `${t('proOffering.incompleteBody', { defaultValue: 'À compléter avant de publier :' })}\n\n• ${missing.join('\n• ')}`,
+      );
+      return;
+    }
 
     // Validate numeric fields client-side so an invalid value gets a clear
     // message instead of the DB's opaque generic rejection. Bounds mirror the
@@ -334,18 +351,47 @@ export default function ProOfferingEditScreen() {
           />
         </Field>
 
-        <Pressable style={styles.locationButton} onPress={openMapPicker}>
-          <Text style={styles.locationButtonText}>
-            {locationLng !== null && locationLat !== null
-              ? t('proOffering.locationPickAgain')
-              : t('proOffering.locationPick')}
-          </Text>
-          {locationLng !== null && locationLat !== null && (
-            <Text style={styles.locationCoords}>
-              {locationLat.toFixed(4)}, {locationLng.toFixed(4)}
-            </Text>
-          )}
-        </Pressable>
+        <Field label={t('proOffering.locationField', { defaultValue: 'Lieu sur la carte' })} styles={styles}>
+          <Pressable
+            style={[
+              styles.locationButton,
+              locationLng !== null && locationLat !== null
+                ? styles.locationButtonSet
+                : styles.locationButtonRequired,
+            ]}
+            onPress={openMapPicker}
+          >
+            <View style={styles.locationButtonRow}>
+              <MapPin
+                size={18}
+                color={locationLng !== null && locationLat !== null ? colors.success : colors.cta}
+                strokeWidth={2.3}
+              />
+              <Text
+                style={[
+                  styles.locationButtonText,
+                  (locationLng === null || locationLat === null) && styles.locationButtonTextRequired,
+                ]}
+              >
+                {locationLng !== null && locationLat !== null
+                  ? t('proOffering.locationPickAgain')
+                  : t('proOffering.locationPick')}
+              </Text>
+              {locationLng !== null && locationLat !== null && (
+                <Check size={18} color={colors.success} strokeWidth={2.6} style={styles.locationCheck} />
+              )}
+            </View>
+            {locationLng !== null && locationLat !== null ? (
+              <Text style={styles.locationCoords}>
+                {locationLat.toFixed(4)}, {locationLng.toFixed(4)}
+              </Text>
+            ) : (
+              <Text style={styles.locationHint}>
+                {t('proOffering.locationRequired', { defaultValue: 'Obligatoire — touche pour placer le point' })}
+              </Text>
+            )}
+          </Pressable>
+        </Field>
 
         <Text style={styles.section}>{t('proOffering.sectionDetails')}</Text>
 
@@ -426,7 +472,7 @@ export default function ProOfferingEditScreen() {
         <Pressable
           style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}
           onPress={handleSubmit}
-          disabled={!canSubmit}
+          disabled={saving}
         >
           <Text style={styles.saveButtonText}>
             {saving ? t('proOffering.saving') : isEdit ? t('proOffering.save') : t('proOffering.create')}
@@ -553,8 +599,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     marginBottom: spacing.md,
   },
+  locationButtonRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   locationButtonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
-  locationCoords: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 2 },
+  locationButtonTextRequired: { color: colors.cta, fontWeight: '700' },
+  locationButtonRequired: { borderColor: colors.cta, borderWidth: 1.5, backgroundColor: colors.cta + '12' },
+  locationButtonSet: { borderColor: colors.success, backgroundColor: colors.success + '12' },
+  locationCheck: { marginLeft: 'auto' },
+  locationHint: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600', marginTop: 4 },
+  locationCoords: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 4 },
   saveButton: {
     backgroundColor: colors.cta,
     borderRadius: radius.sm,
