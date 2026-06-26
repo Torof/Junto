@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Plus, BellRing } from 'lucide-react-native';
+import dayjs from 'dayjs';
+import { Plus, BellRing, Clock, Backpack, ShieldCheck, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -32,13 +33,8 @@ import type { ProOffering } from '@/services/pro-offering-service';
 // app; explanatory copy lives in i18n, never baked into an image.
 
 // Display-only stubs. The components read only the fields below, so a
-// minimal cast is enough to render them live (and they stay in sync with
-// the real map/popup automatically). All heroes are pointerEvents:none.
-const DEMO_UA = {
-  starts_at: '2030-06-15T10:00:00.000Z',
-  status: 'published',
-  sport_key: 'escalade',
-} as unknown as NearbyActivity;
+// minimal cast is enough to render them live. All heroes are
+// pointerEvents:none so they never catch a swipe.
 const DEMO_RA = { sport_key: 'yoga' } as unknown as ProOffering;
 const DEMO_POPUP = {
   id: 'intro-demo',
@@ -58,17 +54,14 @@ const DEMO_POPUP = {
   lat: 0,
 } as unknown as NearbyActivity;
 
-interface IntroRow {
-  visual: ReactNode;
-  text: string;
-  legend?: { color: string; label: string }[];
-}
+const SPORT_EMOJIS = ['🧗', '🥾', '🚵', '⛷️', '🪂', '🛶'];
+
 interface IntroPage {
   title: string;
-  welcome?: { tagline: string; body: string }; // opening manifesto page
+  welcome?: { tagline: string; body: string };
+  body?: ReactNode; // bespoke page content (pins states + types)
   hero?: ReactNode; // big single hero
   caption?: string;
-  rows?: IntroRow[]; // multi-row explainer (pins page)
 }
 
 interface IntroCarouselProps {
@@ -83,6 +76,17 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   const listRef = useRef<FlatList<IntroPage>>(null);
   const [index, setIndex] = useState(0);
 
+  // The activity pin colors itself from time-status: regular (upcoming) →
+  // frame, < 2h to start → yellow, in-progress → green. Demo one of each.
+  const stateDemos = useMemo(() => {
+    const base = { sport_key: 'escalade' };
+    return {
+      regular: { ...base, status: 'published', starts_at: '2030-06-15T10:00:00.000Z' } as unknown as NearbyActivity,
+      soon: { ...base, status: 'published', starts_at: dayjs().add(1, 'hour').toISOString() } as unknown as NearbyActivity,
+      inProgress: { ...base, status: 'in_progress', starts_at: '2030-06-15T10:00:00.000Z' } as unknown as NearbyActivity,
+    };
+  }, []);
+
   const pages = useMemo<IntroPage[]>(
     () => [
       {
@@ -94,29 +98,50 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       },
       {
         title: t('intro.pins.title'),
-        rows: [
-          {
-            visual: <ActivityPin activity={DEMO_UA} />,
-            text: t('intro.pins.ua'),
-            legend: [
-              { color: '#FBBF24', label: t('intro.pins.soon') },
-              { color: colors.success, label: t('intro.pins.inProgress') },
-            ],
-          },
-          { visual: <ProOfferingPin offering={DEMO_RA} />, text: t('intro.pins.ra') },
-          { visual: <ProPin displayName="M" pinImageUrl={null} />, text: t('intro.pins.pp') },
-        ],
+        body: (
+          <View style={styles.pinsBody}>
+            <Text style={styles.pinsLead}>{t('intro.pins.ua')}</Text>
+            <View style={styles.stateRow}>
+              <StatePin activity={stateDemos.regular} label={t('intro.pins.upcoming')} styles={styles} />
+              <StatePin activity={stateDemos.soon} label={t('intro.pins.soon')} styles={styles} />
+              <StatePin activity={stateDemos.inProgress} label={t('intro.pins.inProgress')} styles={styles} />
+            </View>
+            <View style={styles.pinTypeRow}>
+              <View style={styles.pinTypeVisual}><ProOfferingPin offering={DEMO_RA} /></View>
+              <Text style={styles.pinTypeText}>{t('intro.pins.ra')}</Text>
+            </View>
+            <View style={styles.pinTypeRow}>
+              <View style={styles.pinTypeVisual}><ProPin displayName="M" pinImageUrl={null} /></View>
+              <Text style={styles.pinTypeText}>{t('intro.pins.pp')}</Text>
+            </View>
+          </View>
+        ),
       },
       {
         title: t('intro.join.title'),
-        hero: <ActivityPopup activity={DEMO_POPUP} onPress={() => {}} />,
+        hero: (
+          <View style={styles.joinHero}>
+            <ActivityPopup activity={DEMO_POPUP} onPress={() => {}} />
+            <View style={styles.rejoindreBtn}>
+              <Text style={styles.rejoindreBtnText}>{t('activity.join')}</Text>
+            </View>
+          </View>
+        ),
         caption: `${t('intro.join.tap')}\n\n${t('intro.join.inside')}`,
       },
       {
         title: t('intro.create.title'),
         hero: (
-          <View style={styles.fabDemo}>
-            <Plus size={38} color="#FFFFFF" strokeWidth={2.6} />
+          <View style={styles.createHero}>
+            <View style={styles.fabDemo}>
+              <Plus size={26} color="#FFFFFF" strokeWidth={2.6} />
+            </View>
+            <View style={styles.sportsEmojiRow}>
+              {SPORT_EMOJIS.map((e, i) => (
+                <Text key={i} style={styles.sportsEmoji}>{e}</Text>
+              ))}
+            </View>
+            <Text style={styles.sportsCount}>{t('intro.create.sports')}</Text>
           </View>
         ),
         caption: t('intro.create.body'),
@@ -126,7 +151,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         hero: (
           <View style={styles.alertDemo}>
             <View style={styles.alertBell}>
-              <BellRing size={26} color={colors.cta} strokeWidth={2.2} />
+              <BellRing size={20} color={colors.cta} strokeWidth={2.2} />
             </View>
             <View style={styles.alertChip}>
               <Text style={styles.alertChipText}>Escalade · 30 km</Text>
@@ -138,14 +163,21 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       {
         title: t('intro.profile.title'),
         hero: (
-          <ReliabilityRing score={82} size={134} strokeWidth={12} showLabel>
-            <UserAvatar name="M" avatarUrl={null} size={86} />
-          </ReliabilityRing>
+          <View style={styles.profileHero}>
+            <ReliabilityRing score={82} size={118} strokeWidth={11} showLabel>
+              <UserAvatar name="M" avatarUrl={null} size={76} />
+            </ReliabilityRing>
+            <View style={styles.badgeRow}>
+              <SampleBadge icon={Clock} label={t('badges.short.punctual', { defaultValue: 'Ponctuel' })} color={colors.success} styles={styles} />
+              <SampleBadge icon={Backpack} label={t('badges.short.prepared', { defaultValue: 'Équipé' })} color={colors.cta} styles={styles} />
+              <SampleBadge icon={ShieldCheck} label={t('badges.short.prudent', { defaultValue: 'Prudent' })} color="#4B7CB8" styles={styles} />
+            </View>
+          </View>
         ),
         caption: t('intro.profile.body'),
       },
     ],
-    [t, colors, styles],
+    [t, colors, styles, stateDemos],
   );
 
   const isLast = index === pages.length - 1;
@@ -164,49 +196,26 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
     if (item.welcome) {
       return (
         <View style={[styles.page, styles.welcomePage, { width }]}>
-          <Image
-            source={require('../../assets/junto_icon_round.png')}
-            style={styles.welcomeLogo}
-          />
+          <Image source={require('../../assets/junto_icon_round.png')} style={styles.welcomeLogo} />
           <Text style={styles.welcomeTagline}>{item.welcome.tagline}</Text>
           <Text style={styles.welcomeBody}>{item.welcome.body}</Text>
         </View>
       );
     }
-    return (
-    <View style={[styles.page, { width }]}>
-      <Text style={styles.pageTitle}>{item.title}</Text>
-
-      {item.hero ? (
-        <>
-          <View style={styles.heroStage} pointerEvents="none">
-            {item.hero}
-          </View>
-          {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
-        </>
-      ) : (
-        <View style={styles.rowsStage} pointerEvents="none">
-          {item.rows?.map((row, i) => (
-            <View key={i} style={styles.rowBlock}>
-              <View style={styles.rowVisual}>{row.visual}</View>
-              <View style={styles.rowBody}>
-                <Text style={styles.rowText}>{row.text}</Text>
-                {row.legend && (
-                  <View style={styles.legendRow}>
-                    {row.legend.map((l, j) => (
-                      <View key={j} style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: l.color }]} />
-                        <Text style={styles.legendLabel}>{l.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </View>
-          ))}
+    if (item.body) {
+      return (
+        <View style={[styles.page, { width }]}>
+          <Text style={styles.pageTitle}>{item.title}</Text>
+          <View style={styles.bodyStage} pointerEvents="none">{item.body}</View>
         </View>
-      )}
-    </View>
+      );
+    }
+    return (
+      <View style={[styles.page, { width }]}>
+        <Text style={styles.pageTitle}>{item.title}</Text>
+        <View style={styles.heroStage} pointerEvents="none">{item.hero}</View>
+        {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
+      </View>
     );
   };
 
@@ -240,195 +249,147 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         </View>
 
         <Pressable style={styles.nextBtn} onPress={goNext}>
-          <Text style={styles.nextText}>
-            {isLast ? t('intro.start') : t('intro.next')}
-          </Text>
+          <Text style={styles.nextText}>{isLast ? t('intro.start') : t('intro.next')}</Text>
         </Pressable>
       </SafeAreaView>
     </View>
   );
 }
 
+function StatePin({
+  activity,
+  label,
+  styles,
+}: {
+  activity: NearbyActivity;
+  label: string;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <View style={styles.statePinCol}>
+      <ActivityPin activity={activity} />
+      <Text style={styles.statePinLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function SampleBadge({
+  icon: Icon,
+  label,
+  color,
+  styles,
+}: {
+  icon: LucideIcon;
+  label: string;
+  color: string;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <View style={styles.badgeChip}>
+      <View style={[styles.badgeMedal, { backgroundColor: color + '22', borderColor: color }]}>
+        <Icon size={16} color={color} strokeWidth={2.2} />
+      </View>
+      <Text style={styles.badgeLabel} numberOfLines={1}>{label}</Text>
+    </View>
+  );
+}
+
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: colors.background,
-      zIndex: 100,
-    },
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.background, zIndex: 100 },
     safe: { flex: 1 },
-    topBar: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.sm,
-    },
+    topBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.md, paddingTop: spacing.sm },
     skipBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-    skipText: {
-      color: colors.textSecondary,
-      fontSize: fontSizes.sm,
-      fontWeight: '600',
-    },
-    page: {
-      flex: 1,
-      paddingHorizontal: spacing.lg,
-      justifyContent: 'center',
-    },
-    // Opening manifesto page — logo + tagline + mission, centered.
-    welcomePage: {
-      alignItems: 'center',
-    },
-    welcomeLogo: {
-      width: 104,
-      height: 104,
-      borderRadius: 26,
-      marginBottom: spacing.xl,
-    },
+    skipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+    page: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
+
+    // Opening manifesto page.
+    welcomePage: { alignItems: 'center' },
+    welcomeLogo: { width: 104, height: 104, borderRadius: 26, marginBottom: spacing.xl },
     welcomeTagline: {
-      color: colors.textPrimary,
-      fontSize: fontSizes.xxl,
-      fontWeight: '800',
-      letterSpacing: 0.2,
-      lineHeight: 38,
-      textAlign: 'center',
-      marginBottom: spacing.lg,
+      color: colors.textPrimary, fontSize: fontSizes.xxl, fontWeight: '800',
+      letterSpacing: 0.2, lineHeight: 38, textAlign: 'center', marginBottom: spacing.lg,
     },
-    welcomeBody: {
-      color: colors.textSecondary,
-      fontSize: fontSizes.md,
-      lineHeight: 24,
-      textAlign: 'center',
-    },
+    welcomeBody: { color: colors.textSecondary, fontSize: fontSizes.md, lineHeight: 24, textAlign: 'center' },
+
     pageTitle: {
-      color: colors.textPrimary,
-      fontSize: fontSizes.xl,
-      fontWeight: '800',
-      letterSpacing: 0.3,
-      marginBottom: spacing.xl,
-      textAlign: 'center',
+      color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800',
+      letterSpacing: 0.3, marginBottom: spacing.xl, textAlign: 'center',
     },
-    // Big hero stage — a brutalist outlined "stage" the live component
-    // sits on. Tall enough to give the popup / ring room to breathe.
+
+    // Big hero stage — the live component sits on this outlined stage.
     heroStage: {
-      alignSelf: 'stretch',
-      minHeight: 240,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.borderMuted,
-      backgroundColor: colors.surfaceAlt,
-      paddingVertical: spacing.xl,
-      paddingHorizontal: spacing.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: spacing.xl,
+      alignSelf: 'stretch', minHeight: 220, borderRadius: radius.lg,
+      borderWidth: 1, borderColor: colors.borderMuted, backgroundColor: colors.surfaceAlt,
+      paddingVertical: spacing.xl, paddingHorizontal: spacing.lg,
+      alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xl,
     },
     caption: {
-      color: colors.textPrimary,
-      fontSize: fontSizes.md,
-      lineHeight: 22,
-      textAlign: 'center',
-      paddingHorizontal: spacing.sm,
+      color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22,
+      textAlign: 'center', paddingHorizontal: spacing.sm,
     },
-    // Page 1 — the pin legend, on its own stage.
-    rowsStage: {
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.borderMuted,
-      backgroundColor: colors.surfaceAlt,
-      padding: spacing.lg,
-      gap: spacing.lg,
+
+    // Pins page — states + types on a stage.
+    bodyStage: {
+      borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderMuted,
+      backgroundColor: colors.surfaceAlt, padding: spacing.lg, gap: spacing.lg,
     },
-    rowBlock: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
+    pinsLead: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+    pinsBody: { gap: spacing.lg },
+    stateRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start' },
+    statePinCol: { alignItems: 'center', gap: 6, width: 92 },
+    statePinLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700', textAlign: 'center' },
+    pinTypeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    pinTypeVisual: { width: 64, alignItems: 'center', justifyContent: 'center' },
+    pinTypeText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+
+    // Join page — popup + the real Rejoindre CTA.
+    joinHero: { alignItems: 'center', gap: spacing.md },
+    rejoindreBtn: {
+      backgroundColor: colors.cta, borderRadius: radius.sm,
+      paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.xl + spacing.lg, alignItems: 'center',
     },
-    rowVisual: {
-      width: 64,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    rowBody: { flex: 1, gap: 6 },
-    rowText: {
-      color: colors.textPrimary,
-      fontSize: fontSizes.md,
-      lineHeight: 22,
-    },
-    legendRow: {
-      flexDirection: 'row',
-      gap: spacing.md,
-      marginTop: 2,
-    },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    legendDot: { width: 12, height: 12, borderRadius: 6 },
-    legendLabel: {
-      color: colors.textSecondary,
-      fontSize: fontSizes.sm,
-      fontWeight: '600',
-    },
-    // Create page — a non-interactive replica of the + FAB.
+    rejoindreBtnText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+
+    // Create page — small + FAB, a teaser of sports, the count.
+    createHero: { alignItems: 'center', gap: spacing.md },
     fabDemo: {
-      width: 76,
-      height: 76,
-      borderRadius: 38,
-      backgroundColor: colors.cta,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#0A0F1A',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.25,
-      shadowRadius: 12,
-      elevation: 8,
+      width: 52, height: 52, borderRadius: 26, backgroundColor: colors.cta,
+      alignItems: 'center', justifyContent: 'center',
+      shadowColor: '#0A0F1A', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6,
     },
-    // Alert page — a small mock: bell + a sample criteria chip.
-    alertDemo: { alignItems: 'center', gap: spacing.md },
+    sportsEmojiRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+    sportsEmoji: { fontSize: 24 },
+    sportsCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+
+    // Alert page — small bell + a sample criteria chip.
+    alertDemo: { alignItems: 'center', gap: spacing.sm },
     alertBell: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: colors.cta + '1F',
-      borderWidth: 1,
-      borderColor: colors.cta,
-      alignItems: 'center',
-      justifyContent: 'center',
+      width: 44, height: 44, borderRadius: 22, backgroundColor: colors.cta + '1F',
+      borderWidth: 1, borderColor: colors.cta, alignItems: 'center', justifyContent: 'center',
     },
     alertChip: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.full,
-      borderWidth: 1,
-      borderColor: colors.borderMuted,
-      paddingHorizontal: spacing.md,
-      paddingVertical: 6,
+      backgroundColor: colors.surface, borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted,
+      paddingHorizontal: spacing.md, paddingVertical: 6,
     },
-    alertChipText: {
-      color: colors.textPrimary,
-      fontSize: fontSizes.sm,
-      fontWeight: '700',
+    alertChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+
+    // Profile page — reliability ring + sample badges.
+    profileHero: { alignItems: 'center', gap: spacing.lg },
+    badgeRow: { flexDirection: 'row', gap: spacing.md, justifyContent: 'center' },
+    badgeChip: { alignItems: 'center', gap: 5, width: 64 },
+    badgeMedal: {
+      width: 40, height: 40, borderRadius: 20, borderWidth: 1.5,
+      alignItems: 'center', justifyContent: 'center',
     },
-    dots: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: 6,
-      paddingVertical: spacing.md,
-    },
-    dot: {
-      width: 7,
-      height: 7,
-      borderRadius: 4,
-      backgroundColor: colors.borderMuted,
-    },
+    badgeLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textAlign: 'center' },
+
+    dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
+    dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.borderMuted },
     dotActive: { backgroundColor: colors.cta, width: 20 },
     nextBtn: {
-      backgroundColor: colors.cta,
-      borderRadius: radius.sm,
-      paddingVertical: spacing.sm + 4,
-      alignItems: 'center',
-      marginHorizontal: spacing.lg,
-      marginBottom: spacing.sm,
+      backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 4,
+      alignItems: 'center', marginHorizontal: spacing.lg, marginBottom: spacing.sm,
     },
-    nextText: {
-      color: '#FFFFFF',
-      fontSize: fontSizes.md,
-      fontWeight: '700',
-    },
+    nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
   });

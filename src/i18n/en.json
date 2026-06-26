@@ -511,6 +511,7 @@
     "pins": {
       "title": "Activities on the map",
       "ua": "A member's outing. Its colour tells you when:",
+      "upcoming": "Upcoming",
       "soon": "Soon",
       "inProgress": "In progress",
       "ra": "A pro's outing.",
@@ -523,7 +524,8 @@
     },
     "create": {
       "title": "Create your outing",
-      "body": "Tap the + button, pick your sport, the spot and the date — and publish. Others can join you."
+      "body": "Tap the + button, pick your sport, the spot and the date — and publish. Others can join you.",
+      "sports": "Across 33 sports"
     },
     "alert": {
       "title": "Never miss out",
