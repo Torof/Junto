@@ -810,8 +810,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
     overflow: 'hidden',
   },
   caption: {

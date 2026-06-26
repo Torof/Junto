@@ -982,8 +982,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
     overflow: 'hidden',
   },
 
@@ -1143,7 +1143,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   driverPill: {
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.borderMuted,
+    borderColor: colors.line,
     borderRadius: radius.md,
     padding: spacing.sm + 2,
     gap: 6,
@@ -1425,7 +1425,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 8,
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.borderMuted,
+    borderColor: colors.line,
     borderRadius: radius.md,
   },
   selfMoverInfo: {
@@ -1552,7 +1552,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 8,
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.borderMuted,
+    borderColor: colors.line,
     borderRadius: radius.sm,
   },
   inventoryItemName: {
