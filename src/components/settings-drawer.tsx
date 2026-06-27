@@ -1,9 +1,13 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react';
 import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil } from 'lucide-react-native';
+import {
+  Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, BellRing,
+  PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
+  ShieldAlert, ChevronDown, type LucideIcon,
+} from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -185,6 +189,62 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     await authService.signOut();
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(t('account.deleteTitle'), t('account.deleteMessage'), [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('account.deleteConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(t('account.deleteTitle2'), t('account.deleteMessage2'), [
+            { text: t('activity.no'), style: 'cancel' },
+            {
+              text: t('account.deleteFinal'),
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  // Edge function hard-deletes the auth.users row too (the RPC
+                  // alone leaves auth orphaned). AUDIT.md C1.
+                  const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+                  if (error) throw error;
+                  await authService.signOut();
+                  onClose();
+                } catch {
+                  Alert.alert(t('auth.error'), t('auth.unknownError'));
+                }
+              },
+            },
+          ]);
+        },
+      },
+    ]);
+  };
+
+  // Compact icon row inside a section card. value → right-aligned text,
+  // right → custom node (switch/segmented), onPress → chevron + tappable.
+  const Row = ({ icon: Icon, label, value, onPress, right, danger, last }: {
+    icon: LucideIcon;
+    label: string;
+    value?: string;
+    onPress?: () => void;
+    right?: ReactNode;
+    danger?: boolean;
+    last?: boolean;
+  }) => {
+    const body = (
+      <View style={[styles.row, last && styles.rowLast]}>
+        <View style={styles.rowLeft}>
+          <Icon size={18} color={danger ? colors.error : colors.textSecondary} strokeWidth={2} />
+          <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]} numberOfLines={1}>{label}</Text>
+        </View>
+        {right ?? (value !== undefined
+          ? <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
+          : onPress ? <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2} /> : null)}
+      </View>
+    );
+    return onPress ? <Pressable onPress={onPress}>{body}</Pressable> : body;
+  };
+
   const tierKey: 'pro' | 'premium' | 'free' = user?.tier === 'pro' ? 'pro' : user?.tier === 'premium' ? 'premium' : 'free';
   const tierLabel = t(`account.tier.${tierKey}`);
 
@@ -199,226 +259,103 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
 
-            {/* Account section */}
+            {/* === COMPTE === */}
             <Text style={styles.sectionTitle}>{t('drawer.account')}</Text>
-
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.email')}</Text>
-              <Text style={styles.rowValue}>{user?.email ?? ''}</Text>
+            <View style={styles.sectionCard}>
+              <Row icon={Mail} label={t('drawer.email')} value={user?.email ?? ''} />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <AtSign size={18} color={colors.textSecondary} strokeWidth={2} />
+                  <Text style={styles.rowLabel}>{t('drawer.pseudo')}</Text>
+                </View>
+                {editingName ? (
+                  <View style={styles.editNameRow}>
+                    <TextInput
+                      style={styles.nameInput}
+                      value={newName}
+                      onChangeText={setNewName}
+                      maxLength={30}
+                      autoFocus
+                    />
+                    <Pressable onPress={handleSaveName} disabled={isSavingName} style={isSavingName && { opacity: 0.4 }}>
+                      <Text style={styles.saveLink}>✓</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setEditingName(false)}>
+                      <Text style={styles.cancelLink}>✕</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable onPress={handleEditName} style={styles.editPseudoRow}>
+                    <Text style={styles.rowValueEditable}>{user?.display_name ?? '...'}</Text>
+                    <Pencil size={14} color={colors.cta} strokeWidth={2.4} />
+                  </Pressable>
+                )}
+              </View>
+              <Row icon={Star} label={t('drawer.subscription')} right={<Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>} />
+              <Row icon={Trash2} label={t('account.delete')} onPress={handleDeleteAccount} danger last />
             </View>
 
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.pseudo')}</Text>
-              {editingName ? (
-                <View style={styles.editNameRow}>
-                  <TextInput
-                    style={styles.nameInput}
-                    value={newName}
-                    onChangeText={setNewName}
-                    maxLength={30}
-                    autoFocus
-                  />
-                  <Pressable onPress={handleSaveName} disabled={isSavingName} style={isSavingName && { opacity: 0.4 }}>
-                    <Text style={styles.saveLink}>✓</Text>
-                  </Pressable>
-                  <Pressable onPress={() => setEditingName(false)}>
-                    <Text style={styles.cancelLink}>✕</Text>
-                  </Pressable>
+            {/* === PRÉFÉRENCES === */}
+            <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
+            <View style={styles.sectionCard}>
+              <Row icon={MapPin} label={t('drawer.myLocation')} right={
+                <Switch value={bgLocationGranted ?? false} onValueChange={handleToggleBgLocation} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+              } />
+              <Row icon={Bell} label={t('profil.notificationPrefs')} onPress={() => setShowNotifPrefs(!showNotifPrefs)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showNotifPrefs ? '180deg' : '0deg' }] }} />
+              } />
+              {showNotifPrefs && (
+                <View style={styles.notifContent}>
+                  {NOTIFICATION_TYPES.map((type) => (
+                    <View key={type} style={styles.prefRow}>
+                      <Text style={styles.prefLabel}>{t(`profil.notifType.${type}`)}</Text>
+                      <Switch value={prefs[type] !== false} onValueChange={() => togglePref(type)} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+                    </View>
+                  ))}
                 </View>
+              )}
+              <Row icon={Activity} label={t('drawer.crashReports')} right={
+                <Switch value={sentryConsent} onValueChange={handleToggleSentryConsent} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+              } />
+              <Row icon={Palette} label={t('drawer.theme')} right={
+                <View style={styles.segmentedPill}>
+                  {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
+                    const active = themePreference === opt;
+                    return (
+                      <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
+                        <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              } />
+              {(user?.tier === 'premium' || user?.tier === 'pro') ? (
+                <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
               ) : (
-                <Pressable onPress={handleEditName} style={styles.editPseudoRow}>
-                  <Text style={styles.rowValueEditable}>{user?.display_name ?? '...'}</Text>
-                  <Pencil size={14} color={colors.cta} strokeWidth={2.4} />
-                </Pressable>
+                <Row icon={BellRing} label={t('alerts.manage')} right={<Text style={styles.premiumLabel}>Premium</Text>} last />
               )}
             </View>
 
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.subscription')}</Text>
-              <Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>
-            </View>
-
-            {/* Pro entry — routes to /(auth)/pro/[user_id] for existing
-                pros (view + edit affordance), or to /(auth)/pro/edit
-                for the register form when not yet a pro. */}
-            <Pressable
-              style={styles.row}
-              onPress={async () => {
-                onClose();
-                if (user?.tier === 'pro') {
-                  const uid = (await supabase.auth.getUser()).data.user?.id;
-                  if (uid) router.push(`/(auth)/pro/${uid}`);
-                } else {
-                  router.push('/(auth)/pro/edit');
-                }
-              }}
-            >
-              <Text style={styles.rowLabel}>
-                {user?.tier === 'pro'
-                  ? t('drawer.myProPage', { defaultValue: 'Ma page pro' })
-                  : t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
-              </Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-
-            {/* Preferences section */}
-            <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
-
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.myLocation')}</Text>
-              <Switch
-                value={bgLocationGranted ?? false}
-                onValueChange={handleToggleBgLocation}
-                trackColor={{ false: colors.surface, true: colors.cta }}
-                thumbColor="#fff"
-              />
-            </View>
-
-            <Pressable style={styles.row} onPress={() => setShowNotifPrefs(!showNotifPrefs)}>
-              <Text style={styles.rowLabel}>{t('profil.notificationPrefs')}</Text>
-              <Text style={styles.arrow}>{showNotifPrefs ? '▲' : '▼'}</Text>
-            </Pressable>
-
-            {showNotifPrefs && (
-              <View style={styles.notifContent}>
-                {NOTIFICATION_TYPES.map((type) => (
-                  <View key={type} style={styles.prefRow}>
-                    <Text style={styles.prefLabel}>{t(`profil.notifType.${type}`)}</Text>
-                    <Switch
-                      value={prefs[type] !== false}
-                      onValueChange={() => togglePref(type)}
-                      trackColor={{ false: colors.surface, true: colors.cta }}
-                      thumbColor="#fff"
-                    />
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Crash-report consent (RGPD) — default OFF in production;
-                preview builds auto-consent regardless of this toggle. */}
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.crashReports')}</Text>
-              <Switch
-                value={sentryConsent}
-                onValueChange={handleToggleSentryConsent}
-                trackColor={{ false: colors.surface, true: colors.cta }}
-                thumbColor="#fff"
-              />
-            </View>
-
-            {/* Theme — segmented pill */}
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('drawer.theme')}</Text>
-              <View style={styles.segmentedPill}>
-                {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
-                  const active = themePreference === opt;
-                  return (
-                    <Pressable
-                      key={opt}
-                      style={[styles.segment, active && styles.segmentActive]}
-                      onPress={() => setThemePreference(opt)}
-                    >
-                      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                        {t(`drawer.themeOption.${opt}`)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* Alerts (Premium) */}
-            {(user?.tier === 'premium' || user?.tier === 'pro') ? (
-              <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }}>
-                <Text style={styles.rowLabel}>{t('alerts.manage')}</Text>
-                <Text style={styles.arrow}>›</Text>
-              </Pressable>
-            ) : (
-              <View style={[styles.row, { opacity: 0.4 }]}>
-                <Text style={styles.rowLabel}>{t('alerts.manage')}</Text>
-                <Text style={styles.premiumLabel}>Premium</Text>
-              </View>
-            )}
-
-            {/* Admin */}
+            {/* === ADMIN === */}
             {user?.is_admin && (
-              <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/admin/moderation'); }}>
-                <Text style={styles.rowLabel}>{t('admin.moderation')}</Text>
-                <Text style={styles.arrow}>›</Text>
-              </Pressable>
+              <View style={styles.sectionCard}>
+                <Row icon={ShieldAlert} label={t('admin.moderation')} onPress={() => { onClose(); router.push('/(auth)/admin/moderation'); }} last />
+              </View>
             )}
 
-            {/* Legal */}
+            {/* === AIDE & LÉGAL === */}
             <Text style={styles.sectionTitle}>{t('drawer.legal')}</Text>
-            <Pressable style={styles.row} onPress={() => { onClose(); requestReplay(); }}>
-              <Text style={styles.rowLabel}>{t('intro.replay')}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
+            <View style={styles.sectionCard}>
+              <Row icon={PlayCircle} label={t('intro.replay')} onPress={() => { onClose(); requestReplay(); }} />
+              <Row icon={HelpCircle} label={t('legal.faq')} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }} />
+              <Row icon={FileText} label={t('legal.terms')} onPress={() => { onClose(); router.push('/(auth)/legal/terms'); }} />
+              <Row icon={ShieldCheck} label={t('legal.privacy')} onPress={() => { onClose(); router.push('/(auth)/legal/privacy'); }} />
+              <Row icon={Scale} label={t('legal.licenses')} onPress={() => { onClose(); router.push('/(auth)/legal/licenses'); }} last />
+            </View>
 
-            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }}>
-              <Text style={styles.rowLabel}>{t('legal.faq')}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/terms'); }}>
-              <Text style={styles.rowLabel}>{t('legal.terms')}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/privacy'); }}>
-              <Text style={styles.rowLabel}>{t('legal.privacy')}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-            <Pressable style={styles.row} onPress={() => { onClose(); router.push('/(auth)/legal/licenses'); }}>
-              <Text style={styles.rowLabel}>{t('legal.licenses')}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-
-            {/* Logout */}
+            {/* Logout (delete account now lives in the Compte card) */}
             <Pressable style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>{t('profil.logout')}</Text>
-            </Pressable>
-
-            {/* Delete account (less prominent — intentional friction) */}
-            <Pressable style={styles.deleteLink} onPress={() => {
-              Alert.alert(
-                t('account.deleteTitle'),
-                t('account.deleteMessage'),
-                [
-                  { text: t('activity.no'), style: 'cancel' },
-                  {
-                    text: t('account.deleteConfirm'),
-                    style: 'destructive',
-                    onPress: () => {
-                      Alert.alert(
-                        t('account.deleteTitle2'),
-                        t('account.deleteMessage2'),
-                        [
-                          { text: t('activity.no'), style: 'cancel' },
-                          {
-                            text: t('account.deleteFinal'),
-                            style: 'destructive',
-                            onPress: async () => {
-                              try {
-                                // Go through the delete-account edge function so
-                                // the auth.users row is hard-deleted too (the
-                                // RPC alone leaves auth orphaned). AUDIT.md C1.
-                                const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
-                                if (error) throw error;
-                                await authService.signOut();
-                                onClose();
-                              } catch {
-                                Alert.alert(t('auth.error'), t('auth.unknownError'));
-                              }
-                            },
-                          },
-                        ],
-                      );
-                    },
-                  },
-                ],
-              );
-            }}>
-              <Text style={styles.deleteLinkText}>{t('account.delete')}</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -457,17 +394,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   closeText: { color: colors.textSecondary, fontSize: 18 },
   sectionTitle: {
-    color: colors.textSecondary, fontSize: fontSizes.xs,
-    textTransform: 'uppercase', marginBottom: spacing.md, marginTop: spacing.lg,
+    color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700',
+    letterSpacing: 1, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.lg,
+  },
+  // Outlined group card; rows sit inside with light inner dividers.
+  sectionCard: {
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.md,
   },
   premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
   row: {
     paddingHorizontal: spacing.xs, paddingVertical: spacing.sm + 2,
     flexDirection: 'row',
     justifyContent: 'space-between', alignItems: 'center',
-    borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
+    gap: spacing.sm,
+    borderBottomWidth: 1, borderBottomColor: colors.line,
   },
-  rowLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  rowLast: { borderBottomWidth: 0 },
+  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 },
+  rowLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', flexShrink: 1 },
+  rowLabelDanger: { color: colors.error },
   rowValue: { color: colors.textPrimary, fontSize: fontSizes.sm },
   rowValueEditable: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
   tierBadge: { color: colors.cta, fontWeight: 'bold', textTransform: 'uppercase', fontSize: fontSizes.xs },
@@ -482,11 +432,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   saveLink: { color: colors.cta, fontSize: 18, fontWeight: 'bold' },
   cancelLink: { color: colors.textSecondary, fontSize: 16 },
   arrow: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  notifContent: { marginBottom: spacing.sm },
+  notifContent: { marginBottom: spacing.sm, paddingLeft: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.line },
   prefRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.xs, paddingVertical: spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
+    paddingHorizontal: spacing.xs, paddingVertical: spacing.xs + 2,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
   deleteLink: {

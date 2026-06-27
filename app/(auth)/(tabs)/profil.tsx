@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState, useMemo } from 'react';
-import { useNavigation } from 'expo-router';
-import { Menu } from 'lucide-react-native';
+import { useNavigation, useRouter } from 'expo-router';
+import { Menu, ChevronRight } from 'lucide-react-native';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +27,7 @@ export default function ProfilScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
@@ -176,6 +177,38 @@ export default function ProfilScreen() {
           createdCount={stats?.created_activities}
         />
 
+        {/* Pro space — visible on every profile visit (vs buried in settings). */}
+        {user.tier === 'pro' ? (
+          <View style={styles.proCard}>
+            <View style={styles.proCardHead}>
+              <BadgeCheck size={18} color={colors.pinMeeting} fill={colors.pinMeeting + '40'} strokeWidth={2} />
+              <Text style={styles.proCardTitle}>{t('pro.spaceTitle', { defaultValue: 'Espace pro' })}</Text>
+            </View>
+            <View style={styles.proActions}>
+              <Pressable style={styles.proBtn} onPress={() => userId && router.push(`/(auth)/pro/${userId}`)}>
+                <Text style={styles.proBtnText}>{t('drawer.myProPage', { defaultValue: 'Ma page pro' })}</Text>
+              </Pressable>
+              <Pressable style={[styles.proBtn, styles.proBtnGhost]} onPress={() => router.push('/(auth)/pro/offering/edit')}>
+                <Text style={[styles.proBtnText, styles.proBtnGhostText]}>{t('pro.newOffering', { defaultValue: 'Nouvelle offre' })}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable style={styles.proCard} onPress={() => router.push('/(auth)/pro/edit')}>
+            <View style={styles.proCardHead}>
+              <BadgeCheck size={18} color={colors.cta} strokeWidth={2} />
+              <Text style={styles.proCardTitle}>{t('drawer.becomePro', { defaultValue: 'Devenir pro' })}</Text>
+              <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} style={{ marginLeft: 'auto' }} />
+            </View>
+            <Text style={styles.proCardBody}>
+              {t('pro.pitch', { defaultValue: 'Crée ta page pro, propose tes sorties encadrées et tes offres aux autres membres.' })}
+            </Text>
+            <View style={styles.proBtn}>
+              <Text style={styles.proBtnText}>{t('pro.register', { defaultValue: 'Devenir pro' })}</Text>
+            </View>
+          </Pressable>
+        )}
+
       </ScrollView>
 
       <SettingsDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
@@ -186,4 +219,27 @@ export default function ProfilScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
+  proCard: {
+    marginTop: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  proCardHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  proCardTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+  proCardBody: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
+  proActions: { flexDirection: 'row', gap: spacing.sm },
+  proBtn: {
+    flex: 1,
+    backgroundColor: colors.cta,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+  },
+  proBtnText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
+  proBtnGhost: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.cta },
+  proBtnGhostText: { color: colors.cta },
 });
