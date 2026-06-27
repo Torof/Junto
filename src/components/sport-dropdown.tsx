@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Search } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -18,6 +19,7 @@ interface SportDropdownProps {
 export function SportDropdown({ selected, onSelect, multiSelect = false, label }: SportDropdownProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -38,6 +40,20 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
     t(`sports.${a.key}`, { defaultValue: a.key }).localeCompare(t(`sports.${b.key}`, { defaultValue: b.key }), i18n.language)
   );
 
+  const visibleSports = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sortedSports;
+    return sortedSports.filter((s) =>
+      t(`sports.${s.key}`, { defaultValue: s.key }).toLowerCase().includes(q),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedSports, query, t]);
+
+  const closeSheet = () => {
+    setOpen(false);
+    setQuery('');
+  };
+
   const selectedArray = Array.isArray(selected) ? selected : selected ? [selected] : [];
   const selectedCount = selectedArray.length;
 
@@ -49,7 +65,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
 
   const handleSelect = (key: string) => {
     onSelect(key);
-    if (!multiSelect) setOpen(false);
+    if (!multiSelect) closeSheet();
   };
 
   return (
@@ -60,13 +76,26 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
       </Pressable>
 
       <Modal visible={open} animationType="slide" transparent>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={closeSheet}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
             <Text style={styles.title}>{label ?? t('sportDropdown.select')}</Text>
 
-            <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-              {sortedSports.map((sport) => {
+            <View style={styles.searchBar}>
+              <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
+              <TextInput
+                style={styles.searchInput}
+                value={query}
+                onChangeText={setQuery}
+                placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
+                placeholderTextColor={colors.textSecondary}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <ScrollView style={styles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {visibleSports.map((sport) => {
                 const isSelected = selectedArray.includes(sport.key);
                 return (
                   <Pressable
@@ -85,7 +114,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
             </ScrollView>
 
             {multiSelect && (
-              <Pressable style={styles.doneButton} onPress={() => setOpen(false)}>
+              <Pressable style={styles.doneButton} onPress={closeSheet}>
                 <Text style={styles.doneText}>{t('map.apply')}</Text>
               </Pressable>
             )}
@@ -113,6 +142,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2, marginBottom: spacing.sm,
+  },
+  searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, padding: 0 },
   list: { maxHeight: 400 },
   item: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,

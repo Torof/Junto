@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Check } from 'lucide-react-native';
+import { Check, Search } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -25,6 +25,7 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
   const styles = useMemo(() => createStyles(colors), [colors]);
   const filters = useStore((s) => s.filters);
   const toggleSportFilter = useStore((s) => s.toggleSportFilter);
+  const [query, setQuery] = useState('');
 
   const { data: sports } = useQuery({
     queryKey: ['sports'],
@@ -45,6 +46,14 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
     });
   }, [sports, t]);
 
+  const visibleSports = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sortedSports;
+    return sortedSports.filter((s) =>
+      t(`sports.${s.key}`, { defaultValue: s.key }).toLowerCase().includes(q),
+    );
+  }, [sortedSports, query, t]);
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -52,8 +61,21 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
           <View style={styles.handle} />
           <Text style={styles.sheetTitle}>{t('map.sportLabel')}</Text>
 
-          <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            {sortedSports.map((s) => {
+          <View style={styles.searchBar}>
+            <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
+            <TextInput
+              style={styles.searchInput}
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
+              placeholderTextColor={colors.textSecondary}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <ScrollView style={styles.list} contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
+            {visibleSports.map((s) => {
               const isSelected = filters.sportKeys.includes(s.key);
               return (
                 <Pressable
@@ -110,6 +132,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.lg,
     fontWeight: 'bold',
     marginBottom: spacing.md,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    marginBottom: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    padding: 0,
   },
   list: { maxHeight: '80%' },
   listContent: { paddingBottom: spacing.md },

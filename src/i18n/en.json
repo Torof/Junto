@@ -561,6 +561,7 @@
     },
     "dateLabel": "When",
     "sportLabel": "Sport",
+    "searchSport": "Search a sport",
     "otherFiltersLabel": "Other filters",
     "filtersBtn": "Filters",
     "radiusLabel": "Radius",
