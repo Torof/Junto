@@ -32,6 +32,27 @@ export const sportIcons: Record<string, string> = {
   'horseback-riding': '🏇',
   'via-ferrata': '⛓',
   slacklining: '🤸',
+  // Sports expansion (mig 00276)
+  'climbing-sport': '🧗',
+  'climbing-multipitch': '🧗',
+  bouldering: '🪨',
+  'dry-tooling': '🪓',
+  caving: '🕳️',
+  'nordic-walking': '🚶',
+  snowshoeing: '🌨',
+  'ski-freeride': '🎿',
+  splitboard: '🏂',
+  'mtb-xc': '🚵',
+  'mtb-enduro': '🚵',
+  'mtb-downhill': '🚵',
+  gravel: '🚲',
+  'speed-riding': '🪂',
+  'hang-gliding': '🛩',
+  freediving: '🤿',
+  highlining: '➰',
+  kitesurf: '🪁',
+  windsurf: '🌬',
+  wakeboard: '🏄',
 };
 
 export function getSportIcon(sportKey: string): string {

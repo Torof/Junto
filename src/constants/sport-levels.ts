@@ -1,17 +1,20 @@
 /**
- * Level scales per sport.
- * For sports with a dedicated technical scale (climbing grades, alpine grades,
- * ski pistes...), use that. For sports without one, use the generic débutant/
- * intermédiaire/avancé/expert scale.
- * Every sport includes 'Tous niveaux' as an explicit open option.
+ * Level scales per sport. Granular grade-by-grade for sports that have a real
+ * scale (French climbing, Font, alpine, WI, M, canyon v, whitewater class, ski,
+ * brevet…). The very low / trivial grades and the +/- sub-grades are dropped on
+ * purpose — nobody coordinates an outing around 4c or 6a+. Every sport starts
+ * with "Tous niveaux".
+ *
+ * `description` (when present) is the coarse tier the grade maps to, used both
+ * as a chip hint and by the map/list level filter (see levelSpanMatchesTiers).
  */
 
 export interface LevelOption {
-  /** Short label shown on cards/popups/details */
   label: string;
-  /** Optional longer description shown in the selector / tooltip */
   description?: string;
 }
+
+const T = { D: 'Débutant', I: 'Intermédiaire', A: 'Avancé', E: 'Expert' } as const;
 
 const GENERIC: LevelOption[] = [
   { label: 'Tous niveaux' },
@@ -21,82 +24,142 @@ const GENERIC: LevelOption[] = [
   { label: 'Expert' },
 ];
 
-// Sport-specific scales
-const CLIMBING: LevelOption[] = [
+// French sport grades — couenne + grande voie (no +, starts at 5a).
+const FRENCH_SPORT: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: '5a - 5c', description: 'Débutant' },
-  { label: '6a - 6b', description: 'Intermédiaire' },
-  { label: '6c - 7a', description: 'Avancé' },
-  { label: '7b+', description: 'Expert' },
+  { label: '5a', description: T.D }, { label: '5b', description: T.D }, { label: '5c', description: T.D },
+  { label: '6a', description: T.I }, { label: '6b', description: T.I }, { label: '6c', description: T.I },
+  { label: '7a', description: T.A }, { label: '7b', description: T.A }, { label: '7c', description: T.A },
+  { label: '8a', description: T.E }, { label: '8b', description: T.E }, { label: '8c', description: T.E },
 ];
 
-const MOUNTAINEERING: LevelOption[] = [
+// Bouldering — Font scale (no +, starts at 5).
+const FONT: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'F', description: 'Facile' },
-  { label: 'PD', description: 'Peu difficile' },
-  { label: 'AD', description: 'Assez difficile' },
-  { label: 'D', description: 'Difficile' },
-  { label: 'TD+', description: 'Très difficile et plus' },
+  { label: '5', description: T.D },
+  { label: '6a', description: T.I }, { label: '6b', description: T.I }, { label: '6c', description: T.I },
+  { label: '7a', description: T.A }, { label: '7b', description: T.A }, { label: '7c', description: T.A },
+  { label: '8a', description: T.E },
 ];
 
-const PARAGLIDING: LevelOption[] = [
+// Alpine grade — mountaineering.
+const ALPINE: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'Découverte', description: 'Baptême, première sortie' },
-  { label: 'Brevet en cours', description: 'Élève pilote' },
-  { label: 'Pilote autonome', description: 'Brevet pilote' },
-  { label: 'Confirmé', description: 'Brevet + 50h+' },
+  { label: 'F', description: T.D },
+  { label: 'PD', description: T.I }, { label: 'AD', description: T.I },
+  { label: 'D', description: T.A }, { label: 'TD', description: T.A },
+  { label: 'ED', description: T.E },
 ];
 
-const SKI_TOURING: LevelOption[] = [
+// Ice — WI scale.
+const ICE: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'Débutant', description: 'Pentes < 30°' },
-  { label: 'Intermédiaire', description: '30-35°' },
-  { label: 'Avancé', description: '35°+, glacier' },
-  { label: 'Engagé', description: 'Hors-piste technique' },
+  { label: 'WI3', description: T.I },
+  { label: 'WI4', description: T.A }, { label: 'WI5', description: T.A },
+  { label: 'WI6', description: T.E },
 ];
 
-const MTB: LevelOption[] = [
+// Mixed / dry-tooling — M scale.
+const DRYTOOL: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'Vert', description: 'Facile' },
-  { label: 'Bleu', description: 'Intermédiaire' },
-  { label: 'Rouge', description: 'Difficile' },
-  { label: 'Noir', description: 'Expert' },
+  { label: 'M5', description: T.I }, { label: 'M6', description: T.I },
+  { label: 'M7', description: T.A }, { label: 'M8', description: T.A },
+  { label: 'M9', description: T.E },
 ];
 
 const VIA_FERRATA: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'F', description: 'Facile' },
-  { label: 'PD', description: 'Peu difficile' },
-  { label: 'AD', description: 'Assez difficile' },
-  { label: 'D', description: 'Difficile' },
-  { label: 'ED', description: 'Extrêmement difficile' },
+  { label: 'PD', description: T.D },
+  { label: 'AD', description: T.I },
+  { label: 'D', description: T.A }, { label: 'TD', description: T.A },
+  { label: 'ED', description: T.E },
 ];
 
-const CANYONING: LevelOption[] = [
+// Canyon — vertical scale (v1 dropped as trivial).
+const CANYON: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'v1', description: 'Débutant, peu technique' },
-  { label: 'v2-v3', description: 'Intermédiaire' },
-  { label: 'v4-v5', description: 'Avancé, rappels + sauts' },
-  { label: 'v6-v7', description: 'Expert, engagement fort' },
+  { label: 'v2', description: T.D },
+  { label: 'v3', description: T.I }, { label: 'v4', description: T.I },
+  { label: 'v5', description: T.A }, { label: 'v6', description: T.A },
+  { label: 'v7', description: T.E },
 ];
 
-const ICE_CLIMBING: LevelOption[] = [
+// Whitewater class — kayak + rafting.
+const WHITEWATER: LevelOption[] = [
   { label: 'Tous niveaux' },
-  { label: 'WI2-WI3', description: 'Débutant' },
-  { label: 'WI4', description: 'Intermédiaire' },
-  { label: 'WI5', description: 'Avancé' },
-  { label: 'WI6+', description: 'Expert' },
+  { label: 'Classe II', description: T.D },
+  { label: 'Classe III', description: T.I },
+  { label: 'Classe IV', description: T.A },
+  { label: 'Classe V', description: T.E },
+];
+
+// Ski descent grade — ski touring / freeride / splitboard.
+const SKI: LevelOption[] = [
+  { label: 'Tous niveaux' },
+  { label: 'S1', description: T.D },
+  { label: 'S2', description: T.I },
+  { label: 'S3', description: T.A }, { label: 'S4', description: T.A },
+  { label: 'S5', description: T.E },
+];
+
+// Piste colours — ski alpin / snowboard / VTT.
+const PISTE: LevelOption[] = [
+  { label: 'Tous niveaux' },
+  { label: 'Vert', description: T.D },
+  { label: 'Bleu', description: T.I },
+  { label: 'Rouge', description: T.A },
+  { label: 'Noir', description: T.E },
+];
+
+// Flying brevets — parapente / speed-riding / deltaplane.
+const FLYING: LevelOption[] = [
+  { label: 'Tous niveaux' },
+  { label: 'Découverte', description: T.D },
+  { label: 'Brevet en cours', description: T.D },
+  { label: 'Pilote autonome', description: T.I },
+  { label: 'Confirmé', description: T.A },
+];
+
+const DIVING: LevelOption[] = [
+  { label: 'Tous niveaux' },
+  { label: 'N1', description: T.D },
+  { label: 'N2', description: T.I },
+  { label: 'N3', description: T.A },
+  { label: 'N4', description: T.E },
+];
+
+const APNEA: LevelOption[] = [
+  { label: 'Tous niveaux' },
+  { label: 'Découverte', description: T.D },
+  { label: '10-20 m', description: T.I },
+  { label: '20-30 m', description: T.A },
+  { label: '30 m+', description: T.E },
 ];
 
 export const SPORT_LEVEL_SCALES: Record<string, LevelOption[]> = {
-  climbing: CLIMBING,
-  mountaineering: MOUNTAINEERING,
-  paragliding: PARAGLIDING,
-  'ski-touring': SKI_TOURING,
-  'mountain-biking': MTB,
+  'climbing-sport': FRENCH_SPORT,
+  'climbing-multipitch': FRENCH_SPORT,
+  bouldering: FONT,
+  mountaineering: ALPINE,
+  'ice-climbing': ICE,
+  'dry-tooling': DRYTOOL,
   'via-ferrata': VIA_FERRATA,
-  canyoning: CANYONING,
-  'ice-climbing': ICE_CLIMBING,
+  canyoning: CANYON,
+  kayaking: WHITEWATER,
+  rafting: WHITEWATER,
+  'ski-touring': SKI,
+  'ski-freeride': SKI,
+  splitboard: SKI,
+  skiing: PISTE,
+  snowboarding: PISTE,
+  'mtb-xc': PISTE,
+  'mtb-enduro': PISTE,
+  'mtb-downhill': PISTE,
+  paragliding: FLYING,
+  'speed-riding': FLYING,
+  'hang-gliding': FLYING,
+  diving: DIVING,
+  freediving: APNEA,
 };
 
 /** The explicit "open to everyone" option — index 0 of every scale. */
@@ -105,11 +168,6 @@ export const OPEN_LEVEL = 'Tous niveaux';
 /** Coarse difficulty tiers used by the map/list level filter. */
 export const LEVEL_TIERS = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'] as const;
 
-/**
- * Map a level label to its tier index (0–3), or null when it should match any
- * tier — i.e. "Tous niveaux", missing, or a label that maps to no known tier
- * (soft-fail, so free-form data is never hidden).
- */
 function levelTierIndex(sportKey: string, label: string | null | undefined): number | null {
   if (!label || label === OPEN_LEVEL) return null;
   const option = getLevelScale(sportKey).find((o) => o.label === label);
@@ -120,8 +178,7 @@ function levelTierIndex(sportKey: string, label: string | null | undefined): num
 
 /**
  * Does an activity's level span [level, levelMax] overlap any of the selected
- * tiers? Empty selection matches everything; open / unmappable levels soft-fail
- * (match), so free-form or missing data is never hidden.
+ * tiers? Empty selection matches everything; open / unmappable levels soft-fail.
  */
 export function levelSpanMatchesTiers(
   sportKey: string,
@@ -149,10 +206,9 @@ export function getLevelScale(sportKey: string): LevelOption[] {
 
 /**
  * Format a level span for display.
- *   - open / empty        → "Tous niveaux" (or '')
- *   - single level        → "Avancé"
- *   - contiguous range    → "Débutant → Avancé"
- * level is the low end, levelMax the high end (NULL when single).
+ *   - open / empty     → "Tous niveaux" (or '')
+ *   - single level     → "6a"
+ *   - contiguous range → "5c → 7a"
  */
 export function formatLevelRange(
   level: string | null | undefined,
@@ -166,26 +222,18 @@ export function formatLevelRange(
 
 /**
  * Which sports use distance + D+ as their primary difficulty metrics.
- * For these sports, cards show "25 km · D+ 1400m" instead of the generic level.
  */
 export const SPORTS_WITH_DISTANCE = new Set<string>([
-  'hiking',
-  'trail-running',
-  'running',
-  'cycling',
-  'mountain-biking',
-  'cross-country-ski',
+  'hiking', 'trail-running', 'running', 'cycling', 'gravel',
+  'mtb-xc', 'mtb-enduro', 'mtb-downhill',
+  'cross-country-ski', 'nordic-walking', 'snowshoeing',
 ]);
 
 export const SPORTS_WITH_ELEVATION = new Set<string>([
-  'hiking',
-  'trail-running',
-  'running',
-  'cycling',
-  'mountain-biking',
-  'ski-touring',
-  'cross-country-ski',
-  'mountaineering',
+  'hiking', 'trail-running', 'running', 'cycling', 'gravel',
+  'mtb-xc', 'mtb-enduro', 'mtb-downhill',
+  'ski-touring', 'ski-freeride', 'splitboard',
+  'cross-country-ski', 'nordic-walking', 'snowshoeing', 'mountaineering',
 ]);
 
 export function sportHasDistance(sportKey: string): boolean {
@@ -198,9 +246,8 @@ export function sportHasElevation(sportKey: string): boolean {
 
 /**
  * Format the primary difficulty signal for a card.
- * Priority:
  *   1. distance + D+ (if sport uses them AND at least one is set)
- *   2. level (fallback)
+ *   2. level range (fallback)
  */
 export function formatDifficultySignal(
   sportKey: string,
