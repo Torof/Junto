@@ -94,6 +94,8 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 12,
+    // Sized to fill the ~27px ivory plate so the sport emoji reads clearly
+    // on the map (emoji glyphs can't be colour-saturated, so size is the lever).
+    fontSize: 17,
   },
 });

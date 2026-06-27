@@ -85,6 +85,7 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 12,
+    // Match ActivityPin — bigger emoji fills the plate so it reads on the map.
+    fontSize: 17,
   },
 });
