@@ -364,7 +364,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             {/* === ADMIN === */}
             {user?.is_admin && (
               <View style={styles.sectionCard}>
-                <Row icon={ShieldAlert} label={t('admin.moderation')} onPress={() => { onClose(); router.push('/(auth)/admin/moderation'); }} last />
+                <Row icon={ShieldAlert} label={t('admin.hub', { defaultValue: 'Administration' })} onPress={() => { onClose(); router.push('/(auth)/admin'); }} last />
               </View>
             )}
 

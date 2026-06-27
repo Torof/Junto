@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, Modal, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -22,7 +23,8 @@ export default function ModerationScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<FilterTab>('pending');
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<FilterTab>(tabParam === 'pros' ? 'pros' : 'pending');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
