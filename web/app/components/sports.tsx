@@ -8,37 +8,44 @@ const CATEGORIES: { name: string; accent: string; sample: string; sports: string
     name: 'Montagne',
     accent: '#F26B2E',
     sample: 'Escalade, alpinisme…',
-    sports: ['Randonnée', 'Escalade', 'Ski de rando', 'Trail', 'Alpinisme', 'Via ferrata', 'Cascade de glace', 'Canyoning', 'Slackline'],
+    sports: [
+      'Randonnée', 'Trail', 'Alpinisme', 'Escalade couenne', 'Escalade grande voie',
+      'Escalade de bloc', 'Via ferrata', 'Cascade de glace', 'Dry-tooling', 'Canyoning',
+      'Spéléo', 'Slackline', 'Highline', 'Marche nordique',
+    ],
   },
   {
     name: 'Eau',
     accent: '#4B7CB8',
-    sample: 'Kayak, surf…',
-    sports: ['Kayak', 'Surf', 'Voile', 'Stand-up Paddle', 'Rafting', 'Plongée', 'Natation'],
+    sample: 'Surf, kayak…',
+    sports: [
+      'Kayak', 'Surf', 'Voile', 'Stand-up Paddle', 'Rafting', 'Plongée', 'Apnée',
+      'Natation', 'Kitesurf', 'Windsurf', 'Wakeboard', 'Pêche en roche',
+    ],
   },
   {
     name: 'Neige',
     accent: '#9DB7D4',
     sample: 'Ski, snowboard…',
-    sports: ['Ski', 'Snowboard', 'Ski de fond'],
+    sports: ['Ski', 'Snowboard', 'Ski de rando', 'Ski de fond', 'Ski freeride', 'Splitboard', 'Raquettes'],
   },
   {
     name: 'Air',
     accent: '#F4A373',
-    sample: 'Parapente, parachutisme',
-    sports: ['Parapente', 'Parachutisme'],
+    sample: 'Parapente, deltaplane…',
+    sports: ['Parapente', 'Parachutisme', 'Speed-riding', 'Deltaplane'],
   },
   {
     name: 'Vélo',
     accent: '#7EC8A3',
-    sample: 'Vélo, VTT',
-    sports: ['Vélo', 'VTT'],
+    sample: 'VTT, gravel…',
+    sports: ['Vélo', 'VTT cross-country', 'VTT enduro', 'VTT descente', 'Gravel'],
   },
   {
     name: 'Terrain',
     accent: '#D4B46A',
     sample: 'Course, tennis…',
-    sports: ['Course à pied', 'Football', 'Tennis', 'Volleyball', 'Badminton', 'Équitation', 'Skateboard', 'Triathlon', 'CrossFit', 'Pêche en roche'],
+    sports: ['Course à pied', 'Football', 'Tennis', 'Volleyball', 'Badminton', 'Équitation', 'Skateboard', 'Triathlon', 'CrossFit'],
   },
 ];
 
