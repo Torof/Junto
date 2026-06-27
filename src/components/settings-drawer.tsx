@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
-  ShieldAlert, ChevronDown, type LucideIcon,
+  ShieldAlert, ChevronDown, BadgeCheck, type LucideIcon,
 } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
@@ -65,6 +65,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const requestReplay = useIntroStore((s) => s.requestReplay);
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
   const [sentryConsent, setSentryConsentState] = useState(false);
 
@@ -292,6 +293,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 )}
               </View>
               <Row icon={Star} label={t('drawer.subscription')} right={<Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>} />
+              {user?.tier !== 'pro' && (
+                <Row icon={BadgeCheck} label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
+              )}
               <Row icon={Trash2} label={t('account.delete')} onPress={handleDeleteAccount} danger last />
             </View>
 
@@ -317,18 +321,23 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Row icon={Activity} label={t('drawer.crashReports')} right={
                 <Switch value={sentryConsent} onValueChange={handleToggleSentryConsent} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
               } />
-              <Row icon={Palette} label={t('drawer.theme')} right={
-                <View style={styles.segmentedPill}>
-                  {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
-                    const active = themePreference === opt;
-                    return (
-                      <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
-                        <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
               } />
+              {showTheme && (
+                <View style={styles.themeContent}>
+                  <View style={styles.segmentedPill}>
+                    {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
+                      const active = themePreference === opt;
+                      return (
+                        <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
+                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
               {(user?.tier === 'premium' || user?.tier === 'pro') ? (
                 <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
               ) : (
@@ -433,6 +442,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cancelLink: { color: colors.textSecondary, fontSize: 16 },
   arrow: { color: colors.textSecondary, fontSize: fontSizes.xs },
   notifContent: { marginBottom: spacing.sm, paddingLeft: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.line },
+  themeContent: { paddingLeft: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.sm },
   prefRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.xs, paddingVertical: spacing.xs + 2,
