@@ -1,10 +1,13 @@
 import { CREAM, NAVY_DEEP, ORANGE_SOFT, SectionLabel, TopoLines } from './shared';
 
 const SCREENS = [
-  { src: '/screenshots/1-map.jpeg', title: 'La carte', alt: 'Carte des activités' },
-  { src: '/screenshots/2-popup.jpeg', title: 'Un aperçu', alt: "Aperçu d'une activité" },
-  { src: '/screenshots/3-activity.jpeg', title: 'Le détail', alt: "Page d'activité" },
-  { src: '/screenshots/4-profile.jpeg', title: 'Le profil', alt: 'Profil utilisateur' },
+  { src: '/screenshots/1-map.jpeg', title: 'La carte', alt: 'Carte des activités autour de toi' },
+  { src: '/screenshots/2-activity.jpeg', title: "L'activité", alt: "Détail d'une activité" },
+  { src: '/screenshots/3-transport.jpeg', title: 'Le transport', alt: 'Covoiturage et préparatifs de transport' },
+  { src: '/screenshots/4-gear.jpeg', title: 'Le matériel', alt: 'Inventaire de matériel partagé' },
+  { src: '/screenshots/5-chat.jpeg', title: 'La discussion', alt: "Chat de l'activité" },
+  { src: '/screenshots/6-pro.jpeg', title: 'La page pro', alt: "Page d'un professionnel" },
+  { src: '/screenshots/7-profile.jpeg', title: 'Le profil', alt: 'Profil, fiabilité et badges' },
 ];
 
 export default function Screenshots() {
@@ -63,7 +66,7 @@ export default function Screenshots() {
                   style={{
                     borderRadius: 26,
                     overflow: 'hidden',
-                    aspectRatio: '1080 / 2020',
+                    aspectRatio: '981 / 2048',
                     background: '#000',
                   }}
                 >
