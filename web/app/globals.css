@@ -153,8 +153,11 @@ img { display: block; max-width: 100%; }
     font-size: 36px !important;
   }
   .junto-shots-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
+  }
+  .junto-shots-item {
+    flex: 0 1 calc(50% - 6px) !important;
+    max-width: calc(50% - 6px) !important;
   }
   .junto-shots-frame-odd {
     transform: translateY(0) !important;
@@ -236,5 +239,9 @@ img { display: block; max-width: 100%; }
   }
   .junto-shots-grid {
     gap: 10px !important;
+  }
+  .junto-shots-item {
+    flex-basis: calc(50% - 5px) !important;
+    max-width: calc(50% - 5px) !important;
   }
 }

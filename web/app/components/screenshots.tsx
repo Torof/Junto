@@ -79,13 +79,14 @@ export default function Screenshots() {
         <div
           className="junto-shots-grid"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
             gap: 28,
           }}
         >
           {SCREENS.map((s, i) => (
-            <div key={s.src}>
+            <div key={s.src} className="junto-shots-item" style={{ flex: '0 1 264px', maxWidth: 300 }}>
               <div
                 className={`junto-shots-frame ${i % 2 === 0 ? 'junto-shots-frame-even' : 'junto-shots-frame-odd'}`}
                 style={{
