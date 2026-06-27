@@ -10,13 +10,13 @@ const SCREENS = [
   {
     src: '/screenshots/2-activity.jpeg',
     title: "L'activité",
-    desc: "Niveau, places, départ — clair avant de t'engager.",
+    desc: "Niveau, places, départ — toutes les infos pour t'engager.",
     alt: "Détail d'une activité",
   },
   {
     src: '/screenshots/3-transport.jpeg',
     title: 'Le transport',
-    desc: "Qui conduit, qui monte. Le covoiturage s'organise seul.",
+    desc: "Qui conduit, qui monte. Le covoiturage s'organise en deux clics.",
     alt: 'Covoiturage et préparatifs de transport',
   },
   {
@@ -28,7 +28,7 @@ const SCREENS = [
   {
     src: '/screenshots/5-chat.jpeg',
     title: 'La discussion',
-    desc: 'Un fil par sortie pour caler les derniers détails.',
+    desc: 'Un fil par sortie. Fini les groupes WhatsApp interminables.',
     alt: "Chat de l'activité",
   },
   {
@@ -40,7 +40,7 @@ const SCREENS = [
   {
     src: '/screenshots/7-profile.jpeg',
     title: 'Le profil',
-    desc: 'Ta fiabilité et tes badges, gagnés sur le terrain.',
+    desc: "Fiabilité et badges : tu sais à qui tu as affaire, même entre inconnus.",
     alt: 'Profil, fiabilité et badges',
   },
 ];
