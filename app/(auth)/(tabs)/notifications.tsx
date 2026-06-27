@@ -43,6 +43,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   presence_validate_final: { icon: AlertTriangle, color: colors.error },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
   badge_unlocked: { icon: Trophy, color: colors.cta },
+  pro_approved: { icon: BadgeCheck, color: colors.success },
+  pro_rejected: { icon: BadgeCheck, color: colors.error },
   qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
@@ -139,6 +141,8 @@ export default function NotificationsScreen() {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
+    } else if (notification.type === 'pro_rejected') {
+      router.push('/(auth)/pro/edit');
     } else if (notification.data?.offering_id) {
       // review_received / review_reply on an offering
       router.push(`/(auth)/pro/offering/${notification.data.offering_id}`);

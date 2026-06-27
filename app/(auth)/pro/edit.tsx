@@ -194,6 +194,10 @@ export default function ProEditScreen() {
         } else {
           await proService.update(payload);
         }
+        // A rejected pro editing their page re-submits for review.
+        if (existing?.status === 'rejected') {
+          await proService.resubmit();
+        }
       } else {
         await proService.register(payload);
       }
@@ -228,6 +232,21 @@ export default function ProEditScreen() {
             defaultValue: 'Crée la page publique de ton activité, club ou structure.',
           })}
         </Text>
+
+        {existing?.status === 'pending' && (
+          <View style={[styles.statusBanner, styles.statusPending]}>
+            <Text style={styles.statusBannerText}>
+              {t('pro.bannerPending', { defaultValue: 'Ta demande est en attente de validation.' })}
+            </Text>
+          </View>
+        )}
+        {existing?.status === 'rejected' && (
+          <View style={[styles.statusBanner, styles.statusRejected]}>
+            <Text style={styles.statusBannerText}>
+              {existing.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' })}
+            </Text>
+          </View>
+        )}
 
 
         {/* Pin image — square photo that replaces the initial inside the
@@ -452,9 +471,11 @@ export default function ProEditScreen() {
           <Text style={styles.submitText}>
             {saving
               ? '...'
-              : isUpdate
-                ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
-                : t('pro.register', { defaultValue: 'Devenir pro' })}
+              : existing?.status === 'rejected'
+                ? t('pro.resubmit', { defaultValue: 'Renvoyer la demande' })
+                : isUpdate
+                  ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
+                  : t('pro.register', { defaultValue: 'Devenir pro' })}
           </Text>
         </Pressable>
       </ScrollView>
@@ -545,6 +566,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm,
     marginBottom: spacing.lg,
   },
+  statusBanner: {
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.lg,
+  },
+  statusPending: { backgroundColor: colors.cta + '14', borderColor: colors.cta },
+  statusRejected: { backgroundColor: colors.error + '14', borderColor: colors.error },
+  statusBannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
   section: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
