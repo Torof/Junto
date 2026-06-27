@@ -37,7 +37,10 @@ export default function PrivacyScreen() {
         • Signalements effectués{'\n\n'}
         <Text style={styles.bold}>Données techniques :</Text>{'\n'}
         • Géolocalisation (pour afficher les activités à proximité){'\n'}
-        • Données de session (token d'authentification, stocké de manière sécurisée sur l'appareil)
+        • Données de session (token d'authentification, stocké de manière sécurisée sur l'appareil){'\n\n'}
+        <Text style={styles.bold}>Données professionnelles (uniquement pour les pages pro) :</Text>{'\n'}
+        • Nom de la structure et coordonnées, affichés publiquement sur la page pro{'\n'}
+        • Nom et prénom du responsable — collectés pour vérifier la demande, jamais publics
       </Text>
 
       <Text style={styles.heading}>3. Finalités du traitement</Text>
@@ -67,7 +70,8 @@ export default function PrivacyScreen() {
         • Score de fiabilité, badges de réputation et trophées{'\n'}
         • Activités publiées (titre, lieu, date, sport, niveau){'\n\n'}
         <Text style={styles.bold}>Données NON visibles par les autres utilisateurs :</Text>{'\n'}
-        • Adresse email, date de naissance{'\n\n'}
+        • Adresse email, date de naissance{'\n'}
+        • Nom et prénom du responsable d'une page pro (vérification interne){'\n\n'}
         <Text style={styles.bold}>Sous-traitants :</Text>{'\n'}
         • Supabase (hébergement, base de données, authentification — serveurs UE){'\n'}
         • Mapbox (affichage cartographique — reçoit des coordonnées de requête){'\n'}

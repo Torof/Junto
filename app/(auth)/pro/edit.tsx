@@ -463,6 +463,12 @@ export default function ProEditScreen() {
           />
         </Field>
 
+        {!isUpdate && (
+          <Text style={styles.verifyNote}>
+            {t('pro.verifyNote', { defaultValue: 'Ta demande est vérifiée par notre équipe avant la mise en ligne de ta page. Tu seras notifié·e dès qu’elle est validée.' })}
+          </Text>
+        )}
+
         <Pressable
           style={[styles.submit, (!canSubmit) && styles.submitDisabled]}
           onPress={handleSubmit}
@@ -575,6 +581,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statusPending: { backgroundColor: colors.cta + '14', borderColor: colors.cta },
   statusRejected: { backgroundColor: colors.error + '14', borderColor: colors.error },
   statusBannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
+  verifyNote: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 17, textAlign: 'center', marginBottom: spacing.sm },
   section: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs,

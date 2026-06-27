@@ -47,6 +47,11 @@ export default function PrivacyPage() {
         <li>Identifiant d'appareil et token de notification push (livraison des notifications)</li>
         <li>Rapports de diagnostic et de plantage (uniquement si vous activez le partage dans les paramètres — voir section 9)</li>
       </Ul>
+      <P><B>Données professionnelles (uniquement si vous demandez une page pro) :</B></P>
+      <Ul>
+        <li>Nom de la structure et coordonnées (site web, email, téléphone, réseaux sociaux), affichés publiquement sur la page pro</li>
+        <li>Nom et prénom du responsable — collectés uniquement pour vérifier et valider la demande, <B>jamais affichés publiquement</B></li>
+      </Ul>
 
       <H2>3. Finalités du traitement</H2>
       <Ul>
@@ -56,6 +61,7 @@ export default function PrivacyPage() {
         <li>Calculer le score de fiabilité et attribuer les badges</li>
         <li>Assurer la modération et la sécurité de la plateforme</li>
         <li>Vérifier l'âge minimum requis (18 ans)</li>
+        <li>Vérifier et valider les demandes de page pro</li>
       </Ul>
 
       <H2>4. Base légale</H2>
@@ -76,6 +82,7 @@ export default function PrivacyPage() {
       <P><B>Données NON visibles par les autres utilisateurs :</B></P>
       <Ul>
         <li>Adresse email, date de naissance</li>
+        <li>Nom et prénom du responsable d'une page pro (vérification interne uniquement)</li>
       </Ul>
       <P><B>Sous-traitants :</B></P>
       <Ul>
