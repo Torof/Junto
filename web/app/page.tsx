@@ -11,20 +11,21 @@ import UpcomingTrips from './components/upcoming-trips';
 // Re-render at most every 5 min so the live outings section stays fresh.
 export const revalidate = 300;
 
-// Layered arc (2026-06-11): Hero plants the concept → TwoWorlds frames
-// the peer/pro duality at a glance (orange vs blue, the page-wide color
-// language) → community deep-dive (light: how it works + live outings)
-// → pro deep-dive (dark zone) → breadth → see the app → download.
+// Layered arc: Hero plants the concept → Screenshots show the app right
+// away (see it before reading about it) → TwoWorlds frames the peer/pro
+// duality at a glance (orange vs blue, the page-wide color language) →
+// community deep-dive (light: how it works + live outings) → pro deep-dive
+// (dark zone) → breadth → download.
 export default function Home() {
   return (
     <main>
       <Hero />
+      <Screenshots />
       <TwoWorlds />
       <Particuliers />
       <UpcomingTrips />
       <Pro />
       <Sports />
-      <Screenshots />
       <FinalCTA />
       <Footer />
     </main>
