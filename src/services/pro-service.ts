@@ -14,6 +14,8 @@ export interface ProProfile {
   primary_lat: number;
   primary_location_name: string;
   pin_image_url: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason: string | null;
   last_location_change_at: string;
   created_at: string;
   updated_at: string;
@@ -21,6 +23,8 @@ export interface ProProfile {
 
 export interface RegisterAsProInput {
   display_name: string;
+  company_name: string;
+  real_name: string;
   primary_lng: number;
   primary_lat: number;
   primary_location_name: string;
@@ -57,12 +61,12 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, status, rejection_reason, last_location_change_at, created_at, updated_at',
       )
       .eq('user_id', userId)
       .maybeSingle();
     if (error) throw error;
-    return data ?? null;
+    return (data ?? null) as ProProfile | null;
   },
 
   // Fetch the current user's own pro profile (or null if they're not
@@ -77,6 +81,8 @@ export const proService = {
   register: async (input: RegisterAsProInput): Promise<void> => {
     const { error } = await supabase.rpc('register_as_pro', {
       p_display_name: input.display_name,
+      p_company_name: input.company_name,
+      p_real_name: input.real_name,
       p_tagline: input.tagline ?? undefined,
       p_description: input.description ?? undefined,
       p_website: input.website ?? undefined,
@@ -110,6 +116,12 @@ export const proService = {
 
   unregister: async (): Promise<void> => {
     const { error } = await supabase.rpc('unregister_as_pro');
+    if (error) throw error;
+  },
+
+  // Re-submit a rejected application (back to pending for admin re-review).
+  resubmit: async (): Promise<void> => {
+    const { error } = await supabase.rpc('resubmit_pro_application');
     if (error) throw error;
   },
 

@@ -46,6 +46,8 @@ export default function ProEditScreen() {
   const isUpdate = !!existing;
 
   const [displayName, setDisplayName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [realName, setRealName] = useState('');
   const [tagline, setTagline] = useState('');
   const [description, setDescription] = useState('');
   const [website, setWebsite] = useState('');
@@ -144,8 +146,12 @@ export default function ProEditScreen() {
     existing != null &&
     (pinLng !== existing.primary_lng || pinLat !== existing.primary_lat || locationName.trim() !== existing.primary_location_name);
 
+  // Verification fields (company + real name) are required to register; an
+  // existing pro editing their page doesn't re-enter them.
+  const verificationOk = isUpdate || (companyName.trim().length >= 2 && realName.trim().length >= 2);
   const canSubmit =
     displayName.trim().length >= 1 &&
+    verificationOk &&
     pinLng !== null &&
     pinLat !== null &&
     locationName.trim().length >= 1 &&
@@ -158,6 +164,8 @@ export default function ProEditScreen() {
     try {
       const payload = {
         display_name: displayName.trim(),
+        company_name: companyName.trim(),
+        real_name: realName.trim(),
         tagline: tagline.trim() || null,
         description: description.trim() || null,
         website: website.trim() || null,
@@ -191,7 +199,12 @@ export default function ProEditScreen() {
       }
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      Burnt.toast({ title: t('pro.saved', { defaultValue: 'Page pro enregistrée' }), preset: 'done' });
+      Burnt.toast({
+        title: isUpdate
+          ? t('pro.saved', { defaultValue: 'Page pro enregistrée' })
+          : t('pro.submitted', { defaultValue: 'Demande envoyée — en attente de validation' }),
+        preset: 'done',
+      });
       router.back();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -271,6 +284,31 @@ export default function ProEditScreen() {
             maxLength={100}
           />
         </Field>
+
+        {!isUpdate && (
+          <>
+            <Field label={t('pro.fieldCompany', { defaultValue: 'Nom de la structure *' })} styles={styles}>
+              <TextInput
+                style={styles.input}
+                value={companyName}
+                onChangeText={setCompanyName}
+                placeholder={t('pro.fieldCompanyPlaceholder', { defaultValue: 'Raison sociale / nom de l’entreprise' })}
+                placeholderTextColor={colors.textSecondary}
+                maxLength={120}
+              />
+            </Field>
+            <Field label={t('pro.fieldRealName', { defaultValue: 'Ton nom et prénom *' })} styles={styles}>
+              <TextInput
+                style={styles.input}
+                value={realName}
+                onChangeText={setRealName}
+                placeholder={t('pro.fieldRealNamePlaceholder', { defaultValue: 'Pour la vérification — non public' })}
+                placeholderTextColor={colors.textSecondary}
+                maxLength={120}
+              />
+            </Field>
+          </>
+        )}
 
         <Field label={t('pro.fieldTagline', { defaultValue: 'Slogan' })} styles={styles}>
           <TextInput

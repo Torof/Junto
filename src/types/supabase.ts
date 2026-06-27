@@ -1043,6 +1043,7 @@ export type Database = {
       }
       pro_profiles: {
         Row: {
+          company_name: string | null
           created_at: string
           description: string | null
           display_name: string
@@ -1056,12 +1057,18 @@ export type Database = {
           primary_lng: number
           primary_location: unknown
           primary_location_name: string
+          real_name: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
           tagline: string | null
           updated_at: string
           user_id: string
           website: string | null
         }
         Insert: {
+          company_name?: string | null
           created_at?: string
           description?: string | null
           display_name: string
@@ -1075,12 +1082,18 @@ export type Database = {
           primary_lng: number
           primary_location: unknown
           primary_location_name: string
+          real_name?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           tagline?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
         }
         Update: {
+          company_name?: string | null
           created_at?: string
           description?: string | null
           display_name?: string
@@ -1094,12 +1107,31 @@ export type Database = {
           primary_lng?: number
           primary_location?: unknown
           primary_location_name?: string
+          real_name?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           tagline?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pro_profiles_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_profiles_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pro_profiles_user_id_fkey"
             columns: ["user_id"]
@@ -2497,6 +2529,7 @@ export type Database = {
             }
             Returns: string
           }
+      approve_pro: { Args: { p_user_id: string }; Returns: undefined }
       award_badge_progression: {
         Args: { p_silent?: boolean; p_user_id: string }
         Returns: undefined
@@ -3126,6 +3159,7 @@ export type Database = {
       }
       register_as_pro: {
         Args: {
+          p_company_name: string
           p_description?: string
           p_display_name: string
           p_email?: string
@@ -3135,6 +3169,7 @@ export type Database = {
           p_primary_lat?: number
           p_primary_lng?: number
           p_primary_location_name?: string
+          p_real_name: string
           p_tagline?: string
           p_website?: string
         }
@@ -3142,6 +3177,10 @@ export type Database = {
       }
       register_push_token: {
         Args: { p_device_id?: string; p_token: string }
+        Returns: undefined
+      }
+      reject_pro: {
+        Args: { p_reason?: string; p_user_id: string }
         Returns: undefined
       }
       reliability_tier: { Args: { p_score: number }; Returns: string }
@@ -3180,6 +3219,7 @@ export type Database = {
         }
         Returns: string
       }
+      resubmit_pro_application: { Args: never; Returns: undefined }
       revoke_push_token: { Args: { p_token: string }; Returns: undefined }
       revoke_push_token_for_device: {
         Args: { p_device_id: string }
