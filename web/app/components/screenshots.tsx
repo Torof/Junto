@@ -1,13 +1,48 @@
 import { CREAM, NAVY_DEEP, ORANGE_SOFT, SectionLabel, TopoLines } from './shared';
 
 const SCREENS = [
-  { src: '/screenshots/1-map.jpeg', title: 'La carte', alt: 'Carte des activités autour de toi' },
-  { src: '/screenshots/2-activity.jpeg', title: "L'activité", alt: "Détail d'une activité" },
-  { src: '/screenshots/3-transport.jpeg', title: 'Le transport', alt: 'Covoiturage et préparatifs de transport' },
-  { src: '/screenshots/4-gear.jpeg', title: 'Le matériel', alt: 'Inventaire de matériel partagé' },
-  { src: '/screenshots/5-chat.jpeg', title: 'La discussion', alt: "Chat de l'activité" },
-  { src: '/screenshots/6-pro.jpeg', title: 'La page pro', alt: "Page d'un professionnel" },
-  { src: '/screenshots/7-profile.jpeg', title: 'Le profil', alt: 'Profil, fiabilité et badges' },
+  {
+    src: '/screenshots/1-map.jpeg',
+    title: 'La carte',
+    desc: "Les sorties près de toi, d'un coup d'œil.",
+    alt: 'Carte des activités autour de toi',
+  },
+  {
+    src: '/screenshots/2-activity.jpeg',
+    title: "L'activité",
+    desc: "Niveau, places, départ — clair avant de t'engager.",
+    alt: "Détail d'une activité",
+  },
+  {
+    src: '/screenshots/3-transport.jpeg',
+    title: 'Le transport',
+    desc: "Qui conduit, qui monte. Le covoiturage s'organise seul.",
+    alt: 'Covoiturage et préparatifs de transport',
+  },
+  {
+    src: '/screenshots/4-gear.jpeg',
+    title: 'Le matériel',
+    desc: "Qui apporte quoi. Plus d'oubli, plus de doublon.",
+    alt: 'Inventaire de matériel partagé',
+  },
+  {
+    src: '/screenshots/5-chat.jpeg',
+    title: 'La discussion',
+    desc: 'Un fil par sortie pour caler les derniers détails.',
+    alt: "Chat de l'activité",
+  },
+  {
+    src: '/screenshots/6-pro.jpeg',
+    title: 'La page pro',
+    desc: 'Moniteurs et guides : offres et avis réunis.',
+    alt: "Page d'un professionnel",
+  },
+  {
+    src: '/screenshots/7-profile.jpeg',
+    title: 'Le profil',
+    desc: 'Ta fiabilité et tes badges, gagnés sur le terrain.',
+    alt: 'Profil, fiabilité et badges',
+  },
 ];
 
 export default function Screenshots() {
@@ -102,6 +137,18 @@ export default function Screenshots() {
                 >
                   {s.title}
                 </div>
+                <p
+                  style={{
+                    margin: '8px auto 0',
+                    maxWidth: 260,
+                    fontSize: 14,
+                    lineHeight: 1.4,
+                    color: 'rgba(255,255,255,0.6)',
+                    textWrap: 'balance',
+                  }}
+                >
+                  {s.desc}
+                </p>
               </div>
             </div>
           ))}
