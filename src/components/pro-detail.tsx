@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -238,41 +238,49 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
                 {pro.phone && (
                   <ContactRow
                     icon={<Phone size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={pro.phone}
+                    label={t('pro.callAction', { defaultValue: 'Appeler' })}
                     onPress={() => Linking.openURL(`tel:${pro.phone}`)}
                     styles={styles}
+                    colors={colors}
                   />
                 )}
                 {pro.email && (
                   <ContactRow
                     icon={<Mail size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={pro.email}
+                    label={t('pro.emailAction', { defaultValue: 'Envoyer un email' })}
                     onPress={() => Linking.openURL(`mailto:${pro.email}`)}
                     styles={styles}
+                    colors={colors}
                   />
                 )}
                 {pro.website && (
                   <ContactRow
                     icon={<Globe size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={pro.website.replace(/^https?:\/\//, '')}
+                    label={t('pro.websiteAction', { defaultValue: 'Voir le site' })}
                     onPress={() => Linking.openURL(pro.website!.startsWith('http') ? pro.website! : `https://${pro.website!}`)}
                     styles={styles}
+                    colors={colors}
+                    external
                   />
                 )}
                 {pro.instagram && (
                   <ContactRow
                     icon={<Instagram size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={pro.instagram}
+                    label="Instagram"
                     onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)}
                     styles={styles}
+                    colors={colors}
+                    external
                   />
                 )}
                 {pro.facebook && (
                   <ContactRow
                     icon={<Facebook size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={pro.facebook}
+                    label="Facebook"
                     onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)}
                     styles={styles}
+                    colors={colors}
+                    external
                   />
                 )}
               </View>
@@ -411,16 +419,23 @@ function ContactRow({
   label,
   onPress,
   styles,
+  colors,
+  external,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+  external?: boolean;
 }) {
   return (
     <Pressable style={styles.contactRow} onPress={onPress} hitSlop={4}>
       <View style={styles.contactIcon}>{icon}</View>
       <Text style={styles.contactLabel} numberOfLines={1}>{label}</Text>
+      {external
+        ? <ExternalLink size={15} color={colors.textSecondary} strokeWidth={2.2} />
+        : <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2.2} />}
     </Pressable>
   );
 }
@@ -594,6 +609,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm + 2,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 2,
+    marginTop: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
   },
   contactIcon: {
     width: 24,
