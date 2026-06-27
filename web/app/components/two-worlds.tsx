@@ -14,6 +14,10 @@ const WORLDS = [
     body: 'Trouve, crée et rejoins des sorties avec d’autres passionnés près de chez toi. Covoiturage, matos, chat — tout au même endroit.',
     image: '/screenshots/world-particuliers.jpeg',
     alt: 'Carte avec des sorties entre particuliers',
+    // Taller-content crop: show it whole (contain) so no pin is clipped;
+    // the banner bg is the map's own green so the side bands blend in.
+    fit: 'contain' as const,
+    bg: '#88BD6F',
   },
   {
     accent: PRO_BLUE,
@@ -21,6 +25,8 @@ const WORLDS = [
     body: 'Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé directement sur la carte.',
     image: '/screenshots/world-pros.jpeg',
     alt: 'Carte avec une page pro et son offre',
+    fit: 'cover' as const,
+    bg: 'transparent',
   },
 ];
 
@@ -72,12 +78,19 @@ export default function TwoWorlds() {
                 flexDirection: 'column',
               }}
             >
-              <div style={{ height: 180, position: 'relative', borderBottom: `1px solid var(--line)` }}>
+              <div
+                style={{
+                  height: 180,
+                  position: 'relative',
+                  borderBottom: `1px solid var(--line)`,
+                  background: w.bg,
+                }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={w.image}
                   alt={w.alt}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+                  style={{ width: '100%', height: '100%', objectFit: w.fit, objectPosition: 'center', display: 'block' }}
                 />
               </div>
               <div style={{ padding: '32px 36px 38px' }}>
