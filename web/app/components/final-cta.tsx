@@ -1,7 +1,13 @@
 import QRCode from 'qrcode';
 import { CREAM, NAVY, ORANGE, ORANGE_SOFT, SKY, SectionLabel, TopoLines } from './shared';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? 'https://getjunto.app';
+// Latest preview APK (v0.1.3 build #11, EAS) — built from main, includes
+// everything to date. The QR and the download button both point here.
+// Each new build produces a fresh artifact URL: re-point this (or override
+// via NEXT_PUBLIC_APK_DOWNLOAD_URL in Vercel) when you cut a new APK.
+const APK_DOWNLOAD_URL =
+  process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ??
+  'https://expo.dev/artifacts/eas/rZrLvxbXDEIxvUW4WQ2J7fFE4lWjHCyRLfd_tXoFezQ.apk';
 
 async function getQrDataUrl(url: string): Promise<string> {
   return QRCode.toDataURL(url, {
@@ -95,7 +101,7 @@ export default async function FinalCTA() {
               className="mono"
               style={{ fontSize: 10, opacity: 0.4, letterSpacing: '0.1em', marginTop: 12 }}
             >
-              ANDROID 9+ · ~24 MO
+              ANDROID 9+ · ~205 MO
             </div>
           </div>
 
