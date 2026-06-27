@@ -10,10 +10,12 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
+import { proService, type PendingProApplication } from '@/services/pro-service';
+import { Check, X, BadgeCheck } from 'lucide-react-native';
 
 dayjs.extend(relativeTime);
 
-type FilterTab = 'pending' | 'resolved';
+type FilterTab = 'pending' | 'resolved' | 'pros';
 
 export default function ModerationScreen() {
   const colors = useColors();
@@ -29,6 +31,56 @@ export default function ModerationScreen() {
     queryKey: ['admin-reports'],
     queryFn: () => reportService.getAll(),
   });
+
+  const { data: pendingPros, isLoading: prosLoading } = useQuery({
+    queryKey: ['admin-pending-pros'],
+    queryFn: () => proService.getPendingApplications(),
+  });
+
+  const [proBusyId, setProBusyId] = useState<string | null>(null);
+
+  const handleApprovePro = (app: PendingProApplication) => {
+    Alert.alert(t('admin.proApproveTitle', { defaultValue: 'Valider cette page pro ?' }), app.company_name ?? app.display_name, [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('admin.proApprove', { defaultValue: 'Valider' }),
+        onPress: async () => {
+          setProBusyId(app.user_id);
+          try {
+            await proService.approve(app.user_id);
+            await queryClient.invalidateQueries({ queryKey: ['admin-pending-pros'] });
+            Burnt.toast({ title: t('admin.proApproved', { defaultValue: 'Page pro validée' }), preset: 'done' });
+          } catch {
+            Alert.alert(t('auth.error'), t('auth.unknownError'));
+          } finally {
+            setProBusyId(null);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleRejectPro = (app: PendingProApplication) => {
+    Alert.alert(t('admin.proRejectTitle', { defaultValue: 'Refuser cette demande ?' }), app.company_name ?? app.display_name, [
+      { text: t('activity.no'), style: 'cancel' },
+      {
+        text: t('admin.proReject', { defaultValue: 'Refuser' }),
+        style: 'destructive',
+        onPress: async () => {
+          setProBusyId(app.user_id);
+          try {
+            await proService.reject(app.user_id);
+            await queryClient.invalidateQueries({ queryKey: ['admin-pending-pros'] });
+            Burnt.toast({ title: t('admin.proRejected', { defaultValue: 'Demande refusée' }) });
+          } catch {
+            Alert.alert(t('auth.error'), t('auth.unknownError'));
+          } finally {
+            setProBusyId(null);
+          }
+        },
+      },
+    ]);
+  };
 
   const filtered = (reports ?? []).filter((r) =>
     tab === 'pending' ? r.status === 'pending' : r.status !== 'pending'
@@ -74,10 +126,54 @@ export default function ModerationScreen() {
             {t('admin.resolved')}
           </Text>
         </Pressable>
+        <Pressable style={[styles.tab, tab === 'pros' && styles.tabActive]} onPress={() => setTab('pros')}>
+          <Text style={[styles.tabText, tab === 'pros' && styles.tabTextActive]}>
+            {t('admin.prosTab', { defaultValue: 'Pros' })} ({(pendingPros ?? []).length})
+          </Text>
+        </Pressable>
       </View>
 
       {/* List */}
-      {isLoading ? (
+      {tab === 'pros' ? (
+        prosLoading ? (
+          <View style={styles.center}><Text style={styles.loadingText}>...</Text></View>
+        ) : (pendingPros ?? []).length === 0 ? (
+          <View style={styles.center}><Text style={styles.emptyText}>{t('admin.noPendingPros', { defaultValue: 'Aucune demande en attente' })}</Text></View>
+        ) : (
+          <FlatList
+            data={pendingPros}
+            keyExtractor={(item) => item.user_id}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.proTitleRow}>
+                    <BadgeCheck size={16} color={colors.cta} strokeWidth={2.4} />
+                    <Text style={styles.targetType} numberOfLines={1}>{item.company_name ?? item.display_name}</Text>
+                  </View>
+                  <Text style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</Text>
+                </View>
+                <Text style={styles.proLine}>Page : {item.display_name}</Text>
+                {item.real_name && <Text style={styles.proLine}>Responsable : {item.real_name}</Text>}
+                <Text style={styles.proLineMuted}>{item.primary_location_name}</Text>
+                {(item.email || item.phone || item.website) && (
+                  <Text style={styles.proLineMuted} numberOfLines={1}>{[item.email, item.phone, item.website].filter(Boolean).join(' · ')}</Text>
+                )}
+                <View style={styles.actionRow}>
+                  <Pressable style={[styles.dismissButton, proBusyId === item.user_id && styles.disabled]} onPress={() => handleRejectPro(item)} disabled={proBusyId === item.user_id}>
+                    <X size={15} color={colors.error} strokeWidth={2.6} />
+                    <Text style={styles.dismissText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</Text>
+                  </Pressable>
+                  <Pressable style={[styles.approveButton, proBusyId === item.user_id && styles.disabled]} onPress={() => handleApprovePro(item)} disabled={proBusyId === item.user_id}>
+                    <Check size={15} color="#FFFFFF" strokeWidth={2.6} />
+                    <Text style={styles.approveText}>{t('admin.proApprove', { defaultValue: 'Valider' })}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+            contentContainerStyle={styles.list}
+          />
+        )
+      ) : isLoading ? (
         <View style={styles.center}>
           <Text style={styles.loadingText}>...</Text>
         </View>
@@ -217,8 +313,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   targetId: { color: colors.textSecondary, fontSize: fontSizes.xs, fontFamily: 'monospace' },
   noteInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: fontSizes.sm, minHeight: 60, textAlignVertical: 'top' },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
-  dismissButton: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  dismissButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   dismissText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: spacing.sm },
+  proLine: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: 2 },
+  proLineMuted: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  approveButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.success, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  approveText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: 'bold' },
   actionButton: { flex: 1, backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   actionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   disabled: { opacity: 0.4 },

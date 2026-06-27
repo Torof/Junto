@@ -39,6 +39,18 @@ export interface RegisterAsProInput {
 
 export type UpdateProProfileInput = Partial<RegisterAsProInput>;
 
+export interface PendingProApplication {
+  user_id: string;
+  display_name: string;
+  company_name: string | null;
+  real_name: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  primary_location_name: string;
+  created_at: string;
+}
+
 // Lightweight shape returned by getNearby — just what the pin + tooltip
 // need. Tap on the pin loads the full ProProfile via getById.
 // description is included so the pin-anchored tooltip can show a short
@@ -122,6 +134,27 @@ export const proService = {
   // Re-submit a rejected application (back to pending for admin re-review).
   resubmit: async (): Promise<void> => {
     const { error } = await supabase.rpc('resubmit_pro_application');
+    if (error) throw error;
+  },
+
+  // --- Admin review (RLS lets admins read non-approved rows) ---
+  getPendingApplications: async (): Promise<PendingProApplication[]> => {
+    const { data, error } = await supabase
+      .from('pro_profiles')
+      .select('user_id, display_name, company_name, real_name, email, phone, website, primary_location_name, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as PendingProApplication[];
+  },
+
+  approve: async (userId: string): Promise<void> => {
+    const { error } = await supabase.rpc('approve_pro', { p_user_id: userId });
+    if (error) throw error;
+  },
+
+  reject: async (userId: string, reason?: string): Promise<void> => {
+    const { error } = await supabase.rpc('reject_pro', { p_user_id: userId, p_reason: reason ?? undefined });
     if (error) throw error;
   },
 
