@@ -40,6 +40,8 @@ export default function ModerationScreen() {
   });
 
   const [proBusyId, setProBusyId] = useState<string | null>(null);
+  const [rejectApp, setRejectApp] = useState<PendingProApplication | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const handleApprovePro = (app: PendingProApplication) => {
     Alert.alert(t('admin.proApproveTitle', { defaultValue: 'Valider cette page pro ?' }), app.company_name ?? app.display_name, [
@@ -63,25 +65,23 @@ export default function ModerationScreen() {
   };
 
   const handleRejectPro = (app: PendingProApplication) => {
-    Alert.alert(t('admin.proRejectTitle', { defaultValue: 'Refuser cette demande ?' }), app.company_name ?? app.display_name, [
-      { text: t('activity.no'), style: 'cancel' },
-      {
-        text: t('admin.proReject', { defaultValue: 'Refuser' }),
-        style: 'destructive',
-        onPress: async () => {
-          setProBusyId(app.user_id);
-          try {
-            await proService.reject(app.user_id);
-            await queryClient.invalidateQueries({ queryKey: ['admin-pending-pros'] });
-            Burnt.toast({ title: t('admin.proRejected', { defaultValue: 'Demande refusée' }) });
-          } catch {
-            Alert.alert(t('auth.error'), t('auth.unknownError'));
-          } finally {
-            setProBusyId(null);
-          }
-        },
-      },
-    ]);
+    setRejectReason('');
+    setRejectApp(app);
+  };
+
+  const confirmRejectPro = async () => {
+    if (!rejectApp) return;
+    setProBusyId(rejectApp.user_id);
+    try {
+      await proService.reject(rejectApp.user_id, rejectReason.trim() || undefined);
+      await queryClient.invalidateQueries({ queryKey: ['admin-pending-pros'] });
+      setRejectApp(null);
+      Burnt.toast({ title: t('admin.proRejected', { defaultValue: 'Demande refusée' }) });
+    } catch {
+      Alert.alert(t('auth.error'), t('auth.unknownError'));
+    } finally {
+      setProBusyId(null);
+    }
   };
 
   const filtered = (reports ?? []).filter((r) =>
@@ -278,6 +278,39 @@ export default function ModerationScreen() {
                 )}
               </>
             )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Reject-pro reason modal */}
+      <Modal visible={rejectApp !== null} animationType="slide" transparent>
+        <Pressable style={styles.backdrop} onPress={() => setRejectApp(null)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.handle} />
+            <Text style={styles.sheetTitle}>{t('admin.proRejectTitle', { defaultValue: 'Refuser la demande' })}</Text>
+            <Text style={styles.sheetTime}>{rejectApp?.company_name ?? rejectApp?.display_name}</Text>
+            <Text style={styles.sectionLabel}>{t('admin.proRejectReason', { defaultValue: 'Motif (optionnel, envoyé au demandeur)' })}</Text>
+            <TextInput
+              style={styles.noteInput}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              placeholder={t('admin.proRejectReasonPlaceholder', { defaultValue: 'Ex : structure non vérifiable, infos incomplètes…' })}
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              maxLength={500}
+            />
+            <View style={styles.actionRow}>
+              <Pressable style={styles.dismissButton} onPress={() => setRejectApp(null)}>
+                <Text style={styles.dismissText}>{t('activity.no', { defaultValue: 'Annuler' })}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, proBusyId === rejectApp?.user_id && styles.disabled]}
+                onPress={confirmRejectPro}
+                disabled={proBusyId === rejectApp?.user_id}
+              >
+                <Text style={styles.actionText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>

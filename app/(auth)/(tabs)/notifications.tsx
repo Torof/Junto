@@ -131,6 +131,13 @@ export default function NotificationsScreen() {
       }
     }
 
+    // A pro status change happens on the admin's device — refresh the pro's own
+    // tier/profile so the header badge + menu reflect it without a restart.
+    if (notification.type === 'pro_approved' || notification.type === 'pro_rejected') {
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+    }
+
     if ((notification.type === 'rate_participants' || notification.type === 'peer_review_closing') && notification.data?.activity_id) {
       router.push(`/(auth)/peer-review/${notification.data.activity_id}`);
     } else if (notification.type === 'contact_request' || notification.type === 'seat_request') {

@@ -456,7 +456,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   saveLink: { color: colors.cta, fontSize: 18, fontWeight: 'bold' },
   cancelLink: { color: colors.textSecondary, fontSize: 16 },
-  arrow: { color: colors.textSecondary, fontSize: fontSizes.xs },
   notifContent: { marginBottom: spacing.sm, paddingLeft: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.line },
   themeContent: { paddingLeft: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.sm },
   prefRow: {
@@ -464,13 +463,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.xs, paddingVertical: spacing.xs + 2,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
-  deleteLink: {
-    paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.xl,
-  },
-  deleteLinkText: {
-    color: colors.textSecondary, fontSize: fontSizes.xs,
-    textDecorationLine: 'underline', opacity: 0.6,
-  },
   logoutButton: {
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },

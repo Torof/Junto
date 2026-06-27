@@ -3264,6 +3264,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_pro_banner: { Args: { p_banner_url: string }; Returns: undefined }
       set_pro_offering_photo_url: {
         Args: { p_photo_id: string; p_photo_url: string }
         Returns: undefined
@@ -3922,6 +3923,7 @@ export type Database = {
       }
       update_pro_profile: {
         Args: {
+          p_company_name?: string
           p_description?: string
           p_display_name?: string
           p_email?: string
@@ -3931,6 +3933,7 @@ export type Database = {
           p_primary_lat?: number
           p_primary_lng?: number
           p_primary_location_name?: string
+          p_real_name?: string
           p_tagline?: string
           p_website?: string
         }

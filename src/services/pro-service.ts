@@ -3,6 +3,8 @@ import { supabase } from './supabase';
 export interface ProProfile {
   user_id: string;
   display_name: string;
+  company_name: string | null;
+  real_name: string | null;
   tagline: string | null;
   description: string | null;
   website: string | null;
@@ -73,7 +75,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, status, rejection_reason, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, company_name, real_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, status, rejection_reason, last_location_change_at, created_at, updated_at',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -112,6 +114,8 @@ export const proService = {
   update: async (input: UpdateProProfileInput): Promise<void> => {
     const { error } = await supabase.rpc('update_pro_profile', {
       p_display_name: input.display_name ?? undefined,
+      p_company_name: input.company_name ?? undefined,
+      p_real_name: input.real_name ?? undefined,
       p_tagline: input.tagline ?? undefined,
       p_description: input.description ?? undefined,
       p_website: input.website ?? undefined,

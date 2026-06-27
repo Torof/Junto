@@ -70,6 +70,8 @@ export default function ProEditScreen() {
   useEffect(() => {
     if (!existing) return;
     setDisplayName(existing.display_name);
+    setCompanyName(existing.company_name ?? '');
+    setRealName(existing.real_name ?? '');
     setTagline(existing.tagline ?? '');
     setDescription(existing.description ?? '');
     setWebsite(existing.website ?? '');
@@ -146,9 +148,11 @@ export default function ProEditScreen() {
     existing != null &&
     (pinLng !== existing.primary_lng || pinLat !== existing.primary_lat || locationName.trim() !== existing.primary_location_name);
 
-  // Verification fields (company + real name) are required to register; an
-  // existing pro editing their page doesn't re-enter them.
-  const verificationOk = isUpdate || (companyName.trim().length >= 2 && realName.trim().length >= 2);
+  // Verification fields (company + real name) are required to register AND to
+  // re-submit a rejected application (so the pro can fix what got them rejected).
+  // An approved pro editing their live page doesn't re-enter them.
+  const showVerification = !isUpdate || existing?.status === 'rejected';
+  const verificationOk = !showVerification || (companyName.trim().length >= 2 && realName.trim().length >= 2);
   const canSubmit =
     displayName.trim().length >= 1 &&
     verificationOk &&
@@ -178,21 +182,24 @@ export default function ProEditScreen() {
         primary_location_name: locationName.trim(),
       };
       if (isUpdate) {
+        const base = {
+          display_name: payload.display_name,
+          tagline: payload.tagline,
+          description: payload.description,
+          website: payload.website,
+          email: payload.email,
+          phone: payload.phone,
+          instagram: payload.instagram,
+          facebook: payload.facebook,
+          // Only a rejected pro re-enters the verification fields.
+          ...(showVerification ? { company_name: payload.company_name, real_name: payload.real_name } : {}),
+        };
         // Only send location when it actually changed — otherwise the
         // RPC's "primary_lng/lat must come together" guard rejects.
         if (!locationChanged) {
-          await proService.update({
-            display_name: payload.display_name,
-            tagline: payload.tagline,
-            description: payload.description,
-            website: payload.website,
-            email: payload.email,
-            phone: payload.phone,
-            instagram: payload.instagram,
-            facebook: payload.facebook,
-          });
+          await proService.update(base);
         } else {
-          await proService.update(payload);
+          await proService.update({ ...base, primary_lng: pinLng, primary_lat: pinLat, primary_location_name: locationName.trim() });
         }
         // A rejected pro editing their page re-submits for review.
         if (existing?.status === 'rejected') {
@@ -304,7 +311,7 @@ export default function ProEditScreen() {
           />
         </Field>
 
-        {!isUpdate && (
+        {showVerification && (
           <>
             <Field label={t('pro.fieldCompany', { defaultValue: 'Nom de la structure *' })} styles={styles}>
               <TextInput

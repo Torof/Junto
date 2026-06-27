@@ -35,18 +35,18 @@ import type { ProOffering } from '@/services/pro-offering-service';
 // Display-only stubs. The components read only the fields below, so a
 // minimal cast is enough to render them live. All heroes are
 // pointerEvents:none so they never catch a swipe.
-const DEMO_RA = { sport_key: 'yoga' } as unknown as ProOffering;
+const DEMO_RA = { sport_key: 'paragliding' } as unknown as ProOffering;
 const DEMO_POPUP = {
   id: 'intro-demo',
   title: 'Couenne au Saix',
-  sport_key: 'escalade',
+  sport_key: 'climbing-sport',
   starts_at: '2030-06-15T09:00:00.000Z',
   status: 'published',
   visibility: 'public',
   max_participants: 6,
   participant_count: 3,
-  level: '6a - 6b',
-  level_max: null,
+  level: '6a',
+  level_max: '7a',
   distance_km: null,
   elevation_gain_m: null,
   objective_name: 'Le Saix',
@@ -79,7 +79,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   // The activity pin colors itself from time-status: regular (upcoming) →
   // frame, < 2h to start → yellow, in-progress → green. Demo one of each.
   const stateDemos = useMemo(() => {
-    const base = { sport_key: 'escalade' };
+    const base = { sport_key: 'climbing-sport' };
     return {
       regular: { ...base, status: 'published', starts_at: '2030-06-15T10:00:00.000Z' } as unknown as NearbyActivity,
       soon: { ...base, status: 'published', starts_at: dayjs().add(1, 'hour').toISOString() } as unknown as NearbyActivity,
