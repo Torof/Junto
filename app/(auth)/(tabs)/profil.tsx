@@ -87,7 +87,7 @@ export default function ProfilScreen() {
               accessibilityLabel={t('drawer.myProPage', { defaultValue: 'Ma page pro' })}
             >
               <BadgeCheck size={14} color={colors.pinMeeting} fill={colors.pinMeeting + '40'} strokeWidth={2} />
-              <Text style={styles.proHeaderText}>Pro</Text>
+              <Text style={styles.proHeaderText}>{t('drawer.myProPage', { defaultValue: 'Ma page pro' })}</Text>
             </Pressable>
           )}
           <Pressable
