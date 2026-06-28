@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { Check, Search } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
-import { supabase } from '@/services/supabase';
+import { useSports } from '@/hooks/use-sports';
 import { getSportIcon } from '@/constants/sport-icons';
 
 // Shared multi-select sport picker, bound to useMapStore.filters.sportKeys.
@@ -27,14 +26,7 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
   const toggleSportFilter = useStore((s) => s.toggleSportFilter);
   const [query, setQuery] = useState('');
 
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('sports').select('key, category').order('key');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: sports } = useSports();
 
   // Sort by translated name (alphabetical in user's locale).
   const sortedSports = useMemo(() => {

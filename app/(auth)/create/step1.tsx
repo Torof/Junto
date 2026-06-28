@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/services/supabase';
+import { useSports } from '@/hooks/use-sports';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -18,17 +17,7 @@ export default function CreateStep1() {
   const router = useRouter();
   const { form, updateForm } = useCreateStore();
 
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: sports } = useSports();
 
   const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
   const levelScale = useMemo(() => getLevelScale(selectedSportKey), [selectedSportKey]);

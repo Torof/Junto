@@ -21,7 +21,7 @@ import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
-import { supabase } from '@/services/supabase';
+import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
@@ -45,17 +45,7 @@ export default function ProOfferingEditScreen() {
   const offeringId = params.id;
   const isEdit = !!offeringId;
 
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const { data: sports } = useSports();
 
   // Guard: only pros can be here. If the user lost pro tier or never
   // had a pro profile, bounce back. Server enforces this too — this is

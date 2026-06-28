@@ -10,7 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
-import { supabase } from '@/services/supabase';
+import { useSports } from '@/hooks/use-sports';
 import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -32,17 +32,7 @@ export default function EditActivityScreen() {
     enabled: !!id,
   });
 
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: sports } = useSports();
 
   // Check if fields are locked (participants besides creator exist)
   const hasParticipants = (activity?.participant_count ?? 1) > 1;

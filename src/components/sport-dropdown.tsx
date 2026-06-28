@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
-import { supabase } from '@/services/supabase';
+import { useSports } from '@/hooks/use-sports';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -23,17 +22,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { data: sports } = useQuery({
-    queryKey: ['sports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sports')
-        .select('id, key, display_order')
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: sports } = useSports();
 
   // Sort sports alphabetically by translated name
   const sortedSports = [...(sports ?? [])].sort((a, b) =>
