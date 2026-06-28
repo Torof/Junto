@@ -1052,6 +1052,7 @@ export type Database = {
           instagram: string | null
           last_location_change_at: string
           phone: string | null
+          pin_icon: string | null
           pin_image_url: string | null
           primary_lat: number
           primary_lng: number
@@ -1077,6 +1078,7 @@ export type Database = {
           instagram?: string | null
           last_location_change_at?: string
           phone?: string | null
+          pin_icon?: string | null
           pin_image_url?: string | null
           primary_lat: number
           primary_lng: number
@@ -1102,6 +1104,7 @@ export type Database = {
           instagram?: string | null
           last_location_change_at?: string
           phone?: string | null
+          pin_icon?: string | null
           pin_image_url?: string | null
           primary_lat?: number
           primary_lng?: number
@@ -3273,6 +3276,7 @@ export type Database = {
         Args: { p_photo_id: string; p_photo_url: string }
         Returns: undefined
       }
+      set_pro_pin_icon: { Args: { p_pin_icon?: string }; Returns: undefined }
       set_pro_pin_image: {
         Args: { p_pin_image_url?: string }
         Returns: undefined

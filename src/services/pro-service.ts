@@ -16,6 +16,7 @@ export interface ProProfile {
   primary_lat: number;
   primary_location_name: string;
   pin_image_url: string | null;
+  pin_icon: string | null;
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
   last_location_change_at: string;
@@ -64,6 +65,7 @@ export interface NearbyPro {
   primary_lng: number;
   primary_lat: number;
   pin_image_url: string | null;
+  pin_icon: string | null;
   description: string | null;
 }
 
@@ -75,7 +77,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, company_name, real_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, status, rejection_reason, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, company_name, real_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, rejection_reason, last_location_change_at, created_at, updated_at',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -169,6 +171,13 @@ export const proService = {
     if (error) throw error;
   },
 
+  setPinIcon: async (pinIcon: string | null): Promise<void> => {
+    const { error } = await supabase.rpc('set_pro_pin_icon', {
+      p_pin_icon: pinIcon ?? undefined,
+    });
+    if (error) throw error;
+  },
+
   // Pros within the map viewport. Returns the minimal fields needed to
   // place the pin; the full profile is fetched on tap.
   getNearby: async (bounds?: {
@@ -179,7 +188,7 @@ export const proService = {
   }): Promise<NearbyPro[]> => {
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, description');
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, description');
 
     if (bounds) {
       query = query

@@ -111,7 +111,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
               <Text style={styles.pinTypeText}>{t('intro.pins.ra')}</Text>
             </View>
             <View style={styles.pinTypeRow}>
-              <View style={styles.pinTypeVisual}><ProPin displayName="M" pinImageUrl={null} /></View>
+              <View style={styles.pinTypeVisual}><ProPin displayName="M" pinIcon={null} /></View>
               <Text style={styles.pinTypeText}>{t('intro.pins.pp')}</Text>
             </View>
           </View>

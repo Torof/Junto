@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -26,8 +26,8 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
 import { ProPin } from '@/components/pro-pin';
+import { PRO_PIN_ICONS } from '@/constants/pro-pin-icons';
 
 export default function ProEditScreen() {
   const { t } = useTranslation();
@@ -62,8 +62,8 @@ export default function ProEditScreen() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
-  const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
-  const [pinImageBusy, setPinImageBusy] = useState(false);
+  const [pinIcon, setPinIcon] = useState<string | null>(null);
+  const [pinIconBusy, setPinIconBusy] = useState(false);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -82,41 +82,28 @@ export default function ProEditScreen() {
     setLocationName(existing.primary_location_name);
     setPinLng(existing.primary_lng);
     setPinLat(existing.primary_lat);
-    setPinImageUrl(existing.pin_image_url);
+    setPinIcon(existing.pin_icon);
   }, [existing]);
 
 
-  const handlePickPinImage = async () => {
-    if (pinImageBusy) return;
-    setPinImageBusy(true);
+  // Tap an icon to set it; tap the selected one again to clear (back to the
+  // initial fallback). Persisted immediately via the approved-only setter.
+  const handlePickIcon = async (key: string) => {
+    if (pinIconBusy) return;
+    const prev = pinIcon;
+    const next = pinIcon === key ? null : key;
+    setPinIcon(next);
+    setPinIconBusy(true);
     try {
-      const newUrl = await pickAndUploadProPinImage();
-      if (newUrl) {
-        setPinImageUrl(newUrl);
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
-        await queryClient.invalidateQueries({ queryKey: ['pros'] });
-      }
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setPinImageBusy(false);
-    }
-  };
-
-  const handleRemovePinImage = async () => {
-    if (pinImageBusy) return;
-    setPinImageBusy(true);
-    try {
-      await removeProPinImage();
-      setPinImageUrl(null);
+      await proService.setPinIcon(next);
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
       await queryClient.invalidateQueries({ queryKey: ['pros'] });
     } catch (err) {
+      setPinIcon(prev);
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
-      setPinImageBusy(false);
+      setPinIconBusy(false);
     }
   };
 
@@ -260,42 +247,30 @@ export default function ProEditScreen() {
             pro pin on the map. Update-mode only, same as banner. */}
         {isUpdate && (
           <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('pro.pinImageSection', { defaultValue: 'Image du pin' })}</Text>
+            <Text style={styles.section}>{t('pro.pinIconSection', { defaultValue: 'Icône du pin' })}</Text>
             <Text style={styles.helper}>
-              {t('pro.pinImageHelper', { defaultValue: "S'affiche dans ton pin sur la carte." })}
+              {t('pro.pinIconHelper', { defaultValue: "Choisis ton univers — il s'affiche dans ton pin sur la carte." })}
             </Text>
-            <View style={styles.pinImageRow}>
+            <View style={styles.pinIconRow}>
               <View style={styles.pinPreviewWrap}>
-                <ProPin displayName={displayName || 'P'} pinImageUrl={pinImageUrl} />
+                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} />
               </View>
-              <Pressable
-                style={styles.pinImagePickBtn}
-                onPress={handlePickPinImage}
-                disabled={pinImageBusy}
-              >
-                {pinImageBusy ? (
-                  <LogoSpinner size={20} />
-                ) : (
-                  <>
-                    <ImagePlus size={16} color={colors.cta} strokeWidth={2.4} />
-                    <Text style={styles.pinImagePickText}>
-                      {pinImageUrl
-                        ? t('pro.pinImageReplace', { defaultValue: 'Remplacer' })
-                        : t('pro.pinImageAdd', { defaultValue: 'Choisir' })}
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-              {pinImageUrl && !pinImageBusy && (
-                <Pressable
-                  style={styles.pinImageRemoveBtn}
-                  onPress={handleRemovePinImage}
-                  hitSlop={6}
-                  accessibilityLabel={t('pro.pinImageRemove', { defaultValue: 'Supprimer' })}
-                >
-                  <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
-                </Pressable>
-              )}
+              <View style={styles.pinIconGrid}>
+                {PRO_PIN_ICONS.map((opt) => {
+                  const selected = pinIcon === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      style={[styles.pinIconChip, selected && styles.pinIconChipSelected]}
+                      onPress={() => handlePickIcon(opt.key)}
+                      disabled={pinIconBusy}
+                      accessibilityLabel={opt.label}
+                    >
+                      <Text style={styles.pinIconEmoji}>{opt.emoji}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           </View>
         )}
@@ -604,6 +579,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   bannerSection: { marginBottom: spacing.md },
+  pinIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.xs,
+  },
+  pinIconGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  pinIconChip: {
+    width: 42,
+    height: 42,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
+  },
+  pinIconChipSelected: {
+    borderColor: colors.cta,
+    backgroundColor: colors.cta + '20',
+  },
+  pinIconEmoji: { fontSize: 20 },
   pinImageRow: {
     flexDirection: 'row',
     alignItems: 'center',

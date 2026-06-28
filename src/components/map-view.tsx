@@ -519,7 +519,7 @@ export function JuntoMapView({
             >
               <View style={highlightStyle}>
                 <Pressable onPress={() => onProPress?.(pro)} hitSlop={14}>
-                  <ProPin displayName={pro.display_name} pinImageUrl={pro.pin_image_url} />
+                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} />
                 </Pressable>
               </View>
             </Mapbox.MarkerView>
