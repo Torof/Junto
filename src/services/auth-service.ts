@@ -17,7 +17,14 @@ export const authService = {
   },
 
   signUpWithEmail: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      // Land the confirmation link on the branded "Email confirmé !" page
+      // (web/app/auth/callback) which deep-links back into the app. Requires
+      // this URL to be in Supabase Auth → URL Configuration → Redirect URLs.
+      options: { emailRedirectTo: `https://${WEB_HOST}/auth/callback` },
+    });
     if (error) throw error;
     return data;
   },
