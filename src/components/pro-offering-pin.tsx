@@ -10,26 +10,27 @@ interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Pin system v4 (2026-06): a pro offering is NOT a peer sortie, so it no
-// longer borrows the teardrop. SHAPE encodes kind:
-//   teardrop  = peer sortie (event)
-//   SQUARE    = pro offering (commercial, pro-led activity)  ← this
-//   pushpin   = pro page (the establishment)
-// The blue rounded-square body + sport emoji reads as "a bookable service",
-// and a small "PRO" chip makes the commercial/pro-led nature explicit at a
-// glance (no price — Junto isn't a payment platform; the chip just signals
-// "encadré par un pro"). Page vs offering can now share a sport and stay
-// unmistakable, because the silhouette differs.
+// Pin system v4 — shape encodes kind (square = pro offering, vs teardrop
+// peer sortie, vs pushpin pro page). The body + pointer are ONE continuous
+// path so the tail reads as fused (not a triangle stuck under a box). The
+// ivory plate hugs the body with a thin frame, and a full-width "PRO"
+// banner is dropped on top to make the commercial / pro-led nature explicit
+// (no price — Junto isn't a payment platform).
 
-const VIEWBOX_W = 64;
-const VIEWBOX_H = 66;
-const PIN_WIDTH = 60;
+const VIEWBOX_W = 52;
+const VIEWBOX_H = 68;
+const PIN_WIDTH = 48;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
-// Pointer tip (the point that sits on the coordinate). Body is centered at
-// x=28; the PRO chip overhangs to the right, so the anchor x is the BODY
-// centre, not the viewbox centre.
-export const PRO_OFFERING_PIN_ANCHOR = { x: 28 / VIEWBOX_W, y: 64 / VIEWBOX_H };
+// Single silhouette: rounded-top square tapering to a fused point at (26,64).
+const BODY_PATH =
+  'M 16 14 L 36 14 Q 46 14 46 24 L 46 44 Q 46 49 41 51 L 26 64 L 11 51 Q 6 49 6 44 L 6 24 Q 6 14 16 14 Z';
+
+// Pointer tip = the point on the coordinate.
+export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 64 / VIEWBOX_H };
+
+// Ivory plate region (viewbox) — thin frame around it (padding ≈ 3).
+const PLATE = { x: 9, y: 25, w: 34, h: 23 };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
@@ -38,38 +39,33 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        {/* bottom pointer */}
-        <Path d="M 20 50 L 36 50 L 28 64 Z" fill={colors.pinProBackground} />
-        {/* square body */}
-        <Rect
-          x={8}
-          y={12}
-          width={40}
-          height={40}
-          rx={11}
+        {/* body + fused tail, one path */}
+        <Path
+          d={BODY_PATH}
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
+          strokeLinejoin="round"
         />
-        {/* ivory plate behind the sport emoji */}
+        {/* ivory plate — thin frame, hugs the body */}
         <Rect
-          x={14}
-          y={18}
-          width={28}
-          height={28}
-          rx={8}
+          x={PLATE.x}
+          y={PLATE.y}
+          width={PLATE.w}
+          height={PLATE.h}
+          rx={6}
           fill={colors.pinBackground}
           stroke={colors.pinBorder}
-          strokeWidth={1.5}
-          strokeOpacity={0.95}
+          strokeWidth={1.2}
+          strokeOpacity={0.9}
         />
-        {/* PRO chip — overhangs the top-right corner */}
-        <Rect x={37} y={2} width={25} height={15} rx={4} fill={colors.pinBorder} />
+        {/* PRO banner — full body width, dropped on top */}
+        <Rect x={6} y={3} width={40} height={18} rx={6} fill={colors.pinBorder} />
         <SvgText
-          x={49.5}
-          y={12.6}
-          fontSize={9}
+          x={26}
+          y={15.5}
+          fontSize={11}
           fontWeight="bold"
           fill={colors.pinBackground}
           textAnchor="middle"
@@ -95,17 +91,17 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     shadowRadius: 6,
     elevation: 10,
   },
-  // Centred on the ivory plate (viewbox x 14→42, y 18→46) scaled to px.
+  // Centred on the ivory plate.
   iconWrap: {
     position: 'absolute',
-    left: (14 / VIEWBOX_W) * PIN_WIDTH,
-    top: (18 / VIEWBOX_H) * PIN_HEIGHT,
-    width: (28 / VIEWBOX_W) * PIN_WIDTH,
-    height: (28 / VIEWBOX_H) * PIN_HEIGHT,
+    left: (PLATE.x / VIEWBOX_W) * PIN_WIDTH,
+    top: (PLATE.y / VIEWBOX_H) * PIN_HEIGHT,
+    width: (PLATE.w / VIEWBOX_W) * PIN_WIDTH,
+    height: (PLATE.h / VIEWBOX_H) * PIN_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 16,
+    fontSize: 17,
   },
 });
