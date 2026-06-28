@@ -175,6 +175,18 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     });
   }, [highlightedItemId, items]);
 
+  // When a card is selected while the sheet is fully open (92%), drop it to
+  // the mid snap (50%) so the map's zoom-to-pin lands in the freed upper half
+  // instead of being hidden behind the drawer. Only collapses a FULL sheet —
+  // mid/collapsed states are left untouched, and we depend solely on the
+  // selection (not snapIndex) so a manual drag back to 92% isn't fought.
+  useEffect(() => {
+    if (highlightedItemId && snapIndex === 2) {
+      sheetRef.current?.snapToIndex(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightedItemId]);
+
   return (
     <BottomSheet
       ref={sheetRef}
