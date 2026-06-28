@@ -20,7 +20,7 @@ interface ProOfferingPinProps {
 
 const VIEWBOX_W = 44;
 const VIEWBOX_H = 52;
-const PIN_WIDTH = 48;
+const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
 // Rounded square tapering to a fused point at (22,49).
@@ -86,6 +86,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 23,
+    fontSize: 19,
   },
 });
