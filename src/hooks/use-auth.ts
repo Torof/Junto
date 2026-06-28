@@ -70,13 +70,34 @@ export function useAuth(): AuthState {
     })();
 
     const { data: { subscription } } = authService.onAuthStateChange(async (event, s) => {
-      // Wipe the query cache on every sign-out / user-change. Without this,
-      // signing in as a different user on the same device shows the previous
-      // user's cached activities, messages, notifications etc. until each
-      // query refetches. AUDIT_SECURITY_2 C1.
-      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED' || !s) {
+      // A real logout is ONLY the explicit SIGNED_OUT event (user tapped
+      // sign-out, refresh token revoked, account deleted). A null session from
+      // any OTHER event — most importantly a token refresh that failed because
+      // the device is offline — is transient and must NOT log the user out:
+      // the refresh token is still valid, we just can't reach the server.
+      //
+      // The server (RLS + SECURITY DEFINER functions) gates every operation
+      // regardless of client state, so keeping a stale session through a
+      // connectivity blip is safe and keeps the UI usable offline — essential
+      // for outdoor use (mountains, canyons) where signal drops constantly.
+      if (event === 'SIGNED_OUT') {
+        // Wipe the query cache so the next user on this device never sees the
+        // previous user's cached data. AUDIT_SECURITY_2 C1. (Sign-out always
+        // precedes a different-user sign-in, so this is the only place the
+        // cross-user wipe is needed.)
+        queryClient.clear();
+        setNeedsOnboarding(false);
+        setIsSuspended(false);
+        setSession(null);
+        setSentryUser(null);
+        return;
+      }
+
+      // Account data may have changed — refresh the cache but keep the session.
+      if (event === 'USER_UPDATED') {
         queryClient.clear();
       }
+
       if (s) {
         // Propagate the session synchronously so AuthGate re-renders + routes
         // immediately. Status check runs in the background and may flip
@@ -84,12 +105,10 @@ export function useAuth(): AuthState {
         setSession(s);
         setSentryUser(s.user.id);
         checkUserStatus(s.user.id).catch(() => {});
-      } else {
-        setNeedsOnboarding(false);
-        setIsSuspended(false);
-        setSession(null);
-        setSentryUser(null);
       }
+      // else: transient null session (e.g. offline refresh failure) — keep the
+      // current session and do nothing. Supabase retries the refresh on
+      // reconnect, which will deliver a fresh session.
     });
 
     return () => {
