@@ -476,8 +476,8 @@ export function JuntoMapView({
         images={{
           // scale 3 → the 24px source renders at ~8 logical px, matching the
           // secondary text. (font-scale on image sections is ignored natively.)
-          clock: { image: require('../../assets/label-clock.png'), scale: 3 },
-          cal: { image: require('../../assets/label-cal.png'), scale: 3 },
+          clock: { image: require('../../assets/label-clock.png'), scale: 2.3 },
+          cal: { image: require('../../assets/label-cal.png'), scale: 2.3 },
         }}
       />
 
