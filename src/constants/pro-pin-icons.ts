@@ -1,26 +1,17 @@
-// Curated environment-icon set for the pro page pushpin (pin system v4).
-// A pro picks ONE to identify their univers; it renders on the pushpin head
-// and (later) on their page. Keys mirror the DB CHECK constraint + the
-// set_pro_pin_icon validation in migration 00280 — keep them in sync.
+// The 4 pro pushpin universes (pin system v4 / taxonomy v2). A pro picks one;
+// it sets the pushpin disc color + white glyph (rendered by ProPin). Keys are
+// a subset of the 5 activity universes — no "running" (no running guides
+// exist). Mirrors the DB pin_icon CHECK + set_pro_pin_icon validation in
+// migration 00281 — keep in sync.
 
 export interface ProPinIconOption {
   key: string;
-  emoji: string;
   label: string;
 }
 
 export const PRO_PIN_ICONS: ProPinIconOption[] = [
-  { key: 'mountain', emoji: '🏔', label: 'Montagne' },
-  { key: 'cliff', emoji: '🪨', label: 'Falaise' },
-  { key: 'sea', emoji: '🌊', label: 'Mer' },
-  { key: 'river', emoji: '🛶', label: 'Rivière' },
-  { key: 'air', emoji: '🪂', label: 'Air' },
-  { key: 'snow', emoji: '❄️', label: 'Neige' },
-  { key: 'bike', emoji: '🚵', label: 'Vélo' },
-  { key: 'forest', emoji: '🌲', label: 'Forêt' },
+  { key: 'mountain', label: 'Montagne' },
+  { key: 'water', label: 'Eau' },
+  { key: 'air', label: 'Air' },
+  { key: 'cycling', label: 'Vélo' },
 ];
-
-export function getProPinEmoji(key: string | null | undefined): string | null {
-  if (!key) return null;
-  return PRO_PIN_ICONS.find((i) => i.key === key)?.emoji ?? null;
-}

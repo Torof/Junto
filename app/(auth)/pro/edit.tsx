@@ -266,7 +266,10 @@ export default function ProEditScreen() {
                       disabled={pinIconBusy}
                       accessibilityLabel={opt.label}
                     >
-                      <Text style={styles.pinIconEmoji}>{opt.emoji}</Text>
+                      <ProPin displayName="" pinIcon={opt.key} />
+                      <Text style={[styles.pinIconLabel, selected && styles.pinIconLabelSelected]}>
+                        {opt.label}
+                      </Text>
                     </Pressable>
                   );
                 })}
@@ -592,12 +595,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs,
   },
   pinIconChip: {
-    width: 42,
-    height: 42,
+    width: 64,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    gap: 2,
     borderWidth: 1.5,
     borderColor: colors.borderMuted,
   },
@@ -605,7 +610,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.cta,
     backgroundColor: colors.cta + '20',
   },
-  pinIconEmoji: { fontSize: 20 },
+  pinIconLabel: { fontSize: 11, color: colors.textSecondary, fontWeight: '600' },
+  pinIconLabelSelected: { color: colors.cta },
   pinImageRow: {
     flexDirection: 'row',
     alignItems: 'center',

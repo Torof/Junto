@@ -37,6 +37,9 @@ export const darkColors = {
   // user-chosen independently of the app theme.
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
+  // PP pushpin (v4): grey head rim on the white Google-place body. Same in
+  // both themes — the pin sits on the (independently-styled) map.
+  pinProRim: '#6B7280',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
   // 2× alpha of `line` — for elements that need a clearly contained
@@ -81,6 +84,9 @@ export const lightColors = {
   pinFrame: '#E0D2B4',
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
+  // PP pushpin (v4): grey head rim on the white Google-place body. Same in
+  // both themes — the pin sits on the (independently-styled) map.
+  pinProRim: '#6B7280',
   border: '#B3AC9C',
   line: 'rgba(31,26,21,0.08)',
   lineStrong: 'rgba(31,26,21,0.16)',

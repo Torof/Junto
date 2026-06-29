@@ -1,38 +1,88 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import { Image } from 'expo-image';
+import Svg, { Path, Circle, G } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
-import { getProPinEmoji } from '@/constants/pro-pin-icons';
+import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 
 interface ProPinProps {
   displayName: string;
   pinIcon?: string | null;
 }
 
-// Pin system v4 — the pushpin (round head on a thin needle = "pinned
-// establishment") now shows the pro's chosen ENVIRONMENT icon on an ivory
-// plate (emoji on ivory for legibility, like the offering/sortie pins),
-// inside the pro-blue ring (the family accent). The pro's initial is the
-// fallback until they pick an icon. The photo is no longer used on the pin.
+// Pin system v4 (taxonomy v2) — the pushpin (round head on a thin needle =
+// "pinned establishment") follows the Google place-pin grammar: a WHITE head
+// with a grey rim, a needle, and inside it a disc in the pro's UNIVERSE color
+// (the same 5-universe palette as activities) carrying a WHITE glyph. The pro
+// picks one of 4 universes (mountain · water · air · cycling — no "running":
+// no running guides exist). The initial is the fallback before they pick.
 
 const VIEWBOX_W = 54;
 const VIEWBOX_H = 70;
 const PIN_WIDTH = 42;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-
-// Head: circle c(27,23) r21. Needle: slim taper to the tip at (27,67) —
-// the geographic anchor. The needle top tucks behind the head.
-const NEEDLE_PATH = 'M 25.2 43 L 27 67 L 28.8 43 Z';
 const SCALE = PIN_WIDTH / VIEWBOX_W;
 const CIRCLE_CY = 23 * SCALE;
 
+// Needle: slim taper to the tip at (27,67) — the geographic anchor. Filled
+// dark (somber), top tucked behind the head.
+const NEEDLE_PATH = 'M 24.6 41 L 27 67 L 29.4 41 Z';
+
+// Cycling has no clean vector at this size, so it stays a raster (the shape
+// Scott approved) — tinted white over the disc. The others are SVG glyphs.
+const bikeGlyph = require('../../assets/bike-glyph.png');
+
 export const PRO_PIN_ANCHOR = { x: 0.5, y: 67 / VIEWBOX_H };
+
+// White glyphs, drawn in the head and scaled 0.8 around the center (27,23).
+function glyphFor(key: string, white: string): ReactNode {
+  switch (key) {
+    case 'mountain':
+      return <Path d="M 15 32 L 23 16 L 28 23 L 32 18 L 39 32 Z" fill={white} />;
+    case 'water':
+      return (
+        <Path
+          d="M 27 14 C 27 14 19 25 19 29.5 A 8 8 0 1 0 35 29.5 C 35 25 27 14 27 14 Z"
+          fill={white}
+        />
+      );
+    case 'air':
+      return (
+        <>
+          <Path
+            d="M 15.5 21 C 12 21 12 15.5 16 15.2 C 16 10 23.5 9 25 13.5 C 29.5 11.8 33 15.5 30.5 19 C 33 19.6 32.5 21 30 21 Z"
+            fill={white}
+          />
+          <Path
+            d="M 17 28 H 34 a 2.4 2.4 0 1 0 -2.4 -2.4"
+            stroke={white}
+            strokeWidth={1.3}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d="M 19 35 H 31 a 2.0 2.0 0 1 0 -2.0 -2.0"
+            stroke={white}
+            strokeWidth={1.3}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </>
+      );
+    default:
+      return null; // cycling -> raster overlay
+  }
+}
 
 export function ProPin({ displayName, pinIcon }: ProPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const emoji = getProPinEmoji(pinIcon);
+
+  const discColor = pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
+  const white = colors.pinProBorder;
+  const glyph = pinIcon ? glyphFor(pinIcon, white) : null;
+  const isBike = pinIcon === 'cycling';
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
 
   return (
@@ -40,35 +90,22 @@ export function ProPin({ displayName, pinIcon }: ProPinProps) {
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         {/* Needle first — the head renders over its hidden top joint. */}
         <Path d={NEEDLE_PATH} fill={colors.pinBorder} />
-        <Circle
-          cx={27}
-          cy={23}
-          r={21}
-          fill={colors.pinProBackground}
-          stroke={colors.pinBorder}
-          strokeWidth={2}
-          strokeOpacity={0.9}
-        />
-        {emoji && (
-          // Ivory plate behind the emoji (legibility), leaving a blue ring.
-          <Circle
-            cx={27}
-            cy={23}
-            r={16.5}
-            fill={colors.pinBackground}
-            stroke={colors.pinBorder}
-            strokeWidth={1.2}
-            strokeOpacity={0.85}
-          />
+        <Circle cx={27} cy={23} r={21} fill={colors.pinBackground} stroke={colors.pinProRim} strokeWidth={1.3} />
+        {discColor && <Circle cx={27} cy={23} r={18.5} fill={discColor} />}
+        {glyph && (
+          <G transform="translate(27 23) scale(0.8) translate(-27 -23)">{glyph}</G>
         )}
       </Svg>
-      <View style={styles.content}>
-        {emoji ? (
-          <Text style={styles.emoji}>{emoji}</Text>
-        ) : (
-          <Text style={styles.letter}>{initial}</Text>
-        )}
-      </View>
+      {/* cycling = raster bike (white tint); no icon = the pro's initial */}
+      {(isBike || !pinIcon) && (
+        <View style={styles.content} pointerEvents="none">
+          {isBike ? (
+            <Image source={bikeGlyph} tintColor={white} style={styles.bike} contentFit="contain" />
+          ) : (
+            <Text style={styles.letter}>{initial}</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -85,8 +122,8 @@ const createStyles = (colors: AppColors) =>
       shadowRadius: 4,
       elevation: 6,
     },
-    // Centered on the circle, not the full wrapper (the needle would pull a
-    // full-height center downward).
+    // Centered on the head circle, not the full wrapper (the needle would
+    // pull a full-height center downward).
     content: {
       position: 'absolute',
       left: 0,
@@ -96,11 +133,12 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    emoji: {
-      fontSize: 17,
+    bike: {
+      width: 22,
+      height: 14,
     },
     letter: {
-      color: colors.pinProBorder,
+      color: colors.pinBorder,
       fontSize: 14,
       fontWeight: '800',
       letterSpacing: -0.5,
