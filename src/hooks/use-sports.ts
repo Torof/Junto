@@ -6,6 +6,7 @@ export interface SportRow {
   key: string;
   category: string;
   display_order: number;
+  is_active: boolean;
 }
 
 /**
@@ -32,7 +33,8 @@ export function useSports() {
     queryFn: async (): Promise<SportRow[]> => {
       const { data, error } = await supabase
         .from('sports')
-        .select('id, key, category, display_order')
+        .select('id, key, category, display_order, is_active')
+        .eq('is_active', true)
         .order('display_order');
       if (error) throw error;
       return data ?? [];

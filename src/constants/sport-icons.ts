@@ -1,5 +1,7 @@
 export const sportIcons: Record<string, string> = {
   hiking: '🥾',
+  trekking: '🎒',
+  canoe: '🚣',
   climbing: '🧗',
   'ski-touring': '⛷',
   'trail-running': '🏃',

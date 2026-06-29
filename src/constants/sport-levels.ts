@@ -146,6 +146,7 @@ export const SPORT_LEVEL_SCALES: Record<string, LevelOption[]> = {
   'via-ferrata': VIA_FERRATA,
   canyoning: CANYON,
   kayaking: WHITEWATER,
+  canoe: WHITEWATER,
   rafting: WHITEWATER,
   'ski-touring': SKI,
   'ski-freeride': SKI,
@@ -224,13 +225,13 @@ export function formatLevelRange(
  * Which sports use distance + D+ as their primary difficulty metrics.
  */
 export const SPORTS_WITH_DISTANCE = new Set<string>([
-  'hiking', 'trail-running', 'running', 'cycling', 'gravel',
+  'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'cross-country-ski', 'nordic-walking', 'snowshoeing',
 ]);
 
 export const SPORTS_WITH_ELEVATION = new Set<string>([
-  'hiking', 'trail-running', 'running', 'cycling', 'gravel',
+  'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'ski-touring', 'ski-freeride', 'splitboard',
   'cross-country-ski', 'nordic-walking', 'snowshoeing', 'mountaineering',

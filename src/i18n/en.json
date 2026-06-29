@@ -118,6 +118,8 @@
   },
   "sports": {
     "hiking": "Hiking",
+    "trekking": "Trek",
+    "canoe": "Canoe",
     "climbing": "Climbing",
     "ski-touring": "Ski touring",
     "trail-running": "Trail running",
