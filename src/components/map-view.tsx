@@ -40,12 +40,24 @@ const LABEL_DETAIL_ZOOM = 12.5;
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
 
-// "5★(1)" — avg rating (trimmed) + count. Empty when there are no reviews.
-const ratingStr = (avg: number | null | undefined, count: number | null | undefined): string => {
-  if (!count || avg == null) return '';
+// Rating split into the number ("5"/"4.8") and the count ("(1)") so a gold
+// ★ image can sit between them inline. Empty when there are no reviews.
+const ratingParts = (
+  avg: number | null | undefined,
+  count: number | null | undefined,
+): { ravg: string; rcount: string } => {
+  if (!count || avg == null) return { ravg: '', rcount: '' };
   const n = Number(avg);
   const a = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, '');
-  return `${a}★(${count})`;
+  return { ravg: a, rcount: `(${count})` };
+};
+
+// Secondary-line text style (smaller, regular, neutral black) — shared by
+// every text section of the detail line.
+const SEC = {
+  'font-scale': 0.78,
+  'text-color': '#1A1A1A',
+  'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
 };
 
 export interface MapBounds {
@@ -280,39 +292,45 @@ export function JuntoMapView({
       if ('cluster' in p && p.cluster) return [];
       const coords = f.geometry.coordinates as [number, number];
       let name = '';
-      let detail = '';
+      let d2 = '';          // secondary text after the (optional) rating
+      let d2icon = '';      // inline icon leading d2: 'clock' | 'cal' | ''
+      let ravg = '';
+      let rcount = '';
       let color: string = colors.pinProBackground;
       const kind = p.type;
       if (p.type === 'activity') {
-        // UA: title (universe colour) + full when (+ level) below.
+        // UA: title (universe colour) + 🕐 full when (+ level).
         const a = activityMap.get(p.id);
         if (!a) return [];
         const d = dayjs(a.starts_at).locale('fr');
         const when = `${d.format('ddd D MMM')} · ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
         const lvl = a.level && a.level !== 'Tous niveaux' ? ` · ${a.level}` : '';
         name = a.title;
-        detail = when + lvl;
+        d2 = when + lvl;
+        d2icon = 'clock';
         color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
       } else if (p.type === 'pro') {
-        // PP: name + rating + catch-phrase (tagline, truncated).
+        // PP: name + ★rating + catch-phrase (tagline, truncated).
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
-        const tag = pr.tagline ? truncate(pr.tagline, 28) : '';
-        detail = [ratingStr(pr.avg_rating, pr.review_count), tag].filter(Boolean).join(' · ');
+        ({ ravg, rcount } = ratingParts(pr.avg_rating, pr.review_count));
+        d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
       } else {
-        // RA: title + rating + schedule conditions.
+        // RA: title + ★rating + 📅 schedule conditions.
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
-        detail = [ratingStr(o.avg_rating, o.review_count), o.schedule_text ?? ''].filter(Boolean).join(' · ');
+        ({ ravg, rcount } = ratingParts(o.avg_rating, o.review_count));
+        d2 = o.schedule_text ?? '';
+        d2icon = d2 ? 'cal' : '';
         color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.pinProBackground;
       }
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { name, detail, color, kind },
+        properties: { name, color, kind, ravg, rcount, d2, d2icon },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
@@ -449,6 +467,16 @@ export function JuntoMapView({
         </Mapbox.ShapeSource>
       )}
 
+      {/* Inline label icons (registered once): gold ★ rating, clock for the
+          sortie when, calendar for the offering schedule. */}
+      <Mapbox.Images
+        images={{
+          star: require('../../assets/label-star.png'),
+          clock: require('../../assets/label-clock.png'),
+          cal: require('../../assets/label-cal.png'),
+        }}
+      />
+
       {/* On-map labels — colored text + white halo, native collision +
           zoom-stepping (names at NAME zoom, +detail at DETAIL zoom). Rides
           the declustered points; sits under the MarkerView pins. */}
@@ -462,21 +490,21 @@ export function JuntoMapView({
               // Below DETAIL: just the title, in the pin's colour.
               ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
               LABEL_DETAIL_ZOOM,
-              // At DETAIL: title (colour) + a smaller, neutral-black, regular
-              // secondary line (full when / schedule / catch-phrase).
-              ['case',
-                ['>', ['length', ['coalesce', ['get', 'detail'], '']], 0],
-                ['format',
-                  ['get', 'name'], { 'text-color': ['get', 'color'] },
-                  '\n', {},
-                  ['get', 'detail'],
-                  {
-                    'font-scale': 0.78,
-                    'text-color': '#1A1A1A',
-                    'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
-                  },
-                ],
-                ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
+              // At DETAIL: title (colour) + a secondary line with inline icons —
+              // [number ★ (count)] · [🕐|📅 value]. Empty sections collapse.
+              ['format',
+                ['get', 'name'], { 'text-color': ['get', 'color'] },
+                '\n', {},
+                ['case', ['>', ['length', ['get', 'ravg']], 0], ['get', 'ravg'], ''], SEC,
+                ['case', ['>', ['length', ['get', 'ravg']], 0], ['image', 'star'], ''], {},
+                ['case', ['>', ['length', ['get', 'rcount']], 0], ['get', 'rcount'], ''], SEC,
+                ['case',
+                  ['all', ['>', ['length', ['get', 'ravg']], 0], ['>', ['length', ['get', 'd2']], 0]],
+                  '  ', '',
+                ], SEC,
+                ['match', ['get', 'd2icon'], 'clock', ['image', 'clock'], 'cal', ['image', 'cal'], ''], {},
+                ['case', ['>', ['length', ['get', 'd2icon']], 0], ' ', ''], SEC,
+                ['get', 'd2'], SEC,
               ],
             ],
             textColor: ['get', 'color'],
