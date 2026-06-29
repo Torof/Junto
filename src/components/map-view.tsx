@@ -60,6 +60,10 @@ const SEC = {
   'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
 };
 
+// Inline-icon sections — scaled down so the icon matches the small secondary
+// text rather than dominating it.
+const IMG = { 'font-scale': 0.7 };
+
 export interface MapBounds {
   swLng: number;
   swLat: number;
@@ -496,13 +500,13 @@ export function JuntoMapView({
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 '\n', {},
                 ['case', ['>', ['length', ['get', 'ravg']], 0], ['get', 'ravg'], ''], SEC,
-                ['case', ['>', ['length', ['get', 'ravg']], 0], ['image', 'star'], ''], {},
+                ['case', ['>', ['length', ['get', 'ravg']], 0], ['image', 'star'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rcount']], 0], ['get', 'rcount'], ''], SEC,
                 ['case',
                   ['all', ['>', ['length', ['get', 'ravg']], 0], ['>', ['length', ['get', 'd2']], 0]],
                   '  ', '',
                 ], SEC,
-                ['match', ['get', 'd2icon'], 'clock', ['image', 'clock'], 'cal', ['image', 'cal'], ''], {},
+                ['match', ['get', 'd2icon'], 'clock', ['image', 'clock'], 'cal', ['image', 'cal'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'd2icon']], 0], ' ', ''], SEC,
                 ['get', 'd2'], SEC,
               ],
