@@ -22,6 +22,9 @@ export interface ProOffering {
   pro_name: string;
   created_at: string;
   updated_at: string;
+  // Review aggregate — present only on getNearby (map labels / hero).
+  avg_rating?: number | null;
+  review_count?: number;
 }
 
 export interface CreateProOfferingInput {
@@ -95,7 +98,22 @@ export const proOfferingService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data ?? []) as unknown as ProOffering[];
+    const offerings = (data ?? []) as unknown as ProOffering[];
+    if (offerings.length === 0) return offerings;
+    // Attach review aggregate (for map labels). No reviews → undefined → no ★.
+    const { data: stats } = await supabase
+      .from('offering_review_stats')
+      .select('offering_id, avg_rating, review_count')
+      .in('offering_id', offerings.map((o) => o.id));
+    const byId = new Map((stats ?? []).map((s) => [s.offering_id as string, s]));
+    return offerings.map((o) => {
+      const s = byId.get(o.id);
+      return {
+        ...o,
+        avg_rating: (s?.avg_rating ?? null) as number | null,
+        review_count: (s?.review_count ?? 0) as number,
+      };
+    });
   },
 
   create: async (input: CreateProOfferingInput): Promise<string> => {

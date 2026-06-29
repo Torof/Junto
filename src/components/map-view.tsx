@@ -33,12 +33,20 @@ const DEFAULT_ZOOM = 10;
 // On-map label zoom gates (pin system v4). Below NAME, pins only. At NAME the
 // name drops onto the map (pin color, white halo); at DETAIL the second line
 // (spots / schedule) appears. Tune on-device.
-const LABEL_NAME_ZOOM = 12.5;
-const LABEL_DETAIL_ZOOM = 14;
+const LABEL_NAME_ZOOM = 11;
+const LABEL_DETAIL_ZOOM = 12.5;
 
 // Catch-phrase / schedule lines get cut so a single pin can't hog the map.
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
+
+// "5★(1)" — avg rating (trimmed) + count. Empty when there are no reviews.
+const ratingStr = (avg: number | null | undefined, count: number | null | undefined): string => {
+  if (!count || avg == null) return '';
+  const n = Number(avg);
+  const a = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, '');
+  return `${a}★(${count})`;
+};
 
 export interface MapBounds {
   swLng: number;
@@ -286,18 +294,19 @@ export function JuntoMapView({
         detail = when + lvl;
         color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
       } else if (p.type === 'pro') {
-        // PP: name + catch-phrase (tagline, truncated). Rating: deferred.
+        // PP: name + rating + catch-phrase (tagline, truncated).
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
-        detail = pr.tagline ? truncate(pr.tagline, 28) : '';
+        const tag = pr.tagline ? truncate(pr.tagline, 28) : '';
+        detail = [ratingStr(pr.avg_rating, pr.review_count), tag].filter(Boolean).join(' · ');
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
       } else {
-        // RA: title + schedule conditions. Rating: deferred.
+        // RA: title + rating + schedule conditions.
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
-        detail = o.schedule_text ?? '';
+        detail = [ratingStr(o.avg_rating, o.review_count), o.schedule_text ?? ''].filter(Boolean).join(' · ');
         color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.pinProBackground;
       }
       return [{

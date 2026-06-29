@@ -68,6 +68,9 @@ export interface NearbyPro {
   pin_icon: string | null;
   tagline: string | null;
   description: string | null;
+  // Review aggregate — present only on getNearby (map labels / hero).
+  avg_rating?: number | null;
+  review_count?: number;
 }
 
 export const proService = {
@@ -201,6 +204,21 @@ export const proService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data ?? [];
+    const pros = (data ?? []) as NearbyPro[];
+    if (pros.length === 0) return pros;
+    // Attach review aggregate (for map labels). No reviews → undefined → no ★.
+    const { data: stats } = await supabase
+      .from('pro_review_stats')
+      .select('pro_id, avg_rating, review_count')
+      .in('pro_id', pros.map((p) => p.user_id));
+    const byId = new Map((stats ?? []).map((s) => [s.pro_id as string, s]));
+    return pros.map((p) => {
+      const s = byId.get(p.user_id);
+      return {
+        ...p,
+        avg_rating: (s?.avg_rating ?? null) as number | null,
+        review_count: (s?.review_count ?? 0) as number,
+      };
+    });
   },
 };
