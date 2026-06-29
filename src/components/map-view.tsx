@@ -62,7 +62,7 @@ const SEC = {
 
 // Inline-icon sections (clock / calendar) — scaled down so the hairline icon
 // sits as quietly as the small secondary text.
-const IMG = { 'font-scale': 0.5 };
+const IMG = { 'font-scale': 0.35 };
 
 export interface MapBounds {
   swLng: number;
