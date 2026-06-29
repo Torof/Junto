@@ -60,9 +60,9 @@ const SEC = {
   'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
 };
 
-// Inline-icon sections (clock / calendar) — scaled down so the hairline icon
-// sits as quietly as the small secondary text.
-const IMG = { 'font-scale': 0.35 };
+// Inline-icon sections carry no scaling: the native SDK ignores font-scale on
+// images, so the icon size is set by the registered image's `scale` instead.
+const IMG = {};
 
 export interface MapBounds {
   swLng: number;
@@ -474,8 +474,10 @@ export function JuntoMapView({
           sortie when, calendar for the offering schedule. */}
       <Mapbox.Images
         images={{
-          clock: require('../../assets/label-clock.png'),
-          cal: require('../../assets/label-cal.png'),
+          // scale 3 → the 24px source renders at ~8 logical px, matching the
+          // secondary text. (font-scale on image sections is ignored natively.)
+          clock: { image: require('../../assets/label-clock.png'), scale: 3 },
+          cal: { image: require('../../assets/label-cal.png'), scale: 3 },
         }}
       />
 
