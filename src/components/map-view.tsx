@@ -13,6 +13,9 @@ import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { circlePolygon } from '@/utils/geo';
+import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -26,6 +29,12 @@ Mapbox.setTelemetryEnabled(false);
 import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
+
+// On-map label zoom gates (pin system v4). Below NAME, pins only. At NAME the
+// name drops onto the map (pin color, white halo); at DETAIL the second line
+// (spots / schedule) appears. Tune on-device.
+const LABEL_NAME_ZOOM = 12.5;
+const LABEL_DETAIL_ZOOM = 14;
 
 export interface MapBounds {
   swLng: number;
@@ -248,6 +257,50 @@ export function JuntoMapView({
     [cluster, bounds, currentZoom],
   );
 
+  // Google-style on-map labels: a SymbolLayer fed by the DECLUSTERED points
+  // (cluster bubbles get none). Native collision + zoom-stepping declutter it;
+  // content is type-specific — sortie = when+spots, offering = title+schedule,
+  // pro page = name. Color matches the pin's universe (pros fall back to the
+  // pro blue). Ratings wait until the nearby views expose an aggregate.
+  const labelShape = useMemo(() => {
+    const features = clusters.flatMap((f) => {
+      const p = f.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
+      if ('cluster' in p && p.cluster) return [];
+      const coords = f.geometry.coordinates as [number, number];
+      let name = '';
+      let detail = '';
+      let color: string = colors.pinProBackground;
+      const kind = p.type;
+      if (p.type === 'activity') {
+        const a = activityMap.get(p.id);
+        if (!a) return [];
+        name = dayjs(a.starts_at).locale('fr').format('ddd H[h]mm').replace('.', '');
+        const left = a.max_participants != null
+          ? Math.max(0, a.max_participants - a.participant_count)
+          : null;
+        detail = left != null ? `${left} pl` : '';
+        color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
+      } else if (p.type === 'pro') {
+        const pr = proMap.get(p.id);
+        if (!pr) return [];
+        name = pr.display_name;
+        color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
+      } else {
+        const o = offeringMap.get(p.id);
+        if (!o) return [];
+        name = o.title;
+        detail = o.schedule_text ?? '';
+        color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.pinProBackground;
+      }
+      return [{
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: coords },
+        properties: { name, detail, color, kind },
+      }];
+    });
+    return { type: 'FeatureCollection' as const, features };
+  }, [clusters, activityMap, proMap, offeringMap, colors]);
+
   useEffect(() => {
     if (flyTo && cameraRef.current) {
       cameraTouched.current = true;
@@ -378,6 +431,45 @@ export function JuntoMapView({
           />
         </Mapbox.ShapeSource>
       )}
+
+      {/* On-map labels — colored text + white halo, native collision +
+          zoom-stepping (names at NAME zoom, +detail at DETAIL zoom). Rides
+          the declustered points; sits under the MarkerView pins. */}
+      <Mapbox.ShapeSource id="pin-labels" shape={labelShape}>
+        <Mapbox.SymbolLayer
+          id="pin-labels-layer"
+          minZoomLevel={LABEL_NAME_ZOOM}
+          style={{
+            textField: [
+              'step', ['zoom'],
+              ['get', 'name'],
+              LABEL_DETAIL_ZOOM,
+              ['case',
+                ['>', ['length', ['coalesce', ['get', 'detail'], '']], 0],
+                ['concat', ['get', 'name'], '\n', ['get', 'detail']],
+                ['get', 'name'],
+              ],
+            ],
+            textColor: ['get', 'color'],
+            textHaloColor: '#FFFFFF',
+            textHaloWidth: 1.6,
+            textHaloBlur: 0.3,
+            textSize: 13,
+            textFont: ['Open Sans Bold', 'Arial Unicode MS Regular'],
+            textAnchor: 'left',
+            textOffset: ['match', ['get', 'kind'],
+              'pro', ['literal', [1.4, -2.6]],
+              'offering', ['literal', [1.4, -2.0]],
+              ['literal', [1.4, -1.6]],
+            ],
+            textJustify: 'left',
+            textMaxWidth: 9,
+            textAllowOverlap: false,
+            textOptional: true,
+            symbolSortKey: ['match', ['get', 'kind'], 'pro', 0, 'offering', 1, 2],
+          }}
+        />
+      </Mapbox.ShapeSource>
 
       {userLocation && (
         <Mapbox.MarkerView id="user-location" coordinate={userLocation} allowOverlap>
