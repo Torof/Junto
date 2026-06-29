@@ -66,6 +66,7 @@ export interface NearbyPro {
   primary_lat: number;
   pin_image_url: string | null;
   pin_icon: string | null;
+  tagline: string | null;
   description: string | null;
 }
 
@@ -188,7 +189,7 @@ export const proService = {
   }): Promise<NearbyPro[]> => {
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, description');
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, tagline, description');
 
     if (bounds) {
       query = query

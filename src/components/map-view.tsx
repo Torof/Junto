@@ -36,6 +36,10 @@ const DEFAULT_ZOOM = 10;
 const LABEL_NAME_ZOOM = 12.5;
 const LABEL_DETAIL_ZOOM = 14;
 
+// Catch-phrase / schedule lines get cut so a single pin can't hog the map.
+const truncate = (s: string, n: number) =>
+  s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
+
 export interface MapBounds {
   swLng: number;
   swLat: number;
@@ -272,20 +276,24 @@ export function JuntoMapView({
       let color: string = colors.pinProBackground;
       const kind = p.type;
       if (p.type === 'activity') {
+        // UA: title (universe colour) + full when (+ level) below.
         const a = activityMap.get(p.id);
         if (!a) return [];
-        name = dayjs(a.starts_at).locale('fr').format('ddd H[h]mm').replace('.', '');
-        const left = a.max_participants != null
-          ? Math.max(0, a.max_participants - a.participant_count)
-          : null;
-        detail = left != null ? `${left} pl` : '';
+        const d = dayjs(a.starts_at).locale('fr');
+        const when = `${d.format('ddd D MMM')} · ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
+        const lvl = a.level && a.level !== 'Tous niveaux' ? ` · ${a.level}` : '';
+        name = a.title;
+        detail = when + lvl;
         color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
       } else if (p.type === 'pro') {
+        // PP: name + catch-phrase (tagline, truncated). Rating: deferred.
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
+        detail = pr.tagline ? truncate(pr.tagline, 28) : '';
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
       } else {
+        // RA: title + schedule conditions. Rating: deferred.
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
@@ -442,12 +450,24 @@ export function JuntoMapView({
           style={{
             textField: [
               'step', ['zoom'],
-              ['get', 'name'],
+              // Below DETAIL: just the title, in the pin's colour.
+              ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
               LABEL_DETAIL_ZOOM,
+              // At DETAIL: title (colour) + a smaller, neutral-black, regular
+              // secondary line (full when / schedule / catch-phrase).
               ['case',
                 ['>', ['length', ['coalesce', ['get', 'detail'], '']], 0],
-                ['concat', ['get', 'name'], '\n', ['get', 'detail']],
-                ['get', 'name'],
+                ['format',
+                  ['get', 'name'], { 'text-color': ['get', 'color'] },
+                  '\n', {},
+                  ['get', 'detail'],
+                  {
+                    'font-scale': 0.78,
+                    'text-color': '#1A1A1A',
+                    'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
+                  },
+                ],
+                ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
               ],
             ],
             textColor: ['get', 'color'],
