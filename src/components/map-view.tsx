@@ -40,16 +40,16 @@ const LABEL_DETAIL_ZOOM = 12.5;
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
 
-// Rating split into the number ("5"/"4.8") and the count ("(1)") so a gold
-// ★ image can sit between them inline. Empty when there are no reviews.
-const ratingParts = (
+// "5★(1)" — plain text (the ★ is a font character, not an image), so it
+// reads as quietly as the rest of the secondary line. Empty if no reviews.
+const ratingStr = (
   avg: number | null | undefined,
   count: number | null | undefined,
-): { ravg: string; rcount: string } => {
-  if (!count || avg == null) return { ravg: '', rcount: '' };
+): string => {
+  if (!count || avg == null) return '';
   const n = Number(avg);
   const a = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, '');
-  return { ravg: a, rcount: `(${count})` };
+  return `${a}★(${count})`;
 };
 
 // Secondary-line text style (smaller, regular, neutral black) — shared by
@@ -60,9 +60,9 @@ const SEC = {
   'text-font': ['literal', ['Open Sans Regular', 'Arial Unicode MS Regular']],
 };
 
-// Inline-icon sections — scaled down so the icon matches the small secondary
-// text rather than dominating it.
-const IMG = { 'font-scale': 0.7 };
+// Inline-icon sections (clock / calendar) — scaled down so the hairline icon
+// sits as quietly as the small secondary text.
+const IMG = { 'font-scale': 0.5 };
 
 export interface MapBounds {
   swLng: number;
@@ -298,8 +298,7 @@ export function JuntoMapView({
       let name = '';
       let d2 = '';          // secondary text after the (optional) rating
       let d2icon = '';      // inline icon leading d2: 'clock' | 'cal' | ''
-      let ravg = '';
-      let rcount = '';
+      let rtext = '';       // "5★(1)" plain text, or ''
       let color: string = colors.pinProBackground;
       const kind = p.type;
       if (p.type === 'activity') {
@@ -318,7 +317,7 @@ export function JuntoMapView({
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
-        ({ ravg, rcount } = ratingParts(pr.avg_rating, pr.review_count));
+        rtext = ratingStr(pr.avg_rating, pr.review_count);
         d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
       } else {
@@ -326,7 +325,7 @@ export function JuntoMapView({
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
-        ({ ravg, rcount } = ratingParts(o.avg_rating, o.review_count));
+        rtext = ratingStr(o.avg_rating, o.review_count);
         d2 = o.schedule_text ?? '';
         d2icon = d2 ? 'cal' : '';
         color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.pinProBackground;
@@ -334,7 +333,7 @@ export function JuntoMapView({
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { name, color, kind, ravg, rcount, d2, d2icon },
+        properties: { name, color, kind, rtext, d2, d2icon },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
@@ -475,7 +474,6 @@ export function JuntoMapView({
           sortie when, calendar for the offering schedule. */}
       <Mapbox.Images
         images={{
-          star: require('../../assets/label-star.png'),
           clock: require('../../assets/label-clock.png'),
           cal: require('../../assets/label-cal.png'),
         }}
@@ -499,11 +497,9 @@ export function JuntoMapView({
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 '\n', {},
-                ['case', ['>', ['length', ['get', 'ravg']], 0], ['get', 'ravg'], ''], SEC,
-                ['case', ['>', ['length', ['get', 'ravg']], 0], ['image', 'star'], ''], IMG,
-                ['case', ['>', ['length', ['get', 'rcount']], 0], ['get', 'rcount'], ''], SEC,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['get', 'rtext'], ''], SEC,
                 ['case',
-                  ['all', ['>', ['length', ['get', 'ravg']], 0], ['>', ['length', ['get', 'd2']], 0]],
+                  ['all', ['>', ['length', ['get', 'rtext']], 0], ['>', ['length', ['get', 'd2']], 0]],
                   '  ', '',
                 ], SEC,
                 ['match', ['get', 'd2icon'], 'clock', ['image', 'clock'], 'cal', ['image', 'cal'], ''], IMG,
