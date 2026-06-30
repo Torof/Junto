@@ -35,7 +35,7 @@ const DEFAULT_ZOOM = 10;
 // name drops onto the map (pin color, white halo); at DETAIL the second line
 // (spots / schedule) appears. Tune on-device.
 const LABEL_NAME_ZOOM = 10.5;
-const LABEL_DETAIL_ZOOM = 10.8;
+const LABEL_DETAIL_ZOOM = 11.0;
 
 // Catch-phrase / schedule lines get cut so a single pin can't hog the map.
 const truncate = (s: string, n: number) =>
