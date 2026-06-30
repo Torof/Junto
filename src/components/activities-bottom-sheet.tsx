@@ -95,6 +95,14 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
 
   const snapPoints = useMemo(() => ['2%', '50%', '92%'], []);
 
+  // Fully close (index -1, handle and all) while a pin preview sheet is up,
+  // then restore the 2% handle when it's gone. Driven imperatively because
+  // gorhom v5 doesn't react to the `index` prop changing.
+  useEffect(() => {
+    if (hidden) sheetRef.current?.close();
+    else sheetRef.current?.snapToIndex(0);
+  }, [hidden]);
+
   // gorhom v5 with enableDynamicSizing=false sizes the sheet's internal
   // content container to the MAX snap height. Anything below the
   // current snap edge is rendered off-screen, so the FlatList's scroll
@@ -193,7 +201,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   return (
     <BottomSheet
       ref={sheetRef}
-      index={hidden ? -1 : 0}
+      index={0}
       snapPoints={snapPoints}
       onChange={(idx) => {
         setSnapIndex(idx);
