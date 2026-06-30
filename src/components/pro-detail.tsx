@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2 } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -110,8 +110,82 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
   const mapCenter: [number, number] = [pro.primary_lng, pro.primary_lat];
   const mapPins = [{ id: 'pro', coordinate: mapCenter, color: colors.cta, label: pro.primary_location_name }];
 
+  // Action-row handlers (Google place-sheet style). Directions launches the
+  // user's own maps app (a deep link, not an embedded map).
+  const openDirections = () => {
+    const url = Platform.OS === 'ios'
+      ? `https://maps.apple.com/?ll=${pro.primary_lat},${pro.primary_lng}&q=${encodeURIComponent(pro.display_name)}`
+      : `https://www.google.com/maps/search/?api=1&query=${pro.primary_lat},${pro.primary_lng}`;
+    Linking.openURL(url);
+  };
+  const openWebsite = () => {
+    if (!pro.website) return;
+    Linking.openURL(pro.website.startsWith('http') ? pro.website : `https://${pro.website}`);
+  };
+  const sharePage = () => {
+    Share.share({ message: `${pro.display_name} sur Junto\nhttps://getjunto.app/pro/${pro.user_id}` }).catch(() => {});
+  };
+
   return (
     <View style={styles.container}>
+      {/* ===== Persistent header (Google place-sheet style) — photo, name,
+          rating, tagline, location + an action-button row. Stays fixed above
+          the tabs; only the tab content scrolls. ===== */}
+      <View style={styles.sheetHeader}>
+        <View style={styles.headerRow}>
+          {photos[0] ? (
+            <Image source={{ uri: photos[0].photo_url }} style={styles.headerThumb} contentFit="cover" />
+          ) : (
+            <View style={[styles.headerThumb, styles.headerThumbPlaceholder]}>
+              <Text style={styles.headerThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</Text>
+            </View>
+          )}
+          <View style={styles.headerInfo}>
+            <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
+            <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
+            {reviewStats && reviewStats.review_count > 0 ? (
+              <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
+                <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <View style={styles.heroActions}>
+            {ownerProfile ? (
+              <Pressable onPress={() => router.push(`/(auth)/profile/${pro.user_id}`)} hitSlop={6} accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}>
+                {ownerProfile.avatar_url ? (
+                  <Image source={{ uri: ownerProfile.avatar_url }} style={styles.ownerAvatar} />
+                ) : (
+                  <View style={[styles.ownerAvatar, styles.ownerAvatarPlaceholder]}>
+                    <Text style={styles.ownerAvatarInitial}>{ownerProfile.display_name.charAt(0).toUpperCase()}</Text>
+                  </View>
+                )}
+              </Pressable>
+            ) : null}
+            {isOwner && onEdit ? (
+              <Pressable onPress={onEdit} hitSlop={10} accessibilityLabel={t('pro.editPage', { defaultValue: 'Edit pro page' })}>
+                <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+        {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
+        <View style={styles.locationRow}>
+          <MapPin size={14} color={colors.textSecondary} strokeWidth={2.4} />
+          <Text style={styles.locationText} numberOfLines={1}>{pro.primary_location_name}</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionRow}>
+          <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
+          {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
+          {pro.website ? <ActionButton icon={<Globe size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.websiteShort', { defaultValue: 'Site web' })} onPress={openWebsite} styles={styles} /> : null}
+          <ActionButton icon={<Share2 size={18} color={colors.cta} strokeWidth={2.4} />} label={t('common.share', { defaultValue: 'Partager' })} onPress={sharePage} styles={styles} />
+          {pro.instagram ? <ActionButton icon={<Instagram size={18} color={colors.cta} strokeWidth={2.4} />} label="Instagram" onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} styles={styles} /> : null}
+          {pro.facebook ? <ActionButton icon={<Facebook size={18} color={colors.cta} strokeWidth={2.4} />} label="Facebook" onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} styles={styles} /> : null}
+          {pro.email ? <ActionButton icon={<Mail size={18} color={colors.cta} strokeWidth={2.4} />} label="Email" onPress={() => Linking.openURL(`mailto:${pro.email}`)} styles={styles} /> : null}
+        </ScrollView>
+      </View>
+
       {/* Tab bar — text-only, brutalist. Pictures sits between Info and
           Activités: info → context → offer → social-proof. */}
       <ScrollView
@@ -148,74 +222,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
         <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
-          {/* === BANNER === First gallery photo doubles as the hero
-              (Phase 4A consolidation). Hidden when the gallery is
-              empty; layout collapses to just the hero. */}
-          {photos[0] && (
-            <Image
-              source={{ uri: photos[0].photo_url }}
-              style={styles.banner}
-              contentFit="cover"
-              accessibilityLabel={`${pro.display_name} — bannière`}
-            />
-          )}
-
-          {/* === HERO — full-width edge-to-edge, no horizontal margins. === */}
-          <View style={[styles.heroCard, styles.heroFullBleed]}>
-            <View style={styles.heroHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
-                <Text style={styles.heroTitle}>{pro.display_name}</Text>
-                {reviewStats && reviewStats.review_count > 0 && (
-                  <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
-                    <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                    <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
-                    <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={styles.heroActions}>
-                {/* Owner's user avatar — discloses the human behind the
-                    pro brand. Taps through to /profile/[user_id]. Shown
-                    to everyone (including the owner — they can still
-                    visit their own profile from here). */}
-                {ownerProfile && (
-                  <Pressable
-                    onPress={() => router.push(`/(auth)/profile/${pro.user_id}`)}
-                    hitSlop={6}
-                    accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}
-                  >
-                    {ownerProfile.avatar_url ? (
-                      <Image source={{ uri: ownerProfile.avatar_url }} style={styles.ownerAvatar} />
-                    ) : (
-                      <View style={[styles.ownerAvatar, styles.ownerAvatarPlaceholder]}>
-                        <Text style={styles.ownerAvatarInitial}>
-                          {ownerProfile.display_name.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                  </Pressable>
-                )}
-                {isOwner && onEdit && (
-                  <Pressable
-                    onPress={onEdit}
-                    hitSlop={10}
-                    accessibilityLabel={t('pro.editPage', { defaultValue: 'Edit pro page' })}
-                  >
-                    <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
-            {pro.tagline && <Text style={styles.tagline}>{pro.tagline}</Text>}
-            <View style={styles.locationRow}>
-              <MapPin size={14} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.locationText} numberOfLines={2}>{pro.primary_location_name}</Text>
-            </View>
-          </View>
-
-          {/* All cards below the hero get standard horizontal padding via
-              the wrapper. */}
           <View style={styles.paddedSection}>
             {pro.description && (
               <View style={styles.infoCard}>
@@ -237,59 +243,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
               </View>
             )}
 
-            {hasContact && (
-              <View style={styles.infoCard}>
-                <Text style={styles.sectionTitle}>{t('pro.contact', { defaultValue: 'Contact' })}</Text>
-                {pro.phone && (
-                  <ContactRow
-                    icon={<Phone size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={t('pro.callAction', { defaultValue: 'Appeler' })}
-                    onPress={() => Linking.openURL(`tel:${pro.phone}`)}
-                    styles={styles}
-                    colors={colors}
-                  />
-                )}
-                {pro.email && (
-                  <ContactRow
-                    icon={<Mail size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={t('pro.emailAction', { defaultValue: 'Envoyer un email' })}
-                    onPress={() => Linking.openURL(`mailto:${pro.email}`)}
-                    styles={styles}
-                    colors={colors}
-                  />
-                )}
-                {pro.website && (
-                  <ContactRow
-                    icon={<Globe size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label={t('pro.websiteAction', { defaultValue: 'Voir le site' })}
-                    onPress={() => Linking.openURL(pro.website!.startsWith('http') ? pro.website! : `https://${pro.website!}`)}
-                    styles={styles}
-                    colors={colors}
-                    external
-                  />
-                )}
-                {pro.instagram && (
-                  <ContactRow
-                    icon={<Instagram size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label="Instagram"
-                    onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)}
-                    styles={styles}
-                    colors={colors}
-                    external
-                  />
-                )}
-                {pro.facebook && (
-                  <ContactRow
-                    icon={<Facebook size={16} color={colors.cta} strokeWidth={2.4} />}
-                    label="Facebook"
-                    onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)}
-                    styles={styles}
-                    colors={colors}
-                    external
-                  />
-                )}
-              </View>
-            )}
 
             {/* === LOCATION === Map preview, tap to open full screen +
                 navigate. Same idiom as the activity info screen. */}
@@ -445,8 +398,54 @@ function ContactRow({
   );
 }
 
+// Google-style round action button (icon + label) for the header row.
+function ActionButton({
+  icon,
+  label,
+  onPress,
+  styles,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <Pressable style={styles.actionBtn} onPress={onPress} hitSlop={4}>
+      <View style={styles.actionBtnIcon}>{icon}</View>
+      <Text style={styles.actionBtnLabel} numberOfLines={1}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  sheetHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+    gap: spacing.xs,
+  },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  headerThumb: { width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  headerThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.pinProBackground },
+  headerThumbInitial: { color: '#FFFFFF', fontSize: fontSizes.lg, fontWeight: '800' },
+  headerInfo: { flex: 1, minWidth: 0 },
+  headerName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
+  actionRow: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm, paddingRight: spacing.lg },
+  actionBtn: { alignItems: 'center', gap: 4, minWidth: 56 },
+  actionBtnIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: colors.cta,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.cta + '12',
+  },
+  actionBtnLabel: { color: colors.textPrimary, fontSize: 11, fontWeight: '600' },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
