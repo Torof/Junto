@@ -7,9 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
-import { ActivityPopup } from '@/components/activity-popup';
-import { ProPopup } from '@/components/pro-popup';
-import { ProOfferingPopup } from '@/components/pro-offering-popup';
+import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
@@ -253,23 +251,51 @@ export default function CarteScreen() {
     }, [queryClient])
   );
 
+  // A pin tap selects one of the three entity types; that selection drives the
+  // bottom preview sheet (Google-style), which replaced the pin tooltips.
+  const previewSelection = useMemo<PinPreviewSelection | null>(() => {
+    if (selectedActivity) return { kind: 'activity', data: selectedActivity };
+    if (selectedPro) return { kind: 'pro', data: selectedPro };
+    if (selectedOffering) return { kind: 'offering', data: selectedOffering };
+    return null;
+  }, [selectedActivity, selectedPro, selectedOffering]);
+  const previewOpen = previewSelection !== null;
+
+  const clearPreview = useCallback(() => {
+    setSelectedActivity(null);
+    setSelectedPro(null);
+    setSelectedOffering(null);
+  }, []);
+
+  // While a preview is up, collapse the list drawer — the preview is the
+  // temporary layer over the still-open map.
+  useEffect(() => {
+    if (previewOpen) sheetRef.current?.collapse();
+  }, [previewOpen]);
+
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.statusBar} />
 
       <View style={styles.content}>
-        <CreateButton />
-        <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
-        <AlertButton />
+        {/* All floating controls hide while a pin preview is open, so the
+            sheet reads as a clean temporary layer over the map. */}
+        {!previewOpen && (
+          <>
+            <CreateButton />
+            <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            <AlertButton />
 
-        {/* Top-left controls row — filters chip + map style icon
-            (Scott 2026-06-10). Sits at the left edge so the centered
-            chip doesn't read as lonely and we stay clear of the
-            Mapbox compass at top-right. */}
-        <View style={styles.topControls}>
-          <FilterButton onPress={() => setShowFilters(true)} />
-          <MapStyleButton />
-        </View>
+            {/* Top-left controls row — filters chip + map style icon
+                (Scott 2026-06-10). Sits at the left edge so the centered
+                chip doesn't read as lonely and we stay clear of the
+                Mapbox compass at top-right. */}
+            <View style={styles.topControls}>
+              <FilterButton onPress={() => setShowFilters(true)} />
+              <MapStyleButton />
+            </View>
+          </>
+        )}
 
         <>
 
@@ -282,24 +308,10 @@ export default function CarteScreen() {
                 setSelectedActivity(null);
                 setSelectedOffering(null);
                 setHighlightedPinId(null);
-                if (selectedPro?.user_id === pro.user_id) {
-                  // Second tap: open the full pro page.
-                  suppressMapPressUntil.current = Date.now() + 400;
-                  router.push(`/(auth)/pro/${pro.user_id}`);
-                  setSelectedPro(null);
-                  selectionBoundsSpan.current = null;
-                } else {
-                  if (currentBounds.current) {
-                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
-                  }
-                  const cb = currentBounds.current;
-                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : pro.primary_lng;
-                  const offsetX = pro.primary_lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([pro.primary_lng, pro.primary_lat]);
-                  setFlyOffset({ x: offsetX, y: -0.28 });
-                  setFlyToKey((k) => k + 1);
-                  setSelectedPro(pro);
-                }
+                setFlyTarget([pro.primary_lng, pro.primary_lat]);
+                setFlyOffset({ y: -0.28 });
+                setFlyToKey((k) => k + 1);
+                setSelectedPro(pro);
               }}
               proOfferings={filteredOfferingsByType}
               onProOfferingPress={(offering) => {
@@ -307,24 +319,10 @@ export default function CarteScreen() {
                 setSelectedActivity(null);
                 setSelectedPro(null);
                 setHighlightedPinId(null);
-                if (selectedOffering?.id === offering.id) {
-                  // Second tap: open the full offering page.
-                  suppressMapPressUntil.current = Date.now() + 400;
-                  router.push(`/(auth)/pro/offering/${offering.id}`);
-                  setSelectedOffering(null);
-                  selectionBoundsSpan.current = null;
-                } else {
-                  if (currentBounds.current) {
-                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
-                  }
-                  const cb = currentBounds.current;
-                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : offering.lng;
-                  const offsetX = offering.lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([offering.lng, offering.lat]);
-                  setFlyOffset({ x: offsetX, y: -0.28 });
-                  setFlyToKey((k) => k + 1);
-                  setSelectedOffering(offering);
-                }
+                setFlyTarget([offering.lng, offering.lat]);
+                setFlyOffset({ y: -0.28 });
+                setFlyToKey((k) => k + 1);
+                setSelectedOffering(offering);
               }}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
@@ -379,98 +377,28 @@ export default function CarteScreen() {
               selectedPro={selectedPro}
               selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
-              popupContent={selectedActivity ? (
-                <ActivityPopup
-                  activity={selectedActivity}
-                  onPress={() => {
-                    suppressMapPressUntil.current = Date.now() + 400;
-                    router.push(`/(auth)/activity/${selectedActivity.id}`);
-                    setSelectedActivity(null);
-                  }}
-                />
-              ) : undefined}
-              proPopupContent={selectedPro ? (
-                <ProPopup
-                  pro={selectedPro}
-                  onPress={() => {
-                    suppressMapPressUntil.current = Date.now() + 400;
-                    router.push(`/(auth)/pro/${selectedPro.user_id}`);
-                    setSelectedPro(null);
-                  }}
-                />
-              ) : undefined}
-              offeringPopupContent={selectedOffering ? (
-                <ProOfferingPopup
-                  offering={selectedOffering}
-                  onPress={() => {
-                    suppressMapPressUntil.current = Date.now() + 400;
-                    router.push(`/(auth)/pro/offering/${selectedOffering.id}`);
-                    setSelectedOffering(null);
-                  }}
-                />
-              ) : undefined}
               onActivityPress={(a) => {
                 setTappedPoint(null);
                 setSelectedPro(null);
                 setSelectedOffering(null);
                 setHighlightedPinId(null);
-                if (selectedActivity?.id === a.id) {
-                  // Second tap on the same pin → open the activity page
-                  suppressMapPressUntil.current = Date.now() + 400;
-                  router.push(`/(auth)/activity/${a.id}`);
-                  setSelectedActivity(null);
-                  selectionBoundsSpan.current = null;
-                } else {
-                  // Snapshot the viewport span so we can detect a later zoom-out
-                  if (currentBounds.current) {
-                    selectionBoundsSpan.current = Math.abs(currentBounds.current.neLng - currentBounds.current.swLng);
-                  }
-                  // Shift sideways so the popup gets a clear horizontal
-                  // runway. Pin on the left half of the viewport lands
-                  // at 25% from the left (popup extends right); right
-                  // half → 75% (popup extends left). Vertical position
-                  // is locked: flyTo's coordinate.lat is set to the
-                  // CURRENT viewport's center lat, not the pin's, so
-                  // the camera only zooms + slides horizontally.
-                  // Land the pin at a fixed position: top third
-                  // vertically (y: -0.28) and 25% or 75% horizontally
-                  // depending on which side it currently sits on.
-                  const cb = currentBounds.current;
-                  const viewCenterLng = cb ? (cb.swLng + cb.neLng) / 2 : a.lng;
-                  const offsetX = a.lng < viewCenterLng ? 0.25 : -0.25;
-                  setFlyTarget([a.lng, a.lat]);
-                  setFlyOffset({ x: offsetX, y: -0.28 });
-                  setFlyToKey((k) => k + 1);
-                  setSelectedActivity(a);
-                }
+                // Land the pin in the top third so it's clear of the
+                // preview sheet that slides up from the bottom.
+                setFlyTarget([a.lng, a.lat]);
+                setFlyOffset({ y: -0.28 });
+                setFlyToKey((k) => k + 1);
+                setSelectedActivity(a);
               }}
               onMapPress={(lng, lat) => {
                 if (Date.now() < suppressMapPressUntil.current) return;
-                // Card-peek highlight dismisses on any map press too.
+                // Card-peek highlight dismisses on any map press.
                 if (highlightedPinId) {
                   setHighlightedPinId(null);
                   return;
                 }
-                // Pro / offering previews dismiss on any map press.
-                if (selectedPro || selectedOffering) {
-                  setSelectedPro(null);
-                  setSelectedOffering(null);
-                  return;
-                }
-                if (selectedActivity) {
-                  const dLng = Math.abs(lng - selectedActivity.lng);
-                  const dLat = Math.abs(lat - selectedActivity.lat);
-                  const viewportSpan = currentBounds.current
-                    ? Math.abs(currentBounds.current.neLng - currentBounds.current.swLng)
-                    : 0.01;
-                  if (dLng < viewportSpan * 0.05 && dLat < viewportSpan * 0.05) {
-                    suppressMapPressUntil.current = Date.now() + 400;
-                    router.push(`/(auth)/activity/${selectedActivity.id}`);
-                    setSelectedActivity(null);
-                    selectionBoundsSpan.current = null;
-                    return;
-                  }
-                  setSelectedActivity(null);
+                // Any open pin preview dismisses on a map press.
+                if (selectedActivity || selectedPro || selectedOffering) {
+                  clearPreview();
                   return;
                 }
                 setTappedPoint({ lng, lat });
@@ -535,6 +463,18 @@ export default function CarteScreen() {
             setFlyTarget([o.lng, o.lat]);
             setFlyOffset({ y: -0.28 });
             setFlyToKey((k) => k + 1);
+          }}
+        />
+
+        <PinPreviewSheet
+          selection={previewSelection}
+          onClose={clearPreview}
+          onSeeMore={(sel) => {
+            suppressMapPressUntil.current = Date.now() + 400;
+            if (sel.kind === 'activity') router.push(`/(auth)/activity/${sel.data.id}`);
+            else if (sel.kind === 'pro') router.push(`/(auth)/pro/${sel.data.user_id}`);
+            else router.push(`/(auth)/pro/offering/${sel.data.id}`);
+            clearPreview();
           }}
         />
 
