@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
+import { ProSheet } from '@/components/pro-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
@@ -253,13 +254,14 @@ export default function CarteScreen() {
 
   // A pin tap selects one of the three entity types; that selection drives the
   // bottom preview sheet (Google-style), which replaced the pin tooltips.
+  // UA + RA use the compact preview sheet; PP opens its own expandable
+  // ProSheet (the full pro page, hosted as a drawer).
   const previewSelection = useMemo<PinPreviewSelection | null>(() => {
     if (selectedActivity) return { kind: 'activity', data: selectedActivity };
-    if (selectedPro) return { kind: 'pro', data: selectedPro };
     if (selectedOffering) return { kind: 'offering', data: selectedOffering };
     return null;
-  }, [selectedActivity, selectedPro, selectedOffering]);
-  const previewOpen = previewSelection !== null;
+  }, [selectedActivity, selectedOffering]);
+  const previewOpen = previewSelection !== null || selectedPro !== null;
 
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
@@ -467,11 +469,12 @@ export default function CarteScreen() {
           onSeeMore={(sel) => {
             suppressMapPressUntil.current = Date.now() + 400;
             if (sel.kind === 'activity') router.push(`/(auth)/activity/${sel.data.id}`);
-            else if (sel.kind === 'pro') router.push(`/(auth)/pro/${sel.data.user_id}`);
             else router.push(`/(auth)/pro/offering/${sel.data.id}`);
             clearPreview();
           }}
         />
+
+        <ProSheet userId={selectedPro?.user_id ?? null} onClose={() => setSelectedPro(null)} />
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>

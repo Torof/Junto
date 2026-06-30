@@ -1,0 +1,77 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { useColors } from '@/hooks/use-theme';
+import { type AppColors } from '@/constants/colors';
+import { radius } from '@/constants/theme';
+import { useAuth } from '@/hooks/use-auth';
+import { proService } from '@/services/pro-service';
+import { ProDetail } from './pro-detail';
+import { LogoSpinner } from './logo-spinner';
+
+// PP (pro page) as a Google-style expandable drawer over the map — hosts the
+// full ProDetail (tabs, contact, catalogue, avis) inside a gorhom sheet
+// instead of a full-screen route. The /pro/[id] route stays for deep links.
+interface Props {
+  userId: string | null;
+  onClose: () => void;
+}
+
+export function ProSheet({ userId, onClose }: Props) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const sheetRef = useRef<BottomSheet>(null);
+  const router = useRouter();
+  const { session } = useAuth();
+
+  const { data: pro } = useQuery({
+    queryKey: ['pro-profile', userId],
+    queryFn: () => proService.getById(userId ?? ''),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (userId) sheetRef.current?.snapToIndex(0);
+    else sheetRef.current?.close();
+  }, [userId]);
+
+  const isOwner = !!pro && session?.user?.id === pro.user_id;
+
+  return (
+    <BottomSheet
+      ref={sheetRef}
+      index={-1}
+      snapPoints={['45%', '92%']}
+      enablePanDownToClose
+      onClose={onClose}
+      backgroundStyle={styles.bg}
+      handleIndicatorStyle={styles.grabber}
+    >
+      {pro ? (
+        <ProDetail
+          pro={pro}
+          isOwner={isOwner}
+          onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
+          inSheet
+        />
+      ) : (
+        <View style={styles.loading}>
+          <LogoSpinner size={40} />
+        </View>
+      )}
+    </BottomSheet>
+  );
+}
+
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    bg: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: radius.lg,
+      borderTopRightRadius: radius.lg,
+    },
+    grabber: { backgroundColor: colors.textMuted, width: 40 },
+    loading: { paddingVertical: 80, alignItems: 'center' },
+  });

@@ -10,7 +10,6 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
-import { type NearbyPro } from '@/services/pro-service';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -21,9 +20,10 @@ import { getRemainingPlaces } from '@/utils/activity-status';
 // pin-anchored tooltip). The map stays visible behind it; drag down to
 // dismiss. "Voir plus" opens the full page. Content + height adapt to the
 // pin type (UA info-led/no image, RA + PP show their photo).
+// PP is handled by its own expandable ProSheet, so the compact preview is
+// only UA + RA.
 export type PinPreviewSelection =
   | { kind: 'activity'; data: NearbyActivity }
-  | { kind: 'pro'; data: NearbyPro }
   | { kind: 'offering'; data: ProOffering };
 
 interface Props {
@@ -63,7 +63,6 @@ export function PinPreviewSheet({ selection, onClose, onSeeMore }: Props) {
       <BottomSheetView style={styles.content}>
         {selection?.kind === 'activity' && <ActivityPreview activity={selection.data} />}
         {selection?.kind === 'offering' && <OfferingPreview offering={selection.data} />}
-        {selection?.kind === 'pro' && <ProPreview pro={selection.data} />}
 
         {selection && (
           <Pressable style={styles.cta} onPress={() => onSeeMore(selection)}>
@@ -150,23 +149,6 @@ export function PinPreviewSheet({ selection, onClose, onSeeMore }: Props) {
     );
   }
 
-  function ProPreview({ pro }: { pro: NearbyPro }) {
-    const accent = (pro.pin_icon && sportCategoryColor(pro.pin_icon, colors.pinProBackground)) || colors.pinProBackground;
-    const rating = ratingLabel(pro.avg_rating, pro.review_count);
-    return (
-      <View style={styles.bodyWithImage}>
-        {pro.pin_image_url ? (
-          <Image source={pro.pin_image_url} style={styles.thumb} contentFit="cover" />
-        ) : null}
-        <View style={styles.bodyCol}>
-          <Text style={styles.kicker}>PAGE PRO</Text>
-          <Text style={[styles.title, { color: accent }]} numberOfLines={1}>{pro.display_name}</Text>
-          {rating ? <Text style={styles.rating}>{rating}</Text> : null}
-          {pro.tagline ? <Text style={styles.tagline} numberOfLines={2}>{pro.tagline}</Text> : null}
-        </View>
-      </View>
-    );
-  }
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({

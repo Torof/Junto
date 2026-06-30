@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -31,11 +32,15 @@ interface Props {
   pro: ProProfile;
   isOwner: boolean;
   onEdit?: () => void;
+  // When hosted inside the pin drawer (gorhom sheet), the tab bodies must
+  // use BottomSheetScrollView so the drag gesture coordinates with the sheet.
+  inSheet?: boolean;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
-export function ProDetail({ pro, isOwner, onEdit }: Props) {
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
+  const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
   const { t } = useTranslation();
   const colors = useColors();
   const { session } = useAuth();
@@ -142,7 +147,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
 
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {/* === BANNER === First gallery photo doubles as the hero
               (Phase 4A consolidation). Hidden when the gallery is
               empty; layout collapses to just the hero. */}
@@ -300,14 +305,14 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
               </Pressable>
             </View>
           </View>
-        </ScrollView>
+        </BodyScroll>
       )}
 
       {/* ===== PICTURES TAB ===== Owner sees the PhotoManager (edit in
           place); visitors see the read-only PhotoGallery. Same tab,
           mode switches on ownership. */}
       {activeTab === 'pictures' && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           {isOwner ? (
             <View style={styles.galleryWrap}>
               <PhotoManager
@@ -326,7 +331,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
               />
             </View>
           )}
-        </ScrollView>
+        </BodyScroll>
       )}
 
       {/* ===== CATALOG TAB ===== List of pro_offerings authored by this
@@ -334,7 +339,7 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
           just sees the cards. Tapping a card routes to the offering
           detail page. */}
       {activeTab === 'catalog' && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.paddedSection}>
             {isOwner && (
               <Pressable
@@ -381,19 +386,19 @@ export function ProDetail({ pro, isOwner, onEdit }: Props) {
               ))
             )}
           </View>
-        </ScrollView>
+        </BodyScroll>
       )}
 
       {/* ===== REVIEWS TAB ===== Phase 4 wires this. */}
       {activeTab === 'reviews' && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <ReviewSection
             targetType="pro"
             targetId={pro.user_id}
             isOwner={isOwner}
             currentUserId={session?.user?.id ?? null}
           />
-        </ScrollView>
+        </BodyScroll>
       )}
 
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
