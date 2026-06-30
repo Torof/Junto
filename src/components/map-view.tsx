@@ -14,6 +14,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { circlePolygon } from '@/utils/geo';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
+import { formatDifficultySignal } from '@/constants/sport-levels';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
@@ -33,8 +34,8 @@ const DEFAULT_ZOOM = 10;
 // On-map label zoom gates (pin system v4). Below NAME, pins only. At NAME the
 // name drops onto the map (pin color, white halo); at DETAIL the second line
 // (spots / schedule) appears. Tune on-device.
-const LABEL_NAME_ZOOM = 11;
-const LABEL_DETAIL_ZOOM = 12.5;
+const LABEL_NAME_ZOOM = 10.5;
+const LABEL_DETAIL_ZOOM = 11.2;
 
 // Catch-phrase / schedule lines get cut so a single pin can't hog the map.
 const truncate = (s: string, n: number) =>
@@ -296,24 +297,26 @@ export function JuntoMapView({
       if ('cluster' in p && p.cluster) return [];
       const coords = f.geometry.coordinates as [number, number];
       let name = '';
-      let d2 = '';          // secondary text after the (optional) rating
-      let d2icon = '';      // inline icon leading d2: 'clock' | 'cal' | ''
-      let rtext = '';       // "5★(1)" plain text, or ''
+      let d2 = '';          // primary detail text (when / schedule / tagline)
+      let d2icon = '';      // inline icon leading d2: 'cal' | ''
+      let lvl = '';         // UA difficulty signal (km · D+ / level range)
+      let lvlicon = '';     // 'lvl' icon before lvl, or ''
+      let rtext = '';       // "5★(1)" plain text on its own line, or ''
       let color: string = colors.pinProBackground;
       const kind = p.type;
       if (p.type === 'activity') {
-        // UA: title (universe colour) + 🕐 full when (+ level).
+        // UA: title (universe colour) · 📅 when · 📊 level signal.
         const a = activityMap.get(p.id);
         if (!a) return [];
         const d = dayjs(a.starts_at).locale('fr');
-        const when = `${d.format('ddd D MMM')} · ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
-        const lvl = a.level && a.level !== 'Tous niveaux' ? ` · ${a.level}` : '';
         name = a.title;
-        d2 = when + lvl;
-        d2icon = 'clock';
+        d2 = `${d.format('ddd D MMM')} · ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
+        d2icon = 'cal';
+        lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
+        lvlicon = lvl ? 'lvl' : '';
         color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
       } else if (p.type === 'pro') {
-        // PP: name + ★rating + catch-phrase (tagline, truncated).
+        // PP: name · ★rating (own line) · catch-phrase (tagline, truncated).
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
@@ -321,7 +324,7 @@ export function JuntoMapView({
         d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
       } else {
-        // RA: title + ★rating + 📅 schedule conditions.
+        // RA: title · ★rating (own line) · 📅 schedule conditions.
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
@@ -333,7 +336,7 @@ export function JuntoMapView({
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { name, color, kind, rtext, d2, d2icon },
+        properties: { name, color, kind, rtext, d2, d2icon, lvl, lvlicon },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
@@ -470,14 +473,14 @@ export function JuntoMapView({
         </Mapbox.ShapeSource>
       )}
 
-      {/* Inline label icons (registered once): gold ★ rating, clock for the
-          sortie when, calendar for the offering schedule. */}
+      {/* Inline label icons (registered once): calendar (when / schedule) and
+          the level bars. The rating ★ is a text character, not an image. */}
       <Mapbox.Images
         images={{
-          // scale 3 → the 24px source renders at ~8 logical px, matching the
-          // secondary text. (font-scale on image sections is ignored natively.)
-          clock: { image: require('../../assets/label-clock.png'), scale: 2.3 },
+          // Size set by `scale` (font-scale is ignored for inline images
+          // natively): scale 2.3 ≈ the secondary-text height.
           cal: { image: require('../../assets/label-cal.png'), scale: 2.3 },
+          lvl: { image: require('../../assets/label-level.png'), scale: 2.3 },
         }}
       />
 
@@ -494,19 +497,24 @@ export function JuntoMapView({
               // Below DETAIL: just the title, in the pin's colour.
               ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
               LABEL_DETAIL_ZOOM,
-              // At DETAIL: title (colour) + a secondary line with inline icons —
-              // [number ★ (count)] · [🕐|📅 value]. Empty sections collapse.
+              // At DETAIL: title (colour) / ★rating on its own line / details
+              // line = [📅 when][📊 level] or [📅 schedule] or [tagline].
+              // Empty sections collapse.
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 '\n', {},
+                // rating — own line (RA / PP only)
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['get', 'rtext'], ''], SEC,
-                ['case',
-                  ['all', ['>', ['length', ['get', 'rtext']], 0], ['>', ['length', ['get', 'd2']], 0]],
-                  '  ', '',
-                ], SEC,
-                ['match', ['get', 'd2icon'], 'clock', ['image', 'clock'], 'cal', ['image', 'cal'], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], SEC,
+                // details: calendar + d2
+                ['match', ['get', 'd2icon'], 'cal', ['image', 'cal'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'd2icon']], 0], ' ', ''], SEC,
                 ['get', 'd2'], SEC,
+                // level signal + bar icon (UA only)
+                ['case', ['>', ['length', ['get', 'lvl']], 0], '  ', ''], SEC,
+                ['match', ['get', 'lvlicon'], 'lvl', ['image', 'lvl'], ''], IMG,
+                ['case', ['>', ['length', ['get', 'lvlicon']], 0], ' ', ''], SEC,
+                ['get', 'lvl'], SEC,
               ],
             ],
             textColor: ['get', 'color'],
