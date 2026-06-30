@@ -35,7 +35,7 @@ const DEFAULT_ZOOM = 10;
 // name drops onto the map (pin color, white halo); at DETAIL the second line
 // (spots / schedule) appears. Tune on-device.
 const LABEL_NAME_ZOOM = 10.5;
-const LABEL_DETAIL_ZOOM = 11.2;
+const LABEL_DETAIL_ZOOM = 10.8;
 
 // Catch-phrase / schedule lines get cut so a single pin can't hog the map.
 const truncate = (s: string, n: number) =>
@@ -310,7 +310,7 @@ export function JuntoMapView({
         if (!a) return [];
         const d = dayjs(a.starts_at).locale('fr');
         name = a.title;
-        d2 = `${d.format('ddd D MMM')} · ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
+        d2 = `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
         d2icon = 'cal';
         lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
         lvlicon = lvl ? 'lvl' : '';
@@ -503,18 +503,18 @@ export function JuntoMapView({
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 '\n', {},
-                // rating — own line (RA / PP only)
-                ['case', ['>', ['length', ['get', 'rtext']], 0], ['get', 'rtext'], ''], SEC,
-                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], SEC,
-                // details: calendar + d2
+                // line 2: 📅 when / schedule (RA may wrap; UA when stays short)
                 ['match', ['get', 'd2icon'], 'cal', ['image', 'cal'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'd2icon']], 0], ' ', ''], SEC,
                 ['get', 'd2'], SEC,
-                // level signal + bar icon (UA only)
-                ['case', ['>', ['length', ['get', 'lvl']], 0], '  ', ''], SEC,
+                // level signal on its own line (UA only)
+                ['case', ['>', ['length', ['get', 'lvl']], 0], '\n', ''], SEC,
                 ['match', ['get', 'lvlicon'], 'lvl', ['image', 'lvl'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'lvlicon']], 0], ' ', ''], SEC,
                 ['get', 'lvl'], SEC,
+                // rating on the LAST line (RA / PP only)
+                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], SEC,
+                ['get', 'rtext'], SEC,
               ],
             ],
             textColor: ['get', 'color'],
@@ -530,7 +530,9 @@ export function JuntoMapView({
               ['literal', [1.4, -1.6]],
             ],
             textJustify: 'left',
-            textMaxWidth: 9,
+            // Wide enough that the UA date+time never wraps; long RA schedules
+            // still wrap past this.
+            textMaxWidth: 13,
             textAllowOverlap: false,
             textOptional: true,
             symbolSortKey: ['match', ['get', 'kind'], 'pro', 0, 'offering', 1, 2],
