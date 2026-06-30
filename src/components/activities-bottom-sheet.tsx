@@ -27,6 +27,9 @@ interface Props {
   filterLabel?: string;
   onClearFilter?: () => void;
   onCollapse?: () => void;
+  // Fully close the drawer (index -1, handle and all) — used while a pin
+  // preview sheet is up so it doesn't float over the preview.
+  hidden?: boolean;
 }
 
 // Unified item shape so the FlatList can render either entity in the
@@ -78,7 +81,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
 
 export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
   function ActivitiesBottomSheet(
-    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, highlightedItemId, filterLabel, onClearFilter, onCollapse },
+    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, highlightedItemId, filterLabel, onClearFilter, onCollapse, hidden = false },
     ref,
   ) {
   const { t } = useTranslation();
@@ -190,7 +193,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   return (
     <BottomSheet
       ref={sheetRef}
-      index={0}
+      index={hidden ? -1 : 0}
       snapPoints={snapPoints}
       onChange={(idx) => {
         setSnapIndex(idx);

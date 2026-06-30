@@ -267,12 +267,6 @@ export default function CarteScreen() {
     setSelectedOffering(null);
   }, []);
 
-  // While a preview is up, collapse the list drawer — the preview is the
-  // temporary layer over the still-open map.
-  useEffect(() => {
-    if (previewOpen) sheetRef.current?.collapse();
-  }, [previewOpen]);
-
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.statusBar} />
@@ -418,6 +412,7 @@ export default function CarteScreen() {
 
         <ActivitiesBottomSheet
           ref={sheetRef}
+          hidden={previewOpen}
           activities={clusterFilter ?? filteredActivitiesByType}
           proOfferings={filteredOfferingsByType}
           userLocation={currentLocation ?? center}
