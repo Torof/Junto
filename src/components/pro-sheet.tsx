@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
@@ -15,34 +15,29 @@ import { LogoSpinner } from './logo-spinner';
 // full ProDetail (tabs, contact, catalogue, avis) inside a gorhom sheet
 // instead of a full-screen route. The /pro/[id] route stays for deep links.
 interface Props {
-  userId: string | null;
+  // Mounted only while a pro is selected, so the sheet reliably opens on mount
+  // (animateOnMount) rather than via a race-prone imperative snap.
+  userId: string;
   onClose: () => void;
 }
 
 export function ProSheet({ userId, onClose }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const sheetRef = useRef<BottomSheet>(null);
   const router = useRouter();
   const { session } = useAuth();
 
   const { data: pro } = useQuery({
     queryKey: ['pro-profile', userId],
-    queryFn: () => proService.getById(userId ?? ''),
-    enabled: !!userId,
+    queryFn: () => proService.getById(userId),
   });
-
-  useEffect(() => {
-    if (userId) sheetRef.current?.snapToIndex(0);
-    else sheetRef.current?.close();
-  }, [userId]);
 
   const isOwner = !!pro && session?.user?.id === pro.user_id;
 
   return (
     <BottomSheet
-      ref={sheetRef}
-      index={-1}
+      index={0}
+      animateOnMount
       snapPoints={['45%', '92%']}
       enablePanDownToClose
       onClose={onClose}

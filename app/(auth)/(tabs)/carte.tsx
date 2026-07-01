@@ -300,6 +300,9 @@ export default function CarteScreen() {
               activities={filteredActivitiesByType}
               pros={filteredProsByType}
               onProPress={(pro) => {
+                // Guard the tap-through: a pin tap can also fire onMapPress,
+                // which would clearPreview() and swallow the selection.
+                suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedActivity(null);
                 setSelectedOffering(null);
@@ -311,6 +314,7 @@ export default function CarteScreen() {
               }}
               proOfferings={filteredOfferingsByType}
               onProOfferingPress={(offering) => {
+                suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedActivity(null);
                 setSelectedPro(null);
@@ -374,6 +378,7 @@ export default function CarteScreen() {
               selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
               onActivityPress={(a) => {
+                suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedPro(null);
                 setSelectedOffering(null);
@@ -474,7 +479,9 @@ export default function CarteScreen() {
           }}
         />
 
-        <ProSheet userId={selectedPro?.user_id ?? null} onClose={() => setSelectedPro(null)} />
+        {selectedPro && (
+          <ProSheet userId={selectedPro.user_id} onClose={() => setSelectedPro(null)} />
+        )}
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>
