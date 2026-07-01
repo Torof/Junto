@@ -6,7 +6,10 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2 } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle } from 'lucide-react-native';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+import { UserAvatar } from './user-avatar';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -59,6 +62,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
   });
 
   const { data: photos = [] } = useProPhotos(pro.user_id);
+
+  const { data: reviews = [] } = useQuery({
+    queryKey: ['reviews', 'pro', pro.user_id],
+    queryFn: () => reviewService.getForPro(pro.user_id),
+  });
 
   const { data: reviewStats } = useQuery({
     queryKey: ['review-stats', 'pro', pro.user_id],
@@ -175,6 +183,22 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
         </ScrollView>
       </View>
 
+      {/* Photos strip above the tabs (Google place-sheet). Tap → Photos tab. */}
+      {photos.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.headerPhotos}
+          contentContainerStyle={styles.headerPhotosContent}
+        >
+          {photos.slice(0, 8).map((p) => (
+            <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
+              <Image source={{ uri: p.photo_url }} style={styles.headerPhoto} contentFit="cover" />
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Tab bar — text-only, brutalist. Pictures sits between Info and
           Activités: info → context → offer → social-proof. */}
       <ScrollView
@@ -197,7 +221,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
               <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                 {t(`pro.tab.${tab}`, {
                   defaultValue:
-                    tab === 'info' ? 'Infos'
+                    tab === 'info' ? 'Aperçu'
                       : tab === 'pictures' ? 'Photos'
                       : tab === 'catalog' ? 'Catalogue'
                       : 'Avis',
@@ -212,66 +236,81 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
       {activeTab === 'info' && (
         <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.paddedSection}>
-            {/* À propos */}
-            {pro.description && (
-              <View style={styles.infoCard}>
-                <Text style={styles.sectionTitle}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
-                <Text style={styles.descriptionBody}>
-                  {descExpanded || !descriptionOverflowing
-                    ? description
-                    : `${description.slice(0, COLLAPSED_DESCRIPTION_CHARS).trimEnd()}…`}
-                </Text>
-                {descriptionOverflowing && (
-                  <Pressable onPress={() => setDescExpanded((v) => !v)} hitSlop={6}>
-                    <Text style={styles.descriptionToggle}>
-                      {descExpanded
-                        ? t('pro.descSeeLess', { defaultValue: 'Voir moins' })
-                        : t('pro.descSeeMore', { defaultValue: 'Voir plus' })}
-                    </Text>
-                  </Pressable>
-                )}
+            {/* ===== AVIS — carousel + actions ===== */}
+            <View style={styles.overviewBlock}>
+              <View style={styles.overviewHeader}>
+                <Text style={styles.sectionTitle}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+                {reviewStats && reviewStats.review_count > 0 ? (
+                  <View style={styles.reviewSummary}>
+                    <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                    <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                    <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
+                  </View>
+                ) : null}
               </View>
-            )}
 
-            {/* Adresse — tap opens the itinerary (no embedded map). */}
-            <Pressable style={styles.overviewRow} onPress={openDirections}>
-              <MapPin size={16} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.overviewRowText} numberOfLines={2}>{pro.primary_location_name}</Text>
-            </Pressable>
-
-            {/* Photos preview → Photos tab */}
-            {photos.length > 0 && (
-              <View style={styles.overviewBlock}>
-                <View style={styles.overviewHeader}>
-                  <Text style={styles.sectionTitle}>{t('pro.tab.pictures', { defaultValue: 'Photos' })}</Text>
-                  <Pressable onPress={() => setActiveTab('pictures')} hitSlop={6}>
-                    <Text style={styles.overviewLink}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
-                  </Pressable>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
-                  {photos.slice(0, 6).map((p) => (
-                    <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
-                      <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
-                    </Pressable>
+              {reviews.length > 0 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewCarousel}>
+                  {reviews.slice(0, 8).map((r) => (
+                    <View key={r.id} style={styles.reviewMini}>
+                      <View style={styles.reviewMiniHead}>
+                        <UserAvatar name={r.reviewer_name ?? '?'} avatarUrl={r.reviewer_avatar} size={28} />
+                        <View style={styles.reviewMiniWho}>
+                          <Text style={styles.reviewMiniName} numberOfLines={1}>{r.reviewer_name ?? '?'}</Text>
+                          <Text style={styles.reviewMiniDate}>{dayjs(r.created_at).locale('fr').format('D MMM YYYY')}</Text>
+                        </View>
+                      </View>
+                      <StarRating rating={r.rating} size={12} />
+                      {r.body ? <Text style={styles.reviewMiniBody} numberOfLines={5}>{r.body}</Text> : null}
+                    </View>
                   ))}
                 </ScrollView>
-              </View>
-            )}
+              ) : (
+                <Text style={styles.placeholderText}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</Text>
+              )}
 
-            {/* Avis preview → Avis tab */}
-            {reviewStats && reviewStats.review_count > 0 && (
-              <Pressable style={styles.overviewBlock} onPress={() => setActiveTab('reviews')}>
-                <View style={styles.overviewHeader}>
-                  <Text style={styles.sectionTitle}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
-                  <Text style={styles.overviewLink}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
+              <View style={styles.overviewButtons}>
+                {reviews.length > 0 ? (
+                  <Pressable style={styles.ghostBtn} onPress={() => setActiveTab('reviews')}>
+                    <Text style={styles.ghostBtnText}>{t('reviews.seeAll', { defaultValue: 'Afficher tous les avis' })}</Text>
+                  </Pressable>
+                ) : null}
+                {!isOwner ? (
+                  <Pressable style={styles.primaryBtn} onPress={() => setActiveTab('reviews')}>
+                    <Text style={styles.primaryBtnText}>{t('reviews.writeOne', { defaultValue: 'Donner son avis' })}</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+
+            {/* ===== À PROPOS — flat (Google-style) ===== */}
+            <View style={styles.aboutBlock}>
+              <Text style={styles.sectionTitle}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
+              {pro.description ? (
+                <View style={styles.aboutDesc}>
+                  <Text style={styles.descriptionBody}>
+                    {descExpanded || !descriptionOverflowing
+                      ? description
+                      : `${description.slice(0, COLLAPSED_DESCRIPTION_CHARS).trimEnd()}…`}
+                  </Text>
+                  {descriptionOverflowing ? (
+                    <Pressable onPress={() => setDescExpanded((v) => !v)} hitSlop={6}>
+                      <Text style={styles.descriptionToggle}>
+                        {descExpanded ? t('pro.descSeeLess', { defaultValue: 'Voir moins' }) : t('pro.descSeeMore', { defaultValue: 'Voir plus' })}
+                      </Text>
+                    </Pressable>
+                  ) : null}
                 </View>
-                <View style={styles.reviewSummary}>
-                  <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                  <StarRating rating={Number(reviewStats.avg_rating)} size={16} />
-                  <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
-                </View>
-              </Pressable>
-            )}
+              ) : null}
+
+              <AboutRow icon={<MapPin size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.primary_location_name} onPress={openDirections} colors={colors} styles={styles} />
+              {pro.phone ? <AboutRow icon={<Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.phone} onPress={() => Linking.openURL(`tel:${pro.phone}`)} colors={colors} styles={styles} /> : null}
+              {pro.phone ? <AboutRow icon={<MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`)} colors={colors} styles={styles} /> : null}
+              {pro.website ? <AboutRow icon={<Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.website} onPress={openWebsite} external colors={colors} styles={styles} /> : null}
+              {pro.email ? <AboutRow icon={<Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.email} onPress={() => Linking.openURL(`mailto:${pro.email}`)} colors={colors} styles={styles} /> : null}
+              {pro.instagram ? <AboutRow icon={<Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="Instagram" onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} external colors={colors} styles={styles} /> : null}
+              {pro.facebook ? <AboutRow icon={<Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="Facebook" onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} external colors={colors} styles={styles} /> : null}
+            </View>
           </View>
         </BodyScroll>
       )}
@@ -433,6 +472,31 @@ function ActionButton({
   );
 }
 
+// Flat "À propos" row (Google-style, no card) — icon + value, tappable.
+function AboutRow({
+  icon,
+  text,
+  onPress,
+  external,
+  styles,
+  colors,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  onPress: () => void;
+  external?: boolean;
+  styles: ReturnType<typeof createStyles>;
+  colors: AppColors;
+}) {
+  return (
+    <Pressable style={styles.aboutRow} onPress={onPress} hitSlop={2}>
+      <View style={styles.aboutRowIcon}>{icon}</View>
+      <Text style={styles.aboutRowText} numberOfLines={1}>{text}</Text>
+      {external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+    </Pressable>
+  );
+}
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   sheetHeader: {
@@ -471,6 +535,41 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewSummary: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewAvg: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  headerPhotos: { flexGrow: 0, backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headerPhotosContent: { gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  headerPhoto: { width: 120, height: 84, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
+  reviewMini: {
+    width: 220,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+  },
+  reviewMiniHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reviewMiniWho: { flex: 1, minWidth: 0 },
+  reviewMiniName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  reviewMiniDate: { color: colors.textMuted, fontSize: fontSizes.xs },
+  reviewMiniBody: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
+  overviewButtons: { flexDirection: 'row', gap: spacing.sm, paddingTop: spacing.xs },
+  ghostBtn: { flex: 1, borderWidth: 1, borderColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
+  ghostBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  primaryBtn: { flex: 1, backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
+  primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
+  aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
+  aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
+  aboutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  aboutRowIcon: { width: 22, alignItems: 'center' },
+  aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
