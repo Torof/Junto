@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,6 +47,9 @@ interface Props {
   // Present only in the sheet — expand the sheet to its top snap (e.g. when a
   // tab is selected), Google place-sheet style.
   onExpand?: () => void;
+  // Present only in the sheet — reports the header (name · actions · divider)
+  // height so ProSheet can pin its first snap point right at the divider.
+  onHeaderMeasured?: (height: number) => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -54,10 +57,13 @@ const PHOTO_H = 168;
 const PHOTO_GAP = 6;
 const PHOTO_SMALL = (PHOTO_H - PHOTO_GAP) / 2;
 const PHOTO_MAX_COLUMNS = 5;
+// Carousel band height (photos + its vertical padding) — used to compute how
+// far to scroll so a tapped tab pins the tab bar to the top.
+const CAROUSEL_H = PHOTO_H + spacing.sm * 2;
 // The tab content is forced to at least this tall so the outer scroll always
 // has enough range to slide the header/carousel off and pin the tabs to the
 // top (Google collapsing-header). Short tabs just get trailing empty space.
-const MIN_TAB_CONTENT_H = Dimensions.get('window').height * 0.85;
+const MIN_TAB_CONTENT_H = Dimensions.get('window').height;
 
 type ColPhoto = { id: string; photo_url: string };
 // Google-Photos mixed grid: alternating columns — a 2-photo stack, then one
@@ -79,11 +85,18 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand }: Props) {
-  // Selecting a tab expands the sheet to its top snap (Google place-sheet).
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured }: Props) {
+  // Selecting a tab expands the sheet to full height AND scrolls the header +
+  // carousel away so the tab bar pins to the top (Google place-sheet). The
+  // scroll target is the height of everything above the (sticky) tab bar.
   const selectTab = (tab: ProTab) => {
     setActiveTab(tab);
     onExpand?.();
+    if (inSheet) {
+      const carousel = photos.length > 0 && tab !== 'pictures' ? CAROUSEL_H : 0;
+      const target = headerH + carousel;
+      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: target, animated: true }));
+    }
   };
   const { t } = useTranslation();
   const colors = useColors();
@@ -92,8 +105,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const scrollRef = useRef<ComponentRef<typeof BottomSheetScrollView>>(null);
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<ProTab>('info');
+  const [headerH, setHeaderH] = useState(0);
   const [showFullMap, setShowFullMap] = useState(false);
 
   const { data: offerings = [] } = useQuery({
@@ -190,7 +205,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // 0 — header (name · rating · actions). In the sheet this is part of the
   // drag handle; on the page it scrolls away above the sticky tab bar.
   const headerNode = (
-      <View style={styles.sheetHeader}>
+      <View
+        style={styles.sheetHeader}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          setHeaderH(h);
+          onHeaderMeasured?.(h);
+        }}
+      >
         {onClose ? (
           <View style={styles.topBar}>
             <Pressable onPress={sharePage} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.share', { defaultValue: 'Partager' })}>
@@ -552,6 +574,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     return (
       <View style={styles.container}>
         <BottomSheetScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={[2]}
           showsVerticalScrollIndicator={false}
