@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ interface Props {
 export function ProSheet({ userId, onClose }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const sheetRef = useRef<BottomSheet>(null);
   const router = useRouter();
   const { session } = useAuth();
 
@@ -36,6 +37,7 @@ export function ProSheet({ userId, onClose }: Props) {
 
   return (
     <BottomSheet
+      ref={sheetRef}
       index={0}
       animateOnMount
       snapPoints={['45%', '92%']}
@@ -50,6 +52,7 @@ export function ProSheet({ userId, onClose }: Props) {
           isOwner={isOwner}
           onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
           inSheet
+          onClose={() => sheetRef.current?.close()}
         />
       ) : (
         <View style={styles.loading}>

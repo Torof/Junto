@@ -6,7 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
@@ -38,11 +38,14 @@ interface Props {
   // When hosted inside the pin drawer (gorhom sheet), the tab bodies must
   // use BottomSheetScrollView so the drag gesture coordinates with the sheet.
   inSheet?: boolean;
+  // Present only in the sheet — shows the ✕ close button and animates the
+  // sheet shut when tapped.
+  onClose?: () => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Props) {
   const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
   const { t } = useTranslation();
   const colors = useColors();
@@ -134,12 +137,34 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
     Share.share({ message: `${pro.display_name} sur Junto\nhttps://getjunto.app/pro/${pro.user_id}` }).catch(() => {});
   };
 
+  // À propos rows (Google-style grouped grey list). Only the ones the pro
+  // filled; WhatsApp is derived from the phone number.
+  const aboutItems: { icon: React.ReactNode; text: string; onPress: () => void; external?: boolean }[] = [
+    { icon: <MapPin size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.primary_location_name, onPress: openDirections },
+    ...(pro.phone ? [{ icon: <Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.phone, onPress: () => Linking.openURL(`tel:${pro.phone}`) }] : []),
+    ...(pro.phone ? [{ icon: <MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'WhatsApp', onPress: () => Linking.openURL(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`) }] : []),
+    ...(pro.website ? [{ icon: <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.website, onPress: openWebsite, external: true }] : []),
+    ...(pro.email ? [{ icon: <Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.email, onPress: () => Linking.openURL(`mailto:${pro.email}`) }] : []),
+    ...(pro.instagram ? [{ icon: <Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Instagram', onPress: () => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`), external: true }] : []),
+    ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
+  ];
+
   return (
     <View style={styles.container}>
       {/* ===== Persistent header (Google place-sheet style) — photo, name,
           rating, tagline, location + an action-button row. Stays fixed above
           the tabs; only the tab content scrolls. ===== */}
       <View style={styles.sheetHeader}>
+        {onClose ? (
+          <View style={styles.topBar}>
+            <Pressable onPress={sharePage} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.share', { defaultValue: 'Partager' })}>
+              <Share2 size={20} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+            <Pressable onPress={onClose} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}>
+              <X size={22} color={colors.textPrimary} strokeWidth={2.4} />
+            </Pressable>
+          </View>
+        ) : null}
         <View style={styles.headerRow}>
           <View style={styles.headerInfo}>
             <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
@@ -207,7 +232,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
         style={styles.tabBarScroll}
         contentContainerStyle={styles.tabBar}
       >
-        {(['info', 'pictures', 'catalog', 'reviews'] as const).map((tab) => {
+        {(['info', 'catalog', 'pictures', 'reviews'] as const).map((tab) => {
           const isActiveTab = activeTab === tab;
           return (
             <Pressable
@@ -303,13 +328,29 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
                 </View>
               ) : null}
 
-              <AboutRow icon={<MapPin size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.primary_location_name} onPress={openDirections} colors={colors} styles={styles} />
-              {pro.phone ? <AboutRow icon={<Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.phone} onPress={() => Linking.openURL(`tel:${pro.phone}`)} colors={colors} styles={styles} /> : null}
-              {pro.phone ? <AboutRow icon={<MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`)} colors={colors} styles={styles} /> : null}
-              {pro.website ? <AboutRow icon={<Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.website} onPress={openWebsite} external colors={colors} styles={styles} /> : null}
-              {pro.email ? <AboutRow icon={<Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />} text={pro.email} onPress={() => Linking.openURL(`mailto:${pro.email}`)} colors={colors} styles={styles} /> : null}
-              {pro.instagram ? <AboutRow icon={<Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="Instagram" onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} external colors={colors} styles={styles} /> : null}
-              {pro.facebook ? <AboutRow icon={<Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />} text="Facebook" onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} external colors={colors} styles={styles} /> : null}
+              <View style={styles.aboutList}>
+                {aboutItems.map((item, i) => {
+                  const isFirst = i === 0;
+                  const isLast = i === aboutItems.length - 1;
+                  return (
+                    <Pressable
+                      key={i}
+                      onPress={item.onPress}
+                      hitSlop={2}
+                      style={[
+                        styles.aboutListRow,
+                        isFirst && styles.aboutListTop,
+                        isLast && styles.aboutListBottom,
+                        !isFirst && styles.aboutListDivider,
+                      ]}
+                    >
+                      <View style={styles.aboutRowIcon}>{item.icon}</View>
+                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                      {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           </View>
         </BodyScroll>
@@ -472,31 +513,6 @@ function ActionButton({
   );
 }
 
-// Flat "À propos" row (Google-style, no card) — icon + value, tappable.
-function AboutRow({
-  icon,
-  text,
-  onPress,
-  external,
-  styles,
-  colors,
-}: {
-  icon: React.ReactNode;
-  text: string;
-  onPress: () => void;
-  external?: boolean;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-}) {
-  return (
-    <Pressable style={styles.aboutRow} onPress={onPress} hitSlop={2}>
-      <View style={styles.aboutRowIcon}>{icon}</View>
-      <Text style={styles.aboutRowText} numberOfLines={1}>{text}</Text>
-      {external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
-    </Pressable>
-  );
-}
-
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   sheetHeader: {
@@ -537,7 +553,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   headerPhotos: { flexGrow: 0, backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerPhotosContent: { gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  headerPhoto: { width: 120, height: 84, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  headerPhoto: { width: 180, height: 130, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
+  topBarBtn: { padding: 2 },
   reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
   reviewMini: {
     width: 220,
@@ -560,14 +578,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  aboutRow: {
+  aboutList: { marginTop: spacing.xs },
+  aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surfaceAlt,
   },
+  aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
+  aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
+  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
