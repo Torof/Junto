@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
@@ -66,6 +66,7 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 export default function CarteScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -271,8 +272,6 @@ export default function CarteScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.statusBar} />
-
       <View style={styles.content}>
         {/* All floating controls hide while a pin preview is open, so the
             sheet reads as a clean temporary layer over the map. */}
@@ -286,7 +285,7 @@ export default function CarteScreen() {
                 (Scott 2026-06-10). Sits at the left edge so the centered
                 chip doesn't read as lonely and we stay clear of the
                 Mapbox compass at top-right. */}
-            <View style={styles.topControls}>
+            <View style={[styles.topControls, { top: insets.top + spacing.md }]}>
               <FilterButton onPress={() => setShowFilters(true)} />
               <MapStyleButton />
             </View>
@@ -538,9 +537,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
     flex: 1,
-  },
-  statusBar: {
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
