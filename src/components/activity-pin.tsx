@@ -21,8 +21,11 @@ const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
 
-// Path from claude_design/pin-junto-template.svg — classic location pin silhouette.
-const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 38 27 62 27 62 C 27 62 50 38 50 25 C 50 12 41 2 27 2 Z';
+// Classic location-pin silhouette. Tail slimmed (2026-07-01) — the lower
+// control points hug toward the centre near the tip so the drop below the
+// emoji bulb reads as a slender spike, not a broad triangle. Tip stays at
+// (27,62) so the anchor is unchanged.
+const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 34 22 62 27 62 C 32 62 50 34 50 25 C 50 12 41 2 27 2 Z';
 
 // Tip of the pin in viewBox coords is (27, 62); anchor the marker so the tip
 // sits exactly on the geographic point.
