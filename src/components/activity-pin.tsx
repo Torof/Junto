@@ -21,15 +21,15 @@ const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
 
-// Location-pin silhouette with a short, rounded bottom (2026-07-01) — the tail
-// is pulled up to y≈51 and the lower control points sit level with the tip so
-// the bottom reads as a soft rounded point (egg/teardrop), not a long spike,
-// while staying clearly non-circular (bulb on top, taper below).
-const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 20 51 27 51 C 34 51 50 36 50 25 C 50 12 41 2 27 2 Z';
+// Location-pin silhouette with a short, softly-pointed bottom (2026-07-01) —
+// the tail sits at y≈52 and the lower control points ride just above the tip
+// so the bottom reads as a gentle point (a hair less rounded than the fully
+// level version), still clearly non-circular (bulb on top, taper below).
+const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
 
-// Bottom point in viewBox coords is (27, 51); anchor the marker so it sits on
+// Bottom point in viewBox coords is (27, 52); anchor the marker so it sits on
 // the geographic point.
-export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 51 / VIEWBOX_H };
+export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 52 / VIEWBOX_H };
 
 export function ActivityPin({ activity }: ActivityPinProps) {
   const colors = useColors();
