@@ -88,12 +88,13 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   const sheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<FlatList<ListItem>>(null);
   // Track snap index so the handle tap can toggle between 50% (mid)
-  // and 92% (full list). gorhom drives this via onChange below.
+  // and 91% (full list — 1% clear of the status bar). gorhom drives this
+  // via onChange below.
   const [snapIndex, setSnapIndex] = useState(0);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const snapPoints = useMemo(() => ['2%', '50%', '92%'], []);
+  const snapPoints = useMemo(() => ['2%', '50%', '91%'], []);
 
   // Fully close (index -1, handle and all) while a pin preview sheet is up,
   // then restore the 2% handle when it's gone. Driven imperatively because
@@ -110,7 +111,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
   // can never be brought into view. Constraining the inner container
   // to the current snap height in pixels makes the FlatList's scroll
   // math match what the user can actually see.
-  const SNAP_RATIOS = [0.02, 0.5, 0.92];
+  const SNAP_RATIOS = [0.02, 0.5, 0.91];
   const screenHeight = Dimensions.get('window').height;
   const tabBarHeight = useBottomTabBarHeight();
   const HANDLE_HEIGHT = 12; // matches handleContainer style
