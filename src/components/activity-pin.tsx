@@ -15,21 +15,21 @@ interface ActivityPinProps {
 // Shrunk from 56 to 40 (~28%) for a less cluttered map — three
 // silhouettes at the previous size dominated the visual field.
 const VIEWBOX_W = 54;
-const VIEWBOX_H = 64;
+const VIEWBOX_H = 54;
 const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
 
-// Classic location-pin silhouette. Tail slimmed (2026-07-01) — the lower
-// control points hug toward the centre near the tip so the drop below the
-// emoji bulb reads as a slender spike, not a broad triangle. Tip stays at
-// (27,62) so the anchor is unchanged.
-const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 34 22 62 27 62 C 32 62 50 34 50 25 C 50 12 41 2 27 2 Z';
+// Location-pin silhouette with a short, rounded bottom (2026-07-01) — the tail
+// is pulled up to y≈51 and the lower control points sit level with the tip so
+// the bottom reads as a soft rounded point (egg/teardrop), not a long spike,
+// while staying clearly non-circular (bulb on top, taper below).
+const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 20 51 27 51 C 34 51 50 36 50 25 C 50 12 41 2 27 2 Z';
 
-// Tip of the pin in viewBox coords is (27, 62); anchor the marker so the tip
-// sits exactly on the geographic point.
-export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 62 / VIEWBOX_H };
+// Bottom point in viewBox coords is (27, 51); anchor the marker so it sits on
+// the geographic point.
+export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 51 / VIEWBOX_H };
 
 export function ActivityPin({ activity }: ActivityPinProps) {
   const colors = useColors();
