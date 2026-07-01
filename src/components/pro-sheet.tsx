@@ -40,7 +40,7 @@ export function ProSheet({ userId, onClose }: Props) {
       ref={sheetRef}
       index={0}
       animateOnMount
-      snapPoints={['45%', '92%']}
+      snapPoints={['45%', '98%']}
       enablePanDownToClose
       onClose={onClose}
       backgroundStyle={styles.bg}
@@ -53,6 +53,7 @@ export function ProSheet({ userId, onClose }: Props) {
           onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
           inSheet
           onClose={() => sheetRef.current?.close()}
+          onExpand={() => sheetRef.current?.snapToIndex(1)}
         />
       ) : (
         <View style={styles.loading}>

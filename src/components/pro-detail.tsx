@@ -42,6 +42,9 @@ interface Props {
   // Present only in the sheet — shows the ✕ close button and animates the
   // sheet shut when tapped.
   onClose?: () => void;
+  // Present only in the sheet — expand the sheet to its top snap (e.g. when a
+  // tab is selected), Google place-sheet style.
+  onExpand?: () => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -70,8 +73,13 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Props) {
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand }: Props) {
   const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
+  // Selecting a tab expands the sheet to its top snap (Google place-sheet).
+  const selectTab = (tab: 'info' | 'catalog' | 'pictures' | 'reviews') => {
+    setActiveTab(tab);
+    onExpand?.();
+  };
   const { t } = useTranslation();
   const colors = useColors();
   const { session } = useAuth();
@@ -176,9 +184,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
 
   return (
     <View style={styles.container}>
-      {/* ===== Persistent header (Google place-sheet style) — photo, name,
-          rating, tagline, location + an action-button row. Stays fixed above
-          the tabs; only the tab content scrolls. ===== */}
+      <BodyScroll
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        stickyHeaderIndices={[2]}
+        showsVerticalScrollIndicator={false}
+      >
+      {/* 0 — header (name · rating · actions · carousel). Scrolls away; the
+          tab bar (child 2) sticks to the top. */}
       <View style={styles.sheetHeader}>
         {onClose ? (
           <View style={styles.topBar}>
@@ -233,10 +246,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
         </ScrollView>
       </View>
 
-      {/* Photos — Google mixed-grid carousel (2-stack · big · repeat) + a
-          final column with "Voir tout" and "Ajouter". Hidden on the Photos
-          tab (the full grid lives there). GHScrollView so it scrolls inside
-          the sheet's gesture area. */}
+      {/* 1 — carousel wrapper (always a child so the sticky index stays 2).
+          Mixed grid (2-stack · big · repeat) + Voir tout / Ajouter. Hidden on
+          the Photos tab. GHScrollView so it scrolls inside the sheet gesture. */}
+      <View>
       {activeTab !== 'pictures' && photos.length > 0 && (
         <GHScrollView
           horizontal
@@ -273,9 +286,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
           </View>
         </GHScrollView>
       )}
+      </View>
 
-      {/* Tab bar — text-only, brutalist. Pictures sits between Info and
-          Activités: info → context → offer → social-proof. */}
+      {/* 2 — tab bar (sticky: pins to the top when the header scrolls away) */}
+      <View style={styles.tabBarSticky}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -288,7 +302,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
             <Pressable
               key={tab}
               style={[styles.tab, isActiveTab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => selectTab(tab)}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActiveTab }}
               accessibilityLabel={t(`pro.tab.${tab}`, { defaultValue: tab })}
@@ -306,10 +320,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
           );
         })}
       </ScrollView>
+      </View>
+
+      {/* 3 — tab content (inline; the single outer scroll handles scrolling) */}
+      <View>
 
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
-        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <View style={styles.content}>
           <View style={styles.paddedSection}>
             {/* ===== AVIS — carousel + actions ===== */}
             <View style={styles.overviewBlock}>
@@ -403,14 +421,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
               </View>
             </View>
           </View>
-        </BodyScroll>
+        </View>
       )}
 
       {/* ===== PICTURES TAB ===== Owner sees the PhotoManager (edit in
           place); visitors see the read-only PhotoGallery. Same tab,
           mode switches on ownership. */}
       {activeTab === 'pictures' && (
-        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <View style={styles.content}>
           {isOwner ? (
             <View style={styles.galleryWrap}>
               <PhotoManager
@@ -429,7 +447,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
               />
             </View>
           )}
-        </BodyScroll>
+        </View>
       )}
 
       {/* ===== CATALOG TAB ===== List of pro_offerings authored by this
@@ -437,7 +455,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
           just sees the cards. Tapping a card routes to the offering
           detail page. */}
       {activeTab === 'catalog' && (
-        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <View style={styles.content}>
           <View style={styles.paddedSection}>
             {isOwner && (
               <Pressable
@@ -484,20 +502,23 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
               ))
             )}
           </View>
-        </BodyScroll>
+        </View>
       )}
 
       {/* ===== REVIEWS TAB ===== Phase 4 wires this. */}
       {activeTab === 'reviews' && (
-        <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <View style={styles.content}>
           <ReviewSection
             targetType="pro"
             targetId={pro.user_id}
             isOwner={isOwner}
             currentUserId={session?.user?.id ?? null}
           />
-        </BodyScroll>
+        </View>
       )}
+
+      </View>
+      </BodyScroll>
 
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
@@ -565,6 +586,8 @@ function ActionButton({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { paddingBottom: spacing.xl },
+  tabBarSticky: { backgroundColor: colors.background },
   sheetHeader: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
