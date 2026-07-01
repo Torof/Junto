@@ -18,19 +18,21 @@ interface ProOfferingPinProps {
 // pro family together). No price — Junto isn't a payment platform; "PRO"
 // just signals a commercial, pro-led activity.
 
-const VIEWBOX_W = 44;
+const VIEWBOX_W = 32;
 const VIEWBOX_H = 52;
-const PIN_WIDTH = 40;
+const PIN_WIDTH = 29;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 
-// Rounded square tapering to a fused point at (22,49).
+// Narrow "price tag" (2026-07-01) — the vertical sides are pulled in to the
+// tail's width so the body is a slim rounded-top strip tapering to a fused
+// point at (16,49). Reads as a hanging tag, distinct from the peer teardrop.
 const BODY_PATH =
-  'M 13 3 L 31 3 Q 40 3 40 12 L 40 34 Q 40 39 35 40 L 22 49 L 9 40 Q 4 39 4 34 L 4 12 Q 4 3 13 3 Z';
+  'M 10 3 L 22 3 Q 29 3 29 10 L 29 38 L 16 49 L 3 38 L 3 10 Q 3 3 10 3 Z';
 
 export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 49 / VIEWBOX_H };
 
-// Emoji zone (viewbox) — the upper part of the square; PRO lives below it.
-const EMOJI_ZONE = { x: 8, y: 3, w: 28, h: 28 };
+// Emoji zone (viewbox) — the upper part of the tag; PRO lives below it.
+const EMOJI_ZONE = { x: 3, y: 2, w: 26, h: 26 };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
@@ -48,8 +50,8 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           strokeLinejoin="round"
         />
         <SvgText
-          x={22}
-          y={38}
+          x={16}
+          y={36}
           fontSize={8.5}
           fontWeight="bold"
           fill={colors.pinProBackground}
