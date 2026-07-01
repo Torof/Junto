@@ -73,8 +73,8 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         </View>
       </View>
 
-      <View style={[styles.proPill, { borderColor: accent }]}>
-        <Text style={[styles.proPillText, { color: accent }]}>PRO</Text>
+      <View style={styles.proBadge}>
+        <Text style={styles.proBadgeText}>PRO</Text>
       </View>
     </Pressable>
   );
@@ -134,13 +134,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
-  proPill: {
-    flexDirection: 'row',
+  // One unified pro badge — always the pro-blue (one colour = one meaning
+  // "pro" across pins + cards), a circle rather than a per-sport pill.
+  proBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.full,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 3,
+    justifyContent: 'center',
+    backgroundColor: colors.pinProBackground,
   },
-  proPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 1 },
+  proBadgeText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 0.5 },
 });
