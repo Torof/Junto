@@ -44,6 +44,7 @@ interface Props {
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
+const PHOTO_STRIP_COUNT = 5;
 
 export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Props) {
   const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
@@ -208,19 +209,26 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
         </ScrollView>
       </View>
 
-      {/* Photos strip above the tabs (Google place-sheet). Tap → Photos tab. */}
-      {photos.length > 0 && (
+      {/* Photos carousel above the tabs — a few photos + a "Voir tout" tile.
+          Hidden on the Photos tab (the full grid lives there). */}
+      {activeTab !== 'pictures' && photos.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.headerPhotos}
           contentContainerStyle={styles.headerPhotosContent}
         >
-          {photos.slice(0, 8).map((p) => (
+          {photos.slice(0, PHOTO_STRIP_COUNT).map((p) => (
             <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
               <Image source={{ uri: p.photo_url }} style={styles.headerPhoto} contentFit="cover" />
             </Pressable>
           ))}
+          <Pressable onPress={() => setActiveTab('pictures')} style={[styles.headerPhoto, styles.viewAllTile]}>
+            <Text style={styles.viewAllText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
+            {photos.length > PHOTO_STRIP_COUNT ? (
+              <Text style={styles.viewAllCount}>+{photos.length - PHOTO_STRIP_COUNT}</Text>
+            ) : null}
+          </Pressable>
         </ScrollView>
       )}
 
@@ -554,6 +562,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headerPhotos: { flexGrow: 0, backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerPhotosContent: { gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   headerPhoto: { width: 180, height: 130, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  viewAllTile: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  viewAllText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  viewAllCount: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
