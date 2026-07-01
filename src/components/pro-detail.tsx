@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
@@ -46,17 +47,6 @@ interface Props {
   // Present only in the sheet — expand the sheet to its top snap (e.g. when a
   // tab is selected), Google place-sheet style.
   onExpand?: () => void;
-  // The sheet's current snap height in px — the scroll container is sized to
-  // it so the inner ScrollView scrolls (content-panning is off on the sheet).
-  sheetHeight?: number;
-  // Which structural slice to render. In the sheet the header/carousel/tab-bar
-  // become gorhom's drag handle ('handle') and the tab content the scrollable
-  // body ('body'); the /pro/[id] route renders everything in one scroll ('full').
-  renderPart?: 'handle' | 'body' | 'full';
-  // Controlled active tab — the sheet lifts it to ProSheet so the handle (tab
-  // bar) and the body (tab content) share one value. Uncontrolled otherwise.
-  activeTab?: ProTab;
-  onSelectTab?: (tab: ProTab) => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -89,10 +79,7 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({
-  pro, isOwner, onEdit, inSheet = false, onClose, onExpand, sheetHeight,
-  renderPart = 'full', activeTab: activeTabProp, onSelectTab,
-}: Props) {
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand }: Props) {
   // Selecting a tab expands the sheet to its top snap (Google place-sheet).
   const selectTab = (tab: ProTab) => {
     setActiveTab(tab);
@@ -106,11 +93,7 @@ export function ProDetail({
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [descExpanded, setDescExpanded] = useState(false);
-  // Tab state is controlled when the sheet passes activeTab (shared across the
-  // handle + body instances); uncontrolled (local) on the standalone page.
-  const [localTab, setLocalTab] = useState<ProTab>('info');
-  const activeTab = activeTabProp ?? localTab;
-  const setActiveTab = (tab: ProTab) => (onSelectTab ? onSelectTab(tab) : setLocalTab(tab));
+  const [activeTab, setActiveTab] = useState<ProTab>('info');
   const [showFullMap, setShowFullMap] = useState(false);
 
   const { data: offerings = [] } = useQuery({
@@ -559,54 +542,44 @@ export function ProDetail({
       </Modal>
   );
 
-  // Sheet drag handle: header + carousel + tab bar are the always-visible grip.
-  // gorhom drags the sheet from here (content-panning is off), so a continuous
-  // pull from the header runs straight to the top snap in one motion.
-  if (renderPart === 'handle') {
+  // One collapsing scroll (Google place-sheet). In the sheet the scroller is
+  // gorhom's BottomSheetScrollView with content-panning ON, so gorhom
+  // coordinates drag ↔ scroll: at the top of the list a pull drags the sheet in
+  // one motion up to full height; once expanded, scrolling slides the header +
+  // carousel away and pins the tab bar (sticky index 2) to the top. On the page
+  // it's a plain ScrollView with the same collapsing-header behaviour.
+  if (inSheet) {
     return (
-      <View style={styles.handleWrap}>
-        {headerNode}
-        {carouselNode}
-        {tabBarNode}
-      </View>
-    );
-  }
-
-  // Sheet body: only the tab content scrolls (fixed height = snap − handle), so
-  // the area below the tab bar scrolls but never drags the sheet.
-  if (renderPart === 'body') {
-    return (
-      <View style={{ height: sheetHeight }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
-        >
-          {contentNode}
-        </ScrollView>
-        {modalsNode}
-      </View>
-    );
-  }
-
-  // 'full' — the /pro/[id] route: one scroll, collapsing header, sticky tabs.
-  return (
-    <View style={styles.container}>
-      <View style={inSheet ? { height: sheetHeight } : { flex: 1 }}>
-        <ScrollView
-          style={{ flex: 1 }}
+      <View style={styles.container}>
+        <BottomSheetScrollView
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={[2]}
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
         >
           {headerNode}
           {carouselNode}
           {tabBarNode}
           {contentNode}
-        </ScrollView>
+        </BottomSheetScrollView>
+        {modalsNode}
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        stickyHeaderIndices={[2]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+      >
+        {headerNode}
+        {carouselNode}
+        {tabBarNode}
+        {contentNode}
+      </ScrollView>
       {modalsNode}
     </View>
   );
@@ -660,14 +633,6 @@ function ActionButton({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  // Sheet drag handle — wraps header + carousel + tab bar. Rounded top so it
-  // continues the sheet's corners; overflow hidden clips the carousel edge.
-  handleWrap: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    overflow: 'hidden',
-  },
   scrollContent: { paddingBottom: spacing.xl },
   tabBarSticky: { backgroundColor: colors.background },
   sheetHeader: {
