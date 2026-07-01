@@ -11,6 +11,7 @@ import { ProOfferingPin, PRO_OFFERING_PIN_ANCHOR } from './pro-offering-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { useColors } from '@/hooks/use-theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AppColors } from '@/constants/colors';
 import { circlePolygon } from '@/utils/geo';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
@@ -162,6 +163,7 @@ export function JuntoMapView({
   radiusCenter,
 }: MapViewProps) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const mapStyleKey = useMapStyleStore((s) => s.style);
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
@@ -412,6 +414,7 @@ export function JuntoMapView({
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled={compassEnabled}
+      compassViewMargins={{ x: 12, y: insets.top + 10 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
       onPress={(feature) => {

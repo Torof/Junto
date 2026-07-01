@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
@@ -25,6 +26,7 @@ export function ProSheet({ userId, onClose }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const sheetRef = useRef<BottomSheet>(null);
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { session } = useAuth();
 
@@ -41,6 +43,7 @@ export function ProSheet({ userId, onClose }: Props) {
       index={0}
       animateOnMount
       snapPoints={['45%', '98%']}
+      topInset={insets.top}
       enablePanDownToClose
       onClose={onClose}
       backgroundStyle={styles.bg}
