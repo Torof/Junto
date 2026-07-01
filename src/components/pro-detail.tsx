@@ -31,6 +31,8 @@ import { PhotoManager } from './photo-manager';
 
 const GALLERY_MAX = 25;
 
+export type ProTab = 'info' | 'catalog' | 'pictures' | 'reviews';
+
 interface Props {
   pro: ProProfile;
   isOwner: boolean;
@@ -47,6 +49,14 @@ interface Props {
   // The sheet's current snap height in px — the scroll container is sized to
   // it so the inner ScrollView scrolls (content-panning is off on the sheet).
   sheetHeight?: number;
+  // Which structural slice to render. In the sheet the header/carousel/tab-bar
+  // become gorhom's drag handle ('handle') and the tab content the scrollable
+  // body ('body'); the /pro/[id] route renders everything in one scroll ('full').
+  renderPart?: 'handle' | 'body' | 'full';
+  // Controlled active tab — the sheet lifts it to ProSheet so the handle (tab
+  // bar) and the body (tab content) share one value. Uncontrolled otherwise.
+  activeTab?: ProTab;
+  onSelectTab?: (tab: ProTab) => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -79,9 +89,12 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, sheetHeight }: Props) {
+export function ProDetail({
+  pro, isOwner, onEdit, inSheet = false, onClose, onExpand, sheetHeight,
+  renderPart = 'full', activeTab: activeTabProp, onSelectTab,
+}: Props) {
   // Selecting a tab expands the sheet to its top snap (Google place-sheet).
-  const selectTab = (tab: 'info' | 'catalog' | 'pictures' | 'reviews') => {
+  const selectTab = (tab: ProTab) => {
     setActiveTab(tab);
     onExpand?.();
   };
@@ -93,7 +106,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'pictures' | 'catalog' | 'reviews'>('info');
+  // Tab state is controlled when the sheet passes activeTab (shared across the
+  // handle + body instances); uncontrolled (local) on the standalone page.
+  const [localTab, setLocalTab] = useState<ProTab>('info');
+  const activeTab = activeTabProp ?? localTab;
+  const setActiveTab = (tab: ProTab) => (onSelectTab ? onSelectTab(tab) : setLocalTab(tab));
   const [showFullMap, setShowFullMap] = useState(false);
 
   const { data: offerings = [] } = useQuery({
@@ -187,18 +204,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
   ];
 
-  return (
-    <View style={styles.container}>
-      <View style={inSheet ? { height: sheetHeight } : { flex: 1 }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scrollContent}
-        stickyHeaderIndices={[2]}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
-      >
-      {/* 0 — header (name · rating · actions · carousel). Scrolls away; the
-          tab bar (child 2) sticks to the top. */}
+  // 0 — header (name · rating · actions). In the sheet this is part of the
+  // drag handle; on the page it scrolls away above the sticky tab bar.
+  const headerNode = (
       <View style={styles.sheetHeader}>
         {onClose ? (
           <View style={styles.topBar}>
@@ -252,10 +260,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           {pro.email ? <ActionButton icon={<Mail size={18} color={colors.cta} strokeWidth={2.4} />} label="Email" onPress={() => Linking.openURL(`mailto:${pro.email}`)} styles={styles} /> : null}
         </ScrollView>
       </View>
+  );
 
-      {/* 1 — carousel wrapper (always a child so the sticky index stays 2).
-          Mixed grid (2-stack · big · repeat) + Voir tout / Ajouter. Hidden on
-          the Photos tab. GHScrollView so it scrolls inside the sheet gesture. */}
+  // 1 — carousel (mixed grid + Voir tout / Ajouter). Hidden on the Photos tab.
+  // GHScrollView so it scrolls horizontally inside the sheet drag gesture.
+  const carouselNode = (
       <View>
       {activeTab !== 'pictures' && photos.length > 0 && (
         <GHScrollView
@@ -294,8 +303,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         </GHScrollView>
       )}
       </View>
+  );
 
-      {/* 2 — tab bar (sticky: pins to the top when the header scrolls away) */}
+  // 2 — tab bar. In the sheet it's the bottom of the drag handle (always
+  // visible); on the page it's sticky (pins to the top when the header scrolls).
+  const tabBarNode = (
       <View style={styles.tabBarSticky}>
       <ScrollView
         horizontal
@@ -328,9 +340,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         })}
       </ScrollView>
       </View>
+  );
 
-      {/* 3 — tab content (inline; the single outer scroll handles scrolling).
-          minHeight guarantees scroll range so the header can fully collapse. */}
+  // 3 — tab content. The scrollable body in the sheet; the tail of the single
+  // scroll on the page. minHeight guarantees scroll range for short tabs.
+  const contentNode = (
       <View style={{ minHeight: MIN_TAB_CONTENT_H }}>
 
       {/* ===== INFO TAB ===== */}
@@ -526,9 +540,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       )}
 
       </View>
-      </ScrollView>
-      </View>
+  );
 
+  const modalsNode = (
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView center={mapCenter} zoom={14} pins={mapPins} />
@@ -543,6 +557,57 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </Pressable>
         </SafeAreaView>
       </Modal>
+  );
+
+  // Sheet drag handle: header + carousel + tab bar are the always-visible grip.
+  // gorhom drags the sheet from here (content-panning is off), so a continuous
+  // pull from the header runs straight to the top snap in one motion.
+  if (renderPart === 'handle') {
+    return (
+      <View style={styles.handleWrap}>
+        {headerNode}
+        {carouselNode}
+        {tabBarNode}
+      </View>
+    );
+  }
+
+  // Sheet body: only the tab content scrolls (fixed height = snap − handle), so
+  // the area below the tab bar scrolls but never drags the sheet.
+  if (renderPart === 'body') {
+    return (
+      <View style={{ height: sheetHeight }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {contentNode}
+        </ScrollView>
+        {modalsNode}
+      </View>
+    );
+  }
+
+  // 'full' — the /pro/[id] route: one scroll, collapsing header, sticky tabs.
+  return (
+    <View style={styles.container}>
+      <View style={inSheet ? { height: sheetHeight } : { flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          stickyHeaderIndices={[2]}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {headerNode}
+          {carouselNode}
+          {tabBarNode}
+          {contentNode}
+        </ScrollView>
+      </View>
+      {modalsNode}
     </View>
   );
 }
@@ -595,6 +660,14 @@ function ActionButton({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  // Sheet drag handle — wraps header + carousel + tab bar. Rounded top so it
+  // continues the sheet's corners; overflow hidden clips the carousel edge.
+  handleWrap: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    overflow: 'hidden',
+  },
   scrollContent: { paddingBottom: spacing.xl },
   tabBarSticky: { backgroundColor: colors.background },
   sheetHeader: {
