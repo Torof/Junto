@@ -86,6 +86,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 19,
+    fontSize: 16,
   },
 });
