@@ -27,6 +27,9 @@ interface Props {
   filterLabel?: string;
   onClearFilter?: () => void;
   onCollapse?: () => void;
+  // Reports whether the drawer is open above its minimum (2%) handle. Lets the
+  // map hide its floating controls (filters / map style) while the list is up.
+  onOpenChange?: (open: boolean) => void;
   // Fully close the drawer (index -1, handle and all) — used while a pin
   // preview sheet is up so it doesn't float over the preview.
   hidden?: boolean;
@@ -81,7 +84,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
 
 export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Props>(
   function ActivitiesBottomSheet(
-    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, highlightedItemId, filterLabel, onClearFilter, onCollapse, hidden = false },
+    { activities, proOfferings = [], userLocation, onItemPress, onProOfferingPress, highlightedItemId, filterLabel, onClearFilter, onCollapse, onOpenChange, hidden = false },
     ref,
   ) {
   const { t } = useTranslation();
@@ -207,6 +210,8 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
       onChange={(idx) => {
         setSnapIndex(idx);
         if (idx === 0) onCollapse?.();
+        // idx 0 = 2% handle (minimum); anything higher = drawer is "open".
+        onOpenChange?.(idx > 0);
       }}
       backgroundStyle={styles.sheetBackground}
       handleComponent={() => (

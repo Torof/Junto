@@ -85,6 +85,9 @@ export default function CarteScreen() {
   // tooltip would, so no popup fires for card taps.
   const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  // The list drawer is open above its 2% handle — hide the top-left filter /
+  // map-style controls so the raised list reads as a clean layer.
+  const [listOpen, setListOpen] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
@@ -280,16 +283,19 @@ export default function CarteScreen() {
             <CreateButton />
             <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
             <AlertButton />
-
-            {/* Top-left controls row — filters chip + map style icon
-                (Scott 2026-06-10). Sits at the left edge so the centered
-                chip doesn't read as lonely and we stay clear of the
-                Mapbox compass at top-right. */}
-            <View style={[styles.topControls, { top: insets.top + spacing.md }]}>
-              <FilterButton onPress={() => setShowFilters(true)} />
-              <MapStyleButton />
-            </View>
           </>
+        )}
+
+        {/* Top-left controls row — filters chip + map style icon
+            (Scott 2026-06-10). Sits at the left edge so the centered
+            chip doesn't read as lonely and we stay clear of the
+            Mapbox compass at top-right. Hidden while a preview is up OR the
+            list drawer is raised, so the list reads as a clean layer. */}
+        {!previewOpen && !listOpen && (
+          <View style={[styles.topControls, { top: insets.top + spacing.md }]}>
+            <FilterButton onPress={() => setShowFilters(true)} />
+            <MapStyleButton />
+          </View>
         )}
 
         <>
@@ -426,6 +432,7 @@ export default function CarteScreen() {
           filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}
           onClearFilter={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
           onCollapse={() => { setClusterFilter(null); clusterFilterAnchor.current = null; }}
+          onOpenChange={setListOpen}
           onItemPress={(a) => {
             // Tap-to-peek: first tap on a card highlights the pin on
             // the map; second tap on the same card opens the detail
