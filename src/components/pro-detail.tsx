@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,6 +52,10 @@ const PHOTO_H = 168;
 const PHOTO_GAP = 6;
 const PHOTO_SMALL = (PHOTO_H - PHOTO_GAP) / 2;
 const PHOTO_MAX_COLUMNS = 5;
+// The tab content is forced to at least this tall so the outer scroll always
+// has enough range to slide the header/carousel off and pin the tabs to the
+// top (Google collapsing-header). Short tabs just get trailing empty space.
+const MIN_TAB_CONTENT_H = Dimensions.get('window').height * 0.85;
 
 type ColPhoto = { id: string; photo_url: string };
 // Google-Photos mixed grid: alternating columns — a 2-photo stack, then one
@@ -322,8 +326,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       </ScrollView>
       </View>
 
-      {/* 3 — tab content (inline; the single outer scroll handles scrolling) */}
-      <View>
+      {/* 3 — tab content (inline; the single outer scroll handles scrolling).
+          minHeight guarantees scroll range so the header can fully collapse. */}
+      <View style={{ minHeight: MIN_TAB_CONTENT_H }}>
 
       {/* ===== INFO TAB ===== */}
       {activeTab === 'info' && (
