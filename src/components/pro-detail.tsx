@@ -191,7 +191,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       <BodyScroll
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
-        stickyHeaderIndices={[2]}
         showsVerticalScrollIndicator={false}
       >
       {/* 0 — header (name · rating · actions · carousel). Scrolls away; the
