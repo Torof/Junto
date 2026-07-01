@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +44,9 @@ interface Props {
   // Present only in the sheet — expand the sheet to its top snap (e.g. when a
   // tab is selected), Google place-sheet style.
   onExpand?: () => void;
+  // The sheet's current snap height in px — the scroll container is sized to
+  // it so the inner ScrollView scrolls (content-panning is off on the sheet).
+  sheetHeight?: number;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -77,8 +79,7 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand }: Props) {
-  const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, sheetHeight }: Props) {
   // Selecting a tab expands the sheet to its top snap (Google place-sheet).
   const selectTab = (tab: 'info' | 'catalog' | 'pictures' | 'reviews') => {
     setActiveTab(tab);
@@ -188,10 +189,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
 
   return (
     <View style={styles.container}>
-      <BodyScroll
+      <View style={inSheet ? { height: sheetHeight } : { flex: 1 }}>
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
+        stickyHeaderIndices={[2]}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
       >
       {/* 0 — header (name · rating · actions · carousel). Scrolls away; the
           tab bar (child 2) sticks to the top. */}
@@ -522,7 +526,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       )}
 
       </View>
-      </BodyScroll>
+      </ScrollView>
+      </View>
 
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
