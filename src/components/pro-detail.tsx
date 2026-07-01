@@ -6,7 +6,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid } from 'lucide-react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
@@ -44,7 +45,30 @@ interface Props {
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
-const PHOTO_STRIP_COUNT = 5;
+const PHOTO_H = 168;
+const PHOTO_GAP = 6;
+const PHOTO_SMALL = (PHOTO_H - PHOTO_GAP) / 2;
+const PHOTO_MAX_COLUMNS = 5;
+
+type ColPhoto = { id: string; photo_url: string };
+// Google-Photos mixed grid: alternating columns — a 2-photo stack, then one
+// big square, repeating — consumed left→right up to maxColumns.
+function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
+  const columns: { kind: 'big' | 'stack'; items: ColPhoto[] }[] = [];
+  let i = 0;
+  let c = 0;
+  while (i < photos.length && c < maxColumns) {
+    if (c % 2 === 1) {
+      columns.push({ kind: 'big', items: [photos[i]!] });
+      i += 1;
+    } else {
+      columns.push({ kind: 'stack', items: photos.slice(i, i + 2) });
+      i += 2;
+    }
+    c += 1;
+  }
+  return columns;
+}
 
 export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Props) {
   const BodyScroll = inSheet ? BottomSheetScrollView : ScrollView;
@@ -209,27 +233,45 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose }: Pr
         </ScrollView>
       </View>
 
-      {/* Photos carousel above the tabs — a few photos + a "Voir tout" tile.
-          Hidden on the Photos tab (the full grid lives there). */}
+      {/* Photos — Google mixed-grid carousel (2-stack · big · repeat) + a
+          final column with "Voir tout" and "Ajouter". Hidden on the Photos
+          tab (the full grid lives there). GHScrollView so it scrolls inside
+          the sheet's gesture area. */}
       {activeTab !== 'pictures' && photos.length > 0 && (
-        <ScrollView
+        <GHScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.headerPhotos}
-          contentContainerStyle={styles.headerPhotosContent}
+          contentContainerStyle={styles.photoRow}
         >
-          {photos.slice(0, PHOTO_STRIP_COUNT).map((p) => (
-            <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
-              <Image source={{ uri: p.photo_url }} style={styles.headerPhoto} contentFit="cover" />
+          {buildPhotoColumns(photos, PHOTO_MAX_COLUMNS).map((col, ci) =>
+            col.kind === 'big' ? (
+              <Pressable key={ci} onPress={() => setActiveTab('pictures')}>
+                <Image source={{ uri: col.items[0]!.photo_url }} style={styles.photoBig} contentFit="cover" />
+              </Pressable>
+            ) : (
+              <View key={ci} style={styles.photoStackCol}>
+                {col.items.map((p) => (
+                  <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
+                    <Image source={{ uri: p.photo_url }} style={styles.photoSmall} contentFit="cover" />
+                  </Pressable>
+                ))}
+              </View>
+            ),
+          )}
+          <View style={styles.photoStackCol}>
+            <Pressable onPress={() => setActiveTab('pictures')} style={[styles.photoSmall, styles.photoActionTile]}>
+              <LayoutGrid size={16} color={colors.cta} strokeWidth={2.4} />
+              <Text style={styles.photoActionText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
             </Pressable>
-          ))}
-          <Pressable onPress={() => setActiveTab('pictures')} style={[styles.headerPhoto, styles.viewAllTile]}>
-            <Text style={styles.viewAllText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
-            {photos.length > PHOTO_STRIP_COUNT ? (
-              <Text style={styles.viewAllCount}>+{photos.length - PHOTO_STRIP_COUNT}</Text>
+            {isOwner ? (
+              <Pressable onPress={handleGalleryAdd} style={[styles.photoSmall, styles.photoActionTile]}>
+                <ImagePlus size={16} color={colors.cta} strokeWidth={2.4} />
+                <Text style={styles.photoActionText}>{t('pro.addPhoto', { defaultValue: 'Ajouter' })}</Text>
+              </Pressable>
             ) : null}
-          </Pressable>
-        </ScrollView>
+          </View>
+        </GHScrollView>
       )}
 
       {/* Tab bar — text-only, brutalist. Pictures sits between Info and
@@ -560,17 +602,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewAvg: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   headerPhotos: { flexGrow: 0, backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.line },
-  headerPhotosContent: { gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  headerPhoto: { width: 180, height: 130, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
-  viewAllTile: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  viewAllText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
-  viewAllCount: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
+  photoRow: { gap: PHOTO_GAP, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, alignItems: 'flex-start' },
+  photoStackCol: { gap: PHOTO_GAP },
+  photoBig: { width: PHOTO_H, height: PHOTO_H, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  photoSmall: { width: PHOTO_SMALL, height: PHOTO_SMALL, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  photoActionTile: { alignItems: 'center', justifyContent: 'center', gap: 3, borderWidth: 1, borderColor: colors.borderMuted },
+  photoActionText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
