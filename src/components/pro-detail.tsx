@@ -133,13 +133,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
           the tabs; only the tab content scrolls. ===== */}
       <View style={styles.sheetHeader}>
         <View style={styles.headerRow}>
-          {photos[0] ? (
-            <Image source={{ uri: photos[0].photo_url }} style={styles.headerThumb} contentFit="cover" />
-          ) : (
-            <View style={[styles.headerThumb, styles.headerThumbPlaceholder]}>
-              <Text style={styles.headerThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</Text>
-            </View>
-          )}
           <View style={styles.headerInfo}>
             <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
             <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
@@ -171,10 +164,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
           </View>
         </View>
         {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
-        <View style={styles.locationRow}>
-          <MapPin size={14} color={colors.textSecondary} strokeWidth={2.4} />
-          <Text style={styles.locationText} numberOfLines={1}>{pro.primary_location_name}</Text>
-        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionRow}>
           <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
           {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
@@ -223,6 +212,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
       {activeTab === 'info' && (
         <BodyScroll style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View style={styles.paddedSection}>
+            {/* À propos */}
             {pro.description && (
               <View style={styles.infoCard}>
                 <Text style={styles.sectionTitle}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
@@ -243,20 +233,45 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false }: Props) {
               </View>
             )}
 
+            {/* Adresse — tap opens the itinerary (no embedded map). */}
+            <Pressable style={styles.overviewRow} onPress={openDirections}>
+              <MapPin size={16} color={colors.cta} strokeWidth={2.4} />
+              <Text style={styles.overviewRowText} numberOfLines={2}>{pro.primary_location_name}</Text>
+            </Pressable>
 
-            {/* === LOCATION === Map preview, tap to open full screen +
-                navigate. Same idiom as the activity info screen. */}
-            <View style={styles.infoCard}>
-              <Text style={styles.sectionTitle}>{t('pro.location', { defaultValue: 'Localisation' })}</Text>
-              <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-                <JuntoMapView center={mapCenter} zoom={13} pins={mapPins} compassEnabled={false} />
-                <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-                <View style={styles.mapNavHint} pointerEvents="none">
-                  <Navigation size={12} color={colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.mapNavHintText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</Text>
+            {/* Photos preview → Photos tab */}
+            {photos.length > 0 && (
+              <View style={styles.overviewBlock}>
+                <View style={styles.overviewHeader}>
+                  <Text style={styles.sectionTitle}>{t('pro.tab.pictures', { defaultValue: 'Photos' })}</Text>
+                  <Pressable onPress={() => setActiveTab('pictures')} hitSlop={6}>
+                    <Text style={styles.overviewLink}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
+                  </Pressable>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
+                  {photos.slice(0, 6).map((p) => (
+                    <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
+                      <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Avis preview → Avis tab */}
+            {reviewStats && reviewStats.review_count > 0 && (
+              <Pressable style={styles.overviewBlock} onPress={() => setActiveTab('reviews')}>
+                <View style={styles.overviewHeader}>
+                  <Text style={styles.sectionTitle}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+                  <Text style={styles.overviewLink}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
+                </View>
+                <View style={styles.reviewSummary}>
+                  <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                  <StarRating rating={Number(reviewStats.avg_rating)} size={16} />
+                  <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
                 </View>
               </Pressable>
-            </View>
+            )}
           </View>
         </BodyScroll>
       )}
@@ -446,6 +461,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta + '12',
   },
   actionBtnLabel: { color: colors.textPrimary, fontSize: 11, fontWeight: '600' },
+  overviewRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
+  overviewRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  overviewBlock: { paddingTop: spacing.md, gap: spacing.sm },
+  overviewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  overviewLink: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  photoStrip: { gap: spacing.sm, paddingRight: spacing.lg },
+  photoThumb: { width: 96, height: 96, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  reviewSummary: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reviewAvg: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
+  reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -64,8 +64,8 @@ const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     bg: {
       backgroundColor: colors.background,
-      borderTopLeftRadius: radius.lg,
-      borderTopRightRadius: radius.lg,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
     },
     grabber: { backgroundColor: colors.textMuted, width: 40 },
     loading: { paddingVertical: 80, alignItems: 'center' },
