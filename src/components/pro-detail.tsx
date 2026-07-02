@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -105,6 +106,24 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<ProTab>('info');
   const [showFullMap, setShowFullMap] = useState(false);
+  // Overlay tab-bar pin (sheet only), driven entirely on the UI thread so
+  // scrolling never re-renders. scrollY tracks the offset; tabBarTop = the
+  // in-flow tab bar's y within the content (= header + carousel height). The
+  // overlay copy slides down + fades in once scrollY passes tabBarTop; below
+  // that it's parked off-screen (translateY -80) so it never blocks the header.
+  const scrollY = useSharedValue(0);
+  const tabBarTop = useSharedValue(0);
+  const onSheetScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+  const overlayTabBarStyle = useAnimatedStyle(() => {
+    const top = tabBarTop.value;
+    if (top <= 0) return { opacity: 0, transform: [{ translateY: -80 }] };
+    return {
+      opacity: interpolate(scrollY.value, [top - 4, top + 4], [0, 1], Extrapolation.CLAMP),
+      transform: [{ translateY: interpolate(scrollY.value, [top - 4, top + 4], [-80, 0], Extrapolation.CLAMP) }],
+    };
+  });
 
   const { data: offerings = [] } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
@@ -559,21 +578,31 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // gorhom's BottomSheetScrollView with content-panning ON, so gorhom
   // coordinates drag ↔ scroll: at the top of the list a pull drags the sheet in
   // one motion up to full height; once expanded, scrolling slides the header +
-  // carousel away and pins the tab bar (sticky index 2) to the top. On the page
-  // it's a plain ScrollView with the same collapsing-header behaviour.
+  // carousel away and the tab bar pins to the top.
+  //
+  // The tab bar is NOT gorhom's stickyHeaderIndices — that combination wedges
+  // the scroll intermittently. Instead the tab bar scrolls away normally and a
+  // copy is drawn as an absolute overlay (overlayTabBarStyle, driven on the UI
+  // thread) once the scroll passes it, giving the same pinned look without
+  // touching gorhom's scroll internals.
   if (inSheet) {
     return (
       <View style={styles.container}>
         <BottomSheetScrollView
           contentContainerStyle={styles.scrollContent}
-          stickyHeaderIndices={STICKY_HEADER_INDICES}
           showsVerticalScrollIndicator={false}
+          onScroll={onSheetScroll}
         >
           {headerNode}
           {carouselNode}
-          {tabBarNode}
+          <View onLayout={(e) => { tabBarTop.value = e.nativeEvent.layout.y; }}>
+            {tabBarNode}
+          </View>
           {contentNode}
         </BottomSheetScrollView>
+        <Animated.View style={[styles.overlayTabBar, overlayTabBarStyle]}>
+          {tabBarNode}
+        </Animated.View>
         {modalsNode}
       </View>
     );
@@ -648,6 +677,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { paddingBottom: spacing.xl },
   tabBarSticky: { backgroundColor: colors.background },
+  // Absolute copy of the tab bar, shown at the top of the sheet content once
+  // the real one has scrolled past — the "pinned" look without gorhom sticky.
+  overlayTabBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+  },
   sheetHeader: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
