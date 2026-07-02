@@ -166,21 +166,19 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     }
   };
 
-  // Community contributions grid — everyone sees; the owner (moderation) and the
-  // contributor (their own) get a delete control on each.
-  const renderCommunityGrid = () => (
-    <View style={styles.communityGrid}>
-      {communityPhotos.map((p) => (
-        <View key={p.id} style={styles.communityThumbWrap}>
-          <Image source={{ uri: p.photo_url }} style={styles.communityThumb} contentFit="cover" />
-          {isOwner || p.contributor_id === currentUserId ? (
-            <Pressable style={styles.communityDelete} onPress={() => handleCommunityRemove(p.id)} hitSlop={6}>
-              <X size={12} color={colors.background} strokeWidth={3} />
-            </Pressable>
-          ) : null}
-        </View>
-      ))}
-    </View>
+  // Community contributions — rendered with the SAME PhotoGallery format as the
+  // rest of the photos. The owner (moderation) and the contributor (their own)
+  // get a delete control per tile.
+  const communityGalleryPhotos = communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url }));
+  const renderCommunityGallery = () => (
+    <PhotoGallery
+      photos={communityGalleryPhotos}
+      canDelete={(p) => {
+        const c = communityPhotos.find((x) => x.id === p.id);
+        return !!c && (isOwner || c.contributor_id === currentUserId);
+      }}
+      onDelete={(p) => handleCommunityRemove(p.id)}
+    />
   );
 
   const { data: reviews = [] } = useQuery({
@@ -533,7 +531,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 onRemove={handleGalleryRemove}
                 onReorder={handleGalleryReorder}
               />
-              {communityPhotos.length > 0 ? renderCommunityGrid() : null}
+              {communityPhotos.length > 0 ? renderCommunityGallery() : null}
             </View>
           ) : (
             <View style={styles.galleryWrap}>
@@ -545,7 +543,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
               </Pressable>
               {photos.length > 0 ? <PhotoGallery photos={photos} emptyText="" /> : null}
-              {communityPhotos.length > 0 ? renderCommunityGrid() : null}
+              {communityPhotos.length > 0 ? renderCommunityGallery() : null}
               {photos.length === 0 && communityPhotos.length === 0 ? (
                 <Text style={styles.placeholderText}>{t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}</Text>
               ) : null}
@@ -784,7 +782,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   addPhotoChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -794,20 +792,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   addPhotoChipText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-  communityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: PHOTO_GAP, marginTop: spacing.md },
-  communityThumbWrap: { position: 'relative' },
-  communityThumb: { width: 104, height: 104, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
-  communityDelete: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },

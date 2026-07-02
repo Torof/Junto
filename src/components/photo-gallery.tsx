@@ -7,6 +7,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -21,6 +22,10 @@ interface GalleryPhoto {
 interface PhotoGalleryProps {
   photos: GalleryPhoto[];
   emptyText?: string;
+  // When provided, a delete control shows on tiles for which canDelete returns
+  // true (used for community-photo moderation).
+  onDelete?: (photo: GalleryPhoto) => void;
+  canDelete?: (photo: GalleryPhoto) => boolean;
 }
 
 const SCREEN = Dimensions.get('window');
@@ -30,7 +35,7 @@ const TILE_SIZE = (SCREEN.width - SIDE_PADDING * 2 - COLUMN_GAP) / 2;
 
 // Read-only gallery — 2-column square grid (Instagram-ish). Tap any
 // tile to open the fullscreen pager (PhotoLightbox).
-export function PhotoGallery({ photos, emptyText }: PhotoGalleryProps) {
+export function PhotoGallery({ photos, emptyText, onDelete, canDelete }: PhotoGalleryProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -61,6 +66,11 @@ export function PhotoGallery({ photos, emptyText }: PhotoGalleryProps) {
             })}
           >
             <Image source={{ uri: photo.photo_url }} style={styles.tileImage} contentFit="cover" />
+            {onDelete && canDelete?.(photo) ? (
+              <Pressable style={styles.deleteBtn} onPress={() => onDelete(photo)} hitSlop={6}>
+                <X size={14} color={colors.background} strokeWidth={3} />
+              </Pressable>
+            ) : null}
           </Pressable>
         ))}
       </View>
@@ -87,6 +97,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
   },
   tileImage: { width: '100%', height: '100%' },
+  deleteBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   empty: {
     marginHorizontal: spacing.md,
     padding: spacing.md,
