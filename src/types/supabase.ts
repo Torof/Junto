@@ -901,6 +901,69 @@ export type Database = {
           },
         ]
       }
+      pro_community_photos: {
+        Row: {
+          contributor_id: string
+          created_at: string
+          id: string
+          photo_url: string
+          pro_id: string
+          review_id: string | null
+        }
+        Insert: {
+          contributor_id: string
+          created_at?: string
+          id?: string
+          photo_url: string
+          pro_id: string
+          review_id?: string | null
+        }
+        Update: {
+          contributor_id?: string
+          created_at?: string
+          id?: string
+          photo_url?: string
+          pro_id?: string
+          review_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_community_photos_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "pro_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "pro_reviews_with_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pro_offering_photos: {
         Row: {
           created_at: string
@@ -2492,6 +2555,10 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
+      add_pro_community_photo: {
+        Args: { p_photo_url: string; p_pro_id: string; p_review_id?: string }
+        Returns: string
+      }
       add_pro_offering_photo: {
         Args: { p_offering_id: string; p_photo_url: string }
         Returns: string
@@ -3192,6 +3259,10 @@ export type Database = {
       reliability_tier: { Args: { p_score: number }; Returns: string }
       remove_participant: {
         Args: { p_participation_id: string }
+        Returns: undefined
+      }
+      remove_pro_community_photo: {
+        Args: { p_photo_id: string }
         Returns: undefined
       }
       remove_pro_offering_photo: {

@@ -218,6 +218,7 @@
     "sessionExpired": "Ta session a expiré, reconnecte-toi.",
     "generic": "Une erreur est survenue, réessaie.",
     "code": {
+      "photo_limit": "Tu as atteint la limite de 5 photos pour cette page.",
       "limit_monthly": "Tu as atteint ta limite de création d'activités pour ce mois-ci.",
       "limit_daily": "Tu as atteint ta limite de création d'activités pour aujourd'hui. Réessaie demain.",
       "date_in_past": "La date de la sortie doit être dans le futur.",

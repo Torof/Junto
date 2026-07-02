@@ -16,6 +16,15 @@ export interface ProOfferingPhoto {
   created_at: string;
 }
 
+export interface ProCommunityPhoto {
+  id: string;
+  pro_id: string;
+  contributor_id: string;
+  photo_url: string;
+  review_id: string | null;
+  created_at: string;
+}
+
 // Pro page gallery — up to 25 photos per pro, owner-managed.
 // All mutations go through SECURITY DEFINER RPCs; reads are public via
 // RLS so the storefront renders for anon visitors when Phase 0.5 lands.
@@ -56,6 +65,37 @@ export const proPhotoService = {
   reorder: async (photoIds: string[]): Promise<void> => {
     const { error } = await supabase.rpc('reorder_pro_photos', {
       p_photo_ids: photoIds,
+    });
+    if (error) throw error;
+  },
+};
+
+// Community photos — anyone can contribute (5 per user per pro), pro owner
+// moderates by deleting. Separate table from the owner's curated gallery.
+export const proCommunityPhotoService = {
+  listByPro: async (proId: string): Promise<ProCommunityPhoto[]> => {
+    const { data, error } = await supabase
+      .from('pro_community_photos')
+      .select('id, pro_id, contributor_id, photo_url, review_id, created_at')
+      .eq('pro_id', proId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  add: async (proId: string, photoUrl: string, reviewId?: string | null): Promise<string> => {
+    const { data, error } = await supabase.rpc('add_pro_community_photo', {
+      p_pro_id: proId,
+      p_photo_url: photoUrl,
+      p_review_id: reviewId ?? undefined,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  remove: async (photoId: string): Promise<void> => {
+    const { error } = await supabase.rpc('remove_pro_community_photo', {
+      p_photo_id: photoId,
     });
     if (error) throw error;
   },

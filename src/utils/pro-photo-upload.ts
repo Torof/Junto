@@ -3,7 +3,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '@/services/supabase';
-import { proPhotoService, proOfferingPhotoService } from '@/services/pro-photo-service';
+import { proPhotoService, proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 
 // Gallery photos are free-aspect (no crop) since users curate their own
 // composition. Wider ceiling than the 3:1 banner so portrait shots from
@@ -119,10 +119,44 @@ export async function pickAndUploadProOfferingPhotos(
   return outcomes;
 }
 
+// Community photos — anyone can add (max 5 per user per pro). Uploaded under
+// the contributor's own `<uid>/community/<proId>/…` path so the storage
+// insert_own policy allows it; optionally linked to a review via reviewId.
+export async function pickAndUploadCommunityPhotos(
+  proId: string,
+  remainingSlots: number,
+  reviewId?: string | null,
+): Promise<UploadOutcome[]> {
+  if (remainingSlots <= 0) return [];
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsMultipleSelection: true,
+    selectionLimit: remainingSlots,
+    quality: 0.85,
+  });
+
+  if (result.canceled || result.assets.length === 0) return [];
+
+  const outcomes: UploadOutcome[] = [];
+  for (let i = 0; i < result.assets.length; i++) {
+    const asset = result.assets[i]!;
+    const suffix = `${Date.now()}-${i}`;
+    const photoUrl = await uploadAsset(asset, `community/${proId}`, suffix);
+    const photoId = await proCommunityPhotoService.add(proId, photoUrl, reviewId ?? null);
+    outcomes.push({ photoId, photoUrl });
+  }
+  return outcomes;
+}
+
 // Remove RPCs are wrapped here too so callers don't reach across files
 // for a single related action — keeps the gallery API surface one import.
 export async function removeProPhoto(photoId: string): Promise<void> {
   await proPhotoService.remove(photoId);
+}
+
+export async function removeProCommunityPhoto(photoId: string): Promise<void> {
+  await proCommunityPhotoService.remove(photoId);
 }
 
 export async function removeProOfferingPhoto(photoId: string): Promise<void> {

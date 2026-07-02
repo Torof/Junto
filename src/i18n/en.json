@@ -214,6 +214,7 @@
   },
   "errors": {
     "code": {
+      "photo_limit": "You've reached the 5-photo limit for this page.",
       "limit_monthly": "You've reached your activity creation limit for this month.",
       "limit_daily": "You've reached your activity creation limit for today. Try again tomorrow.",
       "date_in_past": "The outing date must be in the future.",
