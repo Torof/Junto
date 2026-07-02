@@ -485,9 +485,10 @@ export default function CarteScreen() {
           }}
         />
 
-        {selectedPro && (
-          <ProSheet userId={selectedPro.user_id} onClose={() => setSelectedPro(null)} />
-        )}
+        {/* Always mounted (nullable userId) so the gorhom modal shell never
+            unmounts — present()/dismiss() follow the selection. Conditionally
+            mounting it corrupted native gesture state on reopen. */}
+        <ProSheet userId={selectedPro?.user_id ?? null} onClose={() => setSelectedPro(null)} />
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>

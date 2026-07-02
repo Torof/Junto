@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, type LayoutChangeEvent } from 'react-native';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -16,27 +16,30 @@ import { LogoSpinner } from './logo-spinner';
 // full ProDetail (tabs, contact, catalogue, avis) inside a gorhom sheet
 // instead of a full-screen route. The /pro/[id] route stays for deep links.
 //
-// Collapsing place-sheet: content-panning is ON and ProDetail renders a
-// BottomSheetScrollView, so gorhom coordinates drag ↔ scroll — at the top of
-// the list a pull drags the sheet to full height in one motion; once expanded,
-// scrolling slides the header + carousel away and pins the tab bar to the top.
+// Uses BottomSheetModal (present/dismiss), NOT a conditionally-mounted
+// <BottomSheet>. The modal shell stays mounted permanently (via the root
+// BottomSheetModalProvider); opening a pro just present()s and closing
+// dismiss()es. This is the fix for the "first open works, every reopen has dead
+// drag + scroll" bug — conditionally mounting/unmounting the sheet left
+// corrupted native gesture state under reanimated 4, which the next mount
+// inherited. A persistent modal shell never unmounts, so it never corrupts.
 //
-// The first snap point sits right at the header's divider (name · actions),
-// measured at runtime (handle + header height) so the collapsed peek shows the
-// identity + action buttons and nothing more.
+// Collapsing place-sheet: content-panning is ON and ProDetail renders a
+// BottomSheetScrollView, so gorhom coordinates drag ↔ scroll. The first snap
+// sits at the header's divider (measured handle + header height).
 const SCREEN_H = Dimensions.get('window').height;
 
 interface Props {
-  // Mounted only while a pro is selected, so the sheet reliably opens on mount
-  // (animateOnMount) rather than via a race-prone imperative snap.
-  userId: string;
+  // The selected pro's user id, or null when nothing is selected. Always
+  // mounted; present()/dismiss() follow this value.
+  userId: string | null;
   onClose: () => void;
 }
 
 export function ProSheet({ userId, onClose }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const sheetRef = useRef<BottomSheet>(null);
+  const modalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { session } = useAuth();
@@ -45,18 +48,24 @@ export function ProSheet({ userId, onClose }: Props) {
 
   const { data: pro } = useQuery({
     queryKey: ['pro-profile', userId],
-    queryFn: () => proService.getById(userId),
+    queryFn: () => proService.getById(userId as string),
+    enabled: !!userId,
   });
 
   const isOwner = !!pro && session?.user?.id === pro.user_id;
 
+  // Present when a pro is selected, dismiss when cleared. The modal shell is
+  // always mounted, so this is a stable, race-free open/close.
+  useEffect(() => {
+    if (userId) modalRef.current?.present();
+    else modalRef.current?.dismiss();
+  }, [userId]);
+
   // Freeze both measurements at their first non-zero value. onLayout can fire
   // repeatedly (the header grows as async data — rating row, owner avatar —
-  // lands), and every change to snapPoints re-seeds gorhom's gesture math: the
-  // source of the intermittent "stuck at the first snap, won't drag or scroll"
-  // desync. `prev || …` makes each a one-shot — once set, React bails on the
-  // identical value, the sheet subtree stops re-rendering, and the gesture
-  // stays stable. handleH is constant anyway (fixed grabber).
+  // lands), and every change to snapPoints re-seeds gorhom's gesture math.
+  // `prev || …` makes each a one-shot — once set, React bails on the identical
+  // value, the sheet subtree stops re-rendering, the gesture stays stable.
   const onHandleLayout = useCallback((e: LayoutChangeEvent) => {
     const h = Math.round(e.nativeEvent.layout.height);
     setHandleH((prev) => prev || h);
@@ -82,23 +91,22 @@ export function ProSheet({ userId, onClose }: Props) {
       <View style={styles.grabber} />
     </View>
   ), [styles, onHandleLayout]);
-  const handleClose = useCallback(() => sheetRef.current?.close(), []);
-  const handleExpand = useCallback(() => sheetRef.current?.snapToIndex(1), []);
+  const handleClose = useCallback(() => modalRef.current?.dismiss(), []);
+  const handleExpand = useCallback(() => modalRef.current?.snapToIndex(1), []);
   const handleEdit = useMemo(
     () => (isOwner ? () => router.push('/(auth)/pro/edit') : undefined),
     [isOwner, router],
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
+    <BottomSheetModal
+      ref={modalRef}
       index={0}
-      animateOnMount
       snapPoints={snapPoints}
       topInset={insets.top}
       enablePanDownToClose
       enableDynamicSizing={false}
-      onClose={onClose}
+      onDismiss={onClose}
       backgroundStyle={styles.bg}
       handleComponent={renderHandle}
     >
@@ -117,7 +125,7 @@ export function ProSheet({ userId, onClose }: Props) {
           <LogoSpinner size={40} />
         </View>
       )}
-    </BottomSheet>
+    </BottomSheetModal>
   );
 }
 
