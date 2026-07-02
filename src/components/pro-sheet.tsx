@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, Dimensions, type LayoutChangeEvent } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -50,15 +50,44 @@ export function ProSheet({ userId, onClose }: Props) {
 
   const isOwner = !!pro && session?.user?.id === pro.user_id;
 
+  // Freeze both measurements at their first non-zero value. onLayout can fire
+  // repeatedly (the header grows as async data — rating row, owner avatar —
+  // lands), and every change to snapPoints re-seeds gorhom's gesture math: the
+  // source of the intermittent "stuck at the first snap, won't drag or scroll"
+  // desync. `prev || …` makes each a one-shot — once set, React bails on the
+  // identical value, the sheet subtree stops re-rendering, and the gesture
+  // stays stable. handleH is constant anyway (fixed grabber).
+  const onHandleLayout = useCallback((e: LayoutChangeEvent) => {
+    const h = Math.round(e.nativeEvent.layout.height);
+    setHandleH((prev) => prev || h);
+  }, []);
+  const onHeaderMeasured = useCallback((h: number) => {
+    setHeaderH((prev) => prev || Math.round(h));
+  }, []);
+
   // First snap = handle + header (through the divider), in px, so the collapsed
   // peek stops right below the action buttons. Falls back to a close estimate
-  // until both are measured (avoids a visible settle on open).
+  // until both are measured once (avoids a visible settle on open).
   const snapPoints = useMemo<(string | number)[]>(() => {
     const first = headerH > 0 && handleH > 0
-      ? Math.round(headerH + handleH)
+      ? headerH + handleH
       : Math.round(SCREEN_H * 0.34);
     return [first, '98%'];
   }, [headerH, handleH]);
+
+  // Stable identities so gorhom never remounts the handle (a remount re-fires
+  // onLayout and disturbs the pan gesture) and ProDetail doesn't churn.
+  const renderHandle = useCallback(() => (
+    <View style={styles.handle} onLayout={onHandleLayout}>
+      <View style={styles.grabber} />
+    </View>
+  ), [styles, onHandleLayout]);
+  const handleClose = useCallback(() => sheetRef.current?.close(), []);
+  const handleExpand = useCallback(() => sheetRef.current?.snapToIndex(1), []);
+  const handleEdit = useMemo(
+    () => (isOwner ? () => router.push('/(auth)/pro/edit') : undefined),
+    [isOwner, router],
+  );
 
   return (
     <BottomSheet
@@ -71,21 +100,17 @@ export function ProSheet({ userId, onClose }: Props) {
       enableDynamicSizing={false}
       onClose={onClose}
       backgroundStyle={styles.bg}
-      handleComponent={() => (
-        <View style={styles.handle} onLayout={(e) => setHandleH(e.nativeEvent.layout.height)}>
-          <View style={styles.grabber} />
-        </View>
-      )}
+      handleComponent={renderHandle}
     >
       {pro ? (
         <ProDetail
           pro={pro}
           isOwner={isOwner}
-          onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
+          onEdit={handleEdit}
           inSheet
-          onClose={() => sheetRef.current?.close()}
-          onExpand={() => sheetRef.current?.snapToIndex(1)}
-          onHeaderMeasured={setHeaderH}
+          onClose={handleClose}
+          onExpand={handleExpand}
+          onHeaderMeasured={onHeaderMeasured}
         />
       ) : (
         <View style={styles.loading}>
