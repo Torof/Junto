@@ -1,20 +1,25 @@
 import { useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Flag, Pencil, Trash2, CornerUpLeft } from 'lucide-react-native';
+import { Flag, Pencil, Trash2, CornerUpLeft, ImagePlus, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reviewService, type Review } from '@/services/review-service';
+import { proCommunityPhotoService } from '@/services/pro-photo-service';
+import { pickAndUploadRawPhotos } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
 import { StarRating, StarPicker } from './star-rating';
 import { ReportModal } from './report-modal';
+
+const REVIEW_PHOTO_MAX = 5;
 
 interface ReviewSectionProps {
   targetType: 'pro' | 'offering';
@@ -41,6 +46,10 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
   const [replyTarget, setReplyTarget] = useState<Review | null>(null);
   const [draftReply, setDraftReply] = useState('');
   const [reportTargetId, setReportTargetId] = useState<string | null>(null);
+  // Community photos attached in the composer this session (uploaded to storage,
+  // linked to the review on submit). Pro pages only.
+  const [draftPhotos, setDraftPhotos] = useState<string[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(false);
   // Lifts the bottom sheets above the IME while typing (flush at rest).
   const imePadding = useKeyboardDockPadding(0);
 
@@ -56,7 +65,25 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
       targetType === 'pro' ? reviewService.getProStats(targetId) : reviewService.getOfferingStats(targetId),
   });
 
+  // Community photos on this pro (only pro pages have them), grouped by the
+  // review they were posted with so each review renders its own thumbnails.
+  const { data: communityPhotos = [] } = useQuery({
+    queryKey: ['community-photos', targetId],
+    queryFn: () => proCommunityPhotoService.listByPro(targetId),
+    enabled: targetType === 'pro',
+  });
+  const photosByReview = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const p of communityPhotos) {
+      if (!p.review_id) continue;
+      m.set(p.review_id, [...(m.get(p.review_id) ?? []), p.photo_url]);
+    }
+    return m;
+  }, [communityPhotos]);
+
   const ownReview = currentUserId ? reviews.find((r) => r.reviewer_id === currentUserId) ?? null : null;
+  const ownExistingPhotos = ownReview ? (photosByReview.get(ownReview.id) ?? []).length : 0;
+  const photoSlotsLeft = REVIEW_PHOTO_MAX - ownExistingPhotos - draftPhotos.length;
 
   // Star distribution for the summary bars — counts[0] = 1★ … counts[4] = 5★,
   // computed from the loaded reviews (the headline avg + total come from stats).
@@ -77,7 +104,21 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
   const openComposer = () => {
     setDraftRating(ownReview?.rating ?? 0);
     setDraftBody(ownReview?.body ?? '');
+    setDraftPhotos([]);
     setComposerOpen(true);
+  };
+
+  const handleAddPhotos = async () => {
+    if (targetType !== 'pro' || photoSlotsLeft <= 0) return;
+    setPhotoBusy(true);
+    try {
+      const urls = await pickAndUploadRawPhotos(targetId, photoSlotsLeft);
+      if (urls.length > 0) setDraftPhotos((prev) => [...prev, ...urls]);
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setPhotoBusy(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -88,12 +129,19 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
     setIsSubmitting(true);
     const body = draftBody.trim().length > 0 ? draftBody.trim() : null;
     try {
+      let reviewId = ownReview?.id ?? null;
       if (ownReview) {
         if (targetType === 'pro') await reviewService.updateForPro(ownReview.id, draftRating, body);
         else await reviewService.updateForOffering(ownReview.id, draftRating, body);
+      } else if (targetType === 'pro') {
+        reviewId = await reviewService.createForPro(targetId, draftRating, body);
       } else {
-        if (targetType === 'pro') await reviewService.createForPro(targetId, draftRating, body);
-        else await reviewService.createForOffering(targetId, draftRating, body);
+        await reviewService.createForOffering(targetId, draftRating, body);
+      }
+      // Link the freshly-uploaded photos to the review (pro pages only).
+      if (targetType === 'pro' && reviewId && draftPhotos.length > 0) {
+        for (const url of draftPhotos) await proCommunityPhotoService.add(targetId, url, reviewId);
+        await queryClient.invalidateQueries({ queryKey: ['community-photos', targetId] });
       }
       await invalidate();
       setComposerOpen(false);
@@ -231,6 +279,14 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
 
             {review.body && <Text style={styles.reviewBody}>{review.body}</Text>}
 
+            {targetType === 'pro' && (photosByReview.get(review.id) ?? []).length > 0 && (
+              <View style={styles.reviewPhotos}>
+                {(photosByReview.get(review.id) ?? []).map((url) => (
+                  <Image key={url} source={url} style={styles.reviewPhoto} contentFit="cover" />
+                ))}
+              </View>
+            )}
+
             {review.pro_reply && (
               <View style={styles.replyBlock}>
                 <Text style={styles.replyLabel}>
@@ -263,6 +319,27 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
               multiline
               maxLength={1000}
             />
+            {targetType === 'pro' && (
+              <View style={styles.photoRow}>
+                {draftPhotos.map((url) => (
+                  <View key={url} style={styles.photoThumbWrap}>
+                    <Image source={url} style={styles.photoThumb} contentFit="cover" />
+                    <Pressable
+                      style={styles.photoRemove}
+                      onPress={() => setDraftPhotos((p) => p.filter((u) => u !== url))}
+                      hitSlop={6}
+                    >
+                      <X size={11} color={colors.background} strokeWidth={3} />
+                    </Pressable>
+                  </View>
+                ))}
+                {photoSlotsLeft > 0 && (
+                  <Pressable style={styles.photoAdd} onPress={handleAddPhotos} disabled={photoBusy}>
+                    <ImagePlus size={22} color={colors.cta} strokeWidth={2} />
+                  </Pressable>
+                )}
+              </View>
+            )}
             <View style={styles.sheetButtons}>
               <Pressable style={styles.cancelButton} onPress={() => setComposerOpen(false)}>
                 <Text style={styles.cancelButtonText}>{t('reviews.cancel')}</Text>
@@ -391,6 +468,32 @@ const createStyles = (colors: AppColors) =>
     reviewDate: { color: colors.textMuted, fontSize: fontSizes.xs },
     actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     reviewBody: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
+    reviewPhotos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    reviewPhoto: { width: 76, height: 76, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
+    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, alignItems: 'center' },
+    photoThumbWrap: { position: 'relative' },
+    photoThumb: { width: 60, height: 60, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
+    photoRemove: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.textPrimary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    photoAdd: {
+      width: 60,
+      height: 60,
+      borderRadius: radius.sm,
+      borderWidth: 1.5,
+      borderColor: colors.cta,
+      borderStyle: 'dashed',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     replyBlock: {
       borderLeftWidth: 2,
       borderLeftColor: colors.cta,

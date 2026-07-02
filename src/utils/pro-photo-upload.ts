@@ -149,6 +149,32 @@ export async function pickAndUploadCommunityPhotos(
   return outcomes;
 }
 
+// Pick + upload to storage only (no DB insert) — returns the public URLs.
+// The review composer uses this so photos can be previewed before the review
+// exists, then linked to it (via add_pro_community_photo) on submit.
+export async function pickAndUploadRawPhotos(
+  proId: string,
+  remainingSlots: number,
+): Promise<string[]> {
+  if (remainingSlots <= 0) return [];
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsMultipleSelection: true,
+    selectionLimit: remainingSlots,
+    quality: 0.85,
+  });
+
+  if (result.canceled || result.assets.length === 0) return [];
+
+  const urls: string[] = [];
+  for (let i = 0; i < result.assets.length; i++) {
+    const asset = result.assets[i]!;
+    urls.push(await uploadAsset(asset, `community/${proId}`, `${Date.now()}-${i}`));
+  }
+  return urls;
+}
+
 // Remove RPCs are wrapped here too so callers don't reach across files
 // for a single related action — keeps the gallery API surface one import.
 export async function removeProPhoto(photoId: string): Promise<void> {
