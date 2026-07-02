@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ComponentRef } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,9 +57,6 @@ const PHOTO_H = 168;
 const PHOTO_GAP = 6;
 const PHOTO_SMALL = (PHOTO_H - PHOTO_GAP) / 2;
 const PHOTO_MAX_COLUMNS = 5;
-// Carousel band height (photos + its vertical padding) — used to compute how
-// far to scroll so a tapped tab pins the tab bar to the top.
-const CAROUSEL_H = PHOTO_H + spacing.sm * 2;
 // Stable array identity — a fresh [2] each render makes the (BottomSheet)
 // ScrollView reconfigure its sticky header, which can disrupt scrolling.
 const STICKY_HEADER_INDICES = [2];
@@ -89,17 +86,14 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
 }
 
 export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured }: Props) {
-  // Selecting a tab expands the sheet to full height AND scrolls the header +
-  // carousel away so the tab bar pins to the top (Google place-sheet). The
-  // scroll target is the height of everything above the (sticky) tab bar.
+  // Selecting a tab just expands the sheet to full height (Google place-sheet).
+  // We deliberately do NOT imperatively scrollTo the sheet's BottomSheetScrollView
+  // to pin the tab bar — that sets the native offset without updating gorhom's
+  // internal offset shared value, which desyncs its drag/scroll lock and wedges
+  // scrolling after the first interaction.
   const selectTab = (tab: ProTab) => {
     setActiveTab(tab);
     onExpand?.();
-    if (inSheet) {
-      const carousel = photos.length > 0 && tab !== 'pictures' ? CAROUSEL_H : 0;
-      const target = headerH + carousel;
-      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: target, animated: true }));
-    }
   };
   const { t } = useTranslation();
   const colors = useColors();
@@ -108,10 +102,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const scrollRef = useRef<ComponentRef<typeof BottomSheetScrollView>>(null);
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<ProTab>('info');
-  const [headerH, setHeaderH] = useState(0);
   const [showFullMap, setShowFullMap] = useState(false);
 
   const { data: offerings = [] } = useQuery({
@@ -210,14 +202,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const headerNode = (
       <View
         style={styles.sheetHeader}
-        onLayout={(e) => {
-          // Freeze at the first non-zero measure (prev || h) — repeated header
-          // layouts (async rating row / avatar) would otherwise re-render
-          // ProDetail mid-interaction and can wedge the sheet's scroll handler.
-          const h = Math.round(e.nativeEvent.layout.height);
-          setHeaderH((prev) => prev || h);
-          onHeaderMeasured?.(h);
-        }}
+        onLayout={(e) => onHeaderMeasured?.(Math.round(e.nativeEvent.layout.height))}
       >
         {onClose ? (
           <View style={styles.topBar}>
@@ -580,7 +565,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     return (
       <View style={styles.container}>
         <BottomSheetScrollView
-          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={STICKY_HEADER_INDICES}
           showsVerticalScrollIndicator={false}
