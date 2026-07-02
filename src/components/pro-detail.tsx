@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
@@ -232,7 +232,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             {reviewStats && reviewStats.review_count > 0 ? (
               <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
                 <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                <Text style={styles.heroStar}>⭐</Text>
+                <Star size={13} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
                 <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
               </Pressable>
             ) : null}
@@ -363,16 +363,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           <View style={styles.paddedSection}>
             {/* ===== AVIS — carousel + actions ===== */}
             <View style={styles.overviewBlock}>
-              <View style={styles.overviewHeader}>
-                <Text style={styles.sectionTitle}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
-                {reviewStats && reviewStats.review_count > 0 ? (
-                  <View style={styles.reviewSummary}>
-                    <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                    <Text style={styles.heroStar}>⭐</Text>
-                    <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
-                  </View>
-                ) : null}
-              </View>
+              <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+              {reviewStats && reviewStats.review_count > 0 ? (
+                <View style={styles.reviewSummary}>
+                  <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                  <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                  <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
+                </View>
+              ) : null}
 
               {reviews.length > 0 ? (
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewCarousel}>
@@ -429,13 +427,27 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               ) : null}
 
               <View style={styles.aboutList}>
-                {aboutItems.map((item, i) => (
-                  <Pressable key={i} onPress={item.onPress} hitSlop={2} style={styles.aboutListRow}>
-                    <View style={styles.aboutRowIcon}>{item.icon}</View>
-                    <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
-                    {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
-                  </Pressable>
-                ))}
+                {aboutItems.map((item, i) => {
+                  const isFirst = i === 0;
+                  const isLast = i === aboutItems.length - 1;
+                  return (
+                    <Pressable
+                      key={i}
+                      onPress={item.onPress}
+                      hitSlop={2}
+                      style={[
+                        styles.aboutListRow,
+                        isFirst && styles.aboutListTop,
+                        isLast && styles.aboutListBottom,
+                        !isFirst && styles.aboutListDivider,
+                      ]}
+                    >
+                      <View style={styles.aboutRowIcon}>{item.icon}</View>
+                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                      {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
           </View>
@@ -717,18 +729,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  // Each contact is its own rounded card with a gap between — reads as
-  // distinct tappable rows rather than one fused list.
-  aboutList: { marginTop: spacing.xs, gap: spacing.sm },
+  // Grouped list — one fused card: first row rounds the top, last rounds the
+  // bottom, the rest are square, hairline dividers between. Tight vertical
+  // padding keeps the contacts compact.
+  aboutList: { marginTop: spacing.xs },
   aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.md,
   },
+  aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
+  aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
+  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
@@ -852,7 +867,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
-  heroStar: { fontSize: 12 },
   tagline: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,
