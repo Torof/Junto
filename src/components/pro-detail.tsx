@@ -60,6 +60,9 @@ const PHOTO_MAX_COLUMNS = 5;
 // Carousel band height (photos + its vertical padding) — used to compute how
 // far to scroll so a tapped tab pins the tab bar to the top.
 const CAROUSEL_H = PHOTO_H + spacing.sm * 2;
+// Stable array identity — a fresh [2] each render makes the (BottomSheet)
+// ScrollView reconfigure its sticky header, which can disrupt scrolling.
+const STICKY_HEADER_INDICES = [2];
 // The tab content is forced to at least this tall so the outer scroll always
 // has enough range to slide the header/carousel off and pin the tabs to the
 // top (Google collapsing-header). Short tabs just get trailing empty space.
@@ -208,8 +211,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       <View
         style={styles.sheetHeader}
         onLayout={(e) => {
-          const h = e.nativeEvent.layout.height;
-          setHeaderH(h);
+          // Freeze at the first non-zero measure (prev || h) — repeated header
+          // layouts (async rating row / avatar) would otherwise re-render
+          // ProDetail mid-interaction and can wedge the sheet's scroll handler.
+          const h = Math.round(e.nativeEvent.layout.height);
+          setHeaderH((prev) => prev || h);
           onHeaderMeasured?.(h);
         }}
       >
@@ -576,7 +582,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         <BottomSheetScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
-          stickyHeaderIndices={[2]}
+          stickyHeaderIndices={STICKY_HEADER_INDICES}
           showsVerticalScrollIndicator={false}
         >
           {headerNode}
@@ -594,7 +600,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
-        stickyHeaderIndices={[2]}
+        stickyHeaderIndices={STICKY_HEADER_INDICES}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
       >
