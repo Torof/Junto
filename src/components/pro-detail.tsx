@@ -261,7 +261,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </View>
         </View>
         {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionRow}>
+        <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionRow}>
           <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
           {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
           {pro.website ? <ActionButton icon={<Globe size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.websiteShort', { defaultValue: 'Site web' })} onPress={openWebsite} styles={styles} /> : null}
@@ -269,7 +269,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           {pro.instagram ? <ActionButton icon={<Instagram size={18} color={colors.cta} strokeWidth={2.4} />} label="Instagram" onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} styles={styles} /> : null}
           {pro.facebook ? <ActionButton icon={<Facebook size={18} color={colors.cta} strokeWidth={2.4} />} label="Facebook" onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} styles={styles} /> : null}
           {pro.email ? <ActionButton icon={<Mail size={18} color={colors.cta} strokeWidth={2.4} />} label="Email" onPress={() => Linking.openURL(`mailto:${pro.email}`)} styles={styles} /> : null}
-        </ScrollView>
+        </GHScrollView>
       </View>
   );
 
@@ -320,7 +320,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // visible); on the page it's sticky (pins to the top when the header scrolls).
   const tabBarNode = (
       <View style={styles.tabBarSticky}>
-      <ScrollView
+      <GHScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.tabBarScroll}
@@ -349,7 +349,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             </Pressable>
           );
         })}
-      </ScrollView>
+      </GHScrollView>
       </View>
   );
 
@@ -376,7 +376,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               </View>
 
               {reviews.length > 0 ? (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewCarousel}>
+                <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewCarousel}>
                   {reviews.slice(0, 8).map((r) => (
                     <View key={r.id} style={styles.reviewMini}>
                       <View style={styles.reviewMiniHead}>
@@ -390,7 +390,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                       {r.body ? <Text style={styles.reviewMiniBody} numberOfLines={5}>{r.body}</Text> : null}
                     </View>
                   ))}
-                </ScrollView>
+                </GHScrollView>
               ) : (
                 <Text style={styles.placeholderText}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</Text>
               )}
