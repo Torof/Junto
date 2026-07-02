@@ -498,7 +498,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                         styles.aboutListRow,
                         isFirst && styles.aboutListTop,
                         isLast && styles.aboutListBottom,
-                        !isFirst && styles.aboutListDivider,
                       ]}
                     >
                       <View style={styles.aboutRowIcon}>{item.icon}</View>
@@ -833,10 +832,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  // One fused card: only the first row's TOP corners and the last row's BOTTOM
-  // corners are rounded; the rest are square, hairline dividers between. The
-  // per-row vertical padding is the "little padding between each".
-  aboutList: { marginTop: spacing.xs },
+  // Separate rows with a small gap between them. Corners square EXCEPT the
+  // first row's top corners and the last row's bottom corners.
+  aboutList: { marginTop: spacing.xs, gap: spacing.xs },
   aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -847,7 +845,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
   aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
-  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
