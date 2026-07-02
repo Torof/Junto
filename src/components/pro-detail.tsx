@@ -486,13 +486,27 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               ) : null}
 
               <View style={styles.aboutList}>
-                {aboutItems.map((item, i) => (
-                  <Pressable key={i} onPress={item.onPress} hitSlop={2} style={styles.aboutListRow}>
-                    <View style={styles.aboutRowIcon}>{item.icon}</View>
-                    <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
-                    {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
-                  </Pressable>
-                ))}
+                {aboutItems.map((item, i) => {
+                  const isFirst = i === 0;
+                  const isLast = i === aboutItems.length - 1;
+                  return (
+                    <Pressable
+                      key={i}
+                      onPress={item.onPress}
+                      hitSlop={2}
+                      style={[
+                        styles.aboutListRow,
+                        isFirst && styles.aboutListTop,
+                        isLast && styles.aboutListBottom,
+                        !isFirst && styles.aboutListDivider,
+                      ]}
+                    >
+                      <View style={styles.aboutRowIcon}>{item.icon}</View>
+                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                      {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
           </View>
@@ -819,9 +833,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  // Separate rounded rows with a small gap between them — distinct contacts,
-  // compact but not fused.
-  aboutList: { marginTop: spacing.xs, gap: spacing.xs },
+  // One fused card: only the first row's TOP corners and the last row's BOTTOM
+  // corners are rounded; the rest are square, hairline dividers between. The
+  // per-row vertical padding is the "little padding between each".
+  aboutList: { marginTop: spacing.xs },
   aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -829,8 +844,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.md,
   },
+  aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
+  aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
+  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
