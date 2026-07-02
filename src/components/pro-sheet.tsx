@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, type LayoutChangeEvent } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
@@ -41,6 +42,9 @@ export function ProSheet({ userId, onClose }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const modalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
+  // The modal renders in a root portal (over the tab navigator), so lift its
+  // bottom edge above the bottom tab bar to keep the bar visible + tappable.
+  const tabBarHeight = useBottomTabBarHeight();
   const router = useRouter();
   const { session } = useAuth();
   const [headerH, setHeaderH] = useState(0);
@@ -104,6 +108,7 @@ export function ProSheet({ userId, onClose }: Props) {
       index={0}
       snapPoints={snapPoints}
       topInset={insets.top}
+      bottomInset={tabBarHeight}
       enablePanDownToClose
       enableDynamicSizing={false}
       onDismiss={onClose}
