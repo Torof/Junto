@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, Camera } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
@@ -16,14 +16,14 @@ import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
 import { proOfferingService } from '@/services/pro-offering-service';
-import { proPhotoService } from '@/services/pro-photo-service';
+import { proPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 import { userService } from '@/services/user-service';
 import { useProPhotos } from '@/hooks/use-pro-photos';
 import { useAuth } from '@/hooks/use-auth';
 import { reviewService } from '@/services/review-service';
 import { ReviewSection } from './review-section';
 import { StarRating } from './star-rating';
-import { pickAndUploadProPhotos, removeProPhoto } from '@/utils/pro-photo-upload';
+import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { getSportIcon } from '@/constants/sport-icons';
 import { JuntoMapView } from './map-view';
@@ -124,6 +124,64 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   });
 
   const { data: photos = [] } = useProPhotos(pro.user_id);
+
+  // Community photos — anyone's contributions (incl. those posted with a
+  // review). Shown in the carousel + Photos tab alongside the owner's gallery.
+  const { data: communityPhotos = [] } = useQuery({
+    queryKey: ['community-photos', pro.user_id],
+    queryFn: () => proCommunityPhotoService.listByPro(pro.user_id),
+  });
+  const currentUserId = session?.user?.id ?? null;
+  const myCommunityCount = communityPhotos.filter((c) => c.contributor_id === currentUserId).length;
+  // Merged display list for the carousel — owner gallery first, community after.
+  const galleryPhotos = useMemo(
+    () => [...photos, ...communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url }))],
+    [photos, communityPhotos],
+  );
+
+  const invalidateCommunity = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['community-photos', pro.user_id] });
+  };
+
+  const handleCommunityAdd = async () => {
+    const remaining = 5 - myCommunityCount;
+    if (remaining <= 0) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), t('errors.code.photo_limit', { defaultValue: 'Limite de 5 photos atteinte.' }));
+      return;
+    }
+    try {
+      await pickAndUploadCommunityPhotos(pro.user_id, remaining);
+      await invalidateCommunity();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  const handleCommunityRemove = async (photoId: string) => {
+    try {
+      await removeProCommunityPhoto(photoId);
+      await invalidateCommunity();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+
+  // Community contributions grid — everyone sees; the owner (moderation) and the
+  // contributor (their own) get a delete control on each.
+  const renderCommunityGrid = () => (
+    <View style={styles.communityGrid}>
+      {communityPhotos.map((p) => (
+        <View key={p.id} style={styles.communityThumbWrap}>
+          <Image source={{ uri: p.photo_url }} style={styles.communityThumb} contentFit="cover" />
+          {isOwner || p.contributor_id === currentUserId ? (
+            <Pressable style={styles.communityDelete} onPress={() => handleCommunityRemove(p.id)} hitSlop={6}>
+              <X size={12} color={colors.background} strokeWidth={3} />
+            </Pressable>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
 
   const { data: reviews = [] } = useQuery({
     queryKey: ['reviews', 'pro', pro.user_id],
@@ -273,14 +331,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // GHScrollView so it scrolls horizontally inside the sheet drag gesture.
   const carouselNode = (
       <View>
-      {activeTab !== 'pictures' && photos.length > 0 && (
+      {activeTab !== 'pictures' && galleryPhotos.length > 0 && (
         <GHScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.headerPhotos}
           contentContainerStyle={styles.photoRow}
         >
-          {buildPhotoColumns(photos, PHOTO_MAX_COLUMNS).map((col, ci) =>
+          {buildPhotoColumns(galleryPhotos, PHOTO_MAX_COLUMNS).map((col, ci) =>
             col.kind === 'big' ? (
               <Pressable key={ci} onPress={() => setActiveTab('pictures')}>
                 <Image source={{ uri: col.items[0]!.photo_url }} style={styles.photoBig} contentFit="cover" />
@@ -300,12 +358,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               <LayoutGrid size={16} color={colors.cta} strokeWidth={2.4} />
               <Text style={styles.photoActionText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
             </Pressable>
-            {isOwner ? (
-              <Pressable onPress={handleGalleryAdd} style={[styles.photoSmall, styles.photoActionTile]}>
-                <ImagePlus size={16} color={colors.cta} strokeWidth={2.4} />
-                <Text style={styles.photoActionText}>{t('pro.addPhoto', { defaultValue: 'Ajouter' })}</Text>
-              </Pressable>
-            ) : null}
+            <Pressable onPress={handleCommunityAdd} style={[styles.photoSmall, styles.photoActionTile]}>
+              <View style={styles.addPhotoIconRow}>
+                <Camera size={16} color={colors.cta} strokeWidth={2.4} />
+                <Plus size={12} color={colors.cta} strokeWidth={3} />
+              </View>
+              <Text style={styles.photoActionText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+            </Pressable>
           </View>
         </GHScrollView>
       )}
@@ -427,27 +486,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               ) : null}
 
               <View style={styles.aboutList}>
-                {aboutItems.map((item, i) => {
-                  const isFirst = i === 0;
-                  const isLast = i === aboutItems.length - 1;
-                  return (
-                    <Pressable
-                      key={i}
-                      onPress={item.onPress}
-                      hitSlop={2}
-                      style={[
-                        styles.aboutListRow,
-                        isFirst && styles.aboutListTop,
-                        isLast && styles.aboutListBottom,
-                        !isFirst && styles.aboutListDivider,
-                      ]}
-                    >
-                      <View style={styles.aboutRowIcon}>{item.icon}</View>
-                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
-                      {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
-                    </Pressable>
-                  );
-                })}
+                {aboutItems.map((item, i) => (
+                  <Pressable key={i} onPress={item.onPress} hitSlop={2} style={styles.aboutListRow}>
+                    <View style={styles.aboutRowIcon}>{item.icon}</View>
+                    <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                    {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+                  </Pressable>
+                ))}
               </View>
             </View>
           </View>
@@ -461,6 +506,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         <View style={styles.content}>
           {isOwner ? (
             <View style={styles.galleryWrap}>
+              <Pressable style={styles.addPhotoChip} onPress={handleCommunityAdd}>
+                <View style={styles.addPhotoIconRow}>
+                  <Camera size={16} color={colors.cta} strokeWidth={2.4} />
+                  <Plus size={12} color={colors.cta} strokeWidth={3} />
+                </View>
+                <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+              </Pressable>
               <PhotoManager
                 photos={photos}
                 maxCount={GALLERY_MAX}
@@ -468,13 +520,22 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 onRemove={handleGalleryRemove}
                 onReorder={handleGalleryReorder}
               />
+              {communityPhotos.length > 0 ? renderCommunityGrid() : null}
             </View>
           ) : (
             <View style={styles.galleryWrap}>
-              <PhotoGallery
-                photos={photos}
-                emptyText={t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
-              />
+              <Pressable style={styles.addPhotoChip} onPress={handleCommunityAdd}>
+                <View style={styles.addPhotoIconRow}>
+                  <Camera size={16} color={colors.cta} strokeWidth={2.4} />
+                  <Plus size={12} color={colors.cta} strokeWidth={3} />
+                </View>
+                <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+              </Pressable>
+              {photos.length > 0 ? <PhotoGallery photos={photos} emptyText="" /> : null}
+              {communityPhotos.length > 0 ? renderCommunityGrid() : null}
+              {photos.length === 0 && communityPhotos.length === 0 ? (
+                <Text style={styles.placeholderText}>{t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}</Text>
+              ) : null}
             </View>
           )}
         </View>
@@ -704,7 +765,36 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   photoBig: { width: PHOTO_H, height: PHOTO_H, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   photoSmall: { width: PHOTO_SMALL, height: PHOTO_SMALL, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   photoActionTile: { alignItems: 'center', justifyContent: 'center', gap: 3, borderWidth: 1, borderColor: colors.borderMuted },
-  photoActionText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
+  photoActionText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', textAlign: 'center' },
+  addPhotoIconRow: { flexDirection: 'row', alignItems: 'center', gap: 1 },
+  // "Ajouter des photos" chip at the top of the Photos tab — anyone can add.
+  addPhotoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    borderColor: colors.cta,
+    marginBottom: spacing.md,
+  },
+  addPhotoChipText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  communityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: PHOTO_GAP, marginTop: spacing.md },
+  communityThumbWrap: { position: 'relative' },
+  communityThumb: { width: 104, height: 104, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  communityDelete: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
@@ -729,10 +819,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  // Grouped list — one fused card: first row rounds the top, last rounds the
-  // bottom, the rest are square, hairline dividers between. Tight vertical
-  // padding keeps the contacts compact.
-  aboutList: { marginTop: spacing.xs },
+  // Separate rounded rows with a small gap between them — distinct contacts,
+  // compact but not fused.
+  aboutList: { marginTop: spacing.xs, gap: spacing.xs },
   aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -740,10 +829,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
   },
-  aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
-  aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
-  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
