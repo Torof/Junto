@@ -58,6 +58,17 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
 
   const ownReview = currentUserId ? reviews.find((r) => r.reviewer_id === currentUserId) ?? null : null;
 
+  // Star distribution for the summary bars — counts[0] = 1★ … counts[4] = 5★,
+  // computed from the loaded reviews (the headline avg + total come from stats).
+  const dist = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    for (const r of reviews) {
+      const idx = Math.min(5, Math.max(1, Math.round(r.rating))) - 1;
+      counts[idx] = (counts[idx] ?? 0) + 1;
+    }
+    return counts;
+  }, [reviews]);
+
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ['reviews', targetType, targetId] });
     await queryClient.invalidateQueries({ queryKey: ['review-stats', targetType, targetId] });
@@ -137,14 +148,27 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
 
   return (
     <View style={styles.wrap}>
-      {/* Header — aggregate + CTA */}
+      {/* Header — aggregate summary (avg + stars + voters) with per-star bars */}
       {stats && stats.review_count > 0 && (
-        <View style={styles.statsRow}>
-          <Text style={styles.statsAvg}>{Number(stats.avg_rating).toFixed(1)}</Text>
-          <StarRating rating={Number(stats.avg_rating)} size={16} />
-          <Text style={styles.statsCount}>
-            {t('reviews.count', { count: stats.review_count })}
-          </Text>
+        <View style={styles.summary}>
+          <View style={styles.summaryLeft}>
+            <Text style={styles.summaryAvg}>{Number(stats.avg_rating).toFixed(1)}</Text>
+            <StarRating rating={Number(stats.avg_rating)} size={15} />
+            <Text style={styles.summaryCount}>{t('reviews.count', { count: stats.review_count })}</Text>
+          </View>
+          <View style={styles.summaryBars}>
+            {[5, 4, 3, 2, 1].map((star) => {
+              const pct = reviews.length > 0 ? (dist[star - 1] ?? 0) / reviews.length : 0;
+              return (
+                <View key={star} style={styles.barRow}>
+                  <Text style={styles.barStar}>{star}</Text>
+                  <View style={styles.barTrack}>
+                    <View style={[styles.barFill, { width: `${Math.round(pct * 100)}%` }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </View>
       )}
 
@@ -318,6 +342,23 @@ const createStyles = (colors: AppColors) =>
     statsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     statsAvg: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700' },
     statsCount: { color: colors.textSecondary, fontSize: fontSizes.sm },
+    // Google-style rating summary: big average + stars + voters on the left,
+    // per-star proportion bars on the right.
+    summary: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.lg,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.sm,
+    },
+    summaryLeft: { alignItems: 'center', gap: 3, minWidth: 92 },
+    summaryAvg: { color: colors.textPrimary, fontSize: 40, fontWeight: '800', lineHeight: 44 },
+    summaryCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
+    summaryBars: { flex: 1, gap: 4, justifyContent: 'center' },
+    barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    barStar: { color: colors.textSecondary, fontSize: fontSizes.xs, width: 10, textAlign: 'center' },
+    barTrack: { flex: 1, height: 7, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
+    barFill: { height: '100%', borderRadius: 4, backgroundColor: colors.cta },
     ctaButton: {
       borderWidth: 1,
       borderColor: colors.cta,
