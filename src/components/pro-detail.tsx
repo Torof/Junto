@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, Camera } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, Camera, Calendar } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
@@ -26,6 +26,7 @@ import { StarRating } from './star-rating';
 import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { getSportIcon } from '@/constants/sport-icons';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 import { JuntoMapView } from './map-view';
 import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
@@ -580,28 +581,63 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 </Text>
               </View>
             ) : (
-              offerings.map((o) => (
-                <Pressable
-                  key={o.id}
-                  style={styles.catalogCard}
-                  onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
-                >
-                  {o.image_url ? (
-                    <Image source={{ uri: o.image_url }} style={styles.catalogCardImage} contentFit="cover" />
-                  ) : (
-                    <View style={[styles.catalogCardImage, styles.catalogCardPlaceholder]}>
-                      <Text style={styles.catalogCardEmoji}>{getSportIcon(o.sport_key)}</Text>
-                    </View>
-                  )}
-                  <View style={styles.catalogCardBody}>
-                    <Text style={styles.catalogCardTitle} numberOfLines={1}>{o.title}</Text>
-                    <Text style={styles.catalogCardLocation} numberOfLines={1}>{o.location_name}</Text>
-                    {o.schedule_text && (
-                      <Text style={styles.catalogCardSchedule} numberOfLines={1}>{o.schedule_text}</Text>
-                    )}
-                  </View>
-                </Pressable>
-              ))
+              <>
+                <Text style={styles.catalogIntro}>
+                  {t('pro.catalogIntro', { defaultValue: `Les sorties proposées par ${pro.display_name}` })}
+                </Text>
+                {offerings.map((o) => {
+                  const accent = sportCategoryColor(o.sport_category, colors.cta);
+                  const meta = [
+                    t(`sports.${o.sport_key}`, { defaultValue: o.sport_key }),
+                    o.level,
+                    o.duration,
+                    o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null,
+                  ].filter(Boolean).join(' · ');
+                  const stats = [
+                    o.distance_km != null ? `${o.distance_km} km` : null,
+                    o.elevation_gain_m != null ? `↑ ${o.elevation_gain_m} m` : null,
+                  ].filter(Boolean).join(' · ');
+                  const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
+                  return (
+                    <Pressable key={o.id} style={styles.expCard} onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}>
+                      <View style={styles.expImageWrap}>
+                        {o.image_url ? (
+                          <Image source={{ uri: o.image_url }} style={styles.expImage} contentFit="cover" />
+                        ) : (
+                          <View style={[styles.expImage, styles.expImageFallback, { backgroundColor: accent }]}>
+                            <Text style={styles.expFallbackEmoji}>{getSportIcon(o.sport_key)}</Text>
+                          </View>
+                        )}
+                        <View style={styles.expSportBadge}>
+                          <Text style={styles.expSportBadgeEmoji}>{getSportIcon(o.sport_key)}</Text>
+                        </View>
+                        {showRating ? (
+                          <View style={styles.expRating}>
+                            <Text style={styles.expRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
+                            <Star size={11} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.8} />
+                          </View>
+                        ) : null}
+                      </View>
+                      <View style={styles.expBody}>
+                        <Text style={styles.expTitle} numberOfLines={2}>{o.title}</Text>
+                        <Text style={[styles.expMeta, { color: accent }]} numberOfLines={1}>{meta}</Text>
+                        {stats ? <Text style={styles.expStats} numberOfLines={1}>{stats}</Text> : null}
+                        {o.schedule_text ? (
+                          <View style={styles.expLine}>
+                            <Calendar size={13} color={colors.textSecondary} strokeWidth={2} />
+                            <Text style={styles.expLineText} numberOfLines={1}>{o.schedule_text}</Text>
+                          </View>
+                        ) : null}
+                        <View style={styles.expLine}>
+                          <MapPin size={13} color={colors.textSecondary} strokeWidth={2} />
+                          <Text style={styles.expLineText} numberOfLines={1}>{o.location_name}</Text>
+                        </View>
+                        <Text style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail →' })}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </>
             )}
           </View>
         </View>
@@ -1040,22 +1076,55 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   catalogCreateText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
-  catalogCard: {
-    flexDirection: 'row',
+  // One-line intro under the tab so the catalogue reads at a glance.
+  catalogIntro: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.md },
+  // Photo-forward "experience card" — hero image + rating/sport overlays, then
+  // title + graceful meta lines + a see-detail affordance. Whole card taps
+  // through to the offering page.
+  expCard: {
     borderWidth: 1,
     borderColor: colors.borderMuted,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
     overflow: 'hidden',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
-  catalogCardImage: { width: 100, aspectRatio: 1, backgroundColor: colors.background },
-  catalogCardPlaceholder: { alignItems: 'center', justifyContent: 'center' },
-  catalogCardEmoji: { fontSize: 36 },
-  catalogCardBody: { flex: 1, padding: spacing.sm, justifyContent: 'center' },
-  catalogCardTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
-  catalogCardLocation: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
-  catalogCardSchedule: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 2 },
+  expImageWrap: { width: '100%', aspectRatio: 3 / 2, backgroundColor: colors.surfaceAlt },
+  expImage: { width: '100%', height: '100%' },
+  expImageFallback: { alignItems: 'center', justifyContent: 'center' },
+  expFallbackEmoji: { fontSize: 56 },
+  expSportBadge: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expSportBadgeEmoji: { fontSize: 18 },
+  expRating: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  expRatingText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  expBody: { padding: spacing.md, gap: 3 },
+  expTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', lineHeight: 24 },
+  expMeta: { fontSize: fontSizes.sm, fontWeight: '700' },
+  expStats: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
+  expLine: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
+  expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm },
+  expCta: { fontSize: fontSizes.sm, fontWeight: '800', marginTop: spacing.xs, alignSelf: 'flex-end' },
   mapContainer: {
     height: 180,
     borderRadius: radius.md,
