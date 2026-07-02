@@ -29,6 +29,9 @@ import { LogoSpinner } from './logo-spinner';
 // BottomSheetScrollView, so gorhom coordinates drag ↔ scroll. The first snap
 // sits at the header's divider (measured handle + header height).
 const SCREEN_H = Dimensions.get('window').height;
+// The collapsed peek stops a bit below the header divider so a sliver of the
+// photo carousel shows — a natural "there's more, scroll/drag up" cue.
+const PEEK_PHOTO_REVEAL = 48;
 
 interface Props {
   // The selected pro's user id, or null when nothing is selected. Always
@@ -81,11 +84,15 @@ export function ProSheet({ userId, onClose }: Props) {
   // First snap = handle + header (through the divider), in px, so the collapsed
   // peek stops right below the action buttons. Falls back to a close estimate
   // until both are measured once (avoids a visible settle on open).
+  // Top snap is '100%' (fills between topInset and the tab bar) rather than
+  // '98%' on purpose: at 100% the sheet reaches gorhom's FILL_PARENT state
+  // (animatedPosition === 0), the one scroll-unlock check that can't drift on a
+  // sub-pixel settle — so inner scroll is reliably enabled when expanded.
   const snapPoints = useMemo<(string | number)[]>(() => {
     const first = headerH > 0 && handleH > 0
-      ? headerH + handleH
-      : Math.round(SCREEN_H * 0.34);
-    return [first, '98%'];
+      ? headerH + handleH + PEEK_PHOTO_REVEAL
+      : Math.round(SCREEN_H * 0.4);
+    return [first, '100%'];
   }, [headerH, handleH]);
 
   // Stable identities so gorhom never remounts the handle (a remount re-fires

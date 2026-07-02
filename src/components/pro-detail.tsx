@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,7 +53,7 @@ interface Props {
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
-const PHOTO_H = 168;
+const PHOTO_H = 240;
 const PHOTO_GAP = 6;
 const PHOTO_SMALL = (PHOTO_H - PHOTO_GAP) / 2;
 const PHOTO_MAX_COLUMNS = 5;
@@ -64,6 +64,12 @@ const STICKY_HEADER_INDICES = [2];
 // has enough range to slide the header/carousel off and pin the tabs to the
 // top (Google collapsing-header). Short tabs just get trailing empty space.
 const MIN_TAB_CONTENT_H = Dimensions.get('window').height;
+
+// Display form of a URL — drops the protocol, a leading www., and any trailing
+// slash so the row reads "getjunto.app" instead of "https://www.getjunto.app/".
+function prettyUrl(url: string): string {
+  return url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/+$/, '');
+}
 
 type ColPhoto = { id: string; photo_url: string };
 // Google-Photos mixed grid: alternating columns — a 2-photo stack, then one
@@ -86,14 +92,17 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
 }
 
 export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured }: Props) {
-  // Selecting a tab just expands the sheet to full height (Google place-sheet).
-  // We deliberately do NOT imperatively scrollTo the sheet's BottomSheetScrollView
-  // to pin the tab bar — that sets the native offset without updating gorhom's
-  // internal offset shared value, which desyncs its drag/scroll lock and wedges
-  // scrolling after the first interaction.
+  // Selecting a tab expands the sheet to full height, then (once it settles at
+  // the '100%' top snap, where scroll is reliably unlocked) scrolls the header +
+  // carousel away so the tab bar pins to the top. tabBarTopRef holds the tab
+  // bar's y within the content (= header + carousel height, measured onLayout);
+  // the delay lets the expand animation finish before we scroll.
   const selectTab = (tab: ProTab) => {
     setActiveTab(tab);
     onExpand?.();
+    if (inSheet) {
+      setTimeout(() => scrollRef.current?.scrollTo({ y: tabBarTopRef.current, animated: true }), 320);
+    }
   };
   const { t } = useTranslation();
   const colors = useColors();
@@ -102,6 +111,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const scrollRef = useRef<ComponentRef<typeof BottomSheetScrollView>>(null);
+  const tabBarTopRef = useRef(0);
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<ProTab>('info');
   const [showFullMap, setShowFullMap] = useState(false);
@@ -191,7 +202,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     { icon: <MapPin size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.primary_location_name, onPress: openDirections },
     ...(pro.phone ? [{ icon: <Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.phone, onPress: () => Linking.openURL(`tel:${pro.phone}`) }] : []),
     ...(pro.phone ? [{ icon: <MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'WhatsApp', onPress: () => Linking.openURL(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`) }] : []),
-    ...(pro.website ? [{ icon: <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.website, onPress: openWebsite, external: true }] : []),
+    ...(pro.website ? [{ icon: <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: prettyUrl(pro.website), onPress: openWebsite, external: true }] : []),
     ...(pro.email ? [{ icon: <Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.email, onPress: () => Linking.openURL(`mailto:${pro.email}`) }] : []),
     ...(pro.instagram ? [{ icon: <Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Instagram', onPress: () => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`), external: true }] : []),
     ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
@@ -221,7 +232,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             {reviewStats && reviewStats.review_count > 0 ? (
               <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
                 <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                <Text style={styles.heroStar}>⭐</Text>
                 <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
               </Pressable>
             ) : null}
@@ -304,7 +315,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // 2 — tab bar. In the sheet it's the bottom of the drag handle (always
   // visible); on the page it's sticky (pins to the top when the header scrolls).
   const tabBarNode = (
-      <View style={styles.tabBarSticky}>
+      <View
+        style={styles.tabBarSticky}
+        onLayout={(e) => { tabBarTopRef.current = e.nativeEvent.layout.y; }}
+      >
       <GHScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -354,7 +368,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 {reviewStats && reviewStats.review_count > 0 ? (
                   <View style={styles.reviewSummary}>
                     <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                    <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
+                    <Text style={styles.heroStar}>⭐</Text>
                     <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
                   </View>
                 ) : null}
@@ -396,7 +410,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
 
             {/* ===== À PROPOS — flat (Google-style) ===== */}
             <View style={styles.aboutBlock}>
-              <Text style={styles.sectionTitle}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
+              <Text style={styles.sectionTitleStrong}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
               {pro.description ? (
                 <View style={styles.aboutDesc}>
                   <Text style={styles.descriptionBody}>
@@ -415,27 +429,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               ) : null}
 
               <View style={styles.aboutList}>
-                {aboutItems.map((item, i) => {
-                  const isFirst = i === 0;
-                  const isLast = i === aboutItems.length - 1;
-                  return (
-                    <Pressable
-                      key={i}
-                      onPress={item.onPress}
-                      hitSlop={2}
-                      style={[
-                        styles.aboutListRow,
-                        isFirst && styles.aboutListTop,
-                        isLast && styles.aboutListBottom,
-                        !isFirst && styles.aboutListDivider,
-                      ]}
-                    >
-                      <View style={styles.aboutRowIcon}>{item.icon}</View>
-                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
-                      {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
-                    </Pressable>
-                  );
-                })}
+                {aboutItems.map((item, i) => (
+                  <Pressable key={i} onPress={item.onPress} hitSlop={2} style={styles.aboutListRow}>
+                    <View style={styles.aboutRowIcon}>{item.icon}</View>
+                    <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                    {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
+                  </Pressable>
+                ))}
               </View>
             </View>
           </View>
@@ -565,6 +565,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     return (
       <View style={styles.container}>
         <BottomSheetScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={STICKY_HEADER_INDICES}
           showsVerticalScrollIndicator={false}
@@ -650,10 +651,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabBarSticky: { backgroundColor: colors.background },
   sheetHeader: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingTop: 2,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
-    gap: spacing.xs,
+    gap: 2,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   headerThumb: { width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
@@ -715,7 +717,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
-  aboutList: { marginTop: spacing.xs },
+  // Each contact is its own rounded card with a gap between — reads as
+  // distinct tappable rows rather than one fused list.
+  aboutList: { marginTop: spacing.xs, gap: spacing.sm },
   aboutListRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -723,10 +727,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
   },
-  aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
-  aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
-  aboutListDivider: { borderTopWidth: 1, borderTopColor: colors.line },
   aboutRowIcon: { width: 22, alignItems: 'center' },
   aboutRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   tabBar: {
@@ -850,6 +852,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
+  heroStar: { fontSize: 12 },
   tagline: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,
@@ -872,12 +875,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  // First section title (e.g. "Avis") — kept uppercase, now bold + black.
   sectionTitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+  },
+  // Subsequent section titles (e.g. "À propos") — bold + black, no caps.
+  sectionTitleStrong: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '800',
     marginBottom: spacing.sm,
   },
   descriptionBody: {
