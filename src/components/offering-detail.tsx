@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, Linking } from 'react-native';
 import { Image } from 'expo-image';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, Navigation } from 'lucide-react-native';
+import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, Navigation, ImagePlus } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -19,9 +20,7 @@ import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { ReviewSection } from './review-section';
-import { PhotoGallery } from './photo-gallery';
-import { PhotoManager } from './photo-manager';
-import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
+import { PhotoLightbox } from './photo-lightbox';
 
 const GALLERY_MAX = 25;
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -45,9 +44,9 @@ function formatDuration(d: string | null): string | null {
 }
 
 // Single-scroll "place-page" for a pro offering (RA): a compact info header
-// (sport chip · title · rating · location · schedule · host) then bold-titled
-// sections — À propos → Photos → Avis → Carte. Shared by the drawer
-// (OfferingSheet) and the deep-link/catalogue page.
+// (sport chip · rating · title · location · schedule) then bold-titled sections
+// — À propos (stats + description + host) → Photos (carousel) → Avis (carousel)
+// → Carte. Shared by the drawer (OfferingSheet) and the deep-link page.
 export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -55,6 +54,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const { session } = useAuth();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const isOwner = session?.user?.id === offering.pro_id;
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
@@ -89,14 +89,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
     }
   };
-  const handleGalleryReorder = async (orderedIds: string[]) => {
-    try {
-      await proOfferingPhotoService.reorder(offering.id, orderedIds);
-      await invalidatePhotos();
-    } catch (err) {
-      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
-    }
-  };
 
   const sharePage = () => {
     Share.share({ message: `${offering.title} — ${sportLabel}\nhttps://getjunto.app/pro/offering/${offering.id}` }).catch(() => {});
@@ -109,21 +101,12 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const formattedDuration = formatDuration(offering.duration);
   const showRating = !!reviewStats && reviewStats.review_count > 0;
 
-  const chips: MetaChip[] = [
-    { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level', { defaultValue: 'Niveau' }), value: offering.level },
-  ];
-  if (offering.distance_km != null && offering.distance_km > 0) {
-    chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance', { defaultValue: 'Distance' }), value: `${offering.distance_km} km` });
-  }
-  if (offering.elevation_gain_m != null && offering.elevation_gain_m > 0) {
-    chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation', { defaultValue: 'D+' }), value: `${offering.elevation_gain_m} m` });
-  }
-  if (formattedDuration) {
-    chips.push({ id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration', { defaultValue: 'Durée' }), value: formattedDuration });
-  }
-  if (offering.max_participants != null) {
-    chips.push({ id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places', { defaultValue: 'Places' }), value: `${offering.max_participants}` });
-  }
+  type Stat = { id: string; icon: typeof BarChart3; value: string };
+  const stats: Stat[] = [{ id: 'level', icon: BarChart3, value: offering.level }];
+  if (offering.distance_km != null && offering.distance_km > 0) stats.push({ id: 'distance', icon: Route, value: `${offering.distance_km} km` });
+  if (offering.elevation_gain_m != null && offering.elevation_gain_m > 0) stats.push({ id: 'elev', icon: Mountain, value: `${offering.elevation_gain_m} m` });
+  if (formattedDuration) stats.push({ id: 'duration', icon: Clock, value: formattedDuration });
+  if (offering.max_participants != null) stats.push({ id: 'places', icon: Users, value: `${offering.max_participants}` });
 
   // Static Mapbox thumbnail centered on the spot — a non-interactive image (no
   // gesture conflict inside the drawer scroll). Tap → directions.
@@ -144,17 +127,20 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           </View>
         ) : null}
 
-        <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-          <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
-        </View>
-        <Text style={styles.title}>{offering.title}</Text>
-        {showRating ? (
-          <View style={styles.ratingRow}>
-            <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-            <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
-            <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
+        <View style={styles.chipRatingRow}>
+          <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+            <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
           </View>
-        ) : null}
+          {showRating ? (
+            <View style={styles.ratingRow}>
+              <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+              <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+              <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
+            </View>
+          ) : null}
+        </View>
+
+        <Text style={styles.title}>{offering.title}</Text>
 
         <View style={styles.factRow}>
           <MapPin size={15} color={colors.textSecondary} strokeWidth={2.2} />
@@ -166,6 +152,20 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
             <Text style={styles.factText}>{offering.schedule_text}</Text>
           </View>
         ) : null}
+      </View>
+
+      {/* À propos — stats + description + host */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
+        <View style={styles.statsRow}>
+          {stats.map((s) => (
+            <View key={s.id} style={styles.statItem}>
+              <s.icon size={16} color={accent} strokeWidth={2.4} />
+              <Text style={styles.statValue}>{s.value}</Text>
+            </View>
+          ))}
+        </View>
+        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
         {pro ? (
           <Pressable style={styles.hostCard} onPress={() => router.push(`/(auth)/pro/${pro.user_id}`)}>
@@ -185,36 +185,44 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         ) : null}
       </View>
 
-      {/* À propos — stats + description */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
-        <MetaChipsGrid chips={chips} />
-        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
-      </View>
-
-      {/* Photos */}
+      {/* Photos — horizontal carousel */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
-        {isOwner ? (
-          <PhotoManager
-            photos={photos}
-            maxCount={GALLERY_MAX}
-            onAdd={handleGalleryAdd}
-            onRemove={handleGalleryRemove}
-            onReorder={handleGalleryReorder}
-          />
+        {photos.length > 0 || isOwner ? (
+          <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
+            {photos.map((p, i) => (
+              <View key={p.id} style={styles.photoThumbWrap}>
+                <Pressable onPress={() => setLightboxIndex(i)}>
+                  <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
+                </Pressable>
+                {isOwner ? (
+                  <Pressable style={styles.photoDelete} onPress={() => handleGalleryRemove(p.id)} hitSlop={6}>
+                    <X size={12} color={colors.background} strokeWidth={3} />
+                  </Pressable>
+                ) : null}
+              </View>
+            ))}
+            {isOwner && photos.length < GALLERY_MAX ? (
+              <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
+                <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
+                <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+              </Pressable>
+            ) : null}
+          </GHScrollView>
         ) : (
-          <PhotoGallery photos={photos} emptyText={t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })} />
+          <Text style={styles.emptyText}>{t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}</Text>
         )}
+        <PhotoLightbox photos={photos} index={lightboxIndex} onIndexChange={setLightboxIndex} />
       </View>
 
-      {/* Avis */}
+      {/* Avis — horizontal carousel (summary + composer live inside) */}
       <Text style={[styles.sectionTitle, styles.sectionTitleInset]}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</Text>
       <ReviewSection
         targetType="offering"
         targetId={offering.id}
         isOwner={isOwner}
         currentUserId={session?.user?.id ?? null}
+        horizontal
       />
 
       {/* Carte */}
@@ -263,19 +271,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
-  sportChip: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1 },
+  chipRatingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 34 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   ratingAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   ratingCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 34 },
   factRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   factText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+  section: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
+  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
+  sectionTitleInset: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
+  // Stats — clean icon + value row, no boxes.
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md, marginBottom: spacing.xs },
+  statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.xs,
+    marginTop: spacing.md,
     padding: spacing.sm,
     borderWidth: 1,
     borderColor: colors.borderMuted,
@@ -288,10 +305,35 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   hostInfo: { flex: 1, minWidth: 0 },
   hostLabel: { color: colors.textMuted, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 0.8 },
   hostName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
-  section: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
-  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
-  sectionTitleInset: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
-  descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
+  // Horizontal carousels bleed full width.
+  bleed: { marginHorizontal: -spacing.lg },
+  hCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
+  photoThumbWrap: { position: 'relative' },
+  photoThumb: { width: 150, height: 150, borderRadius: radius.md, backgroundColor: colors.surface },
+  photoDelete: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoAddTile: {
+    width: 150,
+    height: 150,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.cta,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  photoAddText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
+  emptyText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
   mapCard: { borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.borderMuted },
   mapImage: { width: '100%', aspectRatio: 2 },
   mapCta: {

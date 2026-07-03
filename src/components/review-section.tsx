@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
@@ -28,12 +29,15 @@ interface ReviewSectionProps {
   // reply action instead of the write-review CTA.
   isOwner: boolean;
   currentUserId: string | null;
+  // Renders the reviews as a horizontal, full-width-bleed carousel of
+  // fixed-width cards instead of a vertical list (summary + composer unchanged).
+  horizontal?: boolean;
 }
 
 // Full "Avis" tab content for the pro page and offering pages.
 // Self-contained: owns its queries and mutations, parameterized only
 // by target. Rendered inside the parent tab's ScrollView.
-export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: ReviewSectionProps) {
+export function ReviewSection({ targetType, targetId, isOwner, currentUserId, horizontal = false }: ReviewSectionProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -194,6 +198,67 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
     }
   };
 
+  const renderReviewCard = (review: Review) => {
+    const isMine = review.reviewer_id === currentUserId;
+    const reviewPhotos = targetType === 'pro' ? (photosByReview.get(review.id) ?? []) : [];
+    return (
+      <View key={review.id} style={[styles.reviewCard, horizontal && styles.reviewCardH]}>
+        <View style={styles.reviewHeader}>
+          <UserAvatar name={review.reviewer_name ?? '?'} avatarUrl={review.reviewer_avatar} size={32} />
+          <View style={styles.reviewHeaderText}>
+            <Text style={styles.reviewerName} numberOfLines={1}>{review.reviewer_name ?? '?'}</Text>
+            <View style={styles.reviewMeta}>
+              <StarRating rating={review.rating} size={12} />
+              <Text style={styles.reviewDate}>{dayjs(review.created_at).format('D MMM YYYY')}</Text>
+            </View>
+          </View>
+          <View style={styles.actionsRow}>
+            {isMine && (
+              <>
+                <Pressable onPress={openComposer} hitSlop={8} accessibilityLabel={t('reviews.editMine')}>
+                  <Pencil size={16} color={colors.textSecondary} strokeWidth={2} />
+                </Pressable>
+                <Pressable onPress={handleDelete} hitSlop={8} accessibilityLabel={t('reviews.deleteTitle')}>
+                  <Trash2 size={16} color={colors.error} strokeWidth={2} />
+                </Pressable>
+              </>
+            )}
+            {isOwner && (
+              <Pressable onPress={() => openReply(review)} hitSlop={8} accessibilityLabel={t('reviews.reply')}>
+                <CornerUpLeft size={16} color={colors.cta} strokeWidth={2} />
+              </Pressable>
+            )}
+            {!isMine && !isOwner && (
+              <Pressable onPress={() => setReportTargetId(review.id)} hitSlop={8} accessibilityLabel={t('report.title')}>
+                <Flag size={14} color={colors.textMuted} strokeWidth={2} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {review.body ? <Text style={styles.reviewBody} numberOfLines={horizontal ? 5 : undefined}>{review.body}</Text> : null}
+
+        {reviewPhotos.length > 0 && (
+          <View style={styles.reviewPhotos}>
+            {reviewPhotos.map((url) => (
+              <Image key={url} source={url} style={styles.reviewPhoto} contentFit="cover" />
+            ))}
+          </View>
+        )}
+
+        {review.pro_reply && (
+          <View style={styles.replyBlock}>
+            <Text style={styles.replyLabel}>
+              {t('reviews.proReply')}
+              {review.pro_reply_at ? ` — ${dayjs(review.pro_reply_at).format('D MMM YYYY')}` : ''}
+            </Text>
+            <Text style={styles.replyBody}>{review.pro_reply}</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.wrap}>
       {/* Header — aggregate summary (avg + stars + voters) with per-star bars */}
@@ -234,71 +299,13 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId }: 
         </View>
       )}
 
-      {reviews.map((review) => {
-        const isMine = review.reviewer_id === currentUserId;
-        return (
-          <View key={review.id} style={styles.reviewCard}>
-            <View style={styles.reviewHeader}>
-              <UserAvatar name={review.reviewer_name ?? '?'} avatarUrl={review.reviewer_avatar} size={32} />
-              <View style={styles.reviewHeaderText}>
-                <Text style={styles.reviewerName} numberOfLines={1}>
-                  {review.reviewer_name ?? '?'}
-                </Text>
-                <View style={styles.reviewMeta}>
-                  <StarRating rating={review.rating} size={12} />
-                  <Text style={styles.reviewDate}>{dayjs(review.created_at).format('D MMM YYYY')}</Text>
-                </View>
-              </View>
-              <View style={styles.actionsRow}>
-                {isMine && (
-                  <>
-                    <Pressable onPress={openComposer} hitSlop={8} accessibilityLabel={t('reviews.editMine')}>
-                      <Pencil size={16} color={colors.textSecondary} strokeWidth={2} />
-                    </Pressable>
-                    <Pressable onPress={handleDelete} hitSlop={8} accessibilityLabel={t('reviews.deleteTitle')}>
-                      <Trash2 size={16} color={colors.error} strokeWidth={2} />
-                    </Pressable>
-                  </>
-                )}
-                {isOwner && (
-                  <Pressable onPress={() => openReply(review)} hitSlop={8} accessibilityLabel={t('reviews.reply')}>
-                    <CornerUpLeft size={16} color={colors.cta} strokeWidth={2} />
-                  </Pressable>
-                )}
-                {!isMine && !isOwner && (
-                  <Pressable
-                    onPress={() => setReportTargetId(review.id)}
-                    hitSlop={8}
-                    accessibilityLabel={t('report.title')}
-                  >
-                    <Flag size={14} color={colors.textMuted} strokeWidth={2} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
-
-            {review.body && <Text style={styles.reviewBody}>{review.body}</Text>}
-
-            {targetType === 'pro' && (photosByReview.get(review.id) ?? []).length > 0 && (
-              <View style={styles.reviewPhotos}>
-                {(photosByReview.get(review.id) ?? []).map((url) => (
-                  <Image key={url} source={url} style={styles.reviewPhoto} contentFit="cover" />
-                ))}
-              </View>
-            )}
-
-            {review.pro_reply && (
-              <View style={styles.replyBlock}>
-                <Text style={styles.replyLabel}>
-                  {t('reviews.proReply')}
-                  {review.pro_reply_at ? ` — ${dayjs(review.pro_reply_at).format('D MMM YYYY')}` : ''}
-                </Text>
-                <Text style={styles.replyBody}>{review.pro_reply}</Text>
-              </View>
-            )}
-          </View>
-        );
-      })}
+      {reviews.length > 0 && (horizontal ? (
+        <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hBleed} contentContainerStyle={styles.hCarousel}>
+          {reviews.map(renderReviewCard)}
+        </GHScrollView>
+      ) : (
+        reviews.map(renderReviewCard)
+      ))}
 
       {/* Composer — write / edit own review */}
       <Modal visible={composerOpen} animationType="slide" transparent onRequestClose={() => setComposerOpen(false)}>
@@ -461,6 +468,10 @@ const createStyles = (colors: AppColors) =>
       padding: spacing.md,
       gap: spacing.sm,
     },
+    // Horizontal carousel mode — fixed-width cards that bleed full width.
+    reviewCardH: { width: 280 },
+    hBleed: { marginHorizontal: -spacing.lg },
+    hCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
     reviewHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     reviewHeaderText: { flex: 1, gap: 2 },
     reviewerName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
