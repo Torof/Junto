@@ -9,6 +9,7 @@ import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
+import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
@@ -256,16 +257,14 @@ export default function CarteScreen() {
     }, [queryClient])
   );
 
-  // A pin tap selects one of the three entity types; that selection drives the
-  // bottom preview sheet (Google-style), which replaced the pin tooltips.
-  // UA + RA use the compact preview sheet; PP opens its own expandable
-  // ProSheet (the full pro page, hosted as a drawer).
+  // A pin tap selects one of the three entity types. UA uses the compact
+  // preview sheet; PP and RA open their own expandable drawers (ProSheet /
+  // OfferingSheet, the full pages hosted as Google place-sheets).
   const previewSelection = useMemo<PinPreviewSelection | null>(() => {
     if (selectedActivity) return { kind: 'activity', data: selectedActivity };
-    if (selectedOffering) return { kind: 'offering', data: selectedOffering };
     return null;
-  }, [selectedActivity, selectedOffering]);
-  const previewOpen = previewSelection !== null || selectedPro !== null;
+  }, [selectedActivity]);
+  const previewOpen = previewSelection !== null || selectedPro !== null || selectedOffering !== null;
 
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
@@ -489,6 +488,9 @@ export default function CarteScreen() {
             unmounts — present()/dismiss() follow the selection. Conditionally
             mounting it corrupted native gesture state on reopen. */}
         <ProSheet userId={selectedPro?.user_id ?? null} onClose={() => setSelectedPro(null)} />
+
+        {/* RA offering drawer — same always-mounted modal pattern as ProSheet. */}
+        <OfferingSheet offering={selectedOffering} onClose={() => setSelectedOffering(null)} />
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>
