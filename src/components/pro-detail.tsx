@@ -121,7 +121,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const { data: offerings = [] } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
     queryFn: () => proOfferingService.getByProId(pro.user_id),
-    enabled: activeTab === 'catalog',
+    // Needed on the Aperçu tab (catalogue carousel) and the Catalogue tab.
+    enabled: activeTab === 'catalog' || activeTab === 'info',
   });
 
   const { data: photos = [] } = useProPhotos(pro.user_id);
@@ -419,6 +420,45 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       {activeTab === 'info' && (
         <View style={styles.content}>
           <View style={styles.paddedSection}>
+            {/* ===== CATALOGUE — text-forward taste, swipe → Voir tout ===== */}
+            {offerings.length > 0 && (
+              <View style={styles.overviewBlock}>
+                <View style={styles.catHeaderRow}>
+                  <Text style={styles.sectionTitleStrong}>{t('pro.tab.catalog', { defaultValue: 'Catalogue' })}</Text>
+                  <Pressable onPress={() => selectTab('catalog')} hitSlop={6}>
+                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} →</Text>
+                  </Pressable>
+                </View>
+                <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catCarousel}>
+                  {offerings.map((o) => {
+                    const accent = sportCategoryColor(o.sport_category, colors.cta);
+                    const meta = [o.level, o.duration, o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null]
+                      .filter(Boolean).join(' · ');
+                    const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
+                    return (
+                      <Pressable
+                        key={o.id}
+                        style={[styles.catMiniCard, { borderLeftColor: accent }]}
+                        onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
+                      >
+                        <View style={styles.catMiniTop}>
+                          <Text style={styles.catMiniEmoji}>{getSportIcon(o.sport_key)}</Text>
+                          {showRating ? (
+                            <View style={styles.catMiniRating}>
+                              <Text style={styles.catMiniRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
+                              <Star size={11} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                            </View>
+                          ) : null}
+                        </View>
+                        <Text style={styles.catMiniTitle} numberOfLines={2}>{o.title}</Text>
+                        <Text style={[styles.catMiniMeta, { color: accent }]} numberOfLines={1}>{meta}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </GHScrollView>
+              </View>
+            )}
+
             {/* ===== AVIS — carousel + actions ===== */}
             <View style={styles.overviewBlock}>
               <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
@@ -1125,6 +1165,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   expLine: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
   expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm },
   expCta: { fontSize: fontSizes.sm, fontWeight: '800', marginTop: spacing.xs, alignSelf: 'flex-end' },
+  // Aperçu catalogue carousel — text-forward mini cards (no photo).
+  catHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+  catSeeAll: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  catCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
+  catMiniCard: {
+    width: 200,
+    minHeight: 112,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderLeftWidth: 3,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    justifyContent: 'space-between',
+  },
+  catMiniTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  catMiniEmoji: { fontSize: 22 },
+  catMiniRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
+  catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', lineHeight: 20 },
+  catMiniMeta: { fontSize: fontSizes.xs, fontWeight: '700' },
   mapContainer: {
     height: 180,
     borderRadius: radius.md,
