@@ -23,7 +23,7 @@ interface Props {
   offering: ProOffering | null;
   onClose: () => void;
   // Tapping the host ("Proposé par") switches to the PP drawer (map cross-nav).
-  onOpenPro?: (userId: string) => void;
+  onOpenPro?: (userId: string, coordinate: [number, number]) => void;
 }
 
 export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {

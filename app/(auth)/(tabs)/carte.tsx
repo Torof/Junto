@@ -268,6 +268,14 @@ export default function CarteScreen() {
   }, [selectedActivity]);
   const previewOpen = previewSelection !== null || selectedProId !== null || selectedOffering !== null;
 
+  // Fly to a pin and land it in the upper part of the map (clear of the drawer
+  // sliding up), same framing as a pin tap. Used by the cross-drawer links.
+  const flyToPin = useCallback((coordinate: [number, number]) => {
+    setFlyTarget(coordinate);
+    setFlyOffset({ y: -0.28 });
+    setFlyToKey((k) => k + 1);
+  }, []);
+
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
     setSelectedProId(null);
@@ -491,14 +499,14 @@ export default function CarteScreen() {
         <ProSheet
           userId={selectedProId}
           onClose={() => setSelectedProId(null)}
-          onOpenOffering={(o) => { setSelectedProId(null); setSelectedOffering(o); }}
+          onOpenOffering={(o) => { setSelectedProId(null); setSelectedOffering(o); flyToPin([o.lng, o.lat]); }}
         />
 
         {/* RA offering drawer — same always-mounted modal pattern as ProSheet. */}
         <OfferingSheet
           offering={selectedOffering}
           onClose={() => setSelectedOffering(null)}
-          onOpenPro={(userId) => { setSelectedOffering(null); setSelectedProId(userId); }}
+          onOpenPro={(userId, coordinate) => { setSelectedOffering(null); setSelectedProId(userId); flyToPin(coordinate); }}
         />
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />

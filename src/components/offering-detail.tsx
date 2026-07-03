@@ -31,8 +31,9 @@ interface Props {
   onClose?: () => void;
   onHeaderMeasured?: (height: number) => void;
   // In the sheet, tapping the host switches to the PP drawer rather than pushing
-  // the full page. On the standalone page this is undefined → push.
-  onOpenPro?: (userId: string) => void;
+  // the full page (and passes the pro's coordinate so the map can fly to it).
+  // On the standalone page this is undefined → push.
+  onOpenPro?: (userId: string, coordinate: [number, number]) => void;
 }
 
 function formatDuration(d: string | null): string | null {
@@ -171,7 +172,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
         {pro ? (
-          <Pressable style={styles.hostCard} onPress={() => (onOpenPro ? onOpenPro(pro.user_id) : router.push(`/(auth)/pro/${pro.user_id}`))}>
+          <Pressable style={styles.hostCard} onPress={() => (onOpenPro ? onOpenPro(pro.user_id, [pro.primary_lng, pro.primary_lat]) : router.push(`/(auth)/pro/${pro.user_id}`))}>
             {proThumbUrl ? (
               <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
             ) : (
