@@ -292,7 +292,7 @@ export default function CarteScreen() {
             Mapbox compass at top-right. Hidden while a preview is up OR the
             list drawer is raised, so the list reads as a clean layer. */}
         {!previewOpen && !listOpen && (
-          <View style={[styles.topControls, { top: insets.top + spacing.md }]}>
+          <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
             <FilterButton onPress={() => setShowFilters(true)} />
             <MapStyleButton />
           </View>

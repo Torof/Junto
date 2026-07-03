@@ -414,7 +414,7 @@ export function JuntoMapView({
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled={compassEnabled}
-      compassViewMargins={{ x: 12, y: insets.top + 10 }}
+      compassViewMargins={{ x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
       onPress={(feature) => {
