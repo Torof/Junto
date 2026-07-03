@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Pencil, MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X } from 'lucide-react-native';
+import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, Navigation } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -17,25 +17,19 @@ import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { reviewService } from '@/services/review-service';
 import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
-import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { StarRating } from './star-rating';
 import { ReviewSection } from './review-section';
 import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
 import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
 
 const GALLERY_MAX = 25;
+const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 interface Props {
   offering: ProOffering;
-  // In the drawer (gorhom sheet), the scroller is BottomSheetScrollView and a
-  // close/share row overlays the hero; on the /pro/offering/[id] page it's a
-  // plain ScrollView with no overlay.
   inSheet?: boolean;
   onClose?: () => void;
-  // Drawer only — reports the hero block height so OfferingSheet snaps the peek
-  // right below it.
   onHeaderMeasured?: (height: number) => void;
 }
 
@@ -50,10 +44,10 @@ function formatDuration(d: string | null): string | null {
   return `${m}min`;
 }
 
-// Single-scroll "experience listing" for a pro offering (RA). Its own identity
-// vs the tabbed PP: hero → key facts → who hosts it (→ PP) → description →
-// photos → reviews, top to bottom. Shared by the drawer (OfferingSheet) and the
-// deep-link page.
+// Single-scroll "place-page" for a pro offering (RA): a compact info header
+// (sport chip · title · rating · location · schedule · host) then bold-titled
+// sections — À propos → Photos → Avis → Carte. Shared by the drawer
+// (OfferingSheet) and the deep-link/catalogue page.
 export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -70,9 +64,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     queryKey: ['pro-profile', offering.pro_id],
     queryFn: () => proService.getById(offering.pro_id),
   });
-
   const { data: photos = [] } = useProOfferingPhotos(offering.id);
-
   const { data: reviewStats } = useQuery({
     queryKey: ['review-stats', 'offering', offering.id],
     queryFn: () => reviewService.getOfferingStats(offering.id),
@@ -115,6 +107,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
   const proThumbUrl = pro?.pin_image_url ?? null;
   const formattedDuration = formatDuration(offering.duration);
+  const showRating = !!reviewStats && reviewStats.review_count > 0;
 
   const chips: MetaChip[] = [
     { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level', { defaultValue: 'Niveau' }), value: offering.level },
@@ -132,10 +125,14 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     chips.push({ id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places', { defaultValue: 'Places' }), value: `${offering.max_participants}` });
   }
 
+  // Static Mapbox thumbnail centered on the spot — a non-interactive image (no
+  // gesture conflict inside the drawer scroll). Tap → directions.
+  const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-l+${accent.replace('#', '')}(${offering.lng},${offering.lat})/${offering.lng},${offering.lat},13,0/640x320@2x?access_token=${MAPBOX_TOKEN}`;
+
   const body = (
     <>
-      {/* Hero region — measured so the drawer peek stops just below it. */}
-      <View onLayout={(e) => onHeaderMeasured?.(Math.round(e.nativeEvent.layout.height))}>
+      {/* Header — measured so the drawer peek stops just below it. */}
+      <View style={styles.header} onLayout={(e) => onHeaderMeasured?.(Math.round(e.nativeEvent.layout.height))}>
         {inSheet && onClose ? (
           <View style={styles.topBar}>
             <Pressable onPress={sharePage} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.share', { defaultValue: 'Partager' })}>
@@ -147,84 +144,55 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           </View>
         ) : null}
 
-        {photos[0] ? <Image source={{ uri: photos[0].photo_url }} style={styles.banner} contentFit="cover" /> : null}
-
-        <View style={styles.heroBody}>
-          <Text style={[styles.heroSportDecor, { color: accent }]}>{getSportIcon(offering.sport_key)}</Text>
-          <Text style={[styles.heroSportLabel, { color: accent }]}>{sportLabel}</Text>
-          <Text style={styles.heroTitle}>{offering.title}</Text>
-          {reviewStats && reviewStats.review_count > 0 ? (
-            <View style={styles.heroStatsRow}>
-              <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-              <StarRating rating={Number(reviewStats.avg_rating)} size={13} />
-              <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
-            </View>
-          ) : null}
-
-          <View style={styles.heroFacts}>
-            <View style={styles.heroRow}>
-              <MapPin size={14} color={colors.textPrimary} strokeWidth={2.4} />
-              <Text style={styles.heroRowText} numberOfLines={2}>{offering.location_name}</Text>
-            </View>
-            {offering.schedule_text ? (
-              <View style={styles.heroRow}>
-                <Calendar size={14} color={colors.textPrimary} strokeWidth={2.4} />
-                <Text style={styles.heroRowText}>{offering.schedule_text}</Text>
-              </View>
-            ) : null}
-          </View>
+        <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+          <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
         </View>
-      </View>
-
-      {/* Stats chips */}
-      <View style={styles.section}>
-        <MetaChipsGrid chips={chips} />
-      </View>
-
-      {/* Host — "Proposé par {pro}" → PP (the funnel + trust bridge) */}
-      {pro ? (
-        <Pressable style={styles.hostCard} onPress={() => router.push(`/(auth)/pro/${pro.user_id}`)}>
-          {proThumbUrl ? (
-            <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
-          ) : (
-            <View style={[styles.hostThumb, styles.hostThumbPlaceholder]}>
-              <Text style={styles.hostThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</Text>
-            </View>
-          )}
-          <View style={styles.hostInfo}>
-            <Text style={styles.hostLabel}>{t('proOffering.byPro', { defaultValue: 'Proposé par' })}</Text>
-            <Text style={styles.hostName} numberOfLines={1}>{pro.display_name}</Text>
-            {pro.tagline ? <Text style={styles.hostTagline} numberOfLines={1}>{pro.tagline}</Text> : null}
+        <Text style={styles.title}>{offering.title}</Text>
+        {showRating ? (
+          <View style={styles.ratingRow}>
+            <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+            <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+            <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
           </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </Pressable>
-      ) : null}
+        ) : null}
 
-      {/* Actions — directions to the spot + (owner) edit */}
-      <View style={styles.actionRow}>
-        <Pressable style={[styles.actionBtn, { borderColor: accent }]} onPress={openDirections}>
-          <Text style={[styles.actionBtnText, { color: accent }]}>{t('pro.directions', { defaultValue: 'Itinéraire' })}</Text>
-        </Pressable>
-        {isOwner ? (
-          <Pressable
-            style={styles.actionBtnGhost}
-            onPress={() => router.push({ pathname: '/(auth)/pro/offering/edit', params: { id: offering.id } })}
-          >
-            <Pencil size={16} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.actionBtnGhostText}>{t('common.edit', { defaultValue: 'Modifier' })}</Text>
+        <View style={styles.factRow}>
+          <MapPin size={15} color={colors.textSecondary} strokeWidth={2.2} />
+          <Text style={styles.factText} numberOfLines={2}>{offering.location_name}</Text>
+        </View>
+        {offering.schedule_text ? (
+          <View style={styles.factRow}>
+            <Calendar size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.factText}>{offering.schedule_text}</Text>
+          </View>
+        ) : null}
+
+        {pro ? (
+          <Pressable style={styles.hostCard} onPress={() => router.push(`/(auth)/pro/${pro.user_id}`)}>
+            {proThumbUrl ? (
+              <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
+            ) : (
+              <View style={[styles.hostThumb, styles.hostThumbPlaceholder]}>
+                <Text style={styles.hostThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={styles.hostInfo}>
+              <Text style={styles.hostLabel}>{t('proOffering.byPro', { defaultValue: 'Proposé par' })}</Text>
+              <Text style={styles.hostName} numberOfLines={1}>{pro.display_name}</Text>
+            </View>
+            <ChevronRight size={20} color={colors.textSecondary} />
           </Pressable>
         ) : null}
       </View>
 
-      {/* Description */}
-      {offering.description ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('proOffering.description', { defaultValue: 'Description' })}</Text>
-          <Text style={styles.descBody}>{offering.description}</Text>
-        </View>
-      ) : null}
+      {/* À propos — stats + description */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
+        <MetaChipsGrid chips={chips} />
+        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
+      </View>
 
-      {/* Photos — inline (no tab) */}
+      {/* Photos */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
         {isOwner ? (
@@ -236,20 +204,30 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
             onReorder={handleGalleryReorder}
           />
         ) : (
-          <PhotoGallery
-            photos={photos}
-            emptyText={t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
-          />
+          <PhotoGallery photos={photos} emptyText={t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })} />
         )}
       </View>
 
-      {/* Reviews — inline (no tab) */}
+      {/* Avis */}
+      <Text style={[styles.sectionTitle, styles.sectionTitleInset]}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</Text>
       <ReviewSection
         targetType="offering"
         targetId={offering.id}
         isOwner={isOwner}
         currentUserId={session?.user?.id ?? null}
       />
+
+      {/* Carte */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('proOffering.map', { defaultValue: 'Carte' })}</Text>
+        <Pressable style={styles.mapCard} onPress={openDirections}>
+          <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
+          <View style={styles.mapCta}>
+            <Navigation size={13} color="#FFFFFF" strokeWidth={2.4} />
+            <Text style={styles.mapCtaText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</Text>
+          </View>
+        </Pressable>
+      </View>
     </>
   );
 
@@ -275,61 +253,58 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surfaceAlt },
   scrollContent: { paddingBottom: spacing.xl + 32 },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: spacing.md,
+  header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+    gap: spacing.xs,
   },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
-  banner: { width: '100%', aspectRatio: 5 / 2, backgroundColor: colors.surface },
-  heroBody: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, position: 'relative' },
-  heroSportDecor: { position: 'absolute', top: spacing.sm, right: spacing.lg, fontSize: 56, opacity: 0.18 },
-  heroSportLabel: { fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: spacing.xs },
-  heroTitle: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 36, paddingRight: 64 },
-  heroStatsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  heroStatsAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  heroStatsCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  heroFacts: { marginTop: spacing.sm, gap: 4, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  heroRowText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
-  section: { marginHorizontal: spacing.lg, marginTop: spacing.md },
-  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
-  descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+  sportChip: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1 },
+  sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 34 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  ratingAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  ratingCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  factRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  factText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
     padding: spacing.sm,
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
   },
-  hostThumb: { width: 48, height: 48, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
+  hostThumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
   hostThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta },
-  hostThumbInitial: { color: '#FFFFFF', fontSize: 20, fontWeight: '800' },
+  hostThumbInitial: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
   hostInfo: { flex: 1, minWidth: 0 },
   hostLabel: { color: colors.textMuted, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 0.8 },
   hostName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
-  hostTagline: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
-  actionRow: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg, marginTop: spacing.md },
-  actionBtn: { flex: 1, borderWidth: 1.5, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
-  actionBtnText: { fontSize: fontSizes.sm, fontWeight: '800' },
-  actionBtnGhost: {
+  section: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
+  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
+  sectionTitleInset: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
+  descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
+  mapCard: { borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.borderMuted },
+  mapImage: { width: '100%', aspectRatio: 2 },
+  mapCta: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
+    gap: 5,
+    backgroundColor: colors.cta,
+    borderRadius: radius.full,
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 1,
   },
-  actionBtnGhostText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  mapCtaText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
 });
