@@ -429,7 +429,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                     <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} →</Text>
                   </Pressable>
                 </View>
-                <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catCarousel}>
+                <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
                   {offerings.map((o) => {
                     const accent = sportCategoryColor(o.sport_category, colors.cta);
                     const meta = [o.level, o.duration, o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null]
@@ -475,7 +475,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               ) : null}
 
               {reviews.length > 0 ? (
-                <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewCarousel}>
+                <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.reviewCarousel}>
                   {reviews.slice(0, 8).map((r) => (
                     <View key={r.id} style={styles.reviewMini}>
                       <View style={styles.reviewMiniHead}>
@@ -874,7 +874,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   addPhotoChipText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
-  reviewCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
+  // Cancels the paddedSection's horizontal padding so the carousel spans the
+  // full screen width; the first/last card inset comes from paddingHorizontal.
+  carouselBleed: { marginHorizontal: -spacing.lg },
+  reviewCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   reviewMini: {
     width: 220,
     borderWidth: 1,
@@ -1172,7 +1175,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Aperçu catalogue carousel — text-forward mini cards (no photo).
   catHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   catSeeAll: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-  catCarousel: { gap: spacing.sm, paddingRight: spacing.lg, paddingBottom: spacing.xs },
+  catCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   catMiniCard: {
     width: 200,
     minHeight: 112,
