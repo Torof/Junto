@@ -144,7 +144,7 @@ export function ProSheet({ userId, onClose }: Props) {
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     bg: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
     },
@@ -152,7 +152,7 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       paddingTop: 10,
       paddingBottom: 6,
-      backgroundColor: colors.background,
+      backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
     },
