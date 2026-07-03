@@ -442,7 +442,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                         onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
                       >
                         <View style={styles.catMiniTop}>
-                          <Text style={styles.catMiniEmoji}>{getSportIcon(o.sport_key)}</Text>
+                          <View style={[styles.catMiniChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+                            <Text style={[styles.catMiniChipText, { color: accent }]} numberOfLines={1}>
+                              {t(`sports.${o.sport_key}`, { defaultValue: o.sport_key })}
+                            </Text>
+                          </View>
                           {showRating ? (
                             <View style={styles.catMiniRating}>
                               <Text style={styles.catMiniRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
@@ -1181,8 +1185,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     justifyContent: 'space-between',
   },
-  catMiniTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  catMiniEmoji: { fontSize: 22 },
+  catMiniTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.xs },
+  catMiniChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },
+  catMiniChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
   catMiniRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
   catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', lineHeight: 20 },
