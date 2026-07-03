@@ -15,7 +15,7 @@ import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
-import { proOfferingService } from '@/services/pro-offering-service';
+import { proOfferingService, type ProOffering } from '@/services/pro-offering-service';
 import { proPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 import { userService } from '@/services/user-service';
 import { useProPhotos } from '@/hooks/use-pro-photos';
@@ -51,6 +51,9 @@ interface Props {
   // Present only in the sheet — reports the header (name · actions · divider)
   // height so ProSheet can pin its first snap point right at the divider.
   onHeaderMeasured?: (height: number) => void;
+  // In the sheet, tapping a catalogue offering switches to the RA drawer rather
+  // than pushing the full page. On the standalone page this is undefined → push.
+  onOpenOffering?: (offering: ProOffering) => void;
 }
 
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -92,7 +95,8 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured }: Props) {
+export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured, onOpenOffering }: Props) {
+  const openOffering = (o: ProOffering) => (onOpenOffering ? onOpenOffering(o) : router.push(`/(auth)/pro/offering/${o.id}`));
   // Selecting a tab expands the sheet to full height, then (once it settles at
   // the '100%' top snap, where scroll is reliably unlocked) scrolls the header +
   // carousel away so the tab bar pins to the top. tabBarTopRef holds the tab
@@ -439,7 +443,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                       <Pressable
                         key={o.id}
                         style={[styles.catMiniCard, { borderLeftColor: accent }]}
-                        onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}
+                        onPress={() => openOffering(o)}
                       >
                         <View style={styles.catMiniTop}>
                           <View style={[styles.catMiniChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
@@ -643,7 +647,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                   ].filter(Boolean).join(' · ');
                   const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                   return (
-                    <Pressable key={o.id} style={styles.expCard} onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}>
+                    <Pressable key={o.id} style={styles.expCard} onPress={() => openOffering(o)}>
                       <View style={styles.expImageWrap}>
                         {o.image_url ? (
                           <Image source={{ uri: o.image_url }} style={styles.expImage} contentFit="cover" />

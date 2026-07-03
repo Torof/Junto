@@ -78,7 +78,9 @@ export default function CarteScreen() {
   // same pin (or anywhere on the preview card) opens the detail page.
   // Tap on the map elsewhere dismisses. Mutually exclusive with the
   // activity selection — picking one clears the other.
-  const [selectedPro, setSelectedPro] = useState<import('@/services/pro-service').NearbyPro | null>(null);
+  // PP drawer is driven by the pro's user id (ProSheet fetches by it), so a
+  // catalogue/host link can open it by id without a NearbyPro object.
+  const [selectedProId, setSelectedProId] = useState<string | null>(null);
   const [selectedOffering, setSelectedOffering] = useState<import('@/services/pro-offering-service').ProOffering | null>(null);
   // Drawer-list "peek" state — when the user taps a card, the matching
   // pin scales up and the card gets a CTA tint. Second tap on the
@@ -175,7 +177,7 @@ export default function CarteScreen() {
         selectionBoundsSpan.current = newSpan;
       } else if (newSpan > selectionBoundsSpan.current * 1.3) {
         setSelectedActivity(null);
-        setSelectedPro(null);
+        setSelectedProId(null);
         setSelectedOffering(null);
         selectionBoundsSpan.current = null;
       }
@@ -264,11 +266,11 @@ export default function CarteScreen() {
     if (selectedActivity) return { kind: 'activity', data: selectedActivity };
     return null;
   }, [selectedActivity]);
-  const previewOpen = previewSelection !== null || selectedPro !== null || selectedOffering !== null;
+  const previewOpen = previewSelection !== null || selectedProId !== null || selectedOffering !== null;
 
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
-    setSelectedPro(null);
+    setSelectedProId(null);
     setSelectedOffering(null);
   }, []);
 
@@ -314,14 +316,14 @@ export default function CarteScreen() {
                 setFlyTarget([pro.primary_lng, pro.primary_lat]);
                 setFlyOffset({ y: -0.28 });
                 setFlyToKey((k) => k + 1);
-                setSelectedPro(pro);
+                setSelectedProId(pro.user_id);
               }}
               proOfferings={filteredOfferingsByType}
               onProOfferingPress={(offering) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedActivity(null);
-                setSelectedPro(null);
+                setSelectedProId(null);
                 setHighlightedPinId(null);
                 setFlyTarget([offering.lng, offering.lat]);
                 setFlyOffset({ y: -0.28 });
@@ -378,13 +380,12 @@ export default function CarteScreen() {
               ) : undefined}
               flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
               selectedActivity={selectedActivity}
-              selectedPro={selectedPro}
               selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
               onActivityPress={(a) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
-                setSelectedPro(null);
+                setSelectedProId(null);
                 setSelectedOffering(null);
                 setHighlightedPinId(null);
                 // Land the pin in the top third so it's clear of the
@@ -402,7 +403,7 @@ export default function CarteScreen() {
                   return;
                 }
                 // Any open pin preview dismisses on a map press.
-                if (selectedActivity || selectedPro || selectedOffering) {
+                if (selectedActivity || selectedProId || selectedOffering) {
                   clearPreview();
                   return;
                 }
@@ -445,7 +446,7 @@ export default function CarteScreen() {
             }
             // Clear any pin-tap state (mutually exclusive with peek).
             setSelectedActivity(null);
-            setSelectedPro(null);
+            setSelectedProId(null);
             setSelectedOffering(null);
             setHighlightedPinId(a.id);
             // Fly the map so the pin lands at ~22% from the top —
@@ -464,7 +465,7 @@ export default function CarteScreen() {
               return;
             }
             setSelectedActivity(null);
-            setSelectedPro(null);
+            setSelectedProId(null);
             setSelectedOffering(null);
             setHighlightedPinId(o.id);
             setFlyTarget([o.lng, o.lat]);
@@ -487,10 +488,18 @@ export default function CarteScreen() {
         {/* Always mounted (nullable userId) so the gorhom modal shell never
             unmounts — present()/dismiss() follow the selection. Conditionally
             mounting it corrupted native gesture state on reopen. */}
-        <ProSheet userId={selectedPro?.user_id ?? null} onClose={() => setSelectedPro(null)} />
+        <ProSheet
+          userId={selectedProId}
+          onClose={() => setSelectedProId(null)}
+          onOpenOffering={(o) => { setSelectedProId(null); setSelectedOffering(o); }}
+        />
 
         {/* RA offering drawer — same always-mounted modal pattern as ProSheet. */}
-        <OfferingSheet offering={selectedOffering} onClose={() => setSelectedOffering(null)} />
+        <OfferingSheet
+          offering={selectedOffering}
+          onClose={() => setSelectedOffering(null)}
+          onOpenPro={(userId) => { setSelectedOffering(null); setSelectedProId(userId); }}
+        />
 
         <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
       </View>

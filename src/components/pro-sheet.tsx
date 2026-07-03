@@ -10,6 +10,7 @@ import { type AppColors } from '@/constants/colors';
 import { radius } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proService } from '@/services/pro-service';
+import { type ProOffering } from '@/services/pro-offering-service';
 import { ProDetail } from './pro-detail';
 import { LogoSpinner } from './logo-spinner';
 
@@ -38,9 +39,11 @@ interface Props {
   // mounted; present()/dismiss() follow this value.
   userId: string | null;
   onClose: () => void;
+  // Tapping a catalogue offering switches to the RA drawer (map cross-nav).
+  onOpenOffering?: (offering: ProOffering) => void;
 }
 
-export function ProSheet({ userId, onClose }: Props) {
+export function ProSheet({ userId, onClose, onOpenOffering }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const modalRef = useRef<BottomSheetModal>(null);
@@ -131,6 +134,7 @@ export function ProSheet({ userId, onClose }: Props) {
           onClose={handleClose}
           onExpand={handleExpand}
           onHeaderMeasured={onHeaderMeasured}
+          onOpenOffering={onOpenOffering}
         />
       ) : (
         <View style={styles.loading}>

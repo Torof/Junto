@@ -22,9 +22,11 @@ interface Props {
   // present()/dismiss() follow this value so the modal shell never unmounts.
   offering: ProOffering | null;
   onClose: () => void;
+  // Tapping the host ("Proposé par") switches to the PP drawer (map cross-nav).
+  onOpenPro?: (userId: string) => void;
 }
 
-export function OfferingSheet({ offering, onClose }: Props) {
+export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const modalRef = useRef<BottomSheetModal>(null);
@@ -76,7 +78,7 @@ export function OfferingSheet({ offering, onClose }: Props) {
       handleComponent={renderHandle}
     >
       {offering ? (
-        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} />
+        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} onOpenPro={onOpenPro} />
       ) : null}
     </BottomSheetModal>
   );
