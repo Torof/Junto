@@ -25,13 +25,11 @@ export function RecenterButton({ onPress }: RecenterButtonProps) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  // Bottom-right, TOP of the FAB stack (create → bell → recenter). It's the
-  // intermittent one (contextual, only when off-center), so it lives at the
-  // top: appearing/disappearing leaves no hole in the stack. Same size +
-  // radius as the FAB so they read as a uniform family.
+  // Bottom-right, just above the create FAB. Same size + radius as
+  // the FAB so they read as a uniform pair, only the fill changes.
   button: {
     position: 'absolute',
-    bottom: 28 + (48 + 14) * 2,
+    bottom: 28 + 48 + 14,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: 14,

@@ -91,8 +91,6 @@ export default function CarteScreen() {
   // The list drawer is open above its 2% handle — hide the top-left filter /
   // map-style controls so the raised list reads as a clean layer.
   const [listOpen, setListOpen] = useState(false);
-  // Camera center is meaningfully away from the user's position → show recenter.
-  const [offCenter, setOffCenter] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
@@ -153,14 +151,6 @@ export default function CarteScreen() {
     currentBounds.current = bounds;
     setTappedPoint(null);
 
-    // Contextual recenter: the button exists only once the user has panned
-    // meaningfully away from their own position (Google Maps behaviour).
-    if (currentLocation) {
-      const span = Math.abs(bounds.neLng - bounds.swLng);
-      const away = panDistance(bounds.centerLat, bounds.centerLng, currentLocation[1], currentLocation[0]);
-      const off = away > span * 0.2;
-      setOffCenter((prev) => (prev === off ? prev : off));
-    }
 
     // Clear the cluster-filter drawer once the user starts navigating again
     // (zoom or pan beyond a small threshold). Tapping the cluster doesn't move
@@ -223,7 +213,7 @@ export default function CarteScreen() {
         scheduleSearch(bounds);
       }
     }
-  }, [searchBounds, doSearch, scheduleSearch, clusterFilter, currentLocation]);
+  }, [searchBounds, doSearch, scheduleSearch, clusterFilter]);
 
   // First-run intro: show the one-time carousel if the user hasn't seen it.
   // No element anchoring or step machinery — it's a self-contained overlay.
@@ -301,9 +291,7 @@ export default function CarteScreen() {
         {!previewOpen && (
           <>
             <CreateButton />
-            {offCenter && (
-              <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
-            )}
+            <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
             <AlertButton />
           </>
         )}

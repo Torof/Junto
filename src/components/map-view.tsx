@@ -414,8 +414,6 @@ export function JuntoMapView({
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled={compassEnabled}
-      // Contextual chrome: the compass only exists once the map is rotated.
-      compassFadeWhenNorth
       compassViewMargins={{ x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}

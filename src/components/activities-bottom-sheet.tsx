@@ -3,14 +3,13 @@ import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-n
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
-import { ChevronUpCircle, X, Users, Briefcase, Check } from 'lucide-react-native';
+import { ChevronUpCircle, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { distanceMeters } from '@/utils/geo';
-import { useMapStore } from '@/store/map-store';
 import { ActivityCard } from './activity-card';
 import { ProOfferingCard } from './pro-offering-card';
 import { DrawerFilterBar } from './drawer-filter-bar';
@@ -59,34 +58,9 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  // Layer toggles live on the drawer lip (right mini-tab) instead of floating
-  // over the map — same one-tap show/hide of user vs pro pins, zero map chrome.
-  const showActivities = useMapStore((s) => s.filters.showActivities);
-  const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
-  const toggleShowActivities = useMapStore((s) => s.toggleShowActivities);
-  const toggleShowProOfferings = useMapStore((s) => s.toggleShowProOfferings);
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
       <View style={styles.topBorder} />
-      <View style={styles.layerTab}>
-        <Pressable style={styles.layerSegment} onPress={toggleShowActivities} hitSlop={6} accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}>
-          <Users size={16} color={showActivities ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
-          {showActivities ? (
-            <View style={[styles.layerBadge, { backgroundColor: colors.cta }]}>
-              <Check size={8} color={colors.background} strokeWidth={3.5} />
-            </View>
-          ) : null}
-        </Pressable>
-        <View style={styles.layerDivider} />
-        <Pressable style={styles.layerSegment} onPress={toggleShowProOfferings} hitSlop={6} accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}>
-          <Briefcase size={16} color={showProOfferings ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
-          {showProOfferings ? (
-            <View style={[styles.layerBadge, { backgroundColor: colors.pinProBackground }]}>
-              <Check size={8} color={colors.background} strokeWidth={3.5} />
-            </View>
-          ) : null}
-        </Pressable>
-      </View>
       <Pressable style={styles.tab} onPress={onExpand} hitSlop={6}>
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
@@ -365,43 +339,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.textSecondary,
-  },
-  // Right mini-tab on the same drawer lip — hosts the Users/Pros layer
-  // toggles so they're drawer chrome, not floating map chrome.
-  layerTab: {
-    position: 'absolute',
-    top: -38,
-    right: spacing.sm,
-    height: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    paddingHorizontal: spacing.xs,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.pinBorder,
-  },
-  layerSegment: {
-    width: 36,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  layerDivider: { width: 1, height: 16, backgroundColor: colors.line },
-  layerBadge: {
-    position: 'absolute',
-    bottom: 5,
-    right: 3,
-    width: 13,
-    height: 13,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.surfaceAlt,
   },
   tabRow: {
     flexDirection: 'row',
