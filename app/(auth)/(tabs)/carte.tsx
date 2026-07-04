@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy, Check } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy, Users, Briefcase } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -303,27 +303,27 @@ export default function CarteScreen() {
             Mapbox compass at top-right. Hidden while a preview is up OR the
             list drawer is raised, so the list reads as a clean layer. */}
         {!previewOpen && !listOpen && (
-          <View style={[styles.topLeftStack, { top: insets.top + spacing.xs }]}>
-            <View style={styles.topControls}>
-              <FilterButton onPress={() => setShowFilters(true)} />
-              <MapStyleButton />
-            </View>
+          <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
+            <FilterButton onPress={() => setShowFilters(true)} />
+            <MapStyleButton />
             {/* Quick layer toggles — one tap to show/hide user activities vs
                 pro pins, instead of digging into the filter sheet. */}
-            <View style={styles.layerToggles}>
-              <Pressable style={styles.layerChip} onPress={toggleShowActivities} hitSlop={4}>
-                <View style={[styles.tick, showActivities && { backgroundColor: colors.cta, borderColor: colors.cta }]}>
-                  {showActivities ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
-                </View>
-                <Text style={styles.layerLabel}>{t('map.layerActivities', { defaultValue: 'Activités' })}</Text>
-              </Pressable>
-              <Pressable style={styles.layerChip} onPress={toggleShowProOfferings} hitSlop={4}>
-                <View style={[styles.tick, showProOfferings && { backgroundColor: colors.pinProBackground, borderColor: colors.pinProBackground }]}>
-                  {showProOfferings ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
-                </View>
-                <Text style={styles.layerLabel}>{t('map.layerPros', { defaultValue: 'Pros' })}</Text>
-              </Pressable>
-            </View>
+            <Pressable
+              style={[styles.iconToggle, showActivities && { borderColor: colors.cta, backgroundColor: colors.cta + '1F' }]}
+              onPress={toggleShowActivities}
+              hitSlop={4}
+              accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}
+            >
+              <Users size={20} color={showActivities ? colors.cta : colors.textMuted} strokeWidth={2.2} />
+            </Pressable>
+            <Pressable
+              style={[styles.iconToggle, showProOfferings && { borderColor: colors.pinProBackground, backgroundColor: colors.pinProBackground + '1F' }]}
+              onPress={toggleShowProOfferings}
+              hitSlop={4}
+              accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}
+            >
+              <Briefcase size={20} color={showProOfferings ? colors.pinProBackground : colors.textMuted} strokeWidth={2.2} />
+            </Pressable>
           </View>
         )}
 
@@ -588,38 +588,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: {
     flex: 1,
   },
-  topLeftStack: {
+  topControls: {
     position: 'absolute',
     left: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
     zIndex: 10,
   },
-  topControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  layerToggles: { flexDirection: 'row', gap: spacing.sm },
-  layerChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.surface,
+  // Layer toggle — same footprint as the map-style button; the icon colours in
+  // when its layer is shown.
+  iconToggle: {
+    width: 40,
+    height: 40,
     borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 1,
-  },
-  tick: {
-    width: 16,
-    height: 16,
-    borderRadius: radius.sm,
-    borderWidth: 1.5,
-    borderColor: colors.textSecondary,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
-  layerLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
 });
 
