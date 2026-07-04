@@ -66,13 +66,16 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           stroke={colors.pinBorder}
           strokeWidth={1.5}
         />
-        <Rect x={40.9} y={8.4} width={8.2} height={5.4} rx={1.2} fill="#FFFFFF" />
+        {/* Briefcase, not padlock: wide flat body, small low handle, and a
+            horizontal lid seam (padlocks have a tall arc and no seam). */}
+        <Rect x={40.6} y={8.2} width={8.8} height={5.2} rx={1} fill="#FFFFFF" />
         <Path
-          d="M 43.4 8.4 V 7.5 a 1.1 1.1 0 0 1 1.1 -1.1 h 1 a 1.1 1.1 0 0 1 1.1 1.1 V 8.4"
+          d="M 43.7 8.2 V 7.7 a 1.3 1.05 0 0 1 2.6 0 V 8.2"
           stroke="#FFFFFF"
-          strokeWidth={1.1}
+          strokeWidth={1}
           fill="none"
         />
+        <Path d="M 40.6 10.5 H 49.4" stroke={colors.pinProBackground} strokeWidth={0.9} />
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
