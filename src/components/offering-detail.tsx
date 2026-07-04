@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, ImagePlus } from 'lucide-react-native';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
@@ -306,6 +306,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
+    ...shadows.card,
   },
   hostThumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
   hostThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta },
@@ -342,6 +343,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   photoAddText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
   emptyText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
-  mapCard: { borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.borderMuted },
+  mapCard: {
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+    ...shadows.card,
+  },
   mapImage: { width: '100%', aspectRatio: 2 },
 });

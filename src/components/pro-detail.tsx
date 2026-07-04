@@ -11,7 +11,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
@@ -890,6 +890,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
     backgroundColor: colors.surface,
+    ...shadows.card,
   },
   reviewMiniHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewMiniWho: { flex: 1, minWidth: 0 },
@@ -913,6 +914,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
+    ...shadows.card,
   },
   aboutListTop: { borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
   aboutListBottom: { borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md },
@@ -1139,6 +1141,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     overflow: 'hidden',
     marginBottom: spacing.md,
+    ...shadows.raised,
   },
   expImageWrap: { width: '100%', aspectRatio: 3 / 2, backgroundColor: colors.surfaceAlt },
   expImage: { width: '100%', height: '100%' },
@@ -1191,6 +1194,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs,
     backgroundColor: colors.surface,
     justifyContent: 'space-between',
+    ...shadows.card,
   },
   catMiniTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.xs },
   catMiniChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },

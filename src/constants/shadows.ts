@@ -1,0 +1,28 @@
+import { Platform } from 'react-native';
+
+// Depth tokens — the missing contrast cue on the warm cream surfaces (Scott,
+// 2026-07-04). Warm near-black, soft and low: cards should float a hair above
+// the canvas, not hover. Spread into a style object; the view needs a solid
+// backgroundColor for Android elevation to render.
+export const shadows = {
+  // Content cards on a drawer/page canvas.
+  card: Platform.select({
+    ios: {
+      shadowColor: '#1F1A15',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+    },
+    default: { elevation: 2, shadowColor: '#1F1A15' },
+  }),
+  // Hero cards that should clearly pop (catalogue experience cards).
+  raised: Platform.select({
+    ios: {
+      shadowColor: '#1F1A15',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.16,
+      shadowRadius: 8,
+    },
+    default: { elevation: 4, shadowColor: '#1F1A15' },
+  }),
+} as const;

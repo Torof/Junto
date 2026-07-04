@@ -10,7 +10,7 @@ import { Flag, Pencil, Trash2, CornerUpLeft, ImagePlus, X } from 'lucide-react-n
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reviewService, type Review } from '@/services/review-service';
 import { proCommunityPhotoService } from '@/services/pro-photo-service';
@@ -467,6 +467,7 @@ const createStyles = (colors: AppColors) =>
       borderColor: colors.line,
       padding: spacing.md,
       gap: spacing.sm,
+      ...shadows.card,
     },
     // Horizontal carousel mode — fixed-width cards that bleed full width.
     reviewCardH: { width: 280 },
