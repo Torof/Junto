@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy, Users, Briefcase } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy, Users, Briefcase, Check } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -308,21 +308,17 @@ export default function CarteScreen() {
             <MapStyleButton />
             {/* Quick layer toggles — one tap to show/hide user activities vs
                 pro pins, instead of digging into the filter sheet. */}
-            <Pressable
-              style={[styles.iconToggle, showActivities && { borderColor: colors.cta, backgroundColor: colors.cta + '1F' }]}
-              onPress={toggleShowActivities}
-              hitSlop={4}
-              accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}
-            >
-              <Users size={20} color={showActivities ? colors.cta : colors.textMuted} strokeWidth={2.2} />
+            <Pressable style={styles.layerChip} onPress={toggleShowActivities} hitSlop={4} accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}>
+              <View style={[styles.tick, showActivities && { backgroundColor: colors.cta, borderColor: colors.cta }]}>
+                {showActivities ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
+              </View>
+              <Users size={16} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
-            <Pressable
-              style={[styles.iconToggle, showProOfferings && { borderColor: colors.pinProBackground, backgroundColor: colors.pinProBackground + '1F' }]}
-              onPress={toggleShowProOfferings}
-              hitSlop={4}
-              accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}
-            >
-              <Briefcase size={20} color={showProOfferings ? colors.pinProBackground : colors.textMuted} strokeWidth={2.2} />
+            <Pressable style={styles.layerChip} onPress={toggleShowProOfferings} hitSlop={4} accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}>
+              <View style={[styles.tick, showProOfferings && { backgroundColor: colors.pinProBackground, borderColor: colors.pinProBackground }]}>
+                {showProOfferings ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
+              </View>
+              <Briefcase size={16} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           </View>
         )}
@@ -596,22 +592,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.sm,
     zIndex: 10,
   },
-  // Layer toggle — same footprint as the map-style button; the icon colours in
-  // when its layer is shown.
-  iconToggle: {
-    width: 40,
-    height: 40,
+  layerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.surface,
     borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+  },
+  tick: {
+    width: 16,
+    height: 16,
+    borderRadius: radius.sm,
+    borderWidth: 1.5,
+    borderColor: colors.textSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
   },
 });
 
