@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useColors } from '@/hooks/use-theme';
 import { type AppColors } from '@/constants/colors';
-import { radius } from '@/constants/theme';
+import { radius, shadows } from '@/constants/theme';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { OfferingDetail } from './offering-detail';
 
@@ -90,6 +90,8 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
+      // Depth over the map — the drawer's top edge casts like the map controls.
+      ...shadows.raised,
     },
     handle: {
       alignItems: 'center',

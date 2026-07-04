@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
 import { type AppColors } from '@/constants/colors';
-import { radius } from '@/constants/theme';
+import { radius, shadows } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proService } from '@/services/pro-service';
 import { type ProOffering } from '@/services/pro-offering-service';
@@ -151,6 +151,8 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
+      // Depth over the map — the drawer's top edge casts like the map controls.
+      ...shadows.raised,
     },
     handle: {
       alignItems: 'center',
