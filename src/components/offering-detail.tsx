@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, Navigation, ImagePlus } from 'lucide-react-native';
+import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, ImagePlus } from 'lucide-react-native';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -97,9 +97,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const sharePage = () => {
     Share.share({ message: `${offering.title} — ${sportLabel}\nhttps://getjunto.app/pro/offering/${offering.id}` }).catch(() => {});
   };
-  const openDirections = () => {
-    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${offering.lat},${offering.lng}`);
-  };
 
   const proThumbUrl = pro?.pin_image_url ?? null;
   const formattedDuration = formatDuration(offering.duration);
@@ -132,8 +129,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         ) : null}
 
         <View style={styles.chipRatingRow}>
-          <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-            <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
+          <View style={styles.chipGroup}>
+            <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+              <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
+            </View>
+            <View style={styles.proPill}>
+              <Text style={styles.proPillText}>{t('proOffering.proBadge', { defaultValue: 'PRO' })}</Text>
+            </View>
           </View>
           {showRating ? (
             <View style={styles.ratingRow}>
@@ -145,14 +147,15 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         </View>
 
         <Text style={styles.title}>{offering.title}</Text>
+        <Text style={styles.proLine}>{t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}</Text>
 
         <View style={styles.factRow}>
-          <MapPin size={15} color={colors.textSecondary} strokeWidth={2.2} />
+          <MapPin size={15} color={accent} strokeWidth={2.2} />
           <Text style={styles.factText} numberOfLines={2}>{offering.location_name}</Text>
         </View>
         {offering.schedule_text ? (
           <View style={styles.factRow}>
-            <Calendar size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <Calendar size={15} color={accent} strokeWidth={2.2} />
             <Text style={styles.factText}>{offering.schedule_text}</Text>
           </View>
         ) : null}
@@ -229,16 +232,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         horizontal
       />
 
-      {/* Carte */}
+      {/* Carte — locator only. No directions CTA: the outing is pro-led and the
+          exact meeting point is arranged privately by the pro. */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('proOffering.map', { defaultValue: 'Carte' })}</Text>
-        <Pressable style={styles.mapCard} onPress={openDirections}>
+        <View style={styles.mapCard}>
           <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
-          <View style={styles.mapCta}>
-            <Navigation size={13} color="#FFFFFF" strokeWidth={2.4} />
-            <Text style={styles.mapCtaText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</Text>
-          </View>
-        </Pressable>
+        </View>
       </View>
     </>
   );
@@ -276,8 +276,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   chipRatingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  chipGroup: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexShrink: 1, minWidth: 0 },
   sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.full, backgroundColor: colors.pinProBackground },
+  proPillText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  proLine: { color: colors.pinProBackground, fontSize: fontSizes.xs, fontWeight: '700' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   ratingAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   ratingCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
@@ -340,17 +344,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   emptyText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
   mapCard: { borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.borderMuted },
   mapImage: { width: '100%', aspectRatio: 2 },
-  mapCta: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: colors.cta,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 1,
-  },
-  mapCtaText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
 });
