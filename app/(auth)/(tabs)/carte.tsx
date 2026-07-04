@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy, Check } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -122,6 +122,8 @@ export default function CarteScreen() {
   // the map (no pins of that type) and the bottom-sheet drawer.
   const showActivities = useMapStore((s) => s.filters.showActivities);
   const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
+  const toggleShowActivities = useMapStore((s) => s.toggleShowActivities);
+  const toggleShowProOfferings = useMapStore((s) => s.toggleShowProOfferings);
   const filteredActivitiesByType = showActivities ? filtered : [];
   const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
   // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
@@ -301,9 +303,27 @@ export default function CarteScreen() {
             Mapbox compass at top-right. Hidden while a preview is up OR the
             list drawer is raised, so the list reads as a clean layer. */}
         {!previewOpen && !listOpen && (
-          <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
-            <FilterButton onPress={() => setShowFilters(true)} />
-            <MapStyleButton />
+          <View style={[styles.topLeftStack, { top: insets.top + spacing.xs }]}>
+            <View style={styles.topControls}>
+              <FilterButton onPress={() => setShowFilters(true)} />
+              <MapStyleButton />
+            </View>
+            {/* Quick layer toggles — one tap to show/hide user activities vs
+                pro pins, instead of digging into the filter sheet. */}
+            <View style={styles.layerToggles}>
+              <Pressable style={styles.layerChip} onPress={toggleShowActivities} hitSlop={4}>
+                <View style={[styles.tick, showActivities && { backgroundColor: colors.cta, borderColor: colors.cta }]}>
+                  {showActivities ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
+                </View>
+                <Text style={styles.layerLabel}>{t('map.layerActivities', { defaultValue: 'Activités' })}</Text>
+              </Pressable>
+              <Pressable style={styles.layerChip} onPress={toggleShowProOfferings} hitSlop={4}>
+                <View style={[styles.tick, showProOfferings && { backgroundColor: colors.pinProBackground, borderColor: colors.pinProBackground }]}>
+                  {showProOfferings ? <Check size={11} color={colors.background} strokeWidth={3} /> : null}
+                </View>
+                <Text style={styles.layerLabel}>{t('map.layerPros', { defaultValue: 'Pros' })}</Text>
+              </Pressable>
+            </View>
           </View>
         )}
 
@@ -568,14 +588,38 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: {
     flex: 1,
   },
-  topControls: {
+  topLeftStack: {
     position: 'absolute',
-    top: spacing.md,
     left: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: spacing.sm,
     zIndex: 10,
   },
+  topControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  layerToggles: { flexDirection: 'row', gap: spacing.sm },
+  layerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.surface,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+  },
+  tick: {
+    width: 16,
+    height: 16,
+    borderRadius: radius.sm,
+    borderWidth: 1.5,
+    borderColor: colors.textSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  layerLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
 });
 
