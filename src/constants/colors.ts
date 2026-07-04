@@ -37,6 +37,11 @@ export const darkColors = {
   // user-chosen independently of the app theme.
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
+  // RA teardrop frame (v4.4) — calm like the UA's sand but COOL: a blue-grey
+  // at matching lightness, so RA ≠ UA registers without shouting and rhymes
+  // with the blue PRO capsule. Deliberately more blue-chroma than the neutral
+  // cool stone (#DCD8D0) rejected on-device for blending into Mapbox terrain.
+  pinProFrame: '#BFCFE0',
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
@@ -84,6 +89,7 @@ export const lightColors = {
   pinFrame: '#E0D2B4',
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
+  pinProFrame: '#BFCFE0',
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',

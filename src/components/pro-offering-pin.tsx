@@ -47,7 +47,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Path
           d={PIN_PATH}
-          fill={colors.pinFrame}
+          fill={colors.pinProFrame}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
