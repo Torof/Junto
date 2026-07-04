@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy, Users, Briefcase } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy, Users, Briefcase, Check } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -308,21 +308,21 @@ export default function CarteScreen() {
             <MapStyleButton />
             {/* Quick layer toggles — one tap to show/hide user activities vs
                 pro pins, instead of digging into the filter sheet. */}
-            <Pressable
-              style={[styles.layerChip, showActivities && { backgroundColor: colors.cta, borderColor: colors.cta }]}
-              onPress={toggleShowActivities}
-              hitSlop={4}
-              accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}
-            >
-              <Users size={18} color={showActivities ? colors.background : colors.textMuted} strokeWidth={2.2} />
+            <Pressable style={styles.layerChip} onPress={toggleShowActivities} hitSlop={4} accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}>
+              <Users size={18} color={showActivities ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
+              {showActivities ? (
+                <View style={[styles.checkBadge, { backgroundColor: colors.cta }]}>
+                  <Check size={9} color={colors.background} strokeWidth={3.5} />
+                </View>
+              ) : null}
             </Pressable>
-            <Pressable
-              style={[styles.layerChip, showProOfferings && { backgroundColor: colors.pinProBackground, borderColor: colors.pinProBackground }]}
-              onPress={toggleShowProOfferings}
-              hitSlop={4}
-              accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}
-            >
-              <Briefcase size={18} color={showProOfferings ? colors.background : colors.textMuted} strokeWidth={2.2} />
+            <Pressable style={styles.layerChip} onPress={toggleShowProOfferings} hitSlop={4} accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}>
+              <Briefcase size={18} color={showProOfferings ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
+              {showProOfferings ? (
+                <View style={[styles.checkBadge, { backgroundColor: colors.pinProBackground }]}>
+                  <Check size={9} color={colors.background} strokeWidth={3.5} />
+                </View>
+              ) : null}
             </Pressable>
           </View>
         )}
@@ -605,6 +605,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.borderMuted,
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 15,
+    height: 15,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.surface,
   },
 });
 
