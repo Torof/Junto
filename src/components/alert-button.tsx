@@ -29,13 +29,14 @@ export function AlertButton() {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  // Bottom-right cluster: create FAB (bottom 28), recenter above it
-  // (+48+14), this alert button next up (+another 48+14). Secondary
-  // surface style like recenter; the cta-orange bell gives it presence
-  // without competing with the primary + FAB.
+  // Bottom-right cluster: create FAB (bottom 28), this alert button above it
+  // (+48+14), the contextual recenter on top (+another 48+14) so its
+  // appear/disappear never leaves a hole mid-stack. Secondary surface style
+  // like recenter; the cta-orange bell gives it presence without competing
+  // with the primary FAB.
   button: {
     position: 'absolute',
-    bottom: 28 + (48 + 14) * 2,
+    bottom: 28 + 48 + 14,
     right: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: 14,

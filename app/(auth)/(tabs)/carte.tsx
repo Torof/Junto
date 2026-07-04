@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy, Users, Briefcase, Check } from 'lucide-react-native';
+import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -91,6 +91,8 @@ export default function CarteScreen() {
   // The list drawer is open above its 2% handle — hide the top-left filter /
   // map-style controls so the raised list reads as a clean layer.
   const [listOpen, setListOpen] = useState(false);
+  // Camera center is meaningfully away from the user's position → show recenter.
+  const [offCenter, setOffCenter] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
@@ -122,8 +124,6 @@ export default function CarteScreen() {
   // the map (no pins of that type) and the bottom-sheet drawer.
   const showActivities = useMapStore((s) => s.filters.showActivities);
   const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
-  const toggleShowActivities = useMapStore((s) => s.toggleShowActivities);
-  const toggleShowProOfferings = useMapStore((s) => s.toggleShowProOfferings);
   const filteredActivitiesByType = showActivities ? filtered : [];
   const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
   // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
@@ -152,6 +152,15 @@ export default function CarteScreen() {
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
     setTappedPoint(null);
+
+    // Contextual recenter: the button exists only once the user has panned
+    // meaningfully away from their own position (Google Maps behaviour).
+    if (currentLocation) {
+      const span = Math.abs(bounds.neLng - bounds.swLng);
+      const away = panDistance(bounds.centerLat, bounds.centerLng, currentLocation[1], currentLocation[0]);
+      const off = away > span * 0.2;
+      setOffCenter((prev) => (prev === off ? prev : off));
+    }
 
     // Clear the cluster-filter drawer once the user starts navigating again
     // (zoom or pan beyond a small threshold). Tapping the cluster doesn't move
@@ -214,7 +223,7 @@ export default function CarteScreen() {
         scheduleSearch(bounds);
       }
     }
-  }, [searchBounds, doSearch, scheduleSearch, clusterFilter]);
+  }, [searchBounds, doSearch, scheduleSearch, clusterFilter, currentLocation]);
 
   // First-run intro: show the one-time carousel if the user hasn't seen it.
   // No element anchoring or step machinery — it's a self-contained overlay.
@@ -292,7 +301,9 @@ export default function CarteScreen() {
         {!previewOpen && (
           <>
             <CreateButton />
-            <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            {offCenter && (
+              <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            )}
             <AlertButton />
           </>
         )}
@@ -306,27 +317,6 @@ export default function CarteScreen() {
           <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
             <FilterButton onPress={() => setShowFilters(true)} />
             <MapStyleButton />
-            {/* Quick layer toggles — one tap to show/hide user activities vs
-                pro pins, instead of digging into the filter sheet. */}
-            <View style={styles.layerPill}>
-              <Pressable style={styles.layerSegment} onPress={toggleShowActivities} hitSlop={4} accessibilityLabel={t('map.layerActivities', { defaultValue: 'Activités' })}>
-                <Users size={17} color={showActivities ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
-                {showActivities ? (
-                  <View style={[styles.checkBadge, { backgroundColor: colors.cta }]}>
-                    <Check size={8} color={colors.background} strokeWidth={3.5} />
-                  </View>
-                ) : null}
-              </Pressable>
-              <View style={styles.segmentDivider} />
-              <Pressable style={styles.layerSegment} onPress={toggleShowProOfferings} hitSlop={4} accessibilityLabel={t('map.layerPros', { defaultValue: 'Pros' })}>
-                <Briefcase size={17} color={showProOfferings ? colors.textPrimary : colors.textMuted} strokeWidth={2.2} />
-                {showProOfferings ? (
-                  <View style={[styles.checkBadge, { backgroundColor: colors.pinProBackground }]}>
-                    <Check size={8} color={colors.background} strokeWidth={3.5} />
-                  </View>
-                ) : null}
-              </Pressable>
-            </View>
           </View>
         )}
 
@@ -598,36 +588,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     zIndex: 10,
-  },
-  // One segmented pill instead of two floating chips — half the chrome, same
-  // one-tap toggles. Each segment keeps the checkmark badge as its on-signal.
-  layerPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 36,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  layerSegment: {
-    width: 38,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentDivider: { width: 1, height: 18, backgroundColor: colors.line },
-  checkBadge: {
-    position: 'absolute',
-    bottom: 3,
-    right: 3,
-    width: 13,
-    height: 13,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.surface,
   },
 });
 
