@@ -608,7 +608,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    top: -2,
+    bottom: -2,
     right: -2,
     width: 15,
     height: 15,
