@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -10,29 +10,28 @@ interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Pin system v4.1 (2026-07-04) — the RA follows the UA's exact pin grammar
-// (colored frame → ivory plate → sport emoji, soft rounded point) so all three
-// markers share one soul; only the HEAD SHAPE and frame color differ:
-//   UA = round teardrop, frame = time-status color (peer outing)
-//   RA = rounded-SQUARE pin, frame = pro-blue (pro-led outing)
-//   PP = pushpin, blue disc + needle (the pro's storefront)
-// Shape says "offering ≠ sortie" at a glance; blue ties RA to the PP family.
-// No "PRO" text — the blue carries that.
+// Pin system v4.2 (2026-07-04, Scott's call from the candidates artifact) —
+// "la goutte sobre badgée": the RA is the SAME calm teardrop as the UA (stone
+// frame → ivory plate → sport emoji) so a dense map stays breathable; the pro
+// signal is a small blue briefcase badge at the top-right — blue lives ONLY in
+// the badge (a full blue frame screamed at density), briefcase = the same
+// glyph as the map's "pros" layer toggle, ring in near-black like every other
+// pin outline.
 
-const VIEWBOX_W = 44;
-const VIEWBOX_H = 52;
-const PIN_WIDTH = 36;
+const VIEWBOX_W = 54;
+const VIEWBOX_H = 54;
+const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
+// viewBox y where the sport emoji is vertically centered (same as the UA pin).
+const ICON_CENTER_Y_VBX = 24;
 
-// Squircle head fusing into a short soft point at (22,50) — same gentle taper
-// language as the UA teardrop, but on a square body.
-const BODY_PATH =
-  'M 12 2 L 32 2 Q 42 2 42 12 L 42 27 Q 42 37 33 38.5 C 27.5 40 23.5 46.5 22 50 C 20.5 46.5 16.5 40 11 38.5 Q 2 37 2 27 L 2 12 Q 2 2 12 2 Z';
+// Identical silhouette to the UA teardrop (activity-pin.tsx).
+const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
 
-export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 50 / VIEWBOX_H };
+export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 52 / VIEWBOX_H };
 
-// Ivory plate (viewbox) — the emoji centers on it.
-const PLATE = { x: 5.5, y: 5.5, w: 33, h: 29, rx: 8 };
+// Badge geometry — kept inside the viewBox so nothing clips.
+const BADGE = { cx: 45, cy: 9.5, r: 8 };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
@@ -42,23 +41,37 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Path
-          d={BODY_PATH}
-          fill={colors.pinProBackground}
+          d={PIN_PATH}
+          fill={colors.pinFrame}
           stroke={colors.pinBorder}
           strokeWidth={2}
           strokeOpacity={0.55}
           strokeLinejoin="round"
         />
-        <Rect
-          x={PLATE.x}
-          y={PLATE.y}
-          width={PLATE.w}
-          height={PLATE.h}
-          rx={PLATE.rx}
+        <Circle
+          cx={27}
+          cy={24}
+          r={18.5}
           fill={colors.pinBackground}
           stroke={colors.pinBorder}
           strokeWidth={1.5}
           strokeOpacity={0.95}
+        />
+        {/* Pro badge — blue disc, near-black ring, white briefcase. */}
+        <Circle
+          cx={BADGE.cx}
+          cy={BADGE.cy}
+          r={BADGE.r}
+          fill={colors.pinProBackground}
+          stroke={colors.pinBorder}
+          strokeWidth={1.5}
+        />
+        <Rect x={40.9} y={8.4} width={8.2} height={5.4} rx={1.2} fill="#FFFFFF" />
+        <Path
+          d="M 43.4 8.4 V 7.5 a 1.1 1.1 0 0 1 1.1 -1.1 h 1 a 1.1 1.1 0 0 1 1.1 1.1 V 8.4"
+          stroke="#FFFFFF"
+          strokeWidth={1.1}
+          fill="none"
         />
       </Svg>
       <View style={styles.iconWrap}>
@@ -81,15 +94,15 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
   },
   iconWrap: {
     position: 'absolute',
-    left: (PLATE.x / VIEWBOX_W) * PIN_WIDTH,
-    top: (PLATE.y / VIEWBOX_H) * PIN_HEIGHT,
-    width: (PLATE.w / VIEWBOX_W) * PIN_WIDTH,
-    height: (PLATE.h / VIEWBOX_H) * PIN_HEIGHT,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: PIN_HEIGHT * (1 - 2 * (ICON_CENTER_Y_VBX / VIEWBOX_H)),
     alignItems: 'center',
     justifyContent: 'center',
   },
   icon: {
-    // Same emoji-as-hero sizing rationale as the UA pin.
-    fontSize: 16,
+    // Same emoji-on-ivory sizing as the UA pin.
+    fontSize: 17,
   },
 });
