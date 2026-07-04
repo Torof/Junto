@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, Text as SvgText } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -10,28 +10,33 @@ interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Pin system v4.2 (2026-07-04, Scott's call from the candidates artifact) —
-// "la goutte sobre badgée": the RA is the SAME calm teardrop as the UA (stone
-// frame → ivory plate → sport emoji) so a dense map stays breathable; the pro
-// signal is a small blue briefcase badge at the top-right — blue lives ONLY in
-// the badge (a full blue frame screamed at density), briefcase = the same
-// glyph as the map's "pros" layer toggle, ring in near-black like every other
-// pin outline.
+// Pin system v4.3 (2026-07-04, candidate I from the candidates artifact) —
+// "la goutte capsule PRO": the RA is the SAME calm teardrop as the UA (stone
+// frame → ivory plate → sport emoji) because RA and UA are both activities;
+// the pro signal is a small blue capsule that literally says "PRO" — the same
+// word/pill already used on the list cards and the RA drawer header, so the
+// map speaks the app's vocabulary. Glyph badges (briefcase, P, pushpin) all
+// read ambiguous at 11px; the word needs no learning. Blue lives ONLY in the
+// capsule so dense maps stay breathable.
 
-const VIEWBOX_W = 54;
+// The viewBox is 4 units wider than the UA's 54 so the capsule can overhang
+// the drop's top-right without clipping; the drop itself still spans 0–54.
+const VIEWBOX_W = 58;
 const VIEWBOX_H = 54;
-const PIN_WIDTH = 40;
+const PIN_WIDTH = 43; // keeps the drop at the UA's on-screen size (40 × 54/58 ≈ 43)
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-// viewBox y where the sport emoji is vertically centered (same as the UA pin).
+// viewBox coords of the emoji center (same drop geometry as the UA pin).
 const ICON_CENTER_Y_VBX = 24;
+const DROP_SPAN_VBX = 54; // the drop occupies x 0..54; the extra 4 is capsule room
 
 // Identical silhouette to the UA teardrop (activity-pin.tsx).
 const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
 
-export const PRO_OFFERING_PIN_ANCHOR = { x: 0.5, y: 52 / VIEWBOX_H };
+// Tip of the drop is (27, 52) in a 58-wide box.
+export const PRO_OFFERING_PIN_ANCHOR = { x: 27 / VIEWBOX_W, y: 52 / VIEWBOX_H };
 
-// Badge geometry — kept inside the viewBox so nothing clips.
-const BADGE = { cx: 45, cy: 9.5, r: 8 };
+// "PRO" capsule at the drop's top-right.
+const CAPSULE = { x: 35, y: 1.5, w: 22, h: 12, r: 6 };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
@@ -57,25 +62,28 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           strokeWidth={1.5}
           strokeOpacity={0.95}
         />
-        {/* Pro badge — blue disc, near-black ring, white briefcase. */}
-        <Circle
-          cx={BADGE.cx}
-          cy={BADGE.cy}
-          r={BADGE.r}
+        {/* "PRO" capsule — blue pill, near-black ring, the word in white. */}
+        <Rect
+          x={CAPSULE.x}
+          y={CAPSULE.y}
+          width={CAPSULE.w}
+          height={CAPSULE.h}
+          rx={CAPSULE.r}
           fill={colors.pinProBackground}
           stroke={colors.pinBorder}
-          strokeWidth={1.5}
+          strokeWidth={1.3}
         />
-        {/* Briefcase, not padlock: wide flat body, small low handle, and a
-            horizontal lid seam (padlocks have a tall arc and no seam). */}
-        <Rect x={40.6} y={8.2} width={8.8} height={5.2} rx={1} fill="#FFFFFF" />
-        <Path
-          d="M 43.7 8.2 V 7.7 a 1.3 1.05 0 0 1 2.6 0 V 8.2"
-          stroke="#FFFFFF"
-          strokeWidth={1}
-          fill="none"
-        />
-        <Path d="M 40.6 10.5 H 49.4" stroke={colors.pinProBackground} strokeWidth={0.9} />
+        <SvgText
+          x={CAPSULE.x + CAPSULE.w / 2}
+          y={CAPSULE.y + 9.1}
+          fontSize={8}
+          fontWeight="bold"
+          letterSpacing={0.5}
+          fill="#FFFFFF"
+          textAnchor="middle"
+        >
+          PRO
+        </SvgText>
       </Svg>
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
@@ -99,7 +107,9 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
+    // Span only the drop's 0..54 portion so the emoji centers on the drop
+    // (x=27), not on the capsule-widened 58-unit box.
+    width: PIN_WIDTH * (DROP_SPAN_VBX / VIEWBOX_W),
     bottom: PIN_HEIGHT * (1 - 2 * (ICON_CENTER_Y_VBX / VIEWBOX_H)),
     alignItems: 'center',
     justifyContent: 'center',
