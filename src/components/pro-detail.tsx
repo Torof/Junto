@@ -175,20 +175,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     }
   };
 
-  // Community contributions — rendered with the SAME PhotoGallery format as the
-  // rest of the photos. The owner (moderation) and the contributor (their own)
-  // get a delete control per tile.
-  const communityGalleryPhotos = communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url }));
-  const renderCommunityGallery = () => (
-    <PhotoGallery
-      photos={communityGalleryPhotos}
-      canDelete={(p) => {
-        const c = communityPhotos.find((x) => x.id === p.id);
-        return !!c && (isOwner || c.contributor_id === currentUserId);
-      }}
-      onDelete={(p) => handleCommunityRemove(p.id)}
-    />
-  );
 
   const { data: reviews = [] } = useQuery({
     queryKey: ['reviews', 'pro', pro.user_id],
@@ -313,8 +299,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         ) : null}
         <View style={styles.headerRow}>
           <View style={styles.headerInfo}>
-            <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
             <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'Page professionnelle' })}</Text>
+            <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
+            {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
             {reviewStats && reviewStats.review_count > 0 ? (
               <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
                 <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
@@ -342,7 +329,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             ) : null}
           </View>
         </View>
-        {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
         <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.actionRow}>
           <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
           {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
@@ -608,8 +594,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 onRemove={handleGalleryRemove}
                 onReorder={handleGalleryReorder}
                 hideAddButton
+                extraPhotos={communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url }))}
+                onRemoveExtra={handleCommunityRemove}
               />
-              {communityPhotos.length > 0 ? renderCommunityGallery() : null}
             </View>
           ) : (
             <View style={styles.galleryWrap}>
@@ -620,11 +607,18 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 </View>
                 <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
               </Pressable>
-              {photos.length > 0 ? <PhotoGallery photos={photos} emptyText="" /> : null}
-              {communityPhotos.length > 0 ? renderCommunityGallery() : null}
-              {photos.length === 0 && communityPhotos.length === 0 ? (
-                <Text style={styles.placeholderText}>{t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}</Text>
-              ) : null}
+              {/* One merged grid — owner gallery + community photos rendered
+                  indistinguishably. Delete shows only on tiles the viewer can
+                  moderate (their own community contributions). */}
+              <PhotoGallery
+                photos={galleryPhotos}
+                emptyText={t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
+                canDelete={(p) => {
+                  const c = communityPhotos.find((x) => x.id === p.id);
+                  return !!c && c.contributor_id === currentUserId;
+                }}
+                onDelete={(p) => handleCommunityRemove(p.id)}
+              />
             </View>
           )}
         </View>

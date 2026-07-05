@@ -35,6 +35,11 @@ interface PhotoManagerProps {
   // Hide the header "Ajouter" button when the parent provides its own add
   // affordance (e.g. the Photos tab's big pill).
   hideAddButton?: boolean;
+  // Additional photos rendered as plain deletable tiles CONTINUING the same
+  // grid (no position chip / reorder) — e.g. community photos on a pro page,
+  // displayed indistinguishably from the owner's gallery.
+  extraPhotos?: ManagedPhoto[];
+  onRemoveExtra?: (photoId: string) => void;
 }
 
 const SCREEN = Dimensions.get('window');
@@ -53,6 +58,8 @@ export function PhotoManager({
   onReorder,
   emptyCta,
   hideAddButton = false,
+  extraPhotos = [],
+  onRemoveExtra,
 }: PhotoManagerProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -153,7 +160,7 @@ export function PhotoManager({
         })}
       </Text>
 
-      {photos.length === 0 ? (
+      {photos.length === 0 && extraPhotos.length === 0 ? (
         <Pressable
           style={styles.emptyCard}
           onPress={handleAdd}
@@ -229,10 +236,37 @@ export function PhotoManager({
               )}
             </View>
           ))}
+
+          {/* Extra (e.g. community) photos — same tiles, same grid, delete
+              only. Visually indistinguishable from the photos above. */}
+          {extraPhotos.map((photo, i) => (
+            <View key={photo.id} style={styles.tile}>
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={() => setViewerIndex(photos.length + i)}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={t('photoGallery.openPhoto', {
+                  defaultValue: 'Ouvrir la photo {{n}}',
+                  n: photos.length + i + 1,
+                })}
+              >
+                <Image source={{ uri: photo.photo_url }} style={styles.tileImage} contentFit="cover" />
+              </Pressable>
+              {onRemoveExtra ? (
+                <Pressable
+                  style={styles.deleteBtn}
+                  onPress={() => onRemoveExtra(photo.id)}
+                  hitSlop={6}
+                >
+                  <Trash2 size={14} color="#FFFFFF" strokeWidth={2.6} />
+                </Pressable>
+              ) : null}
+            </View>
+          ))}
         </View>
       )}
 
-      <PhotoLightbox photos={photos} index={viewerIndex} onIndexChange={setViewerIndex} />
+      <PhotoLightbox photos={[...photos, ...extraPhotos]} index={viewerIndex} onIndexChange={setViewerIndex} />
     </View>
   );
 }
