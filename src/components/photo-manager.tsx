@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { ImagePlus, Trash2, ChevronUp, ChevronDown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { LogoSpinner } from './logo-spinner';
 import { PhotoLightbox } from './photo-lightbox';
 
@@ -295,6 +295,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
     position: 'relative',
+    ...shadows.card,
   },
   tileImage: { width: '100%', height: '100%' },
   positionChip: {

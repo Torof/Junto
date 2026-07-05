@@ -11,7 +11,7 @@ import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { PhotoLightbox } from './photo-lightbox';
 
 interface GalleryPhoto {
@@ -95,6 +95,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
+    ...shadows.card,
   },
   tileImage: { width: '100%', height: '100%' },
   deleteBtn: {

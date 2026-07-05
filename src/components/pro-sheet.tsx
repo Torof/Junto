@@ -151,8 +151,8 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
-      // Depth over the map — the drawer's top edge casts like the map controls.
-      ...shadows.raised,
+      // Depth over the map — heavy sheet dose so the top edge actually reads.
+      ...shadows.sheet,
     },
     handle: {
       alignItems: 'center',

@@ -25,4 +25,16 @@ export const shadows = {
     },
     default: { elevation: 4, shadowColor: '#1F1A15' },
   }),
+  // Drawer/sheet shells floating over the map — must be visible at the TOP
+  // edge, so iOS casts upward (negative offset) and Android gets a heavy
+  // elevation (its ambient halo is what reads above the view).
+  sheet: Platform.select({
+    ios: {
+      shadowColor: '#1F1A15',
+      shadowOffset: { width: 0, height: -6 },
+      shadowOpacity: 0.22,
+      shadowRadius: 14,
+    },
+    default: { elevation: 16, shadowColor: '#1F1A15' },
+  }),
 } as const;
