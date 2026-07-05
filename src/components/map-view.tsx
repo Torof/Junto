@@ -488,6 +488,9 @@ export function JuntoMapView({
           // natively): scale 2.3 ≈ the secondary-text height.
           cal: { image: require('../../assets/label-cal.png'), scale: 2.3 },
           lvl: { image: require('../../assets/label-level.png'), scale: 2.3 },
+          // Monochrome teardrop mask (SDF) — tinted per-pin via iconColor in
+          // the pinsAsLayers path.
+          'drop-pin': { image: require('../../assets/drop-pin-mask.png'), sdf: true },
         }}
       />
 
@@ -576,13 +579,28 @@ export function JuntoMapView({
             })),
           }}
         >
-          <Mapbox.CircleLayer
-            id="static-pins-dot"
+          {/* Teardrop silhouette (SDF mask tinted by the pin color), tip on the
+              coordinate; the white dot is the head highlight, offset up to the
+              head's center (mask head cy=28/88, displayed at iconSize 0.5). */}
+          <Mapbox.SymbolLayer
+            id="static-pins-drop"
             style={{
-              circleRadius: 9,
-              circleColor: ['get', 'color'],
-              circleStrokeWidth: 2.5,
-              circleStrokeColor: '#FFFFFF',
+              iconImage: 'drop-pin',
+              iconColor: ['get', 'color'],
+              iconAnchor: 'bottom',
+              iconSize: 0.5,
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
+            }}
+          />
+          <Mapbox.CircleLayer
+            id="static-pins-highlight"
+            style={{
+              circleRadius: 3.5,
+              circleColor: 'rgba(255,255,255,0.9)',
+              circleTranslate: [0, -30],
+              circleTranslateAnchor: 'viewport',
+              circlePitchAlignment: 'map',
             }}
           />
         </Mapbox.ShapeSource>
