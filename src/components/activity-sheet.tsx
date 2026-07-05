@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, ChevronRight, Car, Users } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, ChevronRight, Car, Users, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -87,6 +87,15 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
       <BottomSheetView style={styles.content}>
         {activity ? (
           <>
+            <Pressable
+              style={styles.closeBtn}
+              onPress={() => modalRef.current?.dismiss()}
+              hitSlop={8}
+              accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}
+            >
+              <X size={22} color={colors.textPrimary} strokeWidth={2.4} />
+            </Pressable>
+
             <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
               <Text style={styles.sportEmoji}>{getSportIcon(activity.sport_key)}</Text>
               <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
@@ -192,6 +201,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportEmoji: { fontSize: 13 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
   kindLine: { fontSize: fontSizes.xs, fontWeight: '700' },
+  closeBtn: { position: 'absolute', top: 2, right: spacing.lg, zIndex: 1, padding: 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },

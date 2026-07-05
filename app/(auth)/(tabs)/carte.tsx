@@ -479,13 +479,15 @@ export default function CarteScreen() {
         />
 
         {/* UA teaser drawer — same always-mounted modal pattern as the others.
-            The CTA opens the full page; the selection is kept so coming back
-            from the page lands on the map with the drawer still open. */}
+            The CTA clears the selection before pushing the page: the modal
+            lives in the ROOT portal, so left open it would float over the
+            pushed page. */}
         <ActivitySheet
           activity={selectedActivity}
           onClose={() => setSelectedActivity(null)}
           onOpen={(a) => {
             suppressMapPressUntil.current = Date.now() + 400;
+            setSelectedActivity(null);
             router.push(`/(auth)/activity/${a.id}`);
           }}
         />
