@@ -579,16 +579,30 @@ export function JuntoMapView({
             })),
           }}
         >
-          {/* Teardrop silhouette (SDF mask tinted by the pin color), tip on the
-              coordinate; the white dot is the head highlight, offset up to the
-              head's center (mask head cy=28/88, displayed at iconSize 0.5). */}
+          {/* GL replica of MapPinIcon at its exact display size (16×22 =
+              iconSize 0.25 of the 64×88 mask): dark offset copy as the drop
+              shadow, tinted teardrop, white head highlight (head center sits
+              15px above the tip at this scale). */}
+          <Mapbox.SymbolLayer
+            id="static-pins-shadow"
+            style={{
+              iconImage: 'drop-pin',
+              iconColor: 'rgba(10,15,26,0.35)',
+              iconAnchor: 'bottom',
+              iconSize: 0.27,
+              iconTranslate: [1, 2],
+              iconTranslateAnchor: 'viewport',
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
+            }}
+          />
           <Mapbox.SymbolLayer
             id="static-pins-drop"
             style={{
               iconImage: 'drop-pin',
               iconColor: ['get', 'color'],
               iconAnchor: 'bottom',
-              iconSize: 0.5,
+              iconSize: 0.25,
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
             }}
@@ -596,9 +610,9 @@ export function JuntoMapView({
           <Mapbox.CircleLayer
             id="static-pins-highlight"
             style={{
-              circleRadius: 3.5,
-              circleColor: 'rgba(255,255,255,0.9)',
-              circleTranslate: [0, -30],
+              circleRadius: 2,
+              circleColor: 'rgba(255,255,255,0.85)',
+              circleTranslate: [0, -15],
               circleTranslateAnchor: 'viewport',
               circlePitchAlignment: 'map',
             }}
