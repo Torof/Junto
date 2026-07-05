@@ -610,9 +610,9 @@ export function JuntoMapView({
           <Mapbox.CircleLayer
             id="static-pins-highlight"
             style={{
-              circleRadius: 2,
+              circleRadius: 2.5,
               circleColor: 'rgba(255,255,255,0.85)',
-              circleTranslate: [0, -15],
+              circleTranslate: [0, -14],
               circleTranslateAnchor: 'viewport',
               circlePitchAlignment: 'map',
             }}
