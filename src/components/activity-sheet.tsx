@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, ChevronRight, Car } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, ChevronRight, Car, Users } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -87,52 +87,56 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
       <BottomSheetView style={styles.content}>
         {activity ? (
           <>
-            <View style={styles.chipRow}>
-              <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-                <Text style={styles.sportEmoji}>{getSportIcon(activity.sport_key)}</Text>
-                <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
-                  {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
-                </Text>
-              </View>
-              <View style={styles.whenRow}>
-                <Calendar size={14} color={colors.textPrimary} strokeWidth={2.2} />
-                <Text style={styles.whenText}>
-                  {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM [·] H[h]mm')}
-                </Text>
-              </View>
+            <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+              <Text style={styles.sportEmoji}>{getSportIcon(activity.sport_key)}</Text>
+              <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
+                {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
+              </Text>
             </View>
+            <Text style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
+              {t('map.peerOuting', { defaultValue: 'Sortie entre particuliers' })}
+            </Text>
 
             <Text style={styles.title} numberOfLines={2}>{activity.title}</Text>
 
-            {/* Decision line: difficulty signal · places */}
-            <View style={styles.signalRow}>
-              {signal ? (
-                <View style={styles.signalItem}>
-                  <BarChart2 size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                  <Text style={styles.signalText} numberOfLines={1}>{signal}</Text>
-                </View>
-              ) : null}
-              <View style={[styles.placesChip, isFull && styles.placesChipFull]}>
-                <Text style={[styles.placesChipText, isFull && styles.placesChipTextFull]}>
-                  {isOpenCount
-                    ? `${activity.participant_count} · ${t('create.openActivityValue', { defaultValue: 'ouvert' })}`
-                    : `${activity.participant_count}/${activity.max_participants} ${t('activity.places', { defaultValue: 'places' })}`}
-                </Text>
+            {/* One fact per line, icons in the universe color. */}
+            <View style={styles.infoRow}>
+              <Calendar size={15} color={accent} strokeWidth={2.2} />
+              <Text style={styles.infoText}>
+                {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM [à] H[h]mm')}
+              </Text>
+            </View>
+
+            {signal ? (
+              <View style={styles.infoRow}>
+                <BarChart2 size={15} color={accent} strokeWidth={2.2} />
+                <Text style={styles.infoText} numberOfLines={1}>{signal}</Text>
               </View>
+            ) : null}
+
+            <View style={styles.infoRow}>
+              <Users size={15} color={accent} strokeWidth={2.2} />
+              <Text style={[styles.infoText, isFull && { color: colors.error }]} numberOfLines={1}>
+                {isOpenCount
+                  ? `${activity.participant_count} ${t('map.participantsOpen', { defaultValue: 'participants · ouverte à tous' })}`
+                  : isFull
+                    ? t('map.full', { defaultValue: 'Complet' })
+                    : t('map.spotsLeft', { defaultValue: '{{n}} places restantes', n: remaining, count: remaining })}
+              </Text>
             </View>
 
             {activity.objective_name ? (
-              <View style={styles.placeRow}>
-                <MapPin size={14} color={accent} strokeWidth={2.2} />
-                <Text style={styles.placeText} numberOfLines={1}>{activity.objective_name}</Text>
+              <View style={styles.infoRow}>
+                <MapPin size={15} color={accent} strokeWidth={2.2} />
+                <Text style={styles.infoText} numberOfLines={1}>{activity.objective_name}</Text>
               </View>
             ) : null}
 
             {/* Carpool signal — "can I even get there" is decision info. */}
             {carSeats > 0 ? (
-              <View style={styles.placeRow}>
-                <Car size={14} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.carpoolText} numberOfLines={1}>
+              <View style={styles.infoRow}>
+                <Car size={15} color={accent} strokeWidth={2.2} />
+                <Text style={styles.infoText} numberOfLines={1}>
                   {t('map.carpoolSeats', { defaultValue: '{{n}} places en covoit', n: carSeats, count: carSeats })}
                   {carCities.length > 0 ? ` · ${t('map.carpoolFrom', { defaultValue: 'dép.' })} ${carCities.slice(0, 2).join(', ')}${carCities.length > 2 ? '…' : ''}` : ''}
                 </Text>
@@ -175,8 +179,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.sm,
   },
-  chipRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   sportChip: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -184,24 +188,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: 2,
     borderRadius: radius.full,
     borderWidth: 1,
-    flexShrink: 1,
-    minWidth: 0,
   },
   sportEmoji: { fontSize: 13 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
-  whenRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  whenText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  kindLine: { fontSize: fontSizes.xs, fontWeight: '700' },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
-  signalRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  signalItem: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0 },
-  signalText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  placesChip: { backgroundColor: colors.success + '33', paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
-  placesChipFull: { backgroundColor: colors.error + '33' },
-  placesChipText: { color: colors.success, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.4 },
-  placesChipTextFull: { color: colors.error },
-  placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  placeText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  carpoolText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
