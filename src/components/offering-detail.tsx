@@ -63,9 +63,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const insets = useSafeAreaInsets();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showFullMap, setShowFullMap] = useState(false);
-  // MarkerViews present at a Mapbox map's INITIAL mount never attach (rnmapbox
-  // Android bug) — inject the pin only after the map's first idle.
-  const [fullMapReady, setFullMapReady] = useState(false);
 
   const isOwner = session?.user?.id === offering.pro_id;
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
@@ -278,17 +275,17 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       {/* Mounted only while open: a Mapbox map mounted hidden inside an RN
           Modal never positions its MarkerViews — fresh mount = pin shows. */}
       {showFullMap && (
-        <Modal visible animationType="slide" onRequestClose={() => { setShowFullMap(false); setFullMapReady(false); }}>
+        <Modal visible animationType="slide" onRequestClose={() => setShowFullMap(false)}>
           <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
             <JuntoMapView
               center={[offering.lng, offering.lat]}
               zoom={13}
-              onBoundsChange={() => setFullMapReady(true)}
-              pins={fullMapReady ? [{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }] : []}
+              pinsAsLayers
+              pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
             />
             <Pressable
               style={[styles.closeMapButton, { top: insets.top + spacing.sm }]}
-              onPress={() => { setShowFullMap(false); setFullMapReady(false); }}
+              onPress={() => setShowFullMap(false)}
               hitSlop={8}
             >
               <X size={20} color={colors.textPrimary} strokeWidth={2.4} />

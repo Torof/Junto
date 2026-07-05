@@ -113,6 +113,9 @@ interface MapViewProps {
   onProPress?: (pro: NearbyPro) => void;
   onProOfferingPress?: (offering: ProOffering) => void;
   onPinPress?: (pin: MapPin) => void;
+  // Render `pins` as GL circle layers instead of MarkerViews — for secondary
+  // map instances (modals) where MarkerViews can fail to attach. No taps.
+  pinsAsLayers?: boolean;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
   onStuckClusterPress?: (activities: NearbyActivity[]) => void;
@@ -154,6 +157,7 @@ export function JuntoMapView({
   onProPress,
   onProOfferingPress,
   onPinPress,
+  pinsAsLayers = false,
   onMapPress,
   onBoundsChange,
   onStuckClusterPress,
@@ -557,13 +561,40 @@ export function JuntoMapView({
         </Mapbox.MarkerView>
       )}
 
-      {pins.map((pin) => (
-        <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR} allowOverlap>
-          <Pressable onPress={() => onPinPress?.(pin)} hitSlop={10}>
-            <MapPinIcon color={pin.color} />
-          </Pressable>
-        </Mapbox.MarkerView>
-      ))}
+      {/* pinsAsLayers: pure GL rendering (dot + white ring) — MarkerViews can
+          silently fail to attach on secondary map instances (modals); GL
+          layers ride the tile pipeline and always draw. No tap handling. */}
+      {pinsAsLayers && pins.length > 0 ? (
+        <Mapbox.ShapeSource
+          id="static-pins-src"
+          shape={{
+            type: 'FeatureCollection',
+            features: pins.map((pin) => ({
+              type: 'Feature' as const,
+              geometry: { type: 'Point' as const, coordinates: pin.coordinate },
+              properties: { color: pin.color },
+            })),
+          }}
+        >
+          <Mapbox.CircleLayer
+            id="static-pins-dot"
+            style={{
+              circleRadius: 9,
+              circleColor: ['get', 'color'],
+              circleStrokeWidth: 2.5,
+              circleStrokeColor: '#FFFFFF',
+            }}
+          />
+        </Mapbox.ShapeSource>
+      ) : (
+        pins.map((pin) => (
+          <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR} allowOverlap>
+            <Pressable onPress={() => onPinPress?.(pin)} hitSlop={10}>
+              <MapPinIcon color={pin.color} />
+            </Pressable>
+          </Mapbox.MarkerView>
+        ))
+      )}
 
       {/* Unified render loop. Mixes activity, pro storefront, and pro
           offering pins. Cluster pins show total count regardless of
