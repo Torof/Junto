@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, Modal } from 'react-native';
 import { Image } from 'expo-image';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, ChevronRight, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, ImagePlus } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus } from 'lucide-react-native';
+import { JuntoMapView } from './map-view';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -59,6 +61,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showFullMap, setShowFullMap] = useState(false);
 
   const isOwner = session?.user?.id === offering.pro_id;
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
@@ -110,8 +113,33 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   if (offering.max_participants != null) stats.push({ id: 'places', icon: Users, value: `${offering.max_participants}` });
 
   // Static Mapbox thumbnail centered on the spot — a non-interactive image (no
-  // gesture conflict inside the drawer scroll). Tap → directions.
+  // gesture conflict inside the drawer scroll). Tap → fullscreen interactive map.
   const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-l+${accent.replace('#', '')}(${offering.lng},${offering.lat})/${offering.lng},${offering.lat},13,0/640x320@2x?access_token=${MAPBOX_TOKEN}`;
+
+  // Full 5-star row with half-star precision (same rendering as the PP header).
+  const renderStars = (avg: number) => (
+    <View style={styles.starsRow}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        const kind = avg >= i - 0.25 ? 'full' : avg >= i - 0.75 ? 'half' : 'empty';
+        return (
+          <View key={i} style={styles.starSlot}>
+            <Star size={14} color={colors.cta} fill={kind === 'full' ? colors.cta : 'transparent'} strokeWidth={1.8} />
+            {kind === 'half' ? (
+              <View style={StyleSheet.absoluteFill}>
+                <StarHalf size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
+    </View>
+  );
+
+  const openPro = () => {
+    if (!pro) return;
+    if (onOpenPro) onOpenPro(pro.user_id, [pro.primary_lng, pro.primary_lat]);
+    else router.push(`/(auth)/pro/${pro.user_id}`);
+  };
 
   const body = (
     <>
@@ -129,25 +157,22 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         ) : null}
 
         <View style={styles.chipRatingRow}>
-          <View style={styles.chipGroup}>
-            <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-              <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
-            </View>
-            <View style={styles.proPill}>
-              <Text style={styles.proPillText}>{t('proOffering.proBadge', { defaultValue: 'PRO' })}</Text>
-            </View>
+          <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+            <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
           </View>
-          {showRating ? (
-            <View style={styles.ratingRow}>
-              <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-              <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
-              <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
-            </View>
-          ) : null}
+          <Text style={styles.proLine} numberOfLines={1}>
+            {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}
+          </Text>
         </View>
 
         <Text style={styles.title}>{offering.title}</Text>
-        <Text style={styles.proLine}>{t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}</Text>
+        {showRating ? (
+          <View style={styles.ratingRow}>
+            <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+            {renderStars(Number(reviewStats.avg_rating))}
+            <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
+          </View>
+        ) : null}
 
         <View style={styles.factRow}>
           <MapPin size={15} color={accent} strokeWidth={2.2} />
@@ -175,7 +200,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
         {pro ? (
-          <Pressable style={styles.hostCard} onPress={() => (onOpenPro ? onOpenPro(pro.user_id, [pro.primary_lng, pro.primary_lat]) : router.push(`/(auth)/pro/${pro.user_id}`))}>
+          <Pressable style={styles.hostCard} onPress={openPro}>
             {proThumbUrl ? (
               <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
             ) : (
@@ -187,7 +212,9 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               <Text style={styles.hostLabel}>{t('proOffering.byPro', { defaultValue: 'Proposé par' })}</Text>
               <Text style={styles.hostName} numberOfLines={1}>{pro.display_name}</Text>
             </View>
-            <ChevronRight size={20} color={colors.textSecondary} />
+            <Pressable style={styles.contactBtn} onPress={openPro} hitSlop={6}>
+              <Text style={styles.contactBtnText}>{t('proOffering.contact', { defaultValue: 'Contacter' })}</Text>
+            </Pressable>
           </Pressable>
         ) : null}
       </View>
@@ -232,14 +259,27 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         horizontal
       />
 
-      {/* Carte — locator only. No directions CTA: the outing is pro-led and the
-          exact meeting point is arranged privately by the pro. */}
+      {/* Carte — locator (no directions CTA: the meeting point is arranged
+          privately by the pro). Tap → fullscreen interactive map. */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('proOffering.map', { defaultValue: 'Carte' })}</Text>
-        <View style={styles.mapCard}>
+        <Pressable style={styles.mapCard} onPress={() => setShowFullMap(true)}>
           <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
-        </View>
+        </Pressable>
       </View>
+
+      <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
+        <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
+          <JuntoMapView
+            center={[offering.lng, offering.lat]}
+            zoom={13}
+            pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
+          />
+          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
+            <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
+          </Pressable>
+        </SafeAreaView>
+      </Modal>
     </>
   );
 
@@ -275,16 +315,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
-  chipRatingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-  chipGroup: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexShrink: 1, minWidth: 0 },
-  sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },
+  chipRatingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 0 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
-  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.full, backgroundColor: colors.pinProBackground },
-  proPillText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  proLine: { color: colors.pinProBackground, fontSize: fontSizes.xs, fontWeight: '700' },
+  proLine: { color: colors.pinProBackground, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   ratingAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   ratingCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  starsRow: { flexDirection: 'row', gap: 2 },
+  starSlot: { position: 'relative' },
   title: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 34 },
   factRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   factText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
@@ -314,6 +353,27 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   hostInfo: { flex: 1, minWidth: 0 },
   hostLabel: { color: colors.textMuted, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 0.8 },
   hostName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
+  contactBtn: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  contactBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
+  fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  closeMapButton: {
+    position: 'absolute',
+    top: spacing.sm + 4,
+    left: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
   // Horizontal carousels bleed full width.
   bleed: { marginHorizontal: -spacing.lg },
   hCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },

@@ -100,6 +100,11 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
+      // Same thin lip border as the PP drawer.
+      borderTopWidth: 1,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: colors.borderMuted,
     },
     grabber: { height: 4, width: 40, borderRadius: 2, backgroundColor: colors.textMuted },
   });
