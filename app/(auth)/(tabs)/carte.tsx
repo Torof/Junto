@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
-import { PinPreviewSheet, type PinPreviewSelection } from '@/components/pin-preview-sheet';
+import { ActivitySheet } from '@/components/activity-sheet';
 import { ProSheet } from '@/components/pro-sheet';
 import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
@@ -260,14 +260,9 @@ export default function CarteScreen() {
     }, [queryClient])
   );
 
-  // A pin tap selects one of the three entity types. UA uses the compact
-  // preview sheet; PP and RA open their own expandable drawers (ProSheet /
-  // OfferingSheet, the full pages hosted as Google place-sheets).
-  const previewSelection = useMemo<PinPreviewSelection | null>(() => {
-    if (selectedActivity) return { kind: 'activity', data: selectedActivity };
-    return null;
-  }, [selectedActivity]);
-  const previewOpen = previewSelection !== null || selectedProId !== null || selectedOffering !== null;
+  // A pin tap selects one of the three entity types; each opens its own drawer
+  // (ActivitySheet teaser / ProSheet / OfferingSheet).
+  const previewOpen = selectedActivity !== null || selectedProId !== null || selectedOffering !== null;
 
   // Fly to a pin and land it in the upper part of the map (clear of the drawer
   // sliding up), same framing as a pin tap. Used by the cross-drawer links.
@@ -483,14 +478,15 @@ export default function CarteScreen() {
           }}
         />
 
-        <PinPreviewSheet
-          selection={previewSelection}
-          onClose={clearPreview}
-          onSeeMore={(sel) => {
+        {/* UA teaser drawer — same always-mounted modal pattern as the others.
+            The CTA opens the full page; the selection is kept so coming back
+            from the page lands on the map with the drawer still open. */}
+        <ActivitySheet
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          onOpen={(a) => {
             suppressMapPressUntil.current = Date.now() + 400;
-            if (sel.kind === 'activity') router.push(`/(auth)/activity/${sel.data.id}`);
-            else router.push(`/(auth)/pro/offering/${sel.data.id}`);
-            clearPreview();
+            router.push(`/(auth)/activity/${a.id}`);
           }}
         />
 
