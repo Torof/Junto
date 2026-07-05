@@ -1,31 +1,33 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import { Image } from 'expo-image';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, ChevronRight, X } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, ChevronRight, Car } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
+import { transportService } from '@/services/transport-service';
 import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
-import { JuntoMapView } from './map-view';
 
 // UA (peer outing) drawer — a pure TEASER (Scott, 2026-07-05): what catches the
 // eye + what decides "do I want to know more", nothing else. Joining and the
 // member surfaces (chat / covoiturage / matos) live on the full page behind the
 // single CTA — opening the page to join is what makes people discover those
-// tabs. Content is short, so one content-hugging height (enableDynamicSizing)
-// instead of the PP/RA two-stage collapse; same modal shell (present/dismiss,
-// lip border, sheet shadow, above the tab bar).
-const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+// tabs. No map inside (the pin is literally visible above the drawer); the one
+// org signal shown pre-join is the carpool summary (get_transport_summary is
+// deliberately readable by non-participants, audit 00196) because "can I even
+// get there" IS decision info. Content is short, so one content-hugging height
+// (enableDynamicSizing) instead of the PP/RA two-stage collapse; same modal
+// shell (present/dismiss, lip border, sheet shadow, above the tab bar).
 
 interface Props {
   // The selected activity, or null. Always mounted; present()/dismiss() follow.
@@ -42,7 +44,6 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
   const modalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
-  const [showFullMap, setShowFullMap] = useState(false);
 
   useEffect(() => {
     if (activity) modalRef.current?.present();
@@ -58,9 +59,15 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
   const isOpenCount = activity?.max_participants === null;
   const isFull = !isOpenCount && remaining <= 0;
 
-  const mapUrl = activity
-    ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-l+${accent.replace('#', '')}(${activity.lng},${activity.lat})/${activity.lng},${activity.lat},13,0/640x280@2x?access_token=${MAPBOX_TOKEN}`
-    : null;
+  // Carpool summary — car/carpool rows only: seats offered + departure cities.
+  const { data: transportSummary = [] } = useQuery({
+    queryKey: ['transport-summary', activity?.id],
+    queryFn: () => transportService.getSummary(activity!.id),
+    enabled: !!activity,
+  });
+  const carRows = transportSummary.filter((r) => r.transport_type === 'car' || r.transport_type === 'carpool');
+  const carSeats = carRows.reduce((sum, r) => sum + (r.total_seats ?? 0), 0);
+  const carCities = [...new Set(carRows.flatMap((r) => r.cities ?? []))];
 
   return (
     <BottomSheetModal
@@ -121,38 +128,21 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </View>
             ) : null}
 
-            {/* Locator — tap → fullscreen interactive map (GL pins: MarkerViews
-                don't attach in modals opened from the sheet portal). */}
-            {mapUrl ? (
-              <Pressable style={styles.mapCard} onPress={() => setShowFullMap(true)}>
-                <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
-              </Pressable>
+            {/* Carpool signal — "can I even get there" is decision info. */}
+            {carSeats > 0 ? (
+              <View style={styles.placeRow}>
+                <Car size={14} color={colors.textSecondary} strokeWidth={2.2} />
+                <Text style={styles.carpoolText} numberOfLines={1}>
+                  {t('map.carpoolSeats', { defaultValue: '{{n}} places en covoit', n: carSeats, count: carSeats })}
+                  {carCities.length > 0 ? ` · ${t('map.carpoolFrom', { defaultValue: 'dép.' })} ${carCities.slice(0, 2).join(', ')}${carCities.length > 2 ? '…' : ''}` : ''}
+                </Text>
+              </View>
             ) : null}
 
             <Pressable style={styles.cta} onPress={() => onOpen(activity)}>
               <Text style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })}</Text>
               <ChevronRight size={17} color={colors.background} strokeWidth={2.6} />
             </Pressable>
-
-            {showFullMap && (
-              <Modal visible animationType="slide" onRequestClose={() => setShowFullMap(false)}>
-                <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-                  <JuntoMapView
-                    center={[activity.lng, activity.lat]}
-                    zoom={13}
-                    pinsAsLayers
-                    pins={[{ id: 'activity', coordinate: [activity.lng, activity.lat], color: accent, label: activity.objective_name ?? activity.title }]}
-                  />
-                  <Pressable
-                    style={[styles.closeMapButton, { top: insets.top + spacing.sm }]}
-                    onPress={() => setShowFullMap(false)}
-                    hitSlop={8}
-                  >
-                    <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
-                  </Pressable>
-                </SafeAreaView>
-              </Modal>
-            )}
           </>
         ) : null}
       </BottomSheetView>
@@ -211,16 +201,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   placesChipTextFull: { color: colors.error },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   placeText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  mapCard: {
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    backgroundColor: colors.surface,
-    marginTop: spacing.xs,
-    ...shadows.card,
-  },
-  mapImage: { width: '100%', aspectRatio: 2.3 },
+  carpoolText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -232,17 +213,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: spacing.xs,
   },
   ctaText: { color: colors.background, fontSize: fontSizes.md, fontWeight: '800' },
-  fullMapContainer: { flex: 1, backgroundColor: colors.background },
-  closeMapButton: {
-    position: 'absolute',
-    left: spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
 });
