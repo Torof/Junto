@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, Modal } from 'react-native';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -60,8 +60,12 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const { session } = useAuth();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showFullMap, setShowFullMap] = useState(false);
+  // MarkerViews present at a Mapbox map's INITIAL mount never attach (rnmapbox
+  // Android bug) — inject the pin only after the map's first idle.
+  const [fullMapReady, setFullMapReady] = useState(false);
 
   const isOwner = session?.user?.id === offering.pro_id;
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
@@ -274,14 +278,19 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       {/* Mounted only while open: a Mapbox map mounted hidden inside an RN
           Modal never positions its MarkerViews — fresh mount = pin shows. */}
       {showFullMap && (
-        <Modal visible animationType="slide" onRequestClose={() => setShowFullMap(false)}>
+        <Modal visible animationType="slide" onRequestClose={() => { setShowFullMap(false); setFullMapReady(false); }}>
           <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
             <JuntoMapView
               center={[offering.lng, offering.lat]}
               zoom={13}
-              pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
+              onBoundsChange={() => setFullMapReady(true)}
+              pins={fullMapReady ? [{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }] : []}
             />
-            <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
+            <Pressable
+              style={[styles.closeMapButton, { top: insets.top + spacing.sm }]}
+              onPress={() => { setShowFullMap(false); setFullMapReady(false); }}
+              hitSlop={8}
+            >
               <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
           </SafeAreaView>
@@ -368,9 +377,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   contactBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  // `top` set inline from insets — SafeAreaView pads its layout children, but
+  // absolute positioning ignores that padding.
   closeMapButton: {
     position: 'absolute',
-    top: spacing.sm + 4,
     left: spacing.md,
     width: 36,
     height: 36,
