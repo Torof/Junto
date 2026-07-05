@@ -161,6 +161,12 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.surfaceAlt,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
+      // Very thin lip border along the drawer's top edge (Scott, trial —
+      // revert if it doesn't read well).
+      borderTopWidth: 1,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: colors.borderMuted,
     },
     grabber: { height: 4, width: 40, borderRadius: 2, backgroundColor: colors.textMuted },
     loading: { paddingVertical: 80, alignItems: 'center' },
