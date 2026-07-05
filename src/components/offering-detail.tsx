@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2 } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -160,10 +160,10 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
             <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
           </View>
-          <Text style={styles.proLine} numberOfLines={1}>
-            {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}
-          </Text>
         </View>
+        <Text style={styles.proLine} numberOfLines={1}>
+          {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}
+        </Text>
 
         <Text style={styles.title}>{offering.title}</Text>
         {showRating ? (
@@ -265,21 +265,28 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         <Text style={styles.sectionTitle}>{t('proOffering.map', { defaultValue: 'Carte' })}</Text>
         <Pressable style={styles.mapCard} onPress={() => setShowFullMap(true)}>
           <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
+          <View style={styles.mapExpandBadge}>
+            <Maximize2 size={15} color={colors.textPrimary} strokeWidth={2.4} />
+          </View>
         </Pressable>
       </View>
 
-      <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
-        <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-          <JuntoMapView
-            center={[offering.lng, offering.lat]}
-            zoom={13}
-            pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
-          />
-          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
-            <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
-          </Pressable>
-        </SafeAreaView>
-      </Modal>
+      {/* Mounted only while open: a Mapbox map mounted hidden inside an RN
+          Modal never positions its MarkerViews — fresh mount = pin shows. */}
+      {showFullMap && (
+        <Modal visible animationType="slide" onRequestClose={() => setShowFullMap(false)}>
+          <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
+            <JuntoMapView
+              center={[offering.lng, offering.lat]}
+              zoom={13}
+              pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
+            />
+            <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
+              <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
+            </Pressable>
+          </SafeAreaView>
+        </Modal>
+      )}
     </>
   );
 
@@ -410,6 +417,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
     ...shadows.card,
+  },
+  mapExpandBadge: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
+    width: 30,
+    height: 30,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
   },
   mapImage: { width: '100%', aspectRatio: 2 },
 });
