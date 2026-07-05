@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, Camera, Calendar } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, StarHalf, Camera, Calendar } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
@@ -30,6 +30,7 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 import { JuntoMapView } from './map-view';
 import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
+import { PhotoLightbox } from './photo-lightbox';
 
 const GALLERY_MAX = 25;
 
@@ -121,6 +122,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<ProTab>('info');
   const [showFullMap, setShowFullMap] = useState(false);
+  // Fullscreen viewer for the header carousel (indexes into galleryPhotos).
+  const [carouselViewerIndex, setCarouselViewerIndex] = useState<number | null>(null);
 
   const { data: offerings = [] } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
@@ -270,6 +273,27 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
   ];
 
+  // Header star row with half-star precision (4.5 shows 4½ stars). Per
+  // position: full from −0.25, half from −0.75 — a half overlays an empty
+  // outline so the star keeps its full silhouette.
+  const renderHeroStars = (avg: number) => (
+    <View style={styles.heroStars}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        const kind = avg >= i - 0.25 ? 'full' : avg >= i - 0.75 ? 'half' : 'empty';
+        return (
+          <View key={i} style={styles.heroStarSlot}>
+            <Star size={14} color={colors.cta} fill={kind === 'full' ? colors.cta : 'transparent'} strokeWidth={1.8} />
+            {kind === 'half' ? (
+              <View style={StyleSheet.absoluteFill}>
+                <StarHalf size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
+    </View>
+  );
+
   // 0 — header (name · rating · actions). In the sheet this is part of the
   // drag handle; on the page it scrolls away above the sticky tab bar.
   const headerNode = (
@@ -289,12 +313,12 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         ) : null}
         <View style={styles.headerRow}>
           <View style={styles.headerInfo}>
-            <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'PRO' })}</Text>
             <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
+            <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'Page professionnelle' })}</Text>
             {reviewStats && reviewStats.review_count > 0 ? (
               <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
                 <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                <Star size={13} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                {renderHeroStars(Number(reviewStats.avg_rating))}
                 <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
               </Pressable>
             ) : null}
@@ -319,7 +343,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </View>
         </View>
         {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
-        <GHScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionRow}>
+        <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.actionRow}>
           <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
           {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
           {pro.website ? <ActionButton icon={<Globe size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.websiteShort', { defaultValue: 'Site web' })} onPress={openWebsite} styles={styles} /> : null}
@@ -344,13 +368,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         >
           {buildPhotoColumns(galleryPhotos, PHOTO_MAX_COLUMNS).map((col, ci) =>
             col.kind === 'big' ? (
-              <Pressable key={ci} onPress={() => setActiveTab('pictures')}>
+              <Pressable key={ci} onPress={() => setCarouselViewerIndex(galleryPhotos.findIndex((g) => g.id === col.items[0]!.id))}>
                 <Image source={{ uri: col.items[0]!.photo_url }} style={styles.photoBig} contentFit="cover" />
               </Pressable>
             ) : (
               <View key={ci} style={styles.photoStackCol}>
                 {col.items.map((p) => (
-                  <Pressable key={p.id} onPress={() => setActiveTab('pictures')}>
+                  <Pressable key={p.id} onPress={() => setCarouselViewerIndex(galleryPhotos.findIndex((g) => g.id === p.id))}>
                     <Image source={{ uri: p.photo_url }} style={styles.photoSmall} contentFit="cover" />
                   </Pressable>
                 ))}
@@ -469,7 +493,14 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
 
             {/* ===== AVIS — carousel + actions ===== */}
             <View style={styles.overviewBlock}>
-              <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+              <View style={styles.catHeaderRow}>
+                <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+                {reviews.length > 0 ? (
+                  <Pressable onPress={() => selectTab('reviews')} hitSlop={6}>
+                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} →</Text>
+                  </Pressable>
+                ) : null}
+              </View>
               {reviewStats && reviewStats.review_count > 0 ? (
                 <View style={styles.reviewSummary}>
                   <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
@@ -498,18 +529,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <Text style={styles.placeholderText}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</Text>
               )}
 
-              <View style={styles.overviewButtons}>
-                {reviews.length > 0 ? (
-                  <Pressable style={styles.ghostBtn} onPress={() => setActiveTab('reviews')}>
-                    <Text style={styles.ghostBtnText}>{t('reviews.seeAll', { defaultValue: 'Afficher tous les avis' })}</Text>
-                  </Pressable>
-                ) : null}
-                {!isOwner ? (
+              {!isOwner ? (
+                <View style={styles.overviewButtons}>
                   <Pressable style={styles.primaryBtn} onPress={() => setActiveTab('reviews')}>
                     <Text style={styles.primaryBtnText}>{t('reviews.writeOne', { defaultValue: 'Donner son avis' })}</Text>
                   </Pressable>
-                ) : null}
-              </View>
+                </View>
+              ) : null}
             </View>
 
             {/* ===== À PROPOS — flat (Google-style) ===== */}
@@ -566,7 +592,9 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         <View style={styles.content}>
           {isOwner ? (
             <View style={styles.galleryWrap}>
-              <Pressable style={styles.addPhotoChip} onPress={handleCommunityAdd}>
+              {/* Owner's pill adds to THEIR curated gallery (PhotoManager's own
+                  header button is hidden — the pill is the single add path). */}
+              <Pressable style={styles.addPhotoChip} onPress={handleGalleryAdd}>
                 <View style={styles.addPhotoIconRow}>
                   <Camera size={16} color={colors.cta} strokeWidth={2.4} />
                   <Plus size={12} color={colors.cta} strokeWidth={3} />
@@ -579,6 +607,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 onAdd={handleGalleryAdd}
                 onRemove={handleGalleryRemove}
                 onReorder={handleGalleryReorder}
+                hideAddButton
               />
               {communityPhotos.length > 0 ? renderCommunityGallery() : null}
             </View>
@@ -707,6 +736,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   );
 
   const modalsNode = (
+      <>
+      <PhotoLightbox photos={galleryPhotos} index={carouselViewerIndex} onIndexChange={setCarouselViewerIndex} />
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView center={mapCenter} zoom={14} pins={mapPins} />
@@ -721,6 +752,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </Pressable>
         </SafeAreaView>
       </Modal>
+      </>
   );
 
   // One collapsing scroll (Google place-sheet). In the sheet the scroller is
@@ -831,7 +863,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headerThumbInitial: { color: '#FFFFFF', fontSize: fontSizes.lg, fontWeight: '800' },
   headerInfo: { flex: 1, minWidth: 0 },
   headerName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  actionRow: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm, paddingRight: spacing.lg },
+  actionRow: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm, paddingHorizontal: spacing.lg },
   actionBtn: { alignItems: 'center', gap: 4, minWidth: 56 },
   actionBtnIcon: {
     width: 44,
@@ -1041,6 +1073,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
+  heroStars: { flexDirection: 'row', gap: 2 },
+  heroStarSlot: { position: 'relative' },
   tagline: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,

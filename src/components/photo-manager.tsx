@@ -32,6 +32,9 @@ interface PhotoManagerProps {
   onReorder: (orderedIds: string[]) => Promise<void>;
   // Optional copy override for the empty-state CTA.
   emptyCta?: string;
+  // Hide the header "Ajouter" button when the parent provides its own add
+  // affordance (e.g. the Photos tab's big pill).
+  hideAddButton?: boolean;
 }
 
 const SCREEN = Dimensions.get('window');
@@ -49,6 +52,7 @@ export function PhotoManager({
   onRemove,
   onReorder,
   emptyCta,
+  hideAddButton = false,
 }: PhotoManagerProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -121,23 +125,33 @@ export function PhotoManager({
             max: maxCount,
           })}
         </Text>
-        <Pressable
-          style={[styles.addBtn, !canAdd && styles.addBtnDisabled]}
-          onPress={handleAdd}
-          disabled={!canAdd || busy}
-        >
-          {busy && photos.length === 0 ? (
-            <LogoSpinner size={16} />
-          ) : (
-            <>
-              <ImagePlus size={14} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.addBtnText}>
-                {t('photoManager.add', { defaultValue: 'Ajouter' })}
-              </Text>
-            </>
-          )}
-        </Pressable>
+        {!hideAddButton && (
+          <Pressable
+            style={[styles.addBtn, !canAdd && styles.addBtnDisabled]}
+            onPress={handleAdd}
+            disabled={!canAdd || busy}
+          >
+            {busy && photos.length === 0 ? (
+              <LogoSpinner size={16} />
+            ) : (
+              <>
+                <ImagePlus size={14} color={colors.cta} strokeWidth={2.4} />
+                <Text style={styles.addBtnText}>
+                  {t('photoManager.add', { defaultValue: 'Ajouter' })}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        )}
       </View>
+
+      {/* Helper sits with the header — NOT after the grid, where it would
+          visually split this grid from anything the parent renders below. */}
+      <Text style={styles.helper}>
+        {t('photoManager.helper', {
+          defaultValue: 'La première photo sert d\'image principale.',
+        })}
+      </Text>
 
       {photos.length === 0 ? (
         <Pressable
@@ -219,12 +233,6 @@ export function PhotoManager({
       )}
 
       <PhotoLightbox photos={photos} index={viewerIndex} onIndexChange={setViewerIndex} />
-
-      <Text style={styles.helper}>
-        {t('photoManager.helper', {
-          defaultValue: 'La première photo sert d\'image principale.',
-        })}
-      </Text>
     </View>
   );
 }
