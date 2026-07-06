@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import { LEVELS } from './activity-form';
+
+// Offerings add "tous niveaux" — a pro trip (tandem flight, discovery canyon)
+// is often for everyone, unlike UA where a level sets partner expectations.
+export const OFFERING_LEVELS = ['tous niveaux', ...LEVELS] as const;
 
 // Mirrors the create_pro_offering RPC contract. Runtime validation is
 // in the SECURITY DEFINER function; this schema exists for type

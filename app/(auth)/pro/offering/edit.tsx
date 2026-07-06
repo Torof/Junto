@@ -27,7 +27,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { LEVELS } from '@/types/activity-form';
+import { OFFERING_LEVELS } from '@/types/pro-offering-form';
 
 // Single-screen form, mode keyed off the optional ?id= query param.
 // New offering → empty form, calls create. Existing → pre-filled, calls
@@ -338,7 +338,7 @@ export default function ProOfferingEditScreen() {
 
         <Field label={t('proOffering.level')} styles={styles}>
           <View style={styles.levelRow}>
-            {LEVELS.map((lvl) => (
+            {OFFERING_LEVELS.map((lvl) => (
               <Pressable
                 key={lvl}
                 style={[styles.levelChip, level === lvl && styles.levelChipActive]}
