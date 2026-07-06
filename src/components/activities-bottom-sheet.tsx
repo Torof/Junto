@@ -4,7 +4,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { ChevronUpCircle, X } from 'lucide-react-native';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -58,10 +58,12 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Full-width lip in the shared drawer-shell language (rounded xl corners,
+  // thin border, grabber, centered explicit label) — replaces the old
+  // left-docked "binder tab". Same behaviour: tap toggles 50% ↔ full.
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
-      <View style={styles.topBorder} />
-      <Pressable style={styles.tab} onPress={onExpand} hitSlop={6}>
+      <Pressable style={styles.lip} onPress={onExpand} hitSlop={6}>
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
           <ChevronUpCircle size={15} color={colors.textPrimary} strokeWidth={2.2} />
@@ -297,48 +299,43 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   flatList: {
     flex: 1,
   },
+  // Square-topped background hidden behind the full-width lip above it — the
+  // lip carries the rounded corners, border and shadow of the shared shell.
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
-    borderTopWidth: 1,
-    borderTopColor: colors.pinBorder,
   },
   handleContainer: {
     height: 12,
     justifyContent: 'flex-start',
   },
-  topBorder: {
+  // Full-width lip floated above the sheet edge (shared drawer-shell look:
+  // xl corners, thin border, sheet shadow, centered grabber + label).
+  lip: {
     position: 'absolute',
-    top: 0,
+    top: -44,
     left: 0,
     right: 0,
-    height: 1,
-    backgroundColor: colors.pinBorder,
-  },
-  tab: {
-    position: 'absolute',
-    top: -38,
-    left: spacing.sm,
-    height: 40,
+    height: 46,
     backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 4,
-    paddingHorizontal: spacing.md,
-    gap: 4,
+    paddingTop: 8,
+    gap: 5,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.pinBorder,
+    borderColor: colors.borderMuted,
+    ...shadows.sheet,
   },
   tabGrip: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.textSecondary,
+    backgroundColor: colors.textMuted,
   },
   tabRow: {
     flexDirection: 'row',
