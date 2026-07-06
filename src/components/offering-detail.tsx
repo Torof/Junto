@@ -114,7 +114,17 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   if (offering.distance_km != null && offering.distance_km > 0) stats.push({ id: 'distance', icon: Route, value: `${offering.distance_km} km` });
   if (offering.elevation_gain_m != null && offering.elevation_gain_m > 0) stats.push({ id: 'elev', icon: Mountain, value: `${offering.elevation_gain_m} m` });
   if (formattedDuration) stats.push({ id: 'duration', icon: Clock, value: formattedDuration });
-  if (offering.max_participants != null) stats.push({ id: 'places', icon: Users, value: `${offering.max_participants}` });
+  // Explicit group-size stat: "4 – 8 pers." / "dès 4 pers." / "8 pers. max"
+  // (a bare number was ambiguous).
+  const minP = offering.min_participants;
+  const maxP = offering.max_participants;
+  if (minP != null && maxP != null) {
+    stats.push({ id: 'places', icon: Users, value: t('proOffering.participantsRange', { defaultValue: '{{min}} – {{max}} pers.', min: minP, max: maxP }) });
+  } else if (minP != null) {
+    stats.push({ id: 'places', icon: Users, value: t('proOffering.participantsMin', { defaultValue: 'dès {{min}} pers.', min: minP }) });
+  } else if (maxP != null) {
+    stats.push({ id: 'places', icon: Users, value: t('proOffering.participantsMax', { defaultValue: '{{max}} pers. max', max: maxP }) });
+  }
 
   // Static Mapbox thumbnail centered on the spot — a non-interactive image (no
   // gesture conflict inside the drawer scroll). Tap → fullscreen interactive map.

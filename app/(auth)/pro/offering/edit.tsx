@@ -71,6 +71,7 @@ export default function ProOfferingEditScreen() {
   const [locationName, setLocationName] = useState('');
   const [durationHours, setDurationHours] = useState<string>('');
   const [durationMinutes, setDurationMinutes] = useState<string>('');
+  const [minParticipants, setMinParticipants] = useState<string>('');
   const [maxParticipants, setMaxParticipants] = useState<string>('');
   const [scheduleText, setScheduleText] = useState('');
   const [distanceKm, setDistanceKm] = useState<string>('');
@@ -102,6 +103,7 @@ export default function ProOfferingEditScreen() {
         setDurationMinutes(match[2] ?? '');
       }
     }
+    setMinParticipants(existing.min_participants?.toString() ?? '');
     setMaxParticipants(existing.max_participants?.toString() ?? '');
     setScheduleText(existing.schedule_text ?? '');
     setDistanceKm(existing.distance_km?.toString() ?? '');
@@ -190,11 +192,20 @@ export default function ProOfferingEditScreen() {
     // Validate numeric fields client-side so an invalid value gets a clear
     // message instead of the DB's opaque generic rejection. Bounds mirror the
     // pro_offerings CHECK constraints (migration 00249).
+    const parsedMin = minParticipants ? parseInt(minParticipants, 10) : null;
     const parsedMax = maxParticipants ? parseInt(maxParticipants, 10) : null;
     const parsedDist = distanceKm ? parseFloat(distanceKm) : null;
     const parsedElev = elevationGainM ? parseInt(elevationGainM, 10) : null;
     if (parsedMax !== null && (!Number.isFinite(parsedMax) || parsedMax < 1 || parsedMax > 50)) {
       Alert.alert(t('auth.error'), t('proOffering.invalidParticipants', { defaultValue: 'Le nombre de participants doit être entre 1 et 50.' }));
+      return;
+    }
+    if (parsedMin !== null && (!Number.isFinite(parsedMin) || parsedMin < 1 || parsedMin > 50)) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidParticipants', { defaultValue: 'Le nombre de participants doit être entre 1 et 50.' }));
+      return;
+    }
+    if (parsedMin !== null && parsedMax !== null && parsedMin > parsedMax) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidMinMax', { defaultValue: 'Le minimum ne peut pas dépasser le maximum.' }));
       return;
     }
     if (parsedDist !== null && (!Number.isFinite(parsedDist) || parsedDist <= 0 || parsedDist > 9999)) {
@@ -222,6 +233,7 @@ export default function ProOfferingEditScreen() {
         location_lat: locationLat,
         location_name: locationName.trim(),
         duration: parseDurationString(),
+        min_participants: parsedMin,
         max_participants: parsedMax,
         schedule_text: scheduleText.trim() || null,
         distance_km: parsedDist,
@@ -434,17 +446,30 @@ export default function ProOfferingEditScreen() {
           </Field>
         </View>
 
-        <Field label={t('proOffering.maxParticipants')} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={maxParticipants}
-            onChangeText={setMaxParticipants}
-            placeholder={t('proOffering.maxParticipantsPlaceholder')}
-            placeholderTextColor={colors.textMuted}
-            keyboardType="number-pad"
-            maxLength={2}
-          />
-        </Field>
+        <View style={styles.row2}>
+          <Field label={t('proOffering.minParticipants', { defaultValue: 'Participants min' })} styles={styles}>
+            <TextInput
+              style={styles.input}
+              value={minParticipants}
+              onChangeText={setMinParticipants}
+              placeholder="4"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              maxLength={2}
+            />
+          </Field>
+          <Field label={t('proOffering.maxParticipants')} styles={styles}>
+            <TextInput
+              style={styles.input}
+              value={maxParticipants}
+              onChangeText={setMaxParticipants}
+              placeholder={t('proOffering.maxParticipantsPlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              maxLength={2}
+            />
+          </Field>
+        </View>
 
         <View style={styles.row2}>
           <Field label={t('proOffering.distance')} styles={styles}>

@@ -10,6 +10,7 @@ export interface ProOffering {
   location_name: string;
   duration: string | null;
   max_participants: number | null;
+  min_participants: number | null;
   schedule_text: string | null;
   distance_km: number | null;
   elevation_gain_m: number | null;
@@ -39,6 +40,7 @@ export interface CreateProOfferingInput {
   location_name: string;
   duration?: string | null;
   max_participants?: number | null;
+  min_participants?: number | null;
   schedule_text?: string | null;
   distance_km?: number | null;
   elevation_gain_m?: number | null;
@@ -57,7 +59,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       )
       .eq('id', id)
       .maybeSingle();
@@ -70,7 +72,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       )
       .eq('pro_id', proId)
       .order('created_at', { ascending: false });
@@ -89,7 +91,7 @@ export const proOfferingService = {
     let query = supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       );
 
     if (bounds) {
@@ -131,6 +133,7 @@ export const proOfferingService = {
       p_location_name: input.location_name,
       p_duration: input.duration ?? undefined,
       p_max_participants: input.max_participants ?? undefined,
+      p_min_participants: input.min_participants ?? undefined,
       p_schedule_text: input.schedule_text ?? undefined,
       p_distance_km: input.distance_km ?? undefined,
       p_elevation_gain_m: input.elevation_gain_m ?? undefined,
@@ -153,6 +156,7 @@ export const proOfferingService = {
       p_location_name: input.location_name,
       p_duration: input.duration ?? undefined,
       p_max_participants: input.max_participants ?? undefined,
+      p_min_participants: input.min_participants ?? undefined,
       p_schedule_text: input.schedule_text ?? undefined,
       p_distance_km: input.distance_km ?? undefined,
       p_elevation_gain_m: input.elevation_gain_m ?? undefined,

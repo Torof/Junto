@@ -13,6 +13,7 @@ export const proOfferingFormSchema = z.object({
   location_name: z.string().trim().min(1).max(100),
   duration_hours: z.number().min(0).max(24).nullable(),
   duration_minutes: z.number().min(0).max(59).nullable(),
+  min_participants: z.number().int().min(1).max(50).nullable(),
   max_participants: z.number().int().min(1).max(50).nullable(),
   schedule_text: z.string().max(100).nullable(),
   distance_km: z.number().positive().max(9999).nullable(),
