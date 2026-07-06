@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList, Dimensions, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -49,6 +49,9 @@ export interface ActivitiesBottomSheetHandle {
 }
 
 
+// Survives TabHandle remounts (module scope) — see the tabW seed below.
+let lastTabW = 0;
+
 function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   count: number;
   label: string;
@@ -64,7 +67,10 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   // line) can be drawn as ONE svg path: a single stroke has perfect corners
   // by construction, and a single fill (extended 2px below the line, under
   // the sheet) leaves no visible junction between tab and drawer.
-  const [tabW, setTabW] = useState(0);
+  // Seeded with the last measured width so a remount (label change, snap
+  // toggle) draws the contour on its first frame instead of flashing the
+  // flat no-tab line; onLayout corrects it if the label width changed.
+  const [tabW, setTabW] = useState(lastTabW);
   const TAB_H = 38;
   const OVERLAP = 2;
   const r = radius.lg;
@@ -92,7 +98,10 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
         style={styles.tab}
         onPress={onExpand}
         hitSlop={6}
-        onLayout={(e) => setTabW(Math.round(e.nativeEvent.layout.width))}
+        onLayout={(e) => {
+          lastTabW = Math.round(e.nativeEvent.layout.width);
+          setTabW(lastTabW);
+        }}
       >
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
@@ -159,12 +168,12 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     (screenHeight - tabBarHeight) * (SNAP_RATIOS[snapIndex] ?? 0.5) - HANDLE_HEIGHT,
   );
 
-  const handleToggleSnap = () => {
+  const handleToggleSnap = useCallback(() => {
     // 92% → 50% (collapse to mid for the see-map + read-list flow).
     // 50% or 2% → 92% (open fully).
     if (snapIndex === 2) sheetRef.current?.snapToIndex(1);
     else sheetRef.current?.snapToIndex(2);
-  };
+  }, [snapIndex]);
 
   useImperativeHandle(ref, () => ({
     expand: () => sheetRef.current?.snapToIndex(1),
@@ -234,6 +243,20 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightedItemId]);
 
+  // Stable component for gorhom's handleComponent. The previous inline
+  // arrow was a NEW component type every render, so React remounted the
+  // handle on every map pan/zoom — resetting TabHandle's measured width
+  // and flashing the svg contour (the "blinking tab").
+  const renderHandle = useCallback(() => (
+    <TabHandle
+      count={items.length}
+      label={t('map.seeList')}
+      onExpand={handleToggleSnap}
+      filterLabel={filterLabel}
+      onClearFilter={onClearFilter}
+    />
+  ), [items.length, t, handleToggleSnap, filterLabel, onClearFilter]);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -246,15 +269,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         onOpenChange?.(idx > 0);
       }}
       backgroundStyle={styles.sheetBackground}
-      handleComponent={() => (
-        <TabHandle
-          count={items.length}
-          label={t('map.seeList')}
-          onExpand={handleToggleSnap}
-          filterLabel={filterLabel}
-          onClearFilter={onClearFilter}
-        />
-      )}
+      handleComponent={renderHandle}
       containerStyle={styles.sheetContainer}
       // v5 defaults dynamic sizing to ON, which makes the sheet hug its
       // content (ignoring snapPoints when shorter, overshooting when
