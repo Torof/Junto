@@ -223,7 +223,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  // Same visual language as the PP Aperçu "Voir tout →" links.
-  cta: { alignSelf: 'flex-end', marginTop: spacing.xs, padding: 2 },
-  ctaText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  // Same visual language as the PP Aperçu "Voir tout →" links, one size up —
+  // it's the teaser's primary action, not a section accessory.
+  cta: { alignSelf: 'flex-end', marginTop: spacing.xs, paddingVertical: 4, paddingHorizontal: 2 },
+  ctaText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '800' },
 });
