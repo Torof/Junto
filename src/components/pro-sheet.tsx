@@ -108,7 +108,14 @@ export function ProSheet({ userId, onClose, onOpenOffering }: Props) {
   const handleClose = useCallback(() => modalRef.current?.dismiss(), []);
   const handleExpand = useCallback(() => modalRef.current?.snapToIndex(1), []);
   const handleEdit = useMemo(
-    () => (isOwner ? () => router.push('/(auth)/pro/edit') : undefined),
+    () => (isOwner
+      ? () => {
+          // Dismiss before pushing — the modal lives in the root portal and
+          // would float over the edit page (same fix as the UA drawer).
+          modalRef.current?.dismiss();
+          router.push('/(auth)/pro/edit');
+        }
+      : undefined),
     [isOwner, router],
   );
 

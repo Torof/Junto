@@ -312,7 +312,16 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </View>
           <View style={styles.heroActions}>
             {ownerProfile ? (
-              <Pressable onPress={() => router.push(`/(auth)/profile/${pro.user_id}`)} hitSlop={6} accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}>
+              <Pressable
+                onPress={() => {
+                  // The drawer lives in the root portal — it would float over
+                  // the pushed page. Dismiss first (same fix as the UA drawer).
+                  if (inSheet) onClose?.();
+                  router.push(`/(auth)/profile/${pro.user_id}`);
+                }}
+                hitSlop={6}
+                accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}
+              >
                 {/* Brand page → brand image first: logo → owner photo → initial.
                     Tap still opens the owner's user profile. */}
                 {pro.pin_image_url ? (
@@ -1024,10 +1033,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Small circular avatar — discloses the owner of the pro brand
   // without competing with the pro identity. Tap = jump to the user's
   // personal profile.
+  // 56 = same size as headerThumb; the header row is taller than this
+  // (label+name+tagline+stars), so the bump costs no vertical space.
   ownerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.borderMuted,
