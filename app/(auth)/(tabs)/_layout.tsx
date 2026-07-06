@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, ListChecks, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
+import { Map, ListChecks, Bell, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -25,9 +25,10 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
   );
 }
 
-// Menu tab icon — carries the aggregated unread-notifications badge since the
-// Notifications tab now lives inside the menu sheet.
-function MenuTabIcon({ active }: { active: boolean }) {
+// Notifications is Junto's action center (requests, presence, transport) —
+// Scott's call (2026-07-06): it stays a first-class tab, bell + count badge
+// (the old wiggle animation intentionally not restored — calmer bar).
+function NotificationTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -41,10 +42,10 @@ function MenuTabIcon({ active }: { active: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <Menu
+      <Bell
         size={26}
-        color={active ? colors.cta : colors.textSecondary}
-        strokeWidth={active ? 2.4 : 2}
+        color={focused ? colors.cta : hasUnread ? colors.cta : colors.textSecondary}
+        strokeWidth={focused ? 2.4 : 2}
       />
       {hasUnread && (
         <View style={styles.badge}>
@@ -180,6 +181,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="notifications"
+        options={{
+          title: t('tabs.notifications'),
+          tabBarIcon: ({ focused }) => <NotificationTabIcon focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="messagerie"
         options={{
           title: t('tabs.messagerie'),
@@ -192,7 +200,7 @@ export default function TabsLayout() {
         name="menu"
         options={{
           title: t('tabs.menu', { defaultValue: 'Menu' }),
-          tabBarIcon: () => <MenuTabIcon active={menuOpen} />,
+          tabBarIcon: () => <TabIcon icon={Menu} focused={menuOpen} />,
         }}
         listeners={{
           tabPress: (e) => {
@@ -201,11 +209,7 @@ export default function TabsLayout() {
           },
         }}
       />
-      {/* Absorbed into the menu sheet — hidden from the bar, routes alive. */}
-      <Tabs.Screen
-        name="notifications"
-        options={{ title: t('tabs.notifications'), href: null }}
-      />
+      {/* Absorbed into the menu sheet — hidden from the bar, route alive. */}
       <Tabs.Screen
         name="profil"
         options={{ title: t('tabs.profil'), href: null }}

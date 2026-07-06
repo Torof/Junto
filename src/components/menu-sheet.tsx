@@ -5,14 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Bell, Radar, Briefcase, Settings, ChevronRight } from 'lucide-react-native';
+import { Radar, Briefcase, Settings, ChevronRight, LogOut } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
 import { proService } from '@/services/pro-service';
-import { notificationService } from '@/services/notification-service';
+import { authService } from '@/services/auth-service';
 import { UserAvatar } from './user-avatar';
 import { SettingsDrawer } from './settings-drawer';
 
@@ -56,12 +56,6 @@ export function MenuSheet({ open, onClose }: Props) {
     enabled: !!userId,
   });
 
-  const { data: unreadCount } = useQuery({
-    queryKey: ['notifications-count'],
-    queryFn: () => notificationService.getUnreadCount(),
-    refetchInterval: 30000,
-  });
-
   const go = (path: string) => {
     modalRef.current?.dismiss();
     router.push(path as never);
@@ -101,14 +95,6 @@ export function MenuSheet({ open, onClose }: Props) {
           <View style={styles.divider} />
 
           <MenuItem
-            icon={<Bell size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('tabs.notifications', { defaultValue: 'Notifications' })}
-            badge={unreadCount && unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : null}
-            onPress={() => go('/(auth)/(tabs)/notifications')}
-            styles={styles}
-            colors={colors}
-          />
-          <MenuItem
             icon={<Radar size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.alerts', { defaultValue: 'Mes alertes' })}
             onPress={() => go('/(auth)/create-alert')}
@@ -134,6 +120,23 @@ export function MenuSheet({ open, onClose }: Props) {
             styles={styles}
             colors={colors}
           />
+
+          <View style={styles.divider} />
+
+          <Pressable
+            style={styles.item}
+            onPress={async () => {
+              modalRef.current?.dismiss();
+              await authService.signOut();
+            }}
+          >
+            <View style={styles.itemIcon}>
+              <LogOut size={20} color={colors.error} strokeWidth={2.2} />
+            </View>
+            <Text style={[styles.itemLabel, { color: colors.error }]}>
+              {t('menu.signOut', { defaultValue: 'Se déconnecter' })}
+            </Text>
+          </Pressable>
         </BottomSheetView>
       </BottomSheetModal>
 
@@ -200,7 +203,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   identityInfo: { flex: 1, minWidth: 0 },
   identityName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
-  identityHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
+  identityHint: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', marginTop: 2 },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: spacing.xs },
   item: {
     flexDirection: 'row',
