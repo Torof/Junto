@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, Dimensions, useWindowDimensions } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
@@ -58,14 +59,35 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  // Measured so the top line can be drawn in TWO segments around the tab —
-  // running it under the tab (or overlapping the tab 2px past it) is what
-  // produced the stray border pixels inside the drawer.
+  const { width: screenW } = useWindowDimensions();
+  // Tab width is measured so the whole contour (line → up around the tab →
+  // line) can be drawn as ONE svg path: a single stroke has perfect corners
+  // by construction, and a single fill (extended 2px below the line, under
+  // the sheet) leaves no visible junction between tab and drawer.
   const [tabW, setTabW] = useState(0);
+  const TAB_H = 38;
+  const OVERLAP = 2;
+  const r = radius.lg;
+  const yLine = TAB_H - 0.5;
+  const x0 = spacing.sm + 0.5;
+  const x1 = spacing.sm + tabW - 0.5;
+  const contour = tabW > 0
+    ? `M 0 ${yLine} H ${x0} V ${0.5 + r} Q ${x0} 0.5 ${x0 + r} 0.5 H ${x1 - r} Q ${x1} 0.5 ${x1} ${0.5 + r} V ${yLine} H ${screenW}`
+    : `M 0 ${yLine} H ${screenW}`;
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
-      <View style={[styles.topBorder, { left: 0, width: spacing.sm }]} />
-      {tabW > 0 && <View style={[styles.topBorder, { left: spacing.sm + tabW, right: 0 }]} />}
+      <Svg
+        width={screenW}
+        height={TAB_H + OVERLAP}
+        style={styles.contourSvg}
+        pointerEvents="none"
+      >
+        <Path
+          d={`${contour} V ${TAB_H + OVERLAP} H 0 Z`}
+          fill={colors.surfaceAlt}
+        />
+        <Path d={contour} fill="none" stroke={colors.pinBorder} strokeWidth={1} />
+      </Svg>
       <Pressable
         style={styles.tab}
         onPress={onExpand}
@@ -307,8 +329,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   flatList: {
     flex: 1,
   },
-  // No border on the background — the segmented topBorder views ARE the line
-  // (a bg border would run under the tab and reintroduce the stray pixels).
+  // No border on the background — the svg contour IS the line (a bg border
+  // would run under the tab and reintroduce the stray pixels).
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: 0,
@@ -318,32 +340,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 12,
     justifyContent: 'flex-start',
   },
-  // Base segment style — left/width or left/right set inline per segment.
-  topBorder: {
+  // Whole contour (line + tab outline + fill) in one svg — single stroke =
+  // clean corners, single fill overlapping 2px under the sheet = no seam.
+  contourSvg: {
     position: 'absolute',
-    top: 0,
-    height: 1,
-    backgroundColor: colors.pinBorder,
+    top: -38,
+    left: 0,
   },
-  // Height 38 = the side borders stop EXACTLY at the sheet's top edge (40
-  // made them poke 1-2px into the drawer).
+  // Invisible hit/content area — the svg draws the tab's fill and border.
   tab: {
     position: 'absolute',
     top: -38,
     left: spacing.sm,
     height: 38,
-    backgroundColor: colors.surfaceAlt,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 4,
     paddingHorizontal: spacing.md,
     gap: 4,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.pinBorder,
   },
   tabGrip: {
     width: 40,
