@@ -58,10 +58,20 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Measured so the top line can be drawn in TWO segments around the tab —
+  // running it under the tab (or overlapping the tab 2px past it) is what
+  // produced the stray border pixels inside the drawer.
+  const [tabW, setTabW] = useState(0);
   return (
     <View style={styles.handleContainer} pointerEvents="box-none">
-      <View style={styles.topBorder} />
-      <Pressable style={styles.tab} onPress={onExpand} hitSlop={6}>
+      <View style={[styles.topBorder, { left: 0, width: spacing.sm }]} />
+      {tabW > 0 && <View style={[styles.topBorder, { left: spacing.sm + tabW, right: 0 }]} />}
+      <Pressable
+        style={styles.tab}
+        onPress={onExpand}
+        hitSlop={6}
+        onLayout={(e) => setTabW(Math.round(e.nativeEvent.layout.width))}
+      >
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
           <ChevronUpCircle size={15} color={colors.textPrimary} strokeWidth={2.2} />
@@ -297,30 +307,31 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   flatList: {
     flex: 1,
   },
+  // No border on the background — the segmented topBorder views ARE the line
+  // (a bg border would run under the tab and reintroduce the stray pixels).
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
-    borderTopWidth: 1,
-    borderTopColor: colors.pinBorder,
   },
   handleContainer: {
     height: 12,
     justifyContent: 'flex-start',
   },
+  // Base segment style — left/width or left/right set inline per segment.
   topBorder: {
     position: 'absolute',
     top: 0,
-    left: 0,
-    right: 0,
     height: 1,
     backgroundColor: colors.pinBorder,
   },
+  // Height 38 = the side borders stop EXACTLY at the sheet's top edge (40
+  // made them poke 1-2px into the drawer).
   tab: {
     position: 'absolute',
     top: -38,
     left: spacing.sm,
-    height: 40,
+    height: 38,
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
