@@ -99,6 +99,12 @@ export default function ProEditScreen() {
     setPinIcon(next);
     setPinIconBusy(true);
     try {
+      // The custom logo takes display priority over the glyph, so picking a
+      // universe must clear it — the row is "choose what fills the disc".
+      if (pinImageUrl) {
+        await removeProPinImage();
+        setPinImageUrl(null);
+      }
       await proService.setPinIcon(next);
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
