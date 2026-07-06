@@ -9,6 +9,10 @@ import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 interface ProPinProps {
   displayName: string;
   pinIcon?: string | null;
+  // Optional custom logo — fills ONLY the inner disc (circle-cropped); the
+  // pin silhouette, head and rim never change, so the map stays coherent
+  // whatever the logo looks like. Falls back to the universe glyph.
+  pinImageUrl?: string | null;
 }
 
 // Pin system v4 (taxonomy v2) — the pushpin (round head on a thin needle =
@@ -75,14 +79,15 @@ function glyphFor(key: string, white: string): ReactNode {
   }
 }
 
-export function ProPin({ displayName, pinIcon }: ProPinProps) {
+export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const discColor = pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
+  const hasLogo = !!pinImageUrl;
+  const discColor = !hasLogo && pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
   const white = colors.pinProBorder;
-  const glyph = pinIcon ? glyphFor(pinIcon, white) : null;
-  const isBike = pinIcon === 'cycling';
+  const glyph = !hasLogo && pinIcon ? glyphFor(pinIcon, white) : null;
+  const isBike = !hasLogo && pinIcon === 'cycling';
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
 
   return (
@@ -96,8 +101,15 @@ export function ProPin({ displayName, pinIcon }: ProPinProps) {
           <G transform="translate(27 23) scale(0.8) translate(-27 -23)">{glyph}</G>
         )}
       </Svg>
+      {/* Custom logo — circle-cropped over the inner disc; the head/rim
+          stay Junto's whatever the logo is. */}
+      {hasLogo && (
+        <View style={styles.content} pointerEvents="none">
+          <Image source={{ uri: pinImageUrl }} style={styles.logo} contentFit="cover" />
+        </View>
+      )}
       {/* cycling = raster bike (white tint); no icon = the pro's initial */}
-      {(isBike || !pinIcon) && (
+      {!hasLogo && (isBike || !pinIcon) && (
         <View style={styles.content} pointerEvents="none">
           {isBike ? (
             <Image source={bikeGlyph} tintColor={white} style={styles.bike} contentFit="contain" />
@@ -136,6 +148,12 @@ const createStyles = (colors: AppColors) =>
     bike: {
       width: 22,
       height: 14,
+    },
+    // Inner-disc size (r 18.5 in the 54-unit viewBox, scaled to dp).
+    logo: {
+      width: 37 * SCALE,
+      height: 37 * SCALE,
+      borderRadius: (37 * SCALE) / 2,
     },
     letter: {
       color: colors.pinBorder,

@@ -17,12 +17,13 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check } from 'lucide-react-native';
+import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import { proService } from '@/services/pro-service';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -64,6 +65,8 @@ export default function ProEditScreen() {
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
   const [pinIcon, setPinIcon] = useState<string | null>(null);
   const [pinIconBusy, setPinIconBusy] = useState(false);
+  const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
+  const [pinImageBusy, setPinImageBusy] = useState(false);
 
   // Once the existing profile loads, hydrate the form. Falling through
   // to defaults if the user is new (no profile yet).
@@ -83,6 +86,7 @@ export default function ProEditScreen() {
     setPinLng(existing.primary_lng);
     setPinLat(existing.primary_lat);
     setPinIcon(existing.pin_icon);
+    setPinImageUrl(existing.pin_image_url);
   }, [existing]);
 
 
@@ -104,6 +108,40 @@ export default function ProEditScreen() {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setPinIconBusy(false);
+    }
+  };
+
+  const handlePickPinImage = async () => {
+    if (pinImageBusy) return;
+    setPinImageBusy(true);
+    try {
+      const newUrl = await pickAndUploadProPinImage();
+      if (newUrl) {
+        setPinImageUrl(newUrl);
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+        await queryClient.invalidateQueries({ queryKey: ['pros'] });
+      }
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setPinImageBusy(false);
+    }
+  };
+
+  const handleRemovePinImage = async () => {
+    if (pinImageBusy) return;
+    setPinImageBusy(true);
+    try {
+      await removeProPinImage();
+      setPinImageUrl(null);
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
+      await queryClient.invalidateQueries({ queryKey: ['pros'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setPinImageBusy(false);
     }
   };
 
@@ -253,7 +291,7 @@ export default function ProEditScreen() {
             </Text>
             <View style={styles.pinIconRow}>
               <View style={styles.pinPreviewWrap}>
-                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} />
+                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} pinImageUrl={pinImageUrl} />
               </View>
               <View style={styles.pinIconGrid}>
                 {PRO_PIN_ICONS.map((opt) => {
@@ -274,6 +312,32 @@ export default function ProEditScreen() {
                   );
                 })}
               </View>
+            </View>
+            <Text style={styles.helper}>
+              {t('pro.pinLogoHelper', { defaultValue: 'Ou importe ton propre logo — il remplace l\'icône dans le rond du pin.' })}
+            </Text>
+            <View style={styles.pinImageRow}>
+              <Pressable style={styles.pinImagePickBtn} onPress={handlePickPinImage} disabled={pinImageBusy}>
+                <ImagePlus size={16} color={colors.textPrimary} strokeWidth={2.2} />
+                <Text style={styles.pinImagePickText}>
+                  {pinImageBusy
+                    ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' })
+                    : pinImageUrl
+                      ? t('pro.pinLogoReplace', { defaultValue: 'Changer le logo' })
+                      : t('pro.pinLogoAdd', { defaultValue: 'Importer un logo' })}
+                </Text>
+              </Pressable>
+              {pinImageUrl && (
+                <Pressable
+                  style={styles.pinImageRemoveBtn}
+                  onPress={handleRemovePinImage}
+                  disabled={pinImageBusy}
+                  hitSlop={6}
+                  accessibilityLabel={t('pro.pinLogoRemove', { defaultValue: 'Supprimer le logo' })}
+                >
+                  <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
+                </Pressable>
+              )}
             </View>
           </View>
         )}
