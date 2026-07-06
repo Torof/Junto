@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, ChevronRight, Car, Users, X } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, Car, Users, X, Clock } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -28,6 +28,18 @@ import { getRemainingPlaces } from '@/utils/activity-status';
 // get there" IS decision info. Content is short, so one content-hugging height
 // (enableDynamicSizing) instead of the PP/RA two-stage collapse; same modal
 // shell (present/dismiss, lip border, sheet shadow, above the tab bar).
+
+// Interval → "3h" / "3h30" / "45min" (same parsing as the RA's duration).
+function formatDuration(d: string | null): string | null {
+  if (!d) return null;
+  const match = d.match(/^(\d+):(\d+):/);
+  if (!match) return d;
+  const h = parseInt(match[1] ?? '0', 10);
+  const m = parseInt(match[2] ?? '0', 10);
+  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+}
 
 interface Props {
   // The selected activity, or null. Always mounted; present()/dismiss() follow.
@@ -116,6 +128,13 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </Text>
             </View>
 
+            {formatDuration(activity.duration) ? (
+              <View style={styles.infoRow}>
+                <Clock size={15} color={accent} strokeWidth={2.2} />
+                <Text style={styles.infoText}>{formatDuration(activity.duration)}</Text>
+              </View>
+            ) : null}
+
             {signal ? (
               <View style={styles.infoRow}>
                 <BarChart2 size={15} color={accent} strokeWidth={2.2} />
@@ -152,9 +171,8 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </View>
             ) : null}
 
-            <Pressable style={styles.cta} onPress={() => onOpen(activity)}>
-              <Text style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })}</Text>
-              <ChevronRight size={17} color={colors.background} strokeWidth={2.6} />
+            <Pressable style={styles.cta} onPress={() => onOpen(activity)} hitSlop={8}>
+              <Text style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })} →</Text>
             </Pressable>
           </>
         ) : null}
@@ -205,15 +223,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    backgroundColor: colors.cta,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm + 2,
-    marginTop: spacing.xs,
-  },
-  ctaText: { color: colors.background, fontSize: fontSizes.md, fontWeight: '800' },
+  // Same visual language as the PP Aperçu "Voir tout →" links.
+  cta: { alignSelf: 'flex-end', marginTop: spacing.xs, padding: 2 },
+  ctaText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
 });
