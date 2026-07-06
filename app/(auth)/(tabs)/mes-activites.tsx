@@ -17,6 +17,7 @@ import { useMyActivitiesFilterStore } from '@/store/my-activities-filter-store';
 import { levelSpanMatchesTiers } from '@/constants/sport-levels';
 import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { useAuth } from '@/hooks/use-auth';
 import { getFriendlyError } from '@/utils/friendly-error';
 
 // Hierarchy (Scott 2026-07-06): the PRIMARY axis is time/state — À venir ·
@@ -34,6 +35,7 @@ export default function MesActivitesScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const { center, currentLocation } = useInitialLocation();
+  const { session } = useAuth();
   const filters = useMyActivitiesFilterStore((s) => s.filters);
   const [refreshing, setRefreshing] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('upcoming');
@@ -245,6 +247,7 @@ export default function MesActivitesScreen() {
           renderItem={({ item }) => (
             <ActivityCard
               activity={item}
+              currentUserId={session?.user?.id ?? null}
               onPress={() => router.push(`/(auth)/activity/${item.id}`)}
             />
           )}

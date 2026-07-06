@@ -17,6 +17,9 @@ interface ActivityCardProps {
   onPress: () => void;
   distanceKm?: number;
   showCreator?: boolean;
+  // When provided and the viewer created this activity, the creator meta
+  // becomes an "Organisateur" tag instead of their own name.
+  currentUserId?: string | null;
   // When true, renders a CTA-color outline to mark the link between
   // this card and the highlighted pin on the map. Tap-to-peek pattern:
   // first tap → highlight + fly to pin; second tap → open detail page.
@@ -25,7 +28,8 @@ interface ActivityCardProps {
 
 const ATTENTION_STATES: ReadonlySet<ActivityTimeStatus> = new Set(['in_progress', 'soon', 'cancelled']);
 
-export function ActivityCard({ activity, onPress, distanceKm, showCreator = true, isHighlighted = false }: ActivityCardProps) {
+export function ActivityCard({ activity, onPress, distanceKm, showCreator = true, currentUserId, isHighlighted = false }: ActivityCardProps) {
+  const isMine = !!currentUserId && activity.creator_id === currentUserId;
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -87,8 +91,16 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
           )}
           {showCreator && (
             <View style={[styles.metaItem, { flexShrink: 1 }]}>
-              <User size={11} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{activity.creator_name}</Text>
+              <User size={11} color={isMine ? colors.cta : colors.textSecondary} strokeWidth={2.4} />
+              {isMine ? (
+                <Text style={styles.organizerTag} numberOfLines={1}>
+                  {t('myActivities.organizer', { defaultValue: 'Organisateur' })}
+                </Text>
+              ) : (
+                <Text style={styles.metaText} numberOfLines={1}>
+                  {t('activity.by', { defaultValue: 'par' })} {activity.creator_name}
+                </Text>
+              )}
             </View>
           )}
         </View>
@@ -209,6 +221,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '500',
+  },
+  organizerTag: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
   },
   // Participant count pill — outlined rectangle with a Users icon
   // and the X/Y count inline. Replaces the previous two-line

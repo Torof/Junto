@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, ListChecks, Bell, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
+import { Map, CalendarDays, Bell, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -177,7 +177,7 @@ export default function TabsLayout() {
         name="mes-activites"
         options={{
           title: t('tabs.mesActivites'),
-          tabBarIcon: ({ focused }) => <TabIcon icon={ListChecks} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon={CalendarDays} focused={focused} />,
         }}
       />
       <Tabs.Screen
