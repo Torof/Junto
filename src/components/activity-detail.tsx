@@ -211,7 +211,9 @@ export function ActivityDetail({
 
   const handleShare = useCallback(async () => {
     try {
-      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'junto-nine.vercel.app';
+      // Canonical share host (Scott 2026-07-06): getjunto.app — the only host
+      // wired into the Android intentFilters / iOS associatedDomains.
+      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
       let link: string;
       if (isPrivateLink) {
         // Only the creator can share private-link activities (token gated)

@@ -69,7 +69,10 @@ export default function CreateStep4() {
         const token = await activityService.getInviteToken(activityId);
         if (token) {
           try {
-            await Share.share({ message: `${title} — junto://invite/${token}` });
+            // https link (not the raw junto:// scheme — messengers don't make
+            // custom schemes tappable); the web /invite page relays into the app.
+            const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+            await Share.share({ message: `${title} — https://${webHost}/invite/${token}` });
           } catch {
             // User cancelled share
           }
