@@ -313,7 +313,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           <View style={styles.heroActions}>
             {ownerProfile ? (
               <Pressable onPress={() => router.push(`/(auth)/profile/${pro.user_id}`)} hitSlop={6} accessibilityLabel={t('pro.ownerProfile', { defaultValue: 'Voir le profil' })}>
-                {ownerProfile.avatar_url ? (
+                {/* Brand page → brand image first: logo → owner photo → initial.
+                    Tap still opens the owner's user profile. */}
+                {pro.pin_image_url ? (
+                  <Image source={{ uri: pro.pin_image_url }} style={styles.ownerAvatar} />
+                ) : ownerProfile.avatar_url ? (
                   <Image source={{ uri: ownerProfile.avatar_url }} style={styles.ownerAvatar} />
                 ) : (
                   <View style={[styles.ownerAvatar, styles.ownerAvatarPlaceholder]}>
