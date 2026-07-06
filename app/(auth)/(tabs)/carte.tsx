@@ -14,7 +14,6 @@ import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/compo
 import { FilterButton } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
-import { AlertButton } from '@/components/alert-button';
 import { MapStyleButton } from '@/components/map-style-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -287,7 +286,6 @@ export default function CarteScreen() {
           <>
             <CreateButton />
             <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
-            <AlertButton />
           </>
         )}
 
