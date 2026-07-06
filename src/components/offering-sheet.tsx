@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, type LayoutChangeEvent } from 'react-native';
+import { useRouter } from 'expo-router';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -29,6 +30,7 @@ interface Props {
 export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const router = useRouter();
   const modalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
@@ -63,6 +65,14 @@ export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {
     </View>
   ), [styles, onHandleLayout]);
   const handleClose = useCallback(() => modalRef.current?.dismiss(), []);
+  // Owner edit: the modal lives in the ROOT portal, so it would float over a
+  // pushed page — dismiss first (same fix as the UA drawer's "Voir la sortie").
+  const offeringId = offering?.id;
+  const handleEdit = useCallback(() => {
+    if (!offeringId) return;
+    modalRef.current?.dismiss();
+    router.push(`/(auth)/pro/offering/edit?id=${offeringId}`);
+  }, [offeringId, router]);
 
   return (
     <BottomSheetModal
@@ -78,7 +88,7 @@ export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {
       handleComponent={renderHandle}
     >
       {offering ? (
-        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} onOpenPro={onOpenPro} />
+        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} onOpenPro={onOpenPro} onEdit={handleEdit} />
       ) : null}
     </BottomSheetModal>
   );

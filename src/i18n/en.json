@@ -1320,6 +1320,7 @@
     "maxParticipantsPlaceholder": "Leave empty for unlimited",
     "distance": "Distance (km)",
     "elevation": "Elevation (m)",
+    "edit": "Edit activity",
     "price": "Indicative price (€)",
     "pricePerPerson": "per person",
     "pricePerGroup": "per group",

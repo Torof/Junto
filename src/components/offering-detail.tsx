@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -36,6 +36,9 @@ interface Props {
   // the full page (and passes the pro's coordinate so the map can fly to it).
   // On the standalone page this is undefined → push.
   onOpenPro?: (userId: string, coordinate: [number, number]) => void;
+  // Owner-only edit entry — same discreet-pencil pattern as ProDetail. Each
+  // host supplies the routing (the sheet dismisses itself before pushing).
+  onEdit?: () => void;
 }
 
 function formatDuration(d: string | null): string | null {
@@ -53,7 +56,7 @@ function formatDuration(d: string | null): string | null {
 // (sport chip · rating · title · location · schedule) then bold-titled sections
 // — À propos (stats + description + host) → Photos (carousel) → Avis (carousel)
 // → Carte. Shared by the drawer (OfferingSheet) and the deep-link page.
-export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro }: Props) {
+export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const router = useRouter();
@@ -161,6 +164,11 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
             <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
           </View>
+          {isOwner && onEdit ? (
+            <Pressable onPress={onEdit} hitSlop={10} style={styles.editBtn} accessibilityLabel={t('proOffering.edit', { defaultValue: 'Modifier l\'activité' })}>
+              <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
+            </Pressable>
+          ) : null}
         </View>
         <Text style={styles.proLine} numberOfLines={1}>
           {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}
@@ -339,6 +347,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.md },
   topBarBtn: { padding: 2 },
   chipRatingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  editBtn: { marginLeft: 'auto' },
   sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 0 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
   proLine: { color: colors.pinProBackground, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },

@@ -1,4 +1,4 @@
-import { Redirect, useLocalSearchParams, useNavigation } from 'expo-router';
+import { Redirect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,9 @@ export default function ProOfferingDetailScreen() {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
+  const { session, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
   const navigation = useNavigation();
+  const router = useRouter();
 
   const { data: offering, isLoading } = useQuery({
     queryKey: ['pro-offering', id],
@@ -48,7 +49,13 @@ export default function ProOfferingDetailScreen() {
     );
   }
 
-  return <OfferingDetail offering={offering} />;
+  const isOwner = session?.user?.id === offering.pro_id;
+  return (
+    <OfferingDetail
+      offering={offering}
+      onEdit={isOwner ? () => router.push(`/(auth)/pro/offering/edit?id=${offering.id}`) : undefined}
+    />
+  );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
