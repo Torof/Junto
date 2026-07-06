@@ -316,15 +316,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 1,
     backgroundColor: colors.borderMuted,
   },
-  // Same shape/position/size as always — softened skin (thin muted border
-  // instead of hard black). Height 40 for a 2px overlap PAST the sheet's top
-  // line: the tab's background covers the line at the junction, welding the
-  // tab to the drawer (38 exposed the line running under the tab).
+  // Same shape/position/size as always — softened skin: thin muted border
+  // instead of hard black, and height 38 so the side borders stop EXACTLY at
+  // the sheet's top line (40 left 2px whiskers poking below it).
   tab: {
     position: 'absolute',
     top: -38,
     left: spacing.sm,
-    height: 40,
+    height: 38,
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
