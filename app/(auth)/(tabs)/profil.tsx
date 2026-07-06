@@ -1,6 +1,5 @@
 import { useLayoutEffect, useState, useMemo } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
-import { Menu } from 'lucide-react-native';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,8 +16,8 @@ import { ProfileHero, reliabilityTierFromScore } from '@/components/profile-hero
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { BadgeDisplay } from '@/components/badge-display';
 import { BadgeCheck, Pencil } from 'lucide-react-native';
-import { getFriendlyError } from '@/utils/friendly-error';
 import { SettingsDrawer } from '@/components/settings-drawer';
+import { getFriendlyError } from '@/utils/friendly-error';
 // Lazy import — native module not available until dev build
 const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.pickAndUploadAvatar());
 
@@ -28,8 +27,10 @@ export default function ProfilScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const router = useRouter();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // Kept for the header pencil ("edit name") — the settings gear itself moved
+  // to the Menu tab's sheet.
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: authId } = useQuery({
@@ -90,14 +91,6 @@ export default function ProfilScreen() {
               <Text style={styles.proHeaderText}>{t('drawer.myProPage', { defaultValue: 'Ma page pro' })}</Text>
             </Pressable>
           )}
-          <Pressable
-            onPress={() => setDrawerOpen(true)}
-            hitSlop={12}
-            style={{ paddingHorizontal: spacing.md }}
-            accessibilityLabel={t('profil.openSettings', { defaultValue: 'Open settings' })}
-          >
-            <Menu size={24} color={colors.textPrimary} strokeWidth={2.2} />
-          </Pressable>
         </View>
       ),
     });
