@@ -423,7 +423,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bleed: { marginHorizontal: -spacing.lg },
   hCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   photoThumbWrap: { position: 'relative' },
-  photoThumb: { width: 150, height: 150, borderRadius: radius.md, backgroundColor: colors.surface, ...shadows.card },
+  // 3:2 landscape cards — outdoor shots are landscape, and one full card +
+  // a peek of the next reads as an obvious carousel (Airbnb-style).
+  photoThumb: { width: 240, height: 160, borderRadius: radius.md, backgroundColor: colors.surface, ...shadows.card },
   photoDelete: {
     position: 'absolute',
     top: 6,
@@ -436,8 +438,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   photoAddTile: {
-    width: 150,
-    height: 150,
+    width: 240,
+    height: 160,
     borderRadius: radius.md,
     borderWidth: 1.5,
     borderColor: colors.cta,
