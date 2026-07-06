@@ -75,6 +75,8 @@ export default function ProOfferingEditScreen() {
   const [scheduleText, setScheduleText] = useState('');
   const [distanceKm, setDistanceKm] = useState<string>('');
   const [elevationGainM, setElevationGainM] = useState<string>('');
+  const [priceEur, setPriceEur] = useState<string>('');
+  const [priceUnit, setPriceUnit] = useState<'person' | 'group'>('person');
   const [saving, setSaving] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
@@ -104,6 +106,8 @@ export default function ProOfferingEditScreen() {
     setScheduleText(existing.schedule_text ?? '');
     setDistanceKm(existing.distance_km?.toString() ?? '');
     setElevationGainM(existing.elevation_gain_m?.toString() ?? '');
+    setPriceEur(existing.price_eur?.toString() ?? '');
+    setPriceUnit(existing.price_unit ?? 'person');
   }, [existing]);
 
   const selectedSportKey = sports?.find((s) => s.id === sportId)?.key ?? '';
@@ -201,6 +205,11 @@ export default function ProOfferingEditScreen() {
       Alert.alert(t('auth.error'), t('proOffering.invalidElevation', { defaultValue: 'Le dénivelé doit être supérieur à 0.' }));
       return;
     }
+    const parsedPrice = priceEur ? parseFloat(priceEur.replace(',', '.')) : null;
+    if (parsedPrice !== null && (!Number.isFinite(parsedPrice) || parsedPrice <= 0 || parsedPrice > 99999)) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidPrice', { defaultValue: 'Le prix doit être compris entre 0 et 99 999 €.' }));
+      return;
+    }
 
     setSaving(true);
     try {
@@ -217,6 +226,9 @@ export default function ProOfferingEditScreen() {
         schedule_text: scheduleText.trim() || null,
         distance_km: parsedDist,
         elevation_gain_m: parsedElev,
+        // DB pairing constraint: both set or both NULL.
+        price_eur: parsedPrice,
+        price_unit: parsedPrice !== null ? priceUnit : null,
       };
 
       if (isEdit && offeringId) {
@@ -459,6 +471,37 @@ export default function ProOfferingEditScreen() {
           </Field>
         </View>
 
+        <Field label={t('proOffering.price', { defaultValue: 'Prix indicatif (€)' })} styles={styles}>
+          <View style={styles.priceRow}>
+            <TextInput
+              style={[styles.input, styles.priceInput]}
+              value={priceEur}
+              onChangeText={setPriceEur}
+              placeholder="65"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="decimal-pad"
+              maxLength={6}
+            />
+            {(['person', 'group'] as const).map((unit) => (
+              <Pressable
+                key={unit}
+                style={[styles.levelChip, priceEur !== '' && priceUnit === unit && styles.levelChipActive]}
+                onPress={() => setPriceUnit(unit)}
+                disabled={priceEur === ''}
+              >
+                <Text style={[styles.levelChipText, priceEur !== '' && priceUnit === unit && styles.levelChipTextActive]}>
+                  {unit === 'person'
+                    ? t('proOffering.pricePerPerson', { defaultValue: 'par pers.' })
+                    : t('proOffering.pricePerGroup', { defaultValue: 'par groupe' })}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={styles.helper}>
+            {t('proOffering.priceHelper', { defaultValue: 'Affiché "À partir de X €". Laisse vide pour ne rien afficher.' })}
+          </Text>
+        </Field>
+
         <Pressable
           style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}
           onPress={handleSubmit}
@@ -579,6 +622,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
   },
   levelChipActive: { borderColor: colors.cta, borderWidth: 2 },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  priceInput: {
+    flex: 1,
+  },
   levelChipText: { color: colors.textPrimary, fontSize: fontSizes.sm },
   levelChipTextActive: { color: colors.cta, fontWeight: '700' },
   locationButton: {

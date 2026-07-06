@@ -17,6 +17,9 @@ export const proOfferingFormSchema = z.object({
   schedule_text: z.string().max(100).nullable(),
   distance_km: z.number().positive().max(9999).nullable(),
   elevation_gain_m: z.number().int().positive().max(99999).nullable(),
+  // "À partir de X €" — indicative floor price, display-only (no payment).
+  price_eur: z.number().positive().max(99999).nullable(),
+  price_unit: z.enum(['person', 'group']).nullable(),
   image_url: z.string().max(500).nullable(),
 });
 

@@ -1015,6 +1015,8 @@ export type Database = {
           location: unknown
           location_name: string
           max_participants: number | null
+          price_eur: number | null
+          price_unit: string | null
           pro_id: string
           schedule_text: string | null
           sport_id: string
@@ -1032,6 +1034,8 @@ export type Database = {
           location: unknown
           location_name: string
           max_participants?: number | null
+          price_eur?: number | null
+          price_unit?: string | null
           pro_id: string
           schedule_text?: string | null
           sport_id: string
@@ -1049,6 +1053,8 @@ export type Database = {
           location?: unknown
           location_name?: string
           max_participants?: number | null
+          price_eur?: number | null
+          price_unit?: string | null
           pro_id?: string
           schedule_text?: string | null
           sport_id?: string
@@ -2271,6 +2277,8 @@ export type Database = {
           lng: number | null
           location_name: string | null
           max_participants: number | null
+          price_eur: number | null
+          price_unit: string | null
           pro_id: string | null
           pro_name: string | null
           schedule_text: string | null
@@ -2717,6 +2725,8 @@ export type Database = {
           p_location_lng: number
           p_location_name: string
           p_max_participants?: number
+          p_price_eur?: number
+          p_price_unit?: string
           p_schedule_text?: string
           p_sport_id: string
           p_title: string
@@ -3993,6 +4003,8 @@ export type Database = {
           p_location_name: string
           p_max_participants?: number
           p_offering_id: string
+          p_price_eur?: number
+          p_price_unit?: string
           p_schedule_text?: string
           p_sport_id: string
           p_title: string

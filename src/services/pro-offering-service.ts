@@ -13,6 +13,8 @@ export interface ProOffering {
   schedule_text: string | null;
   distance_km: number | null;
   elevation_gain_m: number | null;
+  price_eur: number | null;
+  price_unit: 'person' | 'group' | null;
   image_url: string | null;
   lng: number;
   lat: number;
@@ -40,6 +42,8 @@ export interface CreateProOfferingInput {
   schedule_text?: string | null;
   distance_km?: number | null;
   elevation_gain_m?: number | null;
+  price_eur?: number | null;
+  price_unit?: 'person' | 'group' | null;
 }
 
 export interface UpdateProOfferingInput extends CreateProOfferingInput {
@@ -53,7 +57,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       )
       .eq('id', id)
       .maybeSingle();
@@ -66,7 +70,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       )
       .eq('pro_id', proId)
       .order('created_at', { ascending: false });
@@ -85,7 +89,7 @@ export const proOfferingService = {
     let query = supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
       );
 
     if (bounds) {
@@ -130,6 +134,8 @@ export const proOfferingService = {
       p_schedule_text: input.schedule_text ?? undefined,
       p_distance_km: input.distance_km ?? undefined,
       p_elevation_gain_m: input.elevation_gain_m ?? undefined,
+      p_price_eur: input.price_eur ?? undefined,
+      p_price_unit: input.price_unit ?? undefined,
     });
     if (error) throw error;
     return data as string;
@@ -150,6 +156,8 @@ export const proOfferingService = {
       p_schedule_text: input.schedule_text ?? undefined,
       p_distance_km: input.distance_km ?? undefined,
       p_elevation_gain_m: input.elevation_gain_m ?? undefined,
+      p_price_eur: input.price_eur ?? undefined,
+      p_price_unit: input.price_unit ?? undefined,
     });
     if (error) throw error;
   },

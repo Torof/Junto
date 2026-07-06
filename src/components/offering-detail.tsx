@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2 } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -185,6 +185,16 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
             <Text style={styles.factText}>{offering.schedule_text}</Text>
           </View>
         ) : null}
+        {offering.price_eur != null ? (
+          <View style={styles.factRow}>
+            <Euro size={15} color={accent} strokeWidth={2.2} />
+            <Text style={styles.priceText}>
+              {offering.price_unit === 'group'
+                ? t('proOffering.priceFromGroup', { defaultValue: 'À partir de {{price}} € / groupe', price: Number(offering.price_eur) })
+                : t('proOffering.priceFromPerson', { defaultValue: 'À partir de {{price}} € / pers.', price: Number(offering.price_eur) })}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {/* À propos — stats + description + host */}
@@ -340,6 +350,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xxl, fontFamily: fonts.title, letterSpacing: -0.5, lineHeight: 34 },
   factRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   factText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
+  // Same fact-line shape, bolder value — the price is the number people scan for.
+  priceText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, fontWeight: '700' },
   section: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
   sectionTitleInset: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
