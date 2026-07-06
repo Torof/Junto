@@ -223,8 +223,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  // Same visual language as the PP Aperçu "Voir tout →" links, one size up —
-  // it's the teaser's primary action, not a section accessory.
-  cta: { alignSelf: 'flex-end', marginTop: spacing.xs, paddingVertical: 4, paddingHorizontal: 2 },
+  // Subdued outline pill (PP action-button family): cta border + light tint,
+  // link-colored text — present without shouting. Trial vs the bare link.
+  cta: {
+    alignSelf: 'flex-end',
+    marginTop: spacing.xs,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    borderColor: colors.cta,
+    backgroundColor: colors.cta + '12',
+  },
   ctaText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '800' },
 });
