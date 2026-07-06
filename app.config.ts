@@ -31,6 +31,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         data: [
           { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/activity' },
           { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/invite' },
+          // /pro covers both /pro/{id} and /pro/offering/{id} (prefix match).
+          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/pro' },
         ],
         category: ['BROWSABLE', 'DEFAULT'],
       },
