@@ -19,8 +19,12 @@ import { distanceMeters } from '@/utils/geo';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-type MainTab = 'created' | 'joined' | 'pending';
-type TimeFilter = 'upcoming' | 'finished';
+// Hierarchy (Scott 2026-07-06): the PRIMARY axis is time/state — À venir ·
+// Terminées · En attente (badged). Créées/Rejointes demoted to a secondary
+// scope refinement, defaulting to "Toutes" (created + joined merged, date
+// sorted) so the tab reads as your agenda at a glance.
+type MainTab = 'upcoming' | 'finished' | 'pending';
+type Scope = 'all' | 'created' | 'joined';
 
 export default function MesActivitesScreen() {
   const colors = useColors();
@@ -32,8 +36,8 @@ export default function MesActivitesScreen() {
   const { center, currentLocation } = useInitialLocation();
   const filters = useMyActivitiesFilterStore((s) => s.filters);
   const [refreshing, setRefreshing] = useState(false);
-  const [mainTab, setMainTab] = useState<MainTab>('created');
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
+  const [mainTab, setMainTab] = useState<MainTab>('upcoming');
+  const [scope, setScope] = useState<Scope>('all');
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: created, isLoading: loadingCreated, error: errorCreated } = useQuery({
@@ -51,9 +55,20 @@ export default function MesActivitesScreen() {
     queryFn: () => activityService.getMyPending(),
   });
 
-  const activities = mainTab === 'created' ? created : mainTab === 'joined' ? joined : pending;
-  const isLoading = mainTab === 'created' ? loadingCreated : mainTab === 'joined' ? loadingJoined : loadingPending;
-  const error = mainTab === 'created' ? errorCreated : mainTab === 'joined' ? errorJoined : errorPending;
+  // Source list: pending is its own state; otherwise the scope picks
+  // created / joined / both merged (they're disjoint lists).
+  const activities = useMemo(() => {
+    if (mainTab === 'pending') return pending;
+    if (scope === 'created') return created;
+    if (scope === 'joined') return joined;
+    return [...(created ?? []), ...(joined ?? [])];
+  }, [mainTab, scope, created, joined, pending]);
+  const isLoading = mainTab === 'pending'
+    ? loadingPending
+    : scope === 'created' ? loadingCreated : scope === 'joined' ? loadingJoined : (loadingCreated || loadingJoined);
+  const error = mainTab === 'pending'
+    ? errorPending
+    : scope === 'created' ? errorCreated : scope === 'joined' ? errorJoined : (errorCreated ?? errorJoined);
 
   const userLocation = currentLocation ?? center;
 
@@ -68,8 +83,8 @@ export default function MesActivitesScreen() {
       // hidden for pending.
       if (mainTab !== 'pending') {
         const isUpcoming = dayjs(a.starts_at).isAfter(now) && !['completed', 'cancelled', 'expired'].includes(a.status);
-        if (timeFilter === 'upcoming' && !isUpcoming) return false;
-        if (timeFilter === 'finished' && isUpcoming) return false;
+        if (mainTab === 'upcoming' && !isUpcoming) return false;
+        if (mainTab === 'finished' && isUpcoming) return false;
       }
 
       // Shared filters from useMyActivitiesFilterStore (sport / date / level / radius).
@@ -117,7 +132,7 @@ export default function MesActivitesScreen() {
     }
 
     return sorted;
-  }, [activities, mainTab, timeFilter, filters, userLocation]);
+  }, [activities, mainTab, filters, userLocation]);
 
   const hasMapFilters =
     filters.sportKeys.length > 0
@@ -126,12 +141,11 @@ export default function MesActivitesScreen() {
     || filters.radiusKm !== null;
 
   const emptyMessage = () => {
-    if (mainTab === 'created' && (!created || created.length === 0)) return t('myActivities.emptyCreated');
-    if (mainTab === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
-    if (mainTab === 'pending' && (!pending || pending.length === 0)) return t('myActivities.emptyPending');
-    if (hasMapFilters) return t('myActivities.noResults');
     if (mainTab === 'pending') return t('myActivities.emptyPending');
-    return timeFilter === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
+    if (scope === 'created' && (!created || created.length === 0)) return t('myActivities.emptyCreated');
+    if (scope === 'joined' && (!joined || joined.length === 0)) return t('myActivities.emptyJoined');
+    if (hasMapFilters) return t('myActivities.noResults');
+    return mainTab === 'upcoming' ? t('myActivities.emptyUpcoming') : t('myActivities.emptyFinished');
   };
 
   const pendingCount = pending?.length ?? 0;
@@ -146,67 +160,62 @@ export default function MesActivitesScreen() {
 
   return (
     <View style={styles.container}>
+      {/* PRIMARY — time/state, big underlined tabs (the PP tab-bar language). */}
       <View style={styles.mainTabs}>
-        <Pressable
-          style={[styles.mainTab, mainTab === 'created' && styles.mainTabActive]}
-          onPress={() => setMainTab('created')}
-        >
-          <Text style={[styles.mainTabText, mainTab === 'created' && styles.mainTabTextActive]}>
-            {t('myActivities.created')}
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.mainTab, mainTab === 'joined' && styles.mainTabActive]}
-          onPress={() => setMainTab('joined')}
-        >
-          <Text style={[styles.mainTabText, mainTab === 'joined' && styles.mainTabTextActive]}>
-            {t('myActivities.joined')}
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.mainTab, mainTab === 'pending' && styles.mainTabActive]}
-          onPress={() => setMainTab('pending')}
-        >
-          <Text style={[styles.mainTabText, mainTab === 'pending' && styles.mainTabTextActive]}>
-            {t('myActivities.pending')}
-          </Text>
-          {pendingCount > 0 && (
-            <View style={styles.pendingBadge}>
-              <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
-            </View>
-          )}
-        </Pressable>
-        <View style={styles.tabSpacer} />
-        <Pressable style={styles.filterToggle} onPress={() => setShowFilters(true)}>
-          <View style={styles.filterIconWrap}>
-            <SlidersHorizontal size={18} color={hasMapFilters ? colors.cta : colors.textSecondary} strokeWidth={2} />
-            {hasMapFilters && <View style={styles.filterDot} />}
-          </View>
-        </Pressable>
+        {(['upcoming', 'finished', 'pending'] as const).map((tab) => (
+          <Pressable
+            key={tab}
+            style={[styles.mainTab, mainTab === tab && styles.mainTabActive]}
+            onPress={() => setMainTab(tab)}
+          >
+            <Text style={[styles.mainTabText, mainTab === tab && styles.mainTabTextActive]}>
+              {tab === 'upcoming'
+                ? t('myActivities.upcoming', { defaultValue: 'À venir' })
+                : tab === 'finished'
+                  ? t('myActivities.finished', { defaultValue: 'Terminées' })
+                  : t('myActivities.pending', { defaultValue: 'En attente' })}
+            </Text>
+            {tab === 'pending' && pendingCount > 0 && (
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
+              </View>
+            )}
+          </Pressable>
+        ))}
       </View>
 
-      {/* Time refinement — only meaningful for created/joined; pending
-          requests are upcoming by definition. */}
-      {mainTab !== 'pending' && (
-        <View style={styles.timeTabs}>
-          <Pressable
-            style={[styles.timeTab, timeFilter === 'upcoming' && styles.timeTabActive]}
-            onPress={() => setTimeFilter('upcoming')}
-          >
-            <Text style={[styles.timeTabText, timeFilter === 'upcoming' && styles.timeTabTextActive]}>
-              {t('myActivities.upcoming')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.timeTab, timeFilter === 'finished' && styles.timeTabActive]}
-            onPress={() => setTimeFilter('finished')}
-          >
-            <Text style={[styles.timeTabText, timeFilter === 'finished' && styles.timeTabTextActive]}>
-              {t('myActivities.finished')}
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      {/* SECONDARY — scope chips (Toutes par défaut) + a VISIBLE Filtres chip.
+          Pending has no scope: it's one list. */}
+      <View style={styles.scopeRow}>
+        {mainTab !== 'pending' ? (
+          <View style={styles.scopeChips}>
+            {(['all', 'created', 'joined'] as const).map((s) => (
+              <Pressable
+                key={s}
+                style={[styles.scopeChip, scope === s && styles.scopeChipActive]}
+                onPress={() => setScope(s)}
+              >
+                <Text style={[styles.scopeChipText, scope === s && styles.scopeChipTextActive]}>
+                  {s === 'all'
+                    ? t('myActivities.all', { defaultValue: 'Toutes' })
+                    : s === 'created'
+                      ? t('myActivities.created', { defaultValue: 'Créées' })
+                      : t('myActivities.joined', { defaultValue: 'Rejointes' })}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.scopeChips} />
+        )}
+        <Pressable style={styles.filterChip} onPress={() => setShowFilters(true)}>
+          <SlidersHorizontal size={15} color={hasMapFilters ? colors.cta : colors.textPrimary} strokeWidth={2.2} />
+          <Text style={[styles.filterChipText, hasMapFilters && { color: colors.cta }]}>
+            {t('myActivities.filters', { defaultValue: 'Filtres' })}
+          </Text>
+          {hasMapFilters && <View style={styles.filterDot} />}
+        </Pressable>
+      </View>
 
       <FilterSheet
         visible={showFilters}
@@ -260,14 +269,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Primary scope (Créées / Rejointes / En attente) — underline tab
-  // pattern with the filter icon docked right.
+  // PRIMARY — À venir / Terminées / En attente. Big, bold, cta underline:
+  // the same tab language as the PP drawer.
   mainTabs: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.lg,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
@@ -275,20 +284,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   mainTabActive: {
-    borderBottomColor: colors.borderStrong,
+    borderBottomColor: colors.cta,
   },
   mainTabText: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fontSizes.md,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   mainTabTextActive: {
-    color: colors.textPrimary,
-    fontWeight: '700',
+    color: colors.cta,
+    fontWeight: '800',
   },
   pendingBadge: {
     minWidth: 16,
@@ -301,56 +310,44 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginLeft: 4,
   },
   pendingBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
-  tabSpacer: {
-    flex: 1,
-  },
 
-  // Secondary time refinement (À venir / Passées) — only rendered for
-  // created/joined tabs.
-  timeTabs: {
+  // SECONDARY — scope chips + the visible Filtres chip, one row.
+  scopeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
-    gap: spacing.xs + 2,
+    gap: spacing.sm,
   },
-  timeTab: {
+  scopeChips: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2, flex: 1 },
+  scopeChip: {
     borderWidth: 1,
     borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
-    backgroundColor: 'transparent',
+    paddingVertical: spacing.xs + 1,
   },
-  timeTabActive: {
-    backgroundColor: colors.cta,
+  scopeChipActive: {
     borderColor: colors.cta,
+    backgroundColor: colors.cta + '18',
   },
-  timeTabText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-  },
-  timeTabTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  filterToggle: {
-    width: 32,
-    height: 32,
+  scopeChipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  scopeChipTextActive: { color: colors.cta, fontWeight: '800' },
+  filterChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+    backgroundColor: colors.surface,
   },
-  filterIconWrap: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  filterChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   filterDot: {
-    position: 'absolute',
-    top: -2,
-    right: -4,
     width: 6,
     height: 6,
     borderRadius: radius.xs,
