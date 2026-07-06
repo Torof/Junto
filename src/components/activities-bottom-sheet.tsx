@@ -297,12 +297,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   flatList: {
     flex: 1,
   },
-  // No border on the background — the handle's topBorder view is THE single
-  // top line (both used to draw one, stacking into a doubled/thick edge).
   sheetBackground: {
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
+    borderTopWidth: 1,
+    borderTopColor: colors.pinBorder,
   },
   handleContainer: {
     height: 12,
@@ -314,16 +314,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: colors.borderMuted,
+    backgroundColor: colors.pinBorder,
   },
-  // Same shape/position/size as always — softened skin: thin muted border
-  // instead of hard black, and height 38 so the side borders stop EXACTLY at
-  // the sheet's top line (40 left 2px whiskers poking below it).
   tab: {
     position: 'absolute',
     top: -38,
     left: spacing.sm,
-    height: 38,
+    height: 40,
     backgroundColor: colors.surfaceAlt,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
@@ -335,13 +332,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.borderMuted,
+    borderColor: colors.pinBorder,
   },
   tabGrip: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.textMuted,
+    backgroundColor: colors.textSecondary,
   },
   tabRow: {
     flexDirection: 'row',
