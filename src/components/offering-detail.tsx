@@ -215,6 +215,36 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         ) : null}
       </View>
 
+      {/* Photos — first section (a listing sells with images before words).
+          Hidden entirely for visitors when empty — an "Aucune photo" lead
+          would weaken the page; the owner keeps the add tile. */}
+      {photos.length > 0 || isOwner ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
+          <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
+            {photos.map((p, i) => (
+              <View key={p.id} style={styles.photoThumbWrap}>
+                <Pressable onPress={() => setLightboxIndex(i)}>
+                  <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
+                </Pressable>
+                {isOwner ? (
+                  <Pressable style={styles.photoDelete} onPress={() => handleGalleryRemove(p.id)} hitSlop={6}>
+                    <X size={12} color={colors.background} strokeWidth={3} />
+                  </Pressable>
+                ) : null}
+              </View>
+            ))}
+            {isOwner && photos.length < GALLERY_MAX ? (
+              <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
+                <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
+                <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+              </Pressable>
+            ) : null}
+          </GHScrollView>
+          <PhotoLightbox photos={photos} index={lightboxIndex} onIndexChange={setLightboxIndex} />
+        </View>
+      ) : null}
+
       {/* À propos — stats + description + host */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
@@ -246,36 +276,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
             </Pressable>
           </Pressable>
         ) : null}
-      </View>
-
-      {/* Photos — horizontal carousel */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
-        {photos.length > 0 || isOwner ? (
-          <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
-            {photos.map((p, i) => (
-              <View key={p.id} style={styles.photoThumbWrap}>
-                <Pressable onPress={() => setLightboxIndex(i)}>
-                  <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
-                </Pressable>
-                {isOwner ? (
-                  <Pressable style={styles.photoDelete} onPress={() => handleGalleryRemove(p.id)} hitSlop={6}>
-                    <X size={12} color={colors.background} strokeWidth={3} />
-                  </Pressable>
-                ) : null}
-              </View>
-            ))}
-            {isOwner && photos.length < GALLERY_MAX ? (
-              <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
-                <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
-                <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
-              </Pressable>
-            ) : null}
-          </GHScrollView>
-        ) : (
-          <Text style={styles.emptyText}>{t('proOffering.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}</Text>
-        )}
-        <PhotoLightbox photos={photos} index={lightboxIndex} onIndexChange={setLightboxIndex} />
       </View>
 
       {/* Avis — horizontal carousel (summary + composer live inside) */}
@@ -447,7 +447,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 4,
   },
   photoAddText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
-  emptyText: { color: colors.textMuted, fontSize: fontSizes.sm, fontStyle: 'italic' },
   mapCard: {
     borderRadius: radius.md,
     overflow: 'hidden',
