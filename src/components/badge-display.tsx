@@ -9,7 +9,7 @@ import {
   Clock, Package, Handshake, Shield,
   Compass, Tent, Waves, Bike, Plane,
   Hammer, Ban, LogOut, TrendingUp,
-  HelpCircle, Check, ChevronRight, Triangle, Plus,
+  HelpCircle, Check, ChevronRight, Triangle, Plus, Minus,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -60,19 +60,22 @@ interface BadgeDisplayProps {
 
 // Peer confirmation of a declared level, from the 12-month-windowed votes
 // (get_user_sport_level_votes). "fiable" = right + under (level is at least what
-// they claim); "gonflé" = over. Triangle only above 5 votes and a clear 60%
-// majority; size scales with volume (confidence), not ratio. No signal → null.
+// they claim); "gonflé" = over. Simple majority decides (Scott 2026-07-07):
+// show the signal as soon as it's been judged. fiable > gonflé → up (green),
+// gonflé > fiable → down (red), a tie with ≥1 vote → even (grey neutral). No
+// votes at all → null (not yet judged). Size scales mildly with volume.
 function sportTriangle(
   v?: { over: number; right: number; under: number },
-): { dir: 'up' | 'down'; size: number } | null {
+): { kind: 'up' | 'down' | 'even'; size: number } | null {
   if (!v) return null;
   const total = v.over + v.right + v.under;
-  if (total < 5) return null;
+  if (total === 0) return null;
   const size = total >= 20 ? 15 : total >= 10 ? 13 : 11;
   const fiable = v.right + v.under;
-  if (fiable / total >= 0.6) return { dir: 'up', size };
-  if (v.over / total >= 0.6) return { dir: 'down', size };
-  return null;
+  const gonfle = v.over;
+  if (fiable > gonfle) return { kind: 'up', size };
+  if (gonfle > fiable) return { kind: 'down', size };
+  return { kind: 'even', size };
 }
 
 // Declared level (levels_per_sport value) → short display label. Values are the
@@ -95,7 +98,10 @@ const MAX_VISIBLE_VOTER_AVATARS = 7;
 // rank language across the card. Visibility threshold is 5 so the bronze
 // floor is never "missing".
 function vouchedTier(count: number): 'bronze' | 'silver' | 'gold' {
-  if (count >= 50) return 'gold';
+  // Peer-judged tiers (Scott 2026-07-07): NOT gamification — you can't grind
+  // them, others judge your conduct outing after outing. 30 people vouching a
+  // way of being is a real reputation, worth distinguishing.
+  if (count >= 30) return 'gold';
   if (count >= 10) return 'silver';
   return 'bronze';
 }
@@ -662,15 +668,19 @@ function SportRow({
             {it.count > 0 && <Text style={styles.sportCountInline}>×{it.count}</Text>}
             {lvl && it.count > 0 && <View style={styles.sportSep} />}
             {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
-            {tri && (
+            {tri && (tri.kind === 'even' ? (
+              // Judged but split — a neutral grey bar (a triangle would imply
+              // a direction the votes don't support).
+              <Minus size={tri.size} color={colors.textMuted} strokeWidth={3} />
+            ) : (
               <Triangle
                 size={tri.size}
-                color={tri.dir === 'up' ? colors.success : colors.error}
-                fill={tri.dir === 'up' ? colors.success : colors.error}
+                color={tri.kind === 'up' ? colors.success : colors.error}
+                fill={tri.kind === 'up' ? colors.success : colors.error}
                 strokeWidth={0}
-                style={tri.dir === 'down' ? styles.triDown : undefined}
+                style={tri.kind === 'down' ? styles.triDown : undefined}
               />
-            )}
+            ))}
           </Pressable>
         );
       })}
