@@ -55,6 +55,61 @@ img { display: block; max-width: 100%; }
 .junto-sports-more summary::marker { content: ''; }
 
 /* ---------------------------------------------------------------- */
+/* Hero v2 — map pins (tip anchored on the geographic point),        */
+/* staggered drop-in, legend chips, brutalist CTA hover.             */
+/* ---------------------------------------------------------------- */
+.junto-hero-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 3px 3px rgba(10, 15, 26, 0.35));
+}
+.junto-hero-pin-emoji {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 74%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .junto-hero-pin { animation: junto-pin-drop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards; }
+  .junto-hero-pin:nth-of-type(2) { animation-delay: 0.12s; }
+  .junto-hero-pin:nth-of-type(3) { animation-delay: 0.24s; }
+  .junto-hero-pin:nth-of-type(4) { animation-delay: 0.36s; }
+  .junto-hero-pin:nth-of-type(5) { animation-delay: 0.48s; }
+  @keyframes junto-pin-drop {
+    from { transform: translate(-50%, -140%); opacity: 0; }
+    to { transform: translate(-50%, -100%); opacity: 1; }
+  }
+}
+.junto-hero-chip {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid #1F1A15;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1F1A15;
+}
+.junto-hero-chip-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+.junto-hero-cta { transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.junto-hero-cta:hover,
+.junto-hero-cta:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #1F1A15 !important;
+}
+
+/* ---------------------------------------------------------------- */
 /* Responsive overrides                                             */
 /* Inline styles have infinite specificity, so we use !important    */
 /* to override dimension/layout rules at mobile breakpoints.        */
@@ -92,6 +147,12 @@ img { display: block; max-width: 100%; }
   .junto-hero-cta {
     padding: 14px 22px !important;
     font-size: 15px !important;
+  }
+  .junto-hero-slogan {
+    display: none !important;
+  }
+  .junto-hero-map {
+    max-height: 440px !important;
   }
 
   /* ---------- Particuliers ---------- */

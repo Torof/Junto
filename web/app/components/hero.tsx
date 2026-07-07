@@ -1,126 +1,86 @@
-import {
-  CREAM,
-  JuntoMark,
-  MINT,
-  NAVY,
-  NAVY_DEEP,
-  ORANGE,
-  ORANGE_SOFT,
-  Pin,
-  SKY,
-} from './shared';
+// Hero v2 — built from the app's own materials (validated on the mock):
+// light paper palette from the app theme, brutalist CTA, a REAL Mapbox
+// outdoors fragment (the Écrins / Vallouise valley, committed as a static
+// asset — no runtime token needed) carrying the exact pin system: UA stone
+// teardrops + sport emoji, RA with its PRO capsule, PP pushpin on a village.
+// Copy: validated 2026-07-07 (« aventure » disambiguates « sortie » for the
+// public façade; « entre passionnés » replaces « particuliers »).
+// The slogan slot is a PLACEHOLDER — Scott is workshopping the real one.
 
-function HeroMountains() {
+const PAPER = '#F5EEDF';
+const INK = '#1F1A15';
+const INK_SOFT = '#4A4034';
+const CTA_ORANGE = '#F26B2E';
+const STONE = '#E0D2B4';
+const PRO_FRAME = '#BFCFE0';
+const PRO_BLUE = '#3b82f6';
+
+// Exact app pin geometry (activity-pin.tsx / pro-offering-pin.tsx / pro-pin.tsx).
+const TEARDROP =
+  'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
+
+function UaPin({ emoji }: { emoji: string }) {
   return (
-    <svg
-      viewBox="0 0 1400 700"
-      preserveAspectRatio="xMidYMid slice"
-      style={{ width: '100%', height: '100%', display: 'block' }}
-      aria-hidden
-    >
-      <defs>
-        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2A4268" />
-          <stop offset="55%" stopColor={NAVY} />
-          <stop offset="100%" stopColor={NAVY_DEEP} />
-        </linearGradient>
-        <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor={ORANGE_SOFT} stopOpacity="0.55" />
-          <stop offset="55%" stopColor={ORANGE_SOFT} stopOpacity="0.12" />
-          <stop offset="100%" stopColor={ORANGE_SOFT} stopOpacity="0" />
-        </radialGradient>
-      </defs>
+    <>
+      <svg width="44" height="44" viewBox="0 0 54 54">
+        <path d={TEARDROP} fill={STONE} stroke={INK} strokeWidth="2" strokeOpacity=".55" strokeLinejoin="round" />
+        <circle cx="27" cy="24" r="18.5" fill="#FFFFFF" stroke={INK} strokeWidth="1.5" strokeOpacity=".95" />
+      </svg>
+      <span className="junto-hero-pin-emoji">{emoji}</span>
+    </>
+  );
+}
 
-      <rect width="1400" height="700" fill="url(#skyGrad)" />
+function RaPin({ emoji }: { emoji: string }) {
+  return (
+    <>
+      <svg width="48" height="45" viewBox="0 0 58 54">
+        <g transform="translate(4 0)">
+          <path d={TEARDROP} fill={PRO_FRAME} stroke={INK} strokeWidth="2" strokeOpacity=".55" strokeLinejoin="round" />
+          <circle cx="27" cy="24" r="18.5" fill="#FFFFFF" stroke={INK} strokeWidth="1.5" strokeOpacity=".95" />
+        </g>
+        <rect x="1" y="1.5" width="22" height="12" rx="6" fill={PRO_BLUE} stroke={INK} strokeWidth="1.3" />
+        <text x="12" y="10.6" fontSize="8" fontWeight="bold" letterSpacing=".5" fill="#FFFFFF" textAnchor="middle" fontFamily="system-ui, sans-serif">
+          PRO
+        </text>
+      </svg>
+      <span className="junto-hero-pin-emoji" style={{ left: 4 }}>{emoji}</span>
+    </>
+  );
+}
 
-      <circle cx="1100" cy="180" r="280" fill="url(#sunGlow)" />
-      <circle cx="1100" cy="180" r="72" fill={CREAM} opacity="0.92" />
-
-      {(
-        [
-          [120, 80],
-          [240, 140],
-          [380, 60],
-          [520, 110],
-          [660, 50],
-          [60, 180],
-          [180, 230],
-          [340, 200],
-          [820, 90],
-          [940, 150],
-          [1280, 260],
-        ] as const
-      ).map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={1.6} fill={CREAM} opacity={0.7} />
-      ))}
-
-      {/* Topo contours in the sky area */}
-      <g opacity="0.12" stroke={CREAM} strokeWidth="1" fill="none">
-        <path d="M 0 200 Q 400 160 800 220 T 1400 200" />
-        <path d="M 0 150 Q 400 110 800 170 T 1400 150" />
-        <path d="M 0 100 Q 400 60 800 120 T 1400 100" />
+function PpPin() {
+  return (
+    <svg width="40" height="52" viewBox="0 0 54 70">
+      <path d="M 24.6 41 L 27 67 L 29.4 41 Z" fill={INK} />
+      <circle cx="27" cy="23" r="21" fill="#FFFFFF" stroke="#6B7280" strokeWidth="1.3" />
+      <circle cx="27" cy="23" r="18.5" fill="#4A7C59" />
+      <g transform="translate(27 23) scale(0.8) translate(-27 -23)">
+        <path d="M 15 32 L 23 16 L 28 23 L 32 18 L 39 32 Z" fill="#F5F5F0" />
       </g>
+    </svg>
+  );
+}
 
-      {/* Distant mountains */}
-      <path
-        d="M 0 420 Q 120 340 240 370 Q 380 400 500 350 Q 640 290 780 340 Q 920 380 1080 330 Q 1240 280 1400 340 L 1400 700 L 0 700 Z"
-        fill={NAVY_DEEP}
-        opacity="0.75"
-      />
-
-      {/* Mid mountains */}
-      <path
-        d="M 0 500 Q 140 420 290 450 Q 440 480 580 440 Q 740 390 880 430 Q 1040 470 1200 430 Q 1320 400 1400 440 L 1400 700 L 0 700 Z"
-        fill="#0B1728"
-      />
-
-      {/* Front hills */}
-      <path
-        d="M 0 570 Q 180 510 360 540 Q 540 570 720 530 Q 900 490 1080 530 Q 1240 565 1400 530 L 1400 700 L 0 700 Z"
-        fill="#071221"
-      />
-
-      {/* Winding dashed paths */}
-      <path
-        d="M 200 690 Q 360 620 500 580 Q 620 548 700 460 Q 760 392 840 330"
-        fill="none"
-        stroke={ORANGE}
-        strokeWidth="3.5"
-        strokeDasharray="2 8"
-        strokeLinecap="round"
-        opacity="0.85"
-      />
-      <path
-        d="M 900 690 Q 1040 620 1140 550 Q 1230 488 1280 400"
-        fill="none"
-        stroke={CREAM}
-        strokeWidth="2.5"
-        strokeDasharray="2 6"
-        strokeLinecap="round"
-        opacity="0.5"
-      />
-
-      {/* Pins */}
-      <Pin x={500} y={580} color={ORANGE} emoji="🧗" />
-      <Pin x={700} y={460} color={MINT} emoji="🥾" />
-      <Pin x={840} y={330} color={SKY} emoji="🪂" />
-      <Pin x={1140} y={550} color={CREAM} emoji="🚵" dark />
+function JuntoTeardropMark({ size = 34 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 54 54" aria-hidden>
+      <path d={TEARDROP} fill={CTA_ORANGE} stroke={INK} strokeWidth="3" />
+      <circle cx="27" cy="24" r="13" fill={PAPER} stroke={INK} strokeWidth="2.4" />
     </svg>
   );
 }
 
 export default function Hero() {
-  const headline = { line1: 'Trouve, crée,', line2: 'rejoins.' };
-
   return (
     <section
       className="junto-hero"
       style={{
         position: 'relative',
-        minHeight: 760,
-        background: NAVY,
-        color: '#FFF',
+        background: PAPER,
+        color: INK,
         overflow: 'hidden',
+        borderBottom: `2px solid ${INK}`,
       }}
     >
       <nav
@@ -130,7 +90,7 @@ export default function Hero() {
           zIndex: 10,
           maxWidth: 1280,
           margin: '0 auto',
-          padding: '28px 40px',
+          padding: '26px 40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -138,10 +98,14 @@ export default function Hero() {
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <JuntoMark size={40} />
-          <span className="display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+          <JuntoTeardropMark />
+          <span className="display" style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em' }}>
             Junto
+          </span>
+          {/* Slogan placeholder — the real one is being workshopped. */}
+          <span className="junto-hero-slogan" style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.45, marginLeft: 6 }}>
+            « slogan slogan »
           </span>
         </div>
         <div
@@ -149,24 +113,24 @@ export default function Hero() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 28,
+            gap: 26,
             fontSize: 15,
-            fontWeight: 500,
+            fontWeight: 600,
             flexWrap: 'wrap',
           }}
         >
-          <a className="junto-hero-nav-link" href="#comment" style={{ textDecoration: 'none', opacity: 0.85 }}>
-            Particuliers
+          <a className="junto-hero-nav-link" href="#comment" style={{ textDecoration: 'none', color: INK, opacity: 0.78 }}>
+            Communauté
           </a>
-          <a className="junto-hero-nav-link" href="#pro" style={{ textDecoration: 'none', opacity: 0.85 }}>
+          <a className="junto-hero-nav-link" href="#pro" style={{ textDecoration: 'none', color: INK, opacity: 0.78 }}>
             Pros
           </a>
           <a
             className="junto-hero-nav-cta"
             href="#beta"
             style={{
-              background: '#FFF',
-              color: NAVY,
+              background: INK,
+              color: PAPER,
               padding: '10px 18px',
               borderRadius: 999,
               textDecoration: 'none',
@@ -178,17 +142,6 @@ export default function Hero() {
         </div>
       </nav>
 
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <HeroMountains />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: `linear-gradient(90deg, ${NAVY} 0%, ${NAVY} 25%, rgba(30,47,77,0.7) 45%, rgba(30,47,77,0) 70%)`,
-          }}
-        />
-      </div>
-
       <div
         className="junto-hero-grid"
         style={{
@@ -196,44 +149,43 @@ export default function Hero() {
           zIndex: 5,
           maxWidth: 1280,
           margin: '0 auto',
-          padding: '70px 40px 140px',
+          padding: '40px 40px 90px',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
+          gridTemplateColumns: 'minmax(0, 1.02fr) minmax(0, 1fr)',
           gap: 40,
           alignItems: 'center',
-          minHeight: 560,
         }}
       >
         <div>
           <h1
             className="display junto-hero-title"
             style={{
-              fontSize: 'clamp(48px, 8vw, 88px)',
-              lineHeight: 0.95,
+              fontSize: 'clamp(44px, 6.2vw, 76px)',
+              lineHeight: 1.0,
               margin: 0,
-              fontWeight: 800,
+              fontWeight: 900,
               letterSpacing: '-0.035em',
               textWrap: 'balance',
               textTransform: 'none',
             }}
           >
-            {headline.line1}
-            <br />
-            <span style={{ color: ORANGE_SOFT }}>{headline.line2}</span>
+            Ta prochaine aventure est déjà{' '}
+            <span style={{ color: CTA_ORANGE }}>sur la carte.</span>
           </h1>
 
           <p
             className="junto-hero-lead"
             style={{
               fontSize: 19,
-              lineHeight: 1.5,
-              maxWidth: 460,
-              margin: '32px 0 44px',
-              opacity: 0.82,
+              lineHeight: 1.55,
+              maxWidth: 480,
+              margin: '28px 0 40px',
+              color: INK_SOFT,
             }}
           >
-            La carte des sorties outdoor près de toi. Entre particuliers, et avec des pros
-            vérifiés.
+            Jamais à court de sorties, ni de monde pour les partager.{' '}
+            <strong style={{ color: INK }}>Entre passionnés</strong> ou{' '}
+            <strong style={{ color: INK }}>encadré par un pro</strong>.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
@@ -244,39 +196,87 @@ export default function Hero() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 10,
-                background: ORANGE,
+                background: CTA_ORANGE,
                 color: '#FFF',
-                padding: '18px 28px',
-                borderRadius: 12,
+                padding: '17px 28px',
+                borderRadius: 14,
+                border: `2px solid ${INK}`,
                 fontSize: 16,
-                fontWeight: 700,
+                fontWeight: 800,
                 textDecoration: 'none',
-                boxShadow: '0 10px 30px -8px rgba(242,107,46,0.5)',
+                boxShadow: `4px 4px 0 ${INK}`,
               }}
             >
               Télécharger l'app
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </a>
-            <div
-              className="mono"
-              style={{ fontSize: 12, opacity: 0.6, letterSpacing: '0.08em' }}
-            >
+            <div className="mono" style={{ fontSize: 12, color: INK_SOFT, letterSpacing: '0.08em' }}>
               ANDROID · APK DIRECT
             </div>
           </div>
         </div>
 
-        <div />
+        {/* The map IS the hero: real Écrins fragment + the three pin species. */}
+        <div
+          className="junto-hero-map"
+          role="img"
+          aria-label="Fragment de carte Junto avec des sorties épinglées dans les Écrins"
+          style={{
+            position: 'relative',
+            border: `2px solid ${INK}`,
+            borderRadius: 18,
+            overflow: 'hidden',
+            boxShadow: `6px 6px 0 ${STONE}`,
+            aspectRatio: '10 / 11',
+            maxHeight: 560,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero-map-ecrins.jpg"
+            alt=""
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+
+          <div className="junto-hero-pin" style={{ left: '12%', top: '68%', width: 44 }}>
+            <UaPin emoji="🧗" />
+          </div>
+          <div className="junto-hero-pin" style={{ left: '58%', top: '70%', width: 44 }}>
+            <UaPin emoji="🥾" />
+          </div>
+          <div className="junto-hero-pin" style={{ left: '44%', top: '36%', width: 44 }}>
+            <UaPin emoji="⛷️" />
+          </div>
+          <div className="junto-hero-pin" style={{ left: '70%', top: '16%', width: 48 }}>
+            <RaPin emoji="🪂" />
+          </div>
+          <div className="junto-hero-pin" style={{ left: '81%', top: '27%', width: 40 }}>
+            <PpPin />
+          </div>
+
+          <div
+            style={{
+              position: 'absolute',
+              left: 12,
+              bottom: 12,
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+            }}
+            aria-hidden
+          >
+            <span className="junto-hero-chip">
+              <span className="junto-hero-chip-dot" style={{ background: STONE }} />
+              Entre passionnés
+            </span>
+            <span className="junto-hero-chip">
+              <span className="junto-hero-chip-dot" style={{ background: PRO_BLUE }} />
+              Encadré par un pro
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );
