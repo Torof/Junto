@@ -148,19 +148,20 @@ export function ProfileHero({
 
         {/* Right side: score + stats */}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={styles.scoreRow}>
+          {/* Label on its own line, the reliability value on the next. */}
+          <View style={styles.scoreLabelRow}>
             <Text style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</Text>
-            {hasScore ? (
-              // Big label = tier name when available, else fall back to %.
-              // The pctPill on the avatar ring keeps the raw % when available.
-              <Text style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</Text>
-            ) : (
-              <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
-            )}
             <Pressable onPress={() => setShowHelp(true)} hitSlop={8} style={styles.helpButton}>
               <HelpCircle size={14} color={colors.textMuted} strokeWidth={2} />
             </Pressable>
           </View>
+          {hasScore ? (
+            // Big label = tier name when available, else fall back to %.
+            // The pctPill on the avatar ring keeps the raw % when available.
+            <Text style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</Text>
+          ) : (
+            <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
+          )}
 
           {memberLine !== '' && (
             <Text style={styles.memberLine}>{memberLine}</Text>
@@ -207,12 +208,7 @@ function StatCell({
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
-      <Text
-        style={[styles.statLabel, { color: accent }]}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
-      >
+      <Text style={[styles.statLabel, { color: accent }]} numberOfLines={1}>
         {t(labelKey)}
       </Text>
     </View>
@@ -308,15 +304,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textAlign: 'center',
   },
 
-  scoreRow: {
-    flexDirection: 'row', alignItems: 'baseline', gap: 6,
-    marginBottom: 2,
+  scoreLabelRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   scoreBig: {
     fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.03,
-    lineHeight: 28,
+    lineHeight: 30,
+    marginBottom: 2,
   },
   scoreLabel: {
     color: colors.textSecondary,
@@ -339,7 +335,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: 1, height: 28,
     backgroundColor: colors.line,
   },
-  stat: { flex: 1, minWidth: 0 },
+  stat: { flex: 1, minWidth: 0, alignItems: 'flex-start' },
   statValue: {
     color: colors.textPrimary,
     fontSize: 20,
@@ -347,11 +343,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.02,
     lineHeight: 22,
   },
+  // Fixed size for all three (no adjustsFontSizeToFit — that shrank the
+  // longer labels independently, so they rendered at different sizes).
   statLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    fontSize: 11.5,
+    fontWeight: '700',
+    letterSpacing: 0.2,
     marginTop: 3,
   },
 

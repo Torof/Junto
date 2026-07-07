@@ -298,6 +298,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showAllSports, setShowAllSports] = useState(false);
 
   const { vouched, warnings, sports } = useMemo(() => {
     const vouchedList: VouchedItem[] = [];
@@ -408,69 +409,87 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
   // so a brand-new user understands what each section will eventually hold,
   // even before any data exists.
 
+  const SPORTS_LIMIT = 6;
+  const visibleSports = showAllSports ? sports : sports.slice(0, SPORTS_LIMIT);
+  const hiddenSportsCount = sports.length - visibleSports.length;
+
   return (
-    <View style={styles.card}>
-      <Pressable
-        style={styles.helpButton}
-        onPress={() => setShowHelp(true)}
-        hitSlop={10}
-      >
-        <HelpCircle size={16} color={colors.textMuted} strokeWidth={2} />
-      </Pressable>
-
-      <View style={styles.section}>
-        <SectionHeader
-          Icon={Users}
-          label={t('profil.badgeSectionPeer')}
-          styles={styles}
-          colors={colors}
-        />
-        {hasPeer ? (
-          <>
-            {vouched.length > 0 && (
-              <VouchedRow
-                items={vouched}
-                styles={styles}
-                colors={colors}
-                onPress={(item) => setSelected({ kind: 'vouched', item })}
-              />
-            )}
-            {warnings.length > 0 && (
-              <View style={vouched.length > 0 ? styles.warningSpacer : undefined}>
-                <WarningRow
-                  items={warnings}
-                  styles={styles}
-                  colors={colors}
-                  onPress={(item) => setSelected({ kind: 'warning', item })}
-                />
-              </View>
-            )}
-          </>
-        ) : (
-          <Text style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</Text>
-        )}
-      </View>
-
-      <View style={[styles.section, styles.sectionGap]}>
-        <SectionHeader
-          Icon={Mountain}
-          label={t('profil.badgeSectionSports')}
-          styles={styles}
-          colors={colors}
-        />
-        {sports.length > 0 || editable ? (
-          <SportRow
-            items={sports}
+    <>
+      {/* ── Sports pratiqués ── its own card ── */}
+      <View style={styles.card}>
+        <View style={styles.section}>
+          <SectionHeader
+            Icon={Mountain}
+            label={t('profil.badgeSectionSports')}
             styles={styles}
             colors={colors}
-            onPress={(item) => setSelected({ kind: 'sport', item })}
-            editable={editable}
-            onEdit={onEditSports}
-            t={t}
           />
-        ) : (
-          <Text style={styles.emptyHint}>{t('profil.badgeEmptySports')}</Text>
-        )}
+          {sports.length > 0 || editable ? (
+            <>
+              <SportRow
+                items={visibleSports}
+                styles={styles}
+                colors={colors}
+                onPress={(item) => setSelected({ kind: 'sport', item })}
+                editable={editable}
+                onEdit={onEditSports}
+                t={t}
+              />
+              {hiddenSportsCount > 0 && (
+                <Pressable onPress={() => setShowAllSports(true)} hitSlop={6} style={styles.seeAllBtn}>
+                  <Text style={styles.seeAllText}>
+                    {t('profil.sportsSeeAll', { defaultValue: 'Voir tout ({{count}})', count: sports.length })}
+                  </Text>
+                </Pressable>
+              )}
+            </>
+          ) : (
+            <Text style={styles.emptyHint}>{t('profil.badgeEmptySports')}</Text>
+          )}
+        </View>
+      </View>
+
+      {/* ── Ses partenaires disent… ── its own card ── */}
+      <View style={styles.card}>
+        <Pressable
+          style={styles.helpButton}
+          onPress={() => setShowHelp(true)}
+          hitSlop={10}
+        >
+          <HelpCircle size={16} color={colors.textMuted} strokeWidth={2} />
+        </Pressable>
+        <View style={styles.section}>
+          <SectionHeader
+            Icon={Users}
+            label={t('profil.badgeSectionPeer')}
+            styles={styles}
+            colors={colors}
+          />
+          {hasPeer ? (
+            <>
+              {vouched.length > 0 && (
+                <VouchedRow
+                  items={vouched}
+                  styles={styles}
+                  colors={colors}
+                  onPress={(item) => setSelected({ kind: 'vouched', item })}
+                />
+              )}
+              {warnings.length > 0 && (
+                <View style={vouched.length > 0 ? styles.warningSpacer : undefined}>
+                  <WarningRow
+                    items={warnings}
+                    styles={styles}
+                    colors={colors}
+                    onPress={(item) => setSelected({ kind: 'warning', item })}
+                  />
+                </View>
+              )}
+            </>
+          ) : (
+            <Text style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</Text>
+          )}
+        </View>
       </View>
 
       <DetailModal
@@ -503,7 +522,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </>
   );
 }
 
@@ -1320,6 +1339,15 @@ const createStyles = (colors: AppColors) =>
       fontSize: 12,
       fontStyle: 'italic',
       lineHeight: 17,
+    },
+    seeAllBtn: {
+      marginTop: spacing.sm,
+      alignSelf: 'flex-start',
+    },
+    seeAllText: {
+      color: colors.cta,
+      fontSize: 13,
+      fontWeight: '700',
     },
 
     wrapRowChips: {

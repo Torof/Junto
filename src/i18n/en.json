@@ -697,7 +697,8 @@
     },
     "editPhoto": "Change photo",
     "sportsEditorTitle": "My sports",
-    "sportsEditorHelper": "Pick your level for each sport you practise. Tap again to remove."
+    "sportsEditorHelper": "Pick your level for each sport you practise. Tap again to remove.",
+    "sportsSeeAll": "See all ({{count}})"
   },
   "participants": {
     "title": "Participants",
