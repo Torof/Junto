@@ -59,8 +59,7 @@ export default function Organisation() {
           </h2>
           <p style={{ fontSize: 18, lineHeight: 1.55, margin: '18px 0 0', color: 'var(--muted)', maxWidth: 640 }}>
             Une sortie, ce n'est pas que des partants : il faut répartir les voitures, le matos,
-            se parler. Sur Junto, tout ça vit directement dans la sortie — rien à créer à côté,
-            rien à courir après. C'est ça, le but.
+            se parler. Sur Junto, tout ça vit directement dans la sortie.
           </p>
         </div>
 
