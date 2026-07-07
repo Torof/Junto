@@ -641,7 +641,7 @@
     "joined": "Joined",
     "sportsSection": "Sports & levels",
     "noSportsYet": "No sports selected yet",
-    "addSport": "Add a sport",
+    "addSport": "Add",
     "badgesSection": "Badges",
     "badgeSectionAuto": "Awarded by Junto",
     "badgeSectionPeer": "Awarded by community",
@@ -695,7 +695,9 @@
       "review_received": "New review on your pro page",
       "review_reply": "Pro's reply to your review"
     },
-    "editPhoto": "Change photo"
+    "editPhoto": "Change photo",
+    "sportsEditorTitle": "My sports",
+    "sportsEditorHelper": "Pick your level for each sport you practise. Tap again to remove."
   },
   "participants": {
     "title": "Participants",

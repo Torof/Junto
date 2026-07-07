@@ -641,7 +641,7 @@
     "joined": "Rejointes",
     "sportsSection": "Sports et niveaux",
     "noSportsYet": "Aucun sport sélectionné",
-    "addSport": "Ajouter un sport",
+    "addSport": "Ajouter",
     "badgesSection": "Badges",
     "badgeSectionAuto": "Décernés par Junto",
     "badgeSectionPeer": "Décernés par la communauté",
@@ -695,7 +695,9 @@
       "review_received": "Nouvel avis sur ta vitrine pro",
       "review_reply": "Réponse du pro à ton avis"
     },
-    "editPhoto": "Modifier la photo"
+    "editPhoto": "Modifier la photo",
+    "sportsEditorTitle": "Mes sports",
+    "sportsEditorHelper": "Choisis ton niveau pour chaque sport que tu pratiques. Touche à nouveau pour retirer."
   },
   "participants": {
     "title": "Participants",

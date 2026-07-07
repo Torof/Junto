@@ -17,6 +17,7 @@ import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { BadgeDisplay } from '@/components/badge-display';
 import { BadgeCheck, Pencil } from 'lucide-react-native';
 import { SettingsDrawer } from '@/components/settings-drawer';
+import { SportLevelsEditor } from '@/components/sport-levels-editor';
 import { getFriendlyError } from '@/utils/friendly-error';
 // Lazy import — native module not available until dev build
 const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.pickAndUploadAvatar());
@@ -31,6 +32,7 @@ export default function ProfilScreen() {
   // Kept for the header pencil ("edit name") — the settings gear itself moved
   // to the Menu tab's sheet.
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sportsEditorOpen, setSportsEditorOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: authId } = useQuery({
@@ -179,6 +181,10 @@ export default function ProfilScreen() {
           sportLevels={sportLevels ?? []}
           sportLevelVotes={sportLevelVotes ?? []}
           awardAggregates={awardAggregates}
+          declaredSports={user?.sports ?? []}
+          declaredLevels={user?.levels_per_sport ?? null}
+          editable
+          onEditSports={() => setSportsEditorOpen(true)}
           completedCount={stats?.completed_activities}
           createdCount={stats?.created_activities}
         />
@@ -186,6 +192,11 @@ export default function ProfilScreen() {
       </ScrollView>
 
       <SettingsDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <SportLevelsEditor
+        visible={sportsEditorOpen}
+        onClose={() => setSportsEditorOpen(false)}
+        initialLevels={user?.levels_per_sport ?? null}
+      />
     </>
   );
 }

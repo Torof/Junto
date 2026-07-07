@@ -9,7 +9,7 @@ import {
   Clock, Package, Handshake, Shield,
   Compass, Tent, Waves, Bike, Plane,
   Hammer, Ban, LogOut, TrendingUp,
-  HelpCircle, Check, ChevronRight,
+  HelpCircle, Check, ChevronRight, Triangle, Plus,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing } from '@/constants/theme';
@@ -44,10 +44,44 @@ interface BadgeDisplayProps {
   sportLevels?: SportLevel[];
   sportLevelVotes?: SportLevelVotes[];
   awardAggregates?: AwardAggregates;
+  // Declared sports/levels (users.sports / levels_per_sport). Drive the
+  // "Sports pratiqués" chips even before any outing (cold-start), and the
+  // declared level shown next to the peer-confirmation triangle.
+  declaredSports?: string[] | null;
+  declaredLevels?: Record<string, string> | null;
+  // On the own profile: show the "+ Ajouter" chip and route taps to the editor.
+  editable?: boolean;
+  onEditSports?: () => void;
   // Kept for call-site compatibility — Phase 1+ ignores them.
   completedCount?: number;
   createdCount?: number;
   showLocked?: boolean;
+}
+
+// Peer confirmation of a declared level, from the 12-month-windowed votes
+// (get_user_sport_level_votes). "fiable" = right + under (level is at least what
+// they claim); "gonflé" = over. Triangle only above 5 votes and a clear 60%
+// majority; size scales with volume (confidence), not ratio. No signal → null.
+function sportTriangle(
+  v?: { over: number; right: number; under: number },
+): { dir: 'up' | 'down'; size: number } | null {
+  if (!v) return null;
+  const total = v.over + v.right + v.under;
+  if (total < 5) return null;
+  const size = total >= 20 ? 15 : total >= 10 ? 13 : 11;
+  const fiable = v.right + v.under;
+  if (fiable / total >= 0.6) return { dir: 'up', size };
+  if (v.over / total >= 0.6) return { dir: 'down', size };
+  return null;
+}
+
+// Declared level (levels_per_sport value) → short display label. Values are the
+// activity LEVELS; fall back to the raw string for anything unexpected.
+function levelLabel(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  if (!s) return null;
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 const VOUCHED_THRESHOLD = 5;
@@ -249,6 +283,7 @@ interface SportItem {
   lastAt: string | null;
   firstAt: string | null;
   levelVotes?: { over: number; right: number; under: number };
+  declaredLevel: string | null;
 }
 
 type DetailTarget =
@@ -257,7 +292,7 @@ type DetailTarget =
   | { kind: 'sport'; item: SportItem }
   | { kind: 'award'; item: JuntoAward };
 
-export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates }: BadgeDisplayProps) {
+export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates, declaredSports = [], declaredLevels = null, editable = false, onEditSports }: BadgeDisplayProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -317,9 +352,27 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
           lastAt: meta?.lastAt ?? null,
           firstAt: meta?.firstAt ?? null,
           levelVotes: levelVotesByKey.get(tr.sport_key as string),
+          declaredLevel: declaredLevels?.[tr.sport_key as string] ?? null,
         };
       })
       .sort((a, b) => b.count - a.count);
+
+    // Merge declared sports with NO qualifying outings so the profile says
+    // something useful from day one (cold-start) — level only, no ×count.
+    const withOutings = new Set(sportList.map((s) => s.sportKey));
+    for (const key of declaredSports ?? []) {
+      if (withOutings.has(key)) continue;
+      sportList.push({
+        sportKey: key,
+        count: 0,
+        label: t(`sports.${key}`, { defaultValue: key }),
+        dots: 0,
+        lastAt: null,
+        firstAt: null,
+        levelVotes: levelVotesByKey.get(key),
+        declaredLevel: declaredLevels?.[key] ?? null,
+      });
+    }
 
     // Junto awards — iterate the data-driven AWARDS list, surface only the
     // ones the user has earned at least bronze on. Carry the def's
@@ -347,7 +400,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
     }
 
     return { vouched: vouchedList, warnings: warningList, sports: sportList, awards: awardsList };
-  }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, t]);
+  }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, declaredSports, declaredLevels, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
 
@@ -424,12 +477,15 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
           styles={styles}
           colors={colors}
         />
-        {sports.length > 0 ? (
+        {sports.length > 0 || editable ? (
           <SportRow
             items={sports}
             styles={styles}
             colors={colors}
             onPress={(item) => setSelected({ kind: 'sport', item })}
+            editable={editable}
+            onEdit={onEditSports}
+            t={t}
           />
         ) : (
           <Text style={styles.emptyHint}>{t('profil.badgeEmptySports')}</Text>
@@ -573,28 +629,61 @@ function WarningRow({
 function SportRow({
   items,
   styles,
+  colors,
   onPress,
+  editable,
+  onEdit,
+  t,
 }: {
   items: SportItem[];
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
   onPress: (item: SportItem) => void;
+  editable?: boolean;
+  onEdit?: () => void;
+  t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
   return (
     <View style={styles.wrapRowChips}>
-      {items.map((it) => (
+      {items.map((it) => {
+        // ×N · niveau · triangle — count first (glued to the emoji, "12 sorties
+        // d'escalade"), then the declared level + peer-confirmation triangle as
+        // their own unit so the number never reads as a rating of the level.
+        const lvl = levelLabel(it.declaredLevel);
+        const tri = sportTriangle(it.levelVotes);
+        return (
+          <Pressable
+            key={it.sportKey}
+            onPress={() => onPress(it)}
+            hitSlop={4}
+            style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
+          >
+            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+            {it.count > 0 && <Text style={styles.sportCountInline}>×{it.count}</Text>}
+            {lvl && it.count > 0 && <View style={styles.sportSep} />}
+            {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
+            {tri && (
+              <Triangle
+                size={tri.size}
+                color={tri.dir === 'up' ? colors.success : colors.error}
+                fill={tri.dir === 'up' ? colors.success : colors.error}
+                strokeWidth={0}
+                style={tri.dir === 'down' ? styles.triDown : undefined}
+              />
+            )}
+          </Pressable>
+        );
+      })}
+      {editable && (
         <Pressable
-          key={it.sportKey}
-          onPress={() => onPress(it)}
+          onPress={onEdit}
           hitSlop={4}
-          style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
+          style={({ pressed }) => [styles.sportAddChip, pressed && styles.tappedDim]}
         >
-          <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
-          <View style={styles.sportCountCircle}>
-            <Text style={styles.sportCountText}>{it.count}</Text>
-          </View>
+          <Plus size={13} color={colors.cta} strokeWidth={2.6} />
+          <Text style={styles.sportAddText}>{t('profil.addSport', { defaultValue: 'Ajouter' })}</Text>
         </Pressable>
-      ))}
+      )}
     </View>
   );
 }
@@ -1292,14 +1381,50 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       gap: 6,
       backgroundColor: colors.surfaceAlt,
-      borderRadius: 8,
-      paddingVertical: 5,
-      paddingLeft: 8,
-      paddingRight: 5,
+      borderRadius: 999,
+      paddingVertical: 6,
+      paddingHorizontal: 11,
     },
     sportEmoji: {
       fontSize: 16,
       lineHeight: 18,
+    },
+    sportCountInline: {
+      color: '#4B7CB8',
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: -0.02,
+    },
+    sportSep: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.textMuted,
+      opacity: 0.5,
+    },
+    sportLevelText: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    triDown: {
+      transform: [{ rotate: '180deg' }],
+    },
+    sportAddChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.cta,
+      borderStyle: 'dashed',
+      paddingVertical: 6,
+      paddingHorizontal: 11,
+    },
+    sportAddText: {
+      color: colors.cta,
+      fontSize: 13,
+      fontWeight: '700',
     },
     sportCountCircle: {
       minWidth: 24,

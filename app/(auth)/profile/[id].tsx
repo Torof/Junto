@@ -221,6 +221,8 @@ export default function PublicProfileScreen() {
         sportLevels={sportLevels ?? []}
         sportLevelVotes={sportLevelVotes ?? []}
         awardAggregates={awardAggregates}
+        declaredSports={profile.sports ?? []}
+        declaredLevels={profile.levels_per_sport ?? null}
         completedCount={stats?.completed_activities}
         createdCount={stats?.created_activities}
         showLocked={false}

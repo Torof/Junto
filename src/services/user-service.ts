@@ -5,6 +5,7 @@ export interface PublicProfile {
   display_name: string;
   avatar_url: string | null;
   sports: string[];
+  levels_per_sport: Record<string, string> | null;
   created_at: string;
 }
 
@@ -22,7 +23,7 @@ export const userService = {
   getPublicProfile: async (userId: string): Promise<PublicProfile | null> => {
     const { data, error } = await supabase
       .from('public_profiles')
-      .select('id, display_name, avatar_url, sports, created_at')
+      .select('id, display_name, avatar_url, sports, levels_per_sport, created_at')
       .eq('id', userId)
       .single();
     if (error) return null;
