@@ -10,6 +10,7 @@ import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
 import { ProOfferingPin, PRO_OFFERING_PIN_ANCHOR } from './pro-offering-pin';
 import { ClusterPin } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
+import { UserLocationDot } from './user-location-dot';
 import { useColors } from '@/hooks/use-theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AppColors } from '@/constants/colors';
@@ -552,9 +553,7 @@ export function JuntoMapView({
 
       {userLocation && (
         <Mapbox.MarkerView id="user-location" coordinate={userLocation} allowOverlap>
-          <View style={styles.userDotOuter}>
-            <View style={styles.userDotInner} />
-          </View>
+          <UserLocationDot />
         </Mapbox.MarkerView>
       )}
 
@@ -878,21 +877,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-  userDotOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(66, 133, 244, 0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userDotInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#4285F4',
-    borderWidth: 2.5,
-    borderColor: '#fff',
   },
 });

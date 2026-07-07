@@ -43,7 +43,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     bottom: 28,
     right: spacing.md,
     backgroundColor: colors.mapAction,
-    borderRadius: 14,
+    borderRadius: radius.full,
     width: 48,
     height: 48,
     alignItems: 'center',
