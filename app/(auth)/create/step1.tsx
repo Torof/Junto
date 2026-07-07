@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSports } from '@/hooks/use-sports';
@@ -49,14 +50,9 @@ export default function CreateStep1() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.stepLabel}>{t('create.step', { current: 1, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step1Title')}</Text>
@@ -194,8 +190,7 @@ export default function CreateStep1() {
       >
         <Text style={styles.nextText}>{t('create.next')}</Text>
       </Pressable>
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 
