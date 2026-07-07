@@ -16,6 +16,8 @@ import { spacing } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
+import { useSports } from '@/hooks/use-sports';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 import { useQuery } from '@tanstack/react-query';
 import {
   POSITIVE_BADGES,
@@ -290,6 +292,8 @@ interface SportItem {
   firstAt: string | null;
   levelVotes?: { over: number; right: number; under: number };
   declaredLevel: string | null;
+  // Universe category (mountain/water/air/cycling/on-foot) → tint color.
+  category: string | null;
 }
 
 type DetailTarget =
@@ -305,6 +309,13 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
   const [selected, setSelected] = useState<DetailTarget | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showAllSports, setShowAllSports] = useState(false);
+  // Cached reference list (staleTime Infinity) — used to map a sport key to its
+  // universe category for the popover's tint.
+  const { data: allSports } = useSports();
+  const categoryByKey = useMemo(
+    () => new Map((allSports ?? []).map((s) => [s.key, s.category])),
+    [allSports],
+  );
 
   const { vouched, warnings, sports } = useMemo(() => {
     const vouchedList: VouchedItem[] = [];
@@ -360,6 +371,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
           firstAt: meta?.firstAt ?? null,
           levelVotes: levelVotesByKey.get(tr.sport_key as string),
           declaredLevel: declaredLevels?.[tr.sport_key as string] ?? null,
+          category: categoryByKey.get(tr.sport_key as string) ?? null,
         };
       })
       .sort((a, b) => b.count - a.count);
@@ -378,6 +390,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         firstAt: null,
         levelVotes: levelVotesByKey.get(key),
         declaredLevel: declaredLevels?.[key] ?? null,
+        category: categoryByKey.get(key) ?? null,
       });
     }
 
@@ -407,7 +420,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
     }
 
     return { vouched: vouchedList, warnings: warningList, sports: sportList, awards: awardsList };
-  }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, declaredSports, declaredLevels, t]);
+  }, [reputation, trophies, sportLevels, sportLevelVotes, awardAggregates, declaredSports, declaredLevels, categoryByKey, t]);
 
   const hasPeer = vouched.length > 0 || warnings.length > 0;
 
@@ -1085,23 +1098,25 @@ function SportDetail({
   const fiable = justeCount + (lv?.under ?? 0);
   const gonfle = overCount;
 
+  const accent = sportCategoryColor(item.category, '#4B7CB8');
+
   return (
     <>
       <View style={styles.sportIdentityRow}>
-        <View style={styles.sportEmojiSquare}>
+        <View style={[styles.sportEmojiSquare, { backgroundColor: accent + '1F', borderColor: accent + '40' }]}>
           <Text style={styles.sportEmojiBig}>{getSportIcon(item.sportKey)}</Text>
         </View>
-        <Text style={styles.sportName}>{item.label}</Text>
-      </View>
-
-      <View style={styles.sportHeadlineRow}>
-        <Text style={styles.sportHeadlineCount}>{item.count}</Text>
-        <Text style={styles.sportHeadlineLabel}>
-          {t('badges.sportOutingsHeadline', {
-            count: item.count,
-            defaultValue: item.count > 1 ? 'sorties terminées' : 'sortie terminée',
-          })}
-        </Text>
+        <View style={styles.sportIdentityText}>
+          <Text style={styles.sportName}>{item.label}</Text>
+          {item.count > 0 && (
+            <Text style={styles.sportOutingsSub}>
+              {t('badges.sportOutingsHeadline', {
+                count: item.count,
+                defaultValue: item.count > 1 ? '{{count}} sorties terminées' : '{{count}} sortie terminée',
+              })}
+            </Text>
+          )}
+        </View>
       </View>
 
       <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
@@ -1770,6 +1785,16 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       gap: 12,
       marginBottom: 22,
+    },
+    sportIdentityText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    sportOutingsSub: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginTop: 2,
     },
     sportEmojiSquare: {
       width: 44,
