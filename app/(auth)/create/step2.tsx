@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -101,7 +102,7 @@ export default function CreateStep2() {
     && (form.duration_hours > 0 || form.duration_minutes >= 15);
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.container}>
       <View style={styles.mapContainer}>
         <JuntoMapView
           center={form.location_meeting ? [form.location_meeting.lng, form.location_meeting.lat] : form.location_start ? [form.location_start.lng, form.location_start.lat] : center}
@@ -136,7 +137,7 @@ export default function CreateStep2() {
         )}
       </View>
 
-      <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
         <Text style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</Text>
 
         <Text style={styles.sectionLabel}>{t('create.sectionLocations')}</Text>
@@ -355,8 +356,8 @@ export default function CreateStep2() {
         >
           <Text style={styles.nextText}>{t('create.next')}</Text>
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 
