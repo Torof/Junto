@@ -81,7 +81,7 @@ export default function ProfilScreen() {
       ),
       headerTitleAlign: 'left' as const,
       headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingRight: spacing.md }}>
           {tier === 'pro' && userId && (
             <Pressable
               onPress={() => router.push(`/(auth)/pro/${userId}`)}

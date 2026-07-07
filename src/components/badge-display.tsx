@@ -861,6 +861,10 @@ function VouchedDetail({
   const Icon = POSITIVE_TRAIT_ICON[item.key];
   const accent = COLOR_SUCCESS;
   const description = t(`badges.peerDesc.${item.key}`, { defaultValue: '' });
+  // Earned rank → a cup sized and coloured by tier, in the header's right space.
+  const tier = vouchedTier(item.count);
+  const tierColor = TIER_COLOR[tier];
+  const trophySize = tier === 'gold' ? 40 : tier === 'silver' ? 33 : 26;
 
   // Lazy fetch the most recent voters for this trait. Avatars only —
   // no nav click-through. Privacy stance: voter identity is exposed
@@ -884,8 +888,10 @@ function VouchedDetail({
 
       <View style={styles.vouchedTitleRow}>
         {Icon && <Icon size={20} color={accent} strokeWidth={2} />}
-        <Text style={styles.vouchedTitle}>{item.label}</Text>
+        <Text style={styles.vouchedTitle} numberOfLines={1}>{item.label}</Text>
         <Text style={styles.vouchedCountMono}>×{item.count}</Text>
+        <View style={styles.vouchedTitleSpacer} />
+        <Trophy size={trophySize} color={tierColor} fill={tierColor + '2E'} strokeWidth={1.7} />
       </View>
 
       {/* Description first — Scott's call: text precedes the voter card so
@@ -1575,6 +1581,11 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: -0.5,
       color: colors.textPrimary,
+      flexShrink: 1,
+    },
+    vouchedTitleSpacer: {
+      flex: 1,
+      minWidth: 8,
     },
     vouchedCountMono: {
       fontSize: 13,
@@ -1626,10 +1637,12 @@ const createStyles = (colors: AppColors) =>
       color: colors.textSecondary,
     },
     vouchedDescription: {
-      fontSize: 13.5,
-      lineHeight: 20,
-      color: colors.textSecondary,
-      marginBottom: 14,
+      fontSize: 15,
+      lineHeight: 22,
+      fontStyle: 'italic',
+      color: colors.textPrimary,
+      opacity: 0.82,
+      marginBottom: 16,
     },
 
     // ── Warning popup ────────────────────────────────────────────────
