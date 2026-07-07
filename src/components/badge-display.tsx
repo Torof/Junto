@@ -299,7 +299,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
   const [selected, setSelected] = useState<DetailTarget | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
-  const { vouched, warnings, sports, awards } = useMemo(() => {
+  const { vouched, warnings, sports } = useMemo(() => {
     const vouchedList: VouchedItem[] = [];
     const warningList: WarningItem[] = [];
 
@@ -448,25 +448,6 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
           </>
         ) : (
           <Text style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</Text>
-        )}
-      </View>
-
-      <View style={[styles.section, styles.sectionGap]}>
-        <SectionHeader
-          Icon={Trophy}
-          label={t('profil.badgeSectionAuto')}
-          styles={styles}
-          colors={colors}
-        />
-        {awards.length > 0 ? (
-          <AwardRow
-            items={awards}
-            styles={styles}
-            onPress={(item) => setSelected({ kind: 'award', item })}
-            t={t}
-          />
-        ) : (
-          <Text style={styles.emptyHint}>{t('profil.badgeEmptyAwards')}</Text>
         )}
       </View>
 
