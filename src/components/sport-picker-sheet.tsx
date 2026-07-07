@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Check, Search } from 'lucide-react-native';
+import { Check, Search, X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
 import { useSports } from '@/hooks/use-sports';
 import { getSportIcon } from '@/constants/sport-icons';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 // Shared multi-select sport picker, bound to useMapStore.filters.sportKeys.
 // Used by drawer-filter-bar and filter-sheet so the modal stays one piece.
@@ -47,83 +49,66 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
   }, [sortedSports, query, t]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
-          <View style={styles.handle} />
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+        <View style={styles.header}>
           <Text style={styles.sheetTitle}>{t('map.sportLabel')}</Text>
+          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}>
+            <X size={24} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        </View>
 
-          <View style={styles.searchBar}>
-            <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
-            <TextInput
-              style={styles.searchInput}
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
-              placeholderTextColor={colors.textSecondary}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-          </View>
+        <View style={styles.searchBar}>
+          <Search size={18} color={colors.textSecondary} strokeWidth={2.2} />
+          <TextInput
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
+            placeholderTextColor={colors.textSecondary}
+            autoCorrect={false}
+            autoCapitalize="none"
+            autoFocus
+          />
+        </View>
 
-          <ScrollView style={styles.list} contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
-            {visibleSports.map((s) => {
-              const isSelected = filters.sportKeys.includes(s.key);
-              return (
-                <Pressable
-                  key={s.key}
-                  style={styles.row}
-                  onPress={() => toggleSportFilter(s.key)}
-                >
-                  <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
-                  <Text style={[styles.rowLabel, isSelected && styles.rowLabelActive]} numberOfLines={1}>
-                    {t(`sports.${s.key}`, { defaultValue: s.key })}
-                  </Text>
-                  {isSelected && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          <View style={styles.applyContainer}>
-            <Pressable style={styles.applyButton} onPress={onClose}>
-              <Text style={styles.applyText}>{t('map.apply')}</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Pressable>
+        <KeyboardAwareScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+          {visibleSports.map((s) => {
+            const isSelected = filters.sportKeys.includes(s.key);
+            return (
+              <Pressable
+                key={s.key}
+                style={styles.row}
+                onPress={() => toggleSportFilter(s.key)}
+              >
+                <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                <Text style={[styles.rowLabel, isSelected && styles.rowLabelActive]} numberOfLines={1}>
+                  {t(`sports.${s.key}`, { defaultValue: s.key })}
+                </Text>
+                {isSelected && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
+              </Pressable>
+            );
+          })}
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.md,
-    paddingBottom: spacing.xl + 16,
-    maxHeight: '70%',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.textSecondary,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-    opacity: 0.4,
+  screen: { flex: 1, backgroundColor: colors.background },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   sheetTitle: {
     color: colors.textPrimary,
     fontSize: fontSizes.lg,
     fontWeight: 'bold',
-    marginBottom: spacing.md,
   },
   searchBar: {
     flexDirection: 'row',
@@ -131,9 +116,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.sm,
     borderWidth: 1,
     borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
   },
   searchInput: {
@@ -142,8 +128,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.md,
     padding: 0,
   },
-  list: { maxHeight: '80%' },
-  listContent: { paddingBottom: spacing.md },
+  list: { flex: 1 },
+  listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -166,23 +152,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   rowLabelActive: {
     color: colors.cta,
-    fontWeight: '700',
-  },
-  applyContainer: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderMuted,
-  },
-  applyButton: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-  },
-  applyText: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.md,
     fontWeight: '700',
   },
 });
