@@ -12,7 +12,7 @@ import {
   HelpCircle, Check, ChevronRight, Triangle, Plus, Minus,
   type LucideIcon,
 } from 'lucide-react-native';
-import { spacing } from '@/constants/theme';
+import { spacing, fontSizes } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -1130,17 +1130,21 @@ function SportDetail({
         {t('badges.peerOpinionCaption', { defaultValue: 'Avis des pairs' })}
       </Text>
 
-      {/* Raw vote breakdown — green up = fiable, red down = gonflé. The old
-          summary pill was redundant with these and used inconsistent logic
-          (ignored sous-estimé, no grey tie) — removed. */}
+      {/* Labeled breakdown — each arrow carries its meaning so it's clear the
+          peers are judging the *declared level*, not just voting up/down.
+          Green (fiable) = right + sous-estimé; red (gonflé) = over. */}
       <View style={styles.sportVoteRow}>
         <View style={styles.sportVoteItem}>
-          <Triangle size={14} color={colors.success} fill={colors.success} strokeWidth={0} />
-          <Text style={[styles.sportVoteNum, { color: colors.success }]}>{fiable}</Text>
+          <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
+          <Text style={[styles.sportVoteLabel, { color: colors.success }]}>
+            {t('badges.levelNetRight', { count: fiable, defaultValue: `Niveau jugé juste · ${fiable}` })}
+          </Text>
         </View>
         <View style={styles.sportVoteItem}>
-          <Triangle size={14} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
-          <Text style={[styles.sportVoteNum, { color: colors.error }]}>{gonfle}</Text>
+          <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
+          <Text style={[styles.sportVoteLabel, { color: colors.error }]}>
+            {t('badges.levelNetOver', { count: gonfle, defaultValue: `Niveau jugé surestimé · ${gonfle}` })}
+          </Text>
         </View>
       </View>
     </>
@@ -1477,19 +1481,19 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.textMuted,
     },
     sportVoteRow: {
-      flexDirection: 'row',
-      gap: spacing.lg,
+      flexDirection: 'column',
+      gap: spacing.xs,
       marginTop: spacing.sm,
       marginBottom: spacing.sm,
     },
     sportVoteItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 7,
     },
-    sportVoteNum: {
-      fontSize: 17,
-      fontWeight: '800',
+    sportVoteLabel: {
+      fontSize: fontSizes.sm,
+      fontWeight: '700',
       letterSpacing: -0.02,
     },
     sportAddChip: {
