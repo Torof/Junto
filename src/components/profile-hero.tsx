@@ -141,7 +141,7 @@ export function ProfileHero({
         {/* Explicit affordance — the tap target used to be invisible. */}
         {onAvatarPress && (
           <Pressable onPress={onAvatarPress} disabled={isUploading} hitSlop={6} style={styles.editPhotoBtn}>
-            <Text style={styles.editPhotoText}>{t('profil.editPhoto', { defaultValue: 'Modifier la photo' })}</Text>
+            <Text style={styles.editPhotoText}>{t('profil.editPhotoShort', { defaultValue: 'Modifier' })}</Text>
           </Pressable>
         )}
         </View>
@@ -228,22 +228,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.md - 2,
     position: 'relative',
   },
   avatarCol: {
+    width: RING_SIZE,
     alignItems: 'center',
     flexShrink: 0,
   },
   editPhotoBtn: {
     marginTop: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     paddingVertical: 3,
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.cta,
     borderStyle: 'dashed',
+    maxWidth: RING_SIZE,
   },
   editPhotoText: {
     color: colors.cta,
@@ -329,7 +331,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   statDivider: {
     width: 1, height: 28,
@@ -346,9 +348,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Fixed size for all three (no adjustsFontSizeToFit — that shrank the
   // longer labels independently, so they rendered at different sizes).
   statLabel: {
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    letterSpacing: 0,
     marginTop: 3,
   },
 
