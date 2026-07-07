@@ -694,7 +694,8 @@
       "contact_request_accepted": "Contact accepted",
       "review_received": "New review on your pro page",
       "review_reply": "Pro's reply to your review"
-    }
+    },
+    "editPhoto": "Change photo"
   },
   "participants": {
     "title": "Participants",

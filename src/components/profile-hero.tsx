@@ -3,9 +3,9 @@ import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import Svg, { Circle, Path, G, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 import { Camera, Plus, HelpCircle } from 'lucide-react-native';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { UserAvatar } from './user-avatar';
@@ -88,38 +88,15 @@ export function ProfileHero({
 
   return (
     <View style={styles.card}>
-      {/* Topo decorative background */}
-      <Svg
-        style={StyleSheet.absoluteFill}
-        viewBox="0 0 600 200"
-        preserveAspectRatio="xMidYMid slice"
-        pointerEvents="none"
-      >
-        <Rect width={600} height={200} fill="transparent" />
-        <G fill="none" stroke={colors.textPrimary} strokeWidth={0.6} opacity={0.07}>
-          {Array.from({ length: 7 }).map((_, i) => (
-            <Path
-              key={i}
-              d={`M 0 ${25 + i * 22} Q 150 ${15 + i * 22} 300 ${28 + i * 22} T 600 ${22 + i * 22}`}
-            />
-          ))}
-        </G>
-      </Svg>
-
       <View style={styles.row}>
-        {/* Ring + avatar */}
+        {/* Ring + avatar + explicit edit affordance */}
+        <View style={styles.avatarCol}>
         <Pressable
           onPress={onAvatarPress}
           disabled={!onAvatarPress || isUploading}
           style={[styles.ringWrap, isUploading && { opacity: 0.5 }]}
         >
           <Svg width={RING_SIZE} height={RING_SIZE}>
-            <Defs>
-              <LinearGradient id="avatarGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#4B7CB8" />
-                <Stop offset="1" stopColor="#2A4060" />
-              </LinearGradient>
-            </Defs>
             {/* Track */}
             <Circle
               cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={r}
@@ -144,9 +121,9 @@ export function ProfileHero({
               <UserAvatar name={displayName} avatarUrl={avatarUrl} size={68} />
             ) : onAvatarPress ? (
               <View style={styles.uploadPlaceholder}>
-                <Camera size={24} color="#FFFFFF" strokeWidth={2} />
+                <Camera size={24} color={colors.textSecondary} strokeWidth={2} />
                 <View style={styles.plusBadge}>
-                  <Plus size={10} color={colors.textPrimary} strokeWidth={3} />
+                  <Plus size={10} color="#FFFFFF" strokeWidth={3} />
                 </View>
               </View>
             ) : (
@@ -161,6 +138,13 @@ export function ProfileHero({
             </View>
           )}
         </Pressable>
+        {/* Explicit affordance — the tap target used to be invisible. */}
+        {onAvatarPress && (
+          <Pressable onPress={onAvatarPress} disabled={isUploading} hitSlop={6} style={styles.editPhotoBtn}>
+            <Text style={styles.editPhotoText}>{t('profil.editPhoto', { defaultValue: 'Modifier la photo' })}</Text>
+          </Pressable>
+        )}
+        </View>
 
         {/* Right side: score + stats */}
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -243,14 +227,32 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.md - 2,
     marginBottom: spacing.md,
-    overflow: 'hidden',
     position: 'relative',
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.md - 2,
     position: 'relative',
+  },
+  avatarCol: {
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  editPhotoBtn: {
+    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.cta,
+    borderStyle: 'dashed',
+  },
+  editPhotoText: {
+    color: colors.cta,
+    fontSize: 11,
+    fontWeight: '700',
   },
   ringWrap: {
     width: RING_SIZE,
@@ -268,7 +270,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4B7CB8',
+    backgroundColor: colors.surfaceAlt,
   },
   avatarFallback: { fontSize: 32, lineHeight: 36 },
   uploadPlaceholder: {

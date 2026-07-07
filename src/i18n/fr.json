@@ -694,7 +694,8 @@
       "contact_request_accepted": "Contact accepté",
       "review_received": "Nouvel avis sur ta vitrine pro",
       "review_reply": "Réponse du pro à ton avis"
-    }
+    },
+    "editPhoto": "Modifier la photo"
   },
   "participants": {
     "title": "Participants",
