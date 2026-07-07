@@ -6,26 +6,37 @@ import { NAVY, ORANGE, SectionLabel, TopoLines } from './shared';
 // trop". Each card leads with a REAL app screenshot (proof by product —
 // emojis and bare text both failed to stop the eye), title + one line below.
 
-const PILLARS: { image: string; title: string; body: string }[] = [
+// The first three are pre-cropped windows: the activity tab bar (context:
+// these live INSIDE the outing) + ONE clean element, shown whole via
+// `contain` on a bg matched to the app's cream so the bands disappear.
+const PILLARS: { image: string; title: string; body: string; fit: 'contain' | 'cover'; bg: string }[] = [
   {
     image: '/feat-transport.jpg',
     title: 'Transport',
     body: 'Qui part d’où, à quelle heure, avec combien de places. Le covoiturage est intégré à chaque sortie.',
+    fit: 'contain',
+    bg: '#F3ECDC',
   },
   {
     image: '/feat-materiel.jpg',
     title: 'Matériel',
     body: 'La liste de matos vit dans la sortie : qui apporte la corde, qui cherche un casque. On part complet.',
+    fit: 'contain',
+    bg: '#F5EEDE',
   },
   {
     image: '/feat-chat.jpg',
     title: 'Chat',
     body: 'Un groupe par sortie, créé tout seul, avec les bonnes personnes dedans. Rien à échanger, rien à installer.',
+    fit: 'contain',
+    bg: '#F5EEDE',
   },
   {
     image: '/feat-profil.jpg',
     title: 'Profil',
     body: 'Tes sports, tes niveaux, ta fiabilité. Tu sais avec qui tu pars — et venir vraiment, ça se voit.',
+    fit: 'cover',
+    bg: 'transparent',
   },
 ];
 
@@ -82,7 +93,7 @@ export default function Organisation() {
             >
               {/* Real app screenshot — cropped window, status bar and tab
                   header trimmed by the top offset. */}
-              <div style={{ height: 300, position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--line)', flexShrink: 0 }}>
+              <div style={{ height: 260, position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--line)', flexShrink: 0, background: p.bg }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={p.image}
@@ -92,8 +103,8 @@ export default function Organisation() {
                     inset: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: '50% 22%',
+                    objectFit: p.fit,
+                    objectPosition: p.fit === 'cover' ? '50% 22%' : '50% 50%',
                   }}
                 />
               </div>
