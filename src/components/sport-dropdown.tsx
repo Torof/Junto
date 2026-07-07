@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet, TextInput } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TextInput, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react-native';
+import { Search, X, Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useSports } from '@/hooks/use-sports';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 interface SportDropdownProps {
   selected: string | string[];
@@ -24,7 +26,6 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
 
   const { data: sports } = useSports();
 
-  // Sort sports alphabetically by translated name
   const sortedSports = [...(sports ?? [])].sort((a, b) =>
     t(`sports.${a.key}`, { defaultValue: a.key }).localeCompare(t(`sports.${b.key}`, { defaultValue: b.key }), i18n.language)
   );
@@ -64,51 +65,52 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
         <Text style={styles.arrow}>▼</Text>
       </Pressable>
 
-      <Modal visible={open} animationType="slide" transparent>
-        <Pressable style={styles.backdrop} onPress={closeSheet}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.handle} />
+      {/* Full-screen top-anchored search: field pinned at the top, results fill
+          the band above the keyboard (KeyboardAwareScrollView spacer). The old
+          bottom sheet hid the results behind the IME. Multi-select applies live;
+          the close X is "done". */}
+      <Modal visible={open} animationType="slide" onRequestClose={closeSheet}>
+        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+          <View style={styles.header}>
             <Text style={styles.title}>{label ?? t('sportDropdown.select')}</Text>
+            <Pressable onPress={closeSheet} hitSlop={10} accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}>
+              <X size={24} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          </View>
 
-            <View style={styles.searchBar}>
-              <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
-              <TextInput
-                style={styles.searchInput}
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
-                placeholderTextColor={colors.textSecondary}
-                autoCorrect={false}
-                autoCapitalize="none"
-              />
-            </View>
+          <View style={styles.searchBar}>
+            <Search size={18} color={colors.textSecondary} strokeWidth={2.2} />
+            <TextInput
+              style={styles.searchInput}
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t('map.searchSport', { defaultValue: 'Rechercher un sport' })}
+              placeholderTextColor={colors.textSecondary}
+              autoCorrect={false}
+              autoCapitalize="none"
+              autoFocus
+            />
+          </View>
 
-            <ScrollView style={styles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {visibleSports.map((sport) => {
-                const isSelected = selectedArray.includes(sport.key);
-                return (
-                  <Pressable
-                    key={sport.id}
-                    style={[styles.item, isSelected && styles.itemSelected]}
-                    onPress={() => handleSelect(sport.key)}
-                  >
-                    <Text style={styles.itemIcon}>{getSportIcon(sport.key)}</Text>
-                    <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
-                      {t(`sports.${sport.key}`, sport.key)}
-                    </Text>
-                    {isSelected && <Text style={styles.check}>✓</Text>}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            {multiSelect && (
-              <Pressable style={styles.doneButton} onPress={closeSheet}>
-                <Text style={styles.doneText}>{t('map.apply')}</Text>
-              </Pressable>
-            )}
-          </Pressable>
-        </Pressable>
+          <KeyboardAwareScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+            {visibleSports.map((sport) => {
+              const isSelected = selectedArray.includes(sport.key);
+              return (
+                <Pressable
+                  key={sport.id}
+                  style={[styles.item, isSelected && styles.itemSelected]}
+                  onPress={() => handleSelect(sport.key)}
+                >
+                  <Text style={styles.itemIcon}>{getSportIcon(sport.key)}</Text>
+                  <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
+                    {t(`sports.${sport.key}`, sport.key)}
+                  </Text>
+                  {isSelected && <Check size={18} color={colors.cta} strokeWidth={2.6} />}
+                </Pressable>
+              );
+            })}
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
       </Modal>
     </>
   );
@@ -124,20 +126,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   triggerText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   triggerTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   arrow: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.lg, paddingBottom: spacing.xl + 16, maxHeight: '70%',
+
+  screen: { flex: 1, backgroundColor: colors.background },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
-  title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
+  title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2, marginBottom: spacing.sm,
+    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    marginHorizontal: spacing.lg, marginBottom: spacing.sm,
   },
   searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, padding: 0 },
-  list: { maxHeight: 400 },
+  list: { flex: 1 },
+  listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   item: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
     paddingVertical: spacing.md, paddingHorizontal: spacing.md,
@@ -147,10 +151,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   itemIcon: { fontSize: 20, width: 28 },
   itemText: { color: colors.textPrimary, fontSize: fontSizes.md, flex: 1 },
   itemTextSelected: { color: colors.cta, fontWeight: 'bold' },
-  check: { color: colors.cta, fontSize: 18, fontWeight: 'bold' },
-  doneButton: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
-    paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
-  },
-  doneText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
 });
