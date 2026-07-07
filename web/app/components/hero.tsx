@@ -106,42 +106,59 @@ export default function Hero() {
         }}
       >
         <div>
-          {/* Brand slogan — the peer-to-peer line ("va sur Junto" is what people
-              say to each other, Point S-style). */}
+          {/* The slogan IS the headline — the peer-to-peer line people say to
+              each other (Point S-style). Two staggered lines: the second steps
+              to the right and turns orange for a spoken, punchy cadence. */}
+          <h1 className="display junto-hero-title" style={{ margin: 0 }}>
+            <span
+              style={{
+                display: 'block',
+                fontSize: 'clamp(38px, 5.6vw, 68px)',
+                lineHeight: 1.02,
+                fontWeight: 900,
+                letterSpacing: '-0.035em',
+                textWrap: 'balance',
+              }}
+            >
+              Marre du sport solo&nbsp;?
+            </span>
+            <span
+              style={{
+                display: 'block',
+                marginTop: 2,
+                marginLeft: '1.4em',
+                fontSize: 'clamp(40px, 6vw, 72px)',
+                lineHeight: 1.0,
+                fontWeight: 900,
+                letterSpacing: '-0.04em',
+                color: CTA_ORANGE,
+              }}
+            >
+              Va sur Junto.
+            </span>
+          </h1>
+
           <p
             style={{
-              margin: '0 0 16px',
-              fontSize: 15,
-              fontWeight: 800,
-              letterSpacing: '0.02em',
-              color: CTA_ORANGE,
-            }}
-          >
-            Marre du sport solo ? Va sur Junto.
-          </p>
-          <h1
-            className="display junto-hero-title"
-            style={{
-              fontSize: 'clamp(44px, 6.2vw, 76px)',
-              lineHeight: 1.0,
-              margin: 0,
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
+              fontSize: 'clamp(19px, 2.6vw, 25px)',
+              lineHeight: 1.25,
+              fontWeight: 700,
+              maxWidth: 460,
+              margin: '24px 0 0',
+              color: INK,
               textWrap: 'balance',
-              textTransform: 'none',
             }}
           >
-            Ta prochaine aventure est déjà{' '}
-            <span style={{ color: CTA_ORANGE }}>sur la carte.</span>
-          </h1>
+            Ta prochaine aventure est déjà sur la carte.
+          </p>
 
           <p
             className="junto-hero-lead"
             style={{
-              fontSize: 19,
+              fontSize: 17,
               lineHeight: 1.55,
-              maxWidth: 480,
-              margin: '28px 0 40px',
+              maxWidth: 460,
+              margin: '14px 0 38px',
               color: INK_SOFT,
             }}
           >
