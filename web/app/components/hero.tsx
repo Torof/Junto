@@ -56,10 +56,6 @@ export default function Hero() {
           <span className="display" style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em' }}>
             Junto
           </span>
-          {/* Slogan placeholder — the real one is being workshopped. */}
-          <span className="junto-hero-slogan" style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.45, marginLeft: 6 }}>
-            « slogan slogan »
-          </span>
         </div>
         <div
           className="junto-hero-nav-links"
@@ -110,6 +106,19 @@ export default function Hero() {
         }}
       >
         <div>
+          {/* Brand slogan — the peer-to-peer line ("va sur Junto" is what people
+              say to each other, Point S-style). */}
+          <p
+            style={{
+              margin: '0 0 16px',
+              fontSize: 15,
+              fontWeight: 800,
+              letterSpacing: '0.02em',
+              color: CTA_ORANGE,
+            }}
+          >
+            Marre du sport solo ? Va sur Junto.
+          </p>
           <h1
             className="display junto-hero-title"
             style={{
