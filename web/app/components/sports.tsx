@@ -78,10 +78,6 @@ export default function Sports() {
           >
             <span style={{ color: ORANGE }}>{total} sports</span>, 5 univers.
           </h2>
-          <p style={{ fontSize: 17, lineHeight: 1.55, margin: '18px 0 0', color: 'var(--muted)', maxWidth: 640 }}>
-            Un seul critère d'entrée : des sports qui se vivent à plusieurs. Pas de remplissage —
-            si on le liste, c'est qu'on y cherche des partenaires.
-          </p>
         </div>
 
         <div
