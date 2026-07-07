@@ -206,22 +206,15 @@ img { display: block; max-width: 100%; }
     font-size: 18px !important;
   }
 
-  /* ---------- Screenshots ---------- */
-  .junto-shots {
-    padding: 60px 20px !important;
+  /* ---------- Organisation ---------- */
+  .junto-orga {
+    padding: 72px 20px !important;
   }
-  .junto-shots-title {
+  .junto-orga-title {
     font-size: 36px !important;
   }
-  .junto-shots-grid {
-    gap: 12px !important;
-  }
-  .junto-shots-item {
-    flex: 0 1 calc(50% - 6px) !important;
-    max-width: calc(50% - 6px) !important;
-  }
-  .junto-shots-frame-odd {
-    transform: translateY(0) !important;
+  .junto-orga-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
 
   /* ---------- Sports ---------- */
@@ -291,18 +284,14 @@ img { display: block; max-width: 100%; }
   .junto-worlds-title,
   .junto-pro-title,
   .junto-trips-title,
-  .junto-shots-title,
+  .junto-orga-title,
   .junto-sports-title {
     font-size: 30px !important;
   }
+  .junto-orga-grid {
+    grid-template-columns: 1fr !important;
+  }
   .junto-cta-title {
     font-size: 34px !important;
-  }
-  .junto-shots-grid {
-    gap: 10px !important;
-  }
-  .junto-shots-item {
-    flex-basis: calc(50% - 5px) !important;
-    max-width: calc(50% - 5px) !important;
   }
 }
