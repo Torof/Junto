@@ -192,6 +192,9 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
   }
 
+  // Peer presence testimony needs 3+ (state excludes self → length >= 2).
+  const peerPresenceEnabled = state.length >= 2;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
@@ -227,8 +230,11 @@ export default function PeerReviewScreen() {
 
               {!isCollapsed && (
                 <>
-              {/* Presence above the trait pills — it's the gate, not a nuance. */}
-              {!presenceConfirmed && (
+              {/* Presence above the trait pills — it's the gate, not a nuance.
+                  Hidden below 3 participants (state excludes self, so length < 2):
+                  peer presence testimony is circular at 2 — QR/geo only there,
+                  and the server (peer_validate_presence) rejects it anyway. */}
+              {!presenceConfirmed && peerPresenceEnabled && (
                 <Pressable
                   style={({ pressed }) => [
                     styles.presencePill,

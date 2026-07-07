@@ -830,12 +830,14 @@ Notifs > 7 jours supprimées par cron. Empêche l'accumulation infinie.
 
 | Bucket | Type | Usage |
 |--------|------|-------|
-| `avatars` | Public | Path fixe `/avatars/{user_id}/avatar`. Le nouveau écrase l'ancien — pas d'accumulation |
-| `pro-documents` | Private | SIRET, BPJEPS, certifications. Lecture admin uniquement |
+| `avatars` | Public | Path `/avatars/{user_id}/…`. Policies owner-scoped (dossier = `auth.uid()`). Contraintes serveur : `allowed_mime_types = {jpeg,png,webp}`, `file_size_limit = 5 MB` (mig 00287 — avant, aucune, la validation ne vivait que côté client) |
+| `pro-photos` | Public | Path `/{user_id}/…`. Photos pro (offres, galerie communautaire). Policies owner-scoped. Contraintes serveur : mêmes que `avatars` (mig 00241) |
+
+**Note (2026-07-07) :** le bucket privé `pro-documents` (SIRET/BPJEPS) décrit dans les versions précédentes **n'a jamais été créé**. Il n'existe aujourd'hui **aucun bucket privé**. Si des documents de vérification pro sont ajoutés un jour, ils DOIVENT aller dans un bucket **privé** (jamais `pro-photos`/`avatars` qui sont publics), servis par URLs signées, lecture admin uniquement.
 
 ### Upload images
-1. Validation magic bytes (pas que l'extension)
-2. Taille max 5MB
+1. Validation magic bytes (pas que l'extension) côté client
+2. **Contraintes serveur** au niveau bucket (mime allowlist + 5 MB) — la seule garantie non-contournable ; la validation client est un confort, pas une barrière
 3. Formats JPEG, PNG, WebP
 4. EXIF stripping (GPS/device metadata)
 
