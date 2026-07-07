@@ -45,6 +45,11 @@ export const darkColors = {
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
+  // On-map action color (create FAB + route line). FIXED — independent of the
+  // user's accent AND of the theme, because these elements sit on the Mapbox
+  // terrain (green-dominant, uncontrolled): a themeable accent could match the
+  // ground and vanish. Muted terracotta pops on green without shouting.
+  mapAction: '#B15A38',
   border: 'transparent',
   line: 'rgba(255,255,255,0.08)',
   // 2× alpha of `line` — for elements that need a clearly contained
@@ -93,6 +98,8 @@ export const lightColors = {
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
+  // See darkColors.mapAction — same value both themes (sits on the map).
+  mapAction: '#B15A38',
   border: '#B3AC9C',
   line: 'rgba(31,26,21,0.08)',
   lineStrong: 'rgba(31,26,21,0.16)',

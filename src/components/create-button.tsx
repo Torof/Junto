@@ -27,7 +27,7 @@ export function CreateButton() {
       hitSlop={8}
       accessibilityLabel={t('map.createActivityCta', { defaultValue: 'Create activity' })}
     >
-      <Plus size={26} color={colors.textPrimary} strokeWidth={2.6} />
+      <Plus size={26} color="#FFFFFF" strokeWidth={2.6} />
     </Pressable>
   );
 }
@@ -42,7 +42,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     position: 'absolute',
     bottom: 28,
     right: spacing.md,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.mapAction,
     borderRadius: 14,
     width: 48,
     height: 48,
