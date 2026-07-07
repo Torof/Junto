@@ -1108,7 +1108,9 @@ function SportDetail({
         {t('badges.peerOpinionCaption', { defaultValue: 'Avis des pairs' })}
       </Text>
 
-      {/* Raw vote breakdown — green up = fiable, red down = gonflé. */}
+      {/* Raw vote breakdown — green up = fiable, red down = gonflé. The old
+          summary pill was redundant with these and used inconsistent logic
+          (ignored sous-estimé, no grey tie) — removed. */}
       <View style={styles.sportVoteRow}>
         <View style={styles.sportVoteItem}>
           <Triangle size={14} color={colors.success} fill={colors.success} strokeWidth={0} />
@@ -1119,8 +1121,6 @@ function SportDetail({
           <Text style={[styles.sportVoteNum, { color: colors.error }]}>{gonfle}</Text>
         </View>
       </View>
-
-      <PeerLevelSignal juste={justeCount} over={overCount} styles={styles} colors={colors} t={t} />
     </>
   );
 }
