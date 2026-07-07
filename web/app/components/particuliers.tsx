@@ -1,6 +1,6 @@
 import { NAVY, ORANGE, TopoLines } from './shared';
 
-// "Entre particuliers" deep-dive (2026-06-11): rebuilt to share the Pro
+// "Entre passionnés" deep-dive (2026-06-11): rebuilt to share the Pro
 // section's layout (headline + feature rows + mockup + CTA) so the two
 // worlds read as one design language — distinction carried by color
 // (orange) + light background, not by a different layout. World name is
@@ -155,7 +155,7 @@ export default function Particuliers() {
               textWrap: 'balance',
             }}
           >
-            Entre particuliers
+            Entre passionnés
           </h2>
           <p
             style={{

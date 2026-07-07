@@ -1,51 +1,49 @@
 import { NAVY, ORANGE, SectionLabel, TopoLines } from './shared';
 
 // Chips are the glanceable default (count + 2 examples); a native
-// <details> unfold reveals the full per-category list — so "7 sports"
-// actually delivers all 7 on demand (Scott 2026-06-11), no JS.
+// <details> unfold reveals the full per-category list, no JS.
+// Mirrors taxonomy v2.1 (mig 00281/00282): the 5 peer universes with the
+// app's own universe colors, active sports only. One inclusion test:
+// "will people look for partners for it?" — the catalogue is curated,
+// not padded (the old "51 sports, 6 univers, ça grandit" is gone).
 const CATEGORIES: { name: string; accent: string; sample: string; sports: string[] }[] = [
   {
     name: 'Montagne',
-    accent: '#F26B2E',
-    sample: 'Escalade, alpinisme…',
+    accent: '#4A7C59',
+    sample: 'Escalade, alpinisme, ski de rando…',
     sports: [
-      'Randonnée', 'Trail', 'Alpinisme', 'Escalade couenne', 'Escalade grande voie',
-      'Escalade de bloc', 'Via ferrata', 'Cascade de glace', 'Dry-tooling', 'Canyoning',
-      'Spéléo', 'Slackline', 'Highline', 'Marche nordique',
+      'Alpinisme', 'Escalade couenne', 'Escalade grande voie', 'Escalade de bloc',
+      'Via ferrata', 'Cascade de glace', 'Dry-tooling', 'Spéléo',
+      'Ski', 'Snowboard', 'Ski de rando', 'Ski freeride', 'Splitboard',
+      'Ski de fond', 'Raquettes',
     ],
   },
   {
     name: 'Eau',
-    accent: '#4B7CB8',
-    sample: 'Surf, kayak…',
+    accent: '#2563EB',
+    sample: 'Canyoning, kayak, surf…',
     sports: [
-      'Kayak', 'Surf', 'Voile', 'Stand-up Paddle', 'Rafting', 'Plongée', 'Apnée',
-      'Natation', 'Kitesurf', 'Windsurf', 'Wakeboard', 'Pêche en roche',
+      'Canyoning', 'Kayak', 'Canoë', 'Rafting', 'Stand-up Paddle', 'Surf',
+      'Voile', 'Plongée', 'Apnée', 'Natation',
     ],
   },
   {
-    name: 'Neige',
-    accent: '#9DB7D4',
-    sample: 'Ski, snowboard…',
-    sports: ['Ski', 'Snowboard', 'Ski de rando', 'Ski de fond', 'Ski freeride', 'Splitboard', 'Raquettes'],
-  },
-  {
     name: 'Air',
-    accent: '#F4A373',
-    sample: 'Parapente, deltaplane…',
-    sports: ['Parapente', 'Parachutisme', 'Speed-riding', 'Deltaplane'],
+    accent: '#8B5CF6',
+    sample: 'Parapente, speed-riding…',
+    sports: ['Parapente', 'Speed-riding', 'Deltaplane', 'Parachutisme'],
   },
   {
     name: 'Vélo',
-    accent: '#7EC8A3',
+    accent: '#64748B',
     sample: 'VTT, gravel…',
     sports: ['Vélo', 'VTT cross-country', 'VTT enduro', 'VTT descente', 'Gravel'],
   },
   {
-    name: 'Terrain',
-    accent: '#D4B46A',
-    sample: 'Course, tennis…',
-    sports: ['Course à pied', 'Football', 'Tennis', 'Volleyball', 'Badminton', 'Équitation', 'Skateboard', 'Triathlon', 'CrossFit'],
+    name: 'À pied',
+    accent: '#E11D48',
+    sample: 'Rando, trail, trek…',
+    sports: ['Randonnée', 'Trek', 'Trail', 'Course à pied'],
   },
 ];
 
@@ -78,8 +76,12 @@ export default function Sports() {
               textWrap: 'balance',
             }}
           >
-            <span style={{ color: ORANGE }}>{total} sports</span>, 6 univers — et ça grandit.
+            <span style={{ color: ORANGE }}>{total} sports</span>, 5 univers.
           </h2>
+          <p style={{ fontSize: 17, lineHeight: 1.55, margin: '18px 0 0', color: 'var(--muted)', maxWidth: 640 }}>
+            Un seul critère d'entrée : des sports qui se vivent à plusieurs. Pas de remplissage —
+            si on le liste, c'est qu'on y cherche des partenaires.
+          </p>
         </div>
 
         <div

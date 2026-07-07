@@ -1,32 +1,36 @@
 import { NAVY, ORANGE, SectionLabel, TopoLines } from './shared';
+import { UaPin, RaPin, PpPin, PRO_BLUE } from './map-pins';
 
-// Layer-2 "glance" section: each world is shown as the SAME map carrying
-// its own pins — orange teardrops (peer activities) vs the blue pro layer.
-// Real map crops from the app; the orange/blue split is the page-wide
-// color code. Makes "une carte, deux mondes" literal and on-brand.
-
-const PRO_BLUE = '#3b82f6';
+// Layer-2 "glance" section: each world is shown as the SAME kind of map
+// carrying its own pins — stone teardrops (peer outings) vs the blue pro
+// layer (PRO offerings + pushpin storefronts). Real Mapbox outdoors
+// fragments (Queyras / Serre-Ponçon) with the app's exact pin SVGs
+// overlaid, replacing the old app screenshots (Scott 2026-07-07).
 
 const WORLDS = [
   {
     accent: ORANGE,
-    kicker: 'Entre particuliers',
+    kicker: 'Entre passionnés',
     body: 'Trouve, crée et rejoins des sorties avec d’autres passionnés près de chez toi. Covoiturage, matos, chat — tout au même endroit.',
-    image: '/screenshots/world-particuliers.jpeg',
-    alt: 'Carte avec des sorties entre particuliers',
-    // Taller-content crop: show it whole (contain) so no pin is clipped;
-    // the banner bg is the map's own green so the side bands blend in.
-    fit: 'contain' as const,
-    bg: '#88BD6F',
+    image: '/world-map-passionnes.jpg',
+    alt: 'Carte avec des sorties entre passionnés',
+    pins: [
+      { left: '22%', top: '62%', node: <UaPin emoji="🚵" /> },
+      { left: '48%', top: '38%', node: <UaPin emoji="🥾" /> },
+      { left: '74%', top: '66%', node: <UaPin emoji="🧗" /> },
+    ],
   },
   {
     accent: PRO_BLUE,
-    kicker: 'Avec des pros',
+    kicker: 'Encadré par un pro',
     body: 'Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé directement sur la carte.',
-    image: '/screenshots/world-pros.jpeg',
-    alt: 'Carte avec une page pro et son offre',
-    fit: 'cover' as const,
-    bg: 'transparent',
+    image: '/world-map-pros.jpg',
+    alt: 'Carte avec des sorties encadrées par des pros',
+    pins: [
+      { left: '30%', top: '58%', node: <RaPin emoji="🚣" /> },
+      { left: '72%', top: '44%', node: <RaPin emoji="🏔️" /> },
+      { left: '52%', top: '70%', node: <PpPin /> },
+    ],
   },
 ];
 
@@ -57,7 +61,7 @@ export default function TwoWorlds() {
               textWrap: 'balance',
             }}
           >
-            Des <span style={{ color: ORANGE }}>particuliers</span> et des{' '}
+            Des <span style={{ color: ORANGE }}>passionnés</span> et des{' '}
             <span style={{ color: PRO_BLUE }}>pros</span>, sur la même carte.
           </h2>
         </div>
@@ -79,19 +83,26 @@ export default function TwoWorlds() {
               }}
             >
               <div
+                role="img"
+                aria-label={w.alt}
                 style={{
                   height: 180,
                   position: 'relative',
                   borderBottom: `1px solid var(--line)`,
-                  background: w.bg,
+                  overflow: 'hidden',
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={w.image}
-                  alt={w.alt}
-                  style={{ width: '100%', height: '100%', objectFit: w.fit, objectPosition: 'center', display: 'block' }}
+                  alt=""
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
+                {w.pins.map((p, i) => (
+                  <div key={i} className="junto-hero-pin" style={{ left: p.left, top: p.top, width: 44 }}>
+                    {p.node}
+                  </div>
+                ))}
               </div>
               <div style={{ padding: '32px 36px 38px' }}>
                 <h3

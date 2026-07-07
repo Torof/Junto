@@ -61,7 +61,7 @@ export default function Footer() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <a href="#comment" style={{ opacity: 0.8, textDecoration: 'none' }}>
-                Particuliers
+                Communauté
               </a>
               <a href="#pro" style={{ opacity: 0.8, textDecoration: 'none' }}>
                 Pros
