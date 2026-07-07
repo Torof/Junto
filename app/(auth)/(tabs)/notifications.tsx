@@ -234,8 +234,7 @@ export default function NotificationsScreen() {
               : item.body;
             const isUnread = !item.read_at;
             return (
-              <Pressable style={styles.row} onPress={() => handlePress(item)}>
-                <View style={[styles.unreadBar, !isUnread && styles.unreadBarHidden]} />
+              <Pressable style={[styles.row, isUnread && styles.rowUnread]} onPress={() => handlePress(item)}>
                 <View style={styles.iconWrap}>
                   <IconComp size={18} color={meta.color} strokeWidth={2.2} />
                 </View>
@@ -250,6 +249,8 @@ export default function NotificationsScreen() {
                     <Text style={styles.rowTime}>
                       {dayjs(item.created_at).locale(i18n.language).fromNow(true)}
                     </Text>
+                    {/* Unread marker — the universal filled dot. */}
+                    {isUnread && <View style={styles.unreadDot} />}
                   </View>
                   <Text style={styles.rowBody} numberOfLines={1}>{body}</Text>
                 </View>
@@ -314,23 +315,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: colors.borderMuted,
-    marginLeft: spacing.md + 3 + spacing.sm + 24 + spacing.sm, // align with text column (skip unread bar + icon)
+    marginLeft: spacing.md + 24 + spacing.sm, // align with text column (skip icon)
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
+    paddingLeft: spacing.md,
     paddingRight: spacing.md,
     minHeight: 56,
   },
-  unreadBar: {
-    width: 3,
-    alignSelf: 'stretch',
-    backgroundColor: colors.cta,
-    marginRight: spacing.sm,
+  // Unread rows get a subtle tint so the "new" block reads at a glance.
+  rowUnread: {
+    backgroundColor: colors.cta + '12',
   },
-  unreadBarHidden: {
-    backgroundColor: 'transparent',
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.cta,
+    alignSelf: 'center',
   },
   iconWrap: {
     width: 24,
