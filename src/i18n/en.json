@@ -261,7 +261,8 @@
       "peer_voter_not_present": "You must confirm your own presence first to validate others'.",
       "badge_rate_limit": "You've given too many badges in 24h. Try again later.",
       "badge_window_not_open": "Badges can be given 15 min after the outing ends.",
-      "badge_window_closed": "The badge window is closed (24h after the end)."
+      "badge_window_closed": "The badge window is closed (24h after the end).",
+      "peer_review_unavailable": "With only two people, presence is validated by QR or geolocation only (no cross-validation)."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",

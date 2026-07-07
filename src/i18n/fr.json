@@ -265,7 +265,8 @@
       "peer_voter_not_present": "Tu dois d'abord confirmer ta propre présence pour valider celle des autres.",
       "badge_rate_limit": "Tu as donné trop de badges en 24 h. Réessaie plus tard.",
       "badge_window_not_open": "Les badges pourront être donnés 15 min après la fin de la sortie.",
-      "badge_window_closed": "La fenêtre pour donner des badges est fermée (24 h après la fin)."
+      "badge_window_closed": "La fenêtre pour donner des badges est fermée (24 h après la fin).",
+      "peer_review_unavailable": "À deux, la présence se valide uniquement par QR ou géolocalisation (pas de validation croisée)."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
