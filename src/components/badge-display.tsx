@@ -898,7 +898,7 @@ function VouchedDetail({
           the reader sees what the trait MEANS before seeing who agrees. */}
       {description !== '' && <Text style={styles.vouchedDescription}>{description}</Text>}
 
-      <View style={[styles.pullQuoteCard, { borderLeftColor: accent }]}>
+      <View style={[styles.pullQuoteCard, { borderLeftColor: tierColor }]}>
         <View style={styles.pullQuoteAvatars}>
           <View style={styles.pullQuoteAvatarsLeft}>
             <VoterAvatarStack
@@ -915,8 +915,8 @@ function VouchedDetail({
             )}
           </View>
           <Text style={styles.pullQuotePeersLabel}>
-            <Text style={[styles.pullQuotePeersCount, { color: accent }]}>{item.count}</Text>
-            {' '}{t('badges.vouchedVotesLabel', { count: item.count, defaultValue: 'votes' })}
+            <Text style={[styles.pullQuotePeersCount, { color: tierColor }]}>{item.count}</Text>
+            {' '}{t('badges.vouchedVotesLabel', { count: item.count, defaultValue: "partenaires l'ont noté" })}
           </Text>
         </View>
       </View>
