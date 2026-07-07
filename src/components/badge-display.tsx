@@ -1081,6 +1081,9 @@ function SportDetail({
   const lv = item.levelVotes;
   const justeCount = lv?.right ?? 0;
   const overCount = lv?.over ?? 0;
+  // Same split as the chip triangle: fiable = juste + sous-estimé, gonflé = over.
+  const fiable = justeCount + (lv?.under ?? 0);
+  const gonfle = overCount;
 
   return (
     <>
@@ -1104,6 +1107,19 @@ function SportDetail({
       <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
         {t('badges.peerOpinionCaption', { defaultValue: 'Avis des pairs' })}
       </Text>
+
+      {/* Raw vote breakdown — green up = fiable, red down = gonflé. */}
+      <View style={styles.sportVoteRow}>
+        <View style={styles.sportVoteItem}>
+          <Triangle size={14} color={colors.success} fill={colors.success} strokeWidth={0} />
+          <Text style={[styles.sportVoteNum, { color: colors.success }]}>{fiable}</Text>
+        </View>
+        <View style={styles.sportVoteItem}>
+          <Triangle size={14} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
+          <Text style={[styles.sportVoteNum, { color: colors.error }]}>{gonfle}</Text>
+        </View>
+      </View>
+
       <PeerLevelSignal juste={justeCount} over={overCount} styles={styles} colors={colors} t={t} />
     </>
   );
@@ -1428,6 +1444,22 @@ const createStyles = (colors: AppColors) =>
     },
     triDown: {
       transform: [{ rotate: '180deg' }],
+    },
+    sportVoteRow: {
+      flexDirection: 'row',
+      gap: spacing.lg,
+      marginTop: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    sportVoteItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    sportVoteNum: {
+      fontSize: 17,
+      fontWeight: '800',
+      letterSpacing: -0.02,
     },
     sportAddChip: {
       flexDirection: 'row',
