@@ -350,7 +350,7 @@ export default function PublicProfileScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
