@@ -12,16 +12,19 @@ export function useColors(): AppColors {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
   const preference = useThemeStore((s) => s.preference);
+  const accent = useThemeStore((s) => s.accent);
 
   const resolved: 'dark' | 'light' =
     preference === 'system'
       ? (systemScheme === 'light' ? 'light' : 'dark')
       : preference;
 
-  const themeColors = useMemo(
-    () => (resolved === 'light' ? lightColors : darkColors),
-    [resolved],
-  );
+  const themeColors = useMemo(() => {
+    const base = resolved === 'light' ? lightColors : darkColors;
+    // User accent override → recolor the single `cta` token; everything that
+    // reads it (buttons, tabs, FAB, links, active states) follows.
+    return accent ? { ...base, cta: accent } : base;
+  }, [resolved, accent]);
 
   return (
     <ThemeContext.Provider value={themeColors}>

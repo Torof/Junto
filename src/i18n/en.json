@@ -900,6 +900,16 @@
       "light": "Light",
       "dark": "Dark"
     },
+    "accent": "Accent color",
+    "accentOption": {
+      "orange": "Orange",
+      "mountain": "Mountain green",
+      "pine": "Pine",
+      "sage": "Sage",
+      "glacier": "Glacier blue",
+      "slate": "Slate",
+      "terracotta": "Terracotta"
+    },
     "mapStyle": "Map style",
     "mapStyleOption": {
       "outdoors": "Outdoor",

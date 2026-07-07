@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, BellRing,
+  Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
   ShieldAlert, ChevronDown, BadgeCheck, type LucideIcon,
 } from 'lucide-react-native';
@@ -20,6 +20,7 @@ import { useIntroStore } from '@/store/intro-store';
 import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { AccentPicker } from '@/components/accent-picker';
 
 const NOTIFICATION_TYPES = [
   'join_request',
@@ -67,6 +68,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
+  const [showAccent, setShowAccent] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
   const [sentryConsent, setSentryConsentState] = useState(false);
 
@@ -354,6 +356,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   </View>
                 </View>
               )}
+              <Row icon={Paintbrush} label={t('drawer.accent')} onPress={() => setShowAccent(!showAccent)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showAccent ? '180deg' : '0deg' }] }} />
+              } />
+              {showAccent && <AccentPicker />}
               {(user?.tier === 'premium' || user?.tier === 'pro') ? (
                 <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
               ) : (
