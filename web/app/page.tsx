@@ -2,8 +2,6 @@ import FinalCTA from './components/final-cta';
 import Footer from './components/footer';
 import Hero from './components/hero';
 import Organisation from './components/organisation';
-import Particuliers from './components/particuliers';
-import Pro from './components/pro';
 import Sports from './components/sports';
 import TwoWorlds from './components/two-worlds';
 import UpcomingTrips from './components/upcoming-trips';
@@ -12,19 +10,16 @@ import UpcomingTrips from './components/upcoming-trips';
 export const revalidate = 300;
 
 // Layered arc: Hero plants the concept (real map + real pins) → TwoWorlds
-// frames the peer/pro duality at a glance (orange vs blue, the page-wide
-// color language) → community deep-dive → Organisation (the four logistics
-// pillars — what makes Junto an organizer, not a feed) → live outings →
-// pro deep-dive (dark zone) → breadth → download.
+// (merged: the peer/pro duality, each world's full pitch under its own map)
+// → Organisation (the four logistics pillars — what makes Junto an
+// organizer, not a feed) → live outings → breadth → download.
 export default function Home() {
   return (
     <main>
       <Hero />
       <TwoWorlds />
-      <Particuliers />
       <Organisation />
       <UpcomingTrips />
-      <Pro />
       <Sports />
       <FinalCTA />
       <Footer />

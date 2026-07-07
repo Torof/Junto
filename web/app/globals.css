@@ -155,21 +155,6 @@ img { display: block; max-width: 100%; }
     max-height: 440px !important;
   }
 
-  /* ---------- Particuliers ---------- */
-  .junto-part {
-    padding: 80px 20px !important;
-  }
-  .junto-part-grid {
-    grid-template-columns: 1fr !important;
-    gap: 48px !important;
-  }
-  .junto-part-title {
-    font-size: 40px !important;
-  }
-  .junto-part-art {
-    order: -1;
-  }
-
   /* ---------- Two worlds ---------- */
   .junto-worlds {
     padding: 72px 20px !important;
@@ -228,21 +213,6 @@ img { display: block; max-width: 100%; }
     grid-template-columns: 1fr !important;
   }
 
-  /* ---------- Pro ---------- */
-  .junto-pro {
-    padding: 80px 20px !important;
-  }
-  .junto-pro-grid {
-    grid-template-columns: 1fr !important;
-    gap: 48px !important;
-  }
-  .junto-pro-title {
-    font-size: 36px !important;
-  }
-  .junto-pro-art {
-    order: -1;
-  }
-
   /* ---------- Final CTA ---------- */
   .junto-cta {
     padding: 60px 20px !important;
@@ -280,9 +250,7 @@ img { display: block; max-width: 100%; }
   .junto-hero-title {
     font-size: 40px !important;
   }
-  .junto-part-title,
   .junto-worlds-title,
-  .junto-pro-title,
   .junto-trips-title,
   .junto-orga-title,
   .junto-sports-title {

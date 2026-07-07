@@ -1,42 +1,88 @@
 import { NAVY, ORANGE, SectionLabel, TopoLines } from './shared';
 import { UaPin, RaPin, PpPin, PRO_BLUE } from './map-pins';
 
-// Layer-2 "glance" section: each world is shown as the SAME kind of map
-// carrying its own pins — stone teardrops (peer outings) vs the blue pro
-// layer (PRO offerings + pushpin storefronts). Real Mapbox outdoors
-// fragments (Queyras / Serre-Ponçon) with the app's exact pin SVGs
-// overlaid, replacing the old app screenshots (Scott 2026-07-07).
+// Merged section (Scott 2026-07-07): "Une carte, deux mondes" + the
+// "Entre passionnés" and "Avec des pros" deep-dives fused into one block.
+// Each world = its real map banner (Queyras / Serre-Ponçon, the app's
+// exact pins) with its full pitch below: kicker, lead, three features,
+// CTA. The old standalone mockup cards (ActivityCard / StorefrontCard)
+// were dropped — the map banners carry the illustration now.
 
-const WORLDS = [
+type Feature = { icon: string; title: string; body: string };
+
+const PEER_FEATURES: Feature[] = [
   {
-    accent: ORANGE,
-    kicker: 'Entre passionnés',
-    body: 'Trouve, crée et rejoins des sorties avec d’autres passionnés près de chez toi. Covoiturage, matos, chat — tout au même endroit.',
-    image: '/world-map-passionnes.jpg',
-    alt: 'Carte avec des sorties entre passionnés',
-    pins: [
-      { left: '22%', top: '62%', node: <UaPin emoji="🚵" /> },
-      { left: '48%', top: '38%', node: <UaPin emoji="🥾" /> },
-      { left: '74%', top: '66%', node: <UaPin emoji="🧗" /> },
-    ],
+    icon: '◎',
+    title: 'Trouve',
+    body: 'Une carte vivante des sorties autour de toi. Filtre par sport, date, niveau — vois qui part où, quand.',
   },
   {
-    accent: PRO_BLUE,
-    kicker: 'Encadré par un pro',
-    body: 'Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé directement sur la carte.',
-    image: '/world-map-pros.jpg',
-    alt: 'Carte avec des sorties encadrées par des pros',
-    pins: [
-      { left: '30%', top: '58%', node: <RaPin emoji="🚣" /> },
-      { left: '72%', top: '44%', node: <RaPin emoji="🏔️" /> },
-      { left: '52%', top: '70%', node: <PpPin /> },
-    ],
+    icon: '+',
+    title: 'Crée',
+    body: 'Lance ta propre sortie en 30 secondes. Fixe le RDV, le niveau, les places — les autres rejoignent.',
+  },
+  {
+    icon: '⇄',
+    title: 'Organise',
+    body: 'Covoiturage, chat, matériel — tout vit dans la sortie. Plus de groupes WhatsApp à 40.',
   },
 ];
+
+const PRO_FEATURES: Feature[] = [
+  {
+    icon: '✓',
+    title: 'Une vitrine vérifiée',
+    body: 'Guides diplômés, écoles, moniteurs — vérifiés par Junto. Pas de faux pros.',
+  },
+  {
+    icon: '📍',
+    title: 'Leur catalogue sur la carte',
+    body: 'Chaque prestation est une punaise bleue, posée là où elle se passe vraiment.',
+  },
+  {
+    icon: '★',
+    title: 'Les avis, en transparence',
+    body: 'Note, commente, le pro répond. Comme sur une carte que tu connais déjà.',
+  },
+];
+
+function FeatureRow({ f, accent }: { f: Feature; accent: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 14 }}>
+      <span
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          background: accent + '1E',
+          color: accent,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 15,
+          fontWeight: 700,
+          flexShrink: 0,
+        }}
+      >
+        {f.icon}
+      </span>
+      <div>
+        <div
+          className="display"
+          style={{ fontSize: 17, fontWeight: 800, color: NAVY, letterSpacing: '-0.015em', marginBottom: 2 }}
+        >
+          {f.title}
+        </div>
+        <div style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--muted)' }}>{f.body}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function TwoWorlds() {
   return (
     <section
+      id="comment"
       className="junto-worlds"
       style={{
         padding: '120px 40px',
@@ -68,59 +114,147 @@ export default function TwoWorlds() {
 
         <div
           className="junto-worlds-grid"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24 }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24, alignItems: 'start' }}
         >
-          {WORLDS.map((w) => (
+          {/* ── Monde passionnés ─────────────────────────── */}
+          <div
+            style={{
+              background: '#FFF',
+              border: `2px solid ${ORANGE}`,
+              borderRadius: 20,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <div
-              key={w.kicker}
-              style={{
-                background: '#FFF',
-                border: `2px solid ${w.accent}`,
-                borderRadius: 20,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
+              role="img"
+              aria-label="Carte avec des sorties entre passionnés"
+              style={{ height: 180, position: 'relative', borderBottom: '1px solid var(--line)', overflow: 'hidden', flexShrink: 0 }}
             >
-              <div
-                role="img"
-                aria-label={w.alt}
-                style={{
-                  height: 180,
-                  position: 'relative',
-                  borderBottom: `1px solid var(--line)`,
-                  overflow: 'hidden',
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={w.image}
-                  alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-                {w.pins.map((p, i) => (
-                  <div key={i} className="junto-hero-pin" style={{ left: p.left, top: p.top, width: 44 }}>
-                    {p.node}
-                  </div>
-                ))}
-              </div>
-              <div style={{ padding: '32px 36px 38px' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/world-map-passionnes.jpg"
+                alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              <div className="junto-hero-pin" style={{ left: '22%', top: '62%', width: 44 }}><UaPin emoji="🚵" /></div>
+              <div className="junto-hero-pin" style={{ left: '48%', top: '38%', width: 44 }}><UaPin emoji="🥾" /></div>
+              <div className="junto-hero-pin" style={{ left: '74%', top: '66%', width: 44 }}><UaPin emoji="🧗" /></div>
+            </div>
+
+            <div style={{ padding: '32px 36px 38px', display: 'flex', flexDirection: 'column', gap: 22, flex: 1 }}>
+              <div>
                 <h3
                   className="display"
+                  style={{ fontSize: 30, margin: '0 0 10px', fontWeight: 800, letterSpacing: '-0.025em', color: ORANGE }}
+                >
+                  Entre passionnés
+                </h3>
+                <p style={{ fontSize: 16.5, lineHeight: 1.55, margin: 0, color: NAVY, fontWeight: 500 }}>
+                  Trouve, crée et rejoins des sorties outdoor avec d'autres passionnés, près de chez toi.
+                </p>
+              </div>
+
+              {PEER_FEATURES.map((f) => (
+                <FeatureRow key={f.title} f={f} accent={ORANGE} />
+              ))}
+
+              <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+                <a
+                  href="#beta"
                   style={{
-                    fontSize: 30,
-                    margin: '0 0 12px',
-                    fontWeight: 800,
-                    letterSpacing: '-0.025em',
-                    color: w.accent,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    background: ORANGE,
+                    color: '#FFF',
+                    padding: '14px 24px',
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 10px 30px -8px rgba(242,107,46,0.5)',
                   }}
                 >
-                  {w.kicker}
-                </h3>
-                <p style={{ fontSize: 17, lineHeight: 1.55, margin: 0, color: 'var(--muted)' }}>{w.body}</p>
+                  Télécharger l'app →
+                </a>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* ── Monde pros ───────────────────────────────── */}
+          <div
+            id="pro"
+            style={{
+              background: '#FFF',
+              border: `2px solid ${PRO_BLUE}`,
+              borderRadius: 20,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div
+              role="img"
+              aria-label="Carte avec des sorties encadrées par des pros"
+              style={{ height: 180, position: 'relative', borderBottom: '1px solid var(--line)', overflow: 'hidden', flexShrink: 0 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/world-map-pros.jpg"
+                alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              <div className="junto-hero-pin" style={{ left: '30%', top: '58%', width: 44 }}><RaPin emoji="🚣" /></div>
+              <div className="junto-hero-pin" style={{ left: '72%', top: '44%', width: 44 }}><RaPin emoji="🏔️" /></div>
+              <div className="junto-hero-pin" style={{ left: '52%', top: '70%', width: 44 }}><PpPin /></div>
+            </div>
+
+            <div style={{ padding: '32px 36px 38px', display: 'flex', flexDirection: 'column', gap: 22, flex: 1 }}>
+              <div>
+                <h3
+                  className="display"
+                  style={{ fontSize: 30, margin: '0 0 10px', fontWeight: 800, letterSpacing: '-0.025em', color: PRO_BLUE }}
+                >
+                  Encadré par un pro
+                </h3>
+                <p style={{ fontSize: 16.5, lineHeight: 1.55, margin: 0, color: NAVY, fontWeight: 500 }}>
+                  Guides diplômés, écoles, moniteurs — vérifiés, avec leur catalogue de prestations posé directement sur la carte.
+                </p>
+              </div>
+
+              {PRO_FEATURES.map((f) => (
+                <FeatureRow key={f.title} f={f} accent={PRO_BLUE} />
+              ))}
+
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}>
+                Junto est la vitrine et la carte. La réservation et le paiement se font en direct avec le pro —
+                Junto ne prend pas de commission.
+              </p>
+
+              <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+                <a
+                  href="mailto:contact@getjunto.app?subject=Cr%C3%A9er%20ma%20page%20pro%20sur%20Junto"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    background: PRO_BLUE,
+                    color: '#FFF',
+                    padding: '14px 24px',
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 10px 30px -8px rgba(59,130,246,0.5)',
+                  }}
+                >
+                  Tu encadres des sorties ? Crée ta page pro →
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
