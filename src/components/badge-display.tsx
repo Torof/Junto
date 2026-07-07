@@ -459,6 +459,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
                   <Text style={styles.seeAllText}>
                     {t('profil.sportsSeeAll', { defaultValue: 'Voir tout ({{count}})', count: sports.length })}
                   </Text>
+                  <ChevronRight size={15} color={colors.cta} strokeWidth={2.6} />
                 </Pressable>
               )}
             </>
@@ -1390,6 +1391,9 @@ const createStyles = (colors: AppColors) =>
     seeAllBtn: {
       marginTop: spacing.sm,
       alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
     },
     seeAllText: {
       color: colors.cta,
