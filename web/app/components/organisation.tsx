@@ -55,10 +55,12 @@ export default function Organisation() {
               textWrap: 'balance',
             }}
           >
-            Tout ce qu'il faut <span style={{ color: ORANGE }}>pour partir</span>.
+            S'organiser n'a jamais été <span style={{ color: ORANGE }}>aussi simple</span>.
           </h2>
-          <p style={{ fontSize: 18, lineHeight: 1.55, margin: '18px 0 0', color: 'var(--muted)', maxWidth: 620 }}>
-            Trouver le monde ne suffit pas — il faut s'organiser. Chaque sortie embarque tout.
+          <p style={{ fontSize: 18, lineHeight: 1.55, margin: '18px 0 0', color: 'var(--muted)', maxWidth: 640 }}>
+            Une sortie, ce n'est pas que des partants : il faut répartir les voitures, le matos,
+            se parler. Sur Junto, tout ça vit directement dans la sortie — rien à créer à côté,
+            rien à courir après. C'est ça, le but.
           </p>
         </div>
 

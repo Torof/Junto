@@ -228,11 +228,6 @@ export default function TwoWorlds() {
                 <FeatureRow key={f.title} f={f} accent={PRO_BLUE} />
               ))}
 
-              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}>
-                Junto est la vitrine et la carte. La réservation et le paiement se font en direct avec le pro —
-                Junto ne prend pas de commission.
-              </p>
-
               <div style={{ marginTop: 'auto', paddingTop: 8 }}>
                 <a
                   href="mailto:contact@getjunto.app?subject=Cr%C3%A9er%20ma%20page%20pro%20sur%20Junto"
