@@ -1106,6 +1106,7 @@ function SportDetail({
   const gonfle = overCount;
 
   const accent = sportCategoryColor(item.category, '#4B7CB8');
+  const declaredLabel = levelLabel(item.declaredLevel);
 
   return (
     <>
@@ -1126,24 +1127,32 @@ function SportDetail({
         </View>
       </View>
 
+      {/* Two facets, made explicit: the level the user gives THEMSELVES
+          (highlighted), then the peers' verdict on whether it's accurate. */}
+      {declaredLabel && (
+        <Text style={styles.sportSelfDeclare}>
+          {t('badges.sportDeclaredPre', { defaultValue: 'Se déclare de niveau ' })}
+          <Text style={[styles.sportDeclaredLevelHl, { color: accent }]}>{declaredLabel.toLowerCase()}</Text>
+          {t('badges.sportDeclaredPost', { defaultValue: '' })}
+        </Text>
+      )}
+
       <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
-        {t('badges.peerOpinionCaption', { defaultValue: 'Avis des pairs' })}
+        {t('badges.peerOpinionCaption', { defaultValue: 'Jugé par les pairs' })}
       </Text>
 
-      {/* Labeled breakdown — each arrow carries its meaning so it's clear the
-          peers are judging the *declared level*, not just voting up/down.
-          Green (fiable) = right + sous-estimé; red (gonflé) = over. */}
+      {/* Green (fiable) = right + sous-estimé; red (gonflé) = over. */}
       <View style={styles.sportVoteRow}>
         <View style={styles.sportVoteItem}>
           <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
           <Text style={[styles.sportVoteLabel, { color: colors.success }]}>
-            {t('badges.levelNetRight', { count: fiable, defaultValue: `Niveau jugé juste · ${fiable}` })}
+            {t('badges.sportPeerJust', { n: fiable, defaultValue: `Juste · ${fiable}` })}
           </Text>
         </View>
         <View style={styles.sportVoteItem}>
           <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
           <Text style={[styles.sportVoteLabel, { color: colors.error }]}>
-            {t('badges.levelNetOver', { count: gonfle, defaultValue: `Niveau jugé surestimé · ${gonfle}` })}
+            {t('badges.sportPeerOver', { n: gonfle, defaultValue: `Surestimé · ${gonfle}` })}
           </Text>
         </View>
       </View>
@@ -1494,6 +1503,17 @@ const createStyles = (colors: AppColors) =>
     sportVoteLabel: {
       fontSize: fontSizes.sm,
       fontWeight: '700',
+      letterSpacing: -0.02,
+    },
+    sportSelfDeclare: {
+      fontSize: fontSizes.sm,
+      color: colors.textSecondary,
+      marginTop: spacing.xs,
+      marginBottom: spacing.sm,
+      lineHeight: fontSizes.sm * 1.35,
+    },
+    sportDeclaredLevelHl: {
+      fontWeight: '800',
       letterSpacing: -0.02,
     },
     sportAddChip: {
