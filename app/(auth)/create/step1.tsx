@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSports } from '@/hooks/use-sports';
@@ -50,6 +51,7 @@ export default function CreateStep1() {
   };
 
   return (
+    <View style={styles.root}>
     <KeyboardAwareScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -191,10 +193,13 @@ export default function CreateStep1() {
         <Text style={styles.nextText}>{t('create.next')}</Text>
       </Pressable>
     </KeyboardAwareScrollView>
+    <KeyboardDoneBar />
+    </View>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  root: { flex: 1 },
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },

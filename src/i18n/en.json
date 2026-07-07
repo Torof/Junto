@@ -1364,5 +1364,8 @@
     },
     "picturesPlaceholder": "Coming soon — the photo gallery will live here.",
     "reviewsPlaceholder": "Coming soon — participant reviews will appear here."
+  },
+  "common": {
+    "done": "Done"
   }
 }

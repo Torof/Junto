@@ -1364,5 +1364,8 @@
     },
     "picturesPlaceholder": "Bientôt — la galerie photo arrivera ici.",
     "reviewsPlaceholder": "Bientôt — les avis des participants apparaîtront ici."
+  },
+  "common": {
+    "done": "Terminé"
   }
 }

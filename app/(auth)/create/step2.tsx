@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -357,6 +358,7 @@ export default function CreateStep2() {
           <Text style={styles.nextText}>{t('create.next')}</Text>
         </Pressable>
       </KeyboardAwareScrollView>
+      <KeyboardDoneBar />
     </View>
   );
 }
