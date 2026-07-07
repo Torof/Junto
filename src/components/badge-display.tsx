@@ -683,9 +683,9 @@ function SportRow({
             {lvl && it.count > 0 && <View style={styles.sportSep} />}
             {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
             {tri && (tri.kind === 'even' ? (
-              // Judged but split — a neutral grey bar (a triangle would imply
-              // a direction the votes don't support).
-              <Minus size={tri.size} color={colors.textMuted} strokeWidth={3} />
+              // Judged but split — a small neutral grey dot (a triangle would
+              // imply a direction the votes don't support).
+              <View style={styles.sportEvenDot} />
             ) : (
               <Triangle
                 size={tri.size}
@@ -1469,6 +1469,12 @@ const createStyles = (colors: AppColors) =>
     },
     triDown: {
       transform: [{ rotate: '180deg' }],
+    },
+    sportEvenDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.textMuted,
     },
     sportVoteRow: {
       flexDirection: 'row',
