@@ -301,7 +301,10 @@ export function ActivityDetail({
   // Creator can always geo-self-validate; the server records it but
   // recalculate_reliability_score ignores the row until another accepted
   // participant exists (see migration 00128).
-  const canConfirmGeo = participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
+  // The creator never self-confirms — their presence comes from others (the
+  // auto-flip when a participant confirms) or peer testimony at 3+. Matches the
+  // server guard in confirm_presence_via_geo.
+  const canConfirmGeo = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInGeoWindow;
   const canScanQr = !isCreator && participation?.status === 'accepted' && !alreadyConfirmed && isInQrWindow;
   const canCheckIn = canConfirmGeo || canScanQr;
 
