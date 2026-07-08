@@ -20,7 +20,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
-      foregroundImage: './assets/junto_icon_round.png',
+      // Mark-only on transparent + solid green background → uniform green icon,
+      // no inner square / dark corners (Scott 2026-07-08).
+      foregroundImage: './assets/junto_icon_fg.png',
       backgroundColor: '#3F7A56',
     },
     edgeToEdgeEnabled: true,
