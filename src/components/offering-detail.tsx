@@ -137,10 +137,10 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         const kind = avg >= i - 0.25 ? 'full' : avg >= i - 0.75 ? 'half' : 'empty';
         return (
           <View key={i} style={styles.starSlot}>
-            <Star size={14} color={colors.cta} fill={kind === 'full' ? colors.cta : 'transparent'} strokeWidth={1.8} />
+            <Star size={14} color={colors.star} fill={kind === 'full' ? colors.star : 'transparent'} strokeWidth={1.8} />
             {kind === 'half' ? (
               <View style={StyleSheet.absoluteFill}>
-                <StarHalf size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                <StarHalf size={14} color={colors.star} fill={colors.star} strokeWidth={1.8} />
               </View>
             ) : null}
           </View>

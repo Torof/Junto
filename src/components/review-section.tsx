@@ -440,7 +440,7 @@ const createStyles = (colors: AppColors) =>
     summaryCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
     summaryBars: { flex: 1, gap: 4, justifyContent: 'center' },
     barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    barStar: { color: colors.textSecondary, fontSize: fontSizes.xs, width: 10, textAlign: 'center' },
+    barStar: { color: colors.star, fontSize: fontSizes.xs, width: 10, textAlign: 'center' },
     barTrack: { flex: 1, height: 7, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
     barFill: { height: '100%', borderRadius: 4, backgroundColor: colors.cta },
     ctaButton: {

@@ -11,6 +11,9 @@ export const darkColors = {
   success: '#2ECC71',
   error: '#E74C3C',
   warning: '#F39C12',
+  // Review/rating stars — fixed gold, never the themeable accent (a star is
+  // universally yellow). Same in both themes.
+  star: '#FBBF24',
 
   pinStart: '#22c55e',
   pinMeeting: '#3b82f6',
@@ -83,6 +86,9 @@ export const lightColors = {
   success: '#2ECC71',
   error: '#E74C3C',
   warning: '#F39C12',
+  // Review/rating stars — fixed gold, never the themeable accent (a star is
+  // universally yellow). Same in both themes.
+  star: '#FBBF24',
 
   pinStart: '#22c55e',
   pinMeeting: '#3b82f6',

@@ -14,8 +14,8 @@ export function StarRating({ rating, size = 14 }: { rating: number; size?: numbe
         <Star
           key={i}
           size={size}
-          color={colors.cta}
-          fill={i <= filled ? colors.cta : 'transparent'}
+          color={colors.star}
+          fill={i <= filled ? colors.star : 'transparent'}
           strokeWidth={1.8}
         />
       ))}
@@ -46,8 +46,8 @@ export function StarPicker({
         >
           <Star
             size={size}
-            color={colors.cta}
-            fill={i <= value ? colors.cta : 'transparent'}
+            color={colors.star}
+            fill={i <= value ? colors.star : 'transparent'}
             strokeWidth={1.8}
           />
         </Pressable>

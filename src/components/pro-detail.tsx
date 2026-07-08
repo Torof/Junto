@@ -268,10 +268,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         const kind = avg >= i - 0.25 ? 'full' : avg >= i - 0.75 ? 'half' : 'empty';
         return (
           <View key={i} style={styles.heroStarSlot}>
-            <Star size={14} color={colors.cta} fill={kind === 'full' ? colors.cta : 'transparent'} strokeWidth={1.8} />
+            <Star size={14} color={colors.star} fill={kind === 'full' ? colors.star : 'transparent'} strokeWidth={1.8} />
             {kind === 'half' ? (
               <View style={StyleSheet.absoluteFill}>
-                <StarHalf size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                <StarHalf size={14} color={colors.star} fill={colors.star} strokeWidth={1.8} />
               </View>
             ) : null}
           </View>
@@ -477,7 +477,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           {showRating ? (
                             <View style={styles.catMiniRating}>
                               <Text style={styles.catMiniRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
-                              <Star size={11} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                              <Star size={11} color={colors.star} fill={colors.star} strokeWidth={1.8} />
                             </View>
                           ) : null}
                         </View>
@@ -503,7 +503,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               {reviewStats && reviewStats.review_count > 0 ? (
                 <View style={styles.reviewSummary}>
                   <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
-                  <Star size={14} color={colors.cta} fill={colors.cta} strokeWidth={1.8} />
+                  <Star size={14} color={colors.star} fill={colors.star} strokeWidth={1.8} />
                   <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
                 </View>
               ) : null}
