@@ -24,27 +24,7 @@ export const NEGATIVE_BADGES = [
 export const LEVEL_VOTE_KEYS = ['level_over', 'level_right'] as const;
 export type LevelVoteKey = typeof LEVEL_VOTE_KEYS[number];
 
-// Tier ladder shared across joined / created / per-sport categories.
-// Mirror of SQL badge_tier_for() in migration 00135.
-export const TIERS = [
-  { key: 't1', min: 5,  max: 9 },
-  { key: 't2', min: 10, max: 19 },
-  { key: 't3', min: 20, max: 49 },
-  { key: 't4', min: 50, max: 74 },
-  { key: 't5', min: 75, max: Infinity },
-] as const;
-
-export type TierKey = typeof TIERS[number]['key'];
 export type TrophyCategory = 'joined' | 'created' | 'sport';
-
-export function tierFor(count: number): TierKey | null {
-  if (count >= 75) return 't5';
-  if (count >= 50) return 't4';
-  if (count >= 20) return 't3';
-  if (count >= 10) return 't2';
-  if (count >= 5)  return 't1';
-  return null;
-}
 
 export interface ReputationBadge {
   badge_key: string;
@@ -60,39 +40,6 @@ export interface BadgeVoter {
   display_name: string | null;
   avatar_url: string | null;
   voted_at: string | null;
-}
-
-// Peer badge tier — three positives + one negative + locked.
-// Derived from vote_count via peerTierFor() / peerNegativeTier().
-export type PeerTier = 'bronze' | 'silver' | 'gold' | 'negative' | 'locked';
-
-export const PEER_TIER_BANDS: Record<Exclude<PeerTier, 'negative' | 'locked'>, { min: number; max: number }> = {
-  bronze: { min: 1, max: 9 },
-  silver: { min: 10, max: 49 },
-  gold: { min: 50, max: Infinity },
-};
-
-/** Tier for a positive peer badge given total vote count. */
-export function peerPositiveTier(count: number): PeerTier {
-  if (count <= 0) return 'locked';
-  if (count < 10) return 'bronze';
-  if (count < 50) return 'silver';
-  return 'gold';
-}
-
-/** Negatives have a single 'negative' tier (red). Visible threshold = 5 active. */
-export const NEGATIVE_VISIBILITY_THRESHOLD = 5;
-
-/** Progression to the next tier — used by the popover progression bar.
- * Returns null when already gold. */
-export function peerProgressToNext(count: number): { pct: number; nextThreshold: number; nextTier: PeerTier } | null {
-  if (count < 10) {
-    return { pct: (count / 10) * 100, nextThreshold: 10, nextTier: 'silver' };
-  }
-  if (count < 50) {
-    return { pct: ((count - 10) / 40) * 100, nextThreshold: 50, nextTier: 'gold' };
-  }
-  return null;
 }
 
 export interface Trophy {

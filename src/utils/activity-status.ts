@@ -40,7 +40,3 @@ export function getRemainingPlaces(maxParticipants: number | null, participantCo
   if (maxParticipants === null) return Infinity;
   return Math.max(0, maxParticipants - participantCount);
 }
-
-export function isActivityOpen(maxParticipants: number | null): boolean {
-  return maxParticipants === null;
-}

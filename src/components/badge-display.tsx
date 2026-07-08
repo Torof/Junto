@@ -1254,57 +1254,6 @@ function SportDetail({
   );
 }
 
-// Peer-level signal pill — 3 states from net votes. Spec: §4.5.
-function PeerLevelSignal({
-  juste,
-  over,
-  styles,
-  colors,
-  t,
-}: {
-  juste: number;
-  over: number;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}) {
-  const total = juste + over;
-  if (total < 3) {
-    return (
-      <View style={[
-        styles.peerLevelPill,
-        { backgroundColor: colors.surfaceAlt, borderColor: colors.line },
-      ]}>
-        <Users size={14} color={colors.textSecondary} strokeWidth={1.8} />
-        <Text style={[styles.peerLevelTitle, { color: colors.textSecondary }]}>
-          {t('badges.peerLevelNeutral', { defaultValue: 'Pas encore assez de retours' })}
-        </Text>
-        <Text style={styles.peerLevelSub}>
-          {' '}· {t('badges.peerLevelTotal', { count: total, defaultValue: `${total} retour(s)` })}
-        </Text>
-      </View>
-    );
-  }
-  const positive = juste >= over;
-  const accent = positive ? COLOR_SUCCESS : COLOR_RED;
-  const StateIcon = positive ? Check : AlertTriangle;
-  const title = positive
-    ? t('badges.peerLevelPositive', { defaultValue: 'Niveau juste' })
-    : t('badges.peerLevelNegative', { defaultValue: 'Surestime son niveau' });
-  const sub = positive
-    ? t('badges.peerLevelPositiveSub', { count: juste, defaultValue: `${juste} pair(s) valident` })
-    : t('badges.peerLevelNegativeSub', { count: over, defaultValue: `${over} signalement(s)` });
-  return (
-    <View style={[
-      styles.peerLevelPill,
-      { backgroundColor: accent + '1A', borderColor: accent + '59' },
-    ]}>
-      <StateIcon size={14} color={accent} strokeWidth={1.8} />
-      <Text style={[styles.peerLevelTitle, { color: accent }]}>{title}</Text>
-      <Text style={styles.peerLevelSub}> · {sub}</Text>
-    </View>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Voter avatar stack — real profile pictures of recent voters. Falls back
