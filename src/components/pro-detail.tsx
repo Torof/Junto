@@ -244,7 +244,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     Linking.openURL(pro.website.startsWith('http') ? pro.website : `https://${pro.website}`);
   };
   const sharePage = () => {
-    Share.share({ message: `${pro.display_name} sur Junto\nhttps://getjunto.app/pro/${pro.user_id}` }).catch(() => {});
+    // Env-driven host (default getjunto.app) so the share URL always matches the
+    // App Links intentFilter host — same pattern as activity-detail.
+    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+    Share.share({ message: `${pro.display_name} sur Junto\nhttps://${webHost}/pro/${pro.user_id}` }).catch(() => {});
   };
 
   // À propos rows (Google-style grouped grey list). Only the ones the pro
