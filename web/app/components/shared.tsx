@@ -4,10 +4,10 @@ import type { CSSProperties, ReactNode } from 'react';
 export const NAVY = '#1E2F4D';
 export const NAVY_DEEP = '#14223B';
 export const NAVY_DARK = '#0F1828';
-// Brand accent — vert montagne (site identity, 2026-07-08). Names kept for a
-// minimal diff; they hold the green identity color.
-export const ORANGE = '#3F7A56';
-export const ORANGE_SOFT = '#7DB697';
+// Brand accent — vert vif #2FA46A (site + app). The standalone juncture logo
+// signature is vert montagne #3F7A56. Names kept for a minimal diff.
+export const ORANGE = '#2FA46A';
+export const ORANGE_SOFT = '#7BC6A0';
 export const CREAM = '#F4E9D3';
 export const CREAM_SOFT = '#FBF5E6';
 export const MINT = '#7EC8A3';

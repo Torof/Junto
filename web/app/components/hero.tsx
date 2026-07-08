@@ -6,14 +6,15 @@
 // Copy: validated 2026-07-07 (« aventure » disambiguates « sortie » for the
 // public façade; « entre passionnés » replaces « particuliers »).
 // Slogan LOCKED 2026-07-08: "Fini le sport solo, va sur Junto." (affirmation,
-// not the old "Marre du…?" question). Site accent = vert montagne #3F7A56.
+// not the old "Marre du…?" question). Site accent = vert vif #2FA46A; the
+// standalone juncture logo signature is vert montagne #3F7A56.
 
 import { UaPin, RaPin, PpPin, TEARDROP, PRO_BLUE } from './map-pins';
 
 const PAPER = '#F5EEDF';
 const INK = '#1F1A15';
 const INK_SOFT = '#4A4034';
-const CTA_ORANGE = '#3F7A56'; // vert montagne — site identity (2026-07-08)
+const CTA_ORANGE = '#2FA46A'; // vert vif — site accent (2026-07-08)
 const STONE = '#E0D2B4';
 
 function JuntoTeardropMark({ size = 34 }: { size?: number }) {
