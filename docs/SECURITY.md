@@ -240,14 +240,26 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - **Si 2 participants acceptés ET voter = créateur** : direct flip (pas de seuil, pas de check self-presence)
 - **Sinon (3+ participants)** : voter doit être `confirmed_present = TRUE` (sinon `peer_voter_not_present`) ; INSERT vote ; flip si `vote_count >= 2`
 
-**`give_reputation_badge(p_voted_id, p_activity_id, p_badge_key)`** (mig 00134) :
+**`give_reputation_badge(p_voted_id, p_activity_id, p_badge_key)`** (mig 00134, garde niveau 00293) :
 - Auth + non suspendu
 - `auth.uid() != p_voted_id`
-- `p_badge_key` dans la liste autorisée (8 valeurs)
+- Pas de blocage (bidirectionnel)
+- Rate limit 20 votes / 24h (advisory lock)
+- `p_badge_key` dans la liste autorisée (7 traits + `level_over` / `level_right`)
 - Activity completed
 - `now()` dans [end + 15min, end + 24h]
 - Voter ET voted sont participants acceptés
-- INSERT dans `reputation_votes` (UNIQUE constraint empêche le double-vote)
+- **Vote de niveau (`level_*`)** : le voté doit avoir un **niveau déclaré** pour `activities.sport_key`, sinon refus générique (on ne juge pas un niveau non déclaré — mig 00293)
+- INSERT dans `reputation_votes` (UNIQUE empêche le double-vote ; un vote de niveau remplace le précédent du même votant)
+
+**`set_sport_level(p_sport_key, p_new_level)`** (mig 00295 — **seul writer de `levels_per_sport`**) :
+- Auth + non suspendu
+- Opère sur **soi** (`auth.uid()`) uniquement
+- `p_new_level` ∈ {débutant, intermédiaire, avancé, expert} ; `p_sport_key` existe dans `sports`
+- Advisory lock par utilisateur (sérialise le read-vote-then-write du gate)
+- **Première déclaration** (aucun niveau actuel) : libre, n'importe quel tier
+- **Changement** : un cran à la fois ; **montée** autorisée seulement si solde net `level_right − level_over` ≥ 3 (fenêtre 12 mois), sinon `junto.level_up_locked` ; **descente** libre ; **reset** des votes `level_*` du sport à chaque changement
+- Écrit `levels_per_sport` (bypass whitelist) + ajoute la clé à `sports` ; **aucune suppression** (anti-fraude)
 
 ### Conversations & messagerie
 
@@ -389,7 +401,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`
 
-**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `get_user_sport_breakdown`
+**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `get_user_sport_breakdown`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
 **Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` (REVOKE from public ET anon — mig 00259, cf. 00018 "REVOKE didn't stick")
 
@@ -535,12 +547,14 @@ INSERT INTO activities (
 - `accepted_tos_at`, `accepted_privacy_at` (one-shot via `accept_tos`)
 - `date_of_birth` (one-shot via `set_date_of_birth`)
 - `reliability_score` (auto-calculé)
+- `levels_per_sport` (écrit **uniquement** via `set_sport_level` — niveau peer-gated, mig 00295 ; l'UPDATE direct est forcé à OLD)
 - `notification_preferences` (UPDATE direct OK — c'est l'utilisateur qui choisit ses propres préférences)
 - `subscription_status`, `stripe_customer_id` (Stripe webhook seulement)
 - `push_token` (legacy column, remplacé par `push_tokens` table — UPDATE quand même bloqué)
 
 **Colonnes user modifiables par le client :**
-`display_name`, `avatar_url`, `bio`, `sports`, `levels_per_sport`, `notification_preferences`
+`display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`
+(`levels_per_sport` était modifiable directement jusqu'à mig 00295 ; désormais peer-gated via `set_sport_level`.)
 
 **Enforcement : trigger `handle_user_update`** — approche **whitelist** :
 ```sql
@@ -561,6 +575,7 @@ NEW.accepted_tos_at := OLD.accepted_tos_at;
 NEW.accepted_privacy_at := OLD.accepted_privacy_at;
 NEW.date_of_birth := OLD.date_of_birth;
 NEW.reliability_score := OLD.reliability_score;
+NEW.levels_per_sport := OLD.levels_per_sport;  -- mig 00295 : peer-gated via set_sport_level
 NEW.subscription_status := OLD.subscription_status;
 NEW.stripe_customer_id := OLD.stripe_customer_id;
 NEW.push_token := OLD.push_token;
