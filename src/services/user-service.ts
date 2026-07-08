@@ -61,7 +61,6 @@ export const userService = {
     avatar_url?: string;
     bio?: string;
     sports?: string[];
-    levels_per_sport?: Record<string, string>;
   }) => {
     const { data, error } = await supabase
       .from('users')
@@ -71,6 +70,17 @@ export const userService = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  // The ONLY writer of levels_per_sport (locked server-side). First declaration
+  // is free; a change is peer-gated (up requires net ≥ 3) and resets the votes.
+  // See set_sport_level (mig 00295).
+  setSportLevel: async (sportKey: string, level: string): Promise<void> => {
+    const { error } = await supabase.rpc('set_sport_level' as 'join_activity', {
+      p_sport_key: sportKey,
+      p_new_level: level,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
   },
 
   blockUser: async (blockedId: string): Promise<void> => {

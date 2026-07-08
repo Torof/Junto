@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Modal, ScrollView, Alert, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react-native';
+import { X, HelpCircle } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -13,10 +13,10 @@ import { LEVELS } from '@/types/activity-form';
 import { userService } from '@/services/user-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-// Own-profile editor for declared sports + levels (users.sports /
-// levels_per_sport). One row per active sport with a 4-tier level selector;
-// picking a level declares the sport, tapping the active tier again clears it.
-// Save writes both columns in one update (whitelist trigger allows them).
+// "Gérer mes sports" — the ONLY declaration surface. Adding a new sport sets a
+// free initial level (via set_sport_level). Already-declared sports are
+// READ-ONLY here (their level evolves in the sport tooltip, peer-gated) — no
+// re-pick and no removal, so a level can't be laundered by yo-yoing here.
 
 const SHORT: Record<string, string> = {
   'débutant': 'Déb.',
@@ -24,6 +24,7 @@ const SHORT: Record<string, string> = {
   'avancé': 'Avancé',
   'expert': 'Expert',
 };
+const CAP = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 interface Props {
   visible: boolean;
@@ -38,36 +39,48 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
   const { data: sports } = useSports();
   const queryClient = useQueryClient();
   const [levels, setLevels] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  // Re-seed from the current declared levels each time the sheet opens.
   useEffect(() => {
     if (visible) setLevels({ ...(initialLevels ?? {}) });
   }, [visible, initialLevels]);
 
-  const pick = (key: string, level: string) => {
-    setLevels((prev) => {
-      const next = { ...prev };
-      if (next[key] === level) delete next[key];
-      else next[key] = level;
-      return next;
-    });
-  };
+  const declared = (sports ?? []).filter((s) => levels[s.key]);
+  const undeclared = (sports ?? []).filter((s) => !levels[s.key]);
 
-  const handleSave = async () => {
-    if (saving) return;
-    setSaving(true);
+  const doDeclare = async (sportKey: string, tier: string) => {
+    if (busy) return;
+    setBusy(sportKey);
     try {
-      const sportsArr = Object.keys(levels);
-      await userService.updateProfile({ sports: sportsArr, levels_per_sport: levels });
+      await userService.setSportLevel(sportKey, tier);
+      setLevels((prev) => ({ ...prev, [sportKey]: tier }));
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
-      onClose();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
-      setSaving(false);
+      setBusy(null);
     }
+  };
+
+  // Honesty warning on the FIRST declaration — anchors the asymmetry (down free,
+  // up peer-validated) and the safety framing before committing.
+  const askDeclare = (sportKey: string, sportName: string, tier: string) => {
+    Alert.alert(
+      t('profil.declareTitle', { level: SHORT[tier] ?? tier, sport: sportName, defaultValue: `Te déclarer ${SHORT[tier] ?? tier} en ${sportName} ?` }),
+      t('profil.declareWarn', { defaultValue: "Choisis honnêtement ton niveau : tu pourras toujours redescendre, mais pour remonter il faudra que tes partenaires te confirment. C'est une indication de sécurité pour ceux qui partiront avec toi." }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel' },
+        { text: t('profil.declareConfirm', { defaultValue: 'Me déclarer' }), onPress: () => doDeclare(sportKey, tier) },
+      ],
+    );
+  };
+
+  const showHelp = () => {
+    Alert.alert(
+      t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' }),
+      t('profil.sportsHelpBody', { defaultValue: "Tu déclares ton niveau pour chaque sport. Après vos sorties, tes partenaires disent s'il est juste ou surestimé — une indication de confiance pour partir en sécurité, pas un score. Tu peux redescendre quand tu veux ; pour monter, il faut que tes partenaires aient confirmé ton niveau actuel." }),
+    );
   };
 
   return (
@@ -75,52 +88,68 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
       <View style={styles.backdrop}>
         <SafeAreaView style={styles.sheet} edges={['bottom']}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('profil.sportsEditorTitle', { defaultValue: 'Mes sports' })}</Text>
-            <Pressable onPress={onClose} hitSlop={8}>
-              <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
-            </Pressable>
+            <Text style={styles.title}>{t('profil.sportsManageTitle', { defaultValue: 'Gérer mes sports' })}</Text>
+            <View style={styles.headerRight}>
+              <Pressable onPress={showHelp} hitSlop={8} style={styles.helpBtn}>
+                <HelpCircle size={20} color={colors.textSecondary} strokeWidth={2} />
+              </Pressable>
+              <Pressable onPress={onClose} hitSlop={8}>
+                <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
+              </Pressable>
+            </View>
           </View>
-          <Text style={styles.helper}>
-            {t('profil.sportsEditorHelper', { defaultValue: 'Choisis ton niveau pour chaque sport que tu pratiques. Touche à nouveau pour retirer.' })}
-          </Text>
 
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            {(sports ?? []).map((s) => {
-              const active = levels[s.key];
-              return (
-                <View key={s.key} style={styles.row}>
-                  <View style={styles.rowHead}>
-                    <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
-                    <Text style={[styles.rowName, active && styles.rowNameActive]} numberOfLines={1}>
-                      {t(`sports.${s.key}`, { defaultValue: s.key })}
-                    </Text>
-                  </View>
-                  <View style={styles.levelsRow}>
-                    {LEVELS.map((lvl) => {
-                      const on = active === lvl;
-                      return (
-                        <Pressable
-                          key={lvl}
-                          onPress={() => pick(s.key, lvl)}
-                          style={[styles.levelChip, on && styles.levelChipOn]}
-                        >
-                          <Text style={[styles.levelChipText, on && styles.levelChipTextOn]}>{SHORT[lvl] ?? lvl}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-
-          <Pressable style={[styles.save, saving && styles.saveDisabled]} onPress={handleSave} disabled={saving}>
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveText}>{t('common.save', { defaultValue: 'Enregistrer' })}</Text>
+            {declared.length > 0 && (
+              <>
+                <Text style={styles.groupLabel}>{t('profil.sportsDeclared', { defaultValue: 'Déjà déclarés' })}</Text>
+                {declared.map((s) => {
+                  const lvl = levels[s.key] ?? '';
+                  return (
+                    <View key={s.key} style={styles.declaredRow}>
+                      <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                      <Text style={styles.declaredName} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
+                      <Text style={styles.declaredLevel}>{SHORT[lvl] ?? CAP(lvl)}</Text>
+                    </View>
+                  );
+                })}
+                <Text style={styles.manageHint}>
+                  {t('profil.sportsManageHint', { defaultValue: 'Fais évoluer un niveau depuis la fiche du sport, sur ton profil.' })}
+                </Text>
+              </>
             )}
-          </Pressable>
+
+            {undeclared.length > 0 && (
+              <>
+                <Text style={styles.groupLabel}>{t('profil.sportsAdd', { defaultValue: 'Ajouter un sport — choisis ton niveau de départ' })}</Text>
+                {undeclared.map((s) => {
+                  const sportName = t(`sports.${s.key}`, { defaultValue: s.key });
+                  return (
+                    <View key={s.key} style={styles.addRow}>
+                      <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                      <Text style={styles.addName} numberOfLines={1}>{sportName}</Text>
+                      {busy === s.key ? (
+                        <ActivityIndicator color={colors.cta} />
+                      ) : (
+                        <View style={styles.tierChips}>
+                          {LEVELS.map((tier) => (
+                            <Pressable
+                              key={tier}
+                              onPress={() => askDeclare(s.key, sportName, tier)}
+                              style={styles.tierChip}
+                              disabled={!!busy}
+                            >
+                              <Text style={styles.tierChipText}>{SHORT[tier] ?? tier}</Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </>
+            )}
+          </ScrollView>
         </SafeAreaView>
       </View>
     </Modal>
@@ -142,38 +171,34 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.sm,
   },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  helpBtn: { padding: 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', letterSpacing: -0.02 },
-  helper: { color: colors.textSecondary, fontSize: fontSizes.sm, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   list: { flexGrow: 0 },
-  listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-  row: { paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted },
-  rowHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+  groupLabel: {
+    color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800',
+    letterSpacing: 0.6, textTransform: 'uppercase', marginTop: spacing.lg, marginBottom: spacing.sm,
+  },
   rowEmoji: { fontSize: 18 },
-  rowName: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '600', flex: 1 },
-  rowNameActive: { color: colors.textPrimary, fontWeight: '800' },
-  levelsRow: { flexDirection: 'row', gap: 6 },
-  levelChip: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 7,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    backgroundColor: colors.surface,
+  declaredRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
   },
-  levelChipOn: { borderColor: colors.cta, backgroundColor: colors.cta + '18' },
-  levelChipText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
-  levelChipTextOn: { color: colors.cta },
-  save: {
-    margin: spacing.lg,
-    marginTop: spacing.sm,
-    backgroundColor: colors.cta,
-    borderRadius: radius.lg,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+  declaredName: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  declaredLevel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  manageHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.sm, lineHeight: fontSizes.xs * 1.4 },
+  addRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
   },
-  saveDisabled: { opacity: 0.6 },
-  saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
+  addName: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  tierChips: { flexDirection: 'row', gap: 5 },
+  tierChip: {
+    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm, paddingVertical: 5, backgroundColor: colors.surface,
+  },
+  tierChipText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
 });
