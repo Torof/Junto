@@ -133,6 +133,10 @@ export interface PeerReviewParticipant {
   peer_validation_count: number;
   i_voted_presence: boolean;
   my_badge_votes: string[];
+  // The target's self-declared level for the activity's sport, or null if none.
+  // When null, the level-vote section is hidden (you can't judge an undeclared
+  // level — mirrors the 00293 server guard).
+  declared_level: string | null;
 }
 
 export const badgeService = {

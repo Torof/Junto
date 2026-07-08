@@ -1127,35 +1127,38 @@ function SportDetail({
         </View>
       </View>
 
-      {/* Two facets, made explicit: the level the user gives THEMSELVES
-          (highlighted), then the peers' verdict on whether it's accurate. */}
+      {/* No declared level → no verdict at all: you can't judge an undeclared
+          level (mirrors the peer-review masking + the 00293 server guard). When
+          declared: the level the user gives THEMSELVES, then the peers' verdict. */}
       {declaredLabel && (
-        <Text style={styles.sportSelfDeclare}>
-          {t('badges.sportDeclaredPre', { defaultValue: 'Se déclare de niveau ' })}
-          <Text style={[styles.sportDeclaredLevelHl, { color: accent }]}>{declaredLabel.toLowerCase()}</Text>
-          {t('badges.sportDeclaredPost', { defaultValue: '' })}
-        </Text>
+        <>
+          <Text style={styles.sportSelfDeclare}>
+            {t('badges.sportDeclaredPre', { defaultValue: 'Se déclare de niveau ' })}
+            <Text style={[styles.sportDeclaredLevelHl, { color: accent }]}>{declaredLabel.toLowerCase()}</Text>
+            {t('badges.sportDeclaredPost', { defaultValue: '' })}
+          </Text>
+
+          <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
+            {t('badges.peerOpinionCaption', { defaultValue: 'Jugé par les pairs' })}
+          </Text>
+
+          {/* Green = juste ; red = surestimé. */}
+          <View style={styles.sportVoteRow}>
+            <View style={styles.sportVoteItem}>
+              <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
+              <Text style={[styles.sportVoteLabel, { color: colors.success }]}>
+                {t('badges.sportPeerJust', { n: fiable, defaultValue: `Juste · ${fiable}` })}
+              </Text>
+            </View>
+            <View style={styles.sportVoteItem}>
+              <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
+              <Text style={[styles.sportVoteLabel, { color: colors.error }]}>
+                {t('badges.sportPeerOver', { n: gonfle, defaultValue: `Surestimé · ${gonfle}` })}
+              </Text>
+            </View>
+          </View>
+        </>
       )}
-
-      <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
-        {t('badges.peerOpinionCaption', { defaultValue: 'Jugé par les pairs' })}
-      </Text>
-
-      {/* Green (fiable) = right + sous-estimé; red (gonflé) = over. */}
-      <View style={styles.sportVoteRow}>
-        <View style={styles.sportVoteItem}>
-          <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
-          <Text style={[styles.sportVoteLabel, { color: colors.success }]}>
-            {t('badges.sportPeerJust', { n: fiable, defaultValue: `Juste · ${fiable}` })}
-          </Text>
-        </View>
-        <View style={styles.sportVoteItem}>
-          <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
-          <Text style={[styles.sportVoteLabel, { color: colors.error }]}>
-            {t('badges.sportPeerOver', { n: gonfle, defaultValue: `Surestimé · ${gonfle}` })}
-          </Text>
-        </View>
-      </View>
     </>
   );
 }

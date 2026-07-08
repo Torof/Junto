@@ -327,10 +327,10 @@ export default function PeerReviewScreen() {
                 })}
               </View>
 
-              {activity.sport_key && (
+              {activity.sport_key && p.declared_level && (
                 <Text style={styles.sectionLabel}>{t('peerReview.sectionLevel')}</Text>
               )}
-              {activity.sport_key && (
+              {activity.sport_key && p.declared_level && (
                 <View style={styles.levelPill}>
                   <Text style={styles.levelSportIcon}>{getSportIcon(activity.sport_key)}</Text>
                   <View style={styles.levelDivider} />
