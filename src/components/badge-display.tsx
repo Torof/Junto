@@ -686,11 +686,7 @@ function SportRow({
             {it.count > 0 && <Text style={styles.sportCountInline}>×{it.count}</Text>}
             {lvl && it.count > 0 && <View style={styles.sportSep} />}
             {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
-            {tri && (tri.kind === 'even' ? (
-              // Judged but split — a small neutral grey dot (a triangle would
-              // imply a direction the votes don't support).
-              <View style={styles.sportEvenDot} />
-            ) : (
+            {lvl && (tri && tri.kind !== 'even' ? (
               <Triangle
                 size={tri.size}
                 color={tri.kind === 'up' ? colors.success : colors.error}
@@ -698,6 +694,10 @@ function SportRow({
                 strokeWidth={0}
                 style={tri.kind === 'down' ? styles.triDown : undefined}
               />
+            ) : (
+              // Declared but not yet judged (or split) — neutral grey dot, never
+              // an "open"/absent signal.
+              <View style={styles.sportEvenDot} />
             ))}
           </Pressable>
         );
@@ -1124,8 +1124,11 @@ function SportDetail({
   // down free, up only when the peer net (juste − surestimé) ≥ 3. One step.
   const curIdx = item.declaredLevel ? (LEVELS as readonly string[]).indexOf(item.declaredLevel) : -1;
   const net = fiable - gonfle;
-  const canUp = curIdx >= 0 && curIdx < LEVELS.length - 1 && net >= 3;
-  const canDown = curIdx > 0;
+  const downTarget = curIdx > 0 ? LEVELS[curIdx - 1] : null;
+  const upTarget = curIdx >= 0 && curIdx < LEVELS.length - 1 ? LEVELS[curIdx + 1] : null;
+  // Peers confirm whether the CURRENT level is accurate; once enough do (net ≥ 3),
+  // moving up is the user's own call (if they feel they progressed).
+  const canUp = !!upTarget && net >= 3;
 
   const changeLevel = (dir: 1 | -1) => {
     const target = LEVELS[curIdx + dir];
@@ -1209,30 +1212,34 @@ function SportDetail({
           {editable && curIdx >= 0 && (
             <>
               <View style={styles.sportOwnerRow}>
-                <Pressable
-                  style={[styles.sportOwnerBtn, (!canDown || busy) && styles.sportOwnerBtnOff]}
-                  disabled={!canDown || busy}
-                  onPress={() => changeLevel(-1)}
-                >
-                  <ArrowDown size={15} color={canDown ? colors.textSecondary : colors.textMuted} strokeWidth={2.4} />
-                  <Text style={[styles.sportOwnerBtnText, !canDown && styles.sportOwnerBtnTextOff]}>
-                    {t('badges.levelDown', { defaultValue: 'Redescendre' })}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.sportOwnerBtnUp, (!canUp || busy) && styles.sportOwnerBtnOff]}
-                  disabled={!canUp || busy}
-                  onPress={() => changeLevel(1)}
-                >
-                  <ArrowUp size={15} color={canUp ? colors.success : colors.textMuted} strokeWidth={2.4} />
-                  <Text style={[styles.sportOwnerBtnUpText, !canUp && styles.sportOwnerBtnTextOff]}>
-                    {t('badges.levelUp', { defaultValue: 'Monter' })}
-                  </Text>
-                </Pressable>
+                {downTarget && (
+                  <Pressable
+                    style={[styles.sportOwnerBtn, busy && styles.sportOwnerBtnOff]}
+                    disabled={busy}
+                    onPress={() => changeLevel(-1)}
+                  >
+                    <ArrowDown size={15} color={colors.textSecondary} strokeWidth={2.4} />
+                    <Text style={styles.sportOwnerBtnText}>{levelLabel(downTarget)}</Text>
+                  </Pressable>
+                )}
+                {upTarget && (
+                  <Pressable
+                    style={[styles.sportOwnerBtnUp, (!canUp || busy) && styles.sportOwnerBtnOff]}
+                    disabled={!canUp || busy}
+                    onPress={() => changeLevel(1)}
+                  >
+                    <ArrowUp size={15} color={canUp ? colors.success : colors.textMuted} strokeWidth={2.4} />
+                    <Text style={[styles.sportOwnerBtnUpText, !canUp && styles.sportOwnerBtnTextOff]}>
+                      {levelLabel(upTarget)}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
-              {!canUp && curIdx < LEVELS.length - 1 && (
+              {upTarget && (
                 <Text style={styles.sportOwnerHint}>
-                  {t('badges.levelUpHint', { defaultValue: "Tes partenaires n'ont pas encore confirmé un niveau supérieur." })}
+                  {canUp
+                    ? t('badges.levelUpReady', { defaultValue: 'Ton niveau actuel est confirmé par tes partenaires. Tu peux monter si tu as progressé.' })
+                    : t('badges.levelUpHint', { defaultValue: "Tes partenaires n'ont pas encore assez confirmé ton niveau actuel." })}
                 </Text>
               )}
             </>
@@ -1573,8 +1580,8 @@ const createStyles = (colors: AppColors) =>
       backgroundColor: colors.textMuted,
     },
     sportVoteRow: {
-      flexDirection: 'column',
-      gap: spacing.xs,
+      flexDirection: 'row',
+      gap: spacing.lg,
       marginTop: spacing.sm,
       marginBottom: spacing.sm,
     },
