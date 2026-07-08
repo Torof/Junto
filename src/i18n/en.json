@@ -693,7 +693,7 @@
     "sportsAdd": "Add a sport — choose your starting level",
     "sportsManageHint": "Change a level from the sport's card, on your profile.",
     "sportsHelpTitle": "How it works",
-    "sportsHelpBody": "You declare your level for each sport. After your outings, your partners say whether it's accurate or overstated — a trust cue for going out safely, not a score. You can go down whenever you want; to move up, your partners must have confirmed your current level.",
+    "sportsHelpBody": "You declare your level for each sport. After your outings, your partners say whether it's accurate or overstated — a trust cue for going out safely, not a score. You can go down whenever you want; to move up, your current level must be confirmed by several partners, so everyone stays safe.",
     "manageSports": "Manage",
     "sportsSeeLess": "See less"
   },

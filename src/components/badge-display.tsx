@@ -555,6 +555,9 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         <Pressable style={styles.helpBackdrop} onPress={() => setShowSportsHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</Text>
+            {/* Overview first — how to read the profile as a whole — then the
+                sport-level mechanics. */}
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
             <Text style={styles.helpBody}>{t('profil.sportsHelpBody')}</Text>
             <Pressable style={styles.helpDismiss} onPress={() => setShowSportsHelp(false)}>
               <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
