@@ -304,3 +304,24 @@ Drop de `presence_reminder` (firait pendant in_progress sans anchor temporel pr�
 **Décision :** Le cap mensuel `create_activity` passe de 15 à 30/30 jours. (Les entrées 00262 ci-dessus ont été mises à jour au nouveau chiffre ; historiquement c'était 15.)
 
 **Pourquoi :** 15 a bloqué le dev en dogfooding (18 créées/30j → mig 00266 a passé le compte operator en admin). Clarification de Scott qui recadre le raisonnement : créer une activité = chercher des partenaires pour UNE sortie précise (rarement >10/mois pour un usage légitime) ; le programme régulier d'un pro/club ne passe PAS par là mais par le catalogue d'**offerings** (RA, mécanisme séparé). Donc le cap mensuel est un pur plafond anti-spam, pas une contrainte d'usage — 15 était inutilement serré. 30 = 3× le plafond d'usage légitime ; le cap journalier 10/24h reste le vrai garde anti-rafale. Erreur générique au dépassement = à améliorer un jour (faible priorité maintenant que 30 ne bloque plus aucun usage réel).
+
+---
+
+## 2026-07-08 — Niveau par sport : auto-déclaré, validé par les pairs, anti-fraude
+
+**Décision :** Le niveau par sport reste **auto-déclaré** par l'utilisateur, mais les pairs le **valident** après chaque sortie (vote binaire **juste** / **surestimé**). Le niveau affiché n'évolue que selon des règles anti-fraude — jamais comme un jeu de progression.
+
+Règles verrouillées :
+- **Descente libre** (choix perso, à tout moment).
+- **Montée** possible seulement si le **solde net (verts − rouges) ≥ 3** — anti-blanchiment.
+- **Reset** des votes à chaque changement de niveau (nouveau niveau = nouveau jugement).
+- **Un cran à la fois.**
+- **Pas de vote de niveau sans niveau déclaré** (sinon jugement sans référentiel — trou de sécurité actuel).
+- **Pas de suppression** d'un sport déjà déclaré (une suppression serait une porte de blanchiment).
+- Le vote **« sous-estimé » (`level_under`) est un vestige à retirer** ; ne restent que **juste** (`level_right`, vert ▲) / **surestimé** (`level_over`, rouge ▼). « Neutre » = état *affiché* (égalité ou < 3 avis), pas un vote.
+
+**Pourquoi :** Sur des sports à risque (ski de rando, escalade, canyoning), un niveau juste est une **indication de sécurité** pour partir entre inconnus. On ne peut ni le décerner nous-mêmes ni le faire certifier ; l'auto-déclaration + validation des pairs le maintient honnête. Le solde net ≥ 3 est le minimum structurel pour empêcher la fraude sans transformer le niveau en compteur/leaderboard (Junto reste logistique, pas un score social).
+
+**Présentation :** factuelle, jamais gamifiée — pas de « +3 », pas de « déblocage », pas de barre de progression ni de notification poussant à monter. Les boutons Monter/Redescendre sont discrets, visibles par le propriétaire seul.
+
+**Alternative considérée (rejetée) :** version sans verrou (niveau librement modifiable, la seule visibilité du ▼ suffit à l'honnêteté). Rejetée car niveau libre + reset = **blanchiment** : descendre puis remonter efface les votes rouges. Le verrou de montée est structurellement nécessaire, pas un choix esthétique. La gamification qui l'entourait (déblocage/score/progression) était en revanche une dérive de Claude, retirée.

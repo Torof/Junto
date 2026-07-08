@@ -36,6 +36,20 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 ### Doc debt
 - [ ] **SECURITY.md — classification des fonctions Pro V1.** Les ~15 RPCs pro (mig 00240-00254 : pro_profiles, offerings, photos) n'ont jamais été ajoutées aux tables "Fonctions client-callable" / chaînes d'autorisation. Les entrées avis (00258-00260) sont à jour ; le rattrapage Pro V1 reste à faire.
 
+### Niveau auto-déclaré validé par les pairs (conçu 2026-07-08, non codé)
+Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillées → DECISIONS.md 2026-07-08. Mock de référence : artifact claude.ai `b362a0df` (session 2026-07-08) — la description ci-dessous est auto-suffisante.
+
+**Trou déclencheur :** le peer-review laisse juger le niveau d'un participant même s'il n'a **aucun niveau déclaré** pour ce sport → jugement sans référentiel. Ton nouveau tooltip profil l'a rendu visible.
+
+**Trois surfaces :**
+1. **Pastille (liste sports)** — compacte, inchangée : emoji · ×sorties · niveau · **triangle** (▲ vert confirmé / ▼ rouge surestimé / ● gris pas assez d'avis). Le signal d'un regard.
+2. **Tooltip** — « Se déclare de niveau X » + « jugé par les pairs » + les **2 votes** (▲ juste / ▼ surestimé). Pour le **propriétaire seul** : 2 petits boutons discrets **Monter / Redescendre** sous un liseré « visible par toi seul ». Factuel, jamais gamifié.
+3. **Drawer « Gérer »** (ex-« Ajouter ») — sports déjà déclarés en **lecture seule** (niveau géré dans le tooltip, pas de suppression = anti-fraude) ; ajout libre d'un nouveau sport + niveau de départ, avec **mise en garde d'honnêteté** à la première déclaration. Un **« ? »** explique le fonctionnement.
+
+**Découpage :**
+- **Étape 1 — cohérence (candidate pré-launch, sûre)** : garde-fou `give_reputation_badge` (pas de vote `level_*` sans niveau déclaré pour le sport de l'activité) + masquage section niveau dans le peer-review + affichage tooltip conditionnel + retrait du vote `level_under` (vestige). Corrige le trou de sécurité.
+- **Étape 2 — le système (post-launch / quand prêt)** : fonction SECURITY DEFINER `change_sport_level` (montée gatée solde ≥ +3, descente libre, reset au changement, un cran) + table `sport_level_scale` (ordre des niveaux par sport, source de vérité DB, alignée sur `getLevelScale()` client) + les 2 boutons owner du tooltip + le drawer Gérer + la mise en garde + le « ? ». Chaînes d'autorisation à présenter/valider avant code.
+
 
 ## Reliability score — questions ouvertes
 
