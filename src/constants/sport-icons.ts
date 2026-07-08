@@ -1,4 +1,4 @@
-export const sportIcons: Record<string, string> = {
+const sportIcons: Record<string, string> = {
   hiking: '🥾',
   trekking: '🎒',
   canoe: '🚣',

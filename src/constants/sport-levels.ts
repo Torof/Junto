@@ -136,7 +136,7 @@ const APNEA: LevelOption[] = [
   { label: '30 m+', description: T.E },
 ];
 
-export const SPORT_LEVEL_SCALES: Record<string, LevelOption[]> = {
+const SPORT_LEVEL_SCALES: Record<string, LevelOption[]> = {
   'climbing-sport': FRENCH_SPORT,
   'climbing-multipitch': FRENCH_SPORT,
   bouldering: FONT,
@@ -224,13 +224,13 @@ export function formatLevelRange(
 /**
  * Which sports use distance + D+ as their primary difficulty metrics.
  */
-export const SPORTS_WITH_DISTANCE = new Set<string>([
+const SPORTS_WITH_DISTANCE = new Set<string>([
   'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'cross-country-ski', 'snowshoeing',
 ]);
 
-export const SPORTS_WITH_ELEVATION = new Set<string>([
+const SPORTS_WITH_ELEVATION = new Set<string>([
   'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'ski-touring', 'ski-freeride', 'splitboard',

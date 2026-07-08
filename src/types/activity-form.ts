@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const activityFormSchema = z.object({
+const activityFormSchema = z.object({
   // Step 1
   sport_id: z.string().uuid(),
   title: z.string().min(3).max(100),

@@ -9,7 +9,7 @@ export const OFFERING_LEVELS = [OPEN_LEVEL, ...LEVELS] as const;
 // Mirrors the create_pro_offering RPC contract. Runtime validation is
 // in the SECURITY DEFINER function; this schema exists for type
 // derivation and minimal client-side guardrails on the form.
-export const proOfferingFormSchema = z.object({
+const proOfferingFormSchema = z.object({
   sport_id: z.string().uuid(),
   title: z.string().trim().min(3).max(100),
   description: z.string().max(2000),
