@@ -27,13 +27,11 @@ import { activityService, type NearbyActivity } from '@/services/activity-servic
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
-import { getSportIcon } from '@/constants/sport-icons';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { JuntoMapView, type MapPin } from './map-view';
 import { MapLegend } from './map-legend';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
-import { MetaChipsGrid, type MetaChip } from './meta-chips-grid';
 import { ActivityWall } from './activity-wall';
 import { wallService } from '@/services/wall-service';
 import { useMessageStore } from '@/store/message-store';
@@ -638,6 +636,16 @@ export function ActivityDetail({
       ? [[activity.start_lng, activity.start_lat], [activity.end_lng, activity.end_lat]]
       : undefined;
 
+  // Hero map: everyone sees the (already-public) approximate area; only members
+  // get the precise pins, route and fullscreen — the exact rendez-vous/objective
+  // stays members-only. A gate-crasher just won't be accepted, so it's fine.
+  const heroPins: MapPin[] = showTabs
+    ? mapPins
+    : [{ id: 'approx', coordinate: [activity.lng, activity.lat] as [number, number], color: sportAccent, label: '' }];
+  const heroCenter: [number, number] = showTabs ? miniMapCenter : [activity.lng, activity.lat];
+  const heroZoom = showTabs ? mapZoom : 12;
+  const heroRoute = showTabs ? mapRouteLine : undefined;
+
   return (
     <View style={styles.container}>
       {/* Tab bar — only for participants/creator. Four tabs since we
@@ -778,61 +786,162 @@ export function ActivityDetail({
               </Pressable>
             )}
 
-            {/* === HERO CARD === Banner-style: sport-color block holds the
-                title and decorative sport-icon; footer row carries date +
-                visibility on a plain background. */}
-            <View style={styles.heroCard}>
-              <View style={[styles.heroBanner, { backgroundColor: sportAccent }]}>
-                <Text style={styles.heroSportDecor}>{getSportIcon(activity.sport_key)}</Text>
-                <Text style={styles.heroSportLabel}>
+            {/* === MAP HERO === everyone sees the (already-public) approximate
+                area; members get precise pins + fullscreen. Floating info pills
+                carry sport / date / places. */}
+            <View style={styles.mapHero}>
+              {showTabs ? (
+                <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowFullMap(true)}>
+                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
+                </Pressable>
+              ) : (
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
+                </View>
+              )}
+              <View style={[styles.heroPill, styles.heroPillTL]} pointerEvents="none">
+                <Text style={[styles.heroPillText, { color: sportAccent }]} numberOfLines={1}>
                   {t(`sports.${activity.sport_key}`, activity.sport_key)}
                 </Text>
-                <Text style={styles.heroTitleInverse}>{activity.title}</Text>
               </View>
-              <View style={styles.heroFooter}>
-                <Calendar size={14} color={colors.textPrimary} strokeWidth={2.4} />
-                <Text style={styles.heroDateText} numberOfLines={1}>
+              <View style={[styles.heroPill, styles.heroPillBL]} pointerEvents="none">
+                <Calendar size={12} color="#1F1A15" strokeWidth={2.6} />
+                <Text style={styles.heroPillText} numberOfLines={1}>
                   {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                 </Text>
-                <View style={styles.heroVisibility}>
-                  {activity.visibility === 'public' ? (
-                    <Globe size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                  ) : activity.visibility === 'approval' ? (
-                    <Hand size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                  ) : (
-                    <Lock size={13} color={colors.textSecondary} strokeWidth={2.2} />
+              </View>
+              <View style={[styles.heroPill, styles.heroPillBR]} pointerEvents="none">
+                <Users size={12} color="#1F1A15" strokeWidth={2.6} />
+                <Text style={styles.heroPillText} numberOfLines={1}>
+                  {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
+                </Text>
+              </View>
+              {showTabs && (
+                <View style={styles.mapControls} pointerEvents="box-none">
+                  <Pressable
+                    style={styles.mapControlBtn}
+                    onPress={() => {
+                      const navLat = activity.meeting_lat ?? activity.lat;
+                      const navLng = activity.meeting_lng ?? activity.lng;
+                      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
+                    }}
+                    accessibilityLabel={t('activity.navigate')}
+                    hitSlop={4}
+                  >
+                    <Navigation size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                  </Pressable>
+                  <View style={styles.mapControlDivider} />
+                  <Pressable style={styles.mapControlBtn} onPress={() => setShowFullMap(true)} accessibilityLabel={t('activity.fullscreen', { defaultValue: 'Plein écran' })} hitSlop={4}>
+                    <Maximize2 size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                  </Pressable>
+                  {isCreator && <View style={styles.mapControlDivider} />}
+                  {isCreator && (
+                    <Pressable style={styles.mapControlBtn} onPress={handlePickTrace} accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')} hitSlop={4}>
+                      <Route size={16} color={colors.cta} strokeWidth={2.4} />
+                    </Pressable>
                   )}
-                  <Text style={styles.heroVisibilityText}>{t(`create.visibility.${activity.visibility}`)}</Text>
+                  {isCreator && activity.trace_geojson && <View style={styles.mapControlDivider} />}
+                  {isCreator && activity.trace_geojson && (
+                    <Pressable style={styles.mapControlBtn} onPress={handleClearTrace} accessibilityLabel={t('activity.traceRemove')} hitSlop={4}>
+                      <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
+                    </Pressable>
+                  )}
                 </View>
+              )}
+            </View>
+
+            {/* Title + visibility */}
+            <View style={styles.titleBlock}>
+              <Text style={styles.activityTitle}>{activity.title}</Text>
+              <View style={styles.metaRow}>
+                {activity.visibility === 'public' ? (
+                  <Globe size={13} color={colors.textSecondary} strokeWidth={2.2} />
+                ) : activity.visibility === 'approval' ? (
+                  <Hand size={13} color={colors.textSecondary} strokeWidth={2.2} />
+                ) : (
+                  <Lock size={13} color={colors.textSecondary} strokeWidth={2.2} />
+                )}
+                <Text style={styles.metaText}>{t(`create.visibility.${activity.visibility}`)}</Text>
               </View>
             </View>
 
-            {/* === STATS GRID === Borderless per the info-tab polish
-                (Scott 2026-06-10) — People + Where keep their cards. */}
-            <View style={styles.statsBlock}>
-              {(() => {
-                const startChip: MetaChip = activity.start_name
-                  ? { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: activity.start_name }
-                  : activity.objective_name
-                  ? { id: 'objective', icon: Flag, accent: '#F5A623', label: t('meta.objective'), value: activity.objective_name }
-                  : { id: 'start', icon: MapPinIcon, accent: '#F5A623', label: t('meta.startPoint'), value: '—' };
+            {/* === FACTS === restrained grid, monochrome icons, short atomic
+                values only. Long text (locations) lives in "Le parcours". */}
+            <View style={styles.factsGrid}>
+              <View style={styles.factCell}>
+                <BarChart3 size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                <View style={styles.factText}>
+                  <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
+                  <Text style={styles.factLabel}>{t('meta.level')}</Text>
+                </View>
+              </View>
+              <View style={styles.factCell}>
+                <Clock size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                <View style={styles.factText}>
+                  <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
+                  <Text style={styles.factLabel}>{t('meta.duration')}</Text>
+                </View>
+              </View>
+              {activity.distance_km != null && activity.distance_km > 0 && (
+                <View style={styles.factCell}>
+                  <Route size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                  <View style={styles.factText}>
+                    <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
+                    <Text style={styles.factLabel}>{t('meta.distance')}</Text>
+                  </View>
+                </View>
+              )}
+              {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
+                <View style={styles.factCell}>
+                  <Mountain size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                  <View style={styles.factText}>
+                    <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
+                    <Text style={styles.factLabel}>{t('meta.elevation')}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
 
-                const chips: MetaChip[] = [
-                  { id: 'level', icon: BarChart3, accent: '#F4642A', label: t('meta.level'), value: formatLevelRange(activity.level, activity.level_max), span: activity.level_max ? 'full' : undefined },
-                  { id: 'places', icon: Users, accent: '#2ECC71', label: t('meta.places'), value: activity.max_participants === null ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${remaining}/${activity.max_participants}` },
-                  { id: 'duration', icon: Clock, accent: '#A78BFA', label: t('meta.duration'), value: formatDuration(activity.duration) },
-                  startChip,
-                ];
-                if (activity.distance_km != null && activity.distance_km > 0) {
-                  chips.push({ id: 'distance', icon: Route, accent: '#06B6D4', label: t('meta.distance'), value: `${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km` });
-                }
-                if (activity.elevation_gain_m != null && activity.elevation_gain_m > 0) {
-                  chips.push({ id: 'elev', icon: Mountain, accent: '#E74C3C', label: t('meta.elevation'), value: `${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m` });
-                }
-                return <MetaChipsGrid chips={chips} />;
-              })()}
+            {/* === LE PARCOURS === precise rendez-vous / objective are
+                members-only; the description is visible to everyone. The map
+                is now the hero, so no second map here. */}
+            {(activity.description || (showTabs && (activity.start_name || activity.objective_name))) && (
+              <View style={styles.infoCard}>
+                {showTabs && (activity.start_name || activity.objective_name) && (
+                  <Text style={styles.cardLabel}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
+                )}
+                {showTabs && activity.start_name && (
+                  <View style={styles.locRow}>
+                    <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
+                    <View style={styles.locText}>
+                      <Text style={styles.locLabel}>{t('meta.startPoint')}</Text>
+                      <Text style={styles.locValue}>{activity.start_name}</Text>
+                    </View>
+                  </View>
+                )}
+                {showTabs && activity.objective_name && (
+                  <View style={styles.locRow}>
+                    <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
+                    <View style={styles.locText}>
+                      <Text style={styles.locLabel}>{t('meta.objective')}</Text>
+                      <Text style={styles.locValue}>{activity.objective_name}</Text>
+                    </View>
+                  </View>
+                )}
+                <ActivityDescription description={activity.description} />
+              </View>
+            )}
 
-              {/* Transport summary inline at the foot of the stats card */}
+            {/* === PEOPLE === organizer + avatars + carpool summary. */}
+            <View style={styles.infoCard}>
+              <OrganizerCard
+                activityId={activity.id}
+                creatorId={activity.creator_id}
+                creatorName={activity.creator_name}
+                creatorAvatar={activity.creator_avatar}
+                maxParticipants={activity.max_participants}
+                onOpenAll={() => setShowParticipantsModal(true)}
+              />
               {(() => {
                 const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
                 const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
@@ -853,79 +962,6 @@ export function ActivityDetail({
                 );
               })()}
             </View>
-
-            {/* === PEOPLE CARD === One row: avatar stack (organizer first,
-                marked) · participant count + free slots · Voir tous. Tapping
-                opens the full participant list modal. */}
-            <View style={styles.infoCard}>
-              <OrganizerCard
-                activityId={activity.id}
-                creatorId={activity.creator_id}
-                creatorName={activity.creator_name}
-                creatorAvatar={activity.creator_avatar}
-                maxParticipants={activity.max_participants}
-                onOpenAll={() => setShowParticipantsModal(true)}
-              />
-            </View>
-
-            {/* === WHERE CARD === Map (members only) + description */}
-            {(showTabs || activity.description) && (
-              <View style={styles.infoCard}>
-                {showTabs && (
-                  <Pressable style={styles.mapContainer} onPress={() => setShowFullMap(true)}>
-                    <JuntoMapView center={miniMapCenter} zoom={mapZoom} pins={mapPins} routeLine={mapRouteLine} compassEnabled={false} />
-                    <View style={styles.mapTapOverlay} pointerEvents="box-only" />
-                    <View style={styles.mapControls} pointerEvents="box-none">
-                      <Pressable
-                        style={styles.mapControlBtn}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          const navLat = activity.meeting_lat ?? activity.lat;
-                          const navLng = activity.meeting_lng ?? activity.lng;
-                          Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
-                        }}
-                        accessibilityLabel={t('activity.navigate')}
-                        hitSlop={4}
-                      >
-                        <Navigation size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                      </Pressable>
-                      <View style={styles.mapControlDivider} />
-                      <Pressable
-                        style={styles.mapControlBtn}
-                        onPress={(e) => { e.stopPropagation(); setShowFullMap(true); }}
-                        accessibilityLabel={t('activity.fullscreen', { defaultValue: 'Plein écran' })}
-                        hitSlop={4}
-                      >
-                        <Maximize2 size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                      </Pressable>
-                      {isCreator && <View style={styles.mapControlDivider} />}
-                      {isCreator && (
-                        <Pressable
-                          style={styles.mapControlBtn}
-                          onPress={(e) => { e.stopPropagation(); handlePickTrace(); }}
-                          accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}
-                          hitSlop={4}
-                        >
-                          <Route size={16} color={colors.cta} strokeWidth={2.4} />
-                        </Pressable>
-                      )}
-                      {isCreator && activity.trace_geojson && <View style={styles.mapControlDivider} />}
-                      {isCreator && activity.trace_geojson && (
-                        <Pressable
-                          style={styles.mapControlBtn}
-                          onPress={(e) => { e.stopPropagation(); handleClearTrace(); }}
-                          accessibilityLabel={t('activity.traceRemove')}
-                          hitSlop={4}
-                        >
-                          <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
-                        </Pressable>
-                      )}
-                    </View>
-                  </Pressable>
-                )}
-                <ActivityDescription description={activity.description} />
-              </View>
-            )}
 
             {!isCreator && isAuthenticated && (
               <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
@@ -1186,6 +1222,90 @@ export function ActivityDetail({
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  // Info-tab v3 (map-hero) — Scott 2026-07-09.
+  mapHero: {
+    height: 226,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+    position: 'relative',
+    backgroundColor: colors.surface,
+  },
+  heroPill: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    maxWidth: '60%',
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  heroPillTL: { top: 12, left: 12 },
+  heroPillBL: { bottom: 12, left: 12 },
+  heroPillBR: { bottom: 12, right: 12 },
+  heroPillText: { color: '#1F1A15', fontSize: 12, fontWeight: '700' },
+  titleBlock: { marginBottom: spacing.md },
+  activityTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xxl,
+    fontFamily: fonts.title,
+    letterSpacing: -0.5,
+    lineHeight: 30,
+  },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, flexWrap: 'wrap' },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  factsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  factCell: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  factText: {},
+  factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  factLabel: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginTop: 1,
+  },
+  cardLabel: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+  },
+  locRow: { flexDirection: 'row', gap: 10, marginBottom: spacing.sm, alignItems: 'flex-start' },
+  locText: { flex: 1 },
+  locLabel: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  locValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, marginTop: 1 },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
