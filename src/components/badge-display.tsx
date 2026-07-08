@@ -1189,23 +1189,23 @@ function SportDetail({
             {t('badges.sportDeclaredPost', { defaultValue: '' })}
           </Text>
 
-          <Text style={[styles.popupCaption, styles.sportPeerCaption]}>
-            {t('badges.peerOpinionCaption', { defaultValue: 'Jugé par les pairs' })}
+          <Text style={styles.sportPeerSentence}>
+            {editable
+              ? t('badges.peerJudgeSelf', { defaultValue: 'Tes partenaires jugent si ce niveau est juste :' })
+              : t('badges.peerJudgeOther', { defaultValue: 'Ses partenaires jugent si ce niveau est juste :' })}
           </Text>
 
-          {/* Green = juste ; red = surestimé. */}
+          {/* Triangle carries the color; the number is bold, the word plain black. */}
           <View style={styles.sportVoteRow}>
             <View style={styles.sportVoteItem}>
               <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
-              <Text style={[styles.sportVoteLabel, { color: colors.success }]}>
-                {t('badges.sportPeerJust', { n: fiable, defaultValue: `Juste · ${fiable}` })}
-              </Text>
+              <Text style={styles.sportVoteNum}>{fiable}</Text>
+              <Text style={styles.sportVoteWord}>{t('badges.levelJuste', { defaultValue: 'juste' })}</Text>
             </View>
             <View style={styles.sportVoteItem}>
               <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
-              <Text style={[styles.sportVoteLabel, { color: colors.error }]}>
-                {t('badges.sportPeerOver', { n: gonfle, defaultValue: `Surestimé · ${gonfle}` })}
-              </Text>
+              <Text style={styles.sportVoteNum}>{gonfle}</Text>
+              <Text style={styles.sportVoteWord}>{t('badges.levelSurestime', { defaultValue: 'surestimé' })}</Text>
             </View>
           </View>
 
@@ -1579,12 +1579,20 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 4,
       backgroundColor: colors.textMuted,
     },
+    sportPeerSentence: {
+      fontSize: fontSizes.xs,
+      color: colors.textSecondary,
+      marginBottom: spacing.xs,
+      lineHeight: fontSizes.xs * 1.35,
+    },
     sportVoteRow: {
       flexDirection: 'row',
       gap: spacing.lg,
-      marginTop: spacing.sm,
+      marginTop: spacing.xs,
       marginBottom: spacing.sm,
     },
+    sportVoteNum: { fontSize: fontSizes.md, fontWeight: '800', color: colors.textPrimary },
+    sportVoteWord: { fontSize: fontSizes.sm, fontWeight: '500', color: colors.textPrimary },
     sportVoteItem: {
       flexDirection: 'row',
       alignItems: 'center',
