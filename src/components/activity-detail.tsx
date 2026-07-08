@@ -234,6 +234,13 @@ export function ActivityDetail({
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          {activity.visibility === 'public' ? (
+            <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />
+          ) : activity.visibility === 'approval' ? (
+            <Hand size={18} color={colors.textSecondary} strokeWidth={2.2} />
+          ) : (
+            <Lock size={18} color={colors.textSecondary} strokeWidth={2.2} />
+          )}
           <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>
             <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
           </View>
@@ -260,7 +267,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, t, handleShare, colors, styles]);
+  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, activity.visibility, t, handleShare, colors, styles]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {
@@ -817,16 +824,9 @@ export function ActivityDetail({
                     {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
                   </Text>
                 </View>
-                <View style={styles.heroPill}>
-                  {activity.visibility === 'public' ? (
-                    <Globe size={12} color="#1F1A15" strokeWidth={2.4} />
-                  ) : activity.visibility === 'approval' ? (
-                    <Hand size={12} color="#1F1A15" strokeWidth={2.4} />
-                  ) : (
-                    <Lock size={12} color="#1F1A15" strokeWidth={2.4} />
-                  )}
-                  <Text style={styles.heroPillText} numberOfLines={1}>{t(`create.visibility.${activity.visibility}`)}</Text>
-                </View>
+              </View>
+              <View style={styles.heroTitleWrap} pointerEvents="none">
+                <Text style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</Text>
               </View>
               {showTabs && (
                 <View style={styles.mapControls} pointerEvents="box-none">
@@ -862,44 +862,27 @@ export function ActivityDetail({
               )}
             </View>
 
-            {/* Title */}
-            <View style={styles.titleBlock}>
-              <Text style={styles.activityTitle}>{activity.title}</Text>
-            </View>
-
             {/* === FACTS === restrained grid, monochrome icons, short atomic
                 values only. Long text (locations) lives in "Le parcours". */}
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
                 <BarChart3 size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                <View style={styles.factText}>
-                  <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
-                  <Text style={styles.factLabel}>{t('meta.level')}</Text>
-                </View>
+                <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
               </View>
               <View style={styles.factCell}>
                 <Clock size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                <View style={styles.factText}>
-                  <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
-                  <Text style={styles.factLabel}>{t('meta.duration')}</Text>
-                </View>
+                <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
               </View>
               {activity.distance_km != null && activity.distance_km > 0 && (
                 <View style={styles.factCell}>
                   <Route size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                  <View style={styles.factText}>
-                    <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
-                    <Text style={styles.factLabel}>{t('meta.distance')}</Text>
-                  </View>
+                  <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
                 </View>
               )}
               {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
                 <View style={styles.factCell}>
                   <Mountain size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                  <View style={styles.factText}>
-                    <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
-                    <Text style={styles.factLabel}>{t('meta.elevation')}</Text>
-                  </View>
+                  <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
                 </View>
               )}
             </View>
@@ -1259,6 +1242,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     elevation: 3,
   },
   heroPillText: { color: '#1F1A15', fontSize: 12, fontWeight: '700' },
+  heroTitleWrap: { position: 'absolute', left: spacing.md, right: spacing.md, bottom: spacing.md },
+  heroTitleOnMap: {
+    color: '#FFFFFF',
+    fontSize: fontSizes.xxl,
+    fontFamily: fonts.title,
+    letterSpacing: -0.5,
+    lineHeight: 30,
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 11,
+  },
   titleBlock: { marginBottom: spacing.md },
   activityTitle: {
     color: colors.textPrimary,
@@ -1555,7 +1549,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the full-screen map + Google-Maps directions. Floats bottom-left so
   // it doesn't collide with the creator's trace tools (top-right).
   mapControls: {
-    position: 'absolute', bottom: spacing.sm, right: spacing.sm,
+    position: 'absolute', top: spacing.sm, right: spacing.sm,
     flexDirection: 'column', alignItems: 'center',
     backgroundColor: colors.background,
     borderWidth: 1, borderColor: colors.borderStrong,
