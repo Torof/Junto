@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, StyleSheet, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -9,16 +9,16 @@ import {
   Clock, Package, Handshake, Shield,
   Compass, Tent, Waves, Bike, Plane,
   Hammer, Ban, LogOut, TrendingUp,
-  HelpCircle, Check, ChevronRight, Triangle, Plus, Minus,
+  HelpCircle, Check, ChevronRight, Triangle, Plus, Minus, ArrowUp, ArrowDown,
   type LucideIcon,
 } from 'lucide-react-native';
-import { spacing, fontSizes } from '@/constants/theme';
+import { spacing, fontSizes, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   POSITIVE_BADGES,
   NEGATIVE_BADGES,
@@ -30,6 +30,9 @@ import {
   type AwardAggregates,
   type BadgeVoter,
 } from '@/services/badge-service';
+import { userService } from '@/services/user-service';
+import { LEVELS } from '@/types/activity-form';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
 // minimal sections that inherit the hero's visual language.
@@ -519,6 +522,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         styles={styles}
         colors={colors}
         t={t}
+        editable={editable}
       />
 
       <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
@@ -804,6 +808,7 @@ function DetailModal({
   styles,
   colors,
   t,
+  editable,
 }: {
   target: DetailTarget | null;
   userId: string;
@@ -811,6 +816,7 @@ function DetailModal({
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;
+  editable: boolean;
 }) {
   if (!target) return null;
   const tone =
@@ -835,7 +841,7 @@ function DetailModal({
         <AwardDetail item={target.item} styles={styles} colors={colors} t={t} />
       )}
       {target.kind === 'sport' && (
-        <SportDetail item={target.item} styles={styles} colors={colors} />
+        <SportDetail item={target.item} styles={styles} colors={colors} editable={editable} onClose={onClose} />
       )}
     </ModalShell>
   );
@@ -1092,12 +1098,18 @@ function SportDetail({
   item,
   styles,
   colors,
+  editable,
+  onClose,
 }: {
   item: SportItem;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
+  editable: boolean;
+  onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
   const lv = item.levelVotes;
   const justeCount = lv?.right ?? 0;
   const overCount = lv?.over ?? 0;
@@ -1107,6 +1119,42 @@ function SportDetail({
 
   const accent = sportCategoryColor(item.category, '#4B7CB8');
   const declaredLabel = levelLabel(item.declaredLevel);
+
+  // Owner-only level management. The UI mirrors the server gate (set_sport_level):
+  // down free, up only when the peer net (juste − surestimé) ≥ 3. One step.
+  const curIdx = item.declaredLevel ? (LEVELS as readonly string[]).indexOf(item.declaredLevel) : -1;
+  const net = fiable - gonfle;
+  const canUp = curIdx >= 0 && curIdx < LEVELS.length - 1 && net >= 3;
+  const canDown = curIdx > 0;
+
+  const changeLevel = (dir: 1 | -1) => {
+    const target = LEVELS[curIdx + dir];
+    if (!target || !item.sportKey || busy) return;
+    const label = levelLabel(target) ?? target;
+    Alert.alert(
+      t('badges.levelChangeTitle', { level: label, defaultValue: `Passer à « ${label} » ?` }),
+      t('badges.levelChangeWarn', { defaultValue: 'Tes partenaires jugeront ton nouveau niveau au fil des sorties. Les avis actuels repartent à zéro.' }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel' },
+        {
+          text: t('common.confirm', { defaultValue: 'Confirmer' }),
+          onPress: async () => {
+            setBusy(true);
+            try {
+              await userService.setSportLevel(item.sportKey, target);
+              await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+              await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+              onClose();
+            } catch (err) {
+              Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <>
@@ -1157,6 +1205,38 @@ function SportDetail({
               </Text>
             </View>
           </View>
+
+          {editable && curIdx >= 0 && (
+            <>
+              <View style={styles.sportOwnerRow}>
+                <Pressable
+                  style={[styles.sportOwnerBtn, (!canDown || busy) && styles.sportOwnerBtnOff]}
+                  disabled={!canDown || busy}
+                  onPress={() => changeLevel(-1)}
+                >
+                  <ArrowDown size={15} color={canDown ? colors.textSecondary : colors.textMuted} strokeWidth={2.4} />
+                  <Text style={[styles.sportOwnerBtnText, !canDown && styles.sportOwnerBtnTextOff]}>
+                    {t('badges.levelDown', { defaultValue: 'Redescendre' })}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.sportOwnerBtnUp, (!canUp || busy) && styles.sportOwnerBtnOff]}
+                  disabled={!canUp || busy}
+                  onPress={() => changeLevel(1)}
+                >
+                  <ArrowUp size={15} color={canUp ? colors.success : colors.textMuted} strokeWidth={2.4} />
+                  <Text style={[styles.sportOwnerBtnUpText, !canUp && styles.sportOwnerBtnTextOff]}>
+                    {t('badges.levelUp', { defaultValue: 'Monter' })}
+                  </Text>
+                </Pressable>
+              </View>
+              {!canUp && curIdx < LEVELS.length - 1 && (
+                <Text style={styles.sportOwnerHint}>
+                  {t('badges.levelUpHint', { defaultValue: "Tes partenaires n'ont pas encore confirmé un niveau supérieur." })}
+                </Text>
+              )}
+            </>
+          )}
         </>
       )}
     </>
@@ -1519,6 +1599,20 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: -0.02,
     },
+    sportOwnerRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    sportOwnerBtn: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      borderWidth: 1.5, borderColor: colors.borderMuted, borderRadius: radius.md, paddingVertical: spacing.sm,
+    },
+    sportOwnerBtnUp: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      borderWidth: 1.5, borderColor: colors.success, borderRadius: radius.md, paddingVertical: spacing.sm,
+    },
+    sportOwnerBtnOff: { borderColor: colors.borderMuted, opacity: 0.55 },
+    sportOwnerBtnText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
+    sportOwnerBtnUpText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: '800' },
+    sportOwnerBtnTextOff: { color: colors.textMuted },
+    sportOwnerHint: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.xs, lineHeight: fontSizes.xs * 1.35 },
     sportAddChip: {
       flexDirection: 'row',
       alignItems: 'center',
