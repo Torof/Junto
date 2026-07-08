@@ -640,7 +640,11 @@
       "intro": "Junto est logistique, pas un réseau social. Deux lectures complémentaires pour décider d'une sortie ensemble — pas de note globale, pas de classement.",
       "peer": "Tes co-participants notent ce qui s'est passé sur le terrain (ponctuel, préparé, conciliant, prudent…). Pas de commentaires écrits — juste des badges précis. Les signaux négatifs s'effacent dans le temps si plus aucun nouveau ne vient s'ajouter.",
       "junto": "Des badges automatiques selon ton activité réelle : sorties rejointes, créées, polyvalence, aventures multi-jours, badges thématiques (montagne, eau, route, air…). C'est de la donnée brute, pas un cadeau.",
-      "sports": "Tes sports pratiqués : le niveau que tu t'attribues, confirmé (ou non) par tes partenaires, ta fréquence et ta dernière sortie dans chaque sport. Tape une pastille pour le détail."
+      "sports": "Tes sports pratiqués : le niveau que tu t'attribues, confirmé (ou non) par tes partenaires, ta fréquence et ta dernière sortie dans chaque sport. Tape une pastille pour le détail.",
+      "peerIntro": "Après chaque sortie, tes co-participants signalent ce qui s'est passé sur le terrain. Pas de commentaires écrits, juste des badges précis — aucune note globale.",
+      "peerPositives": "Signaux positifs",
+      "peerNegatives": "Signaux négatifs",
+      "peerNegativeExplain": "Les signaux négatifs existent pour la sécurité et la confiance entre inconnus : mieux vaut le savoir avant de partir. Ils restent discrets, n'apparaissent qu'à partir de plusieurs signalements, et s'effacent avec le temps si aucun nouveau ne vient s'ajouter — une mauvaise journée ne te suit pas."
     },
     "seeOtherSports_one": "Voir l'autre sport →",
     "seeOtherSports_other": "Voir les {{count}} autres sports →",

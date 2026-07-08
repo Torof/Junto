@@ -541,7 +541,35 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.helpTitle}>{t('profil.badgeSectionPeer')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.peer')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.peerIntro')}</Text>
+
+            <Text style={styles.helpHeading}>{t('profil.badgeHelp.peerPositives')}</Text>
+            <View style={styles.helpLabelRow}>
+              {POSITIVE_BADGES.map((b) => {
+                const I = POSITIVE_TRAIT_ICON[b.key];
+                return (
+                  <View key={b.key} style={styles.helpLabelChip}>
+                    {I && <I size={14} color={COLOR_SUCCESS} strokeWidth={2.2} />}
+                    <Text style={styles.helpLabelText}>{t(`badges.${b.key}`)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <Text style={styles.helpHeading}>{t('profil.badgeHelp.peerNegatives')}</Text>
+            <View style={styles.helpLabelRow}>
+              {NEGATIVE_BADGES.map((b) => {
+                const I = NEGATIVE_TRAIT_ICON[b.key];
+                return (
+                  <View key={b.key} style={styles.helpLabelChip}>
+                    {I && <I size={14} color={COLOR_RED} strokeWidth={2.2} />}
+                    <Text style={styles.helpLabelText}>{t(`badges.${b.key}`)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <Text style={[styles.helpBody, { marginTop: 8 }]}>{t('profil.badgeHelp.peerNegativeExplain')}</Text>
             <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
               <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
             </Pressable>
@@ -555,9 +583,10 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         <Pressable style={styles.helpBackdrop} onPress={() => setShowSportsHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</Text>
-            {/* Overview first — how to read the profile as a whole — then the
-                sport-level mechanics. */}
+            {/* Two distinct sections: the overall read of the profile, then the
+                sport-level mechanics under its own heading. */}
             <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
+            <Text style={styles.helpHeading}>{t('profil.badgeSectionSports')}</Text>
             <Text style={styles.helpBody}>{t('profil.sportsHelpBody')}</Text>
             <Pressable style={styles.helpDismiss} onPress={() => setShowSportsHelp(false)}>
               <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
@@ -2287,6 +2316,28 @@ const createStyles = (colors: AppColors) =>
       color: colors.textSecondary,
       fontSize: 13,
       lineHeight: 19,
+    },
+    helpLabelRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 4,
+    },
+    helpLabelChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    helpLabelText: {
+      color: colors.textPrimary,
+      fontSize: 12.5,
+      fontWeight: '700',
     },
     helpDismiss: {
       alignSelf: 'center',

@@ -640,7 +640,11 @@
       "intro": "Junto is logistical, not a social network. Two complementary readings to decide on an outing together — no overall score, no leaderboard.",
       "peer": "Your co-participants rate how things went on the field (on time, prepared, easygoing, cautious…). No written comments — just specific badges. Negative signals fade over time if no new ones come in.",
       "junto": "Automatic badges from your real activity: joined / created outings, versatility, multi-day adventures, themed badges (mountain, water, road, air…). Raw data, not a gift.",
-      "sports": "The sports you practise: the level you set for yourself, confirmed (or not) by your partners, your frequency and your last outing in each sport. Tap a chip for details."
+      "sports": "The sports you practise: the level you set for yourself, confirmed (or not) by your partners, your frequency and your last outing in each sport. Tap a chip for details.",
+      "peerIntro": "After each outing, your co-participants flag what happened in the field. No written comments, just precise badges — no overall score.",
+      "peerPositives": "Positive signals",
+      "peerNegatives": "Negative signals",
+      "peerNegativeExplain": "Negative signals exist for safety and trust between strangers: better to know before heading out. They stay discreet, only appear after several reports, and fade over time if no new one is added — one bad day doesn't follow you."
     },
     "seeOtherSports_one": "See the other sport →",
     "seeOtherSports_other": "See {{count}} other sports →",
