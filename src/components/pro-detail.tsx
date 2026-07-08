@@ -516,10 +516,12 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                         <UserAvatar name={r.reviewer_name ?? '?'} avatarUrl={r.reviewer_avatar} size={28} />
                         <View style={styles.reviewMiniWho}>
                           <Text style={styles.reviewMiniName} numberOfLines={1}>{r.reviewer_name ?? '?'}</Text>
-                          <Text style={styles.reviewMiniDate}>{dayjs(r.created_at).locale('fr').format('D MMM YYYY')}</Text>
+                          <View style={styles.reviewMiniMeta}>
+                            <StarRating rating={r.rating} size={12} />
+                            <Text style={styles.reviewMiniDate}>{dayjs(r.created_at).locale('fr').format('D MMM YYYY')}</Text>
+                          </View>
                         </View>
                       </View>
-                      <StarRating rating={r.rating} size={12} />
                       {r.body ? <Text style={styles.reviewMiniBody} numberOfLines={5}>{r.body}</Text> : null}
                     </View>
                   ))}
@@ -934,6 +936,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewMiniHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewMiniWho: { flex: 1, minWidth: 0 },
   reviewMiniName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  reviewMiniMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   reviewMiniDate: { color: colors.textMuted, fontSize: fontSizes.xs },
   reviewMiniBody: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
   overviewButtons: { flexDirection: 'row', gap: spacing.sm, paddingTop: spacing.xs },

@@ -684,7 +684,17 @@
     "sportsEditorTitle": "Mes sports",
     "sportsEditorHelper": "Choisis ton niveau pour chaque sport que tu pratiques. Touche à nouveau pour retirer.",
     "sportsSeeAll": "Voir tout ({{count}})",
-    "editPhotoShort": "Modifier"
+    "editPhotoShort": "Modifier",
+    "declareTitle": "Te déclarer {{level}} en {{sport}} ?",
+    "declareWarn": "Choisis honnêtement ton niveau : tu pourras toujours redescendre, mais pour remonter il faudra que tes partenaires te confirment. C'est une indication de sécurité pour ceux qui partiront avec toi.",
+    "declareConfirm": "Me déclarer",
+    "sportsManageTitle": "Gérer mes sports",
+    "sportsDeclared": "Déjà déclarés",
+    "sportsAdd": "Ajouter un sport — choisis ton niveau de départ",
+    "sportsManageHint": "Fais évoluer un niveau depuis la fiche du sport, sur ton profil.",
+    "sportsHelpTitle": "Comment ça marche",
+    "sportsHelpBody": "Tu déclares ton niveau pour chaque sport. Après vos sorties, tes partenaires disent s'il est juste ou surestimé — une indication de confiance pour partir en sécurité, pas un score. Tu peux redescendre quand tu veux ; pour monter, il faut que tes partenaires aient confirmé ton niveau actuel.",
+    "manageSports": "Gérer"
   },
   "participants": {
     "title": "Participants",
@@ -1172,7 +1182,15 @@
       "route_other": "{{count}} sorties sur route.",
       "air_one": "{{count}} sortie aérienne.",
       "air_other": "{{count}} sorties aériennes."
-    }
+    },
+    "peerJudgeSelf": "Tes partenaires jugent si ce niveau est juste :",
+    "peerJudgeOther": "Ses partenaires jugent si ce niveau est juste :",
+    "levelJuste": "juste",
+    "levelSurestime": "surestimé",
+    "levelChangeTitle": "Passer à « {{level}} » ?",
+    "levelChangeWarn": "Tes partenaires jugeront ton nouveau niveau au fil des sorties. Les avis actuels repartent à zéro.",
+    "levelUpReady": "Ton niveau actuel est confirmé par tes partenaires. Tu peux monter si tu as progressé.",
+    "levelUpHint": "Tes partenaires n'ont pas encore assez confirmé ton niveau actuel."
   },
   "presence": {
     "confirm": "Confirmer ma présence",
@@ -1364,6 +1382,8 @@
     "reviewsPlaceholder": "Bientôt — les avis des participants apparaîtront ici."
   },
   "common": {
-    "done": "Terminé"
+    "done": "Terminé",
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
   }
 }

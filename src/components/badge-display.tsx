@@ -9,7 +9,7 @@ import {
   Clock, Package, Handshake, Shield,
   Compass, Tent, Waves, Bike, Plane,
   Hammer, Ban, LogOut, TrendingUp,
-  HelpCircle, Check, ChevronRight, Triangle, Plus, Minus, ArrowUp, ArrowDown,
+  HelpCircle, Check, ChevronRight, Triangle, Plus, Minus, ArrowUp, ArrowDown, Pencil,
   type LucideIcon,
 } from 'lucide-react-native';
 import { spacing, fontSizes, radius } from '@/constants/theme';
@@ -712,8 +712,8 @@ function SportRow({
           hitSlop={4}
           style={({ pressed }) => [styles.sportAddChip, pressed && styles.tappedDim]}
         >
-          <Plus size={13} color={colors.cta} strokeWidth={2.6} />
-          <Text style={styles.sportAddText}>{t('profil.addSport', { defaultValue: 'Ajouter' })}</Text>
+          <Pencil size={13} color={colors.cta} strokeWidth={2.6} />
+          <Text style={styles.sportAddText}>{t('profil.manageSports', { defaultValue: 'Gérer' })}</Text>
         </Pressable>
       )}
     </View>
