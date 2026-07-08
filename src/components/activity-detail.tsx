@@ -799,22 +799,24 @@ export function ActivityDetail({
                   <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
                 </View>
               )}
-              <View style={[styles.heroPill, styles.heroPillTL]} pointerEvents="none">
-                <Text style={[styles.heroPillText, { color: sportAccent }]} numberOfLines={1}>
-                  {t(`sports.${activity.sport_key}`, activity.sport_key)}
-                </Text>
-              </View>
-              <View style={[styles.heroPill, styles.heroPillBL]} pointerEvents="none">
-                <Calendar size={12} color="#1F1A15" strokeWidth={2.6} />
-                <Text style={styles.heroPillText} numberOfLines={1}>
-                  {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
-                </Text>
-              </View>
-              <View style={[styles.heroPill, styles.heroPillBR]} pointerEvents="none">
-                <Users size={12} color="#1F1A15" strokeWidth={2.6} />
-                <Text style={styles.heroPillText} numberOfLines={1}>
-                  {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
-                </Text>
+              <View style={styles.heroPillCluster} pointerEvents="none">
+                <View style={[styles.heroPill, { backgroundColor: sportAccent }]}>
+                  <Text style={[styles.heroPillText, { color: '#FFFFFF' }]} numberOfLines={1}>
+                    {t(`sports.${activity.sport_key}`, activity.sport_key)}
+                  </Text>
+                </View>
+                <View style={styles.heroPill}>
+                  <Calendar size={12} color="#1F1A15" strokeWidth={2.6} />
+                  <Text style={styles.heroPillText} numberOfLines={1}>
+                    {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
+                  </Text>
+                </View>
+                <View style={styles.heroPill}>
+                  <Users size={12} color="#1F1A15" strokeWidth={2.6} />
+                  <Text style={styles.heroPillText} numberOfLines={1}>
+                    {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
+                  </Text>
+                </View>
               </View>
               {showTabs && (
                 <View style={styles.mapControls} pointerEvents="box-none">
@@ -1223,16 +1225,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
   // Info-tab v3 (map-hero) — Scott 2026-07-09.
+  // Edge-to-edge, taller — breaks out of the content padding to fill the width.
   mapHero: {
-    height: 226,
-    borderRadius: radius.lg,
+    height: 300,
     overflow: 'hidden',
+    marginHorizontal: -spacing.lg,
     marginBottom: spacing.md,
     position: 'relative',
     backgroundColor: colors.surface,
   },
-  heroPill: {
+  // Pills grouped in a single top-left cluster (wraps if needed).
+  heroPillCluster: {
     position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  heroPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
@@ -1240,16 +1252,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: 11,
     paddingVertical: 5,
-    maxWidth: '60%',
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  heroPillTL: { top: 12, left: 12 },
-  heroPillBL: { bottom: 12, left: 12 },
-  heroPillBR: { bottom: 12, right: 12 },
   heroPillText: { color: '#1F1A15', fontSize: 12, fontWeight: '700' },
   titleBlock: { marginBottom: spacing.md },
   activityTitle: {
