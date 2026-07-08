@@ -684,7 +684,16 @@
     "sportsEditorTitle": "My sports",
     "sportsEditorHelper": "Pick your level for each sport you practise. Tap again to remove.",
     "sportsSeeAll": "See all ({{count}})",
-    "editPhotoShort": "Change"
+    "editPhotoShort": "Change",
+    "declareTitle": "Declare yourself {{level}} in {{sport}}?",
+    "declareWarn": "Choose your level honestly: you can always go back down, but to move up your partners must confirm you. It's a safety cue for those who'll go out with you.",
+    "declareConfirm": "Declare myself",
+    "sportsManageTitle": "Manage my sports",
+    "sportsDeclared": "Already declared",
+    "sportsAdd": "Add a sport — choose your starting level",
+    "sportsManageHint": "Change a level from the sport's card, on your profile.",
+    "sportsHelpTitle": "How it works",
+    "sportsHelpBody": "You declare your level for each sport. After your outings, your partners say whether it's accurate or overstated — a trust cue for going out safely, not a score. You can go down whenever you want; to move up, your partners must have confirmed your current level."
   },
   "participants": {
     "title": "Participants",
@@ -1172,7 +1181,15 @@
       "route_other": "{{count}} road outings.",
       "air_one": "{{count}} air outing.",
       "air_other": "{{count}} air outings."
-    }
+    },
+    "peerJudgeSelf": "Your partners judge whether this level is accurate:",
+    "peerJudgeOther": "Their partners judge whether this level is accurate:",
+    "levelJuste": "accurate",
+    "levelSurestime": "overstated",
+    "levelChangeTitle": "Switch to “{{level}}”?",
+    "levelChangeWarn": "Your partners will judge your new level over your next outings. Current feedback resets to zero.",
+    "levelUpReady": "Your current level is confirmed by your partners. You can move up if you have progressed.",
+    "levelUpHint": "Your partners haven't confirmed your current level enough yet."
   },
   "presence": {
     "confirm": "Confirm my presence",
@@ -1364,6 +1381,8 @@
     "reviewsPlaceholder": "Coming soon — participant reviews will appear here."
   },
   "common": {
-    "done": "Done"
+    "done": "Done",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   }
 }

@@ -227,14 +227,14 @@ export function formatLevelRange(
 export const SPORTS_WITH_DISTANCE = new Set<string>([
   'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
-  'cross-country-ski', 'nordic-walking', 'snowshoeing',
+  'cross-country-ski', 'snowshoeing',
 ]);
 
 export const SPORTS_WITH_ELEVATION = new Set<string>([
   'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'ski-touring', 'ski-freeride', 'splitboard',
-  'cross-country-ski', 'nordic-walking', 'snowshoeing', 'mountaineering',
+  'cross-country-ski', 'snowshoeing', 'mountaineering',
 ]);
 
 export function sportHasDistance(sportKey: string): boolean {

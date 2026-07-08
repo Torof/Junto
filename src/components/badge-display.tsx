@@ -1117,8 +1117,8 @@ function SportDetail({
   const lv = item.levelVotes;
   const justeCount = lv?.right ?? 0;
   const overCount = lv?.over ?? 0;
-  // Same split as the chip triangle: fiable = juste + sous-estimé, gonflé = over.
-  const fiable = justeCount + (lv?.under ?? 0);
+  // "sous-estimé" (under) is retired — green = juste only, red = surestimé.
+  const fiable = justeCount;
   const gonfle = overCount;
 
   const accent = sportCategoryColor(item.category, '#4B7CB8');
