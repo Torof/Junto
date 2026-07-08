@@ -300,14 +300,7 @@
     "customSheetTypeLabel": "Type",
     "typePersonal": "Personnel",
     "typeShared": "Partagé",
-    "pickFromList": "Choisir dans la liste",
-    "category": {
-      "safety": "Sécurité",
-      "technical": "Technique",
-      "water": "Nautique",
-      "personal": "Perso",
-      "custom": "Autres"
-    }
+    "pickFromList": "Choisir dans la liste"
   },
   "organizer": {
     "viewAll": "Voir tous",
@@ -532,10 +525,6 @@
       "intermediate": "Intermédiaire",
       "advanced": "Avancé",
       "expert": "Expert"
-    },
-    "visibility": {
-      "public": "Public",
-      "approval": "Sur acceptation"
     },
     "tabs": {
       "filters": "Filtres",
@@ -927,33 +916,8 @@
   },
   "badges": {
     "newcomer": "Nouveau",
-    "categoryTitle": {
-      "joined": "Activités rejointes",
-      "created": "Activités créées"
-    },
     "categoryCount_one": "{{count}} activité",
     "categoryCount_other": "{{count}} activités",
-    "joined": {
-      "t1": "Membre",
-      "t2": "Actif",
-      "t3": "Régulier",
-      "t4": "Habitué",
-      "t5": "Pilier"
-    },
-    "created": {
-      "t1": "Initiateur",
-      "t2": "Organisateur",
-      "t3": "Animateur",
-      "t4": "Coordinateur",
-      "t5": "Bâtisseur"
-    },
-    "sport": {
-      "t1": "Curieux",
-      "t2": "Adepte",
-      "t3": "Mordu",
-      "t4": "Passionné",
-      "t5": "Inconditionnel"
-    },
     "punctual": "Ponctuel",
     "prepared": "Préparé",
     "conciliant": "Conciliant",
@@ -975,12 +939,6 @@
       "level_over": "Surestimé",
       "level_right": "Juste",
       "level_under": "Sous-estimé"
-    },
-    "peerTier": {
-      "bronze": "Bronze",
-      "silver": "Argent",
-      "gold": "Or",
-      "negative": "Signal"
     },
     "peerDesc": {
       "punctual": "Arrive à l'heure aux points de rendez-vous, ne fait pas attendre le groupe.",
@@ -1038,18 +996,6 @@
     "votersAnonymousNote": "L'identité des votants reste anonyme.",
     "sportFooter_one": "{{count}} activité complétée.",
     "sportFooter_other": "{{count}} activités complétées.",
-    "sportDot": {
-      "1": "Niveau : Débutant",
-      "2": "Niveau : Intermédiaire",
-      "3": "Niveau : Avancé",
-      "4": "Niveau : Expert"
-    },
-    "sportMilestone": {
-      "1": "Premiers pas",
-      "2": "Habitué de ce sport",
-      "3": "Expérimenté",
-      "4": "Vétéran"
-    },
     "sportOutings_one": "{{count}} sortie",
     "sportOutings_other": "{{count}} sorties",
     "levelVotesHeader": "Niveau (avis communauté)",
@@ -1077,11 +1023,6 @@
       "months_other": "{{count}} mois",
       "years_one": "{{count}} an",
       "years_other": "{{count}} ans"
-    },
-    "awardTier": {
-      "bronze": "Bronze",
-      "silver": "Argent",
-      "gold": "Or"
     },
     "awardNextTier_one": "Encore {{count}} pour passer {{tier}}",
     "awardNextTier_other": "Encore {{count}} pour passer {{tier}}",
@@ -1126,24 +1067,6 @@
         "silver": "Pilote",
         "gold": "Roi des airs"
       }
-    },
-    "awardDesc": {
-      "joined_one": "{{count}} activité rejointe.",
-      "joined_other": "{{count}} activités rejointes.",
-      "created_one": "{{count}} activité créée.",
-      "created_other": "{{count}} activités créées.",
-      "polyvalent_one": "{{count}} sport pratiqué.",
-      "polyvalent_other": "{{count}} sports pratiqués.",
-      "aventurier_one": "{{count}} aventure de plus d'un jour.",
-      "aventurier_other": "{{count}} aventures de plus d'un jour.",
-      "aquatique_one": "{{count}} sortie aquatique.",
-      "aquatique_other": "{{count}} sorties aquatiques.",
-      "montagne_one": "{{count}} sortie en montagne.",
-      "montagne_other": "{{count}} sorties en montagne.",
-      "route_one": "{{count}} sortie sur route.",
-      "route_other": "{{count}} sorties sur route.",
-      "air_one": "{{count}} sortie aérienne.",
-      "air_other": "{{count}} sorties aériennes."
     },
     "peerJudgeSelf": "Tes partenaires jugent si ce niveau est juste :",
     "peerJudgeOther": "Ses partenaires jugent si ce niveau est juste :",

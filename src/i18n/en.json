@@ -300,14 +300,7 @@
     "customSheetTypeLabel": "Type",
     "typePersonal": "Personal",
     "typeShared": "Shared",
-    "pickFromList": "Pick from list",
-    "category": {
-      "safety": "Safety",
-      "technical": "Technical",
-      "water": "Water",
-      "personal": "Personal",
-      "custom": "Other"
-    }
+    "pickFromList": "Pick from list"
   },
   "organizer": {
     "viewAll": "View all",
@@ -532,10 +525,6 @@
       "intermediate": "Intermediate",
       "advanced": "Advanced",
       "expert": "Expert"
-    },
-    "visibility": {
-      "public": "Public",
-      "approval": "On approval"
     },
     "tabs": {
       "filters": "Filters",
@@ -927,33 +916,8 @@
   },
   "badges": {
     "newcomer": "Newcomer",
-    "categoryTitle": {
-      "joined": "Activities joined",
-      "created": "Activities created"
-    },
     "categoryCount_one": "{{count}} activity",
     "categoryCount_other": "{{count}} activities",
-    "joined": {
-      "t1": "Member",
-      "t2": "Active",
-      "t3": "Regular",
-      "t4": "Habitual",
-      "t5": "Pillar"
-    },
-    "created": {
-      "t1": "Initiator",
-      "t2": "Organizer",
-      "t3": "Host",
-      "t4": "Coordinator",
-      "t5": "Builder"
-    },
-    "sport": {
-      "t1": "Curious",
-      "t2": "Adept",
-      "t3": "Enthusiast",
-      "t4": "Passionate",
-      "t5": "Devoted"
-    },
     "punctual": "On time",
     "prepared": "Prepared",
     "conciliant": "Easygoing",
@@ -975,12 +939,6 @@
       "level_over": "Over",
       "level_right": "Right",
       "level_under": "Under"
-    },
-    "peerTier": {
-      "bronze": "Bronze",
-      "silver": "Silver",
-      "gold": "Gold",
-      "negative": "Signal"
     },
     "peerDesc": {
       "punctual": "Shows up on time at meeting points, doesn't keep the group waiting.",
@@ -1038,18 +996,6 @@
     "votersAnonymousNote": "Voter identity remains anonymous.",
     "sportFooter_one": "{{count}} activity completed.",
     "sportFooter_other": "{{count}} activities completed.",
-    "sportDot": {
-      "1": "Level: Beginner",
-      "2": "Level: Intermediate",
-      "3": "Level: Advanced",
-      "4": "Level: Expert"
-    },
-    "sportMilestone": {
-      "1": "First steps",
-      "2": "Regular practitioner",
-      "3": "Experienced",
-      "4": "Veteran"
-    },
     "sportOutings_one": "{{count}} outing",
     "sportOutings_other": "{{count}} outings",
     "levelVotesHeader": "Level (community feedback)",
@@ -1077,11 +1023,6 @@
       "months_other": "{{count}} months",
       "years_one": "{{count}} year",
       "years_other": "{{count}} years"
-    },
-    "awardTier": {
-      "bronze": "Bronze",
-      "silver": "Silver",
-      "gold": "Gold"
     },
     "awardNextTier_one": "{{count}} more to reach {{tier}}",
     "awardNextTier_other": "{{count}} more to reach {{tier}}",
@@ -1126,24 +1067,6 @@
         "silver": "Pilot",
         "gold": "Sky King"
       }
-    },
-    "awardDesc": {
-      "joined_one": "{{count}} activity joined.",
-      "joined_other": "{{count}} activities joined.",
-      "created_one": "{{count}} activity created.",
-      "created_other": "{{count}} activities created.",
-      "polyvalent_one": "{{count}} sport practiced.",
-      "polyvalent_other": "{{count}} sports practiced.",
-      "aventurier_one": "{{count}} multi-day adventure.",
-      "aventurier_other": "{{count}} multi-day adventures.",
-      "aquatique_one": "{{count}} water outing.",
-      "aquatique_other": "{{count}} water outings.",
-      "montagne_one": "{{count}} mountain outing.",
-      "montagne_other": "{{count}} mountain outings.",
-      "route_one": "{{count}} road outing.",
-      "route_other": "{{count}} road outings.",
-      "air_one": "{{count}} air outing.",
-      "air_other": "{{count}} air outings."
     },
     "peerJudgeSelf": "Your partners judge whether this level is accurate:",
     "peerJudgeOther": "Their partners judge whether this level is accurate:",
