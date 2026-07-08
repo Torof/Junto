@@ -951,7 +951,7 @@
     },
     "presence": {
       "q": "How does presence verification work?",
-      "a": "On the day of the activity, once you're there, open the activity and confirm your presence in one tap (if you're in the zone). If geolocation isn't enough, you can scan the QR code shown by the creator. Confirmed presence positively impacts your reliability score."
+      "a": "On the day of the activity, once you're there, open the activity and confirm your presence in one tap (if you're in the zone). If geolocation isn't enough, you can scan the QR code shown by the creator. Confirmed presence positively impacts your reliability score. If you couldn't validate anything at the time, your co-participants can confirm your presence after the activity."
     },
     "transport": {
       "q": "How do I coordinate transport?",
@@ -968,6 +968,34 @@
     "delete": {
       "q": "How do I delete my account?",
       "a": "From settings, at the very bottom, tap 'Delete my account'. Deletion is permanent and erases all your personal data. Past activities remain visible but anonymized."
+    },
+    "levels": {
+      "q": "How do sport levels work?",
+      "a": "You declare your own level in each sport (beginner to expert), from your profile. After your outings, your partners say whether they find it accurate or overstated. You can go down whenever you want; to move up, several partners must have confirmed your current level. It's a trust cue for going out safely, not a score."
+    },
+    "badges": {
+      "q": "What do the 'Their partners say' badges mean?",
+      "a": "After each outing, your co-participants flag your attitude in the field with precise badges (punctual, prepared, accommodating, cautious…). No written comments, no overall score. Negative signals exist for safety between strangers: they stay discreet and fade over time if no new one is added."
+    },
+    "leave": {
+      "q": "How do I leave or cancel an activity?",
+      "a": "As a participant, open the activity and tap 'Leave activity': it has no impact on your reliability, except within 12 hours of the start — the creator can then waive the penalty. As the creator, you can 'Cancel the activity': all participants are notified with your reason."
+    },
+    "messaging": {
+      "q": "How do I chat with others?",
+      "a": "Two spaces. The activity wall, visible to participants, for everything about the outing. And private messages: from someone's profile you send a contact request; once accepted, the conversation opens. Private messaging also opens automatically when you coordinate a carpool."
+    },
+    "alerts": {
+      "q": "How do I get notified about new activities?",
+      "a": "Create an alert: pick a zone, a sport, a level and a date range. You'll get a notification as soon as a matching activity is created near you. You can have up to 10 alerts, managed from the Alerts tab on the map."
+    },
+    "block": {
+      "q": "How do I block a user?",
+      "a": "From someone's public profile, tap the three dots then 'Block this user'. You'll no longer see their activities or messages. You can unblock them anytime in the same place."
+    },
+    "pro": {
+      "q": "What is a Pro profile and an offering?",
+      "a": "Some professionals (guides, instructors, clubs…) have a Pro profile and offer guided services, shown on the map with a dedicated pin. You can view their offerings, their details and the reviews left by other participants."
     }
   },
   "edit": {

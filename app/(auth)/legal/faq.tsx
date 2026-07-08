@@ -9,11 +9,18 @@ import type { AppColors } from '@/constants/colors';
 const FAQ_KEYS = [
   'create',
   'join',
-  'reliability',
-  'presence',
+  'leave',
   'transport',
   'gear',
+  'messaging',
+  'alerts',
+  'reliability',
+  'levels',
+  'badges',
+  'presence',
+  'block',
   'report',
+  'pro',
   'delete',
 ] as const;
 

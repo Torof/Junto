@@ -951,7 +951,7 @@
     },
     "presence": {
       "q": "Comment fonctionne la vérification de présence ?",
-      "a": "Le jour de l'activité, une fois sur place, ouvre l'activité et valide ta présence en un clic (si tu es dans la zone). Si la géolocalisation ne suffit pas, tu peux scanner le QR code affiché par le créateur. La présence confirmée impacte ton score de fiabilité positivement."
+      "a": "Le jour de l'activité, une fois sur place, ouvre l'activité et valide ta présence en un clic (si tu es dans la zone). Si la géolocalisation ne suffit pas, tu peux scanner le QR code affiché par le créateur. La présence confirmée impacte ton score de fiabilité positivement. Si tu n'as rien pu valider sur le moment, tes co-participants peuvent confirmer ta présence après l'activité."
     },
     "transport": {
       "q": "Comment coordonner le transport ?",
@@ -968,6 +968,34 @@
     "delete": {
       "q": "Comment supprimer mon compte ?",
       "a": "Depuis les paramètres, tout en bas, le lien 'Supprimer mon compte'. La suppression est définitive et efface toutes tes données personnelles. Tes activités passées restent visibles mais anonymisées."
+    },
+    "levels": {
+      "q": "Comment marchent les niveaux de sport ?",
+      "a": "Tu déclares toi-même ton niveau dans chaque sport (débutant à expert), depuis ton profil. Après vos sorties, tes partenaires disent s'ils le jugent juste ou surestimé. Tu peux redescendre quand tu veux ; pour monter, il faut que plusieurs partenaires aient confirmé ton niveau actuel. C'est une indication de confiance pour partir en sécurité, pas un score."
+    },
+    "badges": {
+      "q": "Que veulent dire les badges « Ses partenaires disent » ?",
+      "a": "Après chaque sortie, tes co-participants signalent ton attitude sur le terrain avec des badges précis (ponctuel, préparé, conciliant, prudent…). Pas de commentaires écrits, pas de note globale. Des signaux négatifs existent pour la sécurité entre inconnus : ils restent discrets et s'effacent avec le temps si aucun nouveau ne s'ajoute."
+    },
+    "leave": {
+      "q": "Comment quitter ou annuler une activité ?",
+      "a": "Si tu es participant, ouvre l'activité et touche « Quitter l'activité » : c'est sans impact sur ta fiabilité, sauf à moins de 12h du départ — le créateur peut alors lever la pénalité. Si tu es le créateur, tu peux « Annuler l'activité » : tous les participants sont prévenus avec ta raison."
+    },
+    "messaging": {
+      "q": "Comment discuter avec les autres ?",
+      "a": "Deux espaces. Le mur de l'activité, visible par les participants, pour tout ce qui concerne la sortie. Et les messages privés : depuis le profil d'une personne, tu envoies une demande de contact ; une fois acceptée, la conversation s'ouvre. La messagerie privée s'ouvre aussi automatiquement quand tu coordonnes un covoiturage."
+    },
+    "alerts": {
+      "q": "Comment être prévenu des nouvelles activités ?",
+      "a": "Crée une alerte : choisis une zone, un sport, un niveau et une période. Tu reçois une notification dès qu'une activité correspondante est créée près de chez toi. Tu peux avoir jusqu'à 10 alertes, gérées depuis l'onglet Alertes de la carte."
+    },
+    "block": {
+      "q": "Comment bloquer un utilisateur ?",
+      "a": "Depuis le profil public d'une personne, touche les trois points puis « Bloquer cet utilisateur ». Tu ne verras plus ses activités ni ses messages. Tu peux le débloquer à tout moment au même endroit."
+    },
+    "pro": {
+      "q": "C'est quoi un profil Pro et une prestation ?",
+      "a": "Certains professionnels (guides, moniteurs, clubs…) ont un profil Pro et proposent des prestations encadrées, visibles sur la carte avec un pin dédié. Tu peux consulter leurs prestations, leurs informations et les avis laissés par d'autres participants."
     }
   },
   "edit": {
