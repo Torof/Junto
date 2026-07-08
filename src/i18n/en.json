@@ -65,7 +65,6 @@
     "openMenu": "Open menu",
     "full": "Full",
     "activityFull": "Activity full",
-    "partants": "going",
     "shareJoin": "Join me on Junto:",
     "shareTitle": "Share activity",
     "shareNoConversations": "No conversations to share with yet. Use one of the apps below.",
@@ -73,10 +72,8 @@
     "shared": "Activity shared",
     "join": "Join",
     "description": "Description",
-    "location": "Location",
     "navigate": "Navigate",
     "fullscreen": "Fullscreen",
-    "traceGpx": "GPX trace",
     "tab": {
       "info": "Info",
       "transport": "Transport",
@@ -173,9 +170,7 @@
     "created": "Alert created!",
     "deleted": "Alert deleted",
     "locationSet": "Location set",
-    "confirmLocation": "Confirm location",
-    "existing": "Your alerts",
-    "createButton": "Create an activity alert"
+    "existing": "Your alerts"
   },
   "cancel": {
     "leaveTitle": "Leave this activity?",
@@ -269,8 +264,6 @@
   },
   "transport": {
     "saved": "Transport saved",
-    "edit": "Edit",
-    "propose": "Offer",
     "howAreYouGoing": "How are you getting there?",
     "from": "Departing from",
     "fromPlaceholder": "City, town...",
@@ -278,26 +271,13 @@
     "pickupAt": "Pickup time",
     "pickTime": "Pick a time",
     "freeSeats": "Free seats",
-    "noFreeSeats": "no free seats",
     "seats": "seats",
-    "myReservation": "My seat",
-    "myCar": "My car",
-    "reserve_one": "Book · {{count}} free",
-    "reserve_other": "Book · {{count}} free",
-    "full": "Full",
-    "passenger": "passenger",
-    "cancelMySeat": "Cancel my seat",
-    "requestPending": "Request sent",
-    "otherTransports": "Other",
-    "filterAll": "All",
-    "noCars": "No cars offered yet",
     "requestSeat": "Request seat",
     "requestSeatTitle": "Request a seat",
     "pickupFrom": "Pickup from (optional)",
     "messageOptional": "Message (optional)",
     "messagePlaceholder": "E.g. I can be ready at 7am",
     "seatRequested": "Seat requested",
-    "seatCancelled": "Seat cancelled",
     "seatAccepted": "Seat confirmed!",
     "type": {
       "car": "Car",
@@ -310,24 +290,10 @@
   },
   "gear": {
     "saved": "Gear saved",
-    "empty": "No one has listed their gear yet",
     "customPlaceholder": "Other gear...",
-    "covered_one": "{{checked}}/{{total}} covered",
-    "covered_other": "{{checked}}/{{total}} covered",
-    "missingWarning_one": "{{count}} item missing. Can you bring it?",
-    "missingWarning_other": "{{count}} items missing. Can you bring any?",
-    "broughtBy": "brought by",
-    "itemSheetStatusCovered": "Covered · {{have}}/{{required}}",
-    "itemSheetStatusPartial": "Partial · {{have}}/{{required}}",
-    "itemSheetStatusMissing": "Missing · 0/{{required}}",
-    "itemSheetStatusExtra": "Well covered · {{have}}",
-    "itemSheetStatusCustom": "Brought",
-    "itemSheetBringers": "Already brought by",
-    "itemSheetNoBringers": "No one brings it yet",
     "itemSheetMyContribution": "My contribution",
     "iBringThis": "I bring this",
     "remove": "Remove",
-    "addCustom": "+ Other gear",
     "customSheetTitle": "Add custom gear",
     "customSheetNameLabel": "Name",
     "customSheetQtyLabel": "Quantity",
@@ -344,24 +310,16 @@
     }
   },
   "organizer": {
-    "badge": "Organizer",
-    "reliability": "Reliability",
     "viewAll": "View all",
     "participantsCount_one": "{{count}} participant",
     "participantsCount_other": "{{count}} participants",
     "freeSlots_one": "{{count}} free slot",
     "freeSlots_other": "{{count}} free slots",
     "full": "full",
-    "activitiesCreated_one": "{{count}} activity organized",
-    "activitiesCreated_other": "{{count}} activities organized",
-    "emptyCallout_one": "{{count}} spot · be the 1st to join",
-    "emptyCallout_other": "{{count}} spots · be the 1st to join",
-    "emptyCalloutOpen": "Open activity · be the 1st to join",
     "modalTitle": "Participants"
   },
   "meta": {
     "level": "Level",
-    "when": "When",
     "duration": "Duration",
     "places": "Places",
     "distance": "Distance",
@@ -429,7 +387,6 @@
     "seeItems": "View…",
     "seeLess": "See less",
     "cardTitle": "Group prep",
-    "title": "The group",
     "peopleCount_one": "{{count}} person",
     "peopleCount_other": "{{count}} people",
     "transport": "Transport",
@@ -460,7 +417,6 @@
       "inventory": "Common inventory",
       "recap": "Personal inventory"
     },
-    "recapEmpty": "Nobody's declared gear yet",
     "addGear": "Add gear",
     "addGearShort": "Add"
   },
@@ -503,8 +459,6 @@
     "helpIntro": "Your reliability shows how well you honor your commitments when you join an activity. The higher it is, the more others trust you.",
     "helpHowHeading": "How it's calculated",
     "helpHow": "Every time you validate your presence on-site at an activity you joined, your score goes up. If you don't validate your presence or cancel at the last minute, it goes down.",
-    "helpStartHeading": "At the start",
-    "helpStart": "Your score doesn't have enough data yet to be precise, so it starts at a neutral level and refines over your outings. Don't worry if you see “New” on your profile — that's normal for a fresh account.",
     "helpDismiss": "Got it"
   },
   "intro": {
@@ -545,9 +499,6 @@
     }
   },
   "search": {
-    "title": "Search",
-    "distance": "Distance",
-    "results": "results",
     "noResults": "No activities found"
   },
   "sportDropdown": {
@@ -561,17 +512,12 @@
     "activitiesAtPoint_one": "{{count}} activity at this spot",
     "activitiesAtPoint_other": "{{count}} activities at this spot",
     "date": {
-      "all": "All",
       "today": "Today",
       "week": "This week",
-      "pickDate": "Pick a day",
       "pickRange": "Date range"
     },
-    "dateLabel": "When",
     "sportLabel": "Sport",
     "searchSport": "Search a sport",
-    "otherFiltersLabel": "Other filters",
-    "filtersBtn": "Filters",
     "radiusLabel": "Radius",
     "radiusOff": "All",
     "sortBy": {
@@ -587,7 +533,6 @@
       "advanced": "Advanced",
       "expert": "Expert"
     },
-    "visibilityLabel": "Visibility",
     "visibility": {
       "public": "Public",
       "approval": "On approval"
@@ -624,20 +569,12 @@
     "completed": "Completed",
     "created": "Created",
     "joined": "Joined",
-    "sportsSection": "Sports & levels",
-    "noSportsYet": "No sports selected yet",
-    "addSport": "Add",
-    "badgesSection": "Badges",
-    "badgeSectionAuto": "Awarded by Junto",
     "badgeSectionPeer": "What their partners say…",
-    "badgeSectionLocked": "To unlock",
     "badgeSectionSports": "Sports practised",
     "badgeEmptyPeer": "Your co-participants will rate how things went on the field here.",
-    "badgeEmptyAwards": "Your Junto badges will appear here as you log activities.",
     "badgeEmptySports": "The sports you practice will show here, with your level and frequency.",
     "badgeHelp": {
       "intro": "Junto is logistical, not a social network. Two complementary readings to decide on an outing together: the outings you've done and how you come across to others. No overall score, no leaderboard.",
-      "junto": "Automatic badges from your real activity: joined / created outings, versatility, multi-day adventures, themed badges (mountain, water, road, air…). Raw data, not a gift.",
       "peerIntro": "After each outing, your co-participants flag what happened in the field. No written comments, just precise badges — no overall score.",
       "peerPositives": "Positive signals",
       "peerNegatives": "Negative signals",
@@ -650,12 +587,6 @@
       "sportsLevelHeading": "Your level",
       "sportsLevelBody": "You declare your level. You can pick a lower one whenever you want, a higher one only if several partners confirm your current level. You judge, they confirm — to prevent any cheating."
     },
-    "seeOtherSports_one": "See the other sport →",
-    "seeOtherSports_other": "See {{count}} other sports →",
-    "showLess": "Show less ↑",
-    "noPracticedYet": "No completed activity yet",
-    "activitiesCount_one": "activity",
-    "activitiesCount_other": "activities",
     "notificationPrefs": "Notification preferences",
     "notifType": {
       "join_request": "New join request",
@@ -689,8 +620,6 @@
       "review_reply": "Pro's reply to your review"
     },
     "editPhoto": "Change photo",
-    "sportsEditorTitle": "My sports",
-    "sportsEditorHelper": "Pick your level for each sport you practise. Tap again to remove.",
     "sportsSeeAll": "See all ({{count}})",
     "editPhotoShort": "Change",
     "declareTitle": "Declare yourself {{level}} in {{sport}}?",
@@ -706,7 +635,6 @@
   },
   "participants": {
     "title": "Participants",
-    "organizer": "Organizer",
     "pending": "Pending requests ({{count}})",
     "lateLeavers": "Late cancellations",
     "waive": "Waive penalty",
@@ -734,7 +662,6 @@
     "headerTitle": "Peer review",
     "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
     "empty": "No co-participants to rate.",
-    "submit": "Done",
     "close": "Close",
     "windowLeft_one": "{{hours}}h left",
     "windowLeft_other": "{{hours}}h left",
@@ -841,7 +768,6 @@
     "emailSubject": "Account suspension appeal"
   },
   "admin": {
-    "moderation": "Moderation",
     "pending": "Pending",
     "resolved": "Resolved",
     "noReports": "No reports",
@@ -1314,10 +1240,7 @@
     "tapMeeting": "Tap the map for the meeting point",
     "startPoint": "Start",
     "meetingPoint": "Meeting",
-    "setStart": "Start point",
-    "setMeeting": "Meeting point",
     "endPoint": "End",
-    "setEnd": "End point",
     "tapEnd": "Tap the map for the end point",
     "setObjective": "Objective (optional)",
     "objectiveSet": "Objective",
@@ -1392,11 +1315,6 @@
     "invalidPrice": "Price must be between 0 and 99,999 €.",
     "priceFromPerson": "From {{price}} € / person",
     "priceFromGroup": "From {{price}} € / group",
-    "image": "Image",
-    "imageAdd": "Add an image",
-    "imageRemove": "Remove",
-    "imageAfterSaveTitle": "Image after save",
-    "imageAfterSaveBody": "Save the activity first, then you can add an image.",
     "save": "Save",
     "saving": "Saving…",
     "create": "Create",
@@ -1406,17 +1324,11 @@
     "deleteConfirmBody": "This can't be undone. The activity will disappear from the catalog and the map.",
     "duration": "Duration",
     "notFound": "Activity not found",
-    "notFoundBody": "This activity has ended or is no longer available.",
-    "notFoundCta": "View map",
-    "contactPro": "Contact the pro",
     "byPro": "By",
     "tab": {
-      "info": "Info",
       "pictures": "Photos",
       "reviews": "Reviews"
-    },
-    "picturesPlaceholder": "Coming soon — the photo gallery will live here.",
-    "reviewsPlaceholder": "Coming soon — participant reviews will appear here."
+    }
   },
   "common": {
     "done": "Done",

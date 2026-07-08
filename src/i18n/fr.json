@@ -65,7 +65,6 @@
     "openMenu": "Ouvrir le menu",
     "full": "Complet",
     "activityFull": "Activité complète",
-    "partants": "partants",
     "shareJoin": "Rejoins-moi sur Junto :",
     "shareTitle": "Partager l'activité",
     "shareNoConversations": "Aucune conversation où partager. Tu peux partager via les autres apps ci-dessous.",
@@ -73,10 +72,8 @@
     "shared": "Activité partagée",
     "join": "Rejoindre",
     "description": "Description",
-    "location": "Localisation",
     "navigate": "Y aller",
     "fullscreen": "Plein écran",
-    "traceGpx": "Trace GPX",
     "tab": {
       "info": "Infos",
       "transport": "Transport",
@@ -173,9 +170,7 @@
     "created": "Alerte créée !",
     "deleted": "Alerte supprimée",
     "locationSet": "Position définie",
-    "confirmLocation": "Confirmer la position",
-    "existing": "Tes alertes",
-    "createButton": "Créer une alerte d'activité"
+    "existing": "Tes alertes"
   },
   "cancel": {
     "leaveTitle": "Quitter cette activité ?",
@@ -269,8 +264,6 @@
   },
   "transport": {
     "saved": "Transport enregistré",
-    "edit": "Modifier",
-    "propose": "Proposer",
     "howAreYouGoing": "Comment tu y vas ?",
     "from": "Départ depuis",
     "fromPlaceholder": "Ville, commune...",
@@ -278,26 +271,13 @@
     "pickupAt": "Heure de prise en charge",
     "pickTime": "Choisir l'heure",
     "freeSeats": "Places disponibles",
-    "noFreeSeats": "aucune place libre",
     "seats": "places",
-    "myReservation": "Ma place",
-    "myCar": "Ma voiture",
-    "reserve_one": "Réserver · {{count}} libre",
-    "reserve_other": "Réserver · {{count}} libres",
-    "full": "Complet",
-    "passenger": "passager",
-    "cancelMySeat": "Annuler ma place",
-    "requestPending": "Demande envoyée",
-    "otherTransports": "Autres",
-    "filterAll": "Tous",
-    "noCars": "Personne ne propose de voiture pour l'instant",
     "requestSeat": "Demander",
     "requestSeatTitle": "Demander une place",
     "pickupFrom": "Je pars de (optionnel)",
     "messageOptional": "Message (optionnel)",
     "messagePlaceholder": "Ex: je peux être prêt à 7h",
     "seatRequested": "Place demandée",
-    "seatCancelled": "Place annulée",
     "seatAccepted": "Place confirmée !",
     "type": {
       "car": "Voiture",
@@ -310,24 +290,10 @@
   },
   "gear": {
     "saved": "Matériel enregistré",
-    "empty": "Personne n'a encore indiqué son matériel",
     "customPlaceholder": "Autre matériel...",
-    "covered_one": "{{checked}}/{{total}} couvert",
-    "covered_other": "{{checked}}/{{total}} couverts",
-    "missingWarning_one": "{{count}} équipement manquant. Tu peux l'apporter ?",
-    "missingWarning_other": "{{count}} équipements manquants. Tu peux en apporter ?",
-    "broughtBy": "apporté par",
-    "itemSheetStatusCovered": "Complet · {{have}}/{{required}}",
-    "itemSheetStatusPartial": "Partiel · {{have}}/{{required}}",
-    "itemSheetStatusMissing": "Manquant · 0/{{required}}",
-    "itemSheetStatusExtra": "Bien couvert · {{have}}",
-    "itemSheetStatusCustom": "Apporté",
-    "itemSheetBringers": "Déjà apporté par",
-    "itemSheetNoBringers": "Personne ne l'apporte encore",
     "itemSheetMyContribution": "Ma contribution",
     "iBringThis": "J'apporte ça",
     "remove": "Retirer",
-    "addCustom": "+ Autre matériel",
     "customSheetTitle": "Ajouter un matériel",
     "customSheetNameLabel": "Nom",
     "customSheetQtyLabel": "Quantité",
@@ -344,24 +310,16 @@
     }
   },
   "organizer": {
-    "badge": "Organisateur",
-    "reliability": "Fiabilité",
     "viewAll": "Voir tous",
     "participantsCount_one": "{{count}} participant",
     "participantsCount_other": "{{count}} participants",
     "freeSlots_one": "{{count}} place libre",
     "freeSlots_other": "{{count}} places libres",
     "full": "complet",
-    "activitiesCreated_one": "{{count}} sortie organisée",
-    "activitiesCreated_other": "{{count}} sorties organisées",
-    "emptyCallout_one": "{{count}} place · soyez le 1er à rejoindre",
-    "emptyCallout_other": "{{count}} places · soyez le 1er à rejoindre",
-    "emptyCalloutOpen": "Activité ouverte · soyez le 1er à rejoindre",
     "modalTitle": "Participants"
   },
   "meta": {
     "level": "Niveau",
-    "when": "Quand",
     "duration": "Durée",
     "places": "Places",
     "distance": "Distance",
@@ -429,7 +387,6 @@
     "seeItems": "Voir…",
     "seeLess": "Voir moins",
     "cardTitle": "Préparatifs de groupe",
-    "title": "Le groupe",
     "peopleCount_one": "{{count}} personne",
     "peopleCount_other": "{{count}} personnes",
     "transport": "Transport",
@@ -460,7 +417,6 @@
       "inventory": "Inventaire commun",
       "recap": "Inventaire individuel"
     },
-    "recapEmpty": "Personne n'a encore déclaré de matériel",
     "addGear": "Ajouter du matériel",
     "addGearShort": "Ajouter"
   },
@@ -503,8 +459,6 @@
     "helpIntro": "Ta fiabilité indique à quel point tu honores tes engagements quand tu rejoins une activité. Plus elle est élevée, plus les autres te font confiance.",
     "helpHowHeading": "Comment elle est calculée",
     "helpHow": "Chaque fois que tu valides ta présence sur place lors d'une activité que tu as rejointe, ton score monte. Si tu ne valides pas ta présence ou que tu annules au dernier moment, ça la fait baisser.",
-    "helpStartHeading": "Au début",
-    "helpStart": "Ton score n'a pas encore assez de données pour être précis, alors il démarre à un niveau neutre et s'affine au fil de tes sorties. Pas d'inquiétude si tu vois « Nouveau » sur ton profil — c'est normal pour un nouveau compte.",
     "helpDismiss": "Compris"
   },
   "intro": {
@@ -545,9 +499,6 @@
     }
   },
   "search": {
-    "title": "Rechercher",
-    "distance": "Distance",
-    "results": "résultats",
     "noResults": "Aucune activité trouvée"
   },
   "sportDropdown": {
@@ -561,17 +512,12 @@
     "activitiesAtPoint_one": "{{count}} activité à ce point",
     "activitiesAtPoint_other": "{{count}} activités à ce point",
     "date": {
-      "all": "Toutes",
       "today": "Aujourd'hui",
       "week": "Cette semaine",
-      "pickDate": "Choisir un jour",
       "pickRange": "Période"
     },
-    "dateLabel": "Quand",
     "sportLabel": "Sport",
     "searchSport": "Rechercher un sport",
-    "otherFiltersLabel": "Autres filtres",
-    "filtersBtn": "Filtres",
     "radiusLabel": "Rayon",
     "radiusOff": "Tout",
     "sortBy": {
@@ -587,7 +533,6 @@
       "advanced": "Avancé",
       "expert": "Expert"
     },
-    "visibilityLabel": "Visibilité",
     "visibility": {
       "public": "Public",
       "approval": "Sur acceptation"
@@ -624,20 +569,12 @@
     "completed": "Terminées",
     "created": "Créées",
     "joined": "Rejointes",
-    "sportsSection": "Sports et niveaux",
-    "noSportsYet": "Aucun sport sélectionné",
-    "addSport": "Ajouter",
-    "badgesSection": "Badges",
-    "badgeSectionAuto": "Décernés par Junto",
     "badgeSectionPeer": "Ses partenaires disent…",
-    "badgeSectionLocked": "À débloquer",
     "badgeSectionSports": "Sports pratiqués",
     "badgeEmptyPeer": "Tes co-participants noteront ici comment ça s'est passé sur le terrain.",
-    "badgeEmptyAwards": "Tes badges Junto apparaîtront ici à mesure que tu cumules des sorties.",
     "badgeEmptySports": "Les sports que tu pratiques s'afficheront ici, avec ton niveau et la fréquence.",
     "badgeHelp": {
       "intro": "Junto est logistique, pas un réseau social. Deux lectures complémentaires pour décider d'une sortie ensemble : les sorties que tu as effectuées et ton attitude aux yeux des autres. Pas de note globale, pas de classement.",
-      "junto": "Des badges automatiques selon ton activité réelle : sorties rejointes, créées, polyvalence, aventures multi-jours, badges thématiques (montagne, eau, route, air…). C'est de la donnée brute, pas un cadeau.",
       "peerIntro": "Après chaque sortie, tes co-participants signalent ce qui s'est passé sur le terrain. Pas de commentaires écrits, juste des badges précis — aucune note globale.",
       "peerPositives": "Signaux positifs",
       "peerNegatives": "Signaux négatifs",
@@ -650,12 +587,6 @@
       "sportsLevelHeading": "Ton niveau",
       "sportsLevelBody": "Tu déclares ton niveau. Tu peux en choisir un plus bas quand tu veux, un plus haut seulement si plusieurs partenaires confirment ton niveau actuel. Tu juges, ils confirment — pour éviter toute triche."
     },
-    "seeOtherSports_one": "Voir l'autre sport →",
-    "seeOtherSports_other": "Voir les {{count}} autres sports →",
-    "showLess": "Réduire ↑",
-    "noPracticedYet": "Pas encore de sortie terminée",
-    "activitiesCount_one": "sortie",
-    "activitiesCount_other": "sorties",
     "notificationPrefs": "Préférences de notifications",
     "notifType": {
       "join_request": "Nouvelle demande de participation",
@@ -689,8 +620,6 @@
       "review_reply": "Réponse du pro à ton avis"
     },
     "editPhoto": "Modifier la photo",
-    "sportsEditorTitle": "Mes sports",
-    "sportsEditorHelper": "Choisis ton niveau pour chaque sport que tu pratiques. Touche à nouveau pour retirer.",
     "sportsSeeAll": "Voir tout ({{count}})",
     "editPhotoShort": "Modifier",
     "declareTitle": "Te déclarer {{level}} en {{sport}} ?",
@@ -706,7 +635,6 @@
   },
   "participants": {
     "title": "Participants",
-    "organizer": "Organisateur",
     "pending": "Demandes en attente ({{count}})",
     "lateLeavers": "Désistements tardifs",
     "waive": "Lever pénalité",
@@ -734,7 +662,6 @@
     "headerTitle": "Évaluation",
     "subtitle": "Évalue tes co-participants — toggle un badge pour voter ou retirer ton vote.",
     "empty": "Aucun co-participant à évaluer.",
-    "submit": "Terminé",
     "close": "Fermer",
     "windowLeft_one": "{{hours}}h restante",
     "windowLeft_other": "{{hours}}h restantes",
@@ -841,7 +768,6 @@
     "emailSubject": "Contestation de suspension de compte"
   },
   "admin": {
-    "moderation": "Modération",
     "pending": "En attente",
     "resolved": "Traités",
     "noReports": "Aucun signalement",
@@ -1314,10 +1240,7 @@
     "tapMeeting": "Touche la carte pour le point de RDV",
     "startPoint": "Départ",
     "meetingPoint": "RDV",
-    "setStart": "Point de départ",
-    "setMeeting": "Point de RDV",
     "endPoint": "Arrivée",
-    "setEnd": "Point d'arrivée",
     "tapEnd": "Touche la carte pour le point d'arrivée",
     "setObjective": "Objectif (optionnel)",
     "objectiveSet": "Objectif",
@@ -1392,11 +1315,6 @@
     "invalidPrice": "Le prix doit être compris entre 0 et 99 999 €.",
     "priceFromPerson": "À partir de {{price}} € / pers.",
     "priceFromGroup": "À partir de {{price}} € / groupe",
-    "image": "Image",
-    "imageAdd": "Ajouter une image",
-    "imageRemove": "Retirer",
-    "imageAfterSaveTitle": "Image après enregistrement",
-    "imageAfterSaveBody": "Crée d'abord l'activité, puis tu pourras y ajouter une image.",
     "save": "Enregistrer",
     "saving": "Enregistrement…",
     "create": "Créer",
@@ -1406,17 +1324,11 @@
     "deleteConfirmBody": "Action irréversible. L'activité disparaîtra du catalogue et de la carte.",
     "duration": "Durée",
     "notFound": "Activité introuvable",
-    "notFoundBody": "Cette activité est terminée ou n'est plus disponible.",
-    "notFoundCta": "Voir la carte",
-    "contactPro": "Contacter le pro",
     "byPro": "Proposé par",
     "tab": {
-      "info": "Infos",
       "pictures": "Photos",
       "reviews": "Avis"
-    },
-    "picturesPlaceholder": "Bientôt — la galerie photo arrivera ici.",
-    "reviewsPlaceholder": "Bientôt — les avis des participants apparaîtront ici."
+    }
   },
   "common": {
     "done": "Terminé",
