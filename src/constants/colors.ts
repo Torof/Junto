@@ -2,7 +2,7 @@ export const darkColors = {
   background: '#0D1B2A',
   surface: '#1B3A5C',
   surfaceAlt: '#142D48',
-  cta: '#F4642A',
+  cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
 
   textPrimary: '#F5F5F0',
   textSecondary: '#8A9BB0',
@@ -77,7 +77,7 @@ export const lightColors = {
   background: '#F5EEDF',
   surface: '#EDE4D2',
   surfaceAlt: '#E3D9C4',
-  cta: '#F26B2E',
+  cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
 
   textPrimary: '#1F1A15',
   textSecondary: '#6F665A',
