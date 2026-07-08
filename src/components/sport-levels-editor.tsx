@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Modal, ScrollView, Alert, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, HelpCircle, ChevronDown } from 'lucide-react-native';
+import { X, ChevronDown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -77,27 +77,15 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
     );
   };
 
-  const showHelp = () => {
-    Alert.alert(
-      t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' }),
-      t('profil.sportsHelpBody', { defaultValue: "Tu déclares ton niveau pour chaque sport. Après vos sorties, tes partenaires disent s'il est juste ou surestimé — une indication de confiance pour partir en sécurité, pas un score. Tu peux redescendre quand tu veux ; pour monter, il faut que tes partenaires aient confirmé ton niveau actuel." }),
-    );
-  };
-
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <SafeAreaView style={styles.sheet} edges={['bottom']}>
           <View style={styles.header}>
             <Text style={styles.title}>{t('profil.sportsManageTitle', { defaultValue: 'Gérer mes sports' })}</Text>
-            <View style={styles.headerRight}>
-              <Pressable onPress={showHelp} hitSlop={8} style={styles.helpBtn}>
-                <HelpCircle size={20} color={colors.textSecondary} strokeWidth={2} />
-              </Pressable>
-              <Pressable onPress={onClose} hitSlop={8}>
-                <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
-              </Pressable>
-            </View>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
           </View>
 
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
@@ -189,8 +177,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  helpBtn: { padding: 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', letterSpacing: -0.02 },
   list: { flexGrow: 0 },
   listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },

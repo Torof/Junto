@@ -311,6 +311,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<DetailTarget | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSportsHelp, setShowSportsHelp] = useState(false);
   const [showAllSports, setShowAllSports] = useState(false);
   // Cached reference list (staleTime Infinity) — used to map a sport key to its
   // universe category for the popover's tint.
@@ -443,6 +444,9 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
     <>
       {/* ── Sports pratiqués ── its own card ── */}
       <View style={styles.card}>
+        <Pressable style={styles.helpButton} onPress={() => setShowSportsHelp(true)} hitSlop={10}>
+          <HelpCircle size={16} color={colors.textMuted} strokeWidth={2} />
+        </Pressable>
         <View style={styles.section}>
           <SectionHeader
             Icon={Mountain}
@@ -531,19 +535,28 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         editable={editable}
       />
 
+      {/* Peer card "?" — only the behaviour badges now (sports help moved to its
+          own section). */}
       <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
         <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.helpTitle}>{t('profil.badgeHelp.title')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
-
-            <Text style={styles.helpHeading}>{t('profil.badgeSectionPeer')}</Text>
+            <Text style={styles.helpTitle}>{t('profil.badgeSectionPeer')}</Text>
             <Text style={styles.helpBody}>{t('profil.badgeHelp.peer')}</Text>
-
-            <Text style={styles.helpHeading}>{t('profil.badgeSectionSports')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.sports')}</Text>
-
             <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
+              <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Sports card "?" — how the self-declared, peer-validated level works
+          (moved here from the Gérer drawer + the peer help). */}
+      <Modal visible={showSportsHelp} animationType="fade" transparent onRequestClose={() => setShowSportsHelp(false)}>
+        <Pressable style={styles.helpBackdrop} onPress={() => setShowSportsHelp(false)}>
+          <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</Text>
+            <Text style={styles.helpBody}>{t('profil.sportsHelpBody')}</Text>
+            <Pressable style={styles.helpDismiss} onPress={() => setShowSportsHelp(false)}>
               <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
             </Pressable>
           </Pressable>
