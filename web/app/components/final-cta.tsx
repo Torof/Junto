@@ -7,7 +7,7 @@ import { CREAM, INK, INK_SOFT, ORANGE, SectionLabel, TopoLines } from './shared'
 // via NEXT_PUBLIC_APK_DOWNLOAD_URL in Vercel) when you cut a new APK.
 const APK_DOWNLOAD_URL =
   process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ??
-  'https://expo.dev/artifacts/eas/rZrLvxbXDEIxvUW4WQ2J7fFE4lWjHCyRLfd_tXoFezQ.apk';
+  'https://expo.dev/artifacts/eas/5pZDU0oy02-PKAF7xIUm6Fz8S_7wdK41kuv5WZk6Dow.apk';
 
 async function getQrDataUrl(url: string): Promise<string> {
   return QRCode.toDataURL(url, {
