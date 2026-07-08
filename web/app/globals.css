@@ -5,10 +5,11 @@
   --navy: #1E2F4D;
   --navy-deep: #14223B;
   --navy-dark: #0F1828;
-  /* Brand accent — vert vif (2026-07-08). Token names kept as --orange* for a
-     minimal, reversible diff; they now hold the green identity color. */
-  --orange: #2FA46A;
-  --orange-soft: #7BC6A0;
+  /* Brand accent — vert montagne (site identity, 2026-07-08). Token names kept
+     as --orange* for a minimal diff; they hold the green identity color. The
+     app uses the brighter vert vif #2FA46A for functional visibility. */
+  --orange: #3F7A56;
+  --orange-soft: #7DB697;
   --cream: #F4E9D3;
   --cream-soft: #FBF5E6;
   --mint: #7EC8A3;
@@ -21,7 +22,7 @@
   --bg: #0D1B2A;
   --surface: #1B3A5C;
   --surface-2: #142D48;
-  --cta: #2FA46A;
+  --cta: #3F7A56;
   --text: #F5F5F0;
   --text-secondary: #8A9BB0;
   --success: #2ECC71;
