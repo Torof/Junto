@@ -5,14 +5,15 @@
 // teardrops + sport emoji, RA with its PRO capsule, PP pushpin on a village.
 // Copy: validated 2026-07-07 (« aventure » disambiguates « sortie » for the
 // public façade; « entre passionnés » replaces « particuliers »).
-// The slogan slot is a PLACEHOLDER — Scott is workshopping the real one.
+// Slogan LOCKED 2026-07-08: "Fini le sport solo, va sur Junto." (affirmation,
+// not the old "Marre du…?" question). Accent = vert vif #2FA46A.
 
 import { UaPin, RaPin, PpPin, TEARDROP, PRO_BLUE } from './map-pins';
 
 const PAPER = '#F5EEDF';
 const INK = '#1F1A15';
 const INK_SOFT = '#4A4034';
-const CTA_ORANGE = '#F26B2E';
+const CTA_ORANGE = '#2FA46A'; // vert vif — brand accent (2026-07-08)
 const STONE = '#E0D2B4';
 
 function JuntoTeardropMark({ size = 34 }: { size?: number }) {
@@ -120,7 +121,7 @@ export default function Hero() {
                 textWrap: 'balance',
               }}
             >
-              Marre du sport solo&nbsp;?
+              Fini le sport solo,
             </span>
             <span
               style={{
@@ -134,7 +135,7 @@ export default function Hero() {
                 color: CTA_ORANGE,
               }}
             >
-              Va sur Junto.
+              va sur Junto.
             </span>
           </h1>
 
