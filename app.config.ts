@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/junto_icon_square.png',
     resizeMode: 'contain',
-    backgroundColor: '#0D1B2A',
+    backgroundColor: '#3F7A56',
   },
   android: {
     package: 'app.getjunto',
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
       foregroundImage: './assets/junto_icon_round.png',
-      backgroundColor: '#0D1B2A',
+      backgroundColor: '#3F7A56',
     },
     edgeToEdgeEnabled: true,
     intentFilters: [
