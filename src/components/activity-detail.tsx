@@ -817,6 +817,16 @@ export function ActivityDetail({
                     {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
                   </Text>
                 </View>
+                <View style={styles.heroPill}>
+                  {activity.visibility === 'public' ? (
+                    <Globe size={12} color="#1F1A15" strokeWidth={2.4} />
+                  ) : activity.visibility === 'approval' ? (
+                    <Hand size={12} color="#1F1A15" strokeWidth={2.4} />
+                  ) : (
+                    <Lock size={12} color="#1F1A15" strokeWidth={2.4} />
+                  )}
+                  <Text style={styles.heroPillText} numberOfLines={1}>{t(`create.visibility.${activity.visibility}`)}</Text>
+                </View>
               </View>
               {showTabs && (
                 <View style={styles.mapControls} pointerEvents="box-none">
@@ -852,19 +862,9 @@ export function ActivityDetail({
               )}
             </View>
 
-            {/* Title + visibility */}
+            {/* Title */}
             <View style={styles.titleBlock}>
               <Text style={styles.activityTitle}>{activity.title}</Text>
-              <View style={styles.metaRow}>
-                {activity.visibility === 'public' ? (
-                  <Globe size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                ) : activity.visibility === 'approval' ? (
-                  <Hand size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                ) : (
-                  <Lock size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                )}
-                <Text style={styles.metaText}>{t(`create.visibility.${activity.visibility}`)}</Text>
-              </View>
             </View>
 
             {/* === FACTS === restrained grid, monochrome icons, short atomic
@@ -1230,19 +1230,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 300,
     overflow: 'hidden',
     marginHorizontal: -spacing.lg,
+    marginTop: -spacing.lg,
     marginBottom: spacing.md,
     position: 'relative',
     backgroundColor: colors.surface,
   },
-  // Pills grouped in a single top-left cluster (wraps if needed).
+  // Pills stacked in a single top-left cluster.
   heroPillCluster: {
     position: 'absolute',
     top: spacing.md,
     left: spacing.md,
-    right: spacing.md,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 7,
   },
   heroPill: {
     flexDirection: 'row',
@@ -1286,7 +1286,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  factText: {},
+  factText: { flexDirection: 'column-reverse', gap: 2 },
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   factLabel: {
     color: colors.textMuted,
@@ -1294,7 +1294,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
-    marginTop: 1,
   },
   cardLabel: {
     color: colors.textMuted,
@@ -1556,7 +1555,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the full-screen map + Google-Maps directions. Floats bottom-left so
   // it doesn't collide with the creator's trace tools (top-right).
   mapControls: {
-    position: 'absolute', bottom: spacing.sm, left: spacing.sm,
+    position: 'absolute', bottom: spacing.sm, right: spacing.sm,
     flexDirection: 'column', alignItems: 'center',
     backgroundColor: colors.background,
     borderWidth: 1, borderColor: colors.borderStrong,
