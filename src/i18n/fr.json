@@ -636,11 +636,8 @@
     "badgeEmptyAwards": "Tes badges Junto apparaîtront ici à mesure que tu cumules des sorties.",
     "badgeEmptySports": "Les sports que tu pratiques s'afficheront ici, avec ton niveau et la fréquence.",
     "badgeHelp": {
-      "title": "Comment lire ce profil",
       "intro": "Junto est logistique, pas un réseau social. Deux lectures complémentaires pour décider d'une sortie ensemble : les sorties que tu as effectuées et ton attitude aux yeux des autres. Pas de note globale, pas de classement.",
-      "peer": "Tes co-participants notent ce qui s'est passé sur le terrain (ponctuel, préparé, conciliant, prudent…). Pas de commentaires écrits — juste des badges précis. Les signaux négatifs s'effacent dans le temps si plus aucun nouveau ne vient s'ajouter.",
       "junto": "Des badges automatiques selon ton activité réelle : sorties rejointes, créées, polyvalence, aventures multi-jours, badges thématiques (montagne, eau, route, air…). C'est de la donnée brute, pas un cadeau.",
-      "sports": "Tes sports pratiqués : le niveau que tu t'attribues, confirmé (ou non) par tes partenaires, ta fréquence et ta dernière sortie dans chaque sport. Tape une pastille pour le détail.",
       "peerIntro": "Après chaque sortie, tes co-participants signalent ce qui s'est passé sur le terrain. Pas de commentaires écrits, juste des badges précis — aucune note globale.",
       "peerPositives": "Signaux positifs",
       "peerNegatives": "Signaux négatifs",
@@ -704,7 +701,6 @@
     "sportsAdd": "Ajouter un sport — choisis ton niveau de départ",
     "sportsManageHint": "Fais évoluer un niveau depuis la fiche du sport, sur ton profil.",
     "sportsHelpTitle": "Comment ça marche",
-    "sportsHelpBody": "Tu déclares ton niveau pour chaque sport. Après vos sorties, tes partenaires disent s'ils le jugent juste ou surestimé — une indication de confiance pour partir en sécurité, pas un score. Tu peux choisir un niveau inférieur quand tu veux, ou un niveau supérieur seulement si plusieurs partenaires ont jugé qu'ils étaient d'accord avec ton niveau actuel. C'est toi qui juges ton niveau, mais il doit être confirmé par les autres — pour éviter toute triche.",
     "manageSports": "Gérer",
     "sportsSeeLess": "Voir moins"
   },
