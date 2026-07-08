@@ -7,9 +7,9 @@ export const metadata: Metadata = {
 
 const CONTACT_EMAIL = 'contact@getjunto.app';
 
-// ⚠️ PLACEHOLDERS — à compléter par Scott avant mise en production :
-// les champs entre [crochets] doivent être remplis avec les informations
-// réelles de l'éditeur (obligation légale, LCEN art. 6-III).
+// Éditeur non professionnel (personne physique) — LCEN art. 6-III-2 : identité
+// détenue par l'hébergeur, non publiée. À repasser en mentions "pro" complètes
+// si Junto devient commercial (offres payantes, monétisation des pros).
 export default function MentionsPage() {
   return (
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
@@ -20,13 +20,16 @@ export default function MentionsPage() {
 
       <H2>Éditeur</H2>
       <P>
-        Le site getjunto.app et l&apos;application Junto sont édités par :
+        Le site getjunto.app et l&apos;application Junto sont édités à titre personnel et non
+        professionnel par une personne physique.
+      </P>
+      <P>
+        Conformément à l&apos;article 6-III-2 de la loi n° 2004-575 du 21 juin 2004 (LCEN),
+        l&apos;éditeur — personne physique éditant à titre non professionnel — a communiqué ses
+        coordonnées d&apos;identification à l&apos;hébergeur et n&apos;est pas tenu de les rendre
+        publiques.
       </P>
       <Ul>
-        <li><B>[Nom / dénomination sociale]</B> — [forme juridique : entrepreneur individuel / SAS / SARL…]</li>
-        <li>Adresse : [adresse complète]</li>
-        <li>SIRET : [numéro SIRET, le cas échéant]</li>
-        <li>Directeur de la publication : [nom]</li>
         <li>Contact : <A href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</A></li>
       </Ul>
 
