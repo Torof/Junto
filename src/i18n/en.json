@@ -825,7 +825,9 @@
       "sage": "Sage",
       "glacier": "Glacier blue",
       "slate": "Slate",
-      "terracotta": "Terracotta"
+      "terracotta": "Terracotta",
+      "meadow": "Meadow green",
+      "vif": "Bright green"
     },
     "mapStyle": "Map style",
     "mapStyleOption": {

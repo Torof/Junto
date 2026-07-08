@@ -15,6 +15,8 @@ export interface Accent {
 export const ACCENTS: Accent[] = [
   { key: 'orange', hex: '#F26B2E' }, // current base identity
   { key: 'mountain', hex: '#3F7A56' },
+  { key: 'meadow', hex: '#2E8B57' },
+  { key: 'vif', hex: '#2FA46A' },
   { key: 'pine', hex: '#216B5E' },
   { key: 'sage', hex: '#6E8A5E' },
   { key: 'glacier', hex: '#4A86B8' },

@@ -825,7 +825,9 @@
       "sage": "Sauge",
       "glacier": "Bleu glacier",
       "slate": "Ardoise",
-      "terracotta": "Terracotta"
+      "terracotta": "Terracotta",
+      "meadow": "Vert prairie",
+      "vif": "Vert vif"
     },
     "mapStyle": "Style de carte",
     "mapStyleOption": {
