@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { CREAM, NAVY, ORANGE, ORANGE_SOFT, SKY, SectionLabel, TopoLines } from './shared';
+import { CREAM, INK, INK_SOFT, ORANGE, SectionLabel, TopoLines } from './shared';
 
 // Latest preview APK (v0.1.3 build #11, EAS) — built from main, includes
 // everything to date. The QR and the download button both point here.
@@ -13,7 +13,7 @@ async function getQrDataUrl(url: string): Promise<string> {
   return QRCode.toDataURL(url, {
     width: 560,
     margin: 1,
-    color: { dark: NAVY, light: '#FFFFFF' },
+    color: { dark: INK, light: '#FFFFFF' },
     errorCorrectionLevel: 'H',
   });
 }
@@ -26,26 +26,19 @@ export default async function FinalCTA() {
       id="beta"
       className="junto-cta"
       style={{
-        padding: '140px 40px',
-        background: NAVY,
-        color: '#FFF',
+        padding: '120px 40px',
+        background: CREAM,
+        color: INK,
         position: 'relative',
         overflow: 'hidden',
+        borderTop: `2px solid ${INK}`,
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(circle at 80% 20%, ${ORANGE}22 0%, transparent 50%),
-                       radial-gradient(circle at 20% 80%, ${SKY}22 0%, transparent 50%)`,
-        }}
-      />
-      <TopoLines opacity={0.06} color={CREAM} count={10} />
+      <TopoLines opacity={0.05} color={INK} count={10} />
 
       <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', textAlign: 'center' }}>
         <div style={{ display: 'inline-block' }}>
-          <SectionLabel color={ORANGE_SOFT}>Télécharge Junto</SectionLabel>
+          <SectionLabel>Télécharge Junto</SectionLabel>
         </div>
         <h2
           className="display junto-cta-title"
@@ -53,14 +46,14 @@ export default async function FinalCTA() {
             fontSize: 'clamp(48px, 8vw, 84px)',
             lineHeight: 0.96,
             margin: 0,
-            fontWeight: 800,
+            fontWeight: 900,
             letterSpacing: '-0.04em',
             textWrap: 'balance',
           }}
         >
           Ta prochaine sortie
           <br />
-          <span style={{ color: ORANGE_SOFT }}>t&apos;attend déjà.</span>
+          <span style={{ color: ORANGE }}>t&apos;attend déjà.</span>
         </h2>
 
         <div
@@ -76,7 +69,7 @@ export default async function FinalCTA() {
         >
           <div className="junto-cta-download" style={{ textAlign: 'right' }}>
             <a
-              className="junto-cta-button"
+              className="junto-hero-cta junto-cta-button"
               href={APK_DOWNLOAD_URL}
               style={{
                 display: 'inline-flex',
@@ -85,11 +78,12 @@ export default async function FinalCTA() {
                 background: ORANGE,
                 color: '#FFF',
                 padding: '18px 28px',
-                borderRadius: 12,
+                borderRadius: 14,
+                border: `2px solid ${INK}`,
                 fontSize: 16,
-                fontWeight: 700,
+                fontWeight: 800,
                 textDecoration: 'none',
-                boxShadow: '0 10px 30px -8px rgba(242,107,46,0.5)',
+                boxShadow: `4px 4px 0 ${INK}`,
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -99,7 +93,7 @@ export default async function FinalCTA() {
             </a>
             <div
               className="mono"
-              style={{ fontSize: 10, opacity: 0.4, letterSpacing: '0.1em', marginTop: 12 }}
+              style={{ fontSize: 10, color: INK_SOFT, letterSpacing: '0.1em', marginTop: 12 }}
             >
               ANDROID 9+ · ~205 MO
             </div>
@@ -110,7 +104,7 @@ export default async function FinalCTA() {
               className="mono junto-cta-scan"
               style={{
                 fontSize: 11,
-                opacity: 0.5,
+                color: INK_SOFT,
                 letterSpacing: '0.15em',
                 writingMode: 'vertical-rl',
                 transform: 'rotate(180deg)',
@@ -125,6 +119,8 @@ export default async function FinalCTA() {
                 height: 140,
                 borderRadius: 16,
                 background: '#FFF',
+                border: `2px solid ${INK}`,
+                boxShadow: `4px 4px 0 ${INK}`,
                 padding: 12,
                 display: 'flex',
                 alignItems: 'center',
@@ -143,11 +139,11 @@ export default async function FinalCTA() {
           </div>
         </div>
 
-        <div style={{ fontSize: 13, opacity: 0.55, marginTop: 48 }}>
+        <div style={{ fontSize: 13, color: INK_SOFT, marginTop: 48 }}>
           Android d&apos;abord — iOS arrivera avec la communauté.{' '}
           <a
             href="mailto:contact@getjunto.app"
-            style={{ color: ORANGE_SOFT, textDecoration: 'underline' }}
+            style={{ color: INK, fontWeight: 700, textDecoration: 'underline' }}
           >
             Écris-nous
           </a>

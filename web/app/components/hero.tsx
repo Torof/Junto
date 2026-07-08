@@ -70,12 +70,6 @@ export default function Hero() {
             flexWrap: 'wrap',
           }}
         >
-          <a className="junto-hero-nav-link" href="#comment" style={{ textDecoration: 'none', color: INK, opacity: 0.78 }}>
-            Communauté
-          </a>
-          <a className="junto-hero-nav-link" href="#pro" style={{ textDecoration: 'none', color: INK, opacity: 0.78 }}>
-            Pros
-          </a>
           <a
             className="junto-hero-nav-cta"
             href="#beta"

@@ -12,6 +12,11 @@ export const CREAM = '#F4E9D3';
 export const CREAM_SOFT = '#FBF5E6';
 export const MINT = '#7EC8A3';
 export const SKY = '#4B7CB8';
+// Brutalist tokens (hero identity) — shared so the CTA + footer match it.
+export const PAPER = '#F5EEDF';
+export const INK = '#1F1A15';
+export const INK_SOFT = '#4A4034';
+export const STONE = '#E0D2B4';
 
 export function JuntoMark({ size = 40 }: { size?: number }) {
   return (
