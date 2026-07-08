@@ -134,7 +134,7 @@ A composite system:
 - **Reliability score**: Bayesian with PRIOR=3, recalculated on every `confirmed_present` flip. Stored in `users.reliability_score` (private). Public exposure as `reliability_tier` (excellent ≥ 90, good ≥ 75, fair ≥ 50, poor < 50). Displayed as ring + pill on profile (% private to self, tier label public).
 - **Reputation badges** (8 types peer-voted): trustworthy / great_leader / good_vibes / punctual + 4 negatives (level_overestimated / difficult_attitude / unreliable_field / aggressive). Co-participants vote in the peer-review window (end+15min..end+24h). Thresholds: 5+ to show positive, 15+ to flag negative.
 - **Progression badges** (mig 00135): tiered system across 3 categories (joined, created, sport-per-key) × 5 tiers (t1@5 / t2@10 / t3@20 / t4@50 / t5@75). Auto-attributed by trigger on activity completion. Notif `badge_unlocked` fires at each level-up. Display: icon-only chips with count overlay, tier pill below; tap → ladder modal.
-- **Sport-level endorsements** (mig 00097): peers can confirm or contest the level a user announced for a given sport.
+- **Sport levels** (self-declared, peer-validated — migs 00153/00154, 00293–00295; the old mig 00097 "endorsements" table + functions were dropped in 00159): each user declares their level per sport (débutant→expert) via `set_sport_level`. Co-participants vote juste (`level_right`, ▲) or surestimé (`level_over`, ▼) in the peer-review window. Down-move is free; up-move is gated on net peer confirmation (`level_right − level_over ≥ 3`). Surfaced as the sport pastille + tooltip on the profile.
 
 ### Presence verification — V3 (mig 00141..00149)
 Multi-path with offline graceful degradation. Voir `docs/DAY_OF_ACTIVITY.md` pour le détail complet.

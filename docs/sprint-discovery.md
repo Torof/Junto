@@ -1,3 +1,5 @@
+> ⚠️ **SPEC DORMANTE — jamais construite.** Rédigée le 2026-04-16, cette fonctionnalité n'a jamais été implémentée (aucune migration ni code). Elle ne reflète PAS la roadmap actuelle. Voir la mémoire projet « Discovery feature » pour les règles anti-dérive-dating avant toute reprise. Conservée à titre d'archive.
+
 # Sprint — Discovery (Partenaires + Demandes)
 
 **Status:** planned, not yet implemented.

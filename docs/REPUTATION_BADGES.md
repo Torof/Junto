@@ -201,7 +201,7 @@ L'ordre d'affichage suit le composant `badge-display` :
 1. **Reliability ring + tier** (en haut, en cercle autour de l'avatar)
 2. **Badges progression** (joined / created / sport — chips avec count + tier)
 3. **Reputation badges** (positifs visibles si seuil 5 atteint, négatifs visibles si seuil 15)
-4. **Sport-level endorsements** (mig 00097 — confirmer/contester le niveau annoncé du voted user)
+4. **Niveaux de sport** (auto-déclarés, validés par les pairs — juste ▲ / surestimé ▼ ; migs 00153/00154, 00293–00295. L'ancien système d'endossement mig 00097 a été retiré en 00159.) — surface = la pastille de sport + son tooltip, pas un bloc « endorsements ».
 
 ---
 

@@ -401,7 +401,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`
 
-**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `get_user_sport_breakdown`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
+**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
 **Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` (REVOKE from public ET anon — mig 00259, cf. 00018 "REVOKE didn't stick")
 

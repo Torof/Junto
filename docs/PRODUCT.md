@@ -188,7 +188,7 @@ Quand une activité matchant l'alerte est créée, `check_alerts_for_activity` e
 - Reliability score (% privé pour soi-même)
 - Badges progression (joined / created / sport, tiers t1-t5)
 - Badges réputation (visibles si seuil atteint)
-- Sport-level endorsements (peer-confirmé / contesté)
+- Niveaux de sport auto-déclarés, validés par les pairs (juste ▲ / surestimé ▼ ; montée conditionnée à la confirmation des pairs)
 
 ---
 
