@@ -644,7 +644,14 @@
       "peerIntro": "After each outing, your co-participants flag what happened in the field. No written comments, just precise badges — no overall score.",
       "peerPositives": "Positive signals",
       "peerNegatives": "Negative signals",
-      "peerNegativeExplain": "Negative signals exist for safety and trust between strangers: better to know before heading out. They stay discreet, only appear after several reports, and fade over time if no new one is added — one bad day doesn't follow you."
+      "peerNegativeExplain": "Negative signals exist for safety and trust between strangers: better to know before heading out. They stay discreet, only appear after several reports, and fade over time if no new one is added — one bad day doesn't follow you.",
+      "sportsPillHeading": "Reading a pill",
+      "sportsPillIntro": "Each sport shows your outings (×N) and the level you declare. The symbol on the right shows your partners' take on that level:",
+      "verdictConfirmed": "Confirmed",
+      "verdictOverstated": "Overstated",
+      "verdictPending": "Not yet judged",
+      "sportsLevelHeading": "Your level",
+      "sportsLevelBody": "You declare your level. You can pick a lower one whenever you want, a higher one only if several partners confirm your current level. You judge, they confirm — to prevent any cheating."
     },
     "seeOtherSports_one": "See the other sport →",
     "seeOtherSports_other": "See {{count}} other sports →",

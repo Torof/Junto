@@ -583,11 +583,31 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
         <Pressable style={styles.helpBackdrop} onPress={() => setShowSportsHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</Text>
-            {/* Two distinct sections: the overall read of the profile, then the
-                sport-level mechanics under its own heading. */}
             <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
-            <Text style={styles.helpHeading}>{t('profil.badgeSectionSports')}</Text>
-            <Text style={styles.helpBody}>{t('profil.sportsHelpBody')}</Text>
+
+            {/* How to read a sport pill: outings · declared level · peer verdict.
+                Same chip treatment as the "Ses partenaires disent" modal so the
+                section breathes instead of stacking prose. */}
+            <Text style={styles.helpHeading}>{t('profil.badgeHelp.sportsPillHeading')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.sportsPillIntro')}</Text>
+            <View style={styles.helpLabelRow}>
+              <View style={styles.helpLabelChip}>
+                <Triangle size={11} color={colors.success} fill={colors.success} strokeWidth={0} />
+                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictConfirmed')}</Text>
+              </View>
+              <View style={styles.helpLabelChip}>
+                <Triangle size={11} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
+                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictOverstated')}</Text>
+              </View>
+              <View style={styles.helpLabelChip}>
+                <View style={styles.sportEvenDot} />
+                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictPending')}</Text>
+              </View>
+            </View>
+
+            {/* The self-declared / peer-confirmed mechanic. */}
+            <Text style={styles.helpHeading}>{t('profil.badgeHelp.sportsLevelHeading')}</Text>
+            <Text style={styles.helpBody}>{t('profil.badgeHelp.sportsLevelBody')}</Text>
             <Pressable style={styles.helpDismiss} onPress={() => setShowSportsHelp(false)}>
               <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
             </Pressable>

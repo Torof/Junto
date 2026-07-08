@@ -644,7 +644,14 @@
       "peerIntro": "Après chaque sortie, tes co-participants signalent ce qui s'est passé sur le terrain. Pas de commentaires écrits, juste des badges précis — aucune note globale.",
       "peerPositives": "Signaux positifs",
       "peerNegatives": "Signaux négatifs",
-      "peerNegativeExplain": "Les signaux négatifs existent pour la sécurité et la confiance entre inconnus : mieux vaut le savoir avant de partir. Ils restent discrets, n'apparaissent qu'à partir de plusieurs signalements, et s'effacent avec le temps si aucun nouveau ne vient s'ajouter — une mauvaise journée ne te suit pas."
+      "peerNegativeExplain": "Les signaux négatifs existent pour la sécurité et la confiance entre inconnus : mieux vaut le savoir avant de partir. Ils restent discrets, n'apparaissent qu'à partir de plusieurs signalements, et s'effacent avec le temps si aucun nouveau ne vient s'ajouter — une mauvaise journée ne te suit pas.",
+      "sportsPillHeading": "Lire une pastille",
+      "sportsPillIntro": "Chaque sport affiche tes sorties (×N) et le niveau que tu déclares. Le symbole à droite montre l'avis de tes partenaires sur ce niveau :",
+      "verdictConfirmed": "Confirmé",
+      "verdictOverstated": "Surestimé",
+      "verdictPending": "Pas encore jugé",
+      "sportsLevelHeading": "Ton niveau",
+      "sportsLevelBody": "Tu déclares ton niveau. Tu peux en choisir un plus bas quand tu veux, un plus haut seulement si plusieurs partenaires confirment ton niveau actuel. Tu juges, ils confirment — pour éviter toute triche."
     },
     "seeOtherSports_one": "Voir l'autre sport →",
     "seeOtherSports_other": "Voir les {{count}} autres sports →",
