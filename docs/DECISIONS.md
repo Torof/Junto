@@ -324,4 +324,6 @@ Règles verrouillées :
 
 **Présentation :** factuelle, jamais gamifiée — pas de « +3 », pas de « déblocage », pas de barre de progression ni de notification poussant à monter. Les boutons Monter/Redescendre sont discrets, visibles par le propriétaire seul.
 
+**Optionnel — propriété clé :** Déclarer un niveau est **facultatif**. Sans déclaration, pas de jugement de niveau, et c'est ok — l'utilisateur ne se pénalise que lui-même : un profil avec 20 sorties mais aucun niveau jugé s'expose à être **moins accepté** (les autres, faute d'info, peuvent refuser). Non coercitif, auto-régulé par la confiance — pas de pression imposée. Et le **comportement** reste jugé indépendamment, au fil des sorties, via le questionnaire de fin (fiabilité / reputation badges) : la sécurité ne dépend donc jamais du seul niveau déclaré.
+
 **Alternative considérée (rejetée) :** version sans verrou (niveau librement modifiable, la seule visibilité du ▼ suffit à l'honnêteté). Rejetée car niveau libre + reset = **blanchiment** : descendre puis remonter efface les votes rouges. Le verrou de montée est structurellement nécessaire, pas un choix esthétique. La gamification qui l'entourait (déblocage/score/progression) était en revanche une dérive de Claude, retirée.
