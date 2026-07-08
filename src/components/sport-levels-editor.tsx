@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Modal, ScrollView, Alert, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, HelpCircle } from 'lucide-react-native';
+import { X, HelpCircle, ChevronDown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -40,6 +40,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
   const queryClient = useQueryClient();
   const [levels, setLevels] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [openAdd, setOpenAdd] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) setLevels({ ...(initialLevels ?? {}) });
@@ -124,13 +125,28 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
                 <Text style={styles.groupLabel}>{t('profil.sportsAdd', { defaultValue: 'Ajouter un sport — choisis ton niveau de départ' })}</Text>
                 {undeclared.map((s) => {
                   const sportName = t(`sports.${s.key}`, { defaultValue: s.key });
+                  const open = openAdd === s.key;
                   return (
                     <View key={s.key} style={styles.addRow}>
-                      <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
-                      <Text style={styles.addName} numberOfLines={1}>{sportName}</Text>
-                      {busy === s.key ? (
-                        <ActivityIndicator color={colors.cta} />
-                      ) : (
+                      <Pressable
+                        style={styles.addHead}
+                        onPress={() => setOpenAdd(open ? null : s.key)}
+                        disabled={!!busy}
+                      >
+                        <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                        <Text style={styles.addName} numberOfLines={1}>{sportName}</Text>
+                        {busy === s.key ? (
+                          <ActivityIndicator color={colors.cta} />
+                        ) : (
+                          <ChevronDown
+                            size={18}
+                            color={colors.textSecondary}
+                            strokeWidth={2}
+                            style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}
+                          />
+                        )}
+                      </Pressable>
+                      {open && busy !== s.key && (
                         <View style={styles.tierChips}>
                           {LEVELS.map((tier) => (
                             <Pressable
@@ -191,11 +207,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   declaredLevel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   manageHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.sm, lineHeight: fontSizes.xs * 1.4 },
   addRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
   },
+  addHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   addName: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
-  tierChips: { flexDirection: 'row', gap: 5 },
+  tierChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: spacing.sm, paddingLeft: 26 },
   tierChip: {
     borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
     paddingHorizontal: spacing.sm, paddingVertical: 5, backgroundColor: colors.surface,

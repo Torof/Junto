@@ -461,12 +461,14 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
                 onEdit={onEditSports}
                 t={t}
               />
-              {hiddenSportsCount > 0 && (
-                <Pressable onPress={() => setShowAllSports(true)} hitSlop={6} style={styles.seeAllBtn}>
+              {sports.length > SPORTS_LIMIT && (
+                <Pressable onPress={() => setShowAllSports(!showAllSports)} hitSlop={6} style={styles.seeAllBtn}>
                   <Text style={styles.seeAllText}>
-                    {t('profil.sportsSeeAll', { defaultValue: 'Voir tout ({{count}})', count: sports.length })}
+                    {showAllSports
+                      ? t('profil.sportsSeeLess', { defaultValue: 'Voir moins' })
+                      : t('profil.sportsSeeAll', { defaultValue: 'Voir tout ({{count}})', count: sports.length })}
                   </Text>
-                  <ChevronRight size={15} color={colors.cta} strokeWidth={2.6} />
+                  <ChevronRight size={15} color={colors.cta} strokeWidth={2.6} style={{ transform: [{ rotate: showAllSports ? '-90deg' : '90deg' }] }} />
                 </Pressable>
               )}
             </>
@@ -1215,6 +1217,8 @@ function SportDetail({
 
           {editable && curIdx >= 0 && (
             <>
+              <View style={styles.sportOwnerDivider} />
+              <Text style={styles.sportOwnerLabel}>{t('badges.changeLevelLabel', { defaultValue: 'Change ton niveau' })}</Text>
               <View style={styles.sportOwnerRow}>
                 {downTarget && (
                   <Pressable
@@ -1567,7 +1571,12 @@ const createStyles = (colors: AppColors) =>
       fontWeight: '800',
       letterSpacing: -0.02,
     },
-    sportOwnerRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    sportOwnerDivider: { height: 1, backgroundColor: colors.borderMuted, marginTop: spacing.md },
+    sportOwnerLabel: {
+      fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase',
+      color: colors.textSecondary, marginTop: spacing.md, marginBottom: spacing.xs,
+    },
+    sportOwnerRow: { flexDirection: 'row', gap: spacing.sm },
     sportOwnerBtn: {
       flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
       borderWidth: 1.5, borderColor: colors.borderMuted, borderRadius: radius.md, paddingVertical: spacing.sm,

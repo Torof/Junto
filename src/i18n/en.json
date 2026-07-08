@@ -694,7 +694,8 @@
     "sportsManageHint": "Change a level from the sport's card, on your profile.",
     "sportsHelpTitle": "How it works",
     "sportsHelpBody": "You declare your level for each sport. After your outings, your partners say whether it's accurate or overstated — a trust cue for going out safely, not a score. You can go down whenever you want; to move up, your partners must have confirmed your current level.",
-    "manageSports": "Manage"
+    "manageSports": "Manage",
+    "sportsSeeLess": "See less"
   },
   "participants": {
     "title": "Participants",
@@ -1190,7 +1191,8 @@
     "levelChangeTitle": "Switch to “{{level}}”?",
     "levelChangeWarn": "Your partners will judge your new level over your next outings. Current feedback resets to zero.",
     "levelUpReady": "Your current level is confirmed by your partners. You can move up if you have progressed.",
-    "levelUpHint": "Your partners haven't confirmed your current level enough yet."
+    "levelUpHint": "Your partners haven't confirmed your current level enough yet.",
+    "changeLevelLabel": "Change your level"
   },
   "presence": {
     "confirm": "Confirm my presence",

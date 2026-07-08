@@ -694,7 +694,8 @@
     "sportsManageHint": "Fais évoluer un niveau depuis la fiche du sport, sur ton profil.",
     "sportsHelpTitle": "Comment ça marche",
     "sportsHelpBody": "Tu déclares ton niveau pour chaque sport. Après vos sorties, tes partenaires disent s'il est juste ou surestimé — une indication de confiance pour partir en sécurité, pas un score. Tu peux redescendre quand tu veux ; pour monter, il faut que tes partenaires aient confirmé ton niveau actuel.",
-    "manageSports": "Gérer"
+    "manageSports": "Gérer",
+    "sportsSeeLess": "Voir moins"
   },
   "participants": {
     "title": "Participants",
@@ -1190,7 +1191,8 @@
     "levelChangeTitle": "Passer à « {{level}} » ?",
     "levelChangeWarn": "Tes partenaires jugeront ton nouveau niveau au fil des sorties. Les avis actuels repartent à zéro.",
     "levelUpReady": "Ton niveau actuel est confirmé par tes partenaires. Tu peux monter si tu as progressé.",
-    "levelUpHint": "Tes partenaires n'ont pas encore assez confirmé ton niveau actuel."
+    "levelUpHint": "Tes partenaires n'ont pas encore assez confirmé ton niveau actuel.",
+    "changeLevelLabel": "Change ton niveau"
   },
   "presence": {
     "confirm": "Confirmer ma présence",
