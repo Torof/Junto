@@ -115,7 +115,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </Text>
             </View>
             <Text style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
-              {t('map.peerOuting', { defaultValue: 'Sortie entre particuliers' })}
+              {t('map.peerOuting', { defaultValue: 'Sortie entre passionnés' })}
             </Text>
 
             <Text style={styles.title} numberOfLines={2}>{activity.title}</Text>
