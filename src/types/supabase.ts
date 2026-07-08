@@ -3077,7 +3077,6 @@ export type Database = {
         Returns: {
           level_over: number
           level_right: number
-          level_under: number
           sport_key: string
         }[]
       }

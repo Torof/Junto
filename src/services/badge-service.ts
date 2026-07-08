@@ -17,10 +17,9 @@ export const NEGATIVE_BADGES = [
 ] as const;
 
 // Per-sport level vote — mutually exclusive per (voter, voted, activity).
-// Only over / right are castable from the client now; level_under is still
-// in the server whitelist (mig 00154) and historical rows still aggregate
-// in get_user_sport_level_votes, but no UI cast surfaces nor displays it
-// (sport popover computes net = right - over, ignoring under).
+// Exactly two votes: juste (level_right, ▲) / surestimé (level_over, ▼). The
+// old level_under ("sous-estimé") vote was dropped everywhere in mig 00300;
+// the sport popover computes net = right - over.
 export const LEVEL_VOTE_KEYS = ['level_over', 'level_right'] as const;
 export type LevelVoteKey = typeof LEVEL_VOTE_KEYS[number];
 
@@ -59,7 +58,6 @@ export interface SportLevelVotes {
   sport_key: string;
   level_over: number;
   level_right: number;
-  level_under: number;
 }
 
 // Aggregates fed into the data-driven Junto award definitions on the client.

@@ -70,13 +70,13 @@ interface BadgeDisplayProps {
 // gonflé > fiable → down (red), a tie with ≥1 vote → even (grey neutral). No
 // votes at all → null (not yet judged). Size scales mildly with volume.
 function sportTriangle(
-  v?: { over: number; right: number; under: number },
+  v?: { over: number; right: number },
 ): { kind: 'up' | 'down' | 'even'; size: number } | null {
   if (!v) return null;
-  const total = v.over + v.right + v.under;
+  const total = v.over + v.right;
   if (total === 0) return null;
   const size = total >= 20 ? 15 : total >= 10 ? 13 : 11;
-  const fiable = v.right + v.under;
+  const fiable = v.right;
   const gonfle = v.over;
   if (fiable > gonfle) return { kind: 'up', size };
   if (gonfle > fiable) return { kind: 'down', size };
@@ -293,7 +293,7 @@ interface SportItem {
   dots: number;
   lastAt: string | null;
   firstAt: string | null;
-  levelVotes?: { over: number; right: number; under: number };
+  levelVotes?: { over: number; right: number };
   declaredLevel: string | null;
   // Universe category (mountain/water/air/cycling/on-foot) → tint color.
   category: string | null;
@@ -355,10 +355,10 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
       sportLevels.map((sl) => [sl.sport_key, { dots: sl.dots, lastAt: sl.last_at, firstAt: sl.first_at }])
     );
 
-    const levelVotesByKey = new Map<string, { over: number; right: number; under: number }>(
+    const levelVotesByKey = new Map<string, { over: number; right: number }>(
       sportLevelVotes.map((sv) => [
         sv.sport_key,
-        { over: sv.level_over, right: sv.level_right, under: sv.level_under },
+        { over: sv.level_over, right: sv.level_right },
       ])
     );
 
