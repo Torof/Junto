@@ -184,8 +184,6 @@ export function ProfileHero({
             <Text style={styles.helpBody}>{t('reliability.helpIntro')}</Text>
             <Text style={styles.helpHeading}>{t('reliability.helpHowHeading')}</Text>
             <Text style={styles.helpBody}>{t('reliability.helpHow')}</Text>
-            <Text style={styles.helpHeading}>{t('reliability.helpStartHeading')}</Text>
-            <Text style={styles.helpBody}>{t('reliability.helpStart')}</Text>
             <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
               <Text style={styles.helpDismissText}>{t('reliability.helpDismiss')}</Text>
             </Pressable>

@@ -540,9 +540,6 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
             <Text style={styles.helpHeading}>{t('profil.badgeSectionPeer')}</Text>
             <Text style={styles.helpBody}>{t('profil.badgeHelp.peer')}</Text>
 
-            <Text style={styles.helpHeading}>{t('profil.badgeSectionAuto')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.junto')}</Text>
-
             <Text style={styles.helpHeading}>{t('profil.badgeSectionSports')}</Text>
             <Text style={styles.helpBody}>{t('profil.badgeHelp.sports')}</Text>
 
