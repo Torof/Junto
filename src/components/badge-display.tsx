@@ -362,7 +362,10 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
     );
 
     const sportList: SportItem[] = trophies
-      .filter((tr) => tr.category === 'sport' && tr.sport_key && tr.count >= SPORT_THRESHOLD)
+      // Only known active sports (categoryByKey = useSports, is_active). Guards
+      // against orphaned keys lingering in a user's history/declarations after a
+      // taxonomy change — they must never render as a raw/vestige chip.
+      .filter((tr) => tr.category === 'sport' && tr.sport_key && tr.count >= SPORT_THRESHOLD && categoryByKey.has(tr.sport_key as string))
       .map((tr) => {
         const meta = sportMetaByKey.get(tr.sport_key as string);
         return {
@@ -384,6 +387,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
     const withOutings = new Set(sportList.map((s) => s.sportKey));
     for (const key of declaredSports ?? []) {
       if (withOutings.has(key)) continue;
+      if (!categoryByKey.has(key)) continue; // skip orphaned/unknown sport keys
       sportList.push({
         sportKey: key,
         count: 0,
