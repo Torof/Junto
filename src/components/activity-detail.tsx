@@ -841,16 +841,16 @@ export function ActivityDetail({
                 {/* Bare meta line — vert vif icons carry the distinction (no
                     pill chrome eating the map), shadowed white text. */}
                 <View style={styles.heroMetaLine}>
-                  {/* Semantic icon colors (familiar, not brand): calendar =
-                      red, people = blue — both pop on the dark scrim. */}
-                  <View style={styles.heroMetaItem}>
-                    <Calendar size={13} color="#FF5A4E" strokeWidth={2.8} />
+                  {/* Ghost pills, settled: dark translucent, all-white content —
+                      no extra hues on the map. */}
+                  <View style={styles.heroMetaPill}>
+                    <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                     </Text>
                   </View>
-                  <View style={styles.heroMetaItem}>
-                    <Users size={13} color="#4DA3FF" strokeWidth={2.8} />
+                  <View style={styles.heroMetaPill}>
+                    <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {activity.max_participants === null
                         ? `${activity.participant_count}`
@@ -914,21 +914,25 @@ export function ActivityDetail({
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
                 <BarChart3 size={15} color={colors.cta} strokeWidth={2.4} />
+                <Text style={styles.factLabel}>{t('meta.level')} :</Text>
                 <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
               </View>
               <View style={styles.factCell}>
                 <Clock size={15} color={colors.cta} strokeWidth={2.4} />
+                <Text style={styles.factLabel}>{t('meta.duration')} :</Text>
                 <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
               </View>
               {activity.distance_km != null && activity.distance_km > 0 && (
                 <View style={styles.factCell}>
                   <Route size={15} color={colors.cta} strokeWidth={2.4} />
+                  <Text style={styles.factLabel}>{t('meta.distance')} :</Text>
                   <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
                 </View>
               )}
               {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
                 <View style={styles.factCell}>
                   <Mountain size={15} color={colors.cta} strokeWidth={2.4} />
+                  <Text style={styles.factLabel}>{t('meta.elevation')} :</Text>
                   <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
                 </View>
               )}
@@ -945,19 +949,15 @@ export function ActivityDetail({
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <Text style={styles.locValue}>
-                      <Text style={styles.locLabelInline}>{t('meta.startPoint')} : </Text>
-                      {activity.start_name}
-                    </Text>
+                    <Text style={styles.locLabelInline}>{t('meta.startPoint')} :</Text>
+                    <Text style={styles.locValue}>{activity.start_name}</Text>
                   </View>
                 )}
                 {showTabs && activity.objective_name && (
                   <View style={styles.locRow}>
                     <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <Text style={styles.locValue}>
-                      <Text style={styles.locLabelInline}>{t('meta.objective')} : </Text>
-                      {activity.objective_name}
-                    </Text>
+                    <Text style={styles.locLabelInline}>{t('meta.objective')} :</Text>
+                    <Text style={styles.locValue}>{activity.objective_name}</Text>
                   </View>
                 )}
                 <ActivityDescription description={activity.description} />
@@ -1269,16 +1269,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomRightRadius: radius.lg,
   },
   heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 7, flexWrap: 'wrap' },
-  heroMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  heroMetaText: {
-    color: '#FFFFFF',
-    fontSize: 12.5,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 5,
+  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7, flexWrap: 'wrap' },
+  heroMetaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0,0,0,0.38)',
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
+  heroMetaText: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' },
   // Pills stacked in a single top-left cluster.
   heroPillCluster: {
     position: 'absolute',
@@ -1384,7 +1385,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 11,
     paddingVertical: spacing.xs + 3,
   },
-  factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  factLabel: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700' },
+  factValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', textAlign: 'center' },
   cardLabel: {
     color: colors.textMuted,
     fontSize: fontSizes.xs,
@@ -1393,9 +1395,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 0.6,
     marginBottom: spacing.sm,
   },
-  locRow: { flexDirection: 'row', gap: 10, marginBottom: spacing.sm, alignItems: 'flex-start' },
+  locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
-  locLabelInline: { color: colors.textMuted, fontWeight: '700' },
+  locLabelInline: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 19 },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
