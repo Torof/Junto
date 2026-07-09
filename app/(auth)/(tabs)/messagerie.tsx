@@ -288,11 +288,10 @@ export default function MessagerieScreen() {
               const otherUserId = item.user_1 === currentUserId ? item.user_2 : item.user_1;
               return (
                 <Pressable
-                  style={styles.row}
+                  style={[styles.row, isUnread && styles.rowUnread]}
                   onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
                   onLongPress={() => handleHideConversation(item.id, item.other_user_name)}
                 >
-                  <View style={[styles.unreadBar, !isUnread && styles.unreadBarHidden]} />
                   <Pressable
                     onPress={() => router.push(`/(auth)/profile/${otherUserId}`)}
                     hitSlop={4}
@@ -302,6 +301,7 @@ export default function MessagerieScreen() {
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
                       <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{item.other_user_name}</Text>
+                      {isUnread && <View style={styles.unreadDot} />}
                       {item.last_message_at && (
                         <Text style={styles.time}>
                           {dayjs(item.last_message_at).locale(i18n.language).fromNow(true)}
@@ -470,18 +470,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
+    paddingLeft: spacing.md,
     paddingRight: spacing.md,
     gap: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  unreadBar: {
-    width: 3,
-    alignSelf: 'stretch',
+  // Unread — same grammar as the notifications screen: light cta tint + dot.
+  rowUnread: { backgroundColor: colors.cta + '12' },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.cta,
-    marginRight: spacing.sm,
+    alignSelf: 'center',
   },
-  unreadBarHidden: { backgroundColor: 'transparent' },
   rowContent: { flex: 1, minWidth: 0 },
   rowHeader: {
     flexDirection: 'row',
