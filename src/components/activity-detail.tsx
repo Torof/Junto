@@ -711,106 +711,6 @@ export function ActivityDetail({
       {(!showTabs || activeTab === 'info') && (
         <View style={{ flex: 1 }}>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-            {/* Status banner — full-width above the hero. Only renders
-                when there's a state to communicate. */}
-            {!isActive && (
-              <View style={styles.statusBannerTop}>
-                <Text style={styles.statusBannerText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
-              </View>
-            )}
-            {isPending && isActive && (
-              <View style={[styles.statusBannerTop, styles.statusBannerPending]}>
-                <Text style={styles.statusBannerText}>{t('activity.pendingRequest')}</Text>
-              </View>
-            )}
-            {isAccepted && !isCreator && isActive && (
-              <View style={[styles.statusBannerTop, styles.statusBannerAccepted]}>
-                <Text style={styles.statusBannerText}>{t('activity.youAreIn')}</Text>
-              </View>
-            )}
-            {alreadyConfirmed && (
-              <View style={[styles.statusBannerTop, styles.statusBannerConfirmed]}>
-                <MapPinCheck size={14} color={colors.success} strokeWidth={2.4} />
-                <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
-              </View>
-            )}
-            {/* Peer-review backstop — surfaced when the auto/QR windows
-                have closed but an unvalidated attendee (with peers) can
-                still be saved by peer testimony. Prod audit 2026-06-11:
-                without this the backstop is invisible at the moment of
-                need. */}
-            {showPeerBackstop && (
-              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left' }]}>
-                  {t('presence.backstopHint')}
-                </Text>
-                <Pressable
-                  style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
-                  onPress={() => router.push(`/(auth)/peer-review/${activity.id}`)}
-                >
-                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
-                    {t('presence.openPeerReview')}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-            {/* Presence widget — moved back to the Info tab so the
-                "where do I stand on this outing" answer is co-located
-                with the activity context. Replaces the old check-in
-                banner that linked to Organization. */}
-            {showBgLocationHint && (
-              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
-                  {t('presence.bgLocationHint')}
-                </Text>
-              </View>
-            )}
-            {canCheckIn && (
-              <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
-                <View style={styles.presenceHeader}>
-                  <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.presenceTitle}>
-                    {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
-                  </Text>
-                </View>
-                <Text style={styles.presenceSubtitle}>
-                  {isAtActivity
-                    ? t('presence.atActivitySubtitle')
-                    : distanceToActivityM != null
-                      ? t('presence.distanceAway', {
-                          distance: distanceToActivityM < 1000
-                            ? `${distanceToActivityM} m`
-                            : `${(distanceToActivityM / 1000).toFixed(1)} km`,
-                          defaultValue: `À ${distanceToActivityM < 1000 ? `${distanceToActivityM} m` : `${(distanceToActivityM / 1000).toFixed(1)} km`} du point de rendez-vous`,
-                        })
-                      : t('presence.mustBeAtLocation')}
-                </Text>
-                <View style={styles.presenceActions}>
-                  {canConfirmGeo && (
-                    <Pressable
-                      style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
-                      onPress={handleCheckIn}
-                      disabled={isConfirming}
-                    >
-                      <Text style={styles.presenceButtonText} numberOfLines={1}>
-                        {isConfirming ? '...' : t('presence.confirm')}
-                      </Text>
-                    </Pressable>
-                  )}
-                  {canScanQr && (
-                    <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
-                      <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
-                    </Pressable>
-                  )}
-                </View>
-              </View>
-            )}
-            {isCreator && isQrAvailable && (
-              <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
-                <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
-              </Pressable>
-            )}
-
             {/* === MAP HERO === everyone sees the (already-public) approximate
                 area; members get precise pins + fullscreen. Floating info pills
                 carry sport / date / places. */}
@@ -919,6 +819,106 @@ export function ActivityDetail({
 
             {/* === FACTS === restrained grid, monochrome icons, short atomic
                 values only. Long text (locations) lives in "Le parcours". */}
+            {/* Contextual banners — BELOW the hero so the flush-top map
+                never overlaps them. Only render when there's a state. */}
+            {!isActive && (
+              <View style={styles.statusBannerTop}>
+                <Text style={styles.statusBannerText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
+              </View>
+            )}
+            {isPending && isActive && (
+              <View style={[styles.statusBannerTop, styles.statusBannerPending]}>
+                <Text style={styles.statusBannerText}>{t('activity.pendingRequest')}</Text>
+              </View>
+            )}
+            {isAccepted && !isCreator && isActive && (
+              <View style={[styles.statusBannerTop, styles.statusBannerAccepted]}>
+                <Text style={styles.statusBannerText}>{t('activity.youAreIn')}</Text>
+              </View>
+            )}
+            {alreadyConfirmed && (
+              <View style={[styles.statusBannerTop, styles.statusBannerConfirmed]}>
+                <MapPinCheck size={14} color={colors.success} strokeWidth={2.4} />
+                <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
+              </View>
+            )}
+            {/* Peer-review backstop — surfaced when the auto/QR windows
+                have closed but an unvalidated attendee (with peers) can
+                still be saved by peer testimony. Prod audit 2026-06-11:
+                without this the backstop is invisible at the moment of
+                need. */}
+            {showPeerBackstop && (
+              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left' }]}>
+                  {t('presence.backstopHint')}
+                </Text>
+                <Pressable
+                  style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
+                  onPress={() => router.push(`/(auth)/peer-review/${activity.id}`)}
+                >
+                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                    {t('presence.openPeerReview')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+            {/* Presence widget — moved back to the Info tab so the
+                "where do I stand on this outing" answer is co-located
+                with the activity context. Replaces the old check-in
+                banner that linked to Organization. */}
+            {showBgLocationHint && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                  {t('presence.bgLocationHint')}
+                </Text>
+              </View>
+            )}
+            {canCheckIn && (
+              <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
+                <View style={styles.presenceHeader}>
+                  <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
+                  <Text style={styles.presenceTitle}>
+                    {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
+                  </Text>
+                </View>
+                <Text style={styles.presenceSubtitle}>
+                  {isAtActivity
+                    ? t('presence.atActivitySubtitle')
+                    : distanceToActivityM != null
+                      ? t('presence.distanceAway', {
+                          distance: distanceToActivityM < 1000
+                            ? `${distanceToActivityM} m`
+                            : `${(distanceToActivityM / 1000).toFixed(1)} km`,
+                          defaultValue: `À ${distanceToActivityM < 1000 ? `${distanceToActivityM} m` : `${(distanceToActivityM / 1000).toFixed(1)} km`} du point de rendez-vous`,
+                        })
+                      : t('presence.mustBeAtLocation')}
+                </Text>
+                <View style={styles.presenceActions}>
+                  {canConfirmGeo && (
+                    <Pressable
+                      style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
+                      onPress={handleCheckIn}
+                      disabled={isConfirming}
+                    >
+                      <Text style={styles.presenceButtonText} numberOfLines={1}>
+                        {isConfirming ? '...' : t('presence.confirm')}
+                      </Text>
+                    </Pressable>
+                  )}
+                  {canScanQr && (
+                    <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+                      <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            )}
+            {isCreator && isQrAvailable && (
+              <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+                <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
+              </Pressable>
+            )}
+
             <Text style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
