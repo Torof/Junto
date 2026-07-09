@@ -1,6 +1,8 @@
 # Matériel nécessaire — spec
 
-**Statut : conçu le 2026-07-09 (session Scott × Claude), maquette validée : en attente, dev : non planifié.**
+**Statut : PARKÉ (2026-07-09) — ne pas construire avant le lancement.**
+Décision : Scott a révélé avoir **déjà construit ce modèle** (ou son équivalent proche) et l'avoir retiré il y a quelques mois — trop complexe à rendre simple et compréhensible dans l'interface ; son instinct dit qu'il manque quelque chose. Le mock ne pèse pas face à cette expérience vécue.
+**Déclencheur de reprise : le réel.** Après lancement, si les murs d'activités montrent des conversations « qui prend quoi / il manque X », le besoin est prouvé → reprendre cette spec (et d'abord comprendre précisément ce qui avait échoué dans la V1 de Scott).
 Remplace conceptuellement l'ancienne feature « gear requests » (parkée, résidus DB retirés en mig 00194) — mais ce N'EST PAS elle : modèle plus petit, sans demandes ni prêts.
 
 ## Le principe en une phrase
