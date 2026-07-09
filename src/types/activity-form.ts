@@ -11,12 +11,6 @@ const activityFormSchema = z.object({
   elevation_gain_m: z.number().int().positive().max(99999).nullable().optional(),
   max_participants: z.number().int().min(2).max(50).nullable(),
   // Step 2
-  location_start: z
-    .object({
-      lng: z.number(),
-      lat: z.number(),
-    })
-    .optional(),
   location_meeting: z.object({
     lng: z.number(),
     lat: z.number(),
@@ -34,7 +28,7 @@ const activityFormSchema = z.object({
     })
     .optional(),
   objective_name: z.string().max(100).optional(),
-  start_name: z.string().max(100).optional(),
+  meeting_name: z.string().max(100).optional(),
   trace_geojson: z
     .object({
       type: z.literal('LineString'),

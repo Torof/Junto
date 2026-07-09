@@ -637,9 +637,6 @@ export function ActivityDetail({
   const showTabs = isCreator || isAccepted;
 
   const mapPins: MapPin[] = [
-    ...(activity.start_lng && activity.start_lat
-      ? [{ id: 'start', coordinate: [activity.start_lng, activity.start_lat] as [number, number], color: colors.pinStart, label: t('activity.pinDepart') }]
-      : []),
     ...(activity.meeting_lng && activity.meeting_lat
       ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: colors.pinMeeting, label: t('activity.pinRdv') }]
       : []),
@@ -663,8 +660,8 @@ export function ActivityDetail({
       : mapCenter;
   const mapRouteLine: [number, number][] | undefined = activity.trace_geojson
     ? activity.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number])
-    : activity.end_lng && activity.end_lat && activity.start_lng && activity.start_lat
-      ? [[activity.start_lng, activity.start_lat], [activity.end_lng, activity.end_lat]]
+    : activity.end_lng && activity.end_lat && activity.meeting_lng && activity.meeting_lat
+      ? [[activity.meeting_lng, activity.meeting_lat], [activity.end_lng, activity.end_lat]]
       : undefined;
 
   // Hero map: everyone sees the (already-public) approximate area; only members
@@ -979,15 +976,15 @@ export function ActivityDetail({
             {/* === LE PARCOURS === precise rendez-vous / objective are
                 members-only; the description is visible to everyone. The map
                 is now the hero, so no second map here. */}
-            {showTabs && (activity.start_name || activity.objective_name) && (
+            {showTabs && (activity.meeting_name || activity.objective_name) && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secDivider} />
                 <Text style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
-                {showTabs && activity.start_name && (
+                {showTabs && activity.meeting_name && (
                   <View style={styles.locRow}>
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <Text style={styles.locLabelInline}>{t('meta.startPoint')} :</Text>
-                    <Text style={styles.locValue}>{activity.start_name}</Text>
+                    <Text style={styles.locLabelInline}>{t('meta.meetingPoint')} :</Text>
+                    <Text style={styles.locValue}>{activity.meeting_name}</Text>
                   </View>
                 )}
                 {showTabs && activity.objective_name && (

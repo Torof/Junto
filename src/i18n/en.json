@@ -108,7 +108,6 @@
       "cancelled": "This activity was cancelled",
       "expired": "This activity has expired"
     },
-    "pinDepart": "Start",
     "pinRdv": "Meeting",
     "pinArrivee": "End",
     "pinObjectif": "Objective"
@@ -319,7 +318,7 @@
     "places": "Places",
     "distance": "Distance",
     "elevation": "Elev.",
-    "startPoint": "Start",
+    "meetingPoint": "Meeting point",
     "objective": "Objective"
   },
   "myOuting": {
@@ -433,7 +432,6 @@
       "starts_at": "date",
       "duration": "duration",
       "location_meeting": "meeting point",
-      "location_start": "start point",
       "description": "description",
       "level": "level",
       "max_participants": "capacity",
@@ -1163,16 +1161,14 @@
     "openActivity": "Open (no cap)",
     "openActivityValue": "Open",
     "next": "Next",
-    "tapStart": "Tap the map for the start point",
     "tapMeeting": "Tap the map for the meeting point",
-    "startPoint": "Start",
-    "meetingPoint": "Meeting",
+    "meetingPoint": "Meeting point",
     "endPoint": "End",
     "tapEnd": "Tap the map for the end point",
     "setObjective": "Objective (optional)",
     "objectiveSet": "Objective",
     "objectiveName": "Objective name (e.g. Summit)",
-    "startName": "Starting from... (e.g. Briançon)",
+    "meetingName": "Meeting point name... (e.g. Briançon parking)",
     "tapObjective": "Tap the map for the objective",
     "sectionLocations": "Locations",
     "sectionTiming": "When",

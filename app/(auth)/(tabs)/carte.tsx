@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Flag, Trophy } from 'lucide-react-native';
+import { X, MapPin, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivitySheet } from '@/components/activity-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -352,18 +352,6 @@ export default function CarteScreen() {
                     >
                       <MapPin size={18} color={colors.pinMeeting} strokeWidth={2.4} />
                       <Text style={styles.createTooltipRowText}>{t('create.meetingPoint')}</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.createTooltipRow, { borderLeftColor: colors.pinStart }]}
-                      onPress={() => {
-                        useCreateStore.getState().resetForm();
-                        useCreateStore.getState().updateForm({ location_start: tappedPoint });
-                        setTappedPoint(null);
-                        router.push('/(auth)/create/step1');
-                      }}
-                    >
-                      <Flag size={18} color={colors.pinStart} strokeWidth={2.4} />
-                      <Text style={styles.createTooltipRowText}>{t('create.startPoint')}</Text>
                     </Pressable>
                     <Pressable
                       style={[styles.createTooltipRow, { borderLeftColor: colors.pinObjective }]}

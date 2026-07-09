@@ -31,13 +31,12 @@ export type Database = {
           location_end: unknown
           location_meeting: unknown
           location_objective: unknown
-          location_start: unknown
           max_participants: number | null
+          meeting_name: string | null
           objective_name: string | null
           requires_presence: boolean
           route: unknown
           sport_id: string
-          start_name: string | null
           starts_at: string
           status: string
           title: string
@@ -59,15 +58,14 @@ export type Database = {
           level: string
           level_max?: string | null
           location_end?: unknown
-          location_meeting?: unknown
+          location_meeting: unknown
           location_objective?: unknown
-          location_start: unknown
           max_participants?: number | null
+          meeting_name?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
           sport_id: string
-          start_name?: string | null
           starts_at: string
           status?: string
           title: string
@@ -91,13 +89,12 @@ export type Database = {
           location_end?: unknown
           location_meeting?: unknown
           location_objective?: unknown
-          location_start?: unknown
           max_participants?: number | null
+          meeting_name?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
           sport_id?: string
-          start_name?: string | null
           starts_at?: string
           status?: string
           title?: string
@@ -254,6 +251,83 @@ export type Database = {
           {
             foreignKeyName: "activity_gear_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_gear_missing: {
+        Row: {
+          activity_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          quantity: number
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          quantity?: number
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_gear_missing_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_gear_missing_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1833,6 +1907,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -1842,9 +1917,6 @@ export type Database = {
           sport_icon: string | null
           sport_id: string | null
           sport_key: string | null
-          start_lat: number | null
-          start_lng: number | null
-          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
@@ -2027,6 +2099,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -2036,9 +2109,6 @@ export type Database = {
           sport_icon: string | null
           sport_id: string | null
           sport_key: string | null
-          start_lat: number | null
-          start_lng: number | null
-          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
@@ -2091,6 +2161,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -2100,9 +2171,6 @@ export type Database = {
           sport_icon: string | null
           sport_id: string | null
           sport_key: string | null
-          start_lat: number | null
-          start_lng: number | null
-          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
@@ -2155,6 +2223,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -2164,9 +2233,6 @@ export type Database = {
           sport_icon: string | null
           sport_id: string | null
           sport_key: string | null
-          start_lat: number | null
-          start_lng: number | null
-          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
@@ -2441,6 +2507,7 @@ export type Database = {
           id: string | null
           levels_per_sport: Json | null
           reliability_score: number | null
+          reliability_tier: string | null
           sports: Json | null
         }
         Insert: {
@@ -2450,7 +2517,8 @@ export type Database = {
           display_name?: string | null
           id?: string | null
           levels_per_sport?: Json | null
-          reliability_score?: number | null
+          reliability_score?: never
+          reliability_tier?: never
           sports?: Json | null
         }
         Update: {
@@ -2460,7 +2528,8 @@ export type Database = {
           display_name?: string | null
           id?: string | null
           levels_per_sport?: Json | null
-          reliability_score?: number | null
+          reliability_score?: never
+          reliability_tier?: never
           sports?: Json | null
         }
         Relationships: []
@@ -2567,6 +2636,10 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
+      add_missing_gear: {
+        Args: { p_activity_id: string; p_name: string; p_quantity?: number }
+        Returns: undefined
+      }
       add_pro_community_photo: {
         Args: { p_photo_url: string; p_pro_id: string; p_review_id?: string }
         Returns: string
@@ -2671,16 +2744,14 @@ export type Database = {
           p_level: string
           p_level_max?: string
           p_max_participants: number
-          p_meeting_lat?: number
-          p_meeting_lng?: number
+          p_meeting_lat: number
+          p_meeting_lng: number
+          p_meeting_name?: string
           p_objective_lat?: number
           p_objective_lng?: number
           p_objective_name?: string
           p_requires_presence?: boolean
           p_sport_id: string
-          p_start_lat: number
-          p_start_lng: number
-          p_start_name?: string
           p_starts_at?: string
           p_title: string
           p_trace_geojson?: Json
@@ -2958,6 +3029,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -2967,9 +3039,6 @@ export type Database = {
           sport_icon: string | null
           sport_id: string | null
           sport_key: string | null
-          start_lat: number | null
-          start_lng: number | null
-          start_name: string | null
           starts_at: string | null
           status: string | null
           title: string | null
@@ -3027,8 +3096,6 @@ export type Database = {
           end_lng: number
           meeting_lat: number
           meeting_lng: number
-          start_lat: number
-          start_lng: number
           starts_at: string
           title: string
         }[]
@@ -3271,6 +3338,10 @@ export type Database = {
         Returns: undefined
       }
       reliability_tier: { Args: { p_score: number }; Returns: string }
+      remove_missing_gear: {
+        Args: { p_activity_id: string; p_name: string }
+        Returns: undefined
+      }
       remove_participant: {
         Args: { p_participation_id: string }
         Returns: undefined
@@ -3367,6 +3438,10 @@ export type Database = {
       set_pro_pin_icon: { Args: { p_pin_icon?: string }; Returns: undefined }
       set_pro_pin_image: {
         Args: { p_pin_image_url?: string }
+        Returns: undefined
+      }
+      set_sport_level: {
+        Args: { p_new_level: string; p_sport_key: string }
         Returns: undefined
       }
       share_activity_message: {
@@ -3979,8 +4054,6 @@ export type Database = {
           p_max_participants?: number
           p_meeting_lat?: number
           p_meeting_lng?: number
-          p_start_lat?: number
-          p_start_lng?: number
           p_starts_at?: string
           p_title?: string
           p_visibility?: string

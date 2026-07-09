@@ -108,7 +108,6 @@
       "cancelled": "Cette activité a été annulée",
       "expired": "Cette activité a expiré"
     },
-    "pinDepart": "Départ",
     "pinRdv": "RDV",
     "pinArrivee": "Arrivée",
     "pinObjectif": "Objectif"
@@ -319,7 +318,7 @@
     "places": "Places",
     "distance": "Distance",
     "elevation": "D+",
-    "startPoint": "Départ",
+    "meetingPoint": "Rendez-vous",
     "objective": "Objectif"
   },
   "myOuting": {
@@ -433,7 +432,6 @@
       "starts_at": "date",
       "duration": "durée",
       "location_meeting": "point de RDV",
-      "location_start": "point de départ",
       "description": "description",
       "level": "niveau",
       "max_participants": "places",
@@ -1163,16 +1161,14 @@
     "openActivity": "Ouverte (sans limite)",
     "openActivityValue": "Ouverte",
     "next": "Suivant",
-    "tapStart": "Touche la carte pour le point de départ",
     "tapMeeting": "Touche la carte pour le point de RDV",
-    "startPoint": "Départ",
-    "meetingPoint": "RDV",
+    "meetingPoint": "Rendez-vous",
     "endPoint": "Arrivée",
     "tapEnd": "Touche la carte pour le point d'arrivée",
     "setObjective": "Objectif (optionnel)",
     "objectiveSet": "Objectif",
     "objectiveName": "Nom de l'objectif (ex: Puy Aillaud)",
-    "startName": "Départ depuis... (ex: Briançon)",
+    "meetingName": "Lieu du rendez-vous... (ex: parking de Briançon)",
     "tapObjective": "Touche la carte pour l'objectif",
     "sectionLocations": "Lieux",
     "sectionTiming": "Quand",

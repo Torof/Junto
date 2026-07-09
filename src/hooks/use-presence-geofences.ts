@@ -12,8 +12,6 @@ import { distanceMeters } from '@/utils/geo';
 
 interface ActiveActivity {
   activity_id: string;
-  start_lng: number | null;
-  start_lat: number | null;
   meeting_lng: number | null;
   meeting_lat: number | null;
   end_lng: number | null;
@@ -65,10 +63,6 @@ function toRegions(candidates: ActiveActivity[]): Location.LocationRegion[] {
     if (regions.length >= MAX_REGIONS) break;
     let lng = a.meeting_lng;
     let lat = a.meeting_lat;
-    if (lng == null || lat == null) {
-      lng = a.start_lng;
-      lat = a.start_lat;
-    }
     if (lng == null || lat == null) continue;
     regions.push({
       identifier: `presence:${a.activity_id}:${lat},${lng}`,

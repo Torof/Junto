@@ -35,7 +35,7 @@ interface TripRow {
   participant_count: number;
   sport_key: string;
   sport_icon: string | null;
-  start_name: string | null;
+  meeting_name: string | null;
   distance_km: number | null;
   elevation_gain_m: number | null;
 }
@@ -57,7 +57,7 @@ async function fetchTrips(): Promise<TripRow[]> {
   const { data, error } = await supabase
     .from('activities_with_coords')
     .select(
-      'id, title, starts_at, level, max_participants, participant_count, sport_key, sport_icon, start_name, distance_km, elevation_gain_m',
+      'id, title, starts_at, level, max_participants, participant_count, sport_key, sport_icon, meeting_name, distance_km, elevation_gain_m',
     )
     .eq('status', 'published')
     .gt('starts_at', new Date().toISOString())
@@ -207,10 +207,10 @@ export default async function UpcomingTrips() {
                     <span>{date}</span>
                     <span>·</span>
                     <span>{time}</span>
-                    {t.start_name && (
+                    {t.meeting_name && (
                       <>
                         <span>·</span>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.start_name}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.meeting_name}</span>
                       </>
                     )}
                   </div>

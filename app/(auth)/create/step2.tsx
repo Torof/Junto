@@ -10,7 +10,7 @@ import { File } from 'expo-file-system';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import {
-  Flag, MapPin, Goal, Trophy, Route, Calendar, Clock, Check, Plus, Minus,
+  MapPin, Goal, Trophy, Route, Calendar, Clock, Check, Plus, Minus,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -36,7 +36,7 @@ export default function CreateStep2() {
   // set and we'd otherwise show the corresponding button as 'currently placing'
   // (visual lie). Falling back to 'meeting' covers the cold-start case where
   // meeting is the next required action.
-  const [placingPin, setPlacingPin] = useState<'start' | 'meeting' | 'end' | 'objective' | null>(
+  const [placingPin, setPlacingPin] = useState<'meeting' | 'end' | 'objective' | null>(
     () => form.location_meeting ? null : 'meeting',
   );
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
@@ -74,10 +74,7 @@ export default function CreateStep2() {
   };
 
   const handleMapPress = (lng: number, lat: number) => {
-    if (placingPin === 'start') {
-      updateForm({ location_start: { lng, lat } });
-      setPlacingPin(null);
-    } else if (placingPin === 'meeting') {
+    if (placingPin === 'meeting') {
       updateForm({ location_meeting: { lng, lat } });
       setPlacingPin(null);
     } else if (placingPin === 'end') {
@@ -90,7 +87,6 @@ export default function CreateStep2() {
   };
 
   const pins = [
-    form.location_start && { id: 'start', coordinate: [form.location_start.lng, form.location_start.lat] as [number, number], color: colors.pinStart },
     form.location_meeting && { id: 'meeting', coordinate: [form.location_meeting.lng, form.location_meeting.lat] as [number, number], color: colors.pinMeeting },
     form.location_end && { id: 'end', coordinate: [form.location_end.lng, form.location_end.lat] as [number, number], color: colors.pinEnd },
     form.location_objective && { id: 'objective', coordinate: [form.location_objective.lng, form.location_objective.lat] as [number, number], color: colors.pinObjective },
@@ -106,7 +102,7 @@ export default function CreateStep2() {
     <View style={styles.container}>
       <View style={styles.mapContainer}>
         <JuntoMapView
-          center={form.location_meeting ? [form.location_meeting.lng, form.location_meeting.lat] : form.location_start ? [form.location_start.lng, form.location_start.lat] : center}
+          center={form.location_meeting ? [form.location_meeting.lng, form.location_meeting.lat] : center}
           zoom={12}
           onMapPress={handleMapPress}
           pins={pins}
@@ -114,7 +110,7 @@ export default function CreateStep2() {
             if (form.trace_geojson) {
               return form.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
             }
-            const start = form.location_start ?? form.location_meeting;
+            const start = form.location_meeting;
             if (start && form.location_end) return [[start.lng, start.lat], [form.location_end.lng, form.location_end.lat]] as [number, number][];
             return undefined;
           })()}
@@ -124,14 +120,13 @@ export default function CreateStep2() {
             <View style={[
               styles.mapHintPill,
               { backgroundColor:
-                  placingPin === 'start' ? colors.pinStart :
                   placingPin === 'meeting' ? colors.pinMeeting :
                   placingPin === 'end' ? colors.pinEnd :
                   colors.pinObjective
               },
             ]}>
               <Text style={styles.mapHintText}>
-                {placingPin === 'start' ? t('create.tapStart') : placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
+                {placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
               </Text>
             </View>
           </View>
@@ -144,23 +139,6 @@ export default function CreateStep2() {
         <Text style={styles.sectionLabel}>{t('create.sectionLocations')}</Text>
 
         <View style={styles.pinButtons}>
-          <PinButton
-            kind="start"
-            icon={Flag}
-            label={t('create.startPoint')}
-            isPlacing={placingPin === 'start'}
-            isSet={!!form.location_start}
-            tint={colors.pinStart}
-            colors={colors}
-            onPress={() => {
-              if (form.location_start) {
-                updateForm({ location_start: null });
-                if (placingPin === 'start') setPlacingPin(null);
-              } else {
-                setPlacingPin('start');
-              }
-            }}
-          />
           <PinButton
             kind="meeting"
             icon={MapPin}
@@ -196,13 +174,13 @@ export default function CreateStep2() {
             }}
           />
         </View>
-        {(placingPin === 'start' || form.location_start || (form.start_name?.length ?? 0) > 0) && (
+        {(placingPin === 'meeting' || form.location_meeting || (form.meeting_name?.length ?? 0) > 0) && (
           <TextInput
             style={styles.objectiveNameInput}
-            placeholder={t('create.startName')}
+            placeholder={t('create.meetingName')}
             placeholderTextColor={colors.textSecondary}
-            value={form.start_name}
-            onChangeText={(text) => updateForm({ start_name: text })}
+            value={form.meeting_name}
+            onChangeText={(text) => updateForm({ meeting_name: text })}
             maxLength={100}
           />
         )}
@@ -364,7 +342,7 @@ export default function CreateStep2() {
 }
 
 interface PinButtonProps {
-  kind: 'start' | 'meeting' | 'end';
+  kind: 'meeting' | 'end';
   icon: LucideIcon;
   label: string;
   isPlacing: boolean;
