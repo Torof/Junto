@@ -833,141 +833,103 @@ export function GroupCard({
 
         {activeSubTab === 'gear' && (
           <View style={styles.tabContent}>
-            {/* Section 1 — Inventaire commun (shared gear only). Always
-                expanded; the "+ Ajouter" affordance lives in the header
-                so the section reads as a single unit and the list isn't
-                pushed down by a separate CTA. The chip + per-item tap
-                are gated on isActive so terminated activities read as
-                read-only history. */}
+            {/* Le sac du groupe — shared gear as a tactile tile board
+                (2026-07-09 redesign). Tile tap = contribute/edit; the last
+                dashed tile adds. */}
             <View style={styles.gearSection}>
               <View style={styles.collapsibleHeader}>
-                <Text style={styles.transportCategoryLabel}>
-                  {t('group.gearSection.inventory', { defaultValue: 'Inventaire' })}
+                <Text style={styles.gearSecTitle}>
+                  {t('group.gearSection.groupBag', { defaultValue: 'Le sac du groupe' })}
                 </Text>
-                <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
-                <View style={styles.collapsibleSpacer} />
-                {isActive && (
-                  <Pressable
-                    style={styles.addGearChip}
-                    onPress={onAddGear}
-                    hitSlop={6}
-                  >
-                    <Plus size={12} color={colors.cta} strokeWidth={2.5} />
-                    <Text style={styles.addGearChipText}>
-                      {t('group.addGearShort', { defaultValue: 'Ajouter' })}
-                    </Text>
-                  </Pressable>
+                {groupItems.length > 0 && (
+                  <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
                 )}
               </View>
-
-              {groupItems.length > 0 && (
-                <View style={styles.inventoryList}>
-                  {groupItems.map((g) => (
-                    <Pressable
-                      key={g.name}
-                      style={styles.inventoryItem}
-                      onPress={() => isActive && onEditGearItem(g.name, true)}
-                      disabled={!isActive}
-                      hitSlop={4}
-                    >
-                      <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                      <Text style={styles.inventoryItemName} numberOfLines={1}>
-                        {g.name}
-                      </Text>
-                      <View style={styles.partyPillRow}>
-                        {g.bringers.map((b) => (
-                          <View key={b.user_id} style={styles.partyPillSuccess}>
-                            <UserAvatar
-                              size={18}
-                              name={b.display_name}
-                              avatarUrl={b.avatar_url}
-                            />
-                            <Text style={styles.partyPillQtySuccess}>×{b.quantity}</Text>
+              {(groupItems.length > 0 || isActive) && (
+                <View style={styles.tileBoard}>
+                  {groupItems.map((g) => {
+                    const total = g.bringers.reduce((s, b) => s + b.quantity, 0);
+                    return (
+                      <Pressable
+                        key={g.name}
+                        style={styles.gearTile}
+                        onPress={() => isActive && onEditGearItem(g.name, true)}
+                        disabled={!isActive}
+                        hitSlop={4}
+                      >
+                        <Text style={styles.gearTileName} numberOfLines={2}>{g.name}</Text>
+                        <View style={styles.gearTileFoot}>
+                          <Text style={[styles.gearTileQty, total <= 1 && styles.gearTileQtyOne]}>×{total}</Text>
+                          <View style={styles.gearTileAvatars}>
+                            {g.bringers.slice(0, 4).map((b, i) => (
+                              <View key={b.user_id} style={[styles.gearTileAvatar, i > 0 && styles.gearTileAvatarOverlap]}>
+                                <UserAvatar size={20} name={b.display_name} avatarUrl={b.avatar_url} />
+                              </View>
+                            ))}
+                            {g.bringers.length > 4 && (
+                              <Text style={styles.gearTileMore}>+{g.bringers.length - 4}</Text>
+                            )}
                           </View>
-                        ))}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                  {isActive && (
+                    <Pressable style={[styles.gearTile, styles.gearTileAdd]} onPress={onAddGear} hitSlop={4}>
+                      <View style={styles.gearTileAddPlus}>
+                        <Plus size={14} color="#FFFFFF" strokeWidth={3} />
                       </View>
+                      <Text style={styles.gearTileAddText}>
+                        {t('group.addGearShort', { defaultValue: 'Ajouter' })}
+                      </Text>
                     </Pressable>
-                  ))}
+                  )}
                 </View>
               )}
             </View>
 
-            {/* Section 2 — Qui apporte quoi. Per-bringer collapsible
-                blocks. Same data as before, just no longer paired with
-                a catalog-aware Inventaire above. */}
-            {bringers.length > 0 && (
-              <View style={[styles.gearSection, groupItems.length > 0 && styles.gearSectionSpacer]}>
-                <View style={styles.transportCategoryHeader}>
-                  <Text style={styles.transportCategoryLabel}>
-                    {t('group.gearSection.recap', { defaultValue: 'Inventaire individuel' })}
-                  </Text>
-                  <Text style={styles.transportCategoryCount}>· {bringers.length}</Text>
-                </View>
-
-                {bringers.map((b) => {
-                  const isSelf = b.user_id === currentUserId;
-                  const isExpanded = expandedBringers.has(b.user_id);
-                  return (
-                    <View key={b.user_id} style={styles.bringerBlock}>
-                      <Pressable
-                        style={styles.bringerHeader}
-                        onPress={() => toggleBringer(b.user_id)}
-                        hitSlop={4}
-                      >
+            {/* Chacun son sac — personal gear, one glance-line per person. */}
+            {(() => {
+              const personal = bringers
+                .map((b) => ({ ...b, items: b.items.filter((it) => !it.is_shared) }))
+                .filter((b) => b.items.length > 0);
+              if (personal.length === 0) return null;
+              return (
+                <View style={[styles.gearSection, styles.gearSectionSpacer]}>
+                  <View style={styles.collapsibleHeader}>
+                    <Text style={styles.gearSecTitle}>
+                      {t('group.gearSection.ownBag', { defaultValue: 'Chacun son sac' })}
+                    </Text>
+                  </View>
+                  <View style={styles.persList}>
+                    {personal.map((b) => {
+                      const isSelf = b.user_id === currentUserId;
+                      return (
                         <Pressable
+                          key={b.user_id}
+                          style={styles.persLine}
                           onPress={() => router.push(`/(auth)/profile/${b.user_id}`)}
                           hitSlop={4}
                         >
-                          <UserAvatar
-                            name={b.display_name}
-                            avatarUrl={b.avatar_url}
-                            size={22}
-                          />
-                        </Pressable>
-                        <Text style={styles.bringerName} numberOfLines={1}>
-                          {b.display_name}
-                        </Text>
-                        {isSelf && (
-                          <View style={styles.youTag}>
-                            <Text style={styles.youTagText}>
-                              {t('group.youTag', { defaultValue: 'Toi' })}
-                            </Text>
+                          <UserAvatar name={b.display_name} avatarUrl={b.avatar_url} size={30} />
+                          <View style={styles.persNameWrap}>
+                            <Text style={styles.persName} numberOfLines={1}>{b.display_name}</Text>
+                            {isSelf && (
+                              <Text style={styles.persToi}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                            )}
                           </View>
-                        )}
-                        <Text style={styles.bringerCount}>
-                          · {b.items.length}
-                        </Text>
-                        <View style={styles.collapsibleSpacer} />
-                        <Text style={styles.bringerToggleText}>
-                          {isExpanded
-                            ? t('group.seeLess', { defaultValue: 'Voir moins' })
-                            : t('group.seeItems', { defaultValue: 'Voir…' })}
-                        </Text>
-                        <ChevronDown
-                          size={13}
-                          color={colors.cta}
-                          strokeWidth={2}
-                          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
-                        />
-                      </Pressable>
-                      {isExpanded && (
-                        <View style={styles.bringerItemsList}>
-                          {b.items.map((it) => (
-                            <View key={it.name} style={styles.bulletRow}>
-                              <Text style={[styles.bullet, { color: colors.cta }]}>•</Text>
-                              <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
-                              <Text style={styles.itemQty}>×{it.quantity}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
+                          <Text style={styles.persItems}>
+                            {b.items.map((it) => (it.quantity > 1 ? `${it.name} ×${it.quantity}` : it.name)).join(' · ')}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })()}
 
-            {groupItems.length === 0 && bringers.length === 0 && (
+            {groupItems.length === 0 && bringers.length === 0 && !isActive && (
               <Text style={styles.emptyHint}>
                 {t('group.noGearYet', {
                   defaultValue: 'Personne n\'a encore listé de matériel',
@@ -1483,6 +1445,47 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '500',
   },
+  // Tile board (2026-07-09 gear redesign)
+  gearSecTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', letterSpacing: -0.2 },
+  tileBoard: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginTop: spacing.xs },
+  gearTile: {
+    width: '48%',
+    minHeight: 84,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    borderRadius: 16,
+    padding: spacing.sm + 4,
+    justifyContent: 'space-between',
+  },
+  gearTileName: { color: colors.textPrimary, fontSize: fontSizes.sm + 0.5, fontWeight: '700', lineHeight: 18 },
+  gearTileFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
+  gearTileQty: { color: colors.cta, fontSize: fontSizes.md - 1, fontWeight: '800' },
+  gearTileQtyOne: { color: colors.textMuted, fontSize: fontSizes.xs + 1, fontWeight: '700' },
+  gearTileAvatars: { flexDirection: 'row', alignItems: 'center' },
+  gearTileAvatar: { borderRadius: radius.full, borderWidth: 1.8, borderColor: colors.surface },
+  gearTileAvatarOverlap: { marginLeft: -7 },
+  gearTileMore: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', marginLeft: 3 },
+  gearTileAdd: {
+    backgroundColor: 'transparent',
+    borderStyle: 'dashed',
+    borderColor: colors.borderMuted,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  gearTileAddPlus: {
+    width: 22, height: 22, borderRadius: radius.full,
+    backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center',
+  },
+  gearTileAddText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  persList: { gap: spacing.sm + 1, marginTop: spacing.xs },
+  persLine: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  persNameWrap: { width: 64 },
+  persName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1.5, fontWeight: '700' },
+  persToi: { color: colors.cta, fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  persItems: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', lineHeight: 19 },
   emptyHint: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs + 1,

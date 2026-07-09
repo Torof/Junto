@@ -523,7 +523,37 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                 t={t}
               />
             )}
-            {view !== 'transport' && (
+            {view !== 'transport' && (view === 'gear' ? (
+              // Chips row (2026-07-09 tile redesign): my gear compacted so the
+              // group board below stays the focal point. Chip tap = edit item.
+              <View style={styles.myGearChips}>
+                {myGearItems.map((g) => (
+                  <Pressable
+                    key={g.name}
+                    style={styles.myGearChip}
+                    onPress={() => { if (isActive) onEditGearItem?.(g.name); }}
+                    disabled={!isActive}
+                    hitSlop={4}
+                  >
+                    <Text style={styles.myGearChipText} numberOfLines={1}>
+                      {g.name}
+                      {g.quantity > 1 && <Text style={styles.myGearChipQty}>{'  ×' + g.quantity}</Text>}
+                    </Text>
+                  </Pressable>
+                ))}
+                {myGearItems.length === 0 && (
+                  <Text style={styles.myGearEmptyText}>
+                    {t('myOuting.stamp.materialNothing', { defaultValue: "Tu n'apportes rien pour le moment" })}
+                  </Text>
+                )}
+                {isActive && (
+                  <Pressable style={[styles.myGearChip, styles.myGearChipAdd]} onPress={() => onAddMaterial?.()} hitSlop={4}>
+                    <Plus size={12} color={colors.cta} strokeWidth={2.6} />
+                    <Text style={styles.myGearChipAddText}>{t('gear.addShort', { defaultValue: 'Ajouter' })}</Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : (
               <Stamp
                 stamp={materialStamp}
                 onPress={() => setShowMyGear(true)}
@@ -531,7 +561,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                 styles={styles}
                 t={t}
               />
-            )}
+            ))}
           </View>
         </View>
       </View>
@@ -775,6 +805,28 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  // My-gear chips (gear tab). Tinted like the sport chips family.
+  myGearChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, flex: 1, alignItems: 'center' },
+  myGearChip: {
+    backgroundColor: colors.cta + '16',
+    borderWidth: 1,
+    borderColor: colors.cta + '40',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: 5,
+  },
+  myGearChipText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '700' },
+  myGearChipQty: { color: colors.cta, fontWeight: '800' },
+  myGearChipAdd: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'transparent',
+    borderStyle: 'dashed',
+    borderColor: colors.borderMuted,
+  },
+  myGearChipAddText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  myGearEmptyText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic' },
   cardWrapper: { marginBottom: spacing.md },
   // Header band — surfaceAlt bg sets it apart from the card body
   // (slightly darker), bottom divider seals it as its own zone, and
