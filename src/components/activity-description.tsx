@@ -28,7 +28,6 @@ export function ActivityDescription({ description }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('activity.description')}</Text>
       <Text
         style={styles.body}
         numberOfLines={expanded ? undefined : COLLAPSED_LINES}
@@ -47,18 +46,8 @@ export function ActivityDescription({ description }: Props) {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: {
-    // Flat — parent (Where card in the info tab) provides the outline.
-    marginTop: spacing.md,
-  },
-  title: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: spacing.xs,
-  },
+  // Flat — the parent section provides the styled label + spacing.
+  container: {},
   body: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,

@@ -846,7 +846,7 @@ export function ActivityDetail({
                   <View style={styles.heroMetaPill}>
                     <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
-                      {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
+                      {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM [à] H[h]mm')}
                     </Text>
                   </View>
                   <View style={styles.heroMetaPill}>
@@ -911,6 +911,10 @@ export function ActivityDetail({
 
             {/* === FACTS === restrained grid, monochrome icons, short atomic
                 values only. Long text (locations) lives in "Le parcours". */}
+            <View style={styles.secLabelRow}>
+              <View style={styles.secLabelBar} />
+              <Text style={styles.secLabelText}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
+            </View>
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
                 <BarChart3 size={15} color={colors.cta} strokeWidth={2.4} />
@@ -941,11 +945,12 @@ export function ActivityDetail({
             {/* === LE PARCOURS === precise rendez-vous / objective are
                 members-only; the description is visible to everyone. The map
                 is now the hero, so no second map here. */}
-            {(activity.description || (showTabs && (activity.start_name || activity.objective_name))) && (
+            {showTabs && (activity.start_name || activity.objective_name) && (
               <View style={styles.parcoursSection}>
-                {showTabs && (activity.start_name || activity.objective_name) && (
-                  <Text style={styles.cardLabel}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
-                )}
+                <View style={styles.secLabelRow}>
+                  <View style={styles.secLabelBar} />
+                  <Text style={styles.secLabelText}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
+                </View>
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
@@ -960,6 +965,15 @@ export function ActivityDetail({
                     <Text style={styles.locValue}>{activity.objective_name}</Text>
                   </View>
                 )}
+              </View>
+            )}
+
+            {activity.description != null && activity.description !== '' && (
+              <View style={styles.parcoursSection}>
+                <View style={styles.secLabelRow}>
+                  <View style={styles.secLabelBar} />
+                  <Text style={styles.secLabelText}>{t('activity.description')}</Text>
+                </View>
                 <ActivityDescription description={activity.description} />
               </View>
             )}
@@ -1386,14 +1400,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.xs + 3,
   },
   factLabel: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700' },
-  factValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', textAlign: 'center' },
-  cardLabel: {
-    color: colors.textMuted,
+  factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  // Stylised section label — small vert vif bar + spaced small caps.
+  // Quietly hierarchical, echoes the site's SectionLabel grammar.
+  secLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: spacing.sm + 2 },
+  secLabelBar: { width: 16, height: 2.5, borderRadius: 2, backgroundColor: colors.cta },
+  secLabelText: {
+    color: colors.textSecondary,
     fontSize: fontSizes.xs,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: spacing.sm,
+    letterSpacing: 0.8,
   },
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
