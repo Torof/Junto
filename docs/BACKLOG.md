@@ -33,6 +33,9 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
+### Matériel nécessaire (conçu 2026-07-09, non codé — spec : `docs/GEAR_NEEDS.md`)
+Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **Junto compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.
+
 ### Doc debt
 - [ ] **SECURITY.md — classification des fonctions Pro V1.** Les ~15 RPCs pro (mig 00240-00254 : pro_profiles, offerings, photos) n'ont jamais été ajoutées aux tables "Fonctions client-callable" / chaînes d'autorisation. Les entrées avis (00258-00260) sont à jour ; le rattrapage Pro V1 reste à faire.
 
