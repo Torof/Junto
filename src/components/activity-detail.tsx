@@ -911,10 +911,7 @@ export function ActivityDetail({
 
             {/* === FACTS === restrained grid, monochrome icons, short atomic
                 values only. Long text (locations) lives in "Le parcours". */}
-            <View style={styles.secLabelRow}>
-              <Text style={styles.secLabelText}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
-              <View style={styles.secLabelRule} />
-            </View>
+            <Text style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
                 <BarChart3 size={15} color={colors.cta} strokeWidth={2.4} />
@@ -947,10 +944,8 @@ export function ActivityDetail({
                 is now the hero, so no second map here. */}
             {showTabs && (activity.start_name || activity.objective_name) && (
               <View style={styles.parcoursSection}>
-                <View style={styles.secLabelRow}>
-                  <Text style={styles.secLabelText}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
-                  <View style={styles.secLabelRule} />
-                </View>
+                <View style={styles.secDivider} />
+                <Text style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
@@ -970,10 +965,8 @@ export function ActivityDetail({
 
             {activity.description != null && activity.description !== '' && (
               <View style={styles.parcoursSection}>
-                <View style={styles.secLabelRow}>
-                  <Text style={styles.secLabelText}>{t('activity.description')}</Text>
-                  <View style={styles.secLabelRule} />
-                </View>
+                <View style={styles.secDivider} />
+                <Text style={styles.secTitle}>{t('activity.description')}</Text>
                 <ActivityDescription description={activity.description} />
               </View>
             )}
@@ -1403,15 +1396,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   // Stylised section label — small vert vif bar + spaced small caps.
   // Quietly hierarchical, echoes the site's SectionLabel grammar.
-  secLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.sm + 2 },
-  secLabelText: {
+  // Airbnb-style section headers: bold sentence-case titles, soft dividers
+  // BETWEEN sections (never glued to the title).
+  secTitle: {
     color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    marginBottom: spacing.sm,
   },
-  secLabelRule: { flex: 1, height: 1, backgroundColor: colors.lineStrong },
+  secDivider: { height: 1, backgroundColor: colors.line, marginBottom: spacing.md },
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
   locLabelInline: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 19 },
