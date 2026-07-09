@@ -573,7 +573,7 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                     hitSlop={4}
                   >
                     <View style={styles.gearListIconWrap}>
-                      <Backpack size={14} color={colors.success} strokeWidth={2.2} />
+                      <Backpack size={14} color={colors.cta} strokeWidth={2.2} />
                     </View>
                     <Text style={styles.gearListName} numberOfLines={1}>
                       {g.name}
@@ -1018,7 +1018,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 8,
-    backgroundColor: colors.success + '14',
+    backgroundColor: colors.cta + '14',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1029,7 +1029,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '600',
   },
   gearListQty: {
-    color: colors.success,
+    color: colors.cta,
     fontSize: fontSizes.sm,
     fontWeight: '700',
   },

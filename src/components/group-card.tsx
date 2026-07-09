@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -870,7 +870,7 @@ export function GroupCard({
                       disabled={!isActive}
                       hitSlop={4}
                     >
-                      <Plus size={14} color={colors.cta} strokeWidth={2.5} />
+                      <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} />
                       <Text style={styles.inventoryItemName} numberOfLines={1}>
                         {g.name}
                       </Text>
@@ -954,7 +954,7 @@ export function GroupCard({
                         <View style={styles.bringerItemsList}>
                           {b.items.map((it) => (
                             <View key={it.name} style={styles.bulletRow}>
-                              <Text style={[styles.bullet, { color: colors.success }]}>•</Text>
+                              <Text style={[styles.bullet, { color: colors.cta }]}>•</Text>
                               <Text style={styles.bulletText} numberOfLines={1}>{it.name}</Text>
                               <Text style={styles.itemQty}>×{it.quantity}</Text>
                             </View>
@@ -1547,10 +1547,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // a tappable header that toggles the items list nested inside.
   bringerBlock: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-    borderRadius: radius.md,
-    padding: spacing.sm + 2,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    borderRadius: 14,
+    padding: spacing.sm + 3,
     gap: 6,
   },
   bringerHeader: {
@@ -1651,7 +1651,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // so "the group has this" reads with the same affirmative weight as
   // "I'm bringing this".
   itemQty: {
-    color: colors.success,
+    color: colors.cta,
     fontSize: fontSizes.sm,
     fontWeight: '700',
     letterSpacing: 0.2,
