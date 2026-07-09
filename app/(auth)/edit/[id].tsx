@@ -10,6 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
+import { supabase } from '@/services/supabase';
 import { useSports } from '@/hooks/use-sports';
 import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -36,6 +37,21 @@ export default function EditActivityScreen() {
 
   // Check if fields are locked (participants besides creator exist)
   const hasParticipants = (activity?.participant_count ?? 1) > 1;
+
+  // Mirrors create/step3: private-link visibilities are premium-gated. The
+  // DB gate (00308) only fires on SWITCHING to a private value, so the
+  // activity's stored visibility stays selectable for a lapsed tier.
+  const { data: tierData } = useQuery({
+    queryKey: ['currentUser-tier'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('tier')
+        .single();
+      return data as { tier: string } | null;
+    },
+  });
+  const isPremium = tierData?.tier === 'premium' || tierData?.tier === 'pro';
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -254,18 +270,26 @@ export default function EditActivityScreen() {
 
       <Text style={styles.label}>{t('create.step3Title')}</Text>
       <View style={[styles.chipRow, hasParticipants && styles.locked]}>
-        {VISIBILITIES.map((v) => (
-          <Pressable
-            key={v}
-            style={[styles.chip, visibility === v && styles.chipActive]}
-            onPress={() => !hasParticipants && setVisibility(v)}
-            disabled={hasParticipants}
-          >
-            <Text style={[styles.chipText, visibility === v && styles.chipTextActive]}>
-              {t(`create.visibility.${v}`)}
-            </Text>
-          </Pressable>
-        ))}
+        {VISIBILITIES.map((v) => {
+          const premiumLocked =
+            (v === 'private_link' || v === 'private_link_approval') &&
+            !isPremium &&
+            v !== activity.visibility;
+          const locked = hasParticipants || premiumLocked;
+          return (
+            <Pressable
+              key={v}
+              style={[styles.chip, visibility === v && styles.chipActive, premiumLocked && styles.chipLocked]}
+              onPress={() => !locked && setVisibility(v)}
+              disabled={locked}
+            >
+              <Text style={[styles.chipText, visibility === v && styles.chipTextActive]}>
+                {t(`create.visibility.${v}`)}
+              </Text>
+              {premiumLocked && <Text style={styles.premiumBadge}>{t('account.tier.premium')}</Text>}
+            </Pressable>
+          );
+        })}
       </View>
 
       <Pressable
@@ -302,6 +326,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
   chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  chipLocked: { opacity: 0.4 },
+  premiumBadge: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold', marginLeft: spacing.xs },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   openCheckbox: {
