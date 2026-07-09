@@ -954,6 +954,26 @@ export function ActivityDetail({
                   <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
                 </View>
               )}
+              {/* Carpool teaser — a decision fact ("can I get a ride?"), so it
+                  lives with the facts (Scott 2026-07-09). Details on the
+                  Transport tab. */}
+              {(() => {
+                const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
+                if (carSummary.length === 0) return null;
+                const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
+                const allCities = [...new Set(carSummary.flatMap((s) => s.cities ?? []).filter(Boolean))];
+                const value = [
+                  totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase(),
+                  allCities.length > 0 ? allCities.join(', ') : null,
+                ].filter(Boolean).join(' · ');
+                return (
+                  <View style={styles.factCell}>
+                    <Car size={15} color={colors.cta} strokeWidth={2.4} />
+                    <Text style={styles.factLabel}>{t('meta.carpool', { defaultValue: 'Covoit' })} :</Text>
+                    <Text style={styles.factValue} numberOfLines={1}>{value}</Text>
+                  </View>
+                );
+              })()}
             </View>
 
             {/* === LE PARCOURS === precise rendez-vous / objective are
@@ -1001,25 +1021,6 @@ export function ActivityDetail({
                 maxParticipants={activity.max_participants}
                 onOpenAll={() => setShowParticipantsModal(true)}
               />
-              {(() => {
-                const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
-                const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
-                const allCities = carSummary.flatMap((s) => s.cities ?? []).filter(Boolean);
-                if (carSummary.length === 0) return null;
-                return (
-                  <View style={styles.transportSummary}>
-                    <Car size={14} color={colors.textSecondary} strokeWidth={2} />
-                    <Text style={styles.transportSummaryText}>
-                      {totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase()}
-                    </Text>
-                    {allCities.length > 0 && (
-                      <Text style={styles.transportCities} numberOfLines={1}>
-                        · {[...new Set(allCities)].join(', ')}
-                      </Text>
-                    )}
-                  </View>
-                );
-              })()}
             </View>
 
             {!isCreator && isAuthenticated && (
