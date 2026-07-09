@@ -37,6 +37,7 @@ import { wallService } from '@/services/wall-service';
 import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
 import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
@@ -806,26 +807,38 @@ export function ActivityDetail({
                   <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
                 </View>
               )}
+              {/* Poster grammar: sport flag alone top-left; scrim + meta line +
+                  title anchored at the bottom. */}
               <View style={styles.heroPillCluster} pointerEvents="none">
                 <View style={[styles.heroPill, { backgroundColor: sportAccent }]}>
                   <Text style={[styles.heroPillText, { color: '#FFFFFF' }]} numberOfLines={1}>
                     {t(`sports.${activity.sport_key}`, activity.sport_key)}
                   </Text>
                 </View>
-                <View style={styles.heroPill}>
-                  <Calendar size={12} color="#1F1A15" strokeWidth={2.6} />
-                  <Text style={styles.heroPillText} numberOfLines={1}>
+              </View>
+              <Svg style={styles.heroScrim} pointerEvents="none" width="100%" height="130">
+                <Defs>
+                  <SvgLinearGradient id="heroScrim" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="#000000" stopOpacity="0" />
+                    <Stop offset="1" stopColor="#000000" stopOpacity="0.55" />
+                  </SvgLinearGradient>
+                </Defs>
+                <Rect x="0" y="0" width="100%" height="130" fill="url(#heroScrim)" />
+              </Svg>
+              <View style={styles.heroTitleWrap} pointerEvents="none">
+                <View style={styles.heroMetaLine}>
+                  <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
                     {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                   </Text>
-                </View>
-                <View style={styles.heroPill}>
-                  <Users size={12} color="#1F1A15" strokeWidth={2.6} />
-                  <Text style={styles.heroPillText} numberOfLines={1}>
-                    {activity.max_participants === null ? `${activity.participant_count}` : `${remaining}/${activity.max_participants}`}
+                  <View style={styles.heroMetaDot} />
+                  <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
+                    {activity.max_participants === null
+                      ? `${activity.participant_count}`
+                      : t('activity.placesShort', { defaultValue: '{{n}} places', n: `${remaining}/${activity.max_participants}` })}
                   </Text>
                 </View>
-              </View>
-              <View style={styles.heroTitleWrap} pointerEvents="none">
                 <Text style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</Text>
               </View>
               {showTabs && (
@@ -866,22 +879,22 @@ export function ActivityDetail({
                 values only. Long text (locations) lives in "Le parcours". */}
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
-                <BarChart3 size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                <BarChart3 size={15} color={colors.cta} strokeWidth={2.4} />
                 <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
               </View>
               <View style={styles.factCell}>
-                <Clock size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                <Clock size={15} color={colors.cta} strokeWidth={2.4} />
                 <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
               </View>
               {activity.distance_km != null && activity.distance_km > 0 && (
                 <View style={styles.factCell}>
-                  <Route size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                  <Route size={15} color={colors.cta} strokeWidth={2.4} />
                   <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
                 </View>
               )}
               {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
                 <View style={styles.factCell}>
-                  <Mountain size={15} color={colors.textSecondary} strokeWidth={2.2} />
+                  <Mountain size={15} color={colors.cta} strokeWidth={2.4} />
                   <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
                 </View>
               )}
@@ -1217,7 +1230,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
     position: 'relative',
     backgroundColor: colors.surface,
+    // Soften the seam where the full-bleed map meets the paper below.
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
   },
+  heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  heroMetaText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  heroMetaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.8)', marginHorizontal: 2 },
   // Pills stacked in a single top-left cluster.
   heroPillCluster: {
     position: 'absolute',
@@ -1263,32 +1290,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, flexWrap: 'wrap' },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  // One-line strip, borderless — a quiet signature under the hero.
   factsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xs,
     marginBottom: spacing.md,
   },
   factCell: {
-    width: '50%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    gap: 7,
+    paddingVertical: spacing.sm,
   },
-  factText: { flexDirection: 'column-reverse', gap: 2 },
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
-  factLabel: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
   cardLabel: {
     color: colors.textMuted,
     fontSize: fontSizes.xs,
@@ -1599,7 +1616,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
   },
   presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  joinButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  joinButton: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md + 2,
+    alignItems: 'center',
+    shadowColor: colors.cta,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
   fullButton: { flexDirection: 'row', backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderWidth: 1, borderColor: colors.error },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: '700' },
   leaveButton: { backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', borderWidth: 1, borderColor: colors.borderStrong },

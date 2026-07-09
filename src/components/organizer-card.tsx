@@ -109,7 +109,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700',
   },
   freeSlotsText: {
-    color: colors.success, fontSize: fontSizes.xs, fontWeight: '500',
+    color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700',
     marginTop: 1,
   },
   freeSlotsTextFull: { color: colors.error },
