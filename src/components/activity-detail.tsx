@@ -841,14 +841,16 @@ export function ActivityDetail({
                 {/* Bare meta line — vert vif icons carry the distinction (no
                     pill chrome eating the map), shadowed white text. */}
                 <View style={styles.heroMetaLine}>
+                  {/* Semantic icon colors (familiar, not brand): calendar =
+                      red, people = blue — both pop on the dark scrim. */}
                   <View style={styles.heroMetaItem}>
-                    <Calendar size={13} color={colors.cta} strokeWidth={2.8} />
+                    <Calendar size={13} color="#FF5A4E" strokeWidth={2.8} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                     </Text>
                   </View>
                   <View style={styles.heroMetaItem}>
-                    <Users size={13} color={colors.cta} strokeWidth={2.8} />
+                    <Users size={13} color="#4DA3FF" strokeWidth={2.8} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {activity.max_participants === null
                         ? `${activity.participant_count}`
@@ -1392,7 +1394,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   locRow: { flexDirection: 'row', gap: 10, marginBottom: spacing.sm, alignItems: 'flex-start' },
-  locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19 },
+  locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
   locLabelInline: { color: colors.textMuted, fontWeight: '700' },
   tabBar: {
     flexDirection: 'row',
