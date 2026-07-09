@@ -988,8 +988,11 @@ export function ActivityDetail({
               </View>
             )}
 
-            {/* === PEOPLE === organizer + avatars + carpool summary. */}
-            <View style={styles.infoCard}>
+            {/* === PEOPLE === titled open section like the rest of the page
+                (last on purpose: the social-proof recall right above the CTA). */}
+            <View style={styles.parcoursSection}>
+              <View style={styles.secDivider} />
+              <Text style={styles.secTitle}>{t('activity.participantsSection', { defaultValue: 'Participants' })}</Text>
               <OrganizerCard
                 activityId={activity.id}
                 creatorId={activity.creator_id}
