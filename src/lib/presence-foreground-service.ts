@@ -91,7 +91,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
         notificationTitle: 'Junto valide ta présence',
         notificationBody:
           'Détection automatique active pendant la fenêtre de présence',
-        notificationColor: '#F4642A',
+        notificationColor: '#2FA46A',
       },
     });
     serviceRunning = true;

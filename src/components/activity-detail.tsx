@@ -649,13 +649,13 @@ export function ActivityDetail({
   const showTabs = isCreator || isAccepted;
 
   const mapPins: MapPin[] = [
-    ...(activity.meeting_lng && activity.meeting_lat
+    ...(activity.meeting_lng != null && activity.meeting_lat != null
       ? [{ id: 'meeting', coordinate: [activity.meeting_lng, activity.meeting_lat] as [number, number], color: colors.pinMeeting, label: t('activity.pinRdv') }]
       : []),
-    ...(activity.end_lng && activity.end_lat
+    ...(activity.end_lng != null && activity.end_lat != null
       ? [{ id: 'end', coordinate: [activity.end_lng, activity.end_lat] as [number, number], color: colors.pinEnd, label: t('activity.pinArrivee') }]
       : []),
-    ...(activity.objective_lng && activity.objective_lat
+    ...(activity.objective_lng != null && activity.objective_lat != null
       ? [{ id: 'objective', coordinate: [activity.objective_lng, activity.objective_lat] as [number, number], color: colors.pinObjective, label: t('activity.pinObjectif') }]
       : []),
   ];
@@ -672,7 +672,7 @@ export function ActivityDetail({
       : mapCenter;
   const mapRouteLine: [number, number][] | undefined = activity.trace_geojson
     ? activity.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number])
-    : activity.end_lng && activity.end_lat && activity.meeting_lng && activity.meeting_lat
+    : activity.end_lng != null && activity.end_lat != null && activity.meeting_lng != null && activity.meeting_lat != null
       ? [[activity.meeting_lng, activity.meeting_lat], [activity.end_lng, activity.end_lat]]
       : undefined;
 

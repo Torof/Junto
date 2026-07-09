@@ -15,7 +15,6 @@ export const darkColors = {
   // universally yellow). Same in both themes.
   star: '#FBBF24',
 
-  pinStart: '#22c55e',
   pinMeeting: '#3b82f6',
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
@@ -90,7 +89,6 @@ export const lightColors = {
   // universally yellow). Same in both themes.
   star: '#FBBF24',
 
-  pinStart: '#22c55e',
   pinMeeting: '#3b82f6',
   pinEnd: '#ef4444',
   pinObjective: '#F5A623',
