@@ -109,7 +109,6 @@ const locationTimeRows = (
 };
 
 
-const COLOR_AMBER = '#E8A33D';
 
 // Mine — your personal status panel for this outing. The card carries
 // only what's about you for this specific activity: when it is, what
@@ -339,9 +338,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
   }, [startsAt, status, t, i18n.language]);
 
   const captionColor =
-    caption.tone === 'live' ? colors.success
+    caption.tone === 'live' ? colors.cta
     : caption.tone === 'today' ? colors.cta
-    : caption.tone === 'soon' ? COLOR_AMBER
+    : caption.tone === 'soon' ? colors.warning
     : colors.textMuted;
 
   const transportStamp = useMemo<StampDef>(() => {
@@ -499,9 +498,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
               {t('myOuting.cardTitle', { defaultValue: 'Tes préparatifs' })}
             </Text>
             {isReady && (
-              <View style={[styles.seal, { borderColor: colors.success }]}>
-                <Check size={10} color={colors.success} strokeWidth={3} />
-                <Text style={[styles.sealText, { color: colors.success }]}>
+              <View style={[styles.seal, { borderColor: colors.cta }]}>
+                <Check size={10} color={colors.cta} strokeWidth={3} />
+                <Text style={[styles.sealText, { color: colors.cta }]}>
                   {t('myOuting.ready', { defaultValue: 'Prêt' })}
                 </Text>
               </View>
@@ -672,8 +671,8 @@ interface StampProps {
 
 function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
   const accent =
-    stamp.state === 'set' ? colors.success
-    : stamp.state === 'pending' || stamp.state === 'todo' ? COLOR_AMBER
+    stamp.state === 'set' ? colors.cta
+    : stamp.state === 'pending' ? colors.warning
     : colors.textMuted;
 
   const isFilledLook = stamp.state === 'set' || stamp.state === 'pending';
@@ -781,14 +780,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // (slightly darker), bottom divider seals it as its own zone, and
   // the uppercase letter-spaced title gives it a distinct "headline"
   // feel within the system font.
-  headerBand: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    backgroundColor: colors.surfaceAlt,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
-    gap: 2,
-  },
+  headerBand: { gap: 2, marginBottom: spacing.sm },
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -797,28 +789,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   // Body — the actual card content, separated from the header band
   // by the bg-color step and the divider.
-  body: {
-    padding: spacing.md - 2,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.borderMuted,
-    overflow: 'hidden',
-  },
+  body: { paddingVertical: 2 },
+  // Open section (2026-07-09): the heavy card + header band dissolved —
+  // the page paper is the surface, matching the Info tab grammar.
+  card: { backgroundColor: 'transparent' },
   caption: {
     color: colors.textMuted,
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   seal: {
@@ -831,7 +816,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: 2,
   },
   sealText: {
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -858,9 +843,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: 6,
   },
   stampCaption: {
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: '800',
-    letterSpacing: 1.4,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   stampContent: {

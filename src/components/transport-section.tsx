@@ -397,5 +397,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta, borderRadius: radius.md,
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm,
   },
-  saveText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: 'bold' },
 });

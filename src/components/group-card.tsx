@@ -470,7 +470,7 @@ export function GroupCard({
                           disabled={isActing}
                           hitSlop={6}
                         >
-                          <Check size={16} color={colors.success} strokeWidth={3} />
+                          <Check size={16} color={colors.cta} strokeWidth={3} />
                         </Pressable>
                         <Pressable
                           style={[styles.incomingDeclineBtn, isActing && styles.incomingActionDisabled]}
@@ -578,8 +578,8 @@ export function GroupCard({
                       </View>
                       {!isSelf && isMyDriver && (
                         <View style={styles.statusPillSet}>
-                          <Check size={10} color={colors.success} strokeWidth={3} />
-                          <Text style={[styles.statusPillText, { color: colors.success }]}>
+                          <Check size={10} color={colors.cta} strokeWidth={3} />
+                          <Text style={[styles.statusPillText, { color: colors.cta }]}>
                             {t('group.youAreAboard', { defaultValue: 'À bord' })}
                           </Text>
                         </View>
@@ -623,7 +623,7 @@ export function GroupCard({
                   <View style={styles.pillFooter}>
                     <Text style={styles.seatsCount}>
                       {d.accepted}/
-                      <Text style={d.free > 0 ? { color: colors.success } : undefined}>
+                      <Text style={d.free > 0 ? { color: colors.cta } : undefined}>
                         {d.capacity}
                       </Text>
                       {' '}{t('group.seatsLabel', { defaultValue: 'places' })}
@@ -979,12 +979,14 @@ export function GroupCard({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cardWrapper: { marginBottom: spacing.md },
+  // Open section (2026-07-09): soft divider above separates it from the
+  // "Tes préparatifs" section — same grammar as the Info tab.
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.borderMuted,
-    overflow: 'hidden',
+    backgroundColor: 'transparent',
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    marginTop: spacing.xs,
+    paddingTop: spacing.md,
   },
 
   // Header band — surfaceAlt bg + bottom divider mark it as its own
@@ -994,19 +996,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    backgroundColor: colors.surfaceAlt,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    marginBottom: spacing.sm,
   },
   cardTitle: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   headerRight: {
     flexDirection: 'row',
@@ -1079,7 +1076,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs + 1,
     fontWeight: '700',
     letterSpacing: 0.2,
-    textTransform: 'uppercase',
   },
   incomingRequestCard: {
     flexDirection: 'row',
@@ -1118,9 +1114,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.success + '20',
+    backgroundColor: colors.cta + '20',
     borderWidth: 1,
-    borderColor: colors.success + '60',
+    borderColor: colors.cta + '60',
   },
   incomingDeclineBtn: {
     width: 32,
@@ -1233,7 +1229,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // (inline count) + a sub-line for the cities list. Replaces the
   // standalone success-tinted banner that floated above the section.
   freeSeatsInline: {
-    color: colors.success,
+    color: colors.cta,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.6,
@@ -1281,13 +1277,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    marginTop: 14,
+    marginTop: spacing.md,
   },
   transportCategoryLabel: {
-    color: colors.textPrimary,
-    fontSize: 12,
+    color: colors.textSecondary,
+    fontSize: 11.5,
     fontWeight: '800',
-    letterSpacing: 1.2,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   transportCategoryCount: {
@@ -1393,7 +1389,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: colors.success + '1F',
+    backgroundColor: colors.cta + '1F',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1455,9 +1451,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '500',
   },
   emptyHint: {
-    color: colors.textMuted,
+    color: colors.textSecondary,
     fontSize: fontSizes.xs + 1,
-    fontStyle: 'italic',
+    textAlign: 'center',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   // Two-button gear-actions row at the top of the gear tab. Smaller
   // than the previous single CTA so both fit comfortably side-by-side.
