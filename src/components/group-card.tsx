@@ -504,19 +504,6 @@ export function GroupCard({
                     </Text>
                   )}
                 </View>
-                {totalFreeSeats > 0 && departureCities.length > 0 && (
-                  <View style={styles.freeSeatsFromRow}>
-                    <Text style={styles.freeSeatsFromLabel}>
-                      {t('group.freeSeatsFromLabel', { defaultValue: 'depuis :' })}
-                    </Text>
-                    <View style={styles.freeSeatsFromCities}>
-                      <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                      <Text style={styles.freeSeatsFromCitiesText} numberOfLines={2}>
-                        {departureCities.join(', ')}
-                      </Text>
-                    </View>
-                  </View>
-                )}
                 {drivers.map((d) => {
               const isSelf = d.user_id === currentUserId;
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
@@ -545,7 +532,7 @@ export function GroupCard({
                         <UserAvatar
                           name={d.display_name}
                           avatarUrl={d.avatar_url}
-                          size={32}
+                          size={40}
                           confirmedPresent={d.confirmed_present === true}
                         />
                       </Pressable>
@@ -593,25 +580,25 @@ export function GroupCard({
                       )}
                     </View>
 
-                    {/* Meta on its own rows under the avatar, full-length text. */}
+                    {/* Route line — the carpool as a mini-journey:
+                        dot ┈ pin place · time. Aligned under the name. */}
                     {isExpanded && hasMeta && (
-                      <View style={styles.pillMetaRows}>
-                        {d.transport_from_name && (
-                          <View style={styles.pillMetaRow}>
-                            <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                            <Text style={styles.driverMetaText}>
-                              {d.transport_from_name}
-                            </Text>
-                          </View>
-                        )}
-                        {d.transport_departs_at && (
-                          <View style={styles.pillMetaRow}>
-                            <Clock size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                            <Text style={styles.driverMetaText}>
-                              {dayjs(d.transport_departs_at).format('H[h]mm')}
-                            </Text>
-                          </View>
-                        )}
+                      <View style={styles.routeRow}>
+                        <View style={styles.routeDot} />
+                        <View style={styles.routeDash} />
+                        <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
+                        {d.transport_from_name ? (
+                          <Text style={styles.routeText} numberOfLines={1}>{d.transport_from_name}</Text>
+                        ) : null}
+                        {d.transport_from_name && d.transport_departs_at ? (
+                          <Text style={styles.routeSep}>·</Text>
+                        ) : null}
+                        {d.transport_departs_at ? (
+                          <>
+                            <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                            <Text style={styles.routeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
+                          </>
+                        ) : null}
                       </View>
                     )}
                   </View>
@@ -621,29 +608,47 @@ export function GroupCard({
                       and for users with an existing relationship (the
                       status pill in the header carries that). */}
                   <View style={styles.pillFooter}>
-                    <Text style={styles.seatsCount}>
-                      {d.accepted}/
-                      <Text style={d.free > 0 ? { color: colors.cta } : undefined}>
-                        {d.capacity}
-                      </Text>
-                      {' '}{t('group.seatsLabel', { defaultValue: 'places' })}
-                    </Text>
-                    {!isSelf && !isMyDriver && !isPendingFromMe && (
-                      isFull ? (
-                        <Text style={styles.fullText}>
-                          {t('group.full', { defaultValue: 'Complet' })}
-                        </Text>
-                      ) : canReserve ? (
-                        <Pressable
-                          style={styles.reserveBtn}
-                          onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
-                          hitSlop={4}
-                        >
-                          <Text style={styles.reserveBtnText}>
-                            {t('group.reserve', { defaultValue: 'Réserver' })}
+                    {/* Seats as a cabin map: filled = passenger avatars,
+                        dashed = free. Capped at 6 cells (+N overflow). */}
+                    {(() => {
+                      const cap = Math.max(d.capacity ?? 0, 0);
+                      const shown = Math.min(cap, 6);
+                      const filledAvatars = driverPassengers.slice(0, Math.min(shown, d.accepted));
+                      const ghostFilled = Math.max(0, Math.min(d.accepted, shown) - filledAvatars.length);
+                      const emptyCount = Math.max(0, shown - Math.min(d.accepted, shown));
+                      const overflow = cap > 6 ? cap - 6 : 0;
+                      return (
+                        <View style={styles.seatsRow}>
+                          {filledAvatars.map((pp) => (
+                            <View key={pp.id} style={styles.seatFilled}>
+                              <UserAvatar name={pp.display_name} avatarUrl={pp.avatar_url} size={22} />
+                            </View>
+                          ))}
+                          {Array.from({ length: ghostFilled }).map((_, i) => (
+                            <View key={`g${i}`} style={styles.seatTaken} />
+                          ))}
+                          {Array.from({ length: emptyCount }).map((_, i) => (
+                            <View key={`e${i}`} style={styles.seatEmpty} />
+                          ))}
+                          {overflow > 0 && <Text style={styles.seatOverflow}>+{overflow}</Text>}
+                          <Text style={[styles.seatsLabel, isFull && styles.seatsLabelFull]} numberOfLines={1}>
+                            {isFull
+                              ? t('group.full', { defaultValue: 'Complet' })
+                              : t('group.freeSeatsCount', { count: d.free, defaultValue: d.free === 1 ? '1 place libre' : `${d.free} places libres` })}
                           </Text>
-                        </Pressable>
-                      ) : null
+                        </View>
+                      );
+                    })()}
+                    {!isSelf && !isMyDriver && !isPendingFromMe && !isFull && canReserve && (
+                      <Pressable
+                        style={styles.reserveBtn}
+                        onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
+                        hitSlop={4}
+                      >
+                        <Text style={styles.reserveBtnText}>
+                          {t('group.reserve', { defaultValue: 'Réserver' })}
+                        </Text>
+                      </Pressable>
                     )}
                   </View>
 
@@ -1136,14 +1141,36 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // padding + radius) so they read as discrete action surfaces, not a
   // flat list of rows. Visually outranks the self-mover chips since
   // drivers are where the user takes action (reserving a seat).
+  // Ride card (2026-07-09): lighter surface, softer radius, subtle lift —
+  // the carpool reads as a journey card, not a grey pill.
   driverPill: {
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
     borderColor: colors.line,
-    borderRadius: radius.md,
-    padding: spacing.sm + 2,
+    borderRadius: 14,
+    padding: spacing.sm + 5,
     gap: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, paddingLeft: 2 },
+  routeDot: { width: 7, height: 7, borderRadius: 4, borderWidth: 2, borderColor: colors.textSecondary },
+  routeDash: { width: 20, height: 0, borderTopWidth: 2, borderColor: colors.textSecondary, borderStyle: 'dashed', opacity: 0.55 },
+  routeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '600', flexShrink: 1 },
+  routeSep: { color: colors.textMuted, marginHorizontal: 2 },
+  seatsRow: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
+  seatFilled: { borderRadius: 11, overflow: 'hidden' },
+  seatTaken: { width: 22, height: 22, borderRadius: 11, backgroundColor: colors.surfaceAlt },
+  seatEmpty: {
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 1.8, borderStyle: 'dashed', borderColor: colors.borderMuted,
+  },
+  seatOverflow: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700' },
+  seatsLabel: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800', marginLeft: 4, flexShrink: 1 },
+  seatsLabelFull: { color: colors.textMuted },
   pillBody: {
     gap: 6,
   },
@@ -1368,16 +1395,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
   },
+  // Solid CTA — the one action on the card gets to pop.
   reserveBtn: {
-    backgroundColor: colors.cta + '14',
+    backgroundColor: colors.cta,
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    shadowColor: colors.cta,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   reserveBtnText: {
-    color: colors.cta,
+    color: '#FFFFFF',
     fontSize: fontSizes.xs + 1,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   fullText: {
     color: colors.textMuted,
