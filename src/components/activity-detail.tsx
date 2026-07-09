@@ -234,36 +234,41 @@ export function ActivityDetail({
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      // Info first (twin pills: status + visibility), a real gap, then the
+      // actions at the edge with matching sizes.
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          {activity.visibility === 'public' ? (
-            <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />
-          ) : activity.visibility === 'approval' ? (
-            <Hand size={18} color={colors.textSecondary} strokeWidth={2.2} />
-          ) : (
-            <Lock size={18} color={colors.textSecondary} strokeWidth={2.2} />
-          )}
           <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>
             <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
           </View>
+          <View style={styles.headerVisPill}>
+            {activity.visibility === 'public' ? (
+              <Globe size={14} color={colors.textSecondary} strokeWidth={2.2} />
+            ) : activity.visibility === 'approval' ? (
+              <Hand size={14} color={colors.textSecondary} strokeWidth={2.2} />
+            ) : (
+              <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
+            )}
+          </View>
+          <View style={{ width: spacing.sm }} />
           {canShare && (
             <Pressable
               onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
               hitSlop={10}
-              style={{ paddingHorizontal: spacing.sm }}
+              style={{ paddingHorizontal: spacing.sm - 2 }}
               accessibilityLabel={t('activity.shareCta', { defaultValue: 'Share activity' })}
             >
-              <Share2 size={22} color={colors.textPrimary} strokeWidth={2.2} />
+              <Share2 size={21} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           )}
           {isCreator && (
             <Pressable
               onPress={() => setShowMenu(true)}
               hitSlop={10}
-              style={{ paddingHorizontal: spacing.sm }}
+              style={{ paddingHorizontal: spacing.sm - 2 }}
               accessibilityLabel={t('activity.openMenu', { defaultValue: 'Open menu' })}
             >
-              <MoreHorizontal size={24} color={colors.textPrimary} strokeWidth={2.2} />
+              <MoreHorizontal size={22} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           )}
         </View>
@@ -1581,6 +1586,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.sm },
+  // Visibility twin-pill — same height/radius as the status pill, quiet
+  // surface fill so both info chips share one grammar.
+  headerVisPill: {
+    paddingHorizontal: spacing.sm - 2,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+  },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   headerPills: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,
