@@ -838,17 +838,17 @@ export function ActivityDetail({
                 <Rect x="0" y="0" width="100%" height="130" fill="url(#heroScrim)" />
               </Svg>
               <View style={styles.heroTitleWrap} pointerEvents="none">
-                {/* Ghost pills — distinct info units that read against the
-                    scrim without competing with the bare title below. */}
+                {/* Bare meta line — vert vif icons carry the distinction (no
+                    pill chrome eating the map), shadowed white text. */}
                 <View style={styles.heroMetaLine}>
-                  <View style={styles.heroMetaPill}>
-                    <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
+                  <View style={styles.heroMetaItem}>
+                    <Calendar size={13} color={colors.cta} strokeWidth={2.8} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                     </Text>
                   </View>
-                  <View style={styles.heroMetaPill}>
-                    <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
+                  <View style={styles.heroMetaItem}>
+                    <Users size={13} color={colors.cta} strokeWidth={2.8} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
                       {activity.max_participants === null
                         ? `${activity.participant_count}`
@@ -943,19 +943,19 @@ export function ActivityDetail({
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <View style={styles.locText}>
-                      <Text style={styles.locLabel}>{t('meta.startPoint')}</Text>
-                      <Text style={styles.locValue}>{activity.start_name}</Text>
-                    </View>
+                    <Text style={styles.locValue}>
+                      <Text style={styles.locLabelInline}>{t('meta.startPoint')} : </Text>
+                      {activity.start_name}
+                    </Text>
                   </View>
                 )}
                 {showTabs && activity.objective_name && (
                   <View style={styles.locRow}>
                     <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <View style={styles.locText}>
-                      <Text style={styles.locLabel}>{t('meta.objective')}</Text>
-                      <Text style={styles.locValue}>{activity.objective_name}</Text>
-                    </View>
+                    <Text style={styles.locValue}>
+                      <Text style={styles.locLabelInline}>{t('meta.objective')} : </Text>
+                      {activity.objective_name}
+                    </Text>
                   </View>
                 )}
                 <ActivityDescription description={activity.description} />
@@ -1267,17 +1267,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomRightRadius: radius.lg,
   },
   heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7, flexWrap: 'wrap' },
-  heroMetaPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(0,0,0,0.38)',
-    borderRadius: radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 7, flexWrap: 'wrap' },
+  heroMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  heroMetaText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 5,
   },
-  heroMetaText: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' },
   // Pills stacked in a single top-left cluster.
   heroPillCluster: {
     position: 'absolute',
@@ -1393,15 +1392,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   locRow: { flexDirection: 'row', gap: 10, marginBottom: spacing.sm, alignItems: 'flex-start' },
-  locText: { flex: 1 },
-  locLabel: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  locValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, marginTop: 1 },
+  locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19 },
+  locLabelInline: { color: colors.textMuted, fontWeight: '700' },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
