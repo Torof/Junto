@@ -1091,6 +1091,7 @@ export function ActivityDetail({
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
             onAddGear={() => gearSectionRef.current?.openCustomSheet()}
+            onReportMissing={() => gearSectionRef.current?.openMissingSheet()}
             onEditGearItem={(name, isShared) => gearSectionRef.current?.openItemByName(name, isShared)}
           />
 
@@ -1132,6 +1133,7 @@ export function ActivityDetail({
               transportSectionRef.current?.openRequestSheet(driverId, myFrom);
             }}
             onAddGear={() => gearSectionRef.current?.openCustomSheet()}
+            onReportMissing={() => gearSectionRef.current?.openMissingSheet()}
             onEditGearItem={(name, isShared) => gearSectionRef.current?.openItemByName(name, isShared)}
           />
 

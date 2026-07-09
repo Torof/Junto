@@ -7,6 +7,7 @@ import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { getFriendlyError } from '@/utils/friendly-error';
 import { gearService } from '@/services/gear-service';
 
 interface Props {
@@ -26,6 +27,7 @@ interface Props {
 export interface GearSectionHandle {
   openItemByName: (name: string, isShared?: boolean) => void;
   openCustomSheet: () => void;
+  openMissingSheet: () => void;
 }
 
 export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSection({ activityId, sportKey, currentUserId, isParticipant }, ref) {
@@ -44,6 +46,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   // Custom-item modal state — user types a free-form name + qty +
   // toggles Personnel/Partagé (catalog matches lock the toggle).
   const [showCustomSheet, setShowCustomSheet] = useState(false);
+  const [missingMode, setMissingMode] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customQty, setCustomQty] = useState(1);
   const [customIsShared, setCustomIsShared] = useState(false);
@@ -91,6 +94,16 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       setCustomQty(1);
       setCustomIsShared(false);
       setCatalogOpen(false);
+      setMissingMode(false);
+      setShowCustomSheet(true);
+    },
+    // Same sheet, "manque" flavor: catalog + name + qty, no type toggle —
+    // saves a missing tile instead of a contribution.
+    openMissingSheet: () => {
+      setCustomName('');
+      setCustomQty(1);
+      setCatalogOpen(false);
+      setMissingMode(true);
       setShowCustomSheet(true);
     },
   }), [activityGear, currentUserId]);
@@ -159,6 +172,15 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     if (!name) return;
     setIsSavingItem(true);
     try {
+      if (missingMode) {
+        await gearService.addMissing(activityId, name, customQty);
+        await queryClient.invalidateQueries({ queryKey: ['gear-missing', activityId] });
+        Burnt.toast({ title: t('gear.missingReported', { defaultValue: 'Manque signalé' }), preset: 'done' });
+        setShowCustomSheet(false);
+        setCustomName('');
+        setCustomQty(1);
+        return;
+      }
       // Catalog match wins over the toggle on the server, but we send
       // the toggle value so free-form items get classified correctly.
       const catalogMatch = catalog.find((c) => c.name_key === name);
@@ -177,12 +199,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       setCustomName('');
       setCustomQty(1);
     } catch (err) {
-      // PostgrestError doesn't always pass `instanceof Error` in RN
-      // bundles — duck-type the message field instead.
-      const msg = (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
-        ? (err as { message: string }).message
-        : t('auth.unknownError');
-      Burnt.toast({ title: msg });
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
     } finally {
       setIsSavingItem(false);
     }
@@ -273,7 +290,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
           <Pressable style={styles.backdrop} onPress={() => setShowCustomSheet(false)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.sheetTitle}>{t('gear.customSheetTitle')}</Text>
+                <Text style={styles.sheetTitle}>{missingMode ? t('group.reportMissing', { defaultValue: 'Signaler un manque' }) : t('gear.customSheetTitle')}</Text>
 
                 {catalog.length > 0 && (
                   <View style={styles.dropdownWrapper}>
@@ -334,8 +351,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
 
                 {/* Personnel / Partagé — for free-form items only.
                     Catalog matches lock the toggle since the server
-                    overrides client input for known items anyway. */}
-                {(() => {
+                    overrides client input for known items anyway.
+                    Hidden in missing mode (a gap has no type). */}
+                {!missingMode && (() => {
                   const trimmed = customName.trim();
                   const catalogMatch = catalog.find((c) => c.name_key === trimmed);
                   const locked = !!catalogMatch;
@@ -403,7 +421,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                   onPress={submitCustomSheet}
                   disabled={isSavingItem || !customName.trim()}
                 >
-                  <Text style={styles.saveBtnText}>{t('profil.save')}</Text>
+                  <Text style={styles.saveBtnText}>{missingMode ? t('group.reportMissingCta', { defaultValue: 'Signaler' }) : t('profil.save')}</Text>
                 </Pressable>
               </ScrollView>
             </Pressable>
