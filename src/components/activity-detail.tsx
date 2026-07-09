@@ -597,6 +597,13 @@ export function ActivityDetail({
   const canRejoin = participation && ['withdrawn', 'refused'].includes(participation.status);
   const isActive = ['published', 'in_progress'].includes(activity.status);
   const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
+  // Drawer-chip tint (accent ~10% over white) as a SOLID color so it stays
+  // legible over the map while looking identical to the UA drawer chip.
+  const sportChipBg = (() => {
+    const h = sportAccent.replace('#', '');
+    const mix = (c: number) => Math.round(c * 0.1 + 255 * 0.9).toString(16).padStart(2, '0');
+    return `#${mix(parseInt(h.slice(0, 2), 16))}${mix(parseInt(h.slice(2, 4), 16))}${mix(parseInt(h.slice(4, 6), 16))}`;
+  })();
   // Logistics (transport / gear / seat requests) are sealed once the
   // activity starts — DB-side too, via 00233's `starts_at > NOW()` gate.
   // Hide the corresponding edit affordances so users don't tap into a
@@ -814,7 +821,7 @@ export function ActivityDetail({
               <View style={styles.heroPillCluster} pointerEvents="none">
                 {/* Same sport-chip grammar as the UA drawer (outline + tint +
                     sport glyph), on a solid base for map legibility. */}
-                <View style={[styles.heroSportChip, { borderColor: sportAccent }]}>
+                <View style={[styles.heroSportChip, { borderColor: sportAccent, backgroundColor: sportChipBg }]}>
                   <Text style={styles.heroSportEmoji}>{getSportIcon(activity.sport_key)}</Text>
                   <Text style={[styles.heroSportChipText, { color: sportAccent }]} numberOfLines={1}>
                     {t(`sports.${activity.sport_key}`, activity.sport_key)}
@@ -831,18 +838,23 @@ export function ActivityDetail({
                 <Rect x="0" y="0" width="100%" height="130" fill="url(#heroScrim)" />
               </Svg>
               <View style={styles.heroTitleWrap} pointerEvents="none">
+                {/* Ghost pills — distinct info units that read against the
+                    scrim without competing with the bare title below. */}
                 <View style={styles.heroMetaLine}>
-                  <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
-                  <Text style={styles.heroMetaText} numberOfLines={1}>
-                    {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
-                  </Text>
-                  <View style={[styles.heroMetaDot, { backgroundColor: sportAccent }]} />
-                  <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
-                  <Text style={styles.heroMetaText} numberOfLines={1}>
-                    {activity.max_participants === null
-                      ? `${activity.participant_count}`
-                      : t('activity.placesShort', { defaultValue: '{{n}} places', n: `${remaining}/${activity.max_participants}` })}
-                  </Text>
+                  <View style={styles.heroMetaPill}>
+                    <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
+                    <Text style={styles.heroMetaText} numberOfLines={1}>
+                      {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
+                    </Text>
+                  </View>
+                  <View style={styles.heroMetaPill}>
+                    <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
+                    <Text style={styles.heroMetaText} numberOfLines={1}>
+                      {activity.max_participants === null
+                        ? `${activity.participant_count}`
+                        : t('activity.placesShort', { defaultValue: '{{n}} places', n: `${remaining}/${activity.max_participants}` })}
+                    </Text>
+                  </View>
                 </View>
                 <Text style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</Text>
               </View>
@@ -1255,16 +1267,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomRightRadius: radius.lg,
   },
   heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
-  heroMetaText: {
-    color: '#FFFFFF',
-    fontSize: 12.5,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+  heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7, flexWrap: 'wrap' },
+  heroMetaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0,0,0,0.38)',
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  heroMetaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.8)', marginHorizontal: 2 },
+  heroMetaText: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' },
   // Pills stacked in a single top-left cluster.
   heroPillCluster: {
     position: 'absolute',
@@ -1358,20 +1371,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, flexWrap: 'wrap' },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  // One-line strip, borderless — a quiet signature under the hero.
+  // One fact per line — the hero absorbed date/places/sport, so the page
+  // can afford the vertical air; icon + value read calmly.
   factsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.xs,
     marginBottom: spacing.md,
   },
   factCell: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingVertical: spacing.sm,
+    gap: 11,
+    paddingVertical: spacing.xs + 3,
   },
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   cardLabel: {
