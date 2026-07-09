@@ -27,8 +27,7 @@ L'asymétrie est intentionnelle : la fenêtre d'enregistrement OS commence à T-
 ## Distance check
 
 `confirm_presence_via_geo` calcule le minimum entre :
-- Distance au point de départ (`location_start`)
-- Distance au point de RDV (`location_meeting`)
+- Distance au point de RDV (`location_meeting` — NOT NULL depuis mig 00306, qui a fusionné l'ancien point de départ dedans)
 - Distance au point d'arrivée (`location_end`)
 - Distance au polyline `trace_geojson` quand l'activité a une trace GPX (mig 00149)
 

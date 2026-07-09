@@ -47,11 +47,10 @@ Voir `docs/SECURITY.md` section "Chaîne d'autorisation par fonction" pour les d
 - `p_level` (échelle générique ou spécifique au sport — voir `getLevelScale`)
 - `p_max_participants` (NULL pour open, sinon [2, 50])
 - `p_distance_km` / `p_elevation_gain_m` (optionnels selon sport)
-- `p_start_lng`, `p_start_lat` (point de départ)
-- `p_meeting_lng`, `p_meeting_lat` (point de RDV — peut différer)
+- `p_meeting_lng`, `p_meeting_lat` (point de RDV — obligatoire ; point unique depuis mig 00306, l'ancien départ a fusionné dedans)
 - `p_end_lng`, `p_end_lat` (optionnel)
 - `p_objective_lng`, `p_objective_lat`, `p_objective_name` (optionnel — sommet, lac)
-- `p_start_name` (libellé du départ)
+- `p_meeting_name` (libellé optionnel du RDV, affiché dans « Le parcours »)
 - `p_trace_geojson` (LineString JSONB, parsée client-side depuis GPX)
 - `p_starts_at` (futur)
 - `p_duration` (interval — au moins 15min)
@@ -77,7 +76,7 @@ Trigger `handle_activity_update` (whitelist) :
 - `location_*`, `starts_at`, `level`, `max_participants`, `visibility`
 
 **Modifiables si créateur :**
-- `title`, `description`, `sport_id`, `duration`, `requires_presence`, `objective_*`, `start_name`, `trace_geojson`, `distance_km`, `elevation_gain_m`
+- `title`, `description`, `sport_id`, `duration`, `requires_presence`, `objective_*`, `meeting_name`, `trace_geojson`, `distance_km`, `elevation_gain_m`
 
 Modification d'un champ déclenche `activity_updated` notif aux participants acceptés (avec un payload `changes` JSONB) — push uniquement si le changement touche logistique (starts_at, duration, locations).
 
@@ -239,7 +238,7 @@ Modification autorisée tant que l'activité est `published`. Modifie uniquement
 Tout changement :
 - Met à jour `updated_at` automatiquement (via le trigger)
 - Insère une notif `activity_updated` à tous les participants acceptés avec un `changes` JSONB
-- Push uniquement si le changement touche `starts_at`, `duration`, `location_meeting`, `location_start` (logistique critique)
+- Push uniquement si le changement touche `starts_at`, `duration`, `location_meeting` (logistique critique)
 
 ---
 
