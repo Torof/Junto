@@ -9,6 +9,9 @@ import { pushTokenService } from '@/services/push-token-service';
 import { getOrCreateDeviceId } from '@/utils/device-id';
 import { colors } from '@/constants/theme';
 
+// Module-level so hook remounts (auth changes) never re-route the same tap.
+let lastRoutedResponseId: string | null = null;
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -80,8 +83,15 @@ export function usePushNotifications(enabled: boolean) {
   }, [enabled]);
 
   useEffect(() => {
-    // Handle taps on received notifications
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+    // Handle taps on received notifications. `handle` is shared between the
+    // live listener AND the cold-start path: when the app is LAUNCHED by the
+    // tap, the response fires before this listener exists, so we replay it
+    // via getLastNotificationResponseAsync (deduped — module-level marker —
+    // so a re-mount or a stale "last response" never routes twice).
+    const handle = (response: Notifications.NotificationResponse) => {
+      const responseId = `${response.notification.request.identifier}:${response.notification.date}`;
+      if (lastRoutedResponseId === responseId) return;
+      lastRoutedResponseId = responseId;
       const data = response.notification.request.content.data as {
         activity_id?: string;
         conversation_id?: string;
@@ -116,7 +126,15 @@ export function usePushNotifications(enabled: boolean) {
       } else if (data?.activity_id) {
         router.push(`/(auth)/activity/${data.activity_id}`);
       }
-    });
-    return () => sub.remove();
+    };
+    const sub = Notifications.addNotificationResponseReceivedListener(handle);
+    // Cold start: replay the tap that launched the app. Small delay so the
+    // root navigator + auth gate are mounted before we push.
+    const timer = setTimeout(() => {
+      Notifications.getLastNotificationResponseAsync()
+        .then((response) => { if (response) handle(response); })
+        .catch(() => {});
+    }, 400);
+    return () => { sub.remove(); clearTimeout(timer); };
   }, [router]);
 }
