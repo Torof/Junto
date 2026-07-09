@@ -944,7 +944,6 @@ export function ActivityDetail({
                 is now the hero, so no second map here. */}
             {showTabs && (activity.start_name || activity.objective_name) && (
               <View style={styles.parcoursSection}>
-                <View style={styles.secDivider} />
                 <Text style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
@@ -965,7 +964,6 @@ export function ActivityDetail({
 
             {activity.description != null && activity.description !== '' && (
               <View style={styles.parcoursSection}>
-                <View style={styles.secDivider} />
                 <Text style={styles.secTitle}>{t('activity.description')}</Text>
                 <ActivityDescription description={activity.description} />
               </View>
@@ -1358,7 +1356,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   mapMenuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   // Open editorial section — no box; the map is the hero, this is copy.
-  parcoursSection: { marginBottom: spacing.md, paddingHorizontal: 2 },
+  parcoursSection: { marginTop: spacing.sm + 2, marginBottom: spacing.md, paddingHorizontal: 2 },
   heroTitleWrap: { position: 'absolute', left: spacing.md, right: spacing.md, bottom: spacing.md },
   heroTitleOnMap: {
     color: '#FFFFFF',
@@ -1405,6 +1403,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.3,
     marginBottom: spacing.sm,
   },
+  // (Option A divider — kept for a quick A/B revert.)
   secDivider: { height: 1, backgroundColor: colors.line, marginBottom: spacing.md },
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
