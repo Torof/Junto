@@ -237,7 +237,7 @@ export function ActivityDetail({
       // Info first (twin pills: status + visibility), a real gap, then the
       // actions at the edge with matching sizes.
       headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 3 }}>
           <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>
             <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
           </View>
@@ -250,7 +250,7 @@ export function ActivityDetail({
               <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
             )}
           </View>
-          <View style={{ width: spacing.sm }} />
+          <View style={{ width: spacing.lg }} />
           {canShare && (
             <Pressable
               onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
@@ -681,23 +681,26 @@ export function ActivityDetail({
             return (
               <Pressable
                 key={tab}
-                style={[styles.tab, isActiveTab && styles.tabActive]}
+                style={styles.tab}
                 onPress={() => setActiveTab(tab)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActiveTab }}
                 accessibilityLabel={t(`activity.tab.${tab}`)}
               >
-                <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
-                  {t(`activity.tab.${tab}`)}
-                </Text>
-                {tab === 'info' && (canCheckIn || (isCreator && isQrAvailable)) && (
-                  <View style={styles.tabDot} />
-                )}
-                {tab === 'chat' && wallUnreadCount > 0 && !isActiveTab && (
-                  <View style={styles.tabBadge}>
-                    <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
-                  </View>
-                )}
+                <View style={styles.tabInner}>
+                  <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
+                    {t(`activity.tab.${tab}`)}
+                  </Text>
+                  {tab === 'info' && (canCheckIn || (isCreator && isQrAvailable)) && (
+                    <View style={styles.tabDot} />
+                  )}
+                  {tab === 'chat' && wallUnreadCount > 0 && !isActiveTab && (
+                    <View style={styles.tabBadge}>
+                      <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={[styles.tabIndicator, isActiveTab && styles.tabIndicatorActive]} />
               </Pressable>
             );
           })}
@@ -1419,23 +1422,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.xs,
     paddingTop: spacing.sm,
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  tab: {
+  // Equal-width tabs; muted inactive labels; rounded indicator pill under
+  // the active one (same pill language as the rest of the page).
+  tab: { flex: 1, alignItems: 'center' },
+  tabInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
   },
-  tabActive: { borderBottomColor: colors.cta },
-  tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  tabIndicator: { alignSelf: 'stretch', height: 3, borderRadius: 2, marginHorizontal: spacing.md, backgroundColor: 'transparent' },
+  tabIndicatorActive: { backgroundColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '600' },
   tabTextActive: { color: colors.cta, fontWeight: '800' },
   tabDot: { width: 6, height: 6, borderRadius: radius.xs, backgroundColor: colors.cta },
   tabBadge: {
