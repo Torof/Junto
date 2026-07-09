@@ -242,6 +242,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                     <View style={styles.dateLine} />
                   </View>
                 )}
+                {/* Messenger grammar (2026-07-09): name above the group,
+                    avatar OUTSIDE bottom-aligned on the last bubble, solid
+                    accent for mine, group-aware corner shaping. */}
                 <View
                   style={[
                     styles.messageRow,
@@ -249,47 +252,56 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                     isFirstInGroup ? styles.firstInGroup : styles.midInGroup,
                   ]}
                 >
-                  <Pressable
-                    onLongPress={isMine && item.user_id ? () => openActionMenu(item) : undefined}
-                    delayLongPress={250}
-                    style={[
-                      styles.messageCard,
-                      isMine ? styles.messageCardMine : styles.messageCardOther,
-                    ]}
-                  >
-                    {isFirstInGroup && (
-                      <View style={styles.messageHeader}>
+                  {!isMine && (
+                    <View style={styles.avatarSlot}>
+                      {isLastInGroup && (
                         <Pressable
-                          style={styles.authorLink}
                           onPress={() => item.user_id && router.push(`/(auth)/profile/${item.user_id}`)}
                           disabled={!item.user_id}
+                          hitSlop={4}
                         >
                           <UserAvatar
                             name={item.display_name ?? '?'}
                             avatarUrl={item.avatar_url}
-                            size={22}
+                            size={26}
                             confirmedPresent={!!item.user_id && confirmedUserIds.has(item.user_id)}
                           />
-                          <Text style={styles.authorName} numberOfLines={1}>
-                            {isMine
-                              ? t('wall.youAuthor', { defaultValue: 'Toi' })
-                              : item.display_name ?? t('wall.deletedUser')}
-                          </Text>
                         </Pressable>
-                      </View>
-                    )}
-                    <Text style={styles.messageContent}>{item.content}</Text>
-                    <View style={styles.messageFooter}>
-                      {item.edited_at && (
-                        <Text style={styles.editedTag}>
-                          {t('wall.editedTag', { defaultValue: 'modifié' })}
-                        </Text>
-                      )}
-                      {isLastInGroup && (
-                        <Text style={styles.messageTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
                       )}
                     </View>
-                  </Pressable>
+                  )}
+                  <View style={styles.bubbleCol}>
+                    {isFirstInGroup && !isMine && (
+                      <Text style={styles.authorName} numberOfLines={1}>
+                        {item.display_name ?? t('wall.deletedUser')}
+                      </Text>
+                    )}
+                    <Pressable
+                      onLongPress={isMine && item.user_id ? () => openActionMenu(item) : undefined}
+                      delayLongPress={250}
+                      style={[
+                        styles.messageCard,
+                        isMine ? styles.messageCardMine : styles.messageCardOther,
+                        isMine
+                          ? { borderTopRightRadius: isFirstInGroup ? 18 : 5, borderBottomRightRadius: isLastInGroup ? 18 : 5 }
+                          : { borderTopLeftRadius: isFirstInGroup ? 18 : 5, borderBottomLeftRadius: isLastInGroup ? 18 : 5 },
+                      ]}
+                    >
+                      <Text style={[styles.messageContent, isMine && styles.messageContentMine]}>{item.content}</Text>
+                      <View style={styles.messageFooter}>
+                        {item.edited_at && (
+                          <Text style={[styles.editedTag, isMine && styles.onAccentMuted]}>
+                            {t('wall.editedTag', { defaultValue: 'modifié' })}
+                          </Text>
+                        )}
+                        {isLastInGroup && (
+                          <Text style={[styles.messageTime, isMine && styles.onAccentMuted]}>
+                            {dayjs(item.created_at).format('H[h]mm')}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             );
@@ -299,13 +311,6 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
 
       {isActive && (
         <View style={styles.inputRow}>
-          {currentUserProfile && (
-            <UserAvatar
-              name={currentUserProfile.display_name}
-              avatarUrl={currentUserProfile.avatar_url}
-              size={28}
-            />
-          )}
           <TextInput
             style={styles.input}
             value={message}
@@ -463,33 +468,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   firstInGroup: {
-    marginTop: spacing.sm,
+    marginTop: spacing.sm + 4,
   },
   midInGroup: {
-    marginTop: 1,
+    marginTop: 2,
   },
 
+  // Messenger-style bubbles (2026-07-09): big radius, solid accent for
+  // mine, ink-on-surface for others; group-aware corners applied inline.
   messageCard: {
-    borderRadius: radius.md,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.sm + 2,
-    maxWidth: '85%',
+    borderRadius: 18,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 5,
   },
-  // Mine: cta-tinted bg with mild border so own messages are clearly
-  // distinct from incoming. Tail-curve bottom-right corner subtly
-  // sharpened so the bubble points "from me".
   messageCardMine: {
-    backgroundColor: colors.cta + '24',
-    borderTopRightRadius: radius.md,
-    borderBottomRightRadius: radius.sm,
+    backgroundColor: colors.cta,
   },
-  // Others: plain surface with line border. Sharper bottom-left corner
-  // points "from them".
   messageCardOther: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.md,
-    borderBottomLeftRadius: radius.sm,
   },
+  avatarSlot: { width: 32, justifyContent: 'flex-end' },
+  bubbleCol: { maxWidth: '78%' },
+  messageContentMine: { color: '#FFFFFF' },
+  onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
 
   messageHeader: {
     flexDirection: 'row',
@@ -502,14 +503,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs + 2,
   },
   authorName: {
-    color: colors.textPrimary,
+    color: colors.textMuted,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+    marginLeft: spacing.sm + 4,
+    marginBottom: 3,
   },
   messageContent: {
     color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    lineHeight: 19,
+    fontSize: fontSizes.sm + 1,
+    lineHeight: 21,
   },
   messageFooter: {
     flexDirection: 'row',
@@ -542,19 +545,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
     color: colors.textPrimary,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: fontSizes.sm,
-    maxHeight: 100,
+    borderRadius: 22,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.sm + 2,
+    fontSize: fontSizes.sm + 1,
+    maxHeight: 110,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.cta,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: colors.cta,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   sendDisabled: {
     opacity: 0.4,
