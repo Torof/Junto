@@ -912,8 +912,8 @@ export function ActivityDetail({
             {/* === FACTS === restrained grid, monochrome icons, short atomic
                 values only. Long text (locations) lives in "Le parcours". */}
             <View style={styles.secLabelRow}>
-              <View style={styles.secLabelBar} />
               <Text style={styles.secLabelText}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
+              <View style={styles.secLabelRule} />
             </View>
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
@@ -948,8 +948,8 @@ export function ActivityDetail({
             {showTabs && (activity.start_name || activity.objective_name) && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secLabelRow}>
-                  <View style={styles.secLabelBar} />
                   <Text style={styles.secLabelText}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
+                  <View style={styles.secLabelRule} />
                 </View>
                 {showTabs && activity.start_name && (
                   <View style={styles.locRow}>
@@ -971,8 +971,8 @@ export function ActivityDetail({
             {activity.description != null && activity.description !== '' && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secLabelRow}>
-                  <View style={styles.secLabelBar} />
                   <Text style={styles.secLabelText}>{t('activity.description')}</Text>
+                  <View style={styles.secLabelRule} />
                 </View>
                 <ActivityDescription description={activity.description} />
               </View>
@@ -1403,15 +1403,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   // Stylised section label — small vert vif bar + spaced small caps.
   // Quietly hierarchical, echoes the site's SectionLabel grammar.
-  secLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: spacing.sm + 2 },
-  secLabelBar: { width: 16, height: 2.5, borderRadius: 2, backgroundColor: colors.cta },
+  secLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.sm + 2 },
   secLabelText: {
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     fontSize: fontSizes.xs,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
+  secLabelRule: { flex: 1, height: 1, backgroundColor: colors.lineStrong },
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
   locLabelInline: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 19 },
