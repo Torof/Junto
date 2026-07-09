@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Modal, TextInput } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
@@ -115,6 +115,41 @@ export function GroupCard({
     queryFn: () => gearService.getForActivity(activityId),
     enabled: isParticipant,
   });
+  const { data: missingItems = [] } = useQuery({
+    queryKey: ['gear-missing', activityId],
+    queryFn: () => gearService.getMissing(activityId),
+    enabled: isParticipant,
+  });
+  const [showMissingSheet, setShowMissingSheet] = useState(false);
+  const [missingName, setMissingName] = useState('');
+  const [missingQty, setMissingQty] = useState(1);
+  const [missingSaving, setMissingSaving] = useState(false);
+
+  const submitMissing = async () => {
+    const name = missingName.trim();
+    if (!name || missingSaving) return;
+    setMissingSaving(true);
+    try {
+      await gearService.addMissing(activityId, name, missingQty);
+      await queryClient.invalidateQueries({ queryKey: ['gear-missing', activityId] });
+      setShowMissingSheet(false);
+      setMissingName('');
+      setMissingQty(1);
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic'), preset: 'error' });
+    } finally {
+      setMissingSaving(false);
+    }
+  };
+
+  const removeMissing = async (name: string) => {
+    try {
+      await gearService.removeMissing(activityId, name);
+      await queryClient.invalidateQueries({ queryKey: ['gear-missing', activityId] });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic'), preset: 'error' });
+    }
+  };
   const { data: participants = [] } = useQuery({
     queryKey: ['participants', activityId],
     queryFn: () => participationService.getForActivity(activityId),
@@ -888,6 +923,61 @@ export function GroupCard({
               )}
             </View>
 
+            {/* Manquant — collaborative red tiles: "il manque X". Any
+                participant adds/removes; declaring a matching shared
+                contribution auto-clears (00303 trigger). Section absent
+                when empty on inactive activities. */}
+            {(missingItems.length > 0 || isActive) && (
+              <View style={[styles.gearSection, styles.gearSectionSpacer]}>
+                <View style={styles.collapsibleHeader}>
+                  <Text style={styles.gearSecTitle}>
+                    {t('group.gearSection.missing', { defaultValue: 'Manquant' })}
+                  </Text>
+                  {missingItems.length > 0 && (
+                    <Text style={styles.transportCategoryCount}>· {missingItems.length}</Text>
+                  )}
+                </View>
+                <View style={styles.tileBoard}>
+                  {missingItems.map((m) => (
+                    <View key={m.id} style={[styles.gearTile, styles.missTile]}>
+                      {isActive && (
+                        <Pressable style={styles.missRemove} onPress={() => removeMissing(m.name)} hitSlop={8}>
+                          <X size={13} color={colors.textMuted} strokeWidth={2.4} />
+                        </Pressable>
+                      )}
+                      <Text style={styles.gearTileName} numberOfLines={2}>
+                        {m.name}
+                        {m.quantity > 1 && <Text style={styles.missQty}>{'  ×' + m.quantity}</Text>}
+                      </Text>
+                      <View style={styles.gearTileFoot}>
+                        {isActive ? (
+                          <Pressable style={styles.missBringBtn} onPress={() => onEditGearItem(m.name, true)} hitSlop={4}>
+                            <Text style={styles.missBringText}>
+                              {t('group.iBringIt', { defaultValue: "Je l'apporte" })}
+                            </Text>
+                          </Pressable>
+                        ) : <View />}
+                      </View>
+                    </View>
+                  ))}
+                  {isActive && (
+                    <Pressable
+                      style={[styles.gearTile, styles.gearTileAdd, styles.missAddTile]}
+                      onPress={() => setShowMissingSheet(true)}
+                      hitSlop={4}
+                    >
+                      <View style={[styles.gearTileAddPlus, styles.missAddPlus]}>
+                        <Plus size={14} color="#FFFFFF" strokeWidth={3} />
+                      </View>
+                      <Text style={styles.missAddText}>
+                        {t('group.reportMissing', { defaultValue: 'Signaler un manque' })}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            )}
+
             {/* Chacun son sac — personal gear, one glance-line per person. */}
             {(() => {
               const personal = bringers
@@ -940,6 +1030,44 @@ export function GroupCard({
         )}
 
       </View>
+
+      {/* Signal-a-missing-item sheet — lean: name + qty stepper + save. */}
+      <Modal visible={showMissingSheet} animationType="fade" transparent onRequestClose={() => setShowMissingSheet(false)}>
+        <Pressable style={styles.missBackdrop} onPress={() => setShowMissingSheet(false)}>
+          <Pressable style={styles.missSheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.missSheetTitle}>
+              {t('group.reportMissing', { defaultValue: 'Signaler un manque' })}
+            </Text>
+            <TextInput
+              style={styles.missInput}
+              value={missingName}
+              onChangeText={setMissingName}
+              placeholder={t('group.missingPlaceholder', { defaultValue: 'Réchaud, corde 60m…' })}
+              placeholderTextColor={colors.textMuted}
+              maxLength={60}
+              autoFocus
+            />
+            <View style={styles.missQtyRow}>
+              <Pressable style={styles.missQtyBtn} onPress={() => setMissingQty((q) => Math.max(1, q - 1))} hitSlop={6}>
+                <Text style={styles.missQtyBtnText}>−</Text>
+              </Pressable>
+              <Text style={styles.missQtyValue}>×{missingQty}</Text>
+              <Pressable style={styles.missQtyBtn} onPress={() => setMissingQty((q) => Math.min(99, q + 1))} hitSlop={6}>
+                <Text style={styles.missQtyBtnText}>+</Text>
+              </Pressable>
+            </View>
+            <Pressable
+              style={[styles.missSaveBtn, (!missingName.trim() || missingSaving) && { opacity: 0.4 }]}
+              onPress={submitMissing}
+              disabled={!missingName.trim() || missingSaving}
+            >
+              <Text style={styles.missSaveText}>
+                {t('group.reportMissingCta', { defaultValue: 'Signaler' })}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -1486,6 +1614,52 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   persName: { color: colors.textPrimary, fontSize: fontSizes.xs + 1.5, fontWeight: '700' },
   persToi: { color: colors.cta, fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
   persItems: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', lineHeight: 19 },
+  // "Manquant" tiles — muted red, dashed; green CTA fixes them.
+  missTile: { backgroundColor: '#C0553F0D', borderStyle: 'dashed', borderColor: '#C0553F66' },
+  missQty: { color: '#C0553F', fontWeight: '800' },
+  missRemove: { position: 'absolute', top: 6, right: 6, zIndex: 2, padding: 2 },
+  missBringBtn: {
+    backgroundColor: colors.cta,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: 6,
+    shadowColor: colors.cta,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  missBringText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  missAddTile: { borderColor: '#C0553F55' },
+  missAddPlus: { backgroundColor: '#C0553F' },
+  missAddText: { color: '#C0553F', fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  missBackdrop: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center', padding: spacing.lg,
+  },
+  missSheet: {
+    width: '100%', maxWidth: 380, backgroundColor: colors.background,
+    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line,
+    padding: spacing.lg, gap: spacing.md,
+  },
+  missSheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '700' },
+  missInput: {
+    backgroundColor: colors.surface, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2,
+    color: colors.textPrimary, fontSize: fontSizes.md,
+  },
+  missQtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
+  missQtyBtn: {
+    width: 36, height: 36, borderRadius: radius.full,
+    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
+  },
+  missQtyBtnText: { color: colors.textPrimary, fontSize: 20, fontWeight: '700' },
+  missQtyValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700', minWidth: 52, textAlign: 'center' },
+  missSaveBtn: {
+    backgroundColor: colors.cta, borderRadius: radius.md,
+    paddingVertical: spacing.md, alignItems: 'center',
+  },
+  missSaveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
   emptyHint: {
     color: colors.textSecondary,
     fontSize: fontSizes.xs + 1,

@@ -30,6 +30,14 @@ export interface ActivityGearWithProfile extends ActivityGearItem {
   avatar_url: string | null;
 }
 
+
+export interface MissingGearItem {
+  id: string;
+  name: string;
+  quantity: number;
+  created_by: string | null;
+}
+
 export const gearService = {
   getCatalog: async (sportKey: string): Promise<GearCatalogItem[]> => {
     const { data, error } = await supabase
@@ -73,6 +81,34 @@ export const gearService = {
       p_activity_id: activityId,
       p_items: items,
     });
+    if (error) throw error;
+  },
+
+  // --- "Manquant" tiles (mig 00303) — collaborative missing-gear statements.
+  getMissing: async (activityId: string): Promise<MissingGearItem[]> => {
+    const { data, error } = await supabase
+      .from('activity_gear_missing' as 'activity_gear')
+      .select('id, name, quantity, created_by')
+      .eq('activity_id', activityId)
+      .order('created_at' as 'gear_name') as unknown as { data: MissingGearItem[] | null; error: Error | null };
+    if (error) return [];
+    return data ?? [];
+  },
+
+  addMissing: async (activityId: string, name: string, quantity: number): Promise<void> => {
+    const { error } = await supabase.rpc('add_missing_gear' as 'join_activity', {
+      p_activity_id: activityId,
+      p_name: name,
+      p_quantity: quantity,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
+
+  removeMissing: async (activityId: string, name: string): Promise<void> => {
+    const { error } = await supabase.rpc('remove_missing_gear' as 'join_activity', {
+      p_activity_id: activityId,
+      p_name: name,
+    } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
 };

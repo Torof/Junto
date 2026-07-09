@@ -399,7 +399,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Transport / sièges :** `set_participation_transport`, `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`
 
-**Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`
+**Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`, `add_missing_gear`, `remove_missing_gear` (mig 00303 — chaîne : auth → suspension → activité active → participant accepté OU créateur → sanitisation + plafonds 60 car./qté 1-99/20 manques ; upsert sur doublon ; retrait collaboratif ; trigger `clear_missing_on_shared_gear` auto-ferme la tuile quand un apport partagé du même nom est déclaré)
 
 **User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
@@ -466,6 +466,7 @@ AS $$ ... $$;
 | `seat_requests` | INSERT, UPDATE | Bypass driver/requester checks | `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`, trigger d'expiration |
 | `activity_alerts` | INSERT, UPDATE, DELETE | Bypass tier check, sanity bounds | `create_alert`, `delete_alert` |
 | `activity_gear` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear` |
+| `activity_gear_missing` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `add_missing_gear`, `remove_missing_gear` (+ trigger interne 00303) |
 | `reports` | INSERT, DELETE | Rate limit + dup-check + target validation | `create_report` (DELETE jamais autorisé) |
 | `user_badge_progression` | INSERT, UPDATE, DELETE | Auto-managed par trigger (DELETE jamais autorisé) | `award_badge_progression` |
 

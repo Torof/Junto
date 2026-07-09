@@ -241,7 +241,9 @@
       "badge_rate_limit": "You've given too many badges in 24h. Try again later.",
       "badge_window_not_open": "Badges can be given 15 min after the outing ends.",
       "badge_window_closed": "The badge window is closed (24h after the end).",
-      "peer_review_unavailable": "With only two people, presence is validated by QR or geolocation only (no cross-validation)."
+      "peer_review_unavailable": "With only two people, presence is validated by QR or geolocation only (no cross-validation).",
+      "gear_invalid": "Invalid gear name (60 characters max).",
+      "gear_missing_limit": "Limit of 20 missing items reached for this outing."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",

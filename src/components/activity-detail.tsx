@@ -161,6 +161,15 @@ export function ActivityDetail({
         { event: '*', schema: 'public', table: 'activity_gear', filter: `activity_id=eq.${activity.id}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ['activity-gear', activity.id] });
+          // The shared-gear trigger (00303) may have auto-cleared a missing tile.
+          queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activity_gear_missing', filter: `activity_id=eq.${activity.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
         },
       )
       .subscribe();

@@ -245,7 +245,9 @@
       "badge_rate_limit": "Tu as donné trop de badges en 24 h. Réessaie plus tard.",
       "badge_window_not_open": "Les badges pourront être donnés 15 min après la fin de la sortie.",
       "badge_window_closed": "La fenêtre pour donner des badges est fermée (24 h après la fin).",
-      "peer_review_unavailable": "À deux, la présence se valide uniquement par QR ou géolocalisation (pas de validation croisée)."
+      "peer_review_unavailable": "À deux, la présence se valide uniquement par QR ou géolocalisation (pas de validation croisée).",
+      "gear_invalid": "Nom de matériel invalide (60 caractères max).",
+      "gear_missing_limit": "Limite de 20 manques atteinte pour cette sortie."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
