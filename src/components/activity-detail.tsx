@@ -45,7 +45,7 @@ import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
 import { GroupCard } from './group-card';
 import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
-import { distanceMeters } from '@/utils/geo';
+import { distanceMeters, distanceToPolylineMeters } from '@/utils/geo';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 
 interface ActivityDetailProps {
@@ -309,11 +309,11 @@ export function ActivityDetail({
   const durationMs = parseDurationMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
-  // Server-aligned windows (migration 00132):
-  //   geo: T-15min → T+30min
-  //   QR:  T-15min → T+duration+1h
-  const isInGeoWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + 30 * 60 * 1000;
-  const isInQrWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 60 * 60 * 1000;
+  // Server-aligned windows (migration 00292, unchanged by 00306):
+  //   geo: anchor must be in T-15min → T+15min
+  //   QR:  T-15min → T+duration+3h (token creation and scan share the gate)
+  const isInGeoWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + 15 * 60 * 1000;
+  const isInQrWindow = requiresPresence && nowMs >= startsAtMs - 15 * 60 * 1000 && nowMs <= startsAtMs + durationMs + 3 * 60 * 60 * 1000;
   const isQrAvailable = isInQrWindow; // creator's QR generation uses the same gate
 
   const remaining = getRemainingPlaces(activity.max_participants, activity.participant_count);
@@ -369,15 +369,21 @@ export function ActivityDetail({
         }
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
-        const candidates: number[] = [
-          distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.lat, activity.lng),
-        ];
+        // Mirror the server's LEAST(meeting, end, trace) exactly — checking
+        // a point the server ignores (the objective) shows "in the zone"
+        // for a check-in that would be rejected; skipping one it accepts
+        // (the trace) blocks valid mid-route check-ins.
+        const candidates: number[] = [];
         if (activity.meeting_lat != null && activity.meeting_lng != null) {
           candidates.push(distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.meeting_lat, activity.meeting_lng));
         }
         if (activity.end_lat != null && activity.end_lng != null) {
           candidates.push(distanceMeters(pos.coords.latitude, pos.coords.longitude, activity.end_lat, activity.end_lng));
         }
+        if (activity.trace_geojson) {
+          candidates.push(distanceToPolylineMeters(pos.coords.latitude, pos.coords.longitude, activity.trace_geojson.coordinates));
+        }
+        if (candidates.length === 0) return;
         const minDist = Math.min(...candidates);
         const nowAt = minDist <= 150;
         if (cancelled) return;
@@ -387,7 +393,6 @@ export function ActivityDetail({
         // Fire once when the user enters the zone (transition false → true)
         if (nowAt && !alertedAt) {
           alertedAt = true;
-          haptic.success();
           // No local OS notif here — user is foreground on this very page,
           // the in-app toast + state change already signal the confirmation.
           // The two visible OS notifs ("détectée" → "confirmée") are owned
@@ -395,11 +400,14 @@ export function ActivityDetail({
 
           // Auto-confirm: app open + within 150m + inside geo window already
           // proves enough. Saves the user a tap. The manual button stays as
-          // a fallback if this call fails (network, etc.).
+          // a fallback if this call fails (network, etc.). The success
+          // haptic only fires once the server has actually confirmed —
+          // celebrating on zone entry reads as "validated" when it isn't.
           if (canConfirmGeo) {
             try {
               await reliabilityService.confirmPresenceViaGeo(activity.id, pos.coords.longitude, pos.coords.latitude);
               if (cancelled) return;
+              haptic.success();
               await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
               await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
               await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
@@ -410,6 +418,10 @@ export function ActivityDetail({
             } catch {
               // Silent: the manual button still works as a fallback.
             }
+          } else {
+            // QR-only path: no RPC to wait on — the haptic is just the
+            // "you're at the spot" cue prompting the scan.
+            haptic.success();
           }
         }
       } catch {
@@ -424,7 +436,7 @@ export function ActivityDetail({
       cancelled = true;
       clearInterval(interval);
     };
-  }, [canCheckIn, canConfirmGeo, activity.id, activity.lat, activity.lng, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, queryClient, t]);
+  }, [canCheckIn, canConfirmGeo, activity.id, activity.meeting_lat, activity.meeting_lng, activity.end_lat, activity.end_lng, activity.trace_geojson, queryClient, t]);
 
   // Auto-show the creator's QR modal once the QR window opens
   // (T-15min). Reduces dependency on the reminder push + the manual
@@ -437,7 +449,7 @@ export function ActivityDetail({
     if (autoShownQrFor.has(activity.id)) return;
 
     const openAtMs = startsAtMs - 15 * 60 * 1000;
-    const closeAtMs = startsAtMs + durationMs + 60 * 60 * 1000;
+    const closeAtMs = startsAtMs + durationMs + 3 * 60 * 60 * 1000;
     const now = Date.now();
 
     if (now >= closeAtMs) return; // window already past

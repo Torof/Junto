@@ -25,9 +25,8 @@ interface ActiveActivity {
 // still being tight enough that the server-side time-window gate prevents
 // false confirmations in adjacent zones.
 const RADIUS_M = 300;
-// iOS hard-caps at 20 regions per app. We pick one location per activity (the
-// meeting point if set, otherwise start), then trim to the closest 20 by
-// starts_at proximity.
+// iOS hard-caps at 20 regions per app. We pick one location per activity
+// (the rendez-vous point), then trim to the closest 20 by starts_at proximity.
 const MAX_REGIONS = 20;
 // Reject GPS samples too imprecise to safely auto-confirm. With the 300m
 // radius we tolerate up to ~100m accuracy (still inside the radius even if
@@ -48,10 +47,22 @@ const WATCHER_DURATION_MS = 60_000;
 // re-registration).
 let registeredRegionIds = new Set<string>();
 
-async function fetchCandidates(): Promise<ActiveActivity[]> {
-  const { data } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
+// Returns null on RPC failure (offline, transient 5xx, session not yet
+// restored) — distinct from a genuine empty candidate list. The caller must
+// NOT tear down registered regions on null: ripping out geofences because
+// the phone had no signal at app-open is exactly the outdoor scenario the
+// offline replay exists for.
+async function fetchCandidates(): Promise<ActiveActivity[] | null> {
+  const { data, error } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
     data: ActiveActivity[] | null;
+    error: { message?: string } | null;
   };
+  if (error) {
+    trace('presence.geofence', 'candidate fetch failed, keeping current regions', {
+      reason: error.message ?? 'unknown',
+    });
+    return null;
+  }
   const candidates = data ?? [];
   candidates.sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   return candidates;
@@ -65,7 +76,9 @@ function toRegions(candidates: ActiveActivity[]): Location.LocationRegion[] {
     let lat = a.meeting_lat;
     if (lng == null || lat == null) continue;
     regions.push({
-      identifier: `presence:${a.activity_id}:${lat},${lng}`,
+      // Trailing segment = starts_at in epoch ms; the geofence task uses it
+      // to ignore Enter events fired before the server window opens.
+      identifier: `presence:${a.activity_id}:${lat},${lng}:${new Date(a.starts_at).getTime()}`,
       latitude: lat,
       longitude: lng,
       radius: RADIUS_M,
@@ -234,6 +247,7 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
 
 async function refreshGeofences(): Promise<void> {
   const candidates = await fetchCandidates();
+  if (candidates === null) return;
   const regions = toRegions(candidates);
 
   // Initial-state check needs only foreground permission. Run it before
@@ -261,6 +275,10 @@ async function refreshGeofences(): Promise<void> {
     const running = await Location.hasStartedGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => false);
     if (running) {
       await Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
+      // Purge the in-memory cache too — otherwise, if the permission is
+      // re-granted later in the same JS session, the "unchanged" check
+      // would skip re-registration while the OS is monitoring nothing.
+      registeredRegionIds.clear();
       trace('presence.geofence', 'stopped: no background permission');
     }
     return;

@@ -2,7 +2,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
-import { enqueueGeoEvent } from './presence-offline-cache';
+import { enqueueGeoEvent, isTerminalPresenceRejection } from './presence-offline-cache';
 import { trace, captureInfo } from './sentry';
 
 // Task name must be a constant defined at the top of a module that's imported
@@ -37,8 +37,11 @@ interface GeofenceEvent {
   region: Location.LocationRegion & { identifier?: string };
 }
 
-// Region identifier convention: `presence:<activity_id>:<lat>,<lng>`
+// Region identifier convention: `presence:<activity_id>:<lat>,<lng>:<startsAtMs>`
+// (the last segment is absent on regions registered by pre-merge bundles —
+// treat it as unknown and fall back to the old behavior).
 // We only act on Enter events.
+const WINDOW_BEFORE_MS = 15 * 60_000;
 TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // Diagnostic: surface every task fire as a Sentry event so we can confirm
   // the OS is actually delivering geofence wakes when the app is closed.
@@ -64,9 +67,35 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
 
   trace('presence.geofence', 'task: Enter event');
 
+  const slotId = `presence-${activityId}`;
+
+  // Regions are registered from T-2h so the OS can catch the outside→inside
+  // transition, but the server rejects any anchor before T-15min — an Enter
+  // this early can never validate anything (live RPC and replay alike). Don't
+  // fire a doomed RPC or poison the offline queue: schedule the "détectée"
+  // notif to land at window open instead, so the user opens the app right
+  // when the initial-state check can actually confirm them.
+  const startsAtMs = Number(id.split(':')[3]);
+  if (Number.isFinite(startsAtMs) && Date.now() < startsAtMs - WINDOW_BEFORE_MS) {
+    trace('presence.geofence', 'task: Enter before window, deferring notif to window open');
+    Notifications.scheduleNotificationAsync({
+      identifier: slotId,
+      content: {
+        title: 'Présence détectée',
+        body: "Tu es à portée de l'activité, valide ta présence.",
+        data: { activity_id: activityId, type: 'presence_detected' },
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: new Date(startsAtMs - WINDOW_BEFORE_MS),
+      },
+    }).catch(() => {});
+    return;
+  }
+
   // First state: "Présence détectée". Same identifier across both states so
   // the OS slot is updated in place — never two notifs at once.
-  const slotId = `presence-${activityId}`;
   Notifications.scheduleNotificationAsync({
     identifier: slotId,
     content: {
@@ -156,7 +185,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       return;
     }
 
-    if ((error.message ?? '').includes('Operation not permitted')) {
+    if (isTerminalPresenceRejection(error.message)) {
       trace('presence.geofence', 'task: RPC rejected (terminal), slot stays at détectée', {
         reason: error.message,
       });
