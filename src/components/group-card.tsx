@@ -266,10 +266,13 @@ export function GroupCard({
     quantity: number;
   };
   const groupItems = useMemo(() => {
+    // Keyed case-insensitively so "corde 60m" and "Corde 60m" merge into one
+    // tile (display name = first seen) — keeps counts honest when names were
+    // typed by different people. (Scott's corde test, 2026-07-09.)
     const map = new Map<string, { name: string; bringers: InventoryBringer[] }>();
     gearDeclared.forEach((g) => {
       if (!g.is_shared) return;
-      const entry = map.get(g.gear_name);
+      const entry = map.get(g.gear_name.trim().toLowerCase());
       const bringer: InventoryBringer = {
         user_id: g.user_id,
         display_name: g.display_name,
@@ -277,7 +280,7 @@ export function GroupCard({
         quantity: g.quantity,
       };
       if (entry) entry.bringers.push(bringer);
-      else map.set(g.gear_name, { name: g.gear_name, bringers: [bringer] });
+      else map.set(g.gear_name.trim().toLowerCase(), { name: g.gear_name, bringers: [bringer] });
     });
     return Array.from(map.values()).sort((a, b) =>
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
@@ -931,7 +934,19 @@ export function GroupCard({
                       </Text>
                       <View style={styles.gearTileFoot}>
                         {isActive ? (
-                          <Pressable style={styles.missBringBtn} onPress={() => onEditGearItem(m.name, true)} hitSlop={4}>
+                          <Pressable
+                            style={styles.missBringBtn}
+                            onPress={() => {
+                              // Converge on the bag's canonical spelling when the
+                              // same item already exists, so the contribution adds
+                              // to the existing tile instead of forking a twin.
+                              const canonical = groupItems.find(
+                                (gi) => gi.name.trim().toLowerCase() === m.name.trim().toLowerCase(),
+                              )?.name ?? m.name;
+                              onEditGearItem(canonical, true);
+                            }}
+                            hitSlop={4}
+                          >
                             <Text style={styles.missBringText}>
                               {t('group.iBringIt', { defaultValue: "Je l'apporte" })}
                             </Text>

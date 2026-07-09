@@ -82,7 +82,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
   useImperativeHandle(ref, () => ({
     openItemByName: (name: string, isShared?: boolean) => {
       const existing = (activityGear ?? []).find(
-        (g) => g.gear_name === name && g.user_id === currentUserId,
+        (g) => g.gear_name.trim().toLowerCase() === name.trim().toLowerCase() && g.user_id === currentUserId,
       );
       const mine = existing?.quantity ?? 0;
       setMyQtyDraft(mine > 0 ? mine : 1);
@@ -126,7 +126,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     setIsSavingItem(true);
     try {
       await persistMyGear((mine) => {
-        const filtered = mine.filter((m) => m.name !== selectedItemName);
+        const filtered = mine.filter((m) => m.name.trim().toLowerCase() !== selectedItemName.trim().toLowerCase());
         if (myQtyDraft > 0) filtered.push({
           name: selectedItemName,
           quantity: myQtyDraft,
@@ -152,7 +152,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
     if (!selectedItemName) return;
     setIsSavingItem(true);
     try {
-      await persistMyGear((mine) => mine.filter((m) => m.name !== selectedItemName));
+      await persistMyGear((mine) => mine.filter((m) => m.name.trim().toLowerCase() !== selectedItemName.trim().toLowerCase()));
       setSelectedItemName(null);
       Burnt.toast({ title: t('gear.saved'), preset: 'done' });
     } catch (err) {
@@ -187,8 +187,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
       const effectiveIsShared = catalogMatch?.is_shared ?? customIsShared;
 
       await persistMyGear((mine) => {
-        if (mine.some((m) => m.name === name)) {
-          return mine.map((m) => m.name === name
+        if (mine.some((m) => m.name.trim().toLowerCase() === name.trim().toLowerCase())) {
+          return mine.map((m) => m.name.trim().toLowerCase() === name.trim().toLowerCase()
             ? { ...m, quantity: customQty, is_shared: effectiveIsShared }
             : m);
         }
