@@ -38,6 +38,7 @@ import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
+import { getSportIcon } from '@/constants/sport-icons';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
 import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
@@ -588,6 +589,7 @@ export function ActivityDetail({
   };
 
   const [activeTab, setActiveTab] = useState<'info' | 'transport' | 'gear' | 'chat'>('info');
+  const [showMapMenu, setShowMapMenu] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
   const myOutingCardRef = useRef<MyOutingCardHandle>(null);
@@ -810,8 +812,11 @@ export function ActivityDetail({
               {/* Poster grammar: sport flag alone top-left; scrim + meta line +
                   title anchored at the bottom. */}
               <View style={styles.heroPillCluster} pointerEvents="none">
-                <View style={[styles.heroPill, { backgroundColor: sportAccent }]}>
-                  <Text style={[styles.heroPillText, { color: '#FFFFFF' }]} numberOfLines={1}>
+                {/* Same sport-chip grammar as the UA drawer (outline + tint +
+                    sport glyph), on a solid base for map legibility. */}
+                <View style={[styles.heroSportChip, { borderColor: sportAccent }]}>
+                  <Text style={styles.heroSportEmoji}>{getSportIcon(activity.sport_key)}</Text>
+                  <Text style={[styles.heroSportChipText, { color: sportAccent }]} numberOfLines={1}>
                     {t(`sports.${activity.sport_key}`, activity.sport_key)}
                   </Text>
                 </View>
@@ -831,7 +836,7 @@ export function ActivityDetail({
                   <Text style={styles.heroMetaText} numberOfLines={1}>
                     {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
                   </Text>
-                  <View style={styles.heroMetaDot} />
+                  <View style={[styles.heroMetaDot, { backgroundColor: sportAccent }]} />
                   <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
                   <Text style={styles.heroMetaText} numberOfLines={1}>
                     {activity.max_participants === null
@@ -841,35 +846,50 @@ export function ActivityDetail({
                 </View>
                 <Text style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</Text>
               </View>
+              {/* Single ⋯ button — the secondary map actions live in a small
+                  anchored menu. Tapping the map itself is the fullscreen
+                  shortcut, so nothing frequent is buried. */}
               {showTabs && (
-                <View style={styles.mapControls} pointerEvents="box-none">
+                <View style={styles.mapMenuWrap} pointerEvents="box-none">
                   <Pressable
-                    style={styles.mapControlBtn}
-                    onPress={() => {
-                      const navLat = activity.meeting_lat ?? activity.lat;
-                      const navLng = activity.meeting_lng ?? activity.lng;
-                      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
-                    }}
-                    accessibilityLabel={t('activity.navigate')}
-                    hitSlop={4}
+                    style={styles.mapMenuBtn}
+                    onPress={() => setShowMapMenu((v) => !v)}
+                    accessibilityLabel={t('activity.mapMenu', { defaultValue: 'Options de la carte' })}
+                    hitSlop={6}
                   >
-                    <Navigation size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                    <MoreHorizontal size={18} color={colors.textPrimary} strokeWidth={2.4} />
                   </Pressable>
-                  <View style={styles.mapControlDivider} />
-                  <Pressable style={styles.mapControlBtn} onPress={() => setShowFullMap(true)} accessibilityLabel={t('activity.fullscreen', { defaultValue: 'Plein écran' })} hitSlop={4}>
-                    <Maximize2 size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                  </Pressable>
-                  {isCreator && <View style={styles.mapControlDivider} />}
-                  {isCreator && (
-                    <Pressable style={styles.mapControlBtn} onPress={handlePickTrace} accessibilityLabel={activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')} hitSlop={4}>
-                      <Route size={16} color={colors.cta} strokeWidth={2.4} />
-                    </Pressable>
-                  )}
-                  {isCreator && activity.trace_geojson && <View style={styles.mapControlDivider} />}
-                  {isCreator && activity.trace_geojson && (
-                    <Pressable style={styles.mapControlBtn} onPress={handleClearTrace} accessibilityLabel={t('activity.traceRemove')} hitSlop={4}>
-                      <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
-                    </Pressable>
+                  {showMapMenu && (
+                    <View style={styles.mapMenu}>
+                      <Pressable
+                        style={styles.mapMenuItem}
+                        onPress={() => {
+                          setShowMapMenu(false);
+                          const navLat = activity.meeting_lat ?? activity.lat;
+                          const navLng = activity.meeting_lng ?? activity.lng;
+                          Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
+                        }}
+                      >
+                        <Navigation size={15} color={colors.textPrimary} strokeWidth={2.2} />
+                        <Text style={styles.mapMenuItemText}>{t('activity.navigate')}</Text>
+                      </Pressable>
+                      <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setShowFullMap(true); }}>
+                        <Maximize2 size={15} color={colors.textPrimary} strokeWidth={2.2} />
+                        <Text style={styles.mapMenuItemText}>{t('activity.fullscreen', { defaultValue: 'Plein écran' })}</Text>
+                      </Pressable>
+                      {isCreator && (
+                        <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handlePickTrace(); }}>
+                          <Route size={15} color={colors.cta} strokeWidth={2.2} />
+                          <Text style={styles.mapMenuItemText}>{activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}</Text>
+                        </Pressable>
+                      )}
+                      {isCreator && activity.trace_geojson && (
+                        <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handleClearTrace(); }}>
+                          <Trash2 size={15} color={colors.error} strokeWidth={2.2} />
+                          <Text style={[styles.mapMenuItemText, { color: colors.error }]}>{t('activity.traceRemove')}</Text>
+                        </Pressable>
+                      )}
+                    </View>
                   )}
                 </View>
               )}
@@ -904,7 +924,7 @@ export function ActivityDetail({
                 members-only; the description is visible to everyone. The map
                 is now the hero, so no second map here. */}
             {(activity.description || (showTabs && (activity.start_name || activity.objective_name))) && (
-              <View style={styles.infoCard}>
+              <View style={styles.parcoursSection}>
                 {showTabs && (activity.start_name || activity.objective_name) && (
                   <Text style={styles.cardLabel}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
                 )}
@@ -1269,6 +1289,54 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     elevation: 3,
   },
   heroPillText: { color: '#1F1A15', fontSize: 12, fontWeight: '700' },
+  // UA-drawer sport-chip grammar, solid base for map legibility.
+  heroSportChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderWidth: 1.5,
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  heroSportEmoji: { fontSize: 13 },
+  heroSportChipText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+  mapMenuWrap: { position: 'absolute', top: spacing.sm, right: spacing.sm, alignItems: 'flex-end' },
+  mapMenuBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapMenu: {
+    marginTop: 6,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    minWidth: 190,
+  },
+  mapMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+  },
+  mapMenuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  // Open editorial section — no box; the map is the hero, this is copy.
+  parcoursSection: { marginBottom: spacing.md, paddingHorizontal: 2 },
   heroTitleWrap: { position: 'absolute', left: spacing.md, right: spacing.md, bottom: spacing.md },
   heroTitleOnMap: {
     color: '#FFFFFF',
@@ -1557,24 +1625,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
-  mapContainer: {
-    height: 200, borderRadius: radius.sm, overflow: 'hidden',
-    borderWidth: 1, borderColor: colors.borderMuted,
-  },
-  mapTapOverlay: { ...StyleSheet.absoluteFillObject },
-  // Affordance badge: tells the user that tapping the preview leads to
-  // the full-screen map + Google-Maps directions. Floats bottom-left so
-  // it doesn't collide with the creator's trace tools (top-right).
-  mapControls: {
-    position: 'absolute', top: spacing.sm, right: spacing.sm,
-    flexDirection: 'column', alignItems: 'center',
-    backgroundColor: colors.background,
-    borderWidth: 1, borderColor: colors.borderStrong,
-    borderRadius: radius.sm,
-    overflow: 'hidden',
-  },
-  mapControlBtn: { width: 34, height: 32, alignItems: 'center', justifyContent: 'center' },
-  mapControlDivider: { height: 1, alignSelf: 'stretch', backgroundColor: colors.borderMuted },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', top: 35, left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
