@@ -26,7 +26,7 @@ export function FilterButton({ onPress, blink = false }: Props) {
     + filters.visibilities.length
     + (filters.radiusKm !== null ? 1 : 0)
     // A hidden entity-type category is an active filter too — otherwise a
-    // user who unchecks Utilisateurs/Pros sees no badge and doesn't realise
+    // user who unchecks Passionnés/Pros sees no badge and doesn't realise
     // a whole category is hidden.
     + (!filters.showActivities ? 1 : 0)
     + (!filters.showProOfferings ? 1 : 0);
@@ -101,7 +101,7 @@ export function EntityTypeToggles() {
         hitSlop={8}
         accessibilityRole="switch"
         accessibilityState={{ checked: showActivities }}
-        accessibilityLabel={t('map.typeActivities', { defaultValue: 'Utilisateurs' })}
+        accessibilityLabel={t('map.typeActivities', { defaultValue: 'Passionnés' })}
       >
         <Users size={18} color={showActivities ? colors.cta : colors.textPrimary} strokeWidth={2.2} />
       </Pressable>

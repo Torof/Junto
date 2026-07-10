@@ -315,7 +315,7 @@ function FiltersTab({
                 {filters.showActivities && <Text style={styles.typeCheckboxMark}>✓</Text>}
               </View>
               <Text style={[styles.typeChipText, filters.showActivities && styles.typeChipTextActive]}>
-                {t('map.typeActivities', { defaultValue: 'Utilisateurs' })}
+                {t('map.typeActivities', { defaultValue: 'Passionnés' })}
               </Text>
             </Pressable>
             <Pressable

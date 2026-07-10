@@ -648,7 +648,7 @@ export default function ConversationScreen() {
             </Pressable>
             <Pressable style={styles.menuItem} onPress={handleBlockUser}>
               <Text style={styles.menuTextDanger}>
-                {t('messagerie.blockUser', { defaultValue: 'Bloquer l\'utilisateur' })}
+                {t('messagerie.blockUser', { defaultValue: 'Bloquer le passionné' })}
               </Text>
             </Pressable>
           </Pressable>

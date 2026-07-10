@@ -542,7 +542,7 @@
       "deleted": "Alerte supprimée"
     },
     "resetFilters": "Réinitialiser",
-    "typeActivities": "Utilisateurs",
+    "typeActivities": "Passionnés",
     "typePros": "Pros",
     "apply": "Appliquer",
     "createHere": "Créer une activité ici",
@@ -724,12 +724,12 @@
     "requestPlaceholder": "Écris un message...",
     "sendRequest": "Envoyer la demande",
     "defaultRequestMessage": "Salut {{name}}, j'aimerais te contacter sur Junto !",
-    "block": "Bloquer cet utilisateur",
-    "unblock": "Débloquer cet utilisateur",
-    "blockConfirmTitle": "Bloquer cet utilisateur ?",
+    "block": "Bloquer ce passionné",
+    "unblock": "Débloquer ce passionné",
+    "blockConfirmTitle": "Bloquer ce passionné ?",
     "blockConfirmMessage": "Vous ne verrez plus ses activités ni ses messages.",
-    "blocked": "Utilisateur bloqué",
-    "unblocked": "Utilisateur débloqué",
+    "blocked": "Passionné bloqué",
+    "unblocked": "Passionné débloqué",
     "unavailableTitle": "Profil indisponible",
     "unavailableBody": "Ce profil n'existe plus ou n'est plus accessible.",
     "unavailableCta": "Retour"
@@ -767,9 +767,9 @@
     "action": "Sanctionner",
     "dismissed": "Rejeté",
     "actioned": "Sanctionné",
-    "suspendConfirm": "Suspendre cet utilisateur ?",
+    "suspendConfirm": "Suspendre ce passionné ?",
     "suspendYes": "Oui, suspendre",
-    "targetUser": "Utilisateur",
+    "targetUser": "Passionné",
     "targetActivity": "Activité",
     "targetWallMessage": "Message mur",
     "targetPrivateMessage": "Message privé"
@@ -781,7 +781,7 @@
     "tooShort": "Le signalement doit faire au moins 10 caractères",
     "submit": "Envoyer le signalement",
     "submitted": "Signalement envoyé",
-    "reportUser": "Signaler cet utilisateur",
+    "reportUser": "Signaler ce passionné",
     "reportActivity": "Signaler cette activité"
   },
   "reviews": {
@@ -875,7 +875,7 @@
     },
     "report": {
       "q": "Comment signaler un comportement inapproprié ?",
-      "a": "Depuis le profil public d'un utilisateur, touche les trois points puis 'Signaler'. Le signalement est confidentiel et examiné par l'équipe."
+      "a": "Depuis le profil public d'un passionné, touche les trois points puis 'Signaler'. Le signalement est confidentiel et examiné par l'équipe."
     },
     "delete": {
       "q": "Comment supprimer mon compte ?",
@@ -902,8 +902,8 @@
       "a": "Crée une alerte : choisis une zone, un sport, un niveau et une période. Tu reçois une notification dès qu'une activité correspondante est créée près de chez toi. Tu peux avoir jusqu'à 10 alertes, gérées depuis l'onglet Alertes de la carte."
     },
     "block": {
-      "q": "Comment bloquer un utilisateur ?",
-      "a": "Depuis le profil public d'une personne, touche les trois points puis « Bloquer cet utilisateur ». Tu ne verras plus ses activités ni ses messages. Tu peux le débloquer à tout moment au même endroit."
+      "q": "Comment bloquer un passionné ?",
+      "a": "Depuis le profil public d'une personne, touche les trois points puis « Bloquer ce passionné ». Tu ne verras plus ses activités ni ses messages. Tu peux le débloquer à tout moment au même endroit."
     },
     "pro": {
       "q": "C'est quoi un profil Pro et une prestation ?",
@@ -1109,7 +1109,7 @@
     "empty": "Aucun message pour le moment",
     "placeholder": "Écrire un message...",
     "rateLimited": "Attends 1 minute entre chaque message",
-    "deletedUser": "Utilisateur supprimé",
+    "deletedUser": "Passionné supprimé",
     "youAuthor": "Toi",
     "editedTag": "modifié",
     "dateToday": "Aujourd'hui",
