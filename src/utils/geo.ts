@@ -33,9 +33,13 @@ export function distanceToPolylineMeters(lat: number, lng: number, line: number[
   let prevY = 0;
   let hasPrev = false;
   for (const c of line) {
-    if (c[0] == null || c[1] == null) continue;
-    const x = (c[0] - lng) * toRad * cosLat * R;
-    const y = (c[1] - lat) * toRad * R;
+    const cx = c[0];
+    const cy = c[1];
+    // Also rejects NaN — one bad vertex would otherwise poison the whole
+    // min into NaN and permanently report "not in the zone".
+    if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy)) continue;
+    const x = (cx - lng) * toRad * cosLat * R;
+    const y = (cy - lat) * toRad * R;
     if (hasPrev) {
       const dx = x - prevX;
       const dy = y - prevY;

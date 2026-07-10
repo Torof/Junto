@@ -42,6 +42,7 @@ interface GeofenceEvent {
 // treat it as unknown and fall back to the old behavior).
 // We only act on Enter events.
 const WINDOW_BEFORE_MS = 15 * 60_000;
+const WINDOW_AFTER_MS = 15 * 60_000;
 TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // Diagnostic: surface every task fire as a Sentry event so we can confirm
   // the OS is actually delivering geofence wakes when the app is closed.
@@ -70,12 +71,15 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   const slotId = `presence-${activityId}`;
 
   // Regions are registered from T-2h so the OS can catch the outside→inside
-  // transition, but the server rejects any anchor before T-15min — an Enter
-  // this early can never validate anything (live RPC and replay alike). Don't
-  // fire a doomed RPC or poison the offline queue: schedule the "détectée"
-  // notif to land at window open instead, so the user opens the app right
-  // when the initial-state check can actually confirm them.
+  // transition, but the server only accepts anchors in T-15min..T+15min —
+  // an Enter outside that window can never geo-validate anything (live RPC
+  // and replay alike).
   const startsAtMs = Number(id.split(':')[3]);
+
+  // Too early: don't fire a doomed RPC or poison the offline queue —
+  // schedule the "détectée" notif to land at window open instead, so the
+  // user opens the app right when the initial-state check can actually
+  // confirm them.
   if (Number.isFinite(startsAtMs) && Date.now() < startsAtMs - WINDOW_BEFORE_MS) {
     trace('presence.geofence', 'task: Enter before window, deferring notif to window open');
     Notifications.scheduleNotificationAsync({
@@ -94,6 +98,14 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     return;
   }
 
+  // Too late for geo: the anchor is past T+15min, so neither a live RPC nor
+  // a cached replay of THIS event can succeed. Worse, enqueueing it can
+  // evict a valid in-window event from the per-activity cap (GPS flicker at
+  // a 300m radius produces repeated Enters all day while offline). QR
+  // validation stays open until end+3h, so the notif is still worth showing
+  // as a scan prompt — but nothing else.
+  const geoWindowClosed = Number.isFinite(startsAtMs) && Date.now() > startsAtMs + WINDOW_AFTER_MS;
+
   // First state: "Présence détectée". Same identifier across both states so
   // the OS slot is updated in place — never two notifs at once.
   Notifications.scheduleNotificationAsync({
@@ -106,6 +118,11 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     },
     trigger: null,
   }).catch(() => {});
+
+  if (geoWindowClosed) {
+    trace('presence.geofence', 'task: Enter after geo window, notif only (QR path remains)');
+    return;
+  }
 
   const capturedAt = new Date().toISOString();
 

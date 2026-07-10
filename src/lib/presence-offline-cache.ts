@@ -36,6 +36,17 @@ export function isTerminalPresenceRejection(message: string | null | undefined):
   return msg.includes('Operation not permitted') || msg.includes('junto.presence_');
 }
 
+// Serialize every read-modify-write on the queue. enqueueGeoEvent runs from
+// the OS geofence task while flush runs off NetInfo/AppState — an unlocked
+// interleaving (both read, both write) silently drops whichever event the
+// losing write didn't know about.
+let queueChain: Promise<unknown> = Promise.resolve();
+function withQueueLock<T>(fn: () => Promise<T>): Promise<T> {
+  const run = queueChain.then(fn, fn);
+  queueChain = run.catch(() => {});
+  return run;
+}
+
 async function readQueue(): Promise<CachedGeoEvent[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -55,33 +66,39 @@ async function writeQueue(items: CachedGeoEvent[]): Promise<void> {
   }
 }
 
-export async function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
-  const queue = await readQueue();
-  const ts = new Date(event.captured_at).getTime();
-  const sameActivity = queue.filter((e) => e.activity_id === event.activity_id);
-  if (sameActivity.some((e) => Math.abs(new Date(e.captured_at).getTime() - ts) < EPISODE_DEDUP_MS)) {
-    return;
-  }
-  if (sameActivity.length >= MAX_EVENTS_PER_ACTIVITY) {
-    const oldest = sameActivity.reduce((a, b) => (a.captured_at < b.captured_at ? a : b));
-    const idx = queue.indexOf(oldest);
-    if (idx >= 0) queue.splice(idx, 1);
-  }
-  queue.push(event);
-  await writeQueue(queue);
-  trace('presence.offline', 'enqueued geo event', { queue_size: queue.length });
+export function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    const ts = new Date(event.captured_at).getTime();
+    const sameActivity = queue.filter((e) => e.activity_id === event.activity_id);
+    if (sameActivity.some((e) => Math.abs(new Date(e.captured_at).getTime() - ts) < EPISODE_DEDUP_MS)) {
+      return;
+    }
+    if (sameActivity.length >= MAX_EVENTS_PER_ACTIVITY) {
+      const oldest = sameActivity.reduce((a, b) => (a.captured_at < b.captured_at ? a : b));
+      const idx = queue.indexOf(oldest);
+      if (idx >= 0) queue.splice(idx, 1);
+    }
+    queue.push(event);
+    await writeQueue(queue);
+    trace('presence.offline', 'enqueued geo event', { queue_size: queue.length });
+  });
 }
 
-async function dropForActivity(activityId: string): Promise<void> {
-  const queue = await readQueue();
-  await writeQueue(queue.filter((e) => e.activity_id !== activityId));
+function dropForActivity(activityId: string): Promise<void> {
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    await writeQueue(queue.filter((e) => e.activity_id !== activityId));
+  });
 }
 
-async function dropEvent(event: CachedGeoEvent): Promise<void> {
-  const queue = await readQueue();
-  await writeQueue(
-    queue.filter((e) => !(e.activity_id === event.activity_id && e.captured_at === event.captured_at)),
-  );
+function dropEvent(event: CachedGeoEvent): Promise<void> {
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    await writeQueue(
+      queue.filter((e) => !(e.activity_id === event.activity_id && e.captured_at === event.captured_at)),
+    );
+  });
 }
 
 let flushing = false;
@@ -96,14 +113,16 @@ export async function flushOfflineGeoQueue(): Promise<void> {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) return;
 
-    let queue = await readQueue();
-    const cutoff = Date.now() - MAX_EVENT_AGE_MS;
-    const fresh = queue.filter((e) => new Date(e.captured_at).getTime() >= cutoff);
-    if (fresh.length !== queue.length) {
-      trace('presence.offline', 'purged stale events', { purged: queue.length - fresh.length });
-      await writeQueue(fresh);
-      queue = fresh;
-    }
+    const queue = await withQueueLock(async () => {
+      const all = await readQueue();
+      const cutoff = Date.now() - MAX_EVENT_AGE_MS;
+      const fresh = all.filter((e) => new Date(e.captured_at).getTime() >= cutoff);
+      if (fresh.length !== all.length) {
+        trace('presence.offline', 'purged stale events', { purged: all.length - fresh.length });
+        await writeQueue(fresh);
+      }
+      return fresh;
+    });
     if (queue.length === 0) return;
 
     trace('presence.offline', 'flush starting', { queue_size: queue.length });
@@ -123,11 +142,15 @@ export async function flushOfflineGeoQueue(): Promise<void> {
         if (!error) {
           trace('presence.offline', 'replay succeeded, flipping slot to confirmée');
           confirmedActivities.add(event.activity_id);
-          // Replay succeeded → flip the OS notif slot from "détectée" (set
-          // by the geofence task before going offline) to "confirmée".
-          // Same identifier so the existing notif is replaced in place.
+          // Replay succeeded → dismiss the "détectée" notif and post
+          // "confirmée" under a DISTINCT identifier — same rationale as the
+          // geofence task: re-scheduling on the same identifier is a silent
+          // in-place update on Android (no sound, invisible if already
+          // dismissed), and this is the moment the user most needs to learn
+          // their presence finally went through.
+          await Notifications.dismissNotificationAsync(`presence-${event.activity_id}`).catch(() => {});
           Notifications.scheduleNotificationAsync({
-            identifier: `presence-${event.activity_id}`,
+            identifier: `presence-${event.activity_id}-confirmed`,
             content: {
               title: 'Présence confirmée',
               body: 'Ta présence à cette activité est confirmée.',

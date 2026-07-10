@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
 import { supabase } from '@/services/supabase';
 import { PRESENCE_GEOFENCE_TASK } from '@/lib/presence-geofence-task';
@@ -89,6 +90,25 @@ function toRegions(candidates: ActiveActivity[]): Location.LocationRegion[] {
   return regions;
 }
 
+// The geofence task defers pre-window "détectée" notifs via a DATE trigger
+// (see presence-geofence-task). Those pending notifs outlive their reason to
+// exist when the user leaves the activity, the creator cancels it, or the
+// presence gets confirmed — cancel any whose activity is no longer a
+// candidate. Passing null (sign-out/teardown) cancels them all.
+async function cleanupDeferredPresenceNotifs(candidates: ActiveActivity[] | null): Promise<void> {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const live = new Set((candidates ?? []).map((a) => `presence-${a.activity_id}`));
+    for (const n of scheduled) {
+      if (!n.identifier.startsWith('presence-')) continue;
+      if (candidates !== null && live.has(n.identifier)) continue;
+      await Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+    }
+  } catch {
+    // best-effort
+  }
+}
+
 // Initial-state check — runs whenever the app comes into focus, regardless of
 // background-location permission. The Enter event from the OS only fires on a
 // genuine outside→inside transition, so a user who's already on-site at app
@@ -121,7 +141,15 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
     return;
   }
 
+  const now = Date.now();
   for (const region of regions) {
+    // Skip regions whose server window isn't open — the RPC would be a
+    // guaranteed junto.presence_window_closed (candidates exist from T-2h).
+    const startsAtMs = Number(String(region.identifier ?? '').split(':')[3]);
+    if (Number.isFinite(startsAtMs) && (now < startsAtMs - WINDOW_BEFORE_MS || now > startsAtMs + WINDOW_AFTER_MS)) {
+      continue;
+    }
+
     const d = distanceMeters(pos.coords.latitude, pos.coords.longitude, region.latitude, region.longitude);
     if (d > region.radius) continue;
 
@@ -250,6 +278,10 @@ async function refreshGeofences(): Promise<void> {
   if (candidates === null) return;
   const regions = toRegions(candidates);
 
+  // Cancel deferred "détectée" notifs for activities that dropped out of
+  // the candidate list (left, cancelled, already confirmed).
+  void cleanupDeferredPresenceNotifs(candidates);
+
   // Initial-state check needs only foreground permission. Run it before
   // anything else so users with "While Using" still get the on-app-open
   // auto-confirmation when they're already on-site.
@@ -356,6 +388,7 @@ export function usePresenceGeofences(enabled: boolean) {
       }
       Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
       registeredRegionIds.clear();
+      void cleanupDeferredPresenceNotifs(null);
       void stopPresenceForegroundService('hook unmounted');
       trace('presence.geofence', 'stopped: hook unmounted');
     };
