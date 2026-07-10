@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { Lock } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
@@ -72,11 +73,32 @@ export function ActivityPin({ activity }: ActivityPinProps) {
       <View style={styles.iconWrap}>
         <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
       </View>
+      {/* Private outing — only its members ever see this pin (view 00315),
+          so the padlock reads as "your private outing", not someone's
+          secret. Ink badge, top-right of the bulb. */}
+      {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
+        <View style={styles.lockBadge}>
+          <Lock size={9} color={colors.pinBackground} strokeWidth={2.8} />
+        </View>
+      )}
     </View>
   );
 }
 
-const createStyles = (_colors: AppColors) => StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
+  lockBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.pinBorder,
+    borderWidth: 1.5,
+    borderColor: colors.pinBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   wrapper: {
     width: PIN_WIDTH,
     height: PIN_HEIGHT,
