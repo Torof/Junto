@@ -126,6 +126,7 @@ export async function pickAndUploadCommunityPhotos(
   proId: string,
   remainingSlots: number,
   reviewId?: string | null,
+  offeringId?: string | null,
 ): Promise<UploadOutcome[]> {
   if (remainingSlots <= 0) return [];
 
@@ -143,7 +144,7 @@ export async function pickAndUploadCommunityPhotos(
     const asset = result.assets[i]!;
     const suffix = `${Date.now()}-${i}`;
     const photoUrl = await uploadAsset(asset, `community/${proId}`, suffix);
-    const photoId = await proCommunityPhotoService.add(proId, photoUrl, reviewId ?? null);
+    const photoId = await proCommunityPhotoService.add(proId, photoUrl, reviewId ?? null, offeringId ?? null);
     outcomes.push({ photoId, photoUrl });
   }
   return outcomes;

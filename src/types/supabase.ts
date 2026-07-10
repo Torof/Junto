@@ -980,6 +980,7 @@ export type Database = {
           contributor_id: string
           created_at: string
           id: string
+          offering_id: string | null
           photo_url: string
           pro_id: string
           review_id: string | null
@@ -988,6 +989,7 @@ export type Database = {
           contributor_id: string
           created_at?: string
           id?: string
+          offering_id?: string | null
           photo_url: string
           pro_id: string
           review_id?: string | null
@@ -996,6 +998,7 @@ export type Database = {
           contributor_id?: string
           created_at?: string
           id?: string
+          offering_id?: string | null
           photo_url?: string
           pro_id?: string
           review_id?: string | null
@@ -1013,6 +1016,20 @@ export type Database = {
             columns: ["contributor_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_community_photos_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
             referencedColumns: ["id"]
           },
           {
@@ -2641,7 +2658,12 @@ export type Database = {
         Returns: undefined
       }
       add_pro_community_photo: {
-        Args: { p_photo_url: string; p_pro_id: string; p_review_id?: string }
+        Args: {
+          p_offering_id?: string
+          p_photo_url: string
+          p_pro_id: string
+          p_review_id?: string
+        }
         Returns: string
       }
       add_pro_offering_photo: {

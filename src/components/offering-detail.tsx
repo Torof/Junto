@@ -15,10 +15,10 @@ import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import type { ProOffering } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
-import { proOfferingPhotoService } from '@/services/pro-photo-service';
+import { proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { reviewService } from '@/services/review-service';
-import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto } from '@/utils/pro-photo-upload';
+import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { ReviewSection } from './review-section';
@@ -76,13 +76,40 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     queryFn: () => proService.getById(offering.pro_id),
   });
   const { data: photos = [] } = useProOfferingPhotos(offering.id);
+  // Community photos attached to THIS offering — everyone can contribute
+  // (Scott 2026-07-10), same Google-Maps model as the pro profile page.
+  const { data: communityPhotos = [] } = useQuery({
+    queryKey: ['offering-community-photos', offering.id],
+    queryFn: () => proCommunityPhotoService.listByOffering(offering.id),
+  });
   const { data: reviewStats } = useQuery({
     queryKey: ['review-stats', 'offering', offering.id],
     queryFn: () => reviewService.getOfferingStats(offering.id),
   });
 
+  const currentUserId = session?.user?.id ?? null;
   const invalidatePhotos = async () => {
     await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', offering.id] });
+    await queryClient.invalidateQueries({ queryKey: ['offering-community-photos', offering.id] });
+  };
+  const handleCommunityAdd = async () => {
+    try {
+      // The 5-per-user-per-pro cap (profile + offerings combined) is
+      // enforced server-side with the friendly junto.photo_limit message —
+      // the picker just caps one batch.
+      await pickAndUploadCommunityPhotos(offering.pro_id, 5, null, offering.id);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
+  };
+  const handleCommunityRemove = async (photoId: string) => {
+    try {
+      await removeProCommunityPhoto(photoId);
+      await invalidatePhotos();
+    } catch (err) {
+      Alert.alert(t('auth.error', { defaultValue: 'Erreur' }), getFriendlyError(err, 'generic'));
+    }
   };
   const handleGalleryAdd = async () => {
     try {
@@ -219,34 +246,53 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       </View>
 
       {/* Photos — first section (a listing sells with images before words).
-          Hidden entirely for visitors when empty — an "Aucune photo" lead
-          would weaken the page; the owner keeps the add tile. */}
-      {photos.length > 0 || isOwner ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
-          <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
-            {photos.map((p, i) => (
-              <View key={p.id} style={styles.photoThumbWrap}>
-                <Pressable onPress={() => setLightboxIndex(i)}>
-                  <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
-                </Pressable>
-                {isOwner ? (
-                  <Pressable style={styles.photoDelete} onPress={() => handleGalleryRemove(p.id)} hitSlop={6}>
-                    <X size={12} color={colors.background} strokeWidth={3} />
+          One merged carousel: the pro's curated photos then community
+          contributions, rendered indistinguishably (Google-Maps model,
+          Scott 2026-07-10). Everyone signed-in can add; the delete cross
+          shows on photos the viewer may remove (own contributions, or
+          everything community-side for the pro who moderates). */}
+      {(() => {
+        const allPhotos = [
+          ...photos.map((p) => ({ id: p.id, photo_url: p.photo_url, kind: 'curated' as const, contributor_id: null as string | null })),
+          ...communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url, kind: 'community' as const, contributor_id: c.contributor_id as string | null })),
+        ];
+        const canDelete = (p: typeof allPhotos[number]) =>
+          p.kind === 'curated' ? isOwner : (isOwner || p.contributor_id === currentUserId);
+        const onDelete = (p: typeof allPhotos[number]) =>
+          p.kind === 'curated' ? handleGalleryRemove(p.id) : handleCommunityRemove(p.id);
+        return (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
+            <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
+              {allPhotos.map((p, i) => (
+                <View key={p.id} style={styles.photoThumbWrap}>
+                  <Pressable onPress={() => setLightboxIndex(i)}>
+                    <Image source={{ uri: p.photo_url }} style={styles.photoThumb} contentFit="cover" />
                   </Pressable>
-                ) : null}
-              </View>
-            ))}
-            {isOwner && photos.length < GALLERY_MAX ? (
-              <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
-                <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
-                <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
-              </Pressable>
-            ) : null}
-          </GHScrollView>
-          <PhotoLightbox photos={photos} index={lightboxIndex} onIndexChange={setLightboxIndex} />
-        </View>
-      ) : null}
+                  {canDelete(p) ? (
+                    <Pressable style={styles.photoDelete} onPress={() => onDelete(p)} hitSlop={6}>
+                      <X size={12} color={colors.background} strokeWidth={3} />
+                    </Pressable>
+                  ) : null}
+                </View>
+              ))}
+              {isOwner && photos.length < GALLERY_MAX ? (
+                <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
+                  <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
+                  <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+                </Pressable>
+              ) : null}
+              {!isOwner ? (
+                <Pressable style={styles.photoAddTile} onPress={handleCommunityAdd}>
+                  <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
+                  <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+                </Pressable>
+              ) : null}
+            </GHScrollView>
+            <PhotoLightbox photos={allPhotos} index={lightboxIndex} onIndexChange={setLightboxIndex} />
+          </View>
+        );
+      })()}
 
       {/* À propos — stats + description + host */}
       <View style={styles.section}>

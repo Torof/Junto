@@ -22,6 +22,8 @@ export interface ProCommunityPhoto {
   contributor_id: string;
   photo_url: string;
   review_id: string | null;
+  // NULL = profile-level photo; set = attached to that offering (00314).
+  offering_id: string | null;
   created_at: string;
 }
 
@@ -76,18 +78,29 @@ export const proCommunityPhotoService = {
   listByPro: async (proId: string): Promise<ProCommunityPhoto[]> => {
     const { data, error } = await supabase
       .from('pro_community_photos')
-      .select('id, pro_id, contributor_id, photo_url, review_id, created_at')
+      .select('id, pro_id, contributor_id, photo_url, review_id, offering_id, created_at')
       .eq('pro_id', proId)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data ?? [];
   },
 
-  add: async (proId: string, photoUrl: string, reviewId?: string | null): Promise<string> => {
+  listByOffering: async (offeringId: string): Promise<ProCommunityPhoto[]> => {
+    const { data, error } = await supabase
+      .from('pro_community_photos')
+      .select('id, pro_id, contributor_id, photo_url, review_id, offering_id, created_at')
+      .eq('offering_id', offeringId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  add: async (proId: string, photoUrl: string, reviewId?: string | null, offeringId?: string | null): Promise<string> => {
     const { data, error } = await supabase.rpc('add_pro_community_photo', {
       p_pro_id: proId,
       p_photo_url: photoUrl,
       p_review_id: reviewId ?? undefined,
+      p_offering_id: offeringId ?? undefined,
     });
     if (error) throw error;
     return data as string;
