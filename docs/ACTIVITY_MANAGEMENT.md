@@ -1,6 +1,6 @@
 # Junto — Gestion des activités
 
-À jour au 28 avril 2026.
+À jour au 10 juillet 2026 (migrations 00306-00311).
 
 ## Cycle de vie
 
@@ -36,8 +36,8 @@ Voir `docs/SECURITY.md` section "Chaîne d'autorisation par fonction" pour les d
 
 ### Prérequis
 - Compte authentifié, non suspendu
-- 20 activités max par 24h (admins bypass — mig 00144)
-- Free tier : limite business additionnelle de 4/mois
+- 10 activités max par 24h + 30 par 30 jours, tous tiers (admins bypass — migs 00262/00267 ; le « 4/mois free » a été abandonné, cf. DECISIONS 2026-06-11)
+- Horizon : `starts_at` ≤ 6 mois
 - Le `phone_verified` n'est plus un prérequis (disabled depuis mig 00050)
 
 ### Champs (RPC `create_activity`)
@@ -61,7 +61,7 @@ Voir `docs/SECURITY.md` section "Chaîne d'autorisation par fonction" pour les d
 - `creator_id`, `status='published'`, `created_at` hardcodés
 - INSERT auto-participation creator → `accepted`
 - Si visibility public/approval → `check_alerts_for_activity` (envoi notifs `alert_match`)
-- Si visibility private_link → token UUID générée
+- `invite_token` existe pour TOUTES les activités (DEFAULT à la création) — il n'est utile que pour les visibilités private_link*
 
 ---
 
@@ -69,16 +69,16 @@ Voir `docs/SECURITY.md` section "Chaîne d'autorisation par fonction" pour les d
 
 Trigger `handle_activity_update` (whitelist) :
 
-**Inconditionnelles (toujours OLD) :**
-- `creator_id`, `status`, `invite_token`, `created_at`
+**Inconditionnelles (toujours OLD — écriture uniquement via fonctions bypass) :**
+- `creator_id`, `status`, `invite_token`, `created_at`, `deleted_at`, `cancelled_reason`, `meeting_name`, `trace_geojson`, `distance_km`, `elevation_gain_m`
 
 **Conditionnelles (verrouillées si participants acceptés ≠ créateur) :**
-- `location_*`, `starts_at`, `level`, `max_participants`, `visibility`
+- `location_*`, `starts_at`, `level`/`level_max`, `max_participants`, `visibility`, `objective_name`, `requires_presence`
 
-**Modifiables si créateur :**
-- `title`, `description`, `sport_id`, `duration`, `requires_presence`, `objective_*`, `meeting_name`, `trace_geojson`, `distance_km`, `elevation_gain_m`
+**Toujours modifiables par le créateur (via update_activity) :**
+- `title`, `description`, `duration`
 
-Modification d'un champ déclenche `activity_updated` notif aux participants acceptés (avec un payload `changes` JSONB) — push uniquement si le changement touche logistique (starts_at, duration, locations).
+Modification d'un champ déclenche `activity_updated` notif aux participants acceptés (payload `changes` JSONB recalculé APRÈS le trigger — pas de notif si tout a été forcé à OLD) — push uniquement si le changement touche `starts_at`, `duration`, `location_meeting`, `max_participants` ou `level` (00308).
 
 ---
 
@@ -235,10 +235,14 @@ Soft delete via `delete_wall_message` (auteur ou créateur). Edit via `edit_wall
 
 Modification autorisée tant que l'activité est `published`. Modifie uniquement les champs whitelistés.
 
-Tout changement :
+Règles d'`update_activity` (durcies 00308-00310) :
+- Autorisée tant que status IN (`published`, `in_progress`) — corriger la description d'une sortie en cours est légitime
+- `starts_at` n'est validée (futur + plafond 6 mois) que si elle CHANGE réellement (normalisation milliseconde, 00309)
+- Gate premium sur le PASSAGE vers `private_link`/`private_link_approval` (la visibilité déjà stockée est grandfatherée)
+- `p_max_participants = 0` = sentinelle « ouvrir l'activité » (→ NULL en base) ; autre valeur hors [2,50] → `junto.participants_range`
 - Met à jour `updated_at` automatiquement (via le trigger)
-- Insère une notif `activity_updated` à tous les participants acceptés avec un `changes` JSONB
-- Push uniquement si le changement touche `starts_at`, `duration`, `location_meeting` (logistique critique)
+- Notif `activity_updated` seulement s'il y a un vrai changement post-trigger
+- Push uniquement si logistique : `starts_at`, `duration`, `location_meeting`, `max_participants`, `level`
 
 ---
 

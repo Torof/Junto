@@ -45,6 +45,22 @@ async function fetchInWindowCandidates(): Promise<PresenceCandidate[]> {
 let serviceRunning = false;
 let stopTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Best-effort fast path only: RN timers freeze while the app is
+// backgrounded, so the AUTHORITATIVE deadline is the window check at the
+// top of the location task callback (the only code the OS guarantees keeps
+// running). This timer just stops the service a bit sooner when the app
+// happens to be foregrounded.
+function scheduleStopTimer(candidates: PresenceCandidate[]): void {
+  const latestEnd = Math.max(
+    ...candidates.map((c) => new Date(c.starts_at).getTime() + WINDOW_AFTER_MS),
+  );
+  const msUntilStop = Math.max(0, latestEnd - Date.now());
+  if (stopTimer) clearTimeout(stopTimer);
+  stopTimer = setTimeout(() => {
+    void stopPresenceForegroundService('window passed');
+  }, msUntilStop);
+}
+
 /**
  * Start the foreground location service if there's at least one in-window
  * candidate activity. The service runs `Location.startLocationUpdatesAsync`
@@ -67,7 +83,19 @@ export async function startPresenceForegroundService(): Promise<boolean> {
   );
 
   if (serviceRunning && osRunning) {
-    trace('presence.fgservice', 'already running, no-op');
+    // Refresh the candidate set instead of a pure no-op — a second
+    // activity may have entered its window while the service was already
+    // running for the first (the task's validated set is preserved so
+    // settled activities aren't re-fired), and the stop deadline must
+    // stretch to cover the newcomer.
+    const fresh = await fetchInWindowCandidates();
+    if (fresh.length > 0) {
+      setLocationTaskCandidates(fresh);
+      scheduleStopTimer(fresh);
+    }
+    trace('presence.fgservice', 'already running, candidates refreshed', {
+      candidate_count: fresh.length,
+    });
     return true;
   }
 
@@ -109,21 +137,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
     });
     serviceRunning = true;
     captureInfo('presence.fgservice', 'started', { candidate_count: candidates.length });
-
-    // Best-effort fast path only: RN timers freeze while the app is
-    // backgrounded, so the AUTHORITATIVE deadline is the window check at
-    // the top of the location task callback (the only code the OS
-    // guarantees keeps running). This timer just stops the service a bit
-    // sooner when the app happens to be foregrounded.
-    const latestEnd = Math.max(
-      ...candidates.map((c) => new Date(c.starts_at).getTime() + WINDOW_AFTER_MS),
-    );
-    const msUntilStop = Math.max(0, latestEnd - Date.now());
-    if (stopTimer) clearTimeout(stopTimer);
-    stopTimer = setTimeout(() => {
-      void stopPresenceForegroundService('window passed');
-    }, msUntilStop);
-
+    scheduleStopTimer(candidates);
     return true;
   } catch (err) {
     captureWarning('presence.fgservice', 'failed to start', {

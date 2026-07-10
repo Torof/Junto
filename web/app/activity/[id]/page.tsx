@@ -9,7 +9,7 @@ interface Activity {
   description: string | null;
   starts_at: string;
   level: string;
-  max_participants: number;
+  max_participants: number | null;
   participant_count: number;
   visibility: string;
   sport_key: string;
@@ -66,7 +66,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
       <div style={{ display: 'flex', gap: 12, fontSize: 14, color: 'var(--text-secondary)', marginBottom: 32 }}>
         <span>🎚️ {activity.level}</span>
         <span>·</span>
-        <span>👥 {activity.participant_count}/{activity.max_participants}</span>
+        <span>👥 {activity.max_participants ? `${activity.participant_count}/${activity.max_participants}` : `${activity.participant_count} · ouvert`}</span>
         <span>·</span>
         <span>par {activity.creator_name}</span>
       </div>

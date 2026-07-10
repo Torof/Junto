@@ -37,14 +37,15 @@ async function shouldPostPostWindowNotif(activityId: string): Promise<boolean> {
 export const PRESENCE_GEOFENCE_TASK = 'junto.presence-geofence';
 
 // Headless GPS fix budget. The OS gives the task ~30s total; we cap the GPS
-// wait at 8s so there's room for the RPC + slot updates. If we don't get a
-// fresh fix in time, we enqueue for replay rather than guess from the
-// region center (which would let stale-fused-location false positives
-// silently auto-confirm presence).
+// wait at 8s so there's room for the RPC + slot updates. No fix in the
+// budget = no replayable evidence — we never substitute the region center
+// (stale-fused-location false positives would silently auto-confirm
+// presence, live or at replay).
 const FRESH_FIX_TIMEOUT_MS = 8_000;
 // Reject GPS samples too imprecise to safely auto-confirm. Mirrors the
-// foreground watcher's threshold and stays inside the 300m server-side
-// distance gate even at the radius edge.
+// foreground watcher's threshold. The SERVER distance gate is 150m
+// (confirm_presence_via_geo); 300m is only the client-side REGION RADIUS
+// (see use-presence-geofences) — don't confuse the two.
 const ACCURACY_THRESHOLD_M = 100;
 
 async function getFreshFix(): Promise<Location.LocationObject | null> {

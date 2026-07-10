@@ -39,7 +39,10 @@ let onAllValidated: (() => void) | null = null;
 
 export function setLocationTaskCandidates(next: PresenceCandidate[]): void {
   candidates = next.slice();
-  validated.clear();
+  // `validated` is deliberately NOT cleared: the service refreshes its
+  // candidate list mid-run when a second activity enters its window, and
+  // wiping the set would re-fire RPCs for already-settled activities.
+  // clearLocationTaskCandidates (the stop path) resets both.
 }
 
 export function clearLocationTaskCandidates(): void {

@@ -1,6 +1,6 @@
 # Junto — Le jour de l'activité
 
-Document de référence pour le flux de présence le jour J. À jour au 28 avril 2026 (migrations 00135–00149).
+Document de référence pour le flux de présence le jour J. À jour au 10 juillet 2026 (fenêtres 00292, RDV unique 00306, durcissement client juillet 2026).
 
 ## Vision
 
@@ -52,12 +52,15 @@ Tous les types `presence_*` partagent un `collapse_id = 'presence-{activity_id}'
 
 L'app pose une notification locale en arrière-plan via TaskManager :
 
-1. **Présence détectée** (Enter event) — fires immédiatement avec body "Tu es à portée de l'activité, valide ta présence"
-2. **Présence confirmée** (RPC réussie) — remplace le slot avec body "Ta présence à cette activité est confirmée"
+1. **Présence détectée** (Enter event) — body "Tu es à portée de l'activité, valide ta présence". Trois cas selon le moment de l'Enter (l'identifier de région porte `starts_at`) :
+   - **Avant T-15** : la notif est DIFFÉRÉE (trigger DATE) pour sonner à l'ouverture de fenêtre — pas de RPC ni de mise en queue (l'ancre serveur serait refusée de toute façon). Annulée si la présence est confirmée entre-temps ou si l'activité sort de la liste des candidats (leave/cancel).
+   - **T-15..T+15** : notif immédiate + fix GPS frais + RPC.
+   - **Après T+15** : notif immédiate UNE SEULE FOIS par activité (dédup AsyncStorage 30h) comme invite au scan QR — pas de RPC, pas de queue.
+2. **Présence confirmée** (RPC réussie) — la "détectée" est dismissée + la programmée annulée, et "confirmée" part sous un identifiant DISTINCT (re-poster sur le même id est silencieux sur Android).
 
-Si l'RPC échoue sur transport (réseau coupé), le slot reste à "détectée" et l'event est mis en queue offline. Le flusher (sur retour réseau / app foreground) draine la queue ; quand un replay réussit, il met à jour le slot vers "confirmée".
+Si l'RPC échoue sur transport (réseau coupé), l'event (coordonnées RÉELLEMENT mesurées — jamais le centre de région, qui donnerait distance 0 au serveur) est mis en queue offline : dédup par épisode de 10 min, max 3 events/activité, TTL 30h. Le flusher (retour réseau / app foreground) draine ; un replay réussi flippe la notif vers "confirmée".
 
-Si l'RPC est rejetée pour cause serveur (window pas ouverte, distance > 150m), le slot reste à "détectée" — on ne ment pas en affichant "confirmée" si la validation n'est pas passée.
+Si l'RPC est rejetée pour cause serveur (`junto.presence_*` ou auth) c'est TERMINAL : l'event est droppé de la queue et la notif "détectée" est retirée — on ne laisse pas traîner "valide ta présence" pour une validation impossible.
 
 ## Les paths de validation (post mig 00166)
 
@@ -93,7 +96,7 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 - Replay envoie le `captured_at` original ; serveur accepte jusqu'à T+duration+3h
 
 ### 6. QR scan (`confirm_presence_via_token`)
-- Le créateur affiche son QR depuis activity-detail (bouton visible T-15min..T+duration+1h)
+- Le créateur affiche son QR depuis activity-detail (bouton + auto-show, visibles T-15min..T+duration+3h — alignés serveur)
 - Le participant scan via caméra → token validé + fenêtre serveur (T-15..T+duration+3h)
 - Pas de check distance (la possession physique du QR suffit)
 - Auto-flip du créateur à `confirmed_present = TRUE` si pas encore validé (couvre le cas 2-participants)
@@ -178,4 +181,3 @@ Les coordonnées exactes ne sont jamais incluses (lat/lng dans la liste sensible
 - In-app distance feedback ("tu es à 220m de la zone") sur l'écran d'activité quand on est dans la fenêtre — ferme le mystère du fail silencieux à 160m
 - Mock-location detection (Android `ALLOW_MOCK_LOCATION`)
 - Signed geo-proof token pour l'offline replay (clore la fabrication possible des envelopes non signées)
-- Auto-show QR du créateur sur l'écran d'activité quand T-15min arrive (réduire la dépendance au reminder)
