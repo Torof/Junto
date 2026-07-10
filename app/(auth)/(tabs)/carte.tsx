@@ -11,7 +11,7 @@ import { ActivitySheet } from '@/components/activity-sheet';
 import { ProSheet } from '@/components/pro-sheet';
 import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
-import { FilterButton } from '@/components/filter-bar';
+import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
@@ -298,6 +298,7 @@ export default function CarteScreen() {
           <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
             <FilterButton onPress={() => setShowFilters(true)} />
             <MapStyleButton />
+            <EntityTypeToggles />
           </View>
         )}
 
