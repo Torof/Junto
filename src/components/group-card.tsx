@@ -1192,6 +1192,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Ride card (2026-07-09): lighter surface, softer radius, subtle lift —
   // the carpool reads as a journey card, not a grey pill.
   driverPill: {
+    // Bleed past the tab's lg padding so the journey card breathes in
+    // width (Scott 2026-07-10) — headers above keep the normal margin.
+    marginHorizontal: -spacing.sm,
     backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.line,

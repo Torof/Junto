@@ -148,6 +148,13 @@ export default function TabsLayout() {
   return (
     <>
     <Tabs
+      screenListeners={{
+        // An open MenuSheet must not survive a tab switch — pressing any
+        // OTHER tab closes it (the menu tab's own press re-opens it).
+        tabPress: (e) => {
+          if (!String(e.target ?? '').startsWith('menu')) setMenuOpen(false);
+        },
+      }}
       screenOptions={{
         tabBarStyle: {
           backgroundColor: colors.background,
