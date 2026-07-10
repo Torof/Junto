@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, Car, Users, X, Clock } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, Car, Users, X, Clock, Lock } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -114,9 +114,14 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
                 {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
               </Text>
             </View>
-            <Text style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
-              {t('map.peerOuting', { defaultValue: 'Sortie entre passionnés' })}
-            </Text>
+            <View style={styles.kindRow}>
+              {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
+                <Lock size={12} color="#B45309" strokeWidth={2.6} />
+              )}
+              <Text style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
+                {t('map.peerOuting', { defaultValue: 'Sortie entre passionnés' })}
+              </Text>
+            </View>
 
             <Text style={styles.title} numberOfLines={2}>{activity.title}</Text>
 
@@ -222,6 +227,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   sportEmoji: { fontSize: 13 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+  kindRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   kindLine: { fontSize: fontSizes.xs, fontWeight: '700' },
   closeBtn: { position: 'absolute', top: 2, right: spacing.lg, zIndex: 1, padding: 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },

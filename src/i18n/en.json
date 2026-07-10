@@ -1195,9 +1195,9 @@
       "approval": "On approval",
       "approvalDesc": "Visible on the map, request required",
       "private_link": "Private link",
-      "private_linkDesc": "Hidden from map, access via link",
+      "private_linkDesc": "On the map for its members, join by link",
       "private_link_approval": "Private + approval",
-      "private_link_approvalDesc": "Hidden, link + approval required"
+      "private_link_approvalDesc": "For its members, link + approval required"
     }
   },
   "proOffering": {

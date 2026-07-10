@@ -2,18 +2,18 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
-import { supabase } from '@/services/supabase';
 
+// All four visibilities open to everyone (Scott 2026-07-10): all tiers
+// free at launch, private-link premium gate removed (migration 00316).
 const VISIBILITY_OPTIONS = [
-  { key: 'public', requiresPremium: false },
-  { key: 'approval', requiresPremium: false },
-  { key: 'private_link', requiresPremium: true },
-  { key: 'private_link_approval', requiresPremium: true },
+  { key: 'public' },
+  { key: 'approval' },
+  { key: 'private_link' },
+  { key: 'private_link_approval' },
 ] as const;
 
 export default function CreateStep3() {
@@ -23,55 +23,31 @@ export default function CreateStep3() {
   const router = useRouter();
   const { form, updateForm } = useCreateStore();
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser-tier'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('users')
-        .select('tier')
-        .single();
-      return data as { tier: string } | null;
-    },
-  });
-
-  const isPremium = user?.tier === 'premium' || user?.tier === 'pro';
-
   return (
     <View style={styles.container}>
       <Text style={styles.stepLabel}>{t('create.step', { current: 3, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step3Title')}</Text>
 
       <View style={styles.options}>
-        {VISIBILITY_OPTIONS.map((option) => {
-          const locked = option.requiresPremium && !isPremium;
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.option,
-                form.visibility === option.key && styles.optionActive,
-                locked && styles.optionDisabled,
-              ]}
-              onPress={() => !locked && updateForm({ visibility: option.key })}
-              disabled={locked}
-            >
-              <View style={styles.optionHeader}>
-                <Text style={[styles.optionTitle, form.visibility === option.key && styles.optionTitleActive]}>
-                  {t(`create.visibility.${option.key}`)}
-                </Text>
-                {option.requiresPremium && !isPremium && (
-                  <Text style={styles.premiumBadge}>{t('account.tier.premium')}</Text>
-                )}
-                {option.requiresPremium && isPremium && (
-                  <Text style={styles.unlockedBadge}>✓</Text>
-                )}
-              </View>
-              <Text style={styles.optionDesc}>
-                {t(`create.visibility.${option.key}Desc`)}
+        {VISIBILITY_OPTIONS.map((option) => (
+          <Pressable
+            key={option.key}
+            style={[
+              styles.option,
+              form.visibility === option.key && styles.optionActive,
+            ]}
+            onPress={() => updateForm({ visibility: option.key })}
+          >
+            <View style={styles.optionHeader}>
+              <Text style={[styles.optionTitle, form.visibility === option.key && styles.optionTitleActive]}>
+                {t(`create.visibility.${option.key}`)}
               </Text>
-            </Pressable>
-          );
-        })}
+            </View>
+            <Text style={styles.optionDesc}>
+              {t(`create.visibility.${option.key}Desc`)}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {/* Presence verification toggle */}
@@ -110,12 +86,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted,
   },
   optionActive: { borderColor: colors.cta, borderWidth: 2 },
-  optionDisabled: { opacity: 0.4 },
   optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   optionTitleActive: { color: colors.cta },
-  premiumBadge: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
-  unlockedBadge: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
   optionDesc: { color: colors.textSecondary, fontSize: fontSizes.sm },
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
   nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

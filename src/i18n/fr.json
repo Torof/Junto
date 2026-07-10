@@ -1195,9 +1195,9 @@
       "approval": "Sur acceptation",
       "approvalDesc": "Visible sur la carte, demande requise",
       "private_link": "Privé par lien",
-      "private_linkDesc": "Invisible sur la carte, accès par lien",
+      "private_linkDesc": "Visible sur la carte pour ses membres, accès par lien",
       "private_link_approval": "Privé + validation",
-      "private_link_approvalDesc": "Invisible, lien + validation requise"
+      "private_link_approvalDesc": "Visible par ses membres, lien + validation requise"
     }
   },
   "proOffering": {

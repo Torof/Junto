@@ -33,6 +33,15 @@ export function useNearbyActivities(bounds?: MapBounds | null) {
         { event: '*', schema: 'public', table: 'activities' },
         invalidateNearby,
       )
+      // A removal/acceptance touches participations, not activities — but
+      // the map's private-outing visibility (view 00315) depends on the
+      // caller's accepted participation, so a removed member's pin would
+      // otherwise linger until they pan (Scott's audit, 2026-07-10).
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'participations' },
+        invalidateNearby,
+      )
       .subscribe();
     return () => {
       invalidateNearby.cancel();
