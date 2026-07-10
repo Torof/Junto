@@ -110,7 +110,10 @@
     },
     "pinRdv": "Meeting",
     "pinArrivee": "End",
-    "pinObjectif": "Objective"
+    "pinObjectif": "Objective",
+    "notFound": "Outing not found",
+    "notFoundBody": "It may have been deleted, or the link is no longer valid.",
+    "notFoundCta": "Back to the map"
   },
   "sports": {
     "hiking": "Hiking",

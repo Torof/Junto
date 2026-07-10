@@ -24,9 +24,13 @@ export default function InviteScreen() {
 
   useEffect(() => {
     if (activity) {
-      router.replace(`/(auth)/activity/${activity.id}`);
+      // Carry the token: the activity page's normal fetch path (member
+      // views) returns nothing for a private outing the viewer hasn't
+      // joined yet — the token IS the read credential (Scott's bug,
+      // 2026-07-10: invite recipient landed on "introuvable").
+      router.replace(`/(auth)/activity/${activity.id}?invite=${token}`);
     }
-  }, [activity, router]);
+  }, [activity, router, token]);
 
   if (isLoading) {
     return (

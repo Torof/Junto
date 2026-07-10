@@ -110,7 +110,10 @@
     },
     "pinRdv": "RDV",
     "pinArrivee": "Arrivée",
-    "pinObjectif": "Objectif"
+    "pinObjectif": "Objectif",
+    "notFound": "Sortie introuvable",
+    "notFoundBody": "Elle a peut-être été supprimée, ou le lien n'est plus valide.",
+    "notFoundCta": "Retour à la carte"
   },
   "sports": {
     "hiking": "Randonnée",

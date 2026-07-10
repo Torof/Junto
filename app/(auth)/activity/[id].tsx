@@ -11,7 +11,7 @@ import { supabase } from '@/services/supabase';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function AuthActivityScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, invite } = useLocalSearchParams<{ id: string; invite?: string }>();
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
 
@@ -29,8 +29,17 @@ export default function AuthActivityScreen() {
   }, [id, queryClient]);
 
   const { data: activity, isLoading: activityLoading } = useQuery({
-    queryKey: ['activity', id],
-    queryFn: () => activityService.getById(id ?? ''),
+    queryKey: ['activity', id, invite ?? null],
+    queryFn: async () => {
+      const direct = await activityService.getById(id ?? '');
+      if (direct) return direct;
+      // Private outing the viewer hasn't joined: the member views return
+      // nothing, but an invite token grants a read-only preview (thinner
+      // shape — member-only fields are behind showTabs anyway). Once they
+      // join, the normal path takes over.
+      if (invite) return activityService.getByInviteToken(invite);
+      return null;
+    },
     enabled: !!id && isAuthenticated,
   });
 
