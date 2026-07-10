@@ -670,7 +670,8 @@
       "windowClosed": "The 24h voting window has closed.",
       "voterNotPresent": "You must be confirmed present yourself before voting for others.",
       "alreadyValidated": "This participant's presence is already validated."
-    }
+    },
+    "selfLevel": "{{name}} declares a {{level}} level"
   },
   "messagerie": {
     "empty": "No conversations",

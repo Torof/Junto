@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
+import { useRouter, useRootNavigationState } from 'expo-router';
 import { supabase } from '@/services/supabase';
 import { pushTokenService } from '@/services/push-token-service';
 import { getOrCreateDeviceId } from '@/utils/device-id';
@@ -58,6 +58,14 @@ async function registerForPushAsync(): Promise<RegisterResult> {
 export function usePushNotifications(enabled: boolean) {
   const router = useRouter();
   const registered = useRef(false);
+  // Cold-start tap replay must wait for the navigator to actually exist:
+  // a fixed timer raced auth resolution — pushing before the root state
+  // was ready made the pushed screen the ROOT (no tab bar, no back arrow;
+  // Scott's notification-tap bug, 2026-07-10 — the deep-link anchor fix
+  // didn't cover this imperative path).
+  const rootNavigationState = useRootNavigationState();
+  const navReady = rootNavigationState?.key != null;
+  const [coldResponse, setColdResponse] = useState<Notifications.NotificationResponse | null>(null);
 
   useEffect(() => {
     if (!enabled || registered.current) return;
@@ -128,13 +136,19 @@ export function usePushNotifications(enabled: boolean) {
       }
     };
     const sub = Notifications.addNotificationResponseReceivedListener(handle);
-    // Cold start: replay the tap that launched the app. Small delay so the
-    // root navigator + auth gate are mounted before we push.
-    const timer = setTimeout(() => {
-      Notifications.getLastNotificationResponseAsync()
-        .then((response) => { if (response) handle(response); })
-        .catch(() => {});
-    }, 400);
-    return () => { sub.remove(); clearTimeout(timer); };
-  }, [router]);
+    // Cold start: capture the tap that launched the app; the effect below
+    // replays it only once the navigator is ready AND the user is authed
+    // (dedup marker makes a double-handle harmless).
+    Notifications.getLastNotificationResponseAsync()
+      // prev ?? response: keep the first capture — a fresh object identity
+      // on every effect re-run would loop render <-> effect forever.
+      .then((response) => { if (response) setColdResponse((prev) => prev ?? response); })
+      .catch(() => {});
+
+    if (coldResponse && navReady && enabled) {
+      handle(coldResponse);
+    }
+
+    return () => { sub.remove(); };
+  }, [router, coldResponse, navReady, enabled]);
 }

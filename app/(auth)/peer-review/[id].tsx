@@ -331,6 +331,15 @@ export default function PeerReviewScreen() {
                 <Text style={styles.sectionLabel}>{t('peerReview.sectionLevel')}</Text>
               )}
               {activity.sport_key && p.declared_level && (
+                <Text style={styles.selfLevelLine}>
+                  {t('peerReview.selfLevel', {
+                    name: p.display_name,
+                    level: p.declared_level,
+                    defaultValue: '{{name}} se dit de niveau {{level}}',
+                  })}
+                </Text>
+              )}
+              {activity.sport_key && p.declared_level && (
                 <View style={styles.levelPill}>
                   <Text style={styles.levelSportIcon}>{getSportIcon(activity.sport_key)}</Text>
                   <View style={styles.levelDivider} />
@@ -395,6 +404,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: spacing.sm,
     marginBottom: 4,
+  },
+  selfLevelLine: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
+    marginBottom: 6,
   },
 
   list: { gap: spacing.md },
