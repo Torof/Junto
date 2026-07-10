@@ -97,7 +97,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       <Text style={styles.sectionTitle}>{t('participants.title')}</Text>
 
       <View style={styles.avatarRow}>
-        {/* Creator — always first, marked with the orange organizer tick. */}
+        {/* Creator — always first, marked with the ink crown. */}
         <Pressable style={styles.avatarItem} onPress={() => onProfilePress ? onProfilePress(creatorId) : router.push(`/(auth)/profile/${creatorId}`)}>
           <UserAvatar
             name={creatorName}

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import { Check } from 'lucide-react-native';
+import { Check, Crown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 
@@ -12,8 +12,10 @@ interface UserAvatarProps {
   // When true, overlays a small green tick at the bottom-right indicating
   // presence has been confirmed for this user on a given activity.
   confirmedPresent?: boolean;
-  // When true, overlays a small orange tick at the top-right indicating
-  // this user is the activity's creator/organizer. Coexists with
+  // When true, overlays a small ink crown at the top-right indicating
+  // this user is the activity's creator/organizer. Distinct from the
+  // presence badge in BOTH color and glyph (they were twin green checks
+  // after the accent went green — Scott 2026-07-10). Coexists with
   // `confirmedPresent` (different corner).
   isOrganizer?: boolean;
 }
@@ -80,7 +82,7 @@ export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = fals
             },
           ]}
         >
-          <Check size={iconSize} color="#FFFFFF" strokeWidth={3.2} />
+          <Crown size={iconSize} color={colors.background} strokeWidth={2.8} fill={colors.background} />
         </View>
       )}
     </View>
@@ -107,5 +109,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   badgePresence: { backgroundColor: colors.success },
-  badgeOrganizer: { backgroundColor: colors.cta },
+  badgeOrganizer: { backgroundColor: colors.textPrimary },
 });
