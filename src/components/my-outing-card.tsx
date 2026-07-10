@@ -54,7 +54,7 @@ export interface MyOutingCardHandle {
   requestCancelIfNeeded: () => boolean;
 }
 
-const CAR_TYPES = ['car', 'carpool'] as const;
+const CAR_TYPES = ['car'] as const;
 
 type StampState = 'set' | 'pending' | 'todo' | 'neutral';
 

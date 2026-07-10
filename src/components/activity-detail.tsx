@@ -12,7 +12,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2, ChevronRight } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -964,10 +964,11 @@ export function ActivityDetail({
                 </View>
               )}
               {/* Carpool teaser — a decision fact ("can I get a ride?"), so it
-                  lives with the facts (Scott 2026-07-09). Details on the
-                  Transport tab. */}
+                  lives with the facts (Scott 2026-07-09). Tapping jumps to
+                  the Transport tab (Scott 2026-07-10); the chevron is the
+                  affordance that says "this one is a door, not a fact". */}
               {(() => {
-                const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car' || s.transport_type === 'carpool');
+                const carSummary = (transportSummary ?? []).filter((s) => s.transport_type === 'car');
                 if (carSummary.length === 0) return null;
                 const totalSeats = carSummary.reduce((sum, s) => sum + s.total_seats, 0);
                 const allCities = [...new Set(carSummary.flatMap((s) => s.cities ?? []).filter(Boolean))];
@@ -975,12 +976,19 @@ export function ActivityDetail({
                   totalSeats > 0 ? `${totalSeats} ${t('transport.seats')}` : t('transport.type.car').toLowerCase(),
                   allCities.length > 0 ? allCities.join(', ') : null,
                 ].filter(Boolean).join(' · ');
+                // Non-members have no tabs to jump to — plain fact, no door.
                 return (
-                  <View style={styles.factCell}>
+                  <Pressable
+                    style={styles.factCell}
+                    onPress={showTabs ? () => setActiveTab('transport') : undefined}
+                    disabled={!showTabs}
+                    hitSlop={6}
+                  >
                     <Car size={15} color={colors.cta} strokeWidth={2.4} />
                     <Text style={styles.factLabel}>{t('meta.carpool', { defaultValue: 'Covoit' })} :</Text>
                     <Text style={styles.factValue} numberOfLines={1}>{value}</Text>
-                  </View>
+                    {showTabs && <ChevronRight size={15} color={colors.cta} strokeWidth={2.6} />}
+                  </Pressable>
                 );
               })()}
             </View>

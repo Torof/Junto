@@ -282,7 +282,6 @@
     "seatAccepted": "Place confirmée !",
     "type": {
       "car": "Voiture",
-      "carpool": "Covoiturage",
       "public_transport": "Transport en commun",
       "bike": "Vélo",
       "on_foot": "À pied",

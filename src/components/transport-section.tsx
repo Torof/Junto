@@ -29,12 +29,10 @@ export interface TransportSectionHandle {
   openRequestSheet: (driverId: string, defaultPickupFrom?: string | null) => void;
 }
 
-const TRANSPORT_TYPES = ['car', 'carpool', 'bike', 'on_foot', 'other', 'public_transport'] as const;
-const CAR_TYPES = ['car', 'carpool'] as const;
+const TRANSPORT_TYPES = ['car', 'bike', 'on_foot', 'other', 'public_transport'] as const;
 
 const TRANSPORT_ICONS: Record<string, typeof Car> = {
   car: Car,
-  carpool: Car,
   public_transport: TrainFront,
   bike: Bike,
   on_foot: Footprints,
@@ -116,7 +114,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
 
   const handleSave = async () => {
     if (!selectedType) return;
-    const isCar = (CAR_TYPES as readonly string[]).includes(selectedType);
+    const isCar = selectedType === 'car';
     setIsSaving(true);
     try {
       await transportService.setTransport(
@@ -198,7 +196,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   })}
                 </View>
 
-                {selectedType && (CAR_TYPES as readonly string[]).includes(selectedType) && (
+                {selectedType === 'car' && (
                   <View style={styles.seatsRow}>
                     <Text style={styles.seatsLabel}>{t('transport.freeSeats')}</Text>
                     <View style={styles.seatsPicker}>

@@ -77,7 +77,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
     queryFn: () => transportService.getSummary(activity!.id),
     enabled: !!activity,
   });
-  const carRows = transportSummary.filter((r) => r.transport_type === 'car' || r.transport_type === 'carpool');
+  const carRows = transportSummary.filter((r) => r.transport_type === 'car');
   const carSeats = carRows.reduce((sum, r) => sum + (r.total_seats ?? 0), 0);
   const carCities = [...new Set(carRows.flatMap((r) => r.cities ?? []))];
 

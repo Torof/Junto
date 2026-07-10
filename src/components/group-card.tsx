@@ -39,7 +39,7 @@ interface Props {
   showSubTabBar?: boolean;
 }
 
-const CAR_TYPES = ['car', 'carpool'] as const;
+const CAR_TYPES = ['car'] as const;
 
 
 // The sibling card to MyOutingCard. Mine is "what I'm doing for this

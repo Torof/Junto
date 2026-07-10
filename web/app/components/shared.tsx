@@ -18,19 +18,6 @@ export const INK = '#1F1A15';
 export const INK_SOFT = '#4A4034';
 export const STONE = '#E0D2B4';
 
-export function JuntoMark({ size = 40 }: { size?: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/junto-logo.png"
-      width={size}
-      height={size}
-      alt="Junto"
-      style={{ display: 'block', borderRadius: '50%' }}
-    />
-  );
-}
-
 type TopoLinesProps = {
   opacity?: number;
   color?: string;

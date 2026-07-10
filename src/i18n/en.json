@@ -282,7 +282,6 @@
     "seatAccepted": "Seat confirmed!",
     "type": {
       "car": "Car",
-      "carpool": "Carpool",
       "public_transport": "Public transport",
       "bike": "Bike",
       "on_foot": "On foot",
