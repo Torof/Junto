@@ -152,7 +152,7 @@ export default function TwoWorlds() {
                   Entre passionnés
                 </h3>
                 <p style={{ fontSize: 16.5, lineHeight: 1.55, margin: 0, color: NAVY, fontWeight: 500 }}>
-                  Trouve, crée et rejoins des sorties outdoor avec d'autres passionnés, près de chez toi.
+                  Trouve, crée ou rejoins des sorties outdoor avec d'autres passionnés, près de chez toi.
                 </p>
               </div>
 
@@ -160,26 +160,6 @@ export default function TwoWorlds() {
                 <FeatureRow key={f.title} f={f} accent={ORANGE} />
               ))}
 
-              <div style={{ marginTop: 'auto', paddingTop: 8 }}>
-                <a
-                  href="#beta"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    background: ORANGE,
-                    color: '#FFF',
-                    padding: '14px 24px',
-                    borderRadius: 12,
-                    fontSize: 15,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    boxShadow: '0 10px 30px -8px rgba(242,107,46,0.5)',
-                  }}
-                >
-                  Télécharger l'app →
-                </a>
-              </div>
             </div>
           </div>
 
@@ -228,26 +208,6 @@ export default function TwoWorlds() {
                 <FeatureRow key={f.title} f={f} accent={PRO_BLUE} />
               ))}
 
-              <div style={{ marginTop: 'auto', paddingTop: 8 }}>
-                <a
-                  href="mailto:contact@getjunto.app?subject=Cr%C3%A9er%20ma%20page%20pro%20sur%20Junto"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    background: PRO_BLUE,
-                    color: '#FFF',
-                    padding: '14px 24px',
-                    borderRadius: 12,
-                    fontSize: 15,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    boxShadow: '0 10px 30px -8px rgba(59,130,246,0.5)',
-                  }}
-                >
-                  Tu encadres des sorties ? Crée ta page pro →
-                </a>
-              </div>
             </div>
           </div>
         </div>

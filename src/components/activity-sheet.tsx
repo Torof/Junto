@@ -171,7 +171,11 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </View>
             ) : null}
 
-            <Pressable style={styles.cta} onPress={() => onOpen(activity)} hitSlop={8}>
+            <Pressable
+              style={[styles.cta, { backgroundColor: accent, shadowColor: accent }]}
+              onPress={() => onOpen(activity)}
+              hitSlop={8}
+            >
               <Text style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })} →</Text>
             </Pressable>
           </>
@@ -225,6 +229,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
   // Same visual language as the PP Aperçu "Voir tout →" links, one size up —
   // it's the teaser's primary action, not a section accessory.
-  cta: { alignSelf: 'flex-end', marginTop: spacing.xs, paddingVertical: 4, paddingHorizontal: 2 },
-  ctaText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '800' },
+  // Same grammar as the detail screen's join button — solid fill, lg
+  // radius, soft tinted shadow — tinted per-activity with the sport
+  // accent (bg + shadowColor applied inline).
+  cta: {
+    marginTop: spacing.sm,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  },
+  ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
 });
