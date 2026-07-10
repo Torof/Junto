@@ -73,7 +73,7 @@ Trigger `handle_activity_update` (whitelist) :
 - `creator_id`, `status`, `invite_token`, `created_at`, `deleted_at`, `cancelled_reason`, `meeting_name`, `trace_geojson`, `distance_km`, `elevation_gain_m`
 
 **Conditionnelles (verrouillées si participants acceptés ≠ créateur) :**
-- `location_*`, `starts_at`, `level`/`level_max`, `max_participants`, `visibility`, `objective_name`, `requires_presence`
+- `location_*`, `starts_at`, `level`/`level_max`, `max_participants`, `visibility`, `objective_name`, `requires_presence` — `level_max` verrouillé depuis 00312 ; `route` est inconditionnellement forcé à OLD (00306)
 
 **Toujours modifiables par le créateur (via update_activity) :**
 - `title`, `description`, `duration`

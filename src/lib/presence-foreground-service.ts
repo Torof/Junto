@@ -117,8 +117,8 @@ export async function startPresenceForegroundService(): Promise<boolean> {
   }
 
   setLocationTaskCandidates(candidates);
-  setOnAllValidated(() => {
-    void stopPresenceForegroundService('all candidates validated');
+  setOnAllValidated((reason) => {
+    void stopPresenceForegroundService(reason);
   });
 
   try {

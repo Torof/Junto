@@ -74,25 +74,39 @@ async function readQueueDoc(): Promise<QueueDoc> {
 }
 
 // Optimistic-concurrency mutation. `fn` returns the new items array, or
-// null for "no change needed". Retries a few times on version conflict.
+// null for "no change needed". Retries on version conflict; the LAST
+// attempt writes unconditionally (last-writer-wins) — for our callers,
+// losing the mutation outright (a measured presence event, a terminal
+// drop) is strictly worse than the microsecond cross-context overwrite
+// the unconditional write risks. `fn` must be pure over its input.
+type MutateOutcome =
+  | { outcome: 'written'; items: CachedGeoEvent[] }
+  | { outcome: 'unchanged'; items: CachedGeoEvent[] };
+
 async function mutateQueue(
   fn: (items: CachedGeoEvent[]) => CachedGeoEvent[] | null,
-): Promise<CachedGeoEvent[] | null> {
-  for (let attempt = 0; attempt < 3; attempt++) {
+): Promise<MutateOutcome> {
+  const ATTEMPTS = 4;
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
     const doc = await readQueueDoc();
     const next = fn(doc.items.slice());
-    if (next === null) return doc.items;
-    const check = await readQueueDoc();
-    if (check.v !== doc.v) continue;
+    if (next === null) return { outcome: 'unchanged', items: doc.items };
+    const lastAttempt = attempt === ATTEMPTS - 1;
+    if (!lastAttempt) {
+      const check = await readQueueDoc();
+      if (check.v !== doc.v) continue;
+    } else {
+      trace('presence.offline', 'queue CAS exhausted, writing last-writer-wins');
+    }
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ v: doc.v + 1, items: next }));
     } catch {
       // best-effort
     }
-    return next;
+    return { outcome: 'written', items: next };
   }
-  trace('presence.offline', 'queue mutation gave up after version conflicts');
-  return null;
+  // Unreachable (last attempt always writes) — satisfies the type checker.
+  return { outcome: 'unchanged', items: [] };
 }
 
 export function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
@@ -111,7 +125,9 @@ export function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
       items.push(event);
       return items;
     });
-    if (result) trace('presence.offline', 'enqueued geo event', { queue_size: result.length });
+    if (result.outcome === 'written') {
+      trace('presence.offline', 'enqueued geo event', { queue_size: result.items.length });
+    }
   });
 }
 
@@ -143,13 +159,13 @@ export async function flushOfflineGeoQueue(): Promise<void> {
 
     const queue = await withQueueLock(async () => {
       const cutoff = Date.now() - MAX_EVENT_AGE_MS;
-      const next = await mutateQueue((items) => {
+      const result = await mutateQueue((items) => {
         const fresh = items.filter((e) => new Date(e.captured_at).getTime() >= cutoff);
         if (fresh.length === items.length) return null;
         trace('presence.offline', 'purged stale events', { purged: items.length - fresh.length });
         return fresh;
       });
-      return next ?? [];
+      return result.items;
     });
     if (queue.length === 0) return;
 

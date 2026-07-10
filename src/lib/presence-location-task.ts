@@ -35,7 +35,7 @@ export interface PresenceCandidate {
 // service module on next start.
 let candidates: PresenceCandidate[] = [];
 const validated = new Set<string>();
-let onAllValidated: (() => void) | null = null;
+let onAllValidated: ((reason: string) => void) | null = null;
 
 export function setLocationTaskCandidates(next: PresenceCandidate[]): void {
   candidates = next.slice();
@@ -57,7 +57,7 @@ export function hasOpenCandidates(): boolean {
 // Registered by the foreground service module when it starts the service.
 // The location task calls this when every candidate is validated so the
 // service can stop itself instead of polling forever.
-export function setOnAllValidated(cb: (() => void) | null): void {
+export function setOnAllValidated(cb: ((reason: string) => void) | null): void {
   onAllValidated = cb;
 }
 
@@ -74,7 +74,7 @@ interface LocationTaskPayload {
 // high-accuracy GPS forever).
 async function stopSelf(reason: string): Promise<void> {
   if (onAllValidated) {
-    onAllValidated();
+    onAllValidated(reason);
     return;
   }
   try {
@@ -181,10 +181,20 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
       }
 
       // Server function is idempotent (mig 00163) so 'already confirmed'
-      // returns success. Coded junto.presence_* gates and auth-chain
-      // rejections are terminal — mark validated locally so we stop
+      // returns success. Auth-chain rejections and closed/unavailable
+      // windows are terminal — mark validated locally so we stop
       // re-firing the RPC every 10s sample while the user lingers nearby.
-      if (isTerminalPresenceRejection(rpcError.message)) {
+      // EXCEPT junto.presence_too_far: the client triggers at 300m (region
+      // radius) while the server gate is 150m — "too far" in that ring
+      // just means "not arrived yet". Marking it settled would poison the
+      // exact happy path this service exists for (user walking to the RDV
+      // with the app killed) and stop the service mid-window.
+      const rejectionMsg = rpcError.message ?? '';
+      if (rejectionMsg.includes('junto.presence_too_far')) {
+        trace('presence.location', 'too far per server (150m gate), retrying as user approaches', {
+          distance_m: Math.round(d),
+        });
+      } else if (isTerminalPresenceRejection(rejectionMsg)) {
         validated.add(candidate.activity_id);
         trace('presence.location', 'RPC rejected (terminal), skipping further checks', {
           reason: rpcError.message,
@@ -205,6 +215,6 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
   // service module will tear down the location updates and clear the
   // foreground notification.
   if (!hasOpenCandidates() && onAllValidated) {
-    onAllValidated();
+    onAllValidated('all candidates validated');
   }
 });

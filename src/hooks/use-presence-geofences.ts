@@ -126,11 +126,22 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
     return;
   }
 
-  let pos: Location.LocationObject;
+  // Timebox the GPS lock (expo-location has no timeout option and
+  // getCurrentPositionAsync can hang indefinitely indoors) — refreshes are
+  // serialized, so an unbounded hang here would wedge ALL future region
+  // registration for the JS session.
+  let pos: Location.LocationObject | null;
   try {
-    pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+    pos = await Promise.race([
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 8_000)),
+    ]);
   } catch {
     trace('presence.geofence', 'initial-state skipped: getCurrentPositionAsync threw');
+    return;
+  }
+  if (!pos) {
+    trace('presence.geofence', 'initial-state skipped: GPS lock timed out');
     return;
   }
 

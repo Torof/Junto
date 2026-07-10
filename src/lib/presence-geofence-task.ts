@@ -249,15 +249,22 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     }
 
     if (isTerminalPresenceRejection(error.message)) {
-      trace('presence.geofence', 'task: RPC rejected (terminal), clearing détectée', {
+      const msg = error.message ?? '';
+      // too_far = "not arrived yet" (Enter fires at 300m, server gate is
+      // 150m) and window_closed at the T+15 edge still has a valid QR path
+      // until end+3h — in both cases the "valide ta présence" notif stays
+      // useful and no new Enter will come while the user remains inside
+      // the region. Only clear it when the rejection means the user has no
+      // business validating at all (left/removed, activity cancelled).
+      const stillRelevant = msg.includes('junto.presence_too_far') || msg.includes('junto.presence_window_closed');
+      trace('presence.geofence', 'task: RPC rejected (terminal)', {
         reason: error.message,
+        notif_kept: stillRelevant,
       });
-      // The détectée notif we just posted says "valide ta présence" — for a
-      // terminal rejection (left the activity, cancelled, too far per the
-      // real fix) that's a lie sitting in the tray. Clear both the tray
-      // and any pending deferred schedule.
-      await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
-      await Notifications.dismissNotificationAsync(slotId).catch(() => {});
+      if (!stillRelevant) {
+        await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
+        await Notifications.dismissNotificationAsync(slotId).catch(() => {});
+      }
       return;
     }
 
