@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, User, Users } from 'lucide-react-native';
+import { Calendar, MapPin, User, Users, Lock } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -55,7 +55,14 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
       <View style={[styles.statusBar, !showStatusBar && styles.statusBarHidden, showStatusBar && { backgroundColor: statusColor }]} />
 
       <View style={styles.middleCol}>
-        <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
+        <View style={styles.titleRow}>
+          {/* Private outing — same padlock vocabulary as the map pin
+              (00315): only members ever see these rows/pins. */}
+          {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
+            <Lock size={13} color={colors.textSecondary} strokeWidth={2.6} />
+          )}
+          <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
+        </View>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: sportAccent }]}>
             <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
@@ -145,10 +152,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   // Title — fontWeight 700 in the default font; less shouty than
   // Montserrat-title, reads cleaner in a dense list.
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
   title: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,
     fontWeight: '700',
+    flexShrink: 1,
   },
   // Sport row — outlined pill (border only, no fill) with category-
   // colored border + text. Carries the pre-attentive 'what sport'
