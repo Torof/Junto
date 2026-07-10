@@ -58,7 +58,15 @@ let stopTimer: ReturnType<typeof setTimeout> | null = null;
  * Returns whether the service is actually running after this call.
  */
 export async function startPresenceForegroundService(): Promise<boolean> {
-  if (serviceRunning) {
+  // The OS is the source of truth, not the module flag: after a process
+  // kill the Android foreground service survives with a fresh JS runtime
+  // where serviceRunning is back to false. Trusting the flag alone either
+  // no-ops against a dead service or leaks an orphaned one.
+  const osRunning = await Location.hasStartedLocationUpdatesAsync(PRESENCE_LOCATION_TASK).catch(
+    () => false,
+  );
+
+  if (serviceRunning && osRunning) {
     trace('presence.fgservice', 'already running, no-op');
     return true;
   }
@@ -66,12 +74,17 @@ export async function startPresenceForegroundService(): Promise<boolean> {
   const bg = await Location.getBackgroundPermissionsAsync();
   if (bg.status !== 'granted') {
     trace('presence.fgservice', 'no background permission, skipping');
+    if (osRunning) await stopOsService('no background permission (orphan)');
     return false;
   }
 
   const candidates = await fetchInWindowCandidates();
   if (candidates.length === 0) {
     trace('presence.fgservice', 'no in-window candidates, skipping');
+    // An OS-level service with zero in-window candidates is an orphan
+    // (killed process, stale window) — reap it instead of leaving a
+    // persistent notif + GPS polling until reboot.
+    if (osRunning) await stopOsService('no in-window candidates (orphan)');
     return false;
   }
 
@@ -97,9 +110,11 @@ export async function startPresenceForegroundService(): Promise<boolean> {
     serviceRunning = true;
     captureInfo('presence.fgservice', 'started', { candidate_count: candidates.length });
 
-    // Schedule auto-stop at T+15min of the latest candidate. After that,
-    // the server-side window is closed and there's nothing to do —
-    // burning GPS for a user who didn't show up wastes their battery.
+    // Best-effort fast path only: RN timers freeze while the app is
+    // backgrounded, so the AUTHORITATIVE deadline is the window check at
+    // the top of the location task callback (the only code the OS
+    // guarantees keeps running). This timer just stops the service a bit
+    // sooner when the app happens to be foregrounded.
     const latestEnd = Math.max(
       ...candidates.map((c) => new Date(c.starts_at).getTime() + WINDOW_AFTER_MS),
     );
@@ -119,8 +134,21 @@ export async function startPresenceForegroundService(): Promise<boolean> {
   }
 }
 
+async function stopOsService(reason: string): Promise<void> {
+  try {
+    await Location.stopLocationUpdatesAsync(PRESENCE_LOCATION_TASK);
+  } catch (err) {
+    trace('presence.fgservice', 'orphan stop threw', {
+      message: err instanceof Error ? err.message : String(err),
+    });
+  }
+  clearLocationTaskCandidates();
+  trace('presence.fgservice', 'orphan service stopped', { reason });
+}
+
 export async function stopPresenceForegroundService(reason: string): Promise<void> {
-  if (!serviceRunning) return;
+  // No early-return on !serviceRunning: the flag is per-JS-runtime while
+  // the OS service is per-process-lifetime — always ask the OS.
   if (stopTimer) {
     clearTimeout(stopTimer);
     stopTimer = null;

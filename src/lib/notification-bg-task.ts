@@ -6,10 +6,13 @@ import { startPresenceForegroundService } from './presence-foreground-service';
 // Headless task that fires when a data-carrying push lands while the app
 // is killed/backgrounded. Registered via Notifications.registerTaskAsync.
 //
-// Purpose: when the server emits 'presence_pre_warning' at T-15min, this
-// task starts the foreground location service so we can auto-validate
-// presence even on Samsung/Xiaomi/etc. where geofence Enter delivery is
-// unreliable for closed apps.
+// Purpose: when the server emits 'presence_pre_warning_10min' (T-10..T0,
+// migration 00229 — INSIDE the service's T-15..T+15 candidate window),
+// this task starts the foreground location service so we can
+// auto-validate presence even on Samsung/Xiaomi/etc. where geofence Enter
+// delivery is unreliable for closed apps. The T-2h 'presence_pre_warning'
+// is deliberately NOT matched: at that point the in-window candidate
+// filter is guaranteed empty and the service would never start.
 export const BACKGROUND_NOTIFICATION_TASK = 'junto.bg-notification';
 
 interface BgNotificationPayload {
@@ -56,11 +59,11 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
   const type = typeof payload.type === 'string' ? payload.type : null;
   captureInfo('notif.bg', 'task fired', { type });
 
-  // Only one type triggers the foreground service today: the T-15min
-  // pre-warning. Other notification types still wake this handler on
-  // some platforms (Android queues the data delivery alongside the
+  // Only one type triggers the foreground service today: the in-window
+  // T-10min pre-warning. Other notification types still wake this handler
+  // on some platforms (Android queues the data delivery alongside the
   // visual) but we no-op for them.
-  if (type === 'presence_pre_warning') {
+  if (type === 'presence_pre_warning_10min') {
     await startPresenceForegroundService();
   }
 });

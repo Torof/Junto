@@ -135,25 +135,27 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // catch false positives.
   const fix = await getFreshFix();
 
+  // Never enqueue coordinates we didn't measure. Replaying the REGION
+  // CENTER hands the server a distance of exactly 0 and silently bypasses
+  // its 150m gate — a stale-fused-location Enter fired from 2km away would
+  // become a confirmed presence at the next flush. No fix in the headless
+  // budget → no replayable evidence; the user still has the notif, the
+  // initial-state check, the foreground service and QR.
   if (!fix) {
-    trace('presence.geofence', 'task: no fresh fix, enqueue for replay');
-    await enqueueGeoEvent({
-      activity_id: activityId,
-      lng: region.longitude,
-      lat: region.latitude,
-      captured_at: capturedAt,
-    });
+    trace('presence.geofence', 'task: no fresh fix, nothing replayable — notif only');
     return;
   }
 
+  // A coarse fix is still a real measurement — enqueue THAT and let the
+  // server compute the true distance at replay time.
   if (fix.coords.accuracy != null && fix.coords.accuracy > ACCURACY_THRESHOLD_M) {
-    trace('presence.geofence', 'task: fix too coarse, enqueue for replay', {
+    trace('presence.geofence', 'task: fix too coarse for live RPC, enqueue real fix for replay', {
       accuracy_m: Math.round(fix.coords.accuracy),
     });
     await enqueueGeoEvent({
       activity_id: activityId,
-      lng: region.longitude,
-      lat: region.latitude,
+      lng: fix.coords.longitude,
+      lat: fix.coords.latitude,
       captured_at: capturedAt,
     });
     return;
