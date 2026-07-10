@@ -6,6 +6,16 @@ import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
 import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from '@/components/background-location-prompt';
 
+// Deep links (share links, notification taps on a cold start) land directly
+// on activity/[id] & co — without an anchor the stack has NOTHING beneath
+// the landed screen: no back arrow, no tab bar, the user is stranded on a
+// single page (Scott's bug, 2026-07-10). Anchoring on (tabs) makes the
+// router mount the tabs first, so the deep-linked page gets a back arrow
+// that leads home.
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
 export default function AuthLayout() {
   const colors = useColors();
   const { isSuspended } = useAuth();
