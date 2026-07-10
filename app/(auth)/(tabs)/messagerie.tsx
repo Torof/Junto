@@ -1,5 +1,5 @@
 import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -19,7 +19,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 
 dayjs.extend(relativeTime);
 
@@ -86,6 +86,17 @@ export default function MessagerieScreen() {
       supabase.removeChannel(channel);
     };
   }, [currentUserId, queryClient]);
+
+  // Tab screens never unmount — without a focus refetch, a join request
+  // handled elsewhere (activity page, other device) stays as a ghost row
+  // until app restart (same pattern as the profil tab fix).
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
+      void queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+      void queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+    }, [queryClient]),
+  );
 
   const { data: pendingRequests } = useQuery({
     queryKey: ['pending-requests'],
@@ -190,6 +201,9 @@ export default function MessagerieScreen() {
       await queryClient.invalidateQueries({ queryKey: ['participants'] });
       await queryClient.invalidateQueries({ queryKey: ['participants-pending'] });
     } catch (err) {
+      // The row may simply be stale (already handled from the activity
+      // page) — refresh so the ghost disappears instead of erroring again.
+      await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setLoadingRequestId(null);
@@ -202,6 +216,7 @@ export default function MessagerieScreen() {
       await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['participants-pending'] });
     } catch (err) {
+      await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setLoadingRequestId(null);

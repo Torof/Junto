@@ -80,6 +80,10 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
       await queryClient.refetchQueries({ queryKey: ['participants', activityId] });
       // Accept/refuse removes the row from the pending section — refresh it too.
       await queryClient.invalidateQueries({ queryKey: ['participants-pending', activityId] });
+      // The messagerie Demandes tab mirrors these rows — without this, a
+      // request accepted here survives there as a ghost whose second accept
+      // hits 'Operation not permitted' (Scott's bug, 2026-07-10).
+      await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
       const toastKey = action === 'accept' ? 'toast.participantAccepted'
         : action === 'refuse' ? 'toast.participantRefused'
