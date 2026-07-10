@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, View, Text, Pressable, StyleSheet } from 'react-native';
-import { SlidersHorizontal } from 'lucide-react-native';
+import { SlidersHorizontal, Users, BadgeCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { spacing, radius, fontSizes } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -78,9 +78,12 @@ export function FilterButton({ onPress, blink = false }: Props) {
   );
 }
 
-// Entity-type toggles — Utilisateurs / Pros pills that flip the same
-// store flags as the filter sheet's checkboxes, directly from the map
-// (Scott 2026-07-10). Accented = category visible on the map.
+// Entity-type toggles — icon-only round buttons (Scott 2026-07-10) that
+// flip the same store flags as the filter sheet's checkboxes, directly
+// from the map. Same chrome as the filter / map-style buttons; the cta
+// border + icon = category visible (same selected grammar as the filter
+// button's active state — kept per Scott). Users = peer outings,
+// BadgeCheck = pros (the app's established pro mark).
 export function EntityTypeToggles() {
   const { t } = useTranslation();
   const colors = useColors();
@@ -98,10 +101,9 @@ export function EntityTypeToggles() {
         hitSlop={8}
         accessibilityRole="switch"
         accessibilityState={{ checked: showActivities }}
+        accessibilityLabel={t('map.typeActivities', { defaultValue: 'Utilisateurs' })}
       >
-        <Text style={[styles.entityChipText, showActivities && styles.entityChipTextOn]}>
-          {t('map.typeActivities', { defaultValue: 'Utilisateurs' })}
-        </Text>
+        <Users size={18} color={showActivities ? colors.cta : colors.textPrimary} strokeWidth={2.2} />
       </Pressable>
       <Pressable
         style={[styles.entityChip, showProOfferings && styles.entityChipOn]}
@@ -109,10 +111,9 @@ export function EntityTypeToggles() {
         hitSlop={8}
         accessibilityRole="switch"
         accessibilityState={{ checked: showProOfferings }}
+        accessibilityLabel={t('map.typePros', { defaultValue: 'Pros' })}
       >
-        <Text style={[styles.entityChipText, showProOfferings && styles.entityChipTextOn]}>
-          {t('map.typePros', { defaultValue: 'Pros' })}
-        </Text>
+        <BadgeCheck size={18} color={showProOfferings ? colors.cta : colors.textPrimary} strokeWidth={2.2} />
       </Pressable>
     </>
   );
@@ -155,9 +156,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '800',
   },
   entityChip: {
+    width: 40,
     height: 40,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
     borderWidth: 1,
@@ -170,14 +172,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   entityChipOn: {
     borderColor: colors.cta,
-  },
-  entityChipText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  entityChipTextOn: {
-    color: colors.cta,
   },
 });
