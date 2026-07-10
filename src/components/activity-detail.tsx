@@ -258,6 +258,9 @@ export function ActivityDetail({
             ) : (
               <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
             )}
+            <Text style={styles.headerVisText} numberOfLines={1}>
+              {t(`create.visibility.${activity.visibility}`)}
+            </Text>
           </View>
           <View style={{ width: spacing.lg }} />
           {canShare && (
@@ -661,8 +664,19 @@ export function ActivityDetail({
   ];
   const allLngs = mapPins.map((p) => p.coordinate[0]);
   const allLats = mapPins.map((p) => p.coordinate[1]);
-  const mapCenter: [number, number] = [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2];
-  const mapSpread = Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats));
+  // mapPins CAN be empty: an invite-token preview carries no meeting/end/
+  // objective projections, and the instant the viewer joins, showTabs flips
+  // while the activity object is still that thin shape — Math.min() of an
+  // empty array is Infinity and Mapbox chokes on [Infinity, Infinity]
+  // (Scott's join-then-error-retry bug, 2026-07-10). Fall back to the
+  // always-present approximate point until the full row refetches.
+  const hasPins = mapPins.length > 0;
+  const mapCenter: [number, number] = hasPins
+    ? [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2]
+    : [activity.lng, activity.lat];
+  const mapSpread = hasPins
+    ? Math.max(Math.max(...allLngs) - Math.min(...allLngs), Math.max(...allLats) - Math.min(...allLats))
+    : 0;
   const mapZoom = mapSpread > 0.1 ? 10 : mapSpread > 0.01 ? 12 : 14;
   // The mini-preview centres on the objective (where you're headed); the
   // fullscreen map keeps the fit-all centroid so the whole route shows.
@@ -1623,6 +1637,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Visibility twin-pill — same height/radius as the status pill, quiet
   // surface fill so both info chips share one grammar.
   headerVisPill: {
+    flexDirection: 'row',
+    gap: 4,
     paddingHorizontal: spacing.sm - 2,
     paddingVertical: 4,
     borderRadius: radius.sm,
@@ -1631,6 +1647,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'stretch',
   },
+  headerVisText: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontWeight: '600', maxWidth: 110 },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
   headerPills: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,

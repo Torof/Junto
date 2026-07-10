@@ -78,7 +78,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           secret. Ink badge, top-right of the bulb. */}
       {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
         <View style={styles.lockBadge}>
-          <Lock size={9} color={colors.pinBackground} strokeWidth={2.8} />
+          <Lock size={9} color="#57534E" strokeWidth={2.8} />
         </View>
       )}
     </View>
@@ -93,7 +93,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.pinBorder,
+    // Amber + warm gray (Scott 2026-07-10): ink read as "forbidden";
+    // yellow says "locked but welcoming". Fixed on-map color, like every
+    // pin color (decision eb1596f).
+    backgroundColor: '#FBBF24',
     borderWidth: 1.5,
     borderColor: colors.pinBackground,
     alignItems: 'center',
