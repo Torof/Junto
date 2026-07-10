@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal } from 'lucide-react-native';
+import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
@@ -493,15 +493,30 @@ export default function ConversationScreen() {
           style={styles.messageListContainer}
           data={messages}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const seatReqId = item.metadata?.type === 'seat_request_pending' ? item.metadata.seat_request_id ?? null : null;
             const seatReqStatus = seatReqId ? (seatRequestStatusById.get(seatReqId) ?? 'pending') : null;
+            // Messenger grammar (same model as the activity wall,
+            // 2026-07-10): consecutive messages from one sender form a
+            // group — corners tighten inside it, avatar and time only on
+            // the last bubble. A day boundary breaks the group.
+            const prev = messages[index - 1];
+            const next = messages[index + 1];
+            const isFirstOfDay = !prev || !dayjs(item.created_at).isSame(dayjs(prev.created_at), 'day');
+            const isFirstInGroup = isFirstOfDay || !prev || prev.sender_id !== item.sender_id;
+            const isLastInGroup =
+              !next ||
+              next.sender_id !== item.sender_id ||
+              !dayjs(item.created_at).isSame(dayjs(next.created_at), 'day');
             return (
               <MessageBubble
                 item={item}
                 isOwn={isOwnMessage(item)}
+                isFirstInGroup={isFirstInGroup}
+                isLastInGroup={isLastInGroup}
                 currentUser={currentUser ?? null}
                 otherUserName={otherUser?.display_name ?? null}
+                otherUserAvatarUrl={otherUser?.avatar_url ?? null}
                 seatReqId={seatReqId}
                 seatReqStatus={seatReqStatus}
                 seatActionId={seatActionId}
@@ -574,7 +589,7 @@ export default function ConversationScreen() {
             onPress={handleSend}
             disabled={!message.trim() || isSending}
           >
-            <Text style={styles.sendText}>↑</Text>
+            <Send size={16} color="#FFFFFF" strokeWidth={2.4} />
           </Pressable>
         </View>
       </View>
@@ -697,8 +712,11 @@ export default function ConversationScreen() {
 type MessageBubbleProps = {
   item: PrivateMessage;
   isOwn: boolean;
+  isFirstInGroup: boolean;
+  isLastInGroup: boolean;
   currentUser: string | null;
   otherUserName: string | null;
+  otherUserAvatarUrl: string | null;
   seatReqId: string | null;
   seatReqStatus: string | null;
   seatActionId: string | null;
@@ -716,8 +734,11 @@ type MessageBubbleProps = {
 function MessageBubble({
   item,
   isOwn,
+  isFirstInGroup,
+  isLastInGroup,
   currentUser,
   otherUserName,
+  otherUserAvatarUrl,
   seatReqId,
   seatReqStatus,
   seatActionId,
@@ -768,10 +789,33 @@ function MessageBubble({
   const isActing = !!seatReqId && seatActionId === seatReqId;
 
   return (
-    <GestureDetector gesture={pan}>
-      <Animated.View style={animatedStyle}>
+    <View
+      style={[
+        styles.messageRow,
+        isOwn ? styles.messageRight : styles.messageLeft,
+        isFirstInGroup ? styles.firstInGroup : styles.midInGroup,
+      ]}
+    >
+      {/* 1:1 Messenger grammar: the other party's avatar sits OUTSIDE the
+          bubble, bottom-aligned on the last bubble of their group; own
+          messages carry no avatar (the header owns your identity). */}
+      {!isOwn && (
+        <View style={styles.avatarSlot}>
+          {isLastInGroup && (
+            <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+          )}
+        </View>
+      )}
+      <GestureDetector gesture={pan}>
+        <Animated.View style={[animatedStyle, styles.bubbleCol]}>
         <Pressable
-          style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}
+          style={[
+            styles.bubble,
+            isOwn ? styles.bubbleOwn : styles.bubbleOther,
+            isOwn
+              ? { borderTopRightRadius: isFirstInGroup ? 18 : 5, borderBottomRightRadius: isLastInGroup ? 18 : 5 }
+              : { borderTopLeftRadius: isFirstInGroup ? 18 : 5, borderBottomLeftRadius: isLastInGroup ? 18 : 5 },
+          ]}
           onLongPress={() => onLongPress(item)}
         >
           {item.reply_to && (
@@ -802,7 +846,7 @@ function MessageBubble({
               }}
               hitSlop={4}
             >
-              <RouteIcon size={12} color={isOwn ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
+              <RouteIcon size={12} color={isOwn ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
               <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
                 {t('messagerie.viewTrace')}
               </Text>
@@ -814,7 +858,7 @@ function MessageBubble({
               onPress={() => onActivityNav(item.metadata!.activity_id!)}
               hitSlop={4}
             >
-              <ExternalLink size={12} color={isOwn ? colors.pinBorder : colors.cta} strokeWidth={2.4} />
+              <ExternalLink size={12} color={isOwn ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
               <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
                 {t('messagerie.viewActivity')}
               </Text>
@@ -846,8 +890,8 @@ function MessageBubble({
             </View>
           )}
           {seatReqId && seatReqStatus && seatReqStatus !== 'pending' && (
-            <View style={styles.seatStatusBadge}>
-              <Text style={styles.seatStatusText}>
+            <View style={[styles.seatStatusBadge, isOwn && styles.seatStatusBadgeOwn]}>
+              <Text style={[styles.seatStatusText, isOwn && styles.onAccentMuted]}>
                 {t(`messagerie.seatStatus.${seatReqStatus}`, {
                   defaultValue:
                     seatReqStatus === 'accepted' ? 'Place confirmée'
@@ -859,13 +903,22 @@ function MessageBubble({
               </Text>
             </View>
           )}
-          <View style={styles.bubbleFooter}>
-            <Text style={styles.bubbleTime}>{dayjs(item.created_at).format('H[h]mm')}</Text>
-            {item.edited_at && <Text style={styles.editedTag}>{t('messagerie.edited')}</Text>}
-          </View>
+          {(isLastInGroup || item.edited_at) && (
+            <View style={styles.bubbleFooter}>
+              {item.edited_at && (
+                <Text style={[styles.editedTag, isOwn && styles.onAccentMuted]}>{t('messagerie.edited')}</Text>
+              )}
+              {isLastInGroup && (
+                <Text style={[styles.bubbleTime, isOwn && styles.onAccentMuted]}>
+                  {dayjs(item.created_at).format('H[h]mm')}
+                </Text>
+              )}
+            </View>
+          )}
         </Pressable>
-      </Animated.View>
-    </GestureDetector>
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
 
@@ -885,22 +938,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // because nothing was forcing the column to span the screen.
   messageListContainer: { flex: 1 },
   messageList: { padding: spacing.md, paddingBottom: spacing.sm },
+  // Messenger grammar — same model as the activity wall (2026-07-10):
+  // 18-radius bubbles with group-aware corners (applied inline), solid
+  // accent for mine with white text, surface tone for the other party.
+  messageRow: { flexDirection: 'row' },
+  messageLeft: { justifyContent: 'flex-start' },
+  messageRight: { justifyContent: 'flex-end' },
+  firstInGroup: { marginTop: spacing.sm + 4 },
+  midInGroup: { marginTop: 2 },
+  avatarSlot: { width: 34, justifyContent: 'flex-end' },
+  bubbleCol: { maxWidth: '78%' },
   bubble: {
-    maxWidth: '80%',
-    // Pillier-style soft corners — closer to WhatsApp / iMessage than
-    // the previous medium radius. Symmetric (no tail) for now;
-    // asymmetric tails can come later if we want to lean further into
-    // the chat-app look.
-    borderRadius: 20,
-    padding: spacing.sm, paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: 18,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 5,
   },
-  // Self-bubble is near-white (pinBackground = #F5F5F0 in dark / pure
-  // white in light) to match the logo's blue-and-white identity. The
-  // received-bubble keeps the surface tone (Junto blue in dark, soft
-  // gray in light).
-  bubbleOwn: { backgroundColor: colors.pinBackground, alignSelf: 'flex-end' },
+  bubbleOwn: { backgroundColor: colors.cta, alignSelf: 'flex-end' },
   bubbleOther: { backgroundColor: colors.surface, alignSelf: 'flex-start' },
+  onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
   activityLink: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -913,7 +968,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignSelf: 'flex-start',
   },
   activityLinkText: {
-    color: colors.pinBorder,
+    color: '#FFFFFF',
     fontSize: fontSizes.xs,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -921,11 +976,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   activityLinkTextOther: {
     color: colors.cta,
   },
-  bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  // Dark-always text for own bubbles since the new background is
-  // near-white in both themes (textPrimary would disappear in dark
-  // mode where it's an off-white).
-  bubbleTextOwn: { color: colors.pinBorder },
+  bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, lineHeight: 21 },
+  bubbleTextOwn: { color: '#FFFFFF' },
   // Seat-request inline action row — sits inside the seed bubble so
   // the driver can accept / decline without leaving the chat. Buttons
   // are pill-shaped, full-width, with action-coloured backgrounds.
@@ -979,6 +1031,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
     fontWeight: '600',
+  },
+  seatStatusBadgeOwn: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
   },
   bubbleFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 2 },
   bubbleTime: { color: colors.textSecondary, fontSize: fontSizes.xs - 2 },
@@ -1064,7 +1119,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   bubbleReplyQuoteOwn: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   bubbleReplyBar: {
     width: 3,
@@ -1073,7 +1128,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 2,
   },
   bubbleReplyBarOwn: {
-    backgroundColor: colors.cta,
+    backgroundColor: '#FFFFFF',
   },
   bubbleReplyAuthor: {
     color: colors.cta,
@@ -1081,14 +1136,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '700',
   },
   bubbleReplyAuthorOwn: {
-    color: colors.cta,
+    color: '#FFFFFF',
   },
   bubbleReplyContent: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs + 1,
   },
   bubbleReplyContentOwn: {
-    color: colors.pinBorder,
+    color: 'rgba(255,255,255,0.9)',
   },
 
   inputRow: {
@@ -1100,12 +1155,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   input: {
     flex: 1, backgroundColor: colors.surface, color: colors.textPrimary,
-    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-    fontSize: fontSizes.sm, maxHeight: 100,
+    borderRadius: 22, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,
+    fontSize: fontSizes.sm + 1, maxHeight: 110,
   },
   sendButton: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center',
+    shadowColor: colors.cta,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   attachButton: {
     width: 44, height: 44, borderRadius: 22,
@@ -1146,7 +1206,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   traceActionButtonPrimary: { backgroundColor: colors.cta },
   traceActionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  sendText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
+  sendText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
   menuBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
