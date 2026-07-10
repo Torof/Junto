@@ -194,6 +194,7 @@ export async function flushOfflineGeoQueue(): Promise<void> {
           // their presence finally went through. Cancel a still-pending
           // deferred détectée too (dismiss only clears the tray).
           await Notifications.cancelScheduledNotificationAsync(`presence-${event.activity_id}`).catch(() => {});
+          await Notifications.cancelScheduledNotificationAsync(`presence-${event.activity_id}-pending`).catch(() => {});
           await Notifications.dismissNotificationAsync(`presence-${event.activity_id}`).catch(() => {});
           Notifications.scheduleNotificationAsync({
             identifier: `presence-${event.activity_id}-confirmed`,

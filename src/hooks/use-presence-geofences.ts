@@ -101,7 +101,10 @@ async function cleanupDeferredPresenceNotifs(candidates: ActiveActivity[] | null
     const live = new Set((candidates ?? []).map((a) => `presence-${a.activity_id}`));
     for (const n of scheduled) {
       if (!n.identifier.startsWith('presence-')) continue;
-      if (candidates !== null && live.has(n.identifier)) continue;
+      // Strip state suffixes (-pending reminder) so a live activity's
+      // reminder isn't reaped along with genuinely orphaned notifs.
+      const baseId = n.identifier.replace(/-(pending|confirmed)$/, '');
+      if (candidates !== null && live.has(baseId)) continue;
       await Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
     }
   } catch {

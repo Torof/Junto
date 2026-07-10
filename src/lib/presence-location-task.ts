@@ -166,6 +166,7 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
         // pending deferred détectée too — dismiss only clears the tray).
         const slotId = `presence-${candidate.activity_id}`;
         await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
+        await Notifications.cancelScheduledNotificationAsync(`${slotId}-pending`).catch(() => {});
         await Notifications.dismissNotificationAsync(slotId).catch(() => {});
         Notifications.scheduleNotificationAsync({
           identifier: `${slotId}-confirmed`,

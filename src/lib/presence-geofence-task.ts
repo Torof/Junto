@@ -31,6 +31,42 @@ async function shouldPostPostWindowNotif(activityId: string): Promise<boolean> {
   }
 }
 
+// When a geo event goes to the offline queue, the plain "détectée" notif
+// reads as "done" — Scott's real outing (2026-07-10): no network at the
+// RDV, the pair trusted it and skipped the QR fallback, and the queued
+// replay never got an app-alive window before end+3h. Two counter-measures:
+// rewrite the slot with an honest "waiting for network" copy (silent
+// in-place update — the first delivery already alerted), and schedule a
+// +20min reminder that only fires if the replay hasn't succeeded by then
+// (every success path cancels it).
+const PENDING_REMINDER_DELAY_MS = 20 * 60_000;
+
+async function markPendingReplay(activityId: string, slotId: string): Promise<void> {
+  Notifications.scheduleNotificationAsync({
+    identifier: slotId,
+    content: {
+      title: 'Présence détectée — en attente de réseau',
+      body: 'Ouvre Junto dès que tu as du signal, ou scanne le QR du créateur pour confirmer.',
+      data: { activity_id: activityId, type: 'presence_detected' },
+      sound: false,
+    },
+    trigger: null,
+  }).catch(() => {});
+  Notifications.scheduleNotificationAsync({
+    identifier: `${slotId}-pending`,
+    content: {
+      title: 'Présence toujours pas confirmée',
+      body: "Ouvre l'app avec du réseau, ou scanne le QR du créateur.",
+      data: { activity_id: activityId, type: 'presence_detected' },
+      sound: true,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: new Date(Date.now() + PENDING_REMINDER_DELAY_MS),
+    },
+  }).catch(() => {});
+}
+
 // Task name must be a constant defined at the top of a module that's imported
 // at app startup (see _layout). Expo TaskManager requires the task to be
 // registered before TaskManager.startGeofencingAsync runs.
@@ -198,6 +234,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       lat: fix.coords.latitude,
       captured_at: capturedAt,
     });
+    await markPendingReplay(activityId, slotId);
     return;
   }
 
@@ -213,6 +250,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
         lat: fix.coords.latitude,
         captured_at: capturedAt,
       });
+      await markPendingReplay(activityId, slotId);
       return;
     }
 
@@ -234,6 +272,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       // pre-window Enter) — dismiss only clears the tray, not the schedule,
       // and a "valide ta présence" firing at T-15 after confirmation lies.
       await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
+      await Notifications.cancelScheduledNotificationAsync(`${slotId}-pending`).catch(() => {});
       await Notifications.dismissNotificationAsync(slotId).catch(() => {});
       Notifications.scheduleNotificationAsync({
         identifier: `${slotId}-confirmed`,
@@ -277,6 +316,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       lat: fix.coords.latitude,
       captured_at: capturedAt,
     });
+    await markPendingReplay(activityId, slotId);
   } catch (err) {
     trace('presence.geofence', 'task: RPC threw, enqueue for replay', {
       message: err instanceof Error ? err.message : String(err),
@@ -287,5 +327,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       lat: fix.coords.latitude,
       captured_at: capturedAt,
     });
+    await markPendingReplay(activityId, slotId);
   }
 });
