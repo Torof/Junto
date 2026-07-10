@@ -89,7 +89,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   lockBadge: {
     position: 'absolute',
     top: -2,
-    right: -2,
+    // Left side: the on-map name labels sit to the pin's RIGHT and the
+    // badge overlapped them (Scott 2026-07-10).
+    left: -2,
     width: 16,
     height: 16,
     borderRadius: 8,
