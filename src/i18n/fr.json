@@ -312,7 +312,9 @@
     "freeSlots_one": "{{count}} place libre",
     "freeSlots_other": "{{count}} places libres",
     "full": "complet",
-    "modalTitle": "Participants"
+    "modalTitle": "Participants",
+    "pendingRequests_one": "{{count}} demande en attente",
+    "pendingRequests_other": "{{count}} demandes en attente"
   },
   "meta": {
     "level": "Niveau",
@@ -716,7 +718,8 @@
     "replyTo": "Réponse à {{name}}",
     "replyToSelf": "Réponse à toi-même",
     "replyDeleted": "Message supprimé",
-    "you": "Toi"
+    "you": "Toi",
+    "joinRequest": "Demande à rejoindre la sortie"
   },
   "publicProfile": {
     "sendMessage": "Envoyer un message",

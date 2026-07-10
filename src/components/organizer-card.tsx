@@ -32,6 +32,17 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
     staleTime: 0,
   });
 
+  // Pending join requests — the view is creator-gated server-side, so this
+  // is empty for everyone else. Surfaced as an explicit amber pill: they
+  // were buried behind an unmarked "voir tout" and a private-approval
+  // request had NO visible signal anywhere (Scott's bug, 2026-07-10).
+  const { data: pending } = useQuery({
+    queryKey: ['participants-pending', activityId],
+    queryFn: () => participationService.getPendingForActivity(activityId),
+    staleTime: 0,
+  });
+  const pendingCount = (pending ?? []).length;
+
   const otherParticipants = useMemo(
     () => (accepted ?? []).filter((p) => p.user_id !== creatorId),
     [accepted, creatorId],
@@ -65,6 +76,16 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
       </View>
 
       <View style={styles.countBlock}>
+        {pendingCount > 0 && (
+          <View style={styles.pendingPill}>
+            <Text style={styles.pendingPillText} numberOfLines={1}>
+              {t('organizer.pendingRequests', {
+                count: pendingCount,
+                defaultValue: pendingCount > 1 ? '{{count}} demandes en attente' : '{{count}} demande en attente',
+              })}
+            </Text>
+          </View>
+        )}
         <Text style={styles.participantsCountText} numberOfLines={1}>
           {t('organizer.participantsCount', { count: totalParticipants })}
         </Text>
@@ -85,6 +106,21 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  pendingPill: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#FBBF2426',
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginBottom: 3,
+  },
+  pendingPillText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
   // Flat — the parent (activity-detail info tab) provides the brutalist
   // outlined card wrapper. A single row: avatar stack · count · Voir tous.
   row: {

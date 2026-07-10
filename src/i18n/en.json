@@ -312,7 +312,9 @@
     "freeSlots_one": "{{count}} free slot",
     "freeSlots_other": "{{count}} free slots",
     "full": "full",
-    "modalTitle": "Participants"
+    "modalTitle": "Participants",
+    "pendingRequests_one": "{{count}} pending request",
+    "pendingRequests_other": "{{count}} pending requests"
   },
   "meta": {
     "level": "Level",
@@ -716,7 +718,8 @@
     "replyTo": "Reply to {{name}}",
     "replyToSelf": "Reply to yourself",
     "replyDeleted": "Message deleted",
-    "you": "You"
+    "you": "You",
+    "joinRequest": "Wants to join the outing"
   },
   "publicProfile": {
     "sendMessage": "Send message",

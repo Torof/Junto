@@ -12,6 +12,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
+import { participationService } from '@/services/participation-service';
 import { transportService } from '@/services/transport-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from '@/components/user-avatar';
@@ -91,6 +92,36 @@ export default function MessagerieScreen() {
     queryFn: () => conversationService.getPendingReceived(),
   });
 
+  // Join requests on MY activities (approval / private_link_approval).
+  // The activity_participants view is creator-gated server-side, so a
+  // bare status filter returns exactly my activities' pending rows —
+  // they were invisible everywhere but the buried participants modal
+  // (Scott's bug, 2026-07-10: a private-approval request had NO surface).
+  const { data: joinRequests } = useQuery({
+    queryKey: ['join-requests-received'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('activity_participants' as 'activities_with_coords')
+        .select('participation_id, activity_id, user_id, created_at, display_name, avatar_url' as never)
+        .eq('status' as never, 'pending')
+        .order('created_at' as never, { ascending: false });
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as { participation_id: string; activity_id: string; user_id: string; created_at: string; display_name: string; avatar_url: string | null }[];
+      if (rows.length === 0) return [];
+      const activityIds = Array.from(new Set(rows.map((r) => r.activity_id)));
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('id, status, deleted_at, title')
+        .in('id', activityIds);
+      const live = new Map((activities ?? [])
+        .filter((a) => (a.status === 'published' || a.status === 'in_progress') && a.deleted_at === null)
+        .map((a) => [a.id, a.title]));
+      return rows
+        .filter((r) => live.has(r.activity_id))
+        .map((r) => ({ ...r, activity_title: live.get(r.activity_id) ?? '' }));
+    },
+  });
+
   const { data: seatRequests } = useQuery({
     queryKey: ['seat-requests-received'],
     queryFn: async () => {
@@ -146,6 +177,32 @@ export default function MessagerieScreen() {
       router.push(`/(auth)/conversation/${requestId}`);
     } catch (err) {
       Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+
+  const handleAcceptJoin = async (participationId: string) => {
+    setLoadingRequestId(participationId);
+    try {
+      await participationService.accept(participationId);
+      await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants-pending'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+  const handleRefuseJoin = async (participationId: string) => {
+    setLoadingRequestId(participationId);
+    try {
+      await participationService.refuse(participationId);
+      await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants-pending'] });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
       setLoadingRequestId(null);
     }
@@ -230,7 +287,7 @@ export default function MessagerieScreen() {
     setRefreshing(false);
   };
 
-  const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length;
+  const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length + (joinRequests ?? []).length;
 
   const sourceLabel = (source: string | null) => {
     if (source === 'discovery') return t('messagerie.viaDiscovery');
@@ -336,6 +393,38 @@ export default function MessagerieScreen() {
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
+            {/* Join requests — same row grammar as the other request kinds. */}
+            {(joinRequests ?? []).map((jr) => (
+              <Pressable
+                key={jr.participation_id}
+                style={styles.requestRow}
+                onPress={() => router.push(`/(auth)/activity/${jr.activity_id}`)}
+              >
+                <UserAvatar name={jr.display_name} avatarUrl={jr.avatar_url} size={44} />
+                <View style={styles.requestInfo}>
+                  <Text style={styles.requestActivityTitle} numberOfLines={1}>{jr.activity_title}</Text>
+                  <Text style={styles.requestName} numberOfLines={1}>{jr.display_name}</Text>
+                  <Text style={styles.requestSource}>{t('messagerie.joinRequest', { defaultValue: 'Demande à rejoindre la sortie' })}</Text>
+                </View>
+                <View style={styles.requestActions}>
+                  <Pressable
+                    style={[styles.acceptBtn, loadingRequestId === jr.participation_id && styles.btnDisabled]}
+                    onPress={(e) => { e.stopPropagation(); handleAcceptJoin(jr.participation_id); }}
+                    disabled={loadingRequestId === jr.participation_id}
+                  >
+                    <Check size={18} color="#FFFFFF" strokeWidth={3} />
+                  </Pressable>
+                  <Pressable
+                    style={[styles.declineBtn, loadingRequestId === jr.participation_id && styles.btnDisabled]}
+                    onPress={(e) => { e.stopPropagation(); handleRefuseJoin(jr.participation_id); }}
+                    disabled={loadingRequestId === jr.participation_id}
+                  >
+                    <X size={18} color="#FFFFFF" strokeWidth={3} />
+                  </Pressable>
+                </View>
+              </Pressable>
+            ))}
+
             {/* Seat requests */}
             {(seatRequests ?? []).map((sr) => {
               const subtitleParts = [
