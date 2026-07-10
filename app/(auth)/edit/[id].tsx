@@ -111,7 +111,9 @@ export default function EditActivityScreen() {
         description,
         level,
         level_max: levelMax,
-        max_participants: maxParticipants,
+        // 0 = explicit "open activity" sentinel (NULL means "unchanged"
+        // server-side, so it can't express open — see migration 00310).
+        max_participants: maxParticipants === null ? 0 : maxParticipants,
         starts_at: startsAt?.toISOString(),
         duration: durationStr,
         visibility,
@@ -275,13 +277,21 @@ export default function EditActivityScreen() {
             (v === 'private_link' || v === 'private_link_approval') &&
             !isPremium &&
             v !== activity.visibility;
-          const locked = hasParticipants || premiumLocked;
           return (
             <Pressable
               key={v}
               style={[styles.chip, visibility === v && styles.chipActive, premiumLocked && styles.chipLocked]}
-              onPress={() => !locked && setVisibility(v)}
-              disabled={locked}
+              onPress={() => {
+                if (hasParticipants) return;
+                if (premiumLocked) {
+                  // Explicit feedback, not a silently dead chip — the badge
+                  // alone doesn't say why the tap did nothing.
+                  Alert.alert(t('account.tier.premium'), t('errors.code.premium_required'));
+                  return;
+                }
+                setVisibility(v);
+              }}
+              disabled={hasParticipants}
             >
               <Text style={[styles.chipText, visibility === v && styles.chipTextActive]}>
                 {t(`create.visibility.${v}`)}

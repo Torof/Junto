@@ -176,13 +176,14 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Auto-INSERT participation creator → `accepted`
 - Si visibility public/approval → `check_alerts_for_activity`
 
-**`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309) :
+**`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309/00310) :
 - Auth + non suspendu
 - `SELECT ... FOR UPDATE` sur l'activité ; introuvable → generic
 - `auth.uid() = creator_id` (generic)
 - Status activité IN (`published`, `in_progress`)
 - `starts_at` normalisé à la milliseconde (00309) : une date identique à l'existante = « non fournie »
 - Si la date CHANGE : `NOW() < starts_at <= NOW() + 6 mois` (`junto.date_in_past` / `junto.date_too_far`)
+- `p_max_participants` : NULL = inchangé, **0 = sentinelle « ouvrir »** (→ NULL en base, 00310), sinon [2, 50] (`junto.participants_range`)
 - Tamper guard sur `p_visibility` (generic)
 - Gate premium sur le PASSAGE vers `private_link` / `private_link_approval` (`junto.premium_required`) — la visibilité déjà stockée est grandfatherée (resend no-op passe)
 - Champs privilégiés non exposés ; colonnes verrouillées-participants forcées à OLD par la trigger whitelist (silencieux), diff `v_changes` recalculé post-UPDATE → pas de notif fantôme
