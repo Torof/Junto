@@ -159,8 +159,10 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
 
       if (!rpcError) {
         validated.add(candidate.activity_id);
-        // Local notif transition mirrors the geofence task path.
+        // Local notif transition mirrors the geofence task path (cancel the
+        // pending deferred détectée too — dismiss only clears the tray).
         const slotId = `presence-${candidate.activity_id}`;
+        await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
         await Notifications.dismissNotificationAsync(slotId).catch(() => {});
         Notifications.scheduleNotificationAsync({
           identifier: `${slotId}-confirmed`,

@@ -186,6 +186,10 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
 // the watcher waits for GPS to lock in, then confirms on the first usable
 // in-zone sample. Stops on first successful RPC or after the duration.
 let activeWatcher: { remove: () => void } | null = null;
+// Claimed synchronously before the awaits below — the `activeWatcher` null
+// check alone races across getForegroundPermissionsAsync/watchPositionAsync
+// and could stack two live GPS subscriptions.
+let watcherStarting = false;
 async function runForegroundWatcher(candidates: ActiveActivity[], regions: Location.LocationRegion[]): Promise<void> {
   if (regions.length === 0) return;
 
@@ -204,18 +208,20 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
   });
   if (activeRegions.length === 0) return;
 
-  const fg = await Location.getForegroundPermissionsAsync();
-  if (fg.status !== 'granted') return;
+  // Don't stack watchers — if one is already running or mid-setup, let it finish.
+  if (activeWatcher || watcherStarting) return;
+  watcherStarting = true;
 
-  // Don't stack watchers — if one is already running, let it finish.
-  if (activeWatcher) return;
+  try {
+    const fg = await Location.getForegroundPermissionsAsync();
+    if (fg.status !== 'granted') return;
 
-  trace('presence.geofence', 'foreground watcher started', { regions: activeRegions.length });
+    trace('presence.geofence', 'foreground watcher started', { regions: activeRegions.length });
 
-  const confirmed = new Set<string>();
-  let timedOut = false;
+    const confirmed = new Set<string>();
+    let timedOut = false;
 
-  const sub = await Location.watchPositionAsync(
+    const sub = await Location.watchPositionAsync(
     {
       accuracy: Location.Accuracy.High,
       timeInterval: 5_000,
@@ -262,18 +268,46 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
         trace('presence.geofence', 'foreground watcher stopped: all confirmed');
       }
     }
-  );
+    );
 
-  activeWatcher = sub;
-  setTimeout(() => {
-    timedOut = true;
-    sub.remove();
-    if (activeWatcher === sub) activeWatcher = null;
-    trace('presence.geofence', 'foreground watcher stopped: timeout');
-  }, WATCHER_DURATION_MS);
+    activeWatcher = sub;
+    setTimeout(() => {
+      timedOut = true;
+      sub.remove();
+      if (activeWatcher === sub) activeWatcher = null;
+      trace('presence.geofence', 'foreground watcher stopped: timeout');
+    }, WATCHER_DURATION_MS);
+  } finally {
+    watcherStarting = false;
+  }
 }
 
+// Android fires AppState 'active' in bursts (notification tap, permission
+// dialogs, multi-resume). Each refresh does a network fetch + a GPS lock
+// BEFORE registering regions — two interleaved runs could let the one with
+// STALE candidates finish last, register its stale set and (via Android's
+// INITIAL_TRIGGER_ENTER) re-fire Enter events. Serialize: one run at a
+// time, a burst coalesces into a single trailing re-run.
+let refreshInFlight = false;
+let refreshQueued = false;
 async function refreshGeofences(): Promise<void> {
+  if (refreshInFlight) {
+    refreshQueued = true;
+    return;
+  }
+  refreshInFlight = true;
+  try {
+    await doRefreshGeofences();
+  } finally {
+    refreshInFlight = false;
+    if (refreshQueued) {
+      refreshQueued = false;
+      void refreshGeofences();
+    }
+  }
+}
+
+async function doRefreshGeofences(): Promise<void> {
   const candidates = await fetchCandidates();
   if (candidates === null) return;
   const regions = toRegions(candidates);
@@ -290,7 +324,7 @@ async function refreshGeofences(): Promise<void> {
   // Foreground watcher kicks in when the user is inside a presence window
   // and the cold-start fix wasn't precise enough — keeps polling until GPS
   // locks. Runs in parallel with the OS-level region monitor below.
-  runForegroundWatcher(candidates, regions);
+  void runForegroundWatcher(candidates, regions).catch(() => {});
 
   // Foreground service: when a presence window is active, start a
   // long-running foreground service that polls high-accuracy GPS and

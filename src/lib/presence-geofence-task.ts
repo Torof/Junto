@@ -1,9 +1,35 @@
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/services/supabase';
 import { enqueueGeoEvent, isTerminalPresenceRejection } from './presence-offline-cache';
 import { trace, captureInfo } from './sentry';
+
+// Post-window Enters can repeat all day (GPS flicker at a 300m radius in
+// broken terrain) and re-posting on the same notification id RE-ALERTS on
+// Android (no setOnlyAlertOnce anywhere in expo-notifications) — dedup to
+// one "détectée" notif per activity once the geo window is closed.
+const POSTWINDOW_NOTIF_KEY = '@junto/presence-postwindow-notified';
+const POSTWINDOW_NOTIF_TTL_MS = 30 * 60 * 60 * 1000;
+
+async function shouldPostPostWindowNotif(activityId: string): Promise<boolean> {
+  try {
+    const raw = await AsyncStorage.getItem(POSTWINDOW_NOTIF_KEY);
+    const map: Record<string, number> = raw ? JSON.parse(raw) : {};
+    const now = Date.now();
+    for (const key of Object.keys(map)) {
+      const ts = map[key];
+      if (ts == null || now - ts > POSTWINDOW_NOTIF_TTL_MS) delete map[key];
+    }
+    if (map[activityId] != null) return false;
+    map[activityId] = now;
+    await AsyncStorage.setItem(POSTWINDOW_NOTIF_KEY, JSON.stringify(map));
+    return true;
+  } catch {
+    return true; // best-effort — worst case is one extra notif
+  }
+}
 
 // Task name must be a constant defined at the top of a module that's imported
 // at app startup (see _layout). Expo TaskManager requires the task to be
@@ -103,8 +129,26 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // evict a valid in-window event from the per-activity cap (GPS flicker at
   // a 300m radius produces repeated Enters all day while offline). QR
   // validation stays open until end+3h, so the notif is still worth showing
-  // as a scan prompt — but nothing else.
+  // ONCE as a scan prompt — but nothing else, and never re-alerted on
+  // every flicker episode.
   const geoWindowClosed = Number.isFinite(startsAtMs) && Date.now() > startsAtMs + WINDOW_AFTER_MS;
+
+  if (geoWindowClosed) {
+    if (await shouldPostPostWindowNotif(activityId)) {
+      Notifications.scheduleNotificationAsync({
+        identifier: slotId,
+        content: {
+          title: 'Présence détectée',
+          body: "Tu es à portée de l'activité, valide ta présence.",
+          data: { activity_id: activityId, type: 'presence_detected' },
+          sound: true,
+        },
+        trigger: null,
+      }).catch(() => {});
+    }
+    trace('presence.geofence', 'task: Enter after geo window, notif only (QR path remains)');
+    return;
+  }
 
   // First state: "Présence détectée". Same identifier across both states so
   // the OS slot is updated in place — never two notifs at once.
@@ -118,11 +162,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     },
     trigger: null,
   }).catch(() => {});
-
-  if (geoWindowClosed) {
-    trace('presence.geofence', 'task: Enter after geo window, notif only (QR path remains)');
-    return;
-  }
 
   const capturedAt = new Date().toISOString();
 
@@ -190,6 +229,10 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       // update on Android — silent, no sound, sometimes invisible if the
       // user already dismissed the first. Distinct id = fresh delivery
       // with sound, so the user actually perceives the validation step.
+      // Also cancel a still-PENDING deferred détectée (DATE trigger from a
+      // pre-window Enter) — dismiss only clears the tray, not the schedule,
+      // and a "valide ta présence" firing at T-15 after confirmation lies.
+      await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
       await Notifications.dismissNotificationAsync(slotId).catch(() => {});
       Notifications.scheduleNotificationAsync({
         identifier: `${slotId}-confirmed`,
@@ -205,9 +248,15 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     }
 
     if (isTerminalPresenceRejection(error.message)) {
-      trace('presence.geofence', 'task: RPC rejected (terminal), slot stays at détectée', {
+      trace('presence.geofence', 'task: RPC rejected (terminal), clearing détectée', {
         reason: error.message,
       });
+      // The détectée notif we just posted says "valide ta présence" — for a
+      // terminal rejection (left the activity, cancelled, too far per the
+      // real fix) that's a lie sitting in the tray. Clear both the tray
+      // and any pending deferred schedule.
+      await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
+      await Notifications.dismissNotificationAsync(slotId).catch(() => {});
       return;
     }
 

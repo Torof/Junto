@@ -261,7 +261,14 @@ export default function EditActivityScreen() {
 
       <Text style={styles.label}>{t('create.duration')}</Text>
       <View style={styles.durationRow}>
-        <Pressable style={styles.counterButton} onPress={() => setDurationHours(Math.max(0, durationHours - 1))}>
+        <Pressable
+          style={styles.counterButton}
+          onPress={() =>
+            // Floor mirrors the DB CHECK (duration >= 15min) and create/step2:
+            // hours can only reach 0 when the preserved minutes carry >= 15.
+            setDurationHours(Math.max(durationMinutes >= 15 ? 0 : 1, durationHours - 1))
+          }
+        >
           <Text style={styles.counterText}>-</Text>
         </Pressable>
         <Text style={styles.counterValue}>{durationHours}h{durationMinutes > 0 ? durationMinutes : ''}</Text>

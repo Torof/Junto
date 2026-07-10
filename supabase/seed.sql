@@ -42,35 +42,35 @@ BEGIN
   -- Activities near Briançon, France (44.8967° N, 6.6323° E)
 
   -- 1. Hiking in Serre Chevalier
-  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_start, starts_at, duration, status)
+  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_meeting, starts_at, duration, status)
   VALUES (test_user_id, sport_hiking, 'Randonnée Serre Chevalier', 'Belle randonnée avec vue sur les Écrins', 'intermédiaire', 6,
     ST_MakePoint(6.5569, 44.9479)::geography, now() + INTERVAL '2 days', INTERVAL '4 hours', 'published')
   RETURNING id INTO activity_id;
   INSERT INTO participations (activity_id, user_id, status) VALUES (activity_id, test_user_id, 'accepted');
 
   -- 2. Climbing at Ailefroide
-  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_start, starts_at, duration, status)
+  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_meeting, starts_at, duration, status)
   VALUES (test_user_id, sport_climbing, 'Escalade Ailefroide', 'Grandes voies en 6a-6c, matériel requis', 'avancé', 4,
     ST_MakePoint(6.4432, 44.8846)::geography, now() + INTERVAL '3 days', INTERVAL '6 hours', 'published')
   RETURNING id INTO activity_id;
   INSERT INTO participations (activity_id, user_id, status) VALUES (activity_id, test_user_id, 'accepted');
 
   -- 3. Ski touring Col du Lautaret
-  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_start, starts_at, duration, status)
+  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_meeting, starts_at, duration, status)
   VALUES (test_user_id, sport_ski, 'Ski de rando Col du Lautaret', 'Sortie ski de randonnée, DVA obligatoire', 'avancé', 3,
     ST_MakePoint(6.4058, 45.0342)::geography, now() + INTERVAL '1 day', INTERVAL '5 hours', 'published')
   RETURNING id INTO activity_id;
   INSERT INTO participations (activity_id, user_id, status) VALUES (activity_id, test_user_id, 'accepted');
 
   -- 4. Trail running Parc des Écrins
-  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_start, starts_at, duration, status)
+  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_meeting, starts_at, duration, status)
   VALUES (test_user_id, sport_trail, 'Trail Parc des Écrins', 'Trail 15km, dénivelé 800m', 'intermédiaire', 8,
     ST_MakePoint(6.3500, 44.9200)::geography, now() + INTERVAL '4 days', INTERVAL '3 hours', 'published')
   RETURNING id INTO activity_id;
   INSERT INTO participations (activity_id, user_id, status) VALUES (activity_id, test_user_id, 'accepted');
 
   -- 5. Cycling Route des Grandes Alpes
-  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_start, starts_at, duration, status)
+  INSERT INTO activities (creator_id, sport_id, title, description, level, max_participants, location_meeting, starts_at, duration, status)
   VALUES (test_user_id, sport_cycling, 'Vélo Col du Galibier', 'Montée du Galibier depuis Briançon', 'avancé', 5,
     ST_MakePoint(6.6323, 44.8967)::geography, now() + INTERVAL '5 days', INTERVAL '4 hours', 'published')
   RETURNING id INTO activity_id;
