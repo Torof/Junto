@@ -425,7 +425,7 @@
   },
   "bgLocation": {
     "title": "Validation auto à ton arrivée",
-    "body": "Autorise Junto à détecter ton arrivée à l'activité même quand l'app est fermée. Ta présence sera validée automatiquement.",
+    "body": "Autorise Junto à détecter ton arrivée à l'activité même quand elle tourne en arrière-plan. Ta présence sera validée automatiquement.",
     "enable": "Activer",
     "skip": "Pas maintenant",
     "foregroundFirst": "Junto a besoin d'un accès basique à la localisation d'abord."
