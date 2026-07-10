@@ -162,17 +162,31 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 ### Activités
 
-**`create_activity`** (mig 00102 + 00144) :
+**`create_activity`** (mig 00102 + 00144, rate limits 00262/00267, dernier corps 00306) :
 - Auth + non suspendu
 - `char_length(title) >= 3`
-- `starts_at > NOW()`
+- `NOW() < starts_at <= NOW() + 6 mois` (`junto.date_in_past` / `junto.date_too_far`)
 - `max_participants` est NULL OU dans [2, 50]
+- Tamper guard sur `p_visibility` (valeurs hors enum → generic)
+- Gate premium : `private_link` / `private_link_approval` réservés aux tiers premium/pro (`junto.premium_required`)
 - Advisory lock par user pour sérialiser les créations concurrentes
-- Rate limit : 20 activités / 24h (skipé pour `is_admin = TRUE`)
+- Rate limit : 10 activités / 24h + 30 / 30 jours (skipé pour `is_admin = TRUE`)
 - Hardcode `creator_id = auth.uid()`, `status = 'published'`, `created_at = NOW()`
 - Set `junto.bypass_lock = true` avant INSERT (pour la trigger whitelist)
 - Auto-INSERT participation creator → `accepted`
 - Si visibility public/approval → `check_alerts_for_activity`
+
+**`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309) :
+- Auth + non suspendu
+- `SELECT ... FOR UPDATE` sur l'activité ; introuvable → generic
+- `auth.uid() = creator_id` (generic)
+- Status activité IN (`published`, `in_progress`)
+- `starts_at` normalisé à la milliseconde (00309) : une date identique à l'existante = « non fournie »
+- Si la date CHANGE : `NOW() < starts_at <= NOW() + 6 mois` (`junto.date_in_past` / `junto.date_too_far`)
+- Tamper guard sur `p_visibility` (generic)
+- Gate premium sur le PASSAGE vers `private_link` / `private_link_approval` (`junto.premium_required`) — la visibilité déjà stockée est grandfatherée (resend no-op passe)
+- Champs privilégiés non exposés ; colonnes verrouillées-participants forcées à OLD par la trigger whitelist (silencieux), diff `v_changes` recalculé post-UPDATE → pas de notif fantôme
+- Notif `activity_updated` aux participants acceptés seulement si vrai changement
 
 **`join_activity`** (mig 00102) :
 - Auth + non suspendu
@@ -391,7 +405,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 ### Fonctions client-callable (GRANT EXECUTE TO authenticated)
 
-**Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
+**Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés ; date validée si changée + gate premium au switch de visibilité, 00308/00309), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
 
 **Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`
 
@@ -498,7 +512,7 @@ La règle générique ne s'applique qu'aux échecs **sensibles**. Les échecs **
 **Mécanisme client :** `getFriendlyError` (src/utils/friendly-error.ts) extrait `junto\.([a-z_]+)` du message et mappe vers `errors.code.<code>` (i18n FR+EN). Si pas de mapping → fallback générique par action. Donc tout nouveau code DOIT avoir sa clé `errors.code.<code>` en FR et EN.
 
 **Codes actuels** (sweep complet migs 00268-00272) :
-- **Activité** (00268/00269) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`, `activity_full`, `join_rate_limit`, `already_joined`, `refuse_cooldown`, `cancel_reason_invalid`
+- **Activité** (00268/00269 ; `date_in_past`/`date_too_far`/`premium_required` aussi levés par `update_activity` depuis 00308) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`, `activity_full`, `join_rate_limit`, `already_joined`, `refuse_cooldown`, `cancel_reason_invalid`
 - **Transport/seat/alerte** (00270) : `activity_locked`, `seat_rate_limit`, `no_seats_available`, `seats_exhausted`, `seat_already_requested`, `seats_still_active`, `pickup_out_of_window`, `depart_out_of_window`, `alert_limit_reached`, `alert_date_invalid`
 - **Messagerie/report/onboarding** (00271) : `wall_rate_limit`, `dm_rate_limit`, `trace_rate_limit`, `contact_request_pending_cap`, `contact_request_daily_cap`, `report_reason_too_short`, `report_already_filed`, `report_rate_limit`, `dob_underage`
 - **Pro/présence/badge** (00272) : `offering_cap`, `photo_cap`, `review_duplicate`, `review_rate_limit`, `presence_unavailable`, `presence_window_closed`, `presence_too_far`, `presence_token_invalid`, `presence_token_window_closed`, `peer_review_window_not_open`, `peer_review_window_closed`, `peer_already_validated`, `peer_voter_not_present`, `badge_rate_limit`, `badge_window_not_open`, `badge_window_closed`
@@ -820,7 +834,8 @@ CASE NEW.type
     v_should_push := starts_at - now() < INTERVAL '48 hours';  -- pas de push si activité lointaine
 
   WHEN 'activity_updated' THEN
-    v_should_push := changes ? 'starts_at' OR 'duration' OR 'location_*';  -- logistique uniquement
+    v_should_push := changes ? 'starts_at' OR 'duration' OR 'location_meeting'
+                     OR 'max_participants' OR 'level';  -- logistique uniquement (location_start droppé 00306/00308)
 END CASE;
 ```
 
@@ -1125,7 +1140,7 @@ Connue : 2 confirmed friends peuvent valider un no-show en activité 3-personnes
 ### Premium → Free
 - Activités existantes restent actives
 - Création nouvelles activités bloquée si > 4/mois actives
-- Création private_link bloquée
+- Création private_link bloquée ; **passage** d'une activité existante en private_link à l'édition bloqué aussi (00308) — la visibilité déjà stockée reste modifiable/conservable (grandfather)
 - Badge "Vérifié" retiré
 
 ### Pro → non-Pro
