@@ -1215,6 +1215,11 @@ function SportDetail({
               await userService.setSportLevel(item.sportKey, target);
               await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
               await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+              // The displayed level + vote breakdown live on their own keys
+              // (profil tab & public profile) — without these two, the old
+              // level and the just-wiped votes stay on screen until restart.
+              await queryClient.invalidateQueries({ queryKey: ['sport-levels'] });
+              await queryClient.invalidateQueries({ queryKey: ['sport-level-votes'] });
               onClose();
             } catch (err) {
               Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));

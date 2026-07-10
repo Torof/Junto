@@ -1,5 +1,5 @@
-import { useLayoutEffect, useState, useMemo } from 'react';
-import { useNavigation, useRouter } from 'expo-router';
+import { useLayoutEffect, useState, useMemo, useCallback } from 'react';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -97,6 +97,20 @@ export default function ProfilScreen() {
       ),
     });
   }, [navigation, user?.display_name, user?.tier, userId, colors, styles, router, t]);
+
+  // Tab screens never unmount, so their queries never refetch on their own —
+  // votes received, level verdicts, stats: everything that changes from
+  // ANOTHER device stayed frozen until an app restart. Refetch-on-focus
+  // (respecting the 60s staleTime via refetchQueries' stale filter would
+  // over-fetch; plain invalidate is fine for these light RPCs).
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      for (const key of ['user-stats', 'reputation', 'trophies', 'sport-levels', 'sport-level-votes', 'award-aggregates']) {
+        void queryClient.invalidateQueries({ queryKey: [key, userId] });
+      }
+    }, [userId, queryClient]),
+  );
 
   const { data: stats } = useQuery({
     queryKey: ['user-stats', userId],

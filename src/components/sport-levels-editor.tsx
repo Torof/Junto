@@ -57,6 +57,9 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
       setLevels((prev) => ({ ...prev, [sportKey]: tier }));
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      // Same reason as badge-display: level + votes render from these keys.
+      await queryClient.invalidateQueries({ queryKey: ['sport-levels'] });
+      await queryClient.invalidateQueries({ queryKey: ['sport-level-votes'] });
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
