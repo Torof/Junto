@@ -58,7 +58,8 @@
     "selectDate": "Select a date",
     "acceptTos": "I accept the terms of service and privacy policy",
     "continue": "Continue",
-    "error": "Error"
+    "error": "Error",
+    "confirmAdult": "I confirm I am 18 or older"
   },
   "activity": {
     "shareCta": "Share activity",

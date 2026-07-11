@@ -1747,10 +1747,10 @@ export type Database = {
         Row: {
           accepted_privacy_at: string | null
           accepted_tos_at: string | null
+          age_confirmed_at: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
-          date_of_birth: string | null
           display_name: string
           email: string
           id: string
@@ -1772,10 +1772,10 @@ export type Database = {
         Insert: {
           accepted_privacy_at?: string | null
           accepted_tos_at?: string | null
+          age_confirmed_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          date_of_birth?: string | null
           display_name: string
           email: string
           id: string
@@ -1797,10 +1797,10 @@ export type Database = {
         Update: {
           accepted_privacy_at?: string | null
           accepted_tos_at?: string | null
+          age_confirmed_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          date_of_birth?: string | null
           display_name?: string
           email?: string
           id?: string
@@ -2741,6 +2741,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      confirm_age_adult: { Args: never; Returns: undefined }
       confirm_presence_via_geo: {
         Args: {
           p_activity_id: string
@@ -3432,10 +3433,6 @@ export type Database = {
       }
       set_activity_gear: {
         Args: { p_activity_id: string; p_items: Json }
-        Returns: undefined
-      }
-      set_date_of_birth: {
-        Args: { p_date_of_birth: string }
         Returns: undefined
       }
       set_participation_transport: {

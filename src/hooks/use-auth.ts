@@ -28,11 +28,11 @@ export function useAuth(): AuthState {
 
     const { data } = await supabase
       .from('users')
-      .select('date_of_birth, accepted_tos_at, suspended_at')
+      .select('age_confirmed_at, accepted_tos_at, suspended_at')
       .eq('id', userId)
       .single();
 
-    setNeedsOnboarding(!data?.date_of_birth || !data?.accepted_tos_at);
+    setNeedsOnboarding(!data?.age_confirmed_at || !data?.accepted_tos_at);
     setIsSuspended(!!data?.suspended_at);
   }, []);
 
