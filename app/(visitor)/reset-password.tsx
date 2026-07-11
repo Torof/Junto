@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -100,8 +101,11 @@ export default function ResetPasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+      restBottom={insets.bottom}
+    >
         <Text style={styles.title}>{t('auth.resetTitle')}</Text>
         <Text style={styles.subtitle}>{t('auth.resetSubtitle')}</Text>
 
@@ -146,15 +150,14 @@ export default function ResetPasswordScreen() {
             {phase === 'submitting' ? '...' : t('auth.updatePassword')}
           </Text>
         </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, backgroundColor: colors.background },
-  content: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
   title: {
     color: colors.textPrimary, fontSize: fontSizes.xxl, fontWeight: '800',
     textAlign: 'center', marginBottom: spacing.xs,

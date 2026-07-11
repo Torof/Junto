@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   FlatList,
+  ScrollView,
   useWindowDimensions,
   type ListRenderItemInfo,
 } from 'react-native';
@@ -193,29 +194,32 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   };
 
   const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => {
+    // Each page is a vertical ScrollView: content centres when it fits and
+    // scrolls when it doesn't, so nothing is clipped on small screens
+    // (Scott's tester report, 2026-07-11).
     if (item.welcome) {
       return (
-        <View style={[styles.page, styles.welcomePage, { width }]}>
+        <ScrollView style={{ width }} contentContainerStyle={[styles.pageScroll, styles.welcomePage]} showsVerticalScrollIndicator={false}>
           <Image source={require('../../assets/junto_icon_round.png')} style={styles.welcomeLogo} />
           <Text style={styles.welcomeTagline}>{item.welcome.tagline}</Text>
           <Text style={styles.welcomeBody}>{item.welcome.body}</Text>
-        </View>
+        </ScrollView>
       );
     }
     if (item.body) {
       return (
-        <View style={[styles.page, { width }]}>
+        <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
           <Text style={styles.pageTitle}>{item.title}</Text>
           <View style={styles.bodyStage} pointerEvents="none">{item.body}</View>
-        </View>
+        </ScrollView>
       );
     }
     return (
-      <View style={[styles.page, { width }]}>
+      <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.pageTitle}>{item.title}</Text>
         <View style={styles.heroStage} pointerEvents="none">{item.hero}</View>
         {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
-      </View>
+      </ScrollView>
     );
   };
 
@@ -302,6 +306,7 @@ const createStyles = (colors: AppColors) =>
     skipBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
     skipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
     page: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
+    pageScroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.xl, justifyContent: 'center' },
 
     // Opening manifesto page.
     welcomePage: { alignItems: 'center' },

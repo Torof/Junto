@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
-  View, Text, TextInput, Pressable, ScrollView, StyleSheet,
-  Image, KeyboardAvoidingView, Platform, ActivityIndicator,
+  View, Text, TextInput, Pressable, StyleSheet,
+  Image, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 type Mode = 'login' | 'register' | 'forgot';
 
@@ -90,15 +91,14 @@ export default function LoginScreen() {
     : t('auth.sendReset');
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scroll,
+        { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+      ]}
+      restBottom={insets.bottom}
+    >
         <View style={styles.content}>
         <Svg
           style={StyleSheet.absoluteFill}
@@ -230,8 +230,7 @@ export default function LoginScreen() {
           </Pressable>
         )}
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 

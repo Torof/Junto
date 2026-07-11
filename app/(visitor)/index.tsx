@@ -7,10 +7,8 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
-import { ActivityPopup } from '@/components/activity-popup';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
-import { type NearbyActivity } from '@/services/activity-service';
 
 export default function VisitorMapScreen() {
   const colors = useColors();
@@ -18,7 +16,6 @@ export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { center } = useInitialLocation();
-  const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
@@ -93,21 +90,12 @@ export default function VisitorMapScreen() {
         </Pressable>
       </View>
 
+      {/* Pre-login teaser map: pins only — no popup, no drawer, no tap
+          target (Scott 2026-07-11). The pins show there's activity nearby;
+          discovering details is what signing in is for. */}
       <JuntoMapView
         center={center}
         activities={activities ?? []}
-        selectedActivity={selectedActivity}
-        popupContent={selectedActivity ? (
-          <ActivityPopup
-            activity={selectedActivity}
-            onPress={() => {
-              router.push(`/(visitor)/activity/${selectedActivity.id}`);
-              setSelectedActivity(null);
-            }}
-          />
-        ) : undefined}
-        onActivityPress={setSelectedActivity}
-        onMapPress={() => setSelectedActivity(null)}
         onBoundsChange={handleBoundsChange}
       />
     </View>
