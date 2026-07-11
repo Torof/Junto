@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -33,6 +33,8 @@ import {
 import { userService } from '@/services/user-service';
 import { LEVELS } from '@/types/activity-form';
 import { getFriendlyError } from '@/utils/friendly-error';
+
+const SCREEN_H = Dimensions.get('window').height;
 
 // Phase 1 of the profile remodel: replace the trophy/medal grid with three
 // minimal sections that inherit the hero's visual language.
@@ -860,9 +862,14 @@ function ModalShell({
           <View style={styles.modalDragHandleWrap}>
             <View style={styles.modalDragHandle} />
           </View>
-          <View style={padded ? styles.modalContent : undefined}>
+          <ScrollView
+            style={styles.modalScroll}
+            contentContainerStyle={padded ? styles.modalContent : undefined}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
             {children}
-          </View>
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>
@@ -1701,6 +1708,12 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
       padding: spacing.lg,
+    },
+    modalScroll: {
+      flexGrow: 0,
+      // Cap the card at 80% of the screen so long help text scrolls
+      // instead of overflowing on small screens (Scott 2026-07-12).
+      maxHeight: SCREEN_H * 0.8,
     },
     modalCard: {
       width: '100%',
