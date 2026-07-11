@@ -10,15 +10,7 @@ import type { AppColors } from '@/constants/colors';
 
 const ASKED_KEY = 'junto.presence.bgAsked';
 
-// TEMPORARY — Play Store background-location demo video (Scott, 2026-07-11).
-// While true, the "Validation auto" disclosure shows on every app open
-// (ignores the asked marker + the granted check) so Scott can re-film the
-// permission flow as many takes as he needs without wiping app data each
-// time. REVERT TO false (and re-deploy) once the video is recorded.
-const FORCE_SHOW_FOR_DEMO = true;
-
 export async function shouldAskForBackgroundLocation(): Promise<boolean> {
-  if (FORCE_SHOW_FOR_DEMO) return true;
   try {
     const asked = await SecureStore.getItemAsync(ASKED_KEY);
     if (asked) return false;
