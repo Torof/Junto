@@ -1203,8 +1203,8 @@ export function ActivityDetail({
       )}
 
       {/* Modals — shared across all tabs */}
-      <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
-        <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
+      <Modal visible={showFullMap} animationType="slide" statusBarTranslucent onRequestClose={() => setShowFullMap(false)}>
+        <View style={styles.fullMapContainer}>
           <JuntoMapView
             center={mapCenter}
             zoom={mapZoom}
@@ -1213,10 +1213,10 @@ export function ActivityDetail({
             flyTo={fullMapFly}
             onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now(), zoom: 16 })}
           />
-          <View style={styles.fullMapLegendWrapper} pointerEvents="box-none">
+          <View style={[styles.fullMapLegendWrapper, { bottom: insets.bottom + 84 }]} pointerEvents="box-none">
             <MapLegend items={mapPins.map((p) => ({ color: p.color, label: p.label ?? '' })).filter((i) => i.label)} />
           </View>
-          <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
+          <Pressable style={[styles.closeMapButton, { top: insets.top + spacing.sm }]} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <Text style={styles.closeMapText}>✕</Text>
           </Pressable>
           <Pressable
@@ -1229,7 +1229,7 @@ export function ActivityDetail({
           >
             <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
           </Pressable>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
@@ -1712,8 +1712,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   section: { marginBottom: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
-  fullMapLegendWrapper: { position: 'absolute', top: 95, right: 12, zIndex: 10 },
-  closeMapButton: { position: 'absolute', top: 35, left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
+  fullMapLegendWrapper: { position: 'absolute', right: 12, zIndex: 10 },
+  closeMapButton: { position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
   closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10 },
   navigateText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
