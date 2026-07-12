@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import {
   MapPin, Goal, Trophy, Route, Calendar, Clock, Check, Plus, Minus,
+  Upload, Library, Pencil,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -22,6 +23,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { TracePickerModal } from '@/components/trace-picker-modal';
+import { TraceDrawModal } from '@/components/trace-draw-modal';
 
 export default function CreateStep2() {
   const colors = useColors();
@@ -42,6 +44,7 @@ export default function CreateStep2() {
   );
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [drawOpen, setDrawOpen] = useState(false);
 
   const handlePickTrace = async () => {
     try {
@@ -242,21 +245,28 @@ export default function CreateStep2() {
         ) : (
           <View style={styles.traceOptions}>
             <Pressable
-              style={[styles.traceButton, { flex: 1, marginBottom: 0 }, isLoadingTrace && { opacity: 0.5 }]}
+              style={[styles.traceButton, { marginBottom: 0 }, isLoadingTrace && { opacity: 0.5 }]}
               onPress={handlePickTrace}
               disabled={isLoadingTrace}
             >
-              <Route size={16} color={colors.cta} strokeWidth={2.2} />
+              <Upload size={16} color={colors.cta} strokeWidth={2.2} />
               <Text style={styles.traceButtonText}>
                 {isLoadingTrace ? t('create.traceLoading') : t('create.traceImport')}
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.traceButton, { flex: 1, marginBottom: 0 }]}
+              style={[styles.traceButton, { marginBottom: 0 }]}
               onPress={() => setPickerOpen(true)}
             >
-              <Route size={16} color={colors.cta} strokeWidth={2.2} />
+              <Library size={16} color={colors.cta} strokeWidth={2.2} />
               <Text style={styles.traceButtonText}>{t('create.traceFromLibrary', { defaultValue: 'Ma bibliothèque' })}</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.traceButton, { marginBottom: 0 }]}
+              onPress={() => setDrawOpen(true)}
+            >
+              <Pencil size={16} color={colors.cta} strokeWidth={2.2} />
+              <Text style={styles.traceButtonText}>{t('create.traceDraw', { defaultValue: 'Dessiner' })}</Text>
             </Pressable>
           </View>
         )}
@@ -267,6 +277,16 @@ export default function CreateStep2() {
           onSelect={(geojson) => {
             updateForm({ trace_geojson: geojson });
             setPickerOpen(false);
+          }}
+        />
+
+        <TraceDrawModal
+          visible={drawOpen}
+          askName={false}
+          onClose={() => setDrawOpen(false)}
+          onSave={(_name, geojson) => {
+            updateForm({ trace_geojson: geojson });
+            setDrawOpen(false);
           }}
         />
 
@@ -509,7 +529,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
-  traceOptions: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  traceOptions: { flexDirection: 'column', gap: spacing.sm, marginBottom: spacing.md },
   traceButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
     backgroundColor: 'transparent', borderRadius: radius.sm,

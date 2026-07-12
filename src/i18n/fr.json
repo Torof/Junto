@@ -117,7 +117,8 @@
     "pinObjectif": "Objectif",
     "notFound": "Sortie introuvable",
     "notFoundBody": "Elle a peut-être été supprimée, ou le lien n'est plus valide.",
-    "notFoundCta": "Retour à la carte"
+    "notFoundCta": "Retour à la carte",
+    "traceDraw": "Dessiner une trace"
   },
   "sports": {
     "hiking": "Randonnée",
@@ -1206,7 +1207,8 @@
       "private_link_approval": "Privé + validation",
       "private_link_approvalDesc": "Visible par ses membres, lien + validation requise"
     },
-    "traceFromLibrary": "Ma bibliothèque"
+    "traceFromLibrary": "Ma bibliothèque",
+    "traceDraw": "Dessiner"
   },
   "proOffering": {
     "createTitle": "Nouvelle activité au catalogue",

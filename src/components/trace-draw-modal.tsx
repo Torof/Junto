@@ -14,6 +14,9 @@ import type { GeoJsonLineString } from '@/services/activity-service';
 interface Props {
   visible: boolean;
   saving?: boolean;
+  // When false, "Valider" attaches the trace straight away (no name step) —
+  // used when drawing to attach to an activity rather than to the library.
+  askName?: boolean;
   onClose: () => void;
   onSave: (name: string, geojson: GeoJsonLineString) => void;
 }
@@ -23,7 +26,7 @@ interface Props {
 // v1 = append + undo-last + clear; no mid-line editing. Returns a GeoJSON
 // LineString, the same shape as an imported GPX. Used by the library now, and
 // (Phase 2/3) activity creation + the activity map.
-export function TraceDrawModal({ visible, saving = false, onClose, onSave }: Props) {
+export function TraceDrawModal({ visible, saving = false, askName = true, onClose, onSave }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
@@ -113,7 +116,10 @@ export function TraceDrawModal({ visible, saving = false, onClose, onSave }: Pro
           <Pressable
             style={[styles.saveBtn, !canSave && styles.saveDisabled]}
             disabled={!canSave}
-            onPress={() => setNaming(true)}
+            onPress={() => {
+              if (askName) setNaming(true);
+              else onSave('', { type: 'LineString', coordinates: points });
+            }}
           >
             <Text style={styles.saveText}>{t('gpx.validate', { defaultValue: 'Valider la trace' })}</Text>
           </Pressable>

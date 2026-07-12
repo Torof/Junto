@@ -117,7 +117,8 @@
     "pinObjectif": "Objective",
     "notFound": "Outing not found",
     "notFoundBody": "It may have been deleted, or the link is no longer valid.",
-    "notFoundCta": "Back to the map"
+    "notFoundCta": "Back to the map",
+    "traceDraw": "Draw a trace"
   },
   "sports": {
     "hiking": "Hiking",
@@ -1206,7 +1207,8 @@
       "private_link_approval": "Private + approval",
       "private_link_approvalDesc": "For its members, link + approval required"
     },
-    "traceFromLibrary": "My library"
+    "traceFromLibrary": "My library",
+    "traceDraw": "Draw"
   },
   "proOffering": {
     "createTitle": "New catalog activity",

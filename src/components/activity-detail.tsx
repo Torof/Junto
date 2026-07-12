@@ -30,6 +30,7 @@ import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/uti
 import { formatLevelRange } from '@/constants/sport-levels';
 import { JuntoMapView, type MapPin } from './map-view';
 import { MapLegend } from './map-legend';
+import { TraceDrawModal } from './trace-draw-modal';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
 import { ActivityWall } from './activity-wall';
@@ -194,6 +195,7 @@ export function ActivityDetail({
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
+  const [drawTraceOpen, setDrawTraceOpen] = useState(false);
   const [fullMapFly, setFullMapFly] = useState<{ coordinate: [number, number]; key: number; zoom?: number } | null>(null);
   const [isAtActivity, setIsAtActivity] = useState(false);
   // Foreground distance to the nearest meeting point. null until the
@@ -617,6 +619,17 @@ export function ActivityDetail({
     ]);
   };
 
+  const handleDrawTraceSave = async (geojson: import('@/services/activity-service').GeoJsonLineString) => {
+    setDrawTraceOpen(false);
+    try {
+      await activityService.updateTrace(activity.id, geojson);
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<'info' | 'transport' | 'gear' | 'chat'>('info');
   const [showMapMenu, setShowMapMenu] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
@@ -835,6 +848,12 @@ export function ActivityDetail({
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handlePickTrace(); }}>
                           <Route size={15} color={colors.cta} strokeWidth={2.2} />
                           <Text style={styles.mapMenuItemText}>{activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}</Text>
+                        </Pressable>
+                      )}
+                      {isCreator && (
+                        <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setDrawTraceOpen(true); }}>
+                          <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
+                          <Text style={styles.mapMenuItemText}>{t('activity.traceDraw', { defaultValue: 'Dessiner une trace' })}</Text>
                         </Pressable>
                       )}
                       {isCreator && activity.trace_geojson && (
@@ -1203,6 +1222,13 @@ export function ActivityDetail({
       )}
 
       {/* Modals — shared across all tabs */}
+      <TraceDrawModal
+        visible={drawTraceOpen}
+        askName={false}
+        onClose={() => setDrawTraceOpen(false)}
+        onSave={(_name, geojson) => handleDrawTraceSave(geojson)}
+      />
+
       <Modal visible={showFullMap} animationType="slide" statusBarTranslucent onRequestClose={() => setShowFullMap(false)}>
         <View style={styles.fullMapContainer}>
           <JuntoMapView
