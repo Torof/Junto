@@ -16,13 +16,27 @@ export default function VisitorMapScreen() {
   const router = useRouter();
   const { center } = useInitialLocation();
 
-  // Gate the map mount on the container having its real, full-screen height.
-  // Mapbox latches its native height at mount time; if it mounts while the
-  // <Stack> is still laying the screen in (container shorter than final),
-  // it caches that short height and clips every MarkerView below a line
-  // ~70-75% down the screen ("the line eating the pins", Scott 2026-07-12).
-  // Waiting one layout pass makes it measure the correct full height.
-  const [mapReady, setMapReady] = useState(false);
+  // Mapbox (Android SurfaceView) latches its native height at mount and clips
+  // MarkerView pins in a bottom band if it mounts before the <Stack> screen
+  // reaches its final full height ("the line eating the pins", Scott 2026-07-12).
+  // Two-pronged fix: (1) surfaceView={false} below → a TextureView re-measures
+  // with its container; (2) settle the container height and use it as the map's
+  // `key` so any late height correction (enter-animation / bottom inset landing
+  // a pass later under edge-to-edge) remounts the map at the right size. Settle
+  // debounce avoids remounting on every intermediate animation frame.
+  const [stableHeight, setStableHeight] = useState(0);
+  const lastHeight = useRef(0);
+  const heightSettle = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onContentLayout = useCallback((h: number) => {
+    if (h <= 0 || h === lastHeight.current) return;
+    lastHeight.current = h;
+    if (heightSettle.current) clearTimeout(heightSettle.current);
+    heightSettle.current = setTimeout(() => setStableHeight(h), 120);
+  }, []);
+  useEffect(() => () => {
+    if (heightSettle.current) clearTimeout(heightSettle.current);
+  }, []);
+
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
@@ -103,15 +117,15 @@ export default function VisitorMapScreen() {
           Pre-login teaser: pins only — no popup, no drawer, no tap. */}
       <View
         style={styles.content}
-        onLayout={(e) => {
-          if (e.nativeEvent.layout.height > 0 && !mapReady) setMapReady(true);
-        }}
+        onLayout={(e) => onContentLayout(e.nativeEvent.layout.height)}
       >
-        {mapReady && (
+        {stableHeight > 0 && (
           <JuntoMapView
+            key={stableHeight}
             center={center}
             activities={activities ?? []}
             onBoundsChange={handleBoundsChange}
+            surfaceView={false}
           />
         )}
       </View>

@@ -126,6 +126,12 @@ interface MapViewProps {
   // showing the search-radius area. Both must be set to render.
   radiusKm?: number | null;
   radiusCenter?: [number, number] | null;
+  // Android rendering surface. Default (true) = SurfaceView, which the
+  // tab-bounded carte uses fine. On a full-height edge-to-edge Stack screen
+  // SurfaceView latches a too-short height at mount and clips MarkerView pins
+  // in a bottom band (Scott 2026-07-12); a TextureView (false) re-measures
+  // with its container as it grows, so pass surfaceView={false} there.
+  surfaceView?: boolean;
 }
 
 // Single point shape with a type discriminator. The unified Supercluster
@@ -166,6 +172,7 @@ export function JuntoMapView({
   compassEnabled = true,
   radiusKm,
   radiusCenter,
+  surfaceView = true,
 }: MapViewProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -414,6 +421,7 @@ export function JuntoMapView({
   const mapView = (
     <Mapbox.MapView
       style={styles.map}
+      surfaceView={surfaceView}
       styleURL={MAP_STYLE_JSONS[mapStyleKey] ? undefined : MAP_STYLE_URLS[mapStyleKey]}
       styleJSON={MAP_STYLE_JSONS[mapStyleKey]}
       logoEnabled={false}
