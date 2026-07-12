@@ -64,6 +64,20 @@ export const authService = {
     return data;
   },
 
+  // Signup email confirmation — mirrors verifyRecoveryToken. The web
+  // /auth/callback bridge forwards the token here via junto://auth-confirm
+  // so the confirmation link logs the user straight into the app (no
+  // re-entering credentials right after registering). Both delivery shapes
+  // are supported: token_hash (verifyOtp) and access/refresh (setSession).
+  verifySignupToken: async (tokenHash: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'signup',
+    });
+    if (error) throw error;
+    return data;
+  },
+
   updatePassword: async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;

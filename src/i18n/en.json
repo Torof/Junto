@@ -49,7 +49,10 @@
     "errInvalidEmail": "Invalid email format.",
     "errRateLimit": "Too many attempts, try again in a few minutes.",
     "errNetwork": "Connection issue — check your internet.",
-    "errTosRequired": "Please accept the terms to continue."
+    "errTosRequired": "Please accept the terms to continue.",
+    "confirmVerifying": "Signing you in…",
+    "confirmInvalidTitle": "Link expired",
+    "confirmInvalidBody": "This confirmation link is no longer valid. Sign in with your email and password."
   },
   "onboarding": {
     "welcome": "Welcome!",

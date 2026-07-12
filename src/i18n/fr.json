@@ -49,7 +49,10 @@
     "errInvalidEmail": "Format d'email invalide.",
     "errRateLimit": "Trop de tentatives, réessaie dans quelques minutes.",
     "errNetwork": "Problème de connexion — vérifie ton internet.",
-    "errTosRequired": "Merci d'accepter les conditions pour continuer."
+    "errTosRequired": "Merci d'accepter les conditions pour continuer.",
+    "confirmVerifying": "Connexion en cours…",
+    "confirmInvalidTitle": "Lien expiré",
+    "confirmInvalidBody": "Ce lien de confirmation n'est plus valide. Connecte-toi avec ton email et ton mot de passe."
   },
   "onboarding": {
     "welcome": "Bienvenue !",
