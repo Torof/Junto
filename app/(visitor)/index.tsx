@@ -19,22 +19,14 @@ export default function VisitorMapScreen() {
   // Mapbox (Android SurfaceView) latches its native height at mount and clips
   // MarkerView pins in a bottom band if it mounts before the <Stack> screen
   // reaches its final full height ("the line eating the pins", Scott 2026-07-12).
-  // Two-pronged fix: (1) surfaceView={false} below → a TextureView re-measures
-  // with its container; (2) settle the container height and use it as the map's
-  // `key` so any late height correction (enter-animation / bottom inset landing
-  // a pass later under edge-to-edge) remounts the map at the right size. Settle
-  // debounce avoids remounting on every intermediate animation frame.
-  const [stableHeight, setStableHeight] = useState(0);
-  const lastHeight = useRef(0);
-  const heightSettle = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Fix: surfaceView={false} below → a TextureView re-measures with its
+  // container as it grows, so a short mount-time height self-corrects without a
+  // remount. We only GATE the first mount on a non-zero height; we do NOT key
+  // the map on height — remounting on the late height correction reloaded the
+  // GL view and flashed the pins off for 1-5s at startup (Scott 2026-07-12).
+  const [mapMounted, setMapMounted] = useState(false);
   const onContentLayout = useCallback((h: number) => {
-    if (h <= 0 || h === lastHeight.current) return;
-    lastHeight.current = h;
-    if (heightSettle.current) clearTimeout(heightSettle.current);
-    heightSettle.current = setTimeout(() => setStableHeight(h), 120);
-  }, []);
-  useEffect(() => () => {
-    if (heightSettle.current) clearTimeout(heightSettle.current);
+    if (h > 0) setMapMounted(true);
   }, []);
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
@@ -119,9 +111,8 @@ export default function VisitorMapScreen() {
         style={styles.content}
         onLayout={(e) => onContentLayout(e.nativeEvent.layout.height)}
       >
-        {stableHeight > 0 && (
+        {mapMounted && (
           <JuntoMapView
-            key={stableHeight}
             center={center}
             activities={activities ?? []}
             onBoundsChange={handleBoundsChange}
