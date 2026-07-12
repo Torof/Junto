@@ -1270,5 +1270,25 @@
     "done": "Terminé",
     "cancel": "Annuler",
     "confirm": "Confirmer"
+  },
+  "gpx": {
+    "title": "Mes traces GPX",
+    "subtitle": "Dessine tes itinéraires et réutilise-les sur tes sorties.",
+    "empty": "Aucune trace pour le moment. Crée ta première trace !",
+    "create": "Créer une trace",
+    "drawHint": "Touche la carte pour poser des points",
+    "drawStats": "{{n}} pts · {{km}} km",
+    "undo": "Annuler le point",
+    "clear": "Effacer",
+    "validate": "Valider la trace",
+    "nameTitle": "Nom de la trace",
+    "namePlaceholder": "Ex. Boucle du lac",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "renameTitle": "Renommer la trace",
+    "deleteTitle": "Supprimer la trace ?",
+    "deleteMessage": "« {{name}} » sera définitivement supprimée.",
+    "delete": "Supprimer",
+    "shareError": "Impossible de partager la trace."
   }
 }

@@ -1270,5 +1270,25 @@
     "done": "Done",
     "cancel": "Cancel",
     "confirm": "Confirm"
+  },
+  "gpx": {
+    "title": "My GPX traces",
+    "subtitle": "Draw your routes and reuse them on your outings.",
+    "empty": "No traces yet. Create your first one!",
+    "create": "Create a trace",
+    "drawHint": "Tap the map to drop points",
+    "drawStats": "{{n}} pts · {{km}} km",
+    "undo": "Undo point",
+    "clear": "Clear",
+    "validate": "Save trace",
+    "nameTitle": "Trace name",
+    "namePlaceholder": "e.g. Lake loop",
+    "save": "Save",
+    "saving": "Saving…",
+    "renameTitle": "Rename trace",
+    "deleteTitle": "Delete trace?",
+    "deleteMessage": "\"{{name}}\" will be permanently deleted.",
+    "delete": "Delete",
+    "shareError": "Couldn't share the trace."
   }
 }
