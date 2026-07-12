@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
+import * as Updates from 'expo-updates';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
@@ -15,6 +16,16 @@ export default function VisitorMapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { center } = useInitialLocation();
+
+  // TEMP build/OTA marker so Scott can confirm which version his phone is
+  // actually running (remove once the map bug is settled, 2026-07-12).
+  const buildTag = (() => {
+    const ch = Updates.channel ?? 'dev';
+    if (Updates.isEmbeddedLaunch) return `${ch} · build (pas d'OTA)`;
+    const at = Updates.createdAt;
+    const hhmm = at ? `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}` : '?';
+    return `${ch} · OTA ${hhmm}`;
+  })();
 
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
@@ -87,6 +98,10 @@ export default function VisitorMapScreen() {
         />
       </View>
 
+      <View style={styles.buildTag} pointerEvents="none">
+        <Text style={styles.buildTagText}>{buildTag}</Text>
+      </View>
+
       <View style={styles.banner}>
         <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
         <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
@@ -108,6 +123,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: {
     flex: 1,
   },
+  buildTag: {
+    position: 'absolute',
+    bottom: 8,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    zIndex: 20,
+  },
+  buildTagText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
   banner: {
     position: 'absolute',
     top: 95,
