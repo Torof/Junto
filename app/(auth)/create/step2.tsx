@@ -21,6 +21,7 @@ import { useCreateStore } from '@/store/create-store';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
+import { TracePickerModal } from '@/components/trace-picker-modal';
 
 export default function CreateStep2() {
   const colors = useColors();
@@ -40,6 +41,7 @@ export default function CreateStep2() {
     () => form.location_meeting ? null : 'meeting',
   );
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const handlePickTrace = async () => {
     try {
@@ -238,17 +240,35 @@ export default function CreateStep2() {
             </Pressable>
           </View>
         ) : (
-          <Pressable
-            style={[styles.traceButton, isLoadingTrace && { opacity: 0.5 }]}
-            onPress={handlePickTrace}
-            disabled={isLoadingTrace}
-          >
-            <Route size={16} color={colors.cta} strokeWidth={2.2} />
-            <Text style={styles.traceButtonText}>
-              {isLoadingTrace ? t('create.traceLoading') : t('create.traceImport')}
-            </Text>
-          </Pressable>
+          <View style={styles.traceOptions}>
+            <Pressable
+              style={[styles.traceButton, { flex: 1, marginBottom: 0 }, isLoadingTrace && { opacity: 0.5 }]}
+              onPress={handlePickTrace}
+              disabled={isLoadingTrace}
+            >
+              <Route size={16} color={colors.cta} strokeWidth={2.2} />
+              <Text style={styles.traceButtonText}>
+                {isLoadingTrace ? t('create.traceLoading') : t('create.traceImport')}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.traceButton, { flex: 1, marginBottom: 0 }]}
+              onPress={() => setPickerOpen(true)}
+            >
+              <Route size={16} color={colors.cta} strokeWidth={2.2} />
+              <Text style={styles.traceButtonText}>{t('create.traceFromLibrary', { defaultValue: 'Ma bibliothèque' })}</Text>
+            </Pressable>
+          </View>
         )}
+
+        <TracePickerModal
+          visible={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onSelect={(geojson) => {
+            updateForm({ trace_geojson: geojson });
+            setPickerOpen(false);
+          }}
+        />
 
         <Text style={styles.sectionLabel}>{t('create.sectionTiming')}</Text>
 
@@ -489,6 +509,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  traceOptions: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   traceButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
     backgroundColor: 'transparent', borderRadius: radius.sm,

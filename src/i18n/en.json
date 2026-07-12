@@ -1205,7 +1205,8 @@
       "private_linkDesc": "On the map for its members, join by link",
       "private_link_approval": "Private + approval",
       "private_link_approvalDesc": "For its members, link + approval required"
-    }
+    },
+    "traceFromLibrary": "My library"
   },
   "proOffering": {
     "createTitle": "New catalog activity",
@@ -1289,6 +1290,8 @@
     "deleteTitle": "Delete trace?",
     "deleteMessage": "\"{{name}}\" will be permanently deleted.",
     "delete": "Delete",
-    "shareError": "Couldn't share the trace."
+    "shareError": "Couldn't share the trace.",
+    "pickTitle": "Choose a trace",
+    "pickEmpty": "Your library is empty. Create a trace from the \"My GPX traces\" menu."
   }
 }

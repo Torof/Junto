@@ -1205,7 +1205,8 @@
       "private_linkDesc": "Visible sur la carte pour ses membres, accès par lien",
       "private_link_approval": "Privé + validation",
       "private_link_approvalDesc": "Visible par ses membres, lien + validation requise"
-    }
+    },
+    "traceFromLibrary": "Ma bibliothèque"
   },
   "proOffering": {
     "createTitle": "Nouvelle activité au catalogue",
@@ -1289,6 +1290,8 @@
     "deleteTitle": "Supprimer la trace ?",
     "deleteMessage": "« {{name}} » sera définitivement supprimée.",
     "delete": "Supprimer",
-    "shareError": "Impossible de partager la trace."
+    "shareError": "Impossible de partager la trace.",
+    "pickTitle": "Choisir une trace",
+    "pickEmpty": "Ta bibliothèque est vide. Crée une trace depuis le menu « Mes traces GPX »."
   }
 }
