@@ -422,6 +422,12 @@ export function JuntoMapView({
       compassViewMargins={{ x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
+      // onCameraChanged is throttled and can miss the FINAL settle frame, so
+      // bounds/zoom (→ the cluster set) stay stale until the next gesture —
+      // pins near the edge vanish and a zoom-in doesn't re-expand until you
+      // nudge the map again (Scott 2026-07-12). onMapIdle fires once the
+      // camera stops and re-syncs the authoritative final state.
+      onMapIdle={handleCameraChanged}
       onPress={(feature) => {
         if (onMapPress && feature.geometry.type === 'Point') {
           const [lng, lat] = feature.geometry.coordinates;
