@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
@@ -74,7 +73,19 @@ export default function VisitorMapScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.statusBar} />
+      {/* Map as the base layer, filling the whole screen (same structure as
+          the authenticated carte). The banner is a separate absolute
+          overlay — NOT a flex sibling that steals height and shifts the
+          map's viewport, which clipped pins near the bottom (Scott's
+          "line eating the pins", 2026-07-12).
+          Pre-login teaser: pins only — no popup, no drawer, no tap. */}
+      <View style={StyleSheet.absoluteFill}>
+        <JuntoMapView
+          center={center}
+          activities={activities ?? []}
+          onBoundsChange={handleBoundsChange}
+        />
+      </View>
 
       <View style={styles.banner}>
         <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
@@ -82,15 +93,6 @@ export default function VisitorMapScreen() {
           <Text style={styles.signInText}>{t('auth.signIn')}</Text>
         </Pressable>
       </View>
-
-      {/* Pre-login teaser map: pins only — no popup, no drawer, no tap
-          target (Scott 2026-07-11). The pins show there's activity nearby;
-          discovering details is what signing in is for. */}
-      <JuntoMapView
-        center={center}
-        activities={activities ?? []}
-        onBoundsChange={handleBoundsChange}
-      />
     </View>
   );
 }
@@ -98,9 +100,6 @@ export default function VisitorMapScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  statusBar: {
     backgroundColor: colors.background,
   },
   banner: {
