@@ -132,6 +132,11 @@ interface MapViewProps {
   // in a bottom band (Scott 2026-07-12); a TextureView (false) re-measures
   // with its container as it grows, so pass surfaceView={false} there.
   surfaceView?: boolean;
+  // TEMP startup-flash diagnostic overlay (Scott 2026-07-12). Shows the live
+  // timeline: elapsed ms, rendered marker count, zoom, bounds span, and the
+  // instants Mapbox fires its load/render events. Remove once the flash is
+  // diagnosed.
+  debugOverlay?: boolean;
 }
 
 // Single point shape with a type discriminator. The unified Supercluster
@@ -173,6 +178,7 @@ export function JuntoMapView({
   radiusKm,
   radiusCenter,
   surfaceView = true,
+  debugOverlay = false,
 }: MapViewProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -186,6 +192,19 @@ export function JuntoMapView({
   // the startup centre-bumps + late-GPS follow must stop yanking the camera back.
   const cameraTouched = useRef(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  // TEMP startup-flash diagnostic (Scott 2026-07-12). Records when Mapbox fires
+  // each load/render event relative to mount, counts camera events, and ticks
+  // so the overlay updates live. Remove with the overlay once diagnosed.
+  const diagMount = useRef(Date.now());
+  const diag = useRef({ style: 0, mapLoaded: 0, fully: 0, cam: 0, err: 0 });
+  const [, setDiagTick] = useState(0);
+  useEffect(() => {
+    if (!debugOverlay) return;
+    const id = setInterval(() => setDiagTick((t) => t + 1), 250);
+    return () => clearInterval(id);
+  }, [debugOverlay]);
+  const sinceMount = () => Date.now() - diagMount.current;
 
   // When the radius filter changes, fit the camera to its bounding box so
   // the visible map matches the active filter. Debounced so a slider drag
@@ -376,6 +395,7 @@ export function JuntoMapView({
   }, [flyTo?.key]);
 
   const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
+    diag.current.cam += 1;
     setCurrentZoom(state.properties.zoom);
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
@@ -429,6 +449,10 @@ export function JuntoMapView({
       compassEnabled={compassEnabled}
       compassViewMargins={{ x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
+      onDidFinishLoadingStyle={debugOverlay ? () => { if (!diag.current.style) diag.current.style = sinceMount(); } : undefined}
+      onDidFinishLoadingMap={debugOverlay ? () => { if (!diag.current.mapLoaded) diag.current.mapLoaded = sinceMount(); } : undefined}
+      onDidFinishRenderingMapFully={debugOverlay ? () => { if (!diag.current.fully) diag.current.fully = sinceMount(); } : undefined}
+      onMapLoadingError={debugOverlay ? () => { diag.current.err += 1; } : undefined}
       onCameraChanged={handleCameraChanged}
       // onCameraChanged is throttled and can miss the FINAL settle frame, so
       // bounds/zoom (→ the cluster set) stay stale until the next gesture —
@@ -856,13 +880,27 @@ export function JuntoMapView({
   );
 
   const attribution = MAP_STYLE_ATTRIBUTIONS[mapStyleKey];
-  if (attribution) {
+
+  // TEMP startup-flash diagnostic overlay (Scott 2026-07-12).
+  const d = diag.current;
+  const diagOverlay = debugOverlay ? (
+    <View style={styles.diag} pointerEvents="none">
+      <Text style={styles.diagText}>t {(sinceMount() / 1000).toFixed(1)}s · markers {clusters.length} · zoom {currentZoom.toFixed(1)}</Text>
+      <Text style={styles.diagText}>span {(bounds[2] - bounds[0]).toFixed(2)}° · cam {d.cam} · err {d.err}</Text>
+      <Text style={styles.diagText}>style {d.style || '—'} · map {d.mapLoaded || '—'} · full {d.fully || '—'} (ms)</Text>
+    </View>
+  ) : null;
+
+  if (attribution || diagOverlay) {
     return (
       <View style={styles.mapWrapper}>
         {mapView}
-        <View style={styles.attributionPill} pointerEvents="none">
-          <Text style={styles.attributionText}>{attribution}</Text>
-        </View>
+        {attribution && (
+          <View style={styles.attributionPill} pointerEvents="none">
+            <Text style={styles.attributionText}>{attribution}</Text>
+          </View>
+        )}
+        {diagOverlay}
       </View>
     );
   }
@@ -892,4 +930,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  // TEMP startup-flash diagnostic overlay (Scott 2026-07-12) — remove with it.
+  diag: {
+    position: 'absolute',
+    top: 140,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    zIndex: 50,
+  },
+  diagText: { color: '#00FF88', fontSize: 11, fontWeight: '600', fontVariant: ['tabular-nums'] },
 });

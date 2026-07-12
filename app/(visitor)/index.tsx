@@ -117,6 +117,7 @@ export default function VisitorMapScreen() {
             activities={activities ?? []}
             onBoundsChange={handleBoundsChange}
             surfaceView={false}
+            debugOverlay
           />
         )}
       </View>
