@@ -253,7 +253,10 @@
       "badge_window_closed": "La fenêtre pour donner des badges est fermée (24 h après la fin).",
       "peer_review_unavailable": "À deux, la présence se valide uniquement par QR ou géolocalisation (pas de validation croisée).",
       "gear_invalid": "Nom de matériel invalide (60 caractères max).",
-      "gear_missing_limit": "Limite de 20 manques atteinte pour cette sortie."
+      "gear_missing_limit": "Limite de 20 manques atteinte pour cette sortie.",
+      "trace_name_invalid": "Le nom de la trace doit faire entre 1 et 80 caractères.",
+      "trace_geojson_invalid": "La trace est invalide. Ajoute au moins deux points.",
+      "trace_quota_reached": "Tu as atteint la limite de 50 traces. Supprime-en une pour en ajouter une nouvelle."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",

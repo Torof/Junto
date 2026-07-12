@@ -249,7 +249,10 @@
       "badge_window_closed": "The badge window is closed (24h after the end).",
       "peer_review_unavailable": "With only two people, presence is validated by QR or geolocation only (no cross-validation).",
       "gear_invalid": "Invalid gear name (60 characters max).",
-      "gear_missing_limit": "Limit of 20 missing items reached for this outing."
+      "gear_missing_limit": "Limit of 20 missing items reached for this outing.",
+      "trace_name_invalid": "The trace name must be 1 to 80 characters.",
+      "trace_geojson_invalid": "The trace is invalid. Add at least two points.",
+      "trace_quota_reached": "You have reached the limit of 50 traces. Delete one to add a new one."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
