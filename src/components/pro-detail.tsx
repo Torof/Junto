@@ -691,7 +691,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 {offerings.map((o) => {
                   const accent = sportCategoryColor(o.sport_category, colors.cta);
                   const duration = formatDuration(o.duration);
-                  const hasTerrain = o.distance_km != null || o.elevation_gain_m != null;
                   const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                   return (
                     <Pressable key={o.id} style={styles.expCard} onPress={() => openOffering(o)}>
@@ -716,54 +715,51 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                       <View style={styles.expBody}>
                         <Text style={styles.expTitle} numberOfLines={2}>{o.title}</Text>
 
-                        {/* Faits clés — niveau · durée · participants. Icons +
-                            neutral grey (was one dense all-blue line); accent is
-                            now reserved for the CTA. Same icons as the detail page. */}
+                        {/* Faits clés as tinted pills — scannable tags with
+                            breathing room, not a run-on grey line. The light
+                            accent tint gives each card its sport colour without
+                            the old all-blue density. Same icons as the detail page. */}
                         <View style={styles.expFacts}>
                           {o.level ? (
-                            <View style={styles.expFact}>
-                              <BarChart3 size={13} color={colors.textSecondary} strokeWidth={2} />
-                              <Text style={styles.expFactText}>{o.level}</Text>
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <BarChart3 size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{o.level}</Text>
                             </View>
                           ) : null}
                           {duration ? (
-                            <View style={styles.expFact}>
-                              <Clock size={13} color={colors.textSecondary} strokeWidth={2} />
-                              <Text style={styles.expFactText}>{duration}</Text>
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Clock size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{duration}</Text>
                             </View>
                           ) : null}
                           {o.max_participants ? (
-                            <View style={styles.expFact}>
-                              <Users size={13} color={colors.textSecondary} strokeWidth={2} />
-                              <Text style={styles.expFactText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Users size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                            </View>
+                          ) : null}
+                          {o.distance_km != null ? (
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Route size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{o.distance_km} km</Text>
+                            </View>
+                          ) : null}
+                          {o.elevation_gain_m != null ? (
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Mountain size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{o.elevation_gain_m} m</Text>
                             </View>
                           ) : null}
                         </View>
 
-                        {/* Terrain — distance / dénivelé, only when set (sport-dependent). */}
-                        {hasTerrain ? (
-                          <View style={styles.expFacts}>
-                            {o.distance_km != null ? (
-                              <View style={styles.expFact}>
-                                <Route size={13} color={colors.textSecondary} strokeWidth={2} />
-                                <Text style={styles.expFactText}>{o.distance_km} km</Text>
-                              </View>
-                            ) : null}
-                            {o.elevation_gain_m != null ? (
-                              <View style={styles.expFact}>
-                                <Mountain size={13} color={colors.textSecondary} strokeWidth={2} />
-                                <Text style={styles.expFactText}>{o.elevation_gain_m} m</Text>
-                              </View>
-                            ) : null}
-                          </View>
-                        ) : null}
-
-                        {/* Quand / Où — grouped with a touch of air above. */}
+                        {/* Quand / Où — separated block with air above. The
+                            schedule is key info and shows IN FULL: it wraps
+                            instead of truncating (Scott 2026-07-12). */}
                         <View style={styles.expWhereWhen}>
                           {o.schedule_text ? (
-                            <View style={styles.expLine}>
-                              <Calendar size={13} color={colors.textSecondary} strokeWidth={2} />
-                              <Text style={styles.expLineText} numberOfLines={1}>{o.schedule_text}</Text>
+                            <View style={styles.expLineTop}>
+                              <Calendar size={13} color={colors.textSecondary} strokeWidth={2} style={styles.expLineIcon} />
+                              <Text style={styles.expLineText}>{o.schedule_text}</Text>
                             </View>
                           ) : null}
                           <View style={styles.expLine}>
@@ -1272,14 +1268,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: 3,
   },
   expRatingText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
-  expBody: { padding: spacing.md, gap: spacing.xs },
+  expBody: { padding: spacing.md, gap: spacing.sm },
   expTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', lineHeight: 24 },
-  expFacts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: spacing.md, rowGap: 4 },
-  expFact: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  expFactText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  expWhereWhen: { gap: 3, marginTop: 2 },
-  expLine: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
-  expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm },
+  expFacts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  expPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 4, borderRadius: radius.full },
+  expPillText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
+  expWhereWhen: { gap: 4 },
+  expLine: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  expLineTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
+  expLineIcon: { marginTop: 2 },
+  expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 18 },
   expCta: { fontSize: fontSizes.sm, fontWeight: '800', marginTop: spacing.xs, alignSelf: 'flex-end' },
   // Aperçu catalogue carousel — text-forward mini cards (no photo).
   catHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
