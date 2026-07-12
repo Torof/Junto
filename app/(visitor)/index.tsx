@@ -14,7 +14,7 @@ export default function VisitorMapScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
-  const { center } = useInitialLocation();
+  const { center, isLoading: locationLoading } = useInitialLocation();
 
   // Mapbox (Android SurfaceView) latches its native height at mount and clips
   // MarkerView pins in a bottom band if it mounts before the <Stack> screen
@@ -33,6 +33,7 @@ export default function VisitorMapScreen() {
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
   const initialSearchDone = useRef(false);
+  const locationReseedDone = useRef(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
@@ -68,6 +69,15 @@ export default function VisitorMapScreen() {
     };
   }, []);
 
+  const searchAround = useCallback((c: [number, number]) => {
+    const half = 0.35;
+    doSearch({
+      swLng: c[0] - half, swLat: c[1] - half,
+      neLng: c[0] + half, neLat: c[1] + half,
+      centerLng: c[0], centerLat: c[1],
+    });
+  }, [doSearch]);
+
   // Kick off the first fetch immediately from the known center instead of
   // waiting for the map's first camera event (startup bumps + GPS resolve
   // could push pins to ~10s — Scott 2026-07-12). Generous ~35km box covers
@@ -75,13 +85,20 @@ export default function VisitorMapScreen() {
   useEffect(() => {
     if (initialSearchDone.current) return;
     initialSearchDone.current = true;
-    const half = 0.35;
-    doSearch({
-      swLng: center[0] - half, swLat: center[1] - half,
-      neLng: center[0] + half, neLat: center[1] + half,
-      centerLng: center[0], centerLat: center[1],
-    });
-  }, [center, doSearch]);
+    searchAround(center);
+  }, [center, searchAround]);
+
+  // Cold-start GPS resolves in stages (default → cached fix → fresh High-accuracy
+  // fix, 3-5s). Each stage moves the camera, and a camera-driven refetch on a
+  // transient area could resolve to 0 activities → pins blank for 1-5s (Scott
+  // 2026-07-12). So we suppress camera refetches while the position is still
+  // loading (below) and re-seed the fetch ONCE on the final settled position.
+  // keepPreviousData keeps the pins visible across this last fetch → no blank.
+  useEffect(() => {
+    if (locationLoading || locationReseedDone.current) return;
+    locationReseedDone.current = true;
+    searchAround(center);
+  }, [locationLoading, center, searchAround]);
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
@@ -92,12 +109,17 @@ export default function VisitorMapScreen() {
       return;
     }
 
+    // Don't refetch on the camera hops the cold-start GPS resolution causes —
+    // an intermediate empty area would blank the pins (Scott 2026-07-12). The
+    // settle effect re-seeds on the final position; user pans refetch after.
+    if (locationLoading) return;
+
     // Only refetch when the viewport has left the generous fetched buffer,
     // and even then debounced — no immediate refetch, no per-pan churn.
     if (searchBounds && !(bounds.swLng >= searchBounds.swLng && bounds.swLat >= searchBounds.swLat && bounds.neLng <= searchBounds.neLng && bounds.neLat <= searchBounds.neLat)) {
       scheduleSearch(bounds);
     }
-  }, [searchBounds, doSearch, scheduleSearch]);
+  }, [searchBounds, doSearch, scheduleSearch, locationLoading]);
 
   return (
     <View style={styles.container}>
