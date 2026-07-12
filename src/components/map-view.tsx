@@ -182,6 +182,10 @@ export function JuntoMapView({
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
   const lastCamera = useRef<{ center: [number, number]; zoom: number } | null>(null);
+  // Last (bounds+zoom) actually reported to onBoundsChange — used to skip
+  // no-op camera events (onCameraChanged + onMapIdle double-fire, and onMapIdle
+  // firing after a pure tap that never moved the camera).
+  const lastReported = useRef<{ swLng: number; swLat: number; neLng: number; neLat: number; zoom: number } | null>(null);
   // Once the user takes camera control (taps a pin/cluster → flyTo/setCamera),
   // the startup centre-bumps + late-GPS follow must stop yanking the camera back.
   const cameraTouched = useRef(false);
@@ -376,18 +380,35 @@ export function JuntoMapView({
   }, [flyTo?.key]);
 
   const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
-    setCurrentZoom(state.properties.zoom);
+    const zoom = state.properties.zoom;
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
     const swLng = sw[0] ?? -180;
     const swLat = sw[1] ?? -90;
     const neLng = ne[0] ?? 180;
     const neLat = ne[1] ?? 90;
+
+    // onCameraChanged and onMapIdle can both fire for the SAME camera state,
+    // and onMapIdle even fires after a pure TAP that never moved the camera.
+    // Firing onBoundsChange then made the carte clear its tap-to-create tooltip
+    // instantly (Scott 2026-07-12). Skip when nothing actually changed.
+    const prev = lastReported.current;
+    if (prev
+      && Math.abs(prev.zoom - zoom) < 1e-4
+      && Math.abs(prev.swLng - swLng) < 1e-7
+      && Math.abs(prev.swLat - swLat) < 1e-7
+      && Math.abs(prev.neLng - neLng) < 1e-7
+      && Math.abs(prev.neLat - neLat) < 1e-7) {
+      return;
+    }
+    lastReported.current = { swLng, swLat, neLng, neLat, zoom };
+
+    setCurrentZoom(zoom);
     setBounds([swLng, swLat, neLng, neLat]);
     const center = state.properties.center;
     const cLng = center[0] ?? 0;
     const cLat = center[1] ?? 0;
-    lastCamera.current = { center: [cLng, cLat], zoom: state.properties.zoom };
+    lastCamera.current = { center: [cLng, cLat], zoom };
     onBoundsChange?.({
       swLng, swLat, neLng, neLat,
       centerLng: cLng,
