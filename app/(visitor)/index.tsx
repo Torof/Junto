@@ -25,15 +25,20 @@ export default function VisitorMapScreen() {
 
   const { data: activities } = useNearbyActivities(searchBounds);
 
+  // Pre-login teaser map: fetch a GENEROUS area (2x the viewport each side
+  // = 5x span) so panning around stays inside the fetched buffer and never
+  // triggers a refetch. Each refetch rebuilds the Supercluster and churns
+  // cluster ids → markers remount → pins "blink off/on" (Scott 2026-07-12).
+  // Only a large move past the buffer refetches, debounced.
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
     const lngSpan = bounds.neLng - bounds.swLng;
     const latSpan = bounds.neLat - bounds.swLat;
     setSearchBounds({
-      swLng: bounds.swLng - lngSpan * 0.5,
-      swLat: bounds.swLat - latSpan * 0.5,
-      neLng: bounds.neLng + lngSpan * 0.5,
-      neLat: bounds.neLat + latSpan * 0.5,
+      swLng: bounds.swLng - lngSpan * 2,
+      swLat: bounds.swLat - latSpan * 2,
+      neLng: bounds.neLng + lngSpan * 2,
+      neLat: bounds.neLat + latSpan * 2,
     });
   }, []);
 
@@ -42,7 +47,7 @@ export default function VisitorMapScreen() {
     searchDebounce.current = setTimeout(() => {
       doSearch(bounds);
       searchDebounce.current = null;
-    }, 500);
+    }, 700);
   }, [doSearch]);
 
   useEffect(() => {
@@ -60,22 +65,10 @@ export default function VisitorMapScreen() {
       return;
     }
 
+    // Only refetch when the viewport has left the generous fetched buffer,
+    // and even then debounced — no immediate refetch, no per-pan churn.
     if (searchBounds && !(bounds.swLng >= searchBounds.swLng && bounds.swLat >= searchBounds.swLat && bounds.neLng <= searchBounds.neLng && bounds.neLat <= searchBounds.neLat)) {
-      if (searchDebounce.current) {
-        clearTimeout(searchDebounce.current);
-        searchDebounce.current = null;
-      }
-      doSearch(bounds);
-      return;
-    }
-
-    if (lastSearchCenter.current) {
-      const viewportWidth = Math.abs(bounds.neLng - bounds.swLng);
-      const dlat = bounds.centerLat - lastSearchCenter.current.lat;
-      const dlng = bounds.centerLng - lastSearchCenter.current.lng;
-      if (Math.sqrt(dlat * dlat + dlng * dlng) > viewportWidth * 0.3) {
-        scheduleSearch(bounds);
-      }
+      scheduleSearch(bounds);
     }
   }, [searchBounds, doSearch, scheduleSearch]);
 
