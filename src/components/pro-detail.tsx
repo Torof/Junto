@@ -721,8 +721,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                             <Text style={styles.expFallbackEmoji}>{getSportIcon(o.sport_key)}</Text>
                           </View>
                         )}
-                        <View style={styles.expSportBadge}>
-                          <Text style={styles.expSportBadgeEmoji}>{getSportIcon(o.sport_key)}</Text>
+                        <View style={styles.expSportPill}>
+                          <Text style={[styles.expSportPillText, { color: accent }]} numberOfLines={1}>
+                            {t(`sports.${o.sport_key}`, { defaultValue: o.sport_key })}
+                          </Text>
                         </View>
                         {showRating ? (
                           <View style={styles.expRating}>
@@ -777,12 +779,12 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                         <View style={styles.expWhereWhen}>
                           {o.schedule_text ? (
                             <View style={styles.expLineTop}>
-                              <Calendar size={13} color={colors.textSecondary} strokeWidth={2} style={styles.expLineIcon} />
+                              <Calendar size={13} color={colors.pinMeeting} strokeWidth={2.4} style={styles.expLineIcon} />
                               <Text style={styles.expLineText}>{o.schedule_text}</Text>
                             </View>
                           ) : null}
                           <View style={styles.expLine}>
-                            <MapPin size={13} color={colors.textSecondary} strokeWidth={2} />
+                            <MapPin size={13} color={colors.pinEnd} strokeWidth={2.4} />
                             <Text style={styles.expLineText} numberOfLines={1}>{o.location_name}</Text>
                           </View>
                         </View>
@@ -1262,18 +1264,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   expImage: { width: '100%', height: '100%' },
   expImageFallback: { alignItems: 'center', justifyContent: 'center' },
   expFallbackEmoji: { fontSize: 56 },
-  expSportBadge: {
+  expSportPill: {
     position: 'absolute',
     top: spacing.sm,
     left: spacing.sm,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    maxWidth: '75%',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.95)',
   },
-  expSportBadgeEmoji: { fontSize: 18 },
+  expSportPillText: { fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase' },
   expRating: {
     position: 'absolute',
     top: spacing.sm,
