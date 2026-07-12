@@ -25,7 +25,6 @@ export default function PrivacyScreen() {
         Nous collectons les données suivantes :{'\n\n'}
         <Text style={styles.bold}>Données d'inscription :</Text>{'\n'}
         • Adresse email{'\n'}
-        • Date de naissance (vérification de l'âge minimum de 18 ans){'\n'}
         • Pseudonyme (généré automatiquement, modifiable){'\n\n'}
         <Text style={styles.bold}>Données de profil (optionnelles) :</Text>{'\n'}
         • Photo de profil{'\n'}
@@ -51,7 +50,7 @@ export default function PrivacyScreen() {
         • Permettre la communication entre utilisateurs{'\n'}
         • Calculer le score de fiabilité et attribuer les badges{'\n'}
         • Assurer la modération et la sécurité de la plateforme{'\n'}
-        • Vérifier l'âge minimum requis (18 ans)
+        • Recueillir l'attestation d'âge minimum requis (18 ans)
       </Text>
 
       <Text style={styles.heading}>4. Base légale</Text>
@@ -70,7 +69,7 @@ export default function PrivacyScreen() {
         • Score de fiabilité, badges de réputation et trophées{'\n'}
         • Activités publiées (titre, lieu, date, sport, niveau){'\n\n'}
         <Text style={styles.bold}>Données NON visibles par les autres utilisateurs :</Text>{'\n'}
-        • Adresse email, date de naissance{'\n'}
+        • Adresse email{'\n'}
         • Nom et prénom du responsable d'une page pro (vérification interne){'\n\n'}
         <Text style={styles.bold}>Sous-traitants :</Text>{'\n'}
         • Supabase (hébergement, base de données, authentification — serveurs UE){'\n'}
@@ -124,7 +123,7 @@ export default function PrivacyScreen() {
 
       <Text style={styles.heading}>10. Mineurs</Text>
       <Text style={styles.body}>
-        L'Application est strictement réservée aux personnes de 18 ans et plus. La vérification de l'âge est effectuée lors de l'inscription via la date de naissance.
+        L'Application est strictement réservée aux personnes de 18 ans et plus. Lors de l'inscription, l'utilisateur atteste sur l'honneur avoir 18 ans ou plus. Aucune date de naissance n'est collectée.
       </Text>
 
       <Text style={styles.heading}>11. Modifications</Text>

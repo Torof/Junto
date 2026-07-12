@@ -25,7 +25,6 @@ export default function PrivacyPage() {
       <P><B>Données d'inscription :</B></P>
       <Ul>
         <li>Adresse email</li>
-        <li>Date de naissance (vérification de l'âge minimum de 18 ans)</li>
         <li>Pseudonyme (généré automatiquement, modifiable)</li>
       </Ul>
       <P><B>Données de profil (optionnelles) :</B></P>
@@ -60,7 +59,7 @@ export default function PrivacyPage() {
         <li>Permettre la communication entre utilisateurs</li>
         <li>Calculer le score de fiabilité et attribuer les badges</li>
         <li>Assurer la modération et la sécurité de la plateforme</li>
-        <li>Vérifier l'âge minimum requis (18 ans)</li>
+        <li>Recueillir l'attestation d'âge minimum requis (18 ans)</li>
         <li>Vérifier et valider les demandes de page pro</li>
       </Ul>
 
@@ -81,7 +80,7 @@ export default function PrivacyPage() {
       </Ul>
       <P><B>Données NON visibles par les autres utilisateurs :</B></P>
       <Ul>
-        <li>Adresse email, date de naissance</li>
+        <li>Adresse email</li>
         <li>Nom et prénom du responsable d'une page pro (vérification interne uniquement)</li>
       </Ul>
       <P><B>Sous-traitants :</B></P>
@@ -173,7 +172,7 @@ export default function PrivacyPage() {
 
       <H2>10. Mineurs</H2>
       <P>
-        L'Application est strictement réservée aux personnes de 18 ans et plus. La vérification de l'âge est effectuée lors de l'inscription via la date de naissance.
+        L'Application est strictement réservée aux personnes de 18 ans et plus. Lors de l'inscription, l'utilisateur atteste sur l'honneur avoir 18 ans ou plus. Aucune date de naissance n'est collectée.
       </P>
 
       <H2>11. Modifications</H2>
