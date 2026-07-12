@@ -16,6 +16,13 @@ export default function VisitorMapScreen() {
   const router = useRouter();
   const { center } = useInitialLocation();
 
+  // Gate the map mount on the container having its real, full-screen height.
+  // Mapbox latches its native height at mount time; if it mounts while the
+  // <Stack> is still laying the screen in (container shorter than final),
+  // it caches that short height and clips every MarkerView below a line
+  // ~70-75% down the screen ("the line eating the pins", Scott 2026-07-12).
+  // Waiting one layout pass makes it measure the correct full height.
+  const [mapReady, setMapReady] = useState(false);
   const [searchBounds, setSearchBounds] = useState<QueryBounds | null>(null);
   const lastSearchCenter = useRef<{ lng: number; lat: number } | null>(null);
   const currentBounds = useRef<MapBounds | null>(null);
@@ -94,12 +101,19 @@ export default function VisitorMapScreen() {
           map's viewport, which clipped pins near the bottom (Scott's
           "line eating the pins", 2026-07-12).
           Pre-login teaser: pins only — no popup, no drawer, no tap. */}
-      <View style={styles.content}>
-        <JuntoMapView
-          center={center}
-          activities={activities ?? []}
-          onBoundsChange={handleBoundsChange}
-        />
+      <View
+        style={styles.content}
+        onLayout={(e) => {
+          if (e.nativeEvent.layout.height > 0 && !mapReady) setMapReady(true);
+        }}
+      >
+        {mapReady && (
+          <JuntoMapView
+            center={center}
+            activities={activities ?? []}
+            onBoundsChange={handleBoundsChange}
+          />
+        )}
       </View>
 
       <View style={styles.banner}>
