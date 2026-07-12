@@ -8,6 +8,7 @@ import type { AppColors } from '@/constants/colors';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
+import { useNearbyProOfferings } from '@/hooks/use-nearby-pro-offerings';
 
 export default function VisitorMapScreen() {
   const colors = useColors();
@@ -37,6 +38,13 @@ export default function VisitorMapScreen() {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
+  // Pro offerings (RA) are web-facing / anon-readable by design (view
+  // pro_offerings_with_coords, migrations 00250/00287), so the teaser can show
+  // them with no auth. They're more permanent and geographically spread than
+  // peer outings — denser teaser map, esp. away from the seed area. Pins only,
+  // no tap (same non-interactive teaser as activities). Pro STOREFRONTS (PP)
+  // stay out — pro_profiles is intentionally not anon-exposed.
+  const { data: proOfferings } = useNearbyProOfferings(searchBounds);
 
   // Pre-login teaser map: fetch a GENEROUS area (2x the viewport each side
   // = 5x span) so panning around stays inside the fetched buffer and never
@@ -137,6 +145,7 @@ export default function VisitorMapScreen() {
           <JuntoMapView
             center={center}
             activities={activities ?? []}
+            proOfferings={proOfferings ?? []}
             onBoundsChange={handleBoundsChange}
             surfaceView={false}
           />
