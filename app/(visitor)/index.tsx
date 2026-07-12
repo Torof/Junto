@@ -66,6 +66,21 @@ export default function VisitorMapScreen() {
     };
   }, []);
 
+  // Kick off the first fetch immediately from the known center instead of
+  // waiting for the map's first camera event (startup bumps + GPS resolve
+  // could push pins to ~10s — Scott 2026-07-12). Generous ~35km box covers
+  // the teaser viewport; the camera-driven search takes over for real pans.
+  useEffect(() => {
+    if (initialSearchDone.current) return;
+    initialSearchDone.current = true;
+    const half = 0.35;
+    doSearch({
+      swLng: center[0] - half, swLat: center[1] - half,
+      neLng: center[0] + half, neLat: center[1] + half,
+      centerLng: center[0], centerLat: center[1],
+    });
+  }, [center, doSearch]);
+
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     currentBounds.current = bounds;
 
