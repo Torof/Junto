@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, StarHalf, Camera, Calendar } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, StarHalf, Camera, Calendar, Clock, Users, BarChart3, Route, Mountain } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
@@ -65,6 +65,20 @@ const PHOTO_MAX_COLUMNS = 5;
 // Stable array identity — a fresh [2] each render makes the (BottomSheet)
 // ScrollView reconfigure its sticky header, which can disrupt scrolling.
 const STICKY_HEADER_INDICES = [2];
+
+// duration is a Postgres interval serialized as "HH:MM:SS" (e.g. "05:00:00").
+// Render it as "5h" / "2h30" / "45min" instead of the raw interval (mirrors
+// offering-detail's formatter so the catalogue matches the detail page).
+function formatDuration(d: string | null): string | null {
+  if (!d) return null;
+  const match = d.match(/^(\d+):(\d+):/);
+  if (!match) return d;
+  const h = parseInt(match[1] ?? '0', 10);
+  const m = parseInt(match[2] ?? '0', 10);
+  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+}
 // The tab content is forced to at least this tall so the outer scroll always
 // has enough range to slide the header/carousel off and pin the tabs to the
 // top (Google collapsing-header). Short tabs just get trailing empty space.
@@ -462,7 +476,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
                   {offerings.map((o) => {
                     const accent = sportCategoryColor(o.sport_category, colors.cta);
-                    const meta = [o.level, o.duration, o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null]
+                    const meta = [o.level, formatDuration(o.duration), o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null]
                       .filter(Boolean).join(' · ');
                     const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                     return (
@@ -676,16 +690,8 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 </Text>
                 {offerings.map((o) => {
                   const accent = sportCategoryColor(o.sport_category, colors.cta);
-                  const meta = [
-                    t(`sports.${o.sport_key}`, { defaultValue: o.sport_key }),
-                    o.level,
-                    o.duration,
-                    o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null,
-                  ].filter(Boolean).join(' · ');
-                  const stats = [
-                    o.distance_km != null ? `${o.distance_km} km` : null,
-                    o.elevation_gain_m != null ? `↑ ${o.elevation_gain_m} m` : null,
-                  ].filter(Boolean).join(' · ');
+                  const duration = formatDuration(o.duration);
+                  const hasTerrain = o.distance_km != null || o.elevation_gain_m != null;
                   const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                   return (
                     <Pressable key={o.id} style={styles.expCard} onPress={() => openOffering(o)}>
@@ -709,18 +715,63 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                       </View>
                       <View style={styles.expBody}>
                         <Text style={styles.expTitle} numberOfLines={2}>{o.title}</Text>
-                        <Text style={[styles.expMeta, { color: accent }]} numberOfLines={1}>{meta}</Text>
-                        {stats ? <Text style={styles.expStats} numberOfLines={1}>{stats}</Text> : null}
-                        {o.schedule_text ? (
-                          <View style={styles.expLine}>
-                            <Calendar size={13} color={colors.textSecondary} strokeWidth={2} />
-                            <Text style={styles.expLineText} numberOfLines={1}>{o.schedule_text}</Text>
+
+                        {/* Faits clés — niveau · durée · participants. Icons +
+                            neutral grey (was one dense all-blue line); accent is
+                            now reserved for the CTA. Same icons as the detail page. */}
+                        <View style={styles.expFacts}>
+                          {o.level ? (
+                            <View style={styles.expFact}>
+                              <BarChart3 size={13} color={colors.textSecondary} strokeWidth={2} />
+                              <Text style={styles.expFactText}>{o.level}</Text>
+                            </View>
+                          ) : null}
+                          {duration ? (
+                            <View style={styles.expFact}>
+                              <Clock size={13} color={colors.textSecondary} strokeWidth={2} />
+                              <Text style={styles.expFactText}>{duration}</Text>
+                            </View>
+                          ) : null}
+                          {o.max_participants ? (
+                            <View style={styles.expFact}>
+                              <Users size={13} color={colors.textSecondary} strokeWidth={2} />
+                              <Text style={styles.expFactText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
+                        {/* Terrain — distance / dénivelé, only when set (sport-dependent). */}
+                        {hasTerrain ? (
+                          <View style={styles.expFacts}>
+                            {o.distance_km != null ? (
+                              <View style={styles.expFact}>
+                                <Route size={13} color={colors.textSecondary} strokeWidth={2} />
+                                <Text style={styles.expFactText}>{o.distance_km} km</Text>
+                              </View>
+                            ) : null}
+                            {o.elevation_gain_m != null ? (
+                              <View style={styles.expFact}>
+                                <Mountain size={13} color={colors.textSecondary} strokeWidth={2} />
+                                <Text style={styles.expFactText}>{o.elevation_gain_m} m</Text>
+                              </View>
+                            ) : null}
                           </View>
                         ) : null}
-                        <View style={styles.expLine}>
-                          <MapPin size={13} color={colors.textSecondary} strokeWidth={2} />
-                          <Text style={styles.expLineText} numberOfLines={1}>{o.location_name}</Text>
+
+                        {/* Quand / Où — grouped with a touch of air above. */}
+                        <View style={styles.expWhereWhen}>
+                          {o.schedule_text ? (
+                            <View style={styles.expLine}>
+                              <Calendar size={13} color={colors.textSecondary} strokeWidth={2} />
+                              <Text style={styles.expLineText} numberOfLines={1}>{o.schedule_text}</Text>
+                            </View>
+                          ) : null}
+                          <View style={styles.expLine}>
+                            <MapPin size={13} color={colors.textSecondary} strokeWidth={2} />
+                            <Text style={styles.expLineText} numberOfLines={1}>{o.location_name}</Text>
+                          </View>
                         </View>
+
                         <Text style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail →' })}</Text>
                       </View>
                     </Pressable>
@@ -1221,10 +1272,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: 3,
   },
   expRatingText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
-  expBody: { padding: spacing.md, gap: 3 },
+  expBody: { padding: spacing.md, gap: spacing.xs },
   expTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', lineHeight: 24 },
-  expMeta: { fontSize: fontSizes.sm, fontWeight: '700' },
-  expStats: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
+  expFacts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: spacing.md, rowGap: 4 },
+  expFact: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  expFactText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  expWhereWhen: { gap: 3, marginTop: 2 },
   expLine: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
   expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm },
   expCta: { fontSize: fontSizes.sm, fontWeight: '800', marginTop: spacing.xs, alignSelf: 'flex-end' },
