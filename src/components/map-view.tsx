@@ -885,8 +885,8 @@ export function JuntoMapView({
   const d = diag.current;
   const diagOverlay = debugOverlay ? (
     <View style={styles.diag} pointerEvents="none">
-      <Text style={styles.diagText}>t {(sinceMount() / 1000).toFixed(1)}s · markers {clusters.length} · zoom {currentZoom.toFixed(1)}</Text>
-      <Text style={styles.diagText}>span {(bounds[2] - bounds[0]).toFixed(2)}° · cam {d.cam} · err {d.err}</Text>
+      <Text style={styles.diagText}>t {(sinceMount() / 1000).toFixed(1)}s · acts {activities.length} · markers {clusters.length}</Text>
+      <Text style={styles.diagText}>zoom {currentZoom.toFixed(1)} · span {(bounds[2] - bounds[0]).toFixed(2)}° · cam {d.cam} · err {d.err}</Text>
       <Text style={styles.diagText}>style {d.style || '—'} · map {d.mapLoaded || '—'} · full {d.fully || '—'} (ms)</Text>
     </View>
   ) : null;
