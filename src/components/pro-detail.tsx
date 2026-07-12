@@ -476,8 +476,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
                   {offerings.map((o) => {
                     const accent = sportCategoryColor(o.sport_category, colors.cta);
-                    const meta = [o.level, formatDuration(o.duration), o.max_participants ? t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants }) : null]
-                      .filter(Boolean).join(' · ');
+                    const duration = formatDuration(o.duration);
                     const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                     return (
                       <Pressable
@@ -499,7 +498,27 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           ) : null}
                         </View>
                         <Text style={styles.catMiniTitle} numberOfLines={2}>{o.title}</Text>
-                        <Text style={[styles.catMiniMeta, { color: accent }]} numberOfLines={1}>{meta}</Text>
+                        {/* Same tinted-pill model as the catalogue cards. */}
+                        <View style={styles.expFacts}>
+                          {o.level ? (
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <BarChart3 size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{o.level}</Text>
+                            </View>
+                          ) : null}
+                          {duration ? (
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Clock size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{duration}</Text>
+                            </View>
+                          ) : null}
+                          {o.max_participants ? (
+                            <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
+                              <Users size={12} color={accent} strokeWidth={2.2} />
+                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                            </View>
+                          ) : null}
+                        </View>
                       </Pressable>
                     );
                   })}
@@ -1302,7 +1321,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   catMiniRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
   catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', lineHeight: 20 },
-  catMiniMeta: { fontSize: fontSizes.xs, fontWeight: '700' },
   mapContainer: {
     height: 180,
     borderRadius: radius.md,
