@@ -79,7 +79,7 @@ export default function VisitorMapScreen() {
           map's viewport, which clipped pins near the bottom (Scott's
           "line eating the pins", 2026-07-12).
           Pre-login teaser: pins only — no popup, no drawer, no tap. */}
-      <View style={StyleSheet.absoluteFill}>
+      <View style={styles.content}>
         <JuntoMapView
           center={center}
           activities={activities ?? []}
@@ -101,6 +101,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  // Same as the authenticated carte: the map's wrapper is a plain flex:1
+  // child (NOT absoluteFill — that broke MarkerView rendering). Sole
+  // flex-flow child, so it fills the screen; banner overlays absolutely.
+  content: {
+    flex: 1,
   },
   banner: {
     position: 'absolute',
