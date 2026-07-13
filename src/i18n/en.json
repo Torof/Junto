@@ -820,7 +820,8 @@
     "reasonPlaceholder": "Required (logged in the audit trail)",
     "removeContent": "Remove content",
     "removeNeedsReason": "Add a note (reason) to remove the content.",
-    "contentRemoved": "Content removed"
+    "contentRemoved": "Content removed",
+    "resolveIdentity": "Reveal identity"
   },
   "report": {
     "title": "Report",

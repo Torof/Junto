@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, Modal, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
@@ -15,7 +15,7 @@ import { proService, type PendingProApplication } from '@/services/pro-service';
 import { Check, X, BadgeCheck, Trash2 } from 'lucide-react-native';
 import { Redirect } from 'expo-router';
 import { useIsAdmin } from '@/hooks/use-is-admin';
-import { adminService } from '@/services/admin-service';
+import { adminService, type AdminUserInfo } from '@/services/admin-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 
 // Content types the admin can take down from a report (never DMs or users).
@@ -36,6 +36,21 @@ export default function ModerationScreen() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [resolvedUser, setResolvedUser] = useState<AdminUserInfo | null>(null);
+  const [resolving, setResolving] = useState(false);
+  useEffect(() => { setResolvedUser(null); }, [selectedReport?.id]);
+
+  const handleResolveIdentity = async () => {
+    if (!selectedReport) return;
+    setResolving(true);
+    try {
+      setResolvedUser(await adminService.resolveUser(selectedReport.target_id));
+    } catch (e) {
+      Alert.alert(getFriendlyError(e));
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ['admin-reports'],
@@ -256,6 +271,22 @@ export default function ModerationScreen() {
                 <Text style={styles.sectionLabel}>{t('admin.targetId')}</Text>
                 <Text style={styles.targetId}>{selectedReport.target_id}</Text>
 
+                {selectedReport.target_type === 'user' && (
+                  resolvedUser ? (
+                    <View style={styles.identityCard}>
+                      <Text style={styles.identityName}>{resolvedUser.display_name}{resolvedUser.is_admin ? ' · admin' : ''}</Text>
+                      <Text style={styles.identityLine} selectable>{resolvedUser.email}</Text>
+                      <Text style={styles.identityLine}>
+                        {resolvedUser.tier} · {resolvedUser.suspended_at ? t('admin.suspended', { defaultValue: 'Suspendu' }) : t('admin.active', { defaultValue: 'Actif' })}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Pressable style={[styles.resolveBtn, resolving && styles.disabled]} onPress={handleResolveIdentity} disabled={resolving}>
+                      <Text style={styles.resolveBtnText}>{resolving ? '…' : t('admin.resolveIdentity', { defaultValue: "Voir l'identité" })}</Text>
+                    </Pressable>
+                  )
+                )}
+
                 {selectedReport.status === 'pending' ? (
                   <>
                     <Text style={styles.sectionLabel}>{t('admin.note')}</Text>
@@ -391,6 +422,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sectionLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.xs },
   reasonFull: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
   targetId: { color: colors.textSecondary, fontSize: fontSizes.xs, fontFamily: 'monospace' },
+  resolveBtn: { alignSelf: 'flex-start', marginTop: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  resolveBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  identityCard: { marginTop: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.md, gap: 2 },
+  identityName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+  identityLine: { color: colors.textSecondary, fontSize: fontSizes.sm },
   noteInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: fontSizes.sm, minHeight: 60, textAlignVertical: 'top' },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
   dismissButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },

@@ -820,7 +820,8 @@
     "reasonPlaceholder": "Obligatoire (tracé dans le journal)",
     "removeContent": "Retirer le contenu",
     "removeNeedsReason": "Ajoute une note (raison) pour retirer le contenu.",
-    "contentRemoved": "Contenu retiré"
+    "contentRemoved": "Contenu retiré",
+    "resolveIdentity": "Voir l'identité"
   },
   "report": {
     "title": "Signaler",
