@@ -257,7 +257,8 @@
       "gear_missing_limit": "Limite de 20 manques atteinte pour cette sortie.",
       "trace_name_invalid": "Le nom de la trace doit faire entre 1 et 80 caractères.",
       "trace_geojson_invalid": "La trace est invalide. Ajoute au moins deux points.",
-      "trace_quota_reached": "Tu as atteint la limite de 50 traces. Supprime-en une pour en ajouter une nouvelle."
+      "trace_quota_reached": "Tu as atteint la limite de 50 traces. Supprime-en une pour en ajouter une nouvelle.",
+      "admin_reason_required": "Une raison est obligatoire pour cette action."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",

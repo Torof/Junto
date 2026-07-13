@@ -253,7 +253,8 @@
       "gear_missing_limit": "Limit of 20 missing items reached for this outing.",
       "trace_name_invalid": "The trace name must be 1 to 80 characters.",
       "trace_geojson_invalid": "The trace is invalid. Add at least two points.",
-      "trace_quota_reached": "You have reached the limit of 50 traces. Delete one to add a new one."
+      "trace_quota_reached": "You have reached the limit of 50 traces. Delete one to add a new one.",
+      "admin_reason_required": "A reason is required for this action."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
