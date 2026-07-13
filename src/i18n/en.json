@@ -837,6 +837,7 @@
     "count_one": "{{count}} review",
     "count_other": "{{count}} reviews",
     "empty": "No reviews yet.",
+    "readOne": "Read review",
     "writeOne": "Write a review",
     "editMine": "Edit my review",
     "bodyPlaceholder": "Share your experience (optional)...",

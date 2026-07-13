@@ -837,6 +837,7 @@
     "count_one": "{{count}} avis",
     "count_other": "{{count}} avis",
     "empty": "Aucun avis pour le moment.",
+    "readOne": "Lire l'avis",
     "writeOne": "Écrire un avis",
     "editMine": "Modifier mon avis",
     "bodyPlaceholder": "Partage ton expérience (optionnel)...",

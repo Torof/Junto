@@ -20,7 +20,7 @@ import { proPhotoService, proCommunityPhotoService } from '@/services/pro-photo-
 import { userService } from '@/services/user-service';
 import { useProPhotos } from '@/hooks/use-pro-photos';
 import { useAuth } from '@/hooks/use-auth';
-import { reviewService } from '@/services/review-service';
+import { reviewService, type Review } from '@/services/review-service';
 import { ReviewSection } from './review-section';
 import { StarRating } from './star-rating';
 import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
@@ -35,6 +35,56 @@ import { PhotoLightbox } from './photo-lightbox';
 const GALLERY_MAX = 25;
 
 export type ProTab = 'info' | 'catalog' | 'pictures' | 'reviews';
+
+// Overview review card. The body is clipped to 5 lines; an invisible copy with
+// no line cap measures the real line count (onTextLayout is unreliable on the
+// clipped copy under Android), so the card only becomes tappable + shows the
+// "Lire l'avis" affordance when the text is actually cut off.
+function ReviewMiniCard({
+  review,
+  styles,
+  onOpen,
+  moreLabel,
+}: {
+  review: Review;
+  styles: ReturnType<typeof createStyles>;
+  onOpen: (review: Review) => void;
+  moreLabel: string;
+}) {
+  const [truncated, setTruncated] = useState(false);
+  return (
+    <Pressable
+      style={styles.reviewMini}
+      onPress={() => onOpen(review)}
+      disabled={!truncated}
+      accessibilityRole={truncated ? 'button' : undefined}
+    >
+      <View style={styles.reviewMiniHead}>
+        <UserAvatar name={review.reviewer_name ?? '?'} avatarUrl={review.reviewer_avatar} size={28} />
+        <View style={styles.reviewMiniWho}>
+          <Text style={styles.reviewMiniName} numberOfLines={1}>{review.reviewer_name ?? '?'}</Text>
+          <View style={styles.reviewMiniMeta}>
+            <StarRating rating={review.rating} size={12} />
+            <Text style={styles.reviewMiniDate}>{dayjs(review.created_at).locale('fr').format('D MMM YYYY')}</Text>
+          </View>
+        </View>
+      </View>
+      {review.body ? (
+        <>
+          <Text style={styles.reviewMiniBody} numberOfLines={5}>{review.body}</Text>
+          <Text
+            style={[styles.reviewMiniBody, styles.reviewMeasure]}
+            pointerEvents="none"
+            onTextLayout={(e) => setTruncated(e.nativeEvent.lines.length > 5)}
+          >
+            {review.body}
+          </Text>
+          {truncated ? <Text style={styles.reviewMiniMore}>{moreLabel}</Text> : null}
+        </>
+      ) : null}
+    </Pressable>
+  );
+}
 
 interface Props {
   pro: ProProfile;
@@ -144,6 +194,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const [showFullMap, setShowFullMap] = useState(false);
   // Fullscreen viewer for the header carousel (indexes into galleryPhotos).
   const [carouselViewerIndex, setCarouselViewerIndex] = useState<number | null>(null);
+  const [openReview, setOpenReview] = useState<Review | null>(null);
 
   const { data: offerings = [] } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
@@ -553,19 +604,13 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               {reviews.length > 0 ? (
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.reviewCarousel}>
                   {reviews.slice(0, 8).map((r) => (
-                    <View key={r.id} style={styles.reviewMini}>
-                      <View style={styles.reviewMiniHead}>
-                        <UserAvatar name={r.reviewer_name ?? '?'} avatarUrl={r.reviewer_avatar} size={28} />
-                        <View style={styles.reviewMiniWho}>
-                          <Text style={styles.reviewMiniName} numberOfLines={1}>{r.reviewer_name ?? '?'}</Text>
-                          <View style={styles.reviewMiniMeta}>
-                            <StarRating rating={r.rating} size={12} />
-                            <Text style={styles.reviewMiniDate}>{dayjs(r.created_at).locale('fr').format('D MMM YYYY')}</Text>
-                          </View>
-                        </View>
-                      </View>
-                      {r.body ? <Text style={styles.reviewMiniBody} numberOfLines={5}>{r.body}</Text> : null}
-                    </View>
+                    <ReviewMiniCard
+                      key={r.id}
+                      review={r}
+                      styles={styles}
+                      onOpen={setOpenReview}
+                      moreLabel={t('reviews.readOne', { defaultValue: "Lire l'avis" })}
+                    />
                   ))}
                 </GHScrollView>
               ) : (
@@ -824,6 +869,38 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const modalsNode = (
       <>
       <PhotoLightbox photos={galleryPhotos} index={carouselViewerIndex} onIndexChange={setCarouselViewerIndex} />
+      <Modal
+        visible={!!openReview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpenReview(null)}
+        statusBarTranslucent
+      >
+        <Pressable style={styles.reviewModalBackdrop} onPress={() => setOpenReview(null)}>
+          <Pressable style={styles.reviewModalCard} onPress={() => {}}>
+            {openReview ? (
+              <>
+                <View style={styles.reviewModalHead}>
+                  <UserAvatar name={openReview.reviewer_name ?? '?'} avatarUrl={openReview.reviewer_avatar} size={40} />
+                  <View style={styles.reviewMiniWho}>
+                    <Text style={styles.reviewModalName} numberOfLines={1}>{openReview.reviewer_name ?? '?'}</Text>
+                    <View style={styles.reviewMiniMeta}>
+                      <StarRating rating={openReview.rating} size={14} />
+                      <Text style={styles.reviewMiniDate}>{dayjs(openReview.created_at).locale('fr').format('D MMM YYYY')}</Text>
+                    </View>
+                  </View>
+                  <Pressable onPress={() => setOpenReview(null)} hitSlop={8} style={styles.reviewModalClose}>
+                    <X size={20} color={colors.textMuted} />
+                  </Pressable>
+                </View>
+                <ScrollView style={styles.reviewModalBodyScroll} contentContainerStyle={styles.reviewModalBodyContent} showsVerticalScrollIndicator={false}>
+                  <Text style={styles.reviewModalBody}>{openReview.body}</Text>
+                </ScrollView>
+              </>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView center={mapCenter} zoom={14} pins={mapPins} />
@@ -1016,6 +1093,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewMiniMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   reviewMiniDate: { color: colors.textMuted, fontSize: fontSizes.xs },
   reviewMiniBody: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
+  reviewMeasure: { position: 'absolute', left: 0, right: 0, top: 0, opacity: 0 },
+  reviewMiniMore: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
+  reviewModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  reviewModalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    maxHeight: '75%',
+    ...shadows.card,
+  },
+  reviewModalHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reviewModalName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  reviewModalClose: { padding: spacing.xs },
+  reviewModalBodyScroll: { flexGrow: 0 },
+  reviewModalBodyContent: { paddingBottom: spacing.xs },
+  reviewModalBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 23 },
   overviewButtons: { flexDirection: 'row', gap: spacing.sm, paddingTop: spacing.xs },
   ghostBtn: { flex: 1, borderWidth: 1, borderColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
   ghostBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
