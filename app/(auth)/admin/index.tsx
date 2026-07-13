@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Flag, BadgeCheck, ChevronRight, type LucideIcon } from 'lucide-react-native';
+import { Flag, BadgeCheck, ChevronRight, Search, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService } from '@/services/report-service';
 import { proService } from '@/services/pro-service';
+import { useIsAdmin } from '@/hooks/use-is-admin';
 
 // Admin hub — entry point to every admin tool. New tools get a row here.
 export default function AdminHubScreen() {
@@ -17,8 +18,9 @@ export default function AdminHubScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { data: reports } = useQuery({ queryKey: ['admin-reports'], queryFn: () => reportService.getAll() });
-  const { data: pendingPros } = useQuery({ queryKey: ['admin-pending-pros'], queryFn: () => proService.getPendingApplications() });
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { data: reports } = useQuery({ queryKey: ['admin-reports'], queryFn: () => reportService.getAll(), enabled: isAdmin });
+  const { data: pendingPros } = useQuery({ queryKey: ['admin-pending-pros'], queryFn: () => proService.getPendingApplications(), enabled: isAdmin });
 
   const pendingReports = (reports ?? []).filter((r) => r.status === 'pending').length;
   const pendingProsCount = (pendingPros ?? []).length;
@@ -37,6 +39,9 @@ export default function AdminHubScreen() {
     </Pressable>
   );
 
+  if (adminLoading) return null;
+  if (!isAdmin) return <Redirect href="/(auth)/(tabs)/carte" />;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
@@ -53,6 +58,13 @@ export default function AdminHubScreen() {
           sublabel={t('admin.proRequestsSub', { defaultValue: 'Vérifier et valider les pages pro' })}
           count={pendingProsCount}
           onPress={() => router.push('/(auth)/admin/moderation?tab=pros')}
+        />
+        <Row
+          icon={Search}
+          label={t('admin.lookupTitle', { defaultValue: 'Recherche & modération' })}
+          sublabel={t('admin.lookupSub', { defaultValue: 'Qui est / qui possède · suspendre' })}
+          count={0}
+          onPress={() => router.push('/(auth)/admin/lookup')}
           last
         />
       </View>

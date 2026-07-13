@@ -13,6 +13,8 @@ import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
 import { proService, type PendingProApplication } from '@/services/pro-service';
 import { Check, X, BadgeCheck } from 'lucide-react-native';
+import { Redirect } from 'expo-router';
+import { useIsAdmin } from '@/hooks/use-is-admin';
 
 dayjs.extend(relativeTime);
 
@@ -24,6 +26,7 @@ export default function ModerationScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const [tab, setTab] = useState<FilterTab>(tabParam === 'pros' ? 'pros' : 'pending');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminNote, setAdminNote] = useState('');
@@ -113,6 +116,9 @@ export default function ModerationScreen() {
     };
     return typeLabels[report.target_type] ?? report.target_type;
   };
+
+  if (adminLoading) return null;
+  if (!isAdmin) return <Redirect href="/(auth)/(tabs)/carte" />;
 
   return (
     <View style={styles.container}>
