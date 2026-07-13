@@ -244,8 +244,11 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
   }
 
-  // Peer presence testimony needs 3+ (state excludes self → length >= 2).
-  const peerPresenceEnabled = state.length >= 2;
+  // Peer presence testimony needs 3+ (state excludes self → length >= 2) AND
+  // the activity to actually require presence — otherwise there's nothing to
+  // validate and peer_validate_presence rejects it (Scott 2026-07-13, a
+  // requires_presence=false activity was still showing the button).
+  const peerPresenceEnabled = state.length >= 2 && activity.requires_presence === true;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
