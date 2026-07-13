@@ -36,6 +36,7 @@
 | Work on badges (progression, reputation, reliability) | `docs/REPUTATION_BADGES.md` + `docs/SECURITY.md` → "Système de badges" |
 | Work on push notifications routing / collapse | `docs/SECURITY.md` → "Push notifications" |
 | Set up Supabase config | `docs/SECURITY.md` → "Configuration Supabase" |
+| Work on admin / moderation powers | `docs/ADMIN.md` (admin role charter — powers, hard boundaries, roadmap) + `docs/SECURITY.md` → "Fonctions privilégiées admin" |
 | Make an architectural decision | `docs/DECISIONS.md` — check if already decided, log new ones |
 | Doubt how we work | `docs/WORKING_MODE.md` |
 
@@ -45,6 +46,7 @@
 - UX/UI design system → `docs/UX_UI.md`
 - Development process & conventions → `docs/WORKING_MODE.md`
 - Security model → `docs/SECURITY.md`
+- Admin role charter → `docs/ADMIN.md`
 - Sprint backlog → `docs/BACKLOG.md`
 - Technical decisions log → `docs/DECISIONS.md`
 

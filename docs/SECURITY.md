@@ -440,7 +440,11 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 ### Fonctions privilégiées admin
 
 - `delete_own_account` — appelée par Edge Function avec `service_role`
-- `admin_suspend_user`, `admin_unsuspend_user`, `admin_resolve_report` — `auth.uid()` doit être admin
+- `moderate_report(p_report_id, p_action, p_admin_note, p_suspend_user_id)` — `auth.uid()` doit être admin ; classe un report et peut suspendre un user
+- `approve_pro(p_user_id)` / `reject_pro(p_user_id, p_reason)` — `auth.uid()` doit être admin ; valident/refusent une candidature pro
+- Voir `docs/ADMIN.md` (charte du rôle admin) pour l'inventaire complet, les frontières, et la feuille de route.
+
+> Note (audit 2026-07-13) : `admin_suspend_user`, `admin_unsuspend_user`, `admin_resolve_report` n'ont **jamais existé** — la vraie fonction est `moderate_report`. Il n'existe à ce jour **aucune** fonction de dé-suspension.
 
 ---
 
