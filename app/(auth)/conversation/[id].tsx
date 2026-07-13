@@ -19,6 +19,7 @@ import { File, Paths } from 'expo-file-system';
 import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
+import { useCreateGpxTrace } from '@/hooks/use-gpx-traces';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
@@ -56,6 +57,7 @@ export default function ConversationScreen() {
   const dockPadding = useKeyboardDockPadding(insets.bottom + spacing.sm);
   const { markConversationRead } = useMessageStore();
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
+  const createGpxTrace = useCreateGpxTrace();
   const [isAttaching, setIsAttaching] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
@@ -325,6 +327,18 @@ export default function ConversationScreen() {
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     }
+  };
+
+  const handleSaveToLibrary = () => {
+    if (!tracePreview) return;
+    const name = tracePreview.name.replace(/\.gpx$/i, '').trim() || 'Trace';
+    createGpxTrace.mutate(
+      { name, geojson: tracePreview.geo },
+      {
+        onSuccess: () => Burnt.toast({ title: t('messagerie.traceSaved', { defaultValue: 'Trace enregistrée' }), preset: 'done' }),
+        onError: (e) => Alert.alert(getFriendlyError(e)),
+      },
+    );
   };
 
   const handleUseInActivity = () => {
@@ -622,10 +636,16 @@ export default function ConversationScreen() {
                   </View>
                 </View>
                 <View style={[styles.tracePreviewActions, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-                  <Pressable style={styles.traceActionButton} onPress={handleDownloadTrace}>
-                    <Download size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                    <Text style={styles.traceActionText}>{t('messagerie.traceDownload')}</Text>
-                  </Pressable>
+                  <View style={styles.traceActionRow}>
+                    <Pressable style={styles.traceActionButton} onPress={handleDownloadTrace}>
+                      <Download size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                      <Text style={styles.traceActionText}>{t('messagerie.traceDownload')}</Text>
+                    </Pressable>
+                    <Pressable style={[styles.traceActionButton, createGpxTrace.isPending && { opacity: 0.5 }]} onPress={handleSaveToLibrary} disabled={createGpxTrace.isPending}>
+                      <RouteIcon size={16} color={colors.textPrimary} strokeWidth={2.4} />
+                      <Text style={styles.traceActionText}>{t('messagerie.traceSaveToLibrary', { defaultValue: 'Ma bibliothèque' })}</Text>
+                    </Pressable>
+                  </View>
                   <Pressable style={[styles.traceActionButton, styles.traceActionButtonPrimary]} onPress={handleUseInActivity}>
                     <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
                     <Text style={styles.traceActionText}>{t('messagerie.traceUseInActivity')}</Text>
@@ -1192,10 +1212,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tracePreviewTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   tracePreviewActions: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    flexDirection: 'row', gap: spacing.sm,
+    flexDirection: 'column', gap: spacing.sm,
     paddingHorizontal: spacing.md, paddingTop: spacing.md,
     backgroundColor: colors.background + 'F2',
   },
+  traceActionRow: { flexDirection: 'row', gap: spacing.sm },
   traceActionButton: {
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

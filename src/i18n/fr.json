@@ -729,7 +729,9 @@
     "replyToSelf": "Réponse à toi-même",
     "replyDeleted": "Message supprimé",
     "you": "Toi",
-    "joinRequest": "Demande à rejoindre la sortie"
+    "joinRequest": "Demande à rejoindre la sortie",
+    "traceSaveToLibrary": "Ma bibliothèque",
+    "traceSaved": "Trace enregistrée"
   },
   "publicProfile": {
     "sendMessage": "Envoyer un message",

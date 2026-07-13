@@ -729,7 +729,9 @@
     "replyToSelf": "Reply to yourself",
     "replyDeleted": "Message deleted",
     "you": "You",
-    "joinRequest": "Wants to join the outing"
+    "joinRequest": "Wants to join the outing",
+    "traceSaveToLibrary": "My library",
+    "traceSaved": "Trace saved"
   },
   "publicProfile": {
     "sendMessage": "Send message",
