@@ -55,4 +55,15 @@ export const adminService = {
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
+
+  // Take down public/reviewable content (activity, wall_message, pro_review,
+  // offering_review). Never DMs or users (server rejects those types).
+  removeContent: async (targetType: string, targetId: string, reason: string): Promise<void> => {
+    const { error } = await supabase.rpc('admin_remove_content' as 'join_activity', {
+      p_target_type: targetType,
+      p_target_id: targetId,
+      p_reason: reason,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
 };

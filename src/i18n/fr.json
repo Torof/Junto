@@ -807,7 +807,10 @@
     "manageOwner": "Gérer ce compte",
     "suspendReason": "Raison de la suspension",
     "unsuspendReason": "Raison de la levée",
-    "reasonPlaceholder": "Obligatoire (tracé dans le journal)"
+    "reasonPlaceholder": "Obligatoire (tracé dans le journal)",
+    "removeContent": "Retirer le contenu",
+    "removeNeedsReason": "Ajoute une note (raison) pour retirer le contenu.",
+    "contentRemoved": "Contenu retiré"
   },
   "report": {
     "title": "Signaler",

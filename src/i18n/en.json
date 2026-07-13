@@ -807,7 +807,10 @@
     "manageOwner": "Manage this account",
     "suspendReason": "Suspension reason",
     "unsuspendReason": "Reason for lifting",
-    "reasonPlaceholder": "Required (logged in the audit trail)"
+    "reasonPlaceholder": "Required (logged in the audit trail)",
+    "removeContent": "Remove content",
+    "removeNeedsReason": "Add a note (reason) to remove the content.",
+    "contentRemoved": "Content removed"
   },
   "report": {
     "title": "Report",

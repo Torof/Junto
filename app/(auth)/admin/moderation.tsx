@@ -12,9 +12,14 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
 import { proService, type PendingProApplication } from '@/services/pro-service';
-import { Check, X, BadgeCheck } from 'lucide-react-native';
+import { Check, X, BadgeCheck, Trash2 } from 'lucide-react-native';
 import { Redirect } from 'expo-router';
 import { useIsAdmin } from '@/hooks/use-is-admin';
+import { adminService } from '@/services/admin-service';
+import { getFriendlyError } from '@/utils/friendly-error';
+
+// Content types the admin can take down from a report (never DMs or users).
+const REMOVABLE_TYPES = ['activity', 'wall_message', 'pro_review', 'offering_review'];
 
 dayjs.extend(relativeTime);
 
@@ -102,6 +107,29 @@ export default function ModerationScreen() {
       Burnt.toast({ title: action === 'dismissed' ? t('admin.dismissed') : t('admin.actioned'), preset: 'done' });
     } catch {
       Alert.alert(t('auth.error'), t('auth.unknownError'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Take down the reported content (reason = the admin note) and resolve the
+  // report as actioned. Only for removable content types.
+  const handleRemoveContent = async () => {
+    if (!selectedReport) return;
+    if (adminNote.trim().length < 1) {
+      Alert.alert(t('admin.removeNeedsReason', { defaultValue: 'Ajoute une note (raison) pour retirer le contenu.' }));
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await adminService.removeContent(selectedReport.target_type, selectedReport.target_id, adminNote.trim());
+      await reportService.moderate(selectedReport.id, 'actioned', adminNote || undefined);
+      await queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
+      setSelectedReport(null);
+      setAdminNote('');
+      Burnt.toast({ title: t('admin.contentRemoved', { defaultValue: 'Contenu retiré' }), preset: 'done' });
+    } catch (e) {
+      Alert.alert(getFriendlyError(e));
     } finally {
       setIsProcessing(false);
     }
@@ -241,6 +269,17 @@ export default function ModerationScreen() {
                       maxLength={500}
                     />
 
+                    {REMOVABLE_TYPES.includes(selectedReport.target_type) && (
+                      <Pressable
+                        style={[styles.removeButton, isProcessing && styles.disabled]}
+                        onPress={handleRemoveContent}
+                        disabled={isProcessing}
+                      >
+                        <Trash2 size={16} color="#FFFFFF" strokeWidth={2.2} />
+                        <Text style={styles.removeText}>{t('admin.removeContent', { defaultValue: 'Retirer le contenu' })}</Text>
+                      </Pressable>
+                    )}
+
                     <View style={styles.actionRow}>
                       <Pressable
                         style={[styles.dismissButton, isProcessing && styles.disabled]}
@@ -363,5 +402,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   approveText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: 'bold' },
   actionButton: { flex: 1, backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   actionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  removeButton: { flexDirection: 'row', gap: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, marginTop: spacing.md },
+  removeText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
   disabled: { opacity: 0.4 },
 });
