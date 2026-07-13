@@ -33,6 +33,7 @@ import { PhotoManager } from './photo-manager';
 import { PhotoLightbox } from './photo-lightbox';
 
 const GALLERY_MAX = 25;
+const REVIEW_CARD_WIDTH = 220;
 
 export type ProTab = 'info' | 'catalog' | 'pictures' | 'reviews';
 
@@ -72,6 +73,10 @@ function ReviewMiniCard({
       {review.body ? (
         <>
           <Text style={styles.reviewMiniBody} numberOfLines={5}>{review.body}</Text>
+          {/* Invisible measuring copy at the exact content width (an absolute
+              copy with left/right:0 would span the padding box and under-count
+              lines). Explicit width + opacity:0 guarantees it lays out, so
+              onTextLayout reliably reports the true uncapped line count. */}
           <Text
             style={[styles.reviewMiniBody, styles.reviewMeasure]}
             pointerEvents="none"
@@ -1078,7 +1083,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   carouselBleed: { marginHorizontal: -spacing.lg },
   reviewCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   reviewMini: {
-    width: 220,
+    width: REVIEW_CARD_WIDTH,
     borderWidth: 1,
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
@@ -1093,7 +1098,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewMiniMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   reviewMiniDate: { color: colors.textMuted, fontSize: fontSizes.xs },
   reviewMiniBody: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
-  reviewMeasure: { position: 'absolute', left: 0, right: 0, top: 0, opacity: 0 },
+  reviewMeasure: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    opacity: 0,
+    // content width = card width − 2 borders − 2 horizontal paddings
+    width: REVIEW_CARD_WIDTH - 2 - spacing.md * 2,
+  },
   reviewMiniMore: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
   reviewModalBackdrop: {
     flex: 1,
