@@ -680,7 +680,9 @@
       "voterNotPresent": "Tu dois être confirmé présent toi-même avant de voter pour les autres.",
       "alreadyValidated": "La présence de ce participant est déjà validée."
     },
-    "selfLevel": "{{name}} se dit de niveau {{level}}"
+    "selfLevel": "{{name}} se dit de niveau {{level}}",
+    "bannerClosed": "La fenêtre d'évaluation est fermée (24 h après la fin). Tu ne peux plus voter.",
+    "bannerNotOpen": "L'évaluation ouvrira 15 min après la fin de la sortie."
   },
   "messagerie": {
     "empty": "Aucune conversation",

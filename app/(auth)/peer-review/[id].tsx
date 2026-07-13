@@ -89,6 +89,10 @@ export default function PeerReviewScreen() {
   const votingRef = useRef<Set<string>>(new Set());
 
   const handleBadgeTap = async (target: PeerReviewParticipant, badgeKey: string) => {
+    if (!canVote) {
+      Alert.alert(t('auth.error'), windowState === 'closed' ? t('peerReview.errors.windowClosed') : t('peerReview.errors.windowNotOpen'));
+      return;
+    }
     const guardKey = `${target.user_id}:${badgeKey}`;
     if (votingRef.current.has(guardKey)) return;
     votingRef.current.add(guardKey);
@@ -102,7 +106,12 @@ export default function PeerReviewScreen() {
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
+      let userMsg = getFriendlyError(err, 'generic');
+      if (msg.includes('badge_window_closed')) userMsg = t('peerReview.errors.windowClosed');
+      else if (msg.includes('badge_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
+      else if (msg.includes('badge_rate_limit')) userMsg = t('errors.code.badge_rate_limit');
+      else if (msg.includes('Operation not permitted')) userMsg = t('peerReview.notAllowed');
+      Alert.alert(t('auth.error'), userMsg);
     } finally {
       votingRef.current.delete(guardKey);
     }
@@ -112,6 +121,10 @@ export default function PeerReviewScreen() {
   // level_* vote replaces any previous one from this voter for this target
   // on this activity. Tapping the same key revokes (toggle off).
   const handleLevelTap = async (target: PeerReviewParticipant, levelKey: string) => {
+    if (!canVote) {
+      Alert.alert(t('auth.error'), windowState === 'closed' ? t('peerReview.errors.windowClosed') : t('peerReview.errors.windowNotOpen'));
+      return;
+    }
     const guardKey = `${target.user_id}:${levelKey}`;
     if (votingRef.current.has(guardKey)) return;
     votingRef.current.add(guardKey);
@@ -125,7 +138,12 @@ export default function PeerReviewScreen() {
       refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
-      Alert.alert(t('auth.error'), msg.includes('Operation not permitted') ? t('peerReview.notAllowed') : getFriendlyError(err, 'generic'));
+      let userMsg = getFriendlyError(err, 'generic');
+      if (msg.includes('badge_window_closed')) userMsg = t('peerReview.errors.windowClosed');
+      else if (msg.includes('badge_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
+      else if (msg.includes('badge_rate_limit')) userMsg = t('errors.code.badge_rate_limit');
+      else if (msg.includes('Operation not permitted')) userMsg = t('peerReview.notAllowed');
+      Alert.alert(t('auth.error'), userMsg);
     } finally {
       votingRef.current.delete(guardKey);
     }
@@ -133,6 +151,10 @@ export default function PeerReviewScreen() {
 
   const handlePresenceTap = async (target: PeerReviewParticipant) => {
     if (target.confirmed_present === true) return;
+    if (!canVote) {
+      Alert.alert(t('auth.error'), windowState === 'closed' ? t('peerReview.errors.windowClosed') : t('peerReview.errors.windowNotOpen'));
+      return;
+    }
     try {
       await badgeService.peerValidatePresence(target.user_id, id ?? '');
       Burnt.toast({ title: t('peerReview.presenceVoted'), preset: 'done' });
@@ -152,6 +174,17 @@ export default function PeerReviewScreen() {
   // so we can pass the urgency string to the navigation header.
   const endsAt = activity ? dayjs(activity.starts_at).add(parseDurationMs(activity.duration), 'millisecond') : null;
   const expiresAt = endsAt ? endsAt.add(24, 'hour') : null;
+  // Vote window mirrors the server (give_reputation_badge / peer_validate):
+  // opens 15 min after the end, closes 24 h after. Old notifications land here
+  // after it closed — show a clear banner and skip the pointless RPC round-trip.
+  const opensAt = endsAt ? endsAt.add(15, 'minute') : null;
+  const nowRef = dayjs();
+  const windowState: 'open' | 'notYetOpen' | 'closed' =
+    !opensAt || !expiresAt ? 'open'
+      : nowRef.isBefore(opensAt) ? 'notYetOpen'
+      : nowRef.isAfter(expiresAt) ? 'closed'
+      : 'open';
+  const canVote = windowState === 'open';
   const hoursLeft = expiresAt ? Math.max(0, Math.round(expiresAt.diff(dayjs(), 'minute') / 60)) : 0;
   const urgencyLabel = hoursLeft > 0
     ? t('peerReview.windowLeft', { hours: hoursLeft, defaultValue: `${hoursLeft}h left` })
@@ -198,6 +231,16 @@ export default function PeerReviewScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
+
+      {windowState !== 'open' && (
+        <View style={[styles.banner, windowState === 'closed' ? styles.bannerClosed : styles.bannerInfo]}>
+          <Text style={styles.bannerText}>
+            {windowState === 'closed'
+              ? t('peerReview.bannerClosed', { defaultValue: "La fenêtre d'évaluation est fermée (24 h après la fin). Tu ne peux plus voter." })
+              : t('peerReview.bannerNotOpen', { defaultValue: "L'évaluation ouvrira 15 min après la fin de la sortie." })}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.list}>
         {state.map((p) => {
@@ -396,6 +439,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.lg,
   },
   tappedDim: { opacity: 0.55 },
+  banner: {
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+  },
+  bannerClosed: { backgroundColor: colors.error + '14', borderColor: colors.error + '40' },
+  bannerInfo: { backgroundColor: colors.warning + '14', borderColor: colors.warning + '40' },
+  bannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20, fontWeight: '600' },
   sectionLabel: {
     color: colors.textMuted,
     fontSize: 10.5,
