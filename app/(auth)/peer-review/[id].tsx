@@ -178,7 +178,9 @@ export default function PeerReviewScreen() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       let userMsg = t('peerReview.notAllowed');
-      if (msg.includes('peer_review_not_completed')) userMsg = t('peerReview.errors.notCompleted');
+      if (msg.includes('peer_review_no_presence')) userMsg = t('peerReview.errors.noPresence');
+      else if (msg.includes('peer_review_target_not_in')) userMsg = t('peerReview.errors.targetNotIn');
+      else if (msg.includes('peer_review_not_completed')) userMsg = t('peerReview.errors.notCompleted');
       else if (msg.includes('peer_review_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
       else if (msg.includes('peer_review_window_closed')) userMsg = t('peerReview.errors.windowClosed');
       else if (msg.includes('peer_voter_not_present')) userMsg = t('peerReview.errors.voterNotPresent');
