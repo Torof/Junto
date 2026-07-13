@@ -258,7 +258,8 @@
       "trace_name_invalid": "Le nom de la trace doit faire entre 1 et 80 caractères.",
       "trace_geojson_invalid": "La trace est invalide. Ajoute au moins deux points.",
       "trace_quota_reached": "Tu as atteint la limite de 50 traces. Supprime-en une pour en ajouter une nouvelle.",
-      "admin_reason_required": "Une raison est obligatoire pour cette action."
+      "admin_reason_required": "Une raison est obligatoire pour cette action.",
+      "peer_review_not_completed": "L'activité n'est pas encore marquée comme terminée. Réessaie dans un instant."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
@@ -673,12 +674,13 @@
     "sectionLevel": "Niveau perçu",
     "presenceVoteCta": "{{name}} était présent",
     "presenceVoted": "Vote enregistré",
-    "notAllowed": "Action impossible (fenêtre de 48h dépassée ou contraintes non remplies).",
+    "notAllowed": "Action impossible pour le moment (une condition n'est pas remplie).",
     "errors": {
       "windowNotOpen": "Le vote ouvre 15 min après la fin de l'activité.",
       "windowClosed": "La fenêtre de vote de 24h est fermée.",
       "voterNotPresent": "Tu dois être confirmé présent toi-même avant de voter pour les autres.",
-      "alreadyValidated": "La présence de ce participant est déjà validée."
+      "alreadyValidated": "La présence de ce participant est déjà validée.",
+      "notCompleted": "L'activité vient de se terminer et n'est pas encore marquée comme terminée. Réessaie dans un instant."
     },
     "selfLevel": "{{name}} se dit de niveau {{level}}",
     "bannerClosed": "La fenêtre d'évaluation est fermée (24 h après la fin). Tu ne peux plus voter.",

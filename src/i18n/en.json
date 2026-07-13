@@ -254,7 +254,8 @@
       "trace_name_invalid": "The trace name must be 1 to 80 characters.",
       "trace_geojson_invalid": "The trace is invalid. Add at least two points.",
       "trace_quota_reached": "You have reached the limit of 50 traces. Delete one to add a new one.",
-      "admin_reason_required": "A reason is required for this action."
+      "admin_reason_required": "A reason is required for this action.",
+      "peer_review_not_completed": "The outing is not marked finished yet. Try again in a moment."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
@@ -673,12 +674,13 @@
     "sectionLevel": "Perceived level",
     "presenceVoteCta": "{{name}} was there",
     "presenceVoted": "Vote saved",
-    "notAllowed": "Action not available (48h window passed or constraints unmet).",
+    "notAllowed": "Not possible right now (a condition is not met).",
     "errors": {
       "windowNotOpen": "Voting opens 15 min after the activity ends.",
       "windowClosed": "The 24h voting window has closed.",
       "voterNotPresent": "You must be confirmed present yourself before voting for others.",
-      "alreadyValidated": "This participant's presence is already validated."
+      "alreadyValidated": "This participant's presence is already validated.",
+      "notCompleted": "The outing just ended and is not marked finished yet. Try again in a moment."
     },
     "selfLevel": "{{name}} declares a {{level}} level",
     "bannerClosed": "The evaluation window is closed (24 h after the end). You can no longer vote.",

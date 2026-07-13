@@ -1,4 +1,4 @@
-import { useMemo, useLayoutEffect, useState, useRef } from 'react';
+import { useMemo, useLayoutEffect, useState, useRef, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type P
 import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { supabase } from '@/services/supabase';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 
@@ -55,6 +56,21 @@ export default function PeerReviewScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+
+  // Force the lazy status transition to 'completed' on open. Otherwise an
+  // activity that just ended is still 'in_progress' and peer_validate_presence
+  // refuses ("not completed") with a vague error (Scott 2026-07-13).
+  useEffect(() => {
+    if (!id) return;
+    supabase.rpc('transition_single_activity' as 'join_activity', {
+      p_activity_id: id,
+    } as unknown as { p_activity_id: string }).then((r) => {
+      if (r.data) {
+        queryClient.invalidateQueries({ queryKey: ['activity', id] });
+        queryClient.invalidateQueries({ queryKey: ['peer-review-state', id] });
+      }
+    }, () => {});
+  }, [id, queryClient]);
   const router = useRouter();
   const navigation = useNavigation();
   // Collapse state per participant. Default to expanded so unrated cards
@@ -162,7 +178,8 @@ export default function PeerReviewScreen() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       let userMsg = t('peerReview.notAllowed');
-      if (msg.includes('peer_review_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
+      if (msg.includes('peer_review_not_completed')) userMsg = t('peerReview.errors.notCompleted');
+      else if (msg.includes('peer_review_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
       else if (msg.includes('peer_review_window_closed')) userMsg = t('peerReview.errors.windowClosed');
       else if (msg.includes('peer_voter_not_present')) userMsg = t('peerReview.errors.voterNotPresent');
       else if (msg.includes('peer_already_validated')) userMsg = t('peerReview.errors.alreadyValidated');
