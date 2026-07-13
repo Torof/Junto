@@ -79,6 +79,12 @@ function formatDuration(d: string | null): string | null {
   if (h > 0) return `${h}h`;
   return `${m}min`;
 }
+
+// Open an external URL, swallowing the rejection Linking.openURL throws on a
+// device with no handler (no dialer / mail app) — audit 2026-07-13.
+function openLink(url: string): void {
+  Linking.openURL(url).catch(() => {});
+}
 // The tab content is forced to at least this tall so the outer scroll always
 // has enough range to slide the header/carousel off and pin the tabs to the
 // top (Google collapsing-header). Short tabs just get trailing empty space.
@@ -251,11 +257,11 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     const url = Platform.OS === 'ios'
       ? `https://maps.apple.com/?ll=${pro.primary_lat},${pro.primary_lng}&q=${encodeURIComponent(pro.display_name)}`
       : `https://www.google.com/maps/search/?api=1&query=${pro.primary_lat},${pro.primary_lng}`;
-    Linking.openURL(url);
+    openLink(url);
   };
   const openWebsite = () => {
     if (!pro.website) return;
-    Linking.openURL(pro.website.startsWith('http') ? pro.website : `https://${pro.website}`);
+    openLink(pro.website.startsWith('http') ? pro.website : `https://${pro.website}`);
   };
   const sharePage = () => {
     // Env-driven host (default getjunto.app) so the share URL always matches the
@@ -268,12 +274,12 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   // filled; WhatsApp is derived from the phone number.
   const aboutItems: { icon: React.ReactNode; text: string; onPress: () => void; external?: boolean }[] = [
     { icon: <MapPin size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.primary_location_name, onPress: openDirections },
-    ...(pro.phone ? [{ icon: <Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.phone, onPress: () => Linking.openURL(`tel:${pro.phone}`) }] : []),
-    ...(pro.phone ? [{ icon: <MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'WhatsApp', onPress: () => Linking.openURL(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`) }] : []),
+    ...(pro.phone ? [{ icon: <Phone size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.phone, onPress: () => openLink(`tel:${pro.phone}`) }] : []),
+    ...(pro.phone ? [{ icon: <MessageCircle size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'WhatsApp', onPress: () => openLink(`https://wa.me/${pro.phone!.replace(/[^0-9]/g, '')}`) }] : []),
     ...(pro.website ? [{ icon: <Globe size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: prettyUrl(pro.website), onPress: openWebsite, external: true }] : []),
-    ...(pro.email ? [{ icon: <Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.email, onPress: () => Linking.openURL(`mailto:${pro.email}`) }] : []),
-    ...(pro.instagram ? [{ icon: <Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Instagram', onPress: () => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`), external: true }] : []),
-    ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
+    ...(pro.email ? [{ icon: <Mail size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: pro.email, onPress: () => openLink(`mailto:${pro.email}`) }] : []),
+    ...(pro.instagram ? [{ icon: <Instagram size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Instagram', onPress: () => openLink(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`), external: true }] : []),
+    ...(pro.facebook ? [{ icon: <Facebook size={18} color={colors.textSecondary} strokeWidth={2.2} />, text: 'Facebook', onPress: () => openLink(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`), external: true }] : []),
   ];
 
   // Header star row with half-star precision (4.5 shows 4½ stars). Per
@@ -361,12 +367,12 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         </View>
         <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.actionRow}>
           <ActionButton icon={<Navigation size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.directions', { defaultValue: 'Itinéraire' })} onPress={openDirections} styles={styles} />
-          {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => Linking.openURL(`tel:${pro.phone}`)} styles={styles} /> : null}
+          {pro.phone ? <ActionButton icon={<Phone size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.callAction', { defaultValue: 'Appeler' })} onPress={() => openLink(`tel:${pro.phone}`)} styles={styles} /> : null}
           {pro.website ? <ActionButton icon={<Globe size={18} color={colors.cta} strokeWidth={2.4} />} label={t('pro.websiteShort', { defaultValue: 'Site web' })} onPress={openWebsite} styles={styles} /> : null}
           <ActionButton icon={<Share2 size={18} color={colors.cta} strokeWidth={2.4} />} label={t('common.share', { defaultValue: 'Partager' })} onPress={sharePage} styles={styles} />
-          {pro.instagram ? <ActionButton icon={<Instagram size={18} color={colors.cta} strokeWidth={2.4} />} label="Instagram" onPress={() => Linking.openURL(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} styles={styles} /> : null}
-          {pro.facebook ? <ActionButton icon={<Facebook size={18} color={colors.cta} strokeWidth={2.4} />} label="Facebook" onPress={() => Linking.openURL(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} styles={styles} /> : null}
-          {pro.email ? <ActionButton icon={<Mail size={18} color={colors.cta} strokeWidth={2.4} />} label="Email" onPress={() => Linking.openURL(`mailto:${pro.email}`)} styles={styles} /> : null}
+          {pro.instagram ? <ActionButton icon={<Instagram size={18} color={colors.cta} strokeWidth={2.4} />} label="Instagram" onPress={() => openLink(`https://instagram.com/${pro.instagram!.replace(/^@/, '')}`)} styles={styles} /> : null}
+          {pro.facebook ? <ActionButton icon={<Facebook size={18} color={colors.cta} strokeWidth={2.4} />} label="Facebook" onPress={() => openLink(pro.facebook!.startsWith('http') ? pro.facebook! : `https://facebook.com/${pro.facebook!}`)} styles={styles} /> : null}
+          {pro.email ? <ActionButton icon={<Mail size={18} color={colors.cta} strokeWidth={2.4} />} label="Email" onPress={() => openLink(`mailto:${pro.email}`)} styles={styles} /> : null}
         </GHScrollView>
       </View>
   );
@@ -826,7 +832,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
           </Pressable>
           <Pressable
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
-            onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${pro.primary_lat},${pro.primary_lng}`)}
+            onPress={() => openLink(`https://www.google.com/maps/dir/?api=1&destination=${pro.primary_lat},${pro.primary_lng}`)}
           >
             <Text style={styles.navigateText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</Text>
           </Pressable>

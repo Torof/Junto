@@ -23,6 +23,16 @@ import { ReportModal } from '@/components/report-modal';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
 
+// A malformed '%' in the route param throws URIError and would crash the
+// screen — decode defensively (audit 2026-07-13).
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 export default function PublicProfileScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -324,7 +334,7 @@ export default function PublicProfileScreen() {
     {participationId && !requestHandled && (
       <View style={[styles.requestCard, { bottom: insets.bottom + spacing.md }]}>
         <Text style={styles.requestContext} numberOfLines={2}>
-          {t('participants.requestFor', { title: activityTitle ? decodeURIComponent(activityTitle) : '...' })}
+          {t('participants.requestFor', { title: activityTitle ? safeDecode(activityTitle) : '...' })}
         </Text>
         <View style={styles.requestButtons}>
           <Pressable

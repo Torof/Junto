@@ -113,7 +113,9 @@ export default function CreateStep2() {
           pins={pins}
           routeLine={(() => {
             if (form.trace_geojson) {
-              return form.trace_geojson.coordinates.map((c) => [c[0]!, c[1]!] as [number, number]);
+              return form.trace_geojson.coordinates
+                .filter((c) => c.length >= 2 && c[0] != null && c[1] != null)
+                .map((c) => [c[0]!, c[1]!] as [number, number]);
             }
             const start = form.location_meeting;
             if (start && form.location_end) return [[start.lng, start.lat], [form.location_end.lng, form.location_end.lat]] as [number, number][];

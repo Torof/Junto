@@ -25,7 +25,7 @@ export default function AuthActivityScreen() {
       if (result.data) {
         queryClient.invalidateQueries({ queryKey: ['activity', id] });
       }
-    });
+    }, () => {});
   }, [id, queryClient]);
 
   const { data: activity, isLoading: activityLoading } = useQuery({

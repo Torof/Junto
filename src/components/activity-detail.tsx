@@ -620,10 +620,12 @@ export function ActivityDetail({
   };
 
   const handleDrawTraceSave = async (geojson: import('@/services/activity-service').GeoJsonLineString) => {
-    setDrawTraceOpen(false);
+    // Close only on success — if updateTrace fails (offline), keep the draw
+    // modal open so the just-drawn trace isn't lost (audit 2026-07-13).
     try {
       await activityService.updateTrace(activity.id, geojson);
       await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      setDrawTraceOpen(false);
       Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));

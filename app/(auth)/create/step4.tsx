@@ -65,16 +65,20 @@ export default function CreateStep4() {
       Burnt.toast({ title: t('toast.activityCreated'), preset: 'done' });
 
       if (isPrivate) {
-        const token = await activityService.getInviteToken(activityId);
-        if (token) {
-          try {
+        // Best-effort: the activity is already created. A token-fetch or share
+        // failure (transient network, cancelled share) must NOT jump to the
+        // outer catch — that showed a false "creation failed" and skipped the
+        // navigation, stranding the user on a blanked step4 (audit 2026-07-13).
+        try {
+          const token = await activityService.getInviteToken(activityId);
+          if (token) {
             // https link (not the raw junto:// scheme — messengers don't make
             // custom schemes tappable); the web /invite page relays into the app.
             const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
             await Share.share({ message: `${title} — https://${webHost}/invite/${token}` });
-          } catch {
-            // User cancelled share
           }
+        } catch {
+          // token fetch failed or user cancelled share — ignore, activity exists
         }
       }
 
