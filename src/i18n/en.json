@@ -1319,6 +1319,8 @@
     "delete": "Delete",
     "shareError": "Couldn't share the trace.",
     "pickTitle": "Choose a trace",
-    "pickEmpty": "Your library is empty. Create a trace from the \"My GPX traces\" menu."
+    "pickEmpty": "Your library is empty. Create a trace from the \"My GPX traces\" menu.",
+    "shareTitle": "Share trace",
+    "traceSent": "Trace sent"
   }
 }

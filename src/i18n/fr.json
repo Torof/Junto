@@ -1319,6 +1319,8 @@
     "delete": "Supprimer",
     "shareError": "Impossible de partager la trace.",
     "pickTitle": "Choisir une trace",
-    "pickEmpty": "Ta bibliothèque est vide. Crée une trace depuis le menu « Mes traces GPX »."
+    "pickEmpty": "Ta bibliothèque est vide. Crée une trace depuis le menu « Mes traces GPX ».",
+    "shareTitle": "Partager la trace",
+    "traceSent": "Trace envoyée"
   }
 }

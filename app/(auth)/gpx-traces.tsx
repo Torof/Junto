@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
+import { TraceShareSheet } from '@/components/trace-share-sheet';
 import { useGpxTraces, useCreateGpxTrace, useRenameGpxTrace, useDeleteGpxTrace } from '@/hooks/use-gpx-traces';
 import type { GpxTrace } from '@/services/gpx-trace-service';
 import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
@@ -32,6 +33,8 @@ export default function GpxTracesScreen() {
   const [drawOpen, setDrawOpen] = useState(false);
   const [preview, setPreview] = useState<GpxTrace | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const shareTraceRef = useRef<GpxTrace | null>(null);
 
   const handleSaveNew = (name: string, geojson: GpxTrace['geojson']) => {
     createMutation.mutate(
@@ -43,7 +46,7 @@ export default function GpxTracesScreen() {
     );
   };
 
-  const handleShare = async (trace: GpxTrace) => {
+  const handleNativeShare = async (trace: GpxTrace) => {
     try {
       const gpxXml = geoJsonLineStringToGpx(trace.geojson, trace.name);
       const safeName = trace.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.gpx$/i, '') + '.gpx';
@@ -120,7 +123,7 @@ export default function GpxTracesScreen() {
                 </View>
               </Pressable>
               <View style={styles.rowActions}>
-                <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => handleShare(trace)}>
+                <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => { shareTraceRef.current = trace; setShareOpen(true); }}>
                   <Share2 size={18} color={colors.textSecondary} strokeWidth={2.2} />
                 </Pressable>
                 <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => setRenaming({ id: trace.id, name: trace.name })}>
@@ -148,6 +151,14 @@ export default function GpxTracesScreen() {
         saving={createMutation.isPending}
         onClose={() => setDrawOpen(false)}
         onSave={handleSaveNew}
+      />
+
+      <TraceShareSheet
+        visible={shareOpen}
+        geojson={shareTraceRef.current?.geojson ?? null}
+        name={shareTraceRef.current?.name ?? ''}
+        onClose={() => setShareOpen(false)}
+        onExternalShare={() => { if (shareTraceRef.current) handleNativeShare(shareTraceRef.current); }}
       />
 
       {/* Read-only preview */}
