@@ -254,6 +254,9 @@ export default function PeerReviewScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
+      <Text style={styles.deferNote}>
+        {t('peerReview.deferNote', { defaultValue: 'Tes évaluations sont prises en compte 24 h après la fin de la sortie, une fois les présences confirmées.' })}
+      </Text>
 
       {windowState !== 'open' && (
         <View style={[styles.banner, windowState === 'closed' ? styles.bannerClosed : styles.bannerInfo]}>
@@ -459,6 +462,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   subtitle: {
     color: colors.textSecondary,
     fontSize: fontSizes.sm,
+    marginBottom: spacing.xs,
+  },
+  deferNote: {
+    color: colors.textMuted,
+    fontSize: fontSizes.xs,
+    lineHeight: 17,
     marginBottom: spacing.lg,
   },
   tappedDim: { opacity: 0.55 },

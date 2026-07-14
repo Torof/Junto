@@ -666,6 +666,7 @@
   "peerReview": {
     "headerTitle": "Peer review",
     "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
+    "deferNote": "Your ratings are applied 24h after the outing ends, once attendance is confirmed.",
     "empty": "No co-participants to rate.",
     "close": "Close",
     "windowLeft_one": "{{hours}}h left",

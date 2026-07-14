@@ -666,6 +666,7 @@
   "peerReview": {
     "headerTitle": "Évaluation",
     "subtitle": "Évalue tes co-participants — toggle un badge pour voter ou retirer ton vote.",
+    "deferNote": "Tes évaluations sont prises en compte 24 h après la fin de la sortie, une fois les présences confirmées.",
     "empty": "Aucun co-participant à évaluer.",
     "close": "Fermer",
     "windowLeft_one": "{{hours}}h restante",
