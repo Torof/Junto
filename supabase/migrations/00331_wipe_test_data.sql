@@ -10,15 +10,20 @@
 --   1. mv supabase/wipe-test-data.draft.sql \
 --        supabase/migrations/00XXX_wipe_test_data.sql   (next number)
 --   2. printf 'Y\n' | npx supabase db push
---   3. Optionally empty the 'avatars' and 'pro-photos' buckets from the
---      Supabase dashboard (Storage) — the object rows are deleted below,
---      which makes the files unreachable; the dashboard purge just
---      reclaims the underlying storage.
+--   3. REQUIRED — empty the 'avatars' and 'pro-photos' buckets from the
+--      Supabase dashboard (Storage). SQL cannot touch storage.objects
+--      (Supabase blocks direct deletion — use the Storage API/dashboard),
+--      so the files + object rows are cleared there, not here.
 --
 -- WHAT IT DELETES: all auth accounts. public.users cascades from
 -- auth.users (00001), and every content table cascades from users and/or
--- activities per the per-table deletion strategy (SECURITY.md). Storage
--- object rows for both buckets are cleared.
+-- activities per the per-table deletion strategy (SECURITY.md) — this
+-- includes gpx_traces (ON DELETE CASCADE, mig 00320). Storage files are NOT
+-- touched here — Supabase forbids direct DELETE on storage.objects, so both
+-- buckets must be emptied from the dashboard (step 3). admin_actions does NOT cascade (admin_id is
+-- ON DELETE SET NULL by design so the audit log survives an admin deletion,
+-- mig 00321) — it is therefore wiped EXPLICITLY here: every current row is a
+-- test admin action and this is a full pre-launch reset (Scott 2026-07-16).
 -- WHAT SURVIVES: the sports catalog, gear_catalog, app_config, the
 -- buckets themselves,
 -- and the whole schema (tables, functions, policies, triggers).
@@ -28,7 +33,11 @@
 
 DELETE FROM auth.users;
 
-DELETE FROM storage.objects WHERE bucket_id IN ('avatars', 'pro-photos');
+-- Storage files are emptied from the dashboard (Supabase blocks direct SQL
+-- deletion of storage.objects). See step 3 in the header.
+
+-- Audit log does not cascade (admin_id ON DELETE SET NULL) — wipe explicitly.
+DELETE FROM admin_actions;
 
 DO $$
 DECLARE
@@ -40,9 +49,9 @@ BEGIN
     'private_messages', 'wall_messages', 'notifications',
     'reputation_votes', 'peer_validations', 'presence_tokens',
     'push_tokens', 'seat_requests', 'activity_alerts',
-    'activity_gear', 'activity_gear_missing', 'activity_gear_requests',
+    'activity_gear', 'activity_gear_missing',
     'reports', 'user_badge_progression', 'blocked_users',
-    'sport_level_endorsements', '_set_activity_gear_log',
+    'gpx_traces', 'admin_actions',
     'pro_profiles', 'pro_offerings', 'pro_reviews', 'offering_reviews',
     'pro_profile_photos', 'pro_offering_photos', 'pro_community_photos'
   ] LOOP
