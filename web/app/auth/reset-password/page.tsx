@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { OpenAppLink } from '../../open-app-link';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
+import { APK_DOWNLOAD_URL } from '@/lib/download';
 
 export default function ResetPasswordBridge() {
   const [deepLink, setDeepLink] = useState<string | null>(null);

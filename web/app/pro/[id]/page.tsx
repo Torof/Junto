@@ -1,6 +1,6 @@
 import { OpenAppLink } from '../../open-app-link';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
+import { APK_DOWNLOAD_URL } from '@/lib/download';
 
 // Static teaser — pro_profiles is NOT anon-readable (RLS 00256), so this page
 // can't render the storefront's data. It exists so shared getjunto.app/pro/{id}

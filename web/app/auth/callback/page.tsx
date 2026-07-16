@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { OpenAppLink } from '../../open-app-link';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
+import { APK_DOWNLOAD_URL } from '@/lib/download';
 
 // Signup email confirmation bridge — mirror of the reset-password bridge.
 // Supabase confirms the email, redirects here with the token, and we

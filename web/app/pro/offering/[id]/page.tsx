@@ -1,7 +1,7 @@
 import { getSupabase } from '@/lib/supabase';
 import { OpenAppLink } from '../../../open-app-link';
 
-const APK_DOWNLOAD_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ?? '#';
+import { APK_DOWNLOAD_URL } from '@/lib/download';
 
 interface Offering {
   id: string;

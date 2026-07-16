@@ -1,14 +1,6 @@
 import QRCode from 'qrcode';
 import { CREAM, INK, INK_SOFT, ORANGE, SectionLabel, TopoLines } from './shared';
-
-// Latest preview APK (v0.1.3 build #12, EAS 2026-07-10) — built from main,
-// includes everything to date (RDV merge, presence hardening, deep-link
-// anchor, passionné identity). The QR and the download button both point
-// here. Each new build produces a fresh artifact URL: re-point this (or
-// override via NEXT_PUBLIC_APK_DOWNLOAD_URL in Vercel) when you cut a new APK.
-const APK_DOWNLOAD_URL =
-  process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ??
-  'https://expo.dev/artifacts/eas/iUZAw1Wmi0ofcF45hRYgm2JEN8g6K76vvEV_HSRdV-o.apk';
+import { APK_DOWNLOAD_URL } from '@/lib/download';
 
 async function getQrDataUrl(url: string): Promise<string> {
   return QRCode.toDataURL(url, {
