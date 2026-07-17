@@ -17,6 +17,7 @@
     "createAccount": "Create account",
     "email": "Email",
     "password": "Password",
+    "confirmPassword": "Confirm password",
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
     "login": "Sign in",
@@ -50,6 +51,7 @@
     "errRateLimit": "Too many attempts, try again in a few minutes.",
     "errNetwork": "Connection issue — check your internet.",
     "errTosRequired": "Please accept the terms to continue.",
+    "errPasswordMismatch": "The two passwords don't match.",
     "confirmVerifying": "Signing you in…",
     "confirmInvalidTitle": "Link expired",
     "confirmInvalidBody": "This confirmation link is no longer valid. Sign in with your email and password."

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   Image, ActivityIndicator,
@@ -27,7 +27,9 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const confirmRef = useRef<TextInput>(null);
   const [tosAccepted, setTosAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export default function LoginScreen() {
     setMode(next);
     setError(null);
     setPassword('');
+    setConfirmPassword('');
   };
 
   const handleSubmit = async () => {
@@ -59,6 +62,10 @@ export default function LoginScreen() {
     }
     if (mode !== 'forgot' && !password.trim()) {
       setError(t('auth.errPasswordTooShort'));
+      return;
+    }
+    if (mode === 'register' && password !== confirmPassword) {
+      setError(t('auth.errPasswordMismatch'));
       return;
     }
     if (mode === 'register' && !tosAccepted) {
@@ -91,32 +98,32 @@ export default function LoginScreen() {
     : t('auth.sendReset');
 
   return (
-    <KeyboardAwareScrollView
-      style={styles.container}
-      contentContainerStyle={[
-        styles.scroll,
-        { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
-      ]}
-      restBottom={insets.bottom}
-    >
+    <View style={styles.container}>
+      <Svg
+        style={StyleSheet.absoluteFill}
+        viewBox="0 0 600 1000"
+        preserveAspectRatio="xMidYMid slice"
+        pointerEvents="none"
+      >
+        <Rect width={600} height={1000} fill="transparent" />
+        <G fill="none" stroke={colors.textPrimary} strokeWidth={0.6} opacity={0.06}>
+          {Array.from({ length: 26 }).map((_, i) => (
+            <Path
+              key={i}
+              d={`M 0 ${30 + i * 38} Q 150 ${20 + i * 38} 300 ${33 + i * 38} T 600 ${27 + i * 38}`}
+            />
+          ))}
+        </G>
+      </Svg>
+      <KeyboardAwareScrollView
+        style={styles.flex}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+        ]}
+        restBottom={insets.bottom}
+      >
         <View style={styles.content}>
-        <Svg
-          style={StyleSheet.absoluteFill}
-          viewBox="0 0 600 1000"
-          preserveAspectRatio="xMidYMid slice"
-          pointerEvents="none"
-        >
-          <Rect width={600} height={1000} fill="transparent" />
-          <G fill="none" stroke={colors.textPrimary} strokeWidth={0.6} opacity={0.06}>
-            {Array.from({ length: 26 }).map((_, i) => (
-              <Path
-                key={i}
-                d={`M 0 ${30 + i * 38} Q 150 ${20 + i * 38} 300 ${33 + i * 38} T 600 ${27 + i * 38}`}
-              />
-            ))}
-          </G>
-        </Svg>
-
         <View style={styles.header}>
           <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
           <Text style={styles.brand}>{t('app.name')}</Text>
@@ -175,8 +182,8 @@ export default function LoginScreen() {
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit}
+              returnKeyType={mode === 'register' ? 'next' : 'done'}
+              onSubmitEditing={mode === 'register' ? () => confirmRef.current?.focus() : handleSubmit}
             />
             <Pressable style={styles.eyeButton} onPress={() => setShowPassword((s) => !s)}>
               {showPassword
@@ -184,6 +191,22 @@ export default function LoginScreen() {
                 : <Eye size={20} color={colors.textSecondary} />}
             </Pressable>
           </View>
+        )}
+
+        {mode === 'register' && (
+          <TextInput
+            ref={confirmRef}
+            style={styles.input}
+            placeholder={t('auth.confirmPassword')}
+            placeholderTextColor={colors.textSecondary}
+            value={confirmPassword}
+            onChangeText={(v) => { setConfirmPassword(v); setError(null); }}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="new-password"
+            returnKeyType="done"
+            onSubmitEditing={handleSubmit}
+          />
         )}
 
         {mode === 'register' && (
@@ -230,14 +253,16 @@ export default function LoginScreen() {
           </Pressable>
         )}
         </View>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl },
-  content: { flex: 1, justifyContent: 'center' },
+  flex: { flex: 1 },
+  scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
+  content: { width: '100%' },
 
   header: { alignItems: 'center', marginBottom: spacing.xl },
   logo: { width: 76, height: 76, marginBottom: spacing.md, borderRadius: 18 },

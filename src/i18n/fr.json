@@ -17,6 +17,7 @@
     "createAccount": "Créer un compte",
     "email": "Email",
     "password": "Mot de passe",
+    "confirmPassword": "Confirme le mot de passe",
     "newPassword": "Nouveau mot de passe",
     "confirmPassword": "Confirme le mot de passe",
     "login": "Se connecter",
@@ -50,6 +51,7 @@
     "errRateLimit": "Trop de tentatives, réessaie dans quelques minutes.",
     "errNetwork": "Problème de connexion — vérifie ton internet.",
     "errTosRequired": "Merci d'accepter les conditions pour continuer.",
+    "errPasswordMismatch": "Les deux mots de passe ne correspondent pas.",
     "confirmVerifying": "Connexion en cours…",
     "confirmInvalidTitle": "Lien expiré",
     "confirmInvalidBody": "Ce lien de confirmation n'est plus valide. Connecte-toi avec ton email et ton mot de passe."
