@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { ShieldCheck } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -46,6 +47,14 @@ export default function OnboardingScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>{t('onboarding.welcome')}</Text>
         <Text style={styles.subtitle}>{t('onboarding.completeProfile')}</Text>
+
+        <View style={styles.privacyCard}>
+          <ShieldCheck size={22} color={colors.cta} strokeWidth={2.2} style={styles.privacyIcon} />
+          <View style={styles.privacyTextWrap}>
+            <Text style={styles.privacyTitle}>{t('onboarding.privacyTitle')}</Text>
+            <Text style={styles.privacyBody}>{t('onboarding.privacyBody')}</Text>
+          </View>
+        </View>
 
         <Pressable style={styles.checkbox} onPress={() => setAgeConfirmed(!ageConfirmed)}>
           <View style={[styles.checkboxBox, ageConfirmed && styles.checkboxChecked]}>
@@ -99,6 +108,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.md,
     textAlign: 'center',
     marginBottom: spacing.xl,
+  },
+  privacyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: colors.cta + '14',
+    borderWidth: 1,
+    borderColor: colors.cta + '40',
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  privacyIcon: { marginTop: 1 },
+  privacyTextWrap: { flex: 1 },
+  privacyTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  privacyBody: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    lineHeight: 17,
   },
   checkbox: {
     flexDirection: 'row',

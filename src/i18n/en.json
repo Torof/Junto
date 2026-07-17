@@ -57,6 +57,8 @@
   "onboarding": {
     "welcome": "Welcome!",
     "completeProfile": "Just a few more things to get started",
+    "privacyTitle": "Your data stays with you.",
+    "privacyBody": "Junto only uses it to run the app. Nothing leaves the application, nothing is sold to third parties. Ever.",
     "dateOfBirth": "Date of birth",
     "selectDate": "Select a date",
     "acceptTos": "I accept the terms of service and privacy policy",
@@ -436,8 +438,8 @@
     "cta": "Settings"
   },
   "bgLocation": {
-    "title": "Auto-validate when you arrive",
-    "body": "Allow Junto to detect you arriving at the activity even while it runs in the background. Your presence will be validated automatically.",
+    "title": "Your presence, validated on its own",
+    "body": "Allow location access at all times: Junto will automatically validate your presence when you arrive at an outing. Nothing to do on site.",
     "enable": "Enable",
     "skip": "Not now",
     "foregroundFirst": "Junto needs basic location access first."
@@ -496,7 +498,7 @@
     "create": {
       "title": "Create your outing",
       "body": "Tap the + button, pick your sport, the spot and the date — and publish. Others can join you.",
-      "sports": "Across 51 sports"
+      "sports": "Across dozens of outdoor sports"
     },
     "alert": {
       "title": "Never miss out",
