@@ -232,7 +232,7 @@ export default async function UpcomingTrips() {
                       textTransform: 'uppercase',
                     }}
                   >
-                    Partants
+                    Participants
                   </div>
                 </div>
               </a>

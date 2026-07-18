@@ -42,7 +42,7 @@ const PRO_FEATURES: Feature[] = [
   {
     icon: '★',
     title: 'Les avis, en transparence',
-    body: 'Note, commente, le pro répond. Comme sur une carte que tu connais déjà.',
+    body: 'Note, commente, le pro répond. De quoi choisir en confiance.',
   },
 ];
 

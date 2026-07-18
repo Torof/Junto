@@ -214,7 +214,7 @@ export default function Organisation() {
             S&apos;organiser n&apos;a jamais été <span style={{ color: ORANGE }}>aussi simple</span>.
           </h2>
           <p style={{ fontSize: 18, lineHeight: 1.55, margin: '18px 0 0', color: INK_SOFT, maxWidth: 640 }}>
-            Une sortie, ce n&apos;est pas que des partants : il faut répartir les voitures, le matos,
+            Une sortie, ce n&apos;est pas que des participants : il faut répartir les voitures, le matos,
             se parler. Sur Junto, tout ça vit directement dans la sortie.
           </p>
         </div>
