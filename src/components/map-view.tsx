@@ -136,14 +136,17 @@ interface MapViewProps {
   // the caller can convert screen px → geo (getCoordinateFromView), and let it
   // lock the map gestures while drawing. All optional/backward-compatible.
   mapViewRef?: RefObject<JuntoMapRef | null>;
+  mapCameraRef?: RefObject<JuntoCameraRef | null>;
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
   rotateEnabled?: boolean;
   pitchEnabled?: boolean;
 }
 
-// Underlying rnmapbox MapView instance type — carries getCoordinateFromView.
+// Underlying rnmapbox instance types — MapView carries getCoordinateFromView,
+// Camera carries setCamera (used by the freehand tool's manual two-finger pan).
 export type JuntoMapRef = ComponentRef<typeof Mapbox.MapView>;
+export type JuntoCameraRef = ComponentRef<typeof Mapbox.Camera>;
 
 // Single point shape with a type discriminator. The unified Supercluster
 // groups activities, pros, and offerings by spatial proximity regardless
@@ -185,6 +188,7 @@ export function JuntoMapView({
   radiusCenter,
   surfaceView = true,
   mapViewRef,
+  mapCameraRef,
   scrollEnabled = true,
   zoomEnabled = true,
   rotateEnabled = true,
@@ -488,7 +492,10 @@ export function JuntoMapView({
       }}
     >
       <Mapbox.Camera
-        ref={cameraRef}
+        ref={(node) => {
+          cameraRef.current = node;
+          if (mapCameraRef) mapCameraRef.current = node;
+        }}
         defaultSettings={{
           centerCoordinate: center,
           zoomLevel: zoom,
