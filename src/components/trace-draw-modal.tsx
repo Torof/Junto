@@ -88,6 +88,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   // gesture start and once a gesture involves 2 fingers it stays a map gesture.
   const gestureKindRef = useRef<'none' | 'draw' | 'map'>('none');
   const panRef = useRef<PanState | null>(null);
+  const [dbg, setDbg] = useState(''); // TEMP diagnostic for the two-finger gesture
 
   useEffect(() => { if (!visible) setMode('nav'); }, [visible]);
 
@@ -166,11 +167,11 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => {
-        const touches = e.nativeEvent.touches;
-        if (touches.length >= 2) {
+      onPanResponderGrant: (e, g) => {
+        const n = g.numberActiveTouches;
+        if (n >= 2 && e.nativeEvent.touches.length >= 2) {
           gestureKindRef.current = 'map';
-          const { cx, cy, dist } = centroidOf(touches);
+          const { cx, cy, dist } = centroidOf(e.nativeEvent.touches);
           void startPan(cx, cy, dist);
         } else {
           gestureKindRef.current = 'draw';
@@ -178,12 +179,14 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           setLiveTick((t) => t + 1);
         }
       },
-      onPanResponderMove: (e) => {
-        const touches = e.nativeEvent.touches;
-        if (touches.length >= 2) {
-          const { cx, cy, dist } = centroidOf(touches);
+      onPanResponderMove: (e, g) => {
+        const n = g.numberActiveTouches;
+        const tl = e.nativeEvent.touches.length;
+        setDbg(`n=${n}/${tl} kind=${gestureKindRef.current} cam=${cameraRef.current ? 'Y' : 'N'} rdy=${panRef.current?.ready ? 'Y' : 'N'}`);
+        if (n >= 2) {
+          if (tl < 2) return; // count says 2 but positions not both present this frame
+          const { cx, cy, dist } = centroidOf(e.nativeEvent.touches);
           if (gestureKindRef.current !== 'map') {
-            // a 1-finger stroke just gained a 2nd finger → drop it, become a map gesture
             gestureKindRef.current = 'map';
             livePtsRef.current = [];
             setLiveTick((t) => t + 1);
@@ -282,6 +285,12 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           </Text>
         </View>
 
+        {mode === 'draw' && dbg ? (
+          <View style={[styles.dbgBox, { top: insets.top + 56 }]} pointerEvents="none">
+            <Text style={styles.dbgText}>{dbg}</Text>
+          </View>
+        ) : null}
+
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
           <Pressable
             style={[styles.modeBtn, mode === 'draw' && styles.modeBtnActive]}
@@ -364,6 +373,12 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   drawOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 5 },
+  dbgBox: {
+    position: 'absolute', alignSelf: 'center', zIndex: 15,
+    backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm, paddingVertical: 4,
+  },
+  dbgText: { color: '#0F0', fontSize: 12, fontWeight: '700' },
   modeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: spacing.sm, borderRadius: radius.md,
