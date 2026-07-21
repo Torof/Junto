@@ -1323,7 +1323,7 @@
     "drawHint": "Tap the map to drop points",
     "drawFreehand": "Draw freehand",
     "drawNavigate": "Navigate · drop points",
-    "drawFreehandHint": "Draw with your finger · map locked",
+    "drawFreehandHint": "One finger to draw · two fingers to move the map",
     "drawStats": "{{n}} pts · {{km}} km",
     "undo": "Undo point",
     "clear": "Clear",
