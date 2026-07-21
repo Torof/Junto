@@ -4,7 +4,7 @@ import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, Undo2, Trash2, Pencil, Hand } from 'lucide-react-native';
-import { JuntoMapView, type MapPin, type JuntoMapRef, type JuntoCameraRef } from './map-view';
+import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -12,30 +12,6 @@ import { distanceMeters } from '@/utils/geo';
 import { simplifyRDP, type Pt } from '@/utils/simplify-path';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import type { GeoJsonLineString } from '@/services/activity-service';
-
-// Two-finger gesture bookkeeping: measured px→geo scale + accumulating camera
-// state, so the overlay can drive the (locked) map's camera itself.
-interface PanState {
-  ready: boolean;
-  startLngPerPx: number;
-  startLatPerPx: number;
-  centerLng: number;
-  centerLat: number;
-  startZoom: number;
-  startDist: number;
-  lastCx: number;
-  lastCy: number;
-}
-
-function centroidOf(touches: readonly { locationX: number; locationY: number }[]) {
-  const a = touches[0]!;
-  const b = touches[1]!;
-  return {
-    cx: (a.locationX + b.locationX) / 2,
-    cy: (a.locationY + b.locationY) / 2,
-    dist: Math.hypot(a.locationX - b.locationX, a.locationY - b.locationY) || 1,
-  };
-}
 
 interface Props {
   visible: boolean;
@@ -81,13 +57,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   // is locked and the finger traces a line.
   const [mode, setMode] = useState<'nav' | 'draw'>('nav');
   const mapRef = useRef<JuntoMapRef>(null);
-  const cameraRef = useRef<JuntoCameraRef>(null);
   const livePtsRef = useRef<Pt[]>([]);        // current stroke, in screen px
   const [, setLiveTick] = useState(0);         // forces re-render of the live SVG
-  // One finger draws; two fingers drive the (locked) camera. Kind is latched at
-  // gesture start and once a gesture involves 2 fingers it stays a map gesture.
-  const gestureKindRef = useRef<'none' | 'draw' | 'map'>('none');
-  const panRef = useRef<PanState | null>(null);
 
   useEffect(() => { if (!visible) setMode('nav'); }, [visible]);
 
@@ -112,88 +83,15 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     }
   }, []);
 
-  // Two-finger START: measure the map's real px→geo scale at the centroid (2
-  // getCoordinateFromView probes) + read center/zoom, so subsequent moves can
-  // pan/zoom the camera synchronously (no per-frame async).
-  const startPan = useCallback(async (cx: number, cy: number, dist: number) => {
-    const map = mapRef.current;
-    if (!map) return;
-    panRef.current = {
-      ready: false, startLngPerPx: 0, startLatPerPx: 0,
-      centerLng: 0, centerLat: 0, startZoom: 0, startDist: dist, lastCx: cx, lastCy: cy,
-    };
-    try {
-      const [g0, gx, gy, center, zoom] = await Promise.all([
-        map.getCoordinateFromView([cx, cy]),
-        map.getCoordinateFromView([cx + 50, cy]),
-        map.getCoordinateFromView([cx, cy + 50]),
-        map.getCenter(),
-        map.getZoom(),
-      ]);
-      const p = panRef.current;
-      if (!p) return;
-      p.startLngPerPx = (gx[0]! - g0[0]!) / 50;
-      p.startLatPerPx = (gy[1]! - g0[1]!) / 50; // negative (screen y grows downward)
-      p.centerLng = center[0]!;
-      p.centerLat = center[1]!;
-      p.startZoom = zoom;
-      p.ready = true;
-    } catch {
-      panRef.current = null; // measurement failed → skip pan this gesture
-    }
-  }, []);
-
-  // Two-finger MOVE (sync): apply centroid translation (pan) + pinch ratio (zoom).
-  const applyPan = useCallback((cx: number, cy: number, dist: number) => {
-    const p = panRef.current;
-    const cam = cameraRef.current;
-    if (!p || !p.ready || !cam) return;
-    const ratio = dist / p.startDist;
-    const lngPerPx = p.startLngPerPx / ratio;
-    const latPerPx = p.startLatPerPx / ratio;
-    p.centerLng -= (cx - p.lastCx) * lngPerPx;
-    p.centerLat -= (cy - p.lastCy) * latPerPx;
-    p.lastCx = cx;
-    p.lastCy = cy;
-    cam.setCamera({
-      centerCoordinate: [p.centerLng, p.centerLat],
-      zoomLevel: p.startZoom + Math.log2(ratio),
-      animationDuration: 0,
-    });
-  }, []);
-
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        const touches = e.nativeEvent.touches;
-        if (touches.length >= 2) {
-          gestureKindRef.current = 'map';
-          const { cx, cy, dist } = centroidOf(touches);
-          void startPan(cx, cy, dist);
-        } else {
-          gestureKindRef.current = 'draw';
-          livePtsRef.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }];
-          setLiveTick((t) => t + 1);
-        }
+        livePtsRef.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }];
+        setLiveTick((t) => t + 1);
       },
       onPanResponderMove: (e) => {
-        const touches = e.nativeEvent.touches;
-        if (touches.length >= 2) {
-          const { cx, cy, dist } = centroidOf(touches);
-          if (gestureKindRef.current !== 'map') {
-            // a 1-finger stroke just gained a 2nd finger → drop it, become a map gesture
-            gestureKindRef.current = 'map';
-            livePtsRef.current = [];
-            setLiveTick((t) => t + 1);
-            void startPan(cx, cy, dist);
-          } else {
-            applyPan(cx, cy, dist);
-          }
-          return;
-        }
-        if (gestureKindRef.current !== 'draw') return; // one finger after a pinch → ignore
         const { locationX: x, locationY: y } = e.nativeEvent;
         const last = livePtsRef.current[livePtsRef.current.length - 1];
         if (!last || Math.hypot(x - last.x, y - last.y) >= 2) {
@@ -201,16 +99,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           setLiveTick((t) => t + 1);
         }
       },
-      onPanResponderRelease: () => {
-        if (gestureKindRef.current === 'draw') void commitStroke();
-        gestureKindRef.current = 'none';
-        panRef.current = null;
-      },
-      onPanResponderTerminate: () => {
-        if (gestureKindRef.current === 'draw') void commitStroke();
-        gestureKindRef.current = 'none';
-        panRef.current = null;
-      },
+      onPanResponderRelease: () => { void commitStroke(); },
+      onPanResponderTerminate: () => { void commitStroke(); },
     }),
   ).current;
 
@@ -244,7 +134,6 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           onMapPress={mode === 'nav' ? addPoint : undefined}
           surfaceView={false}
           mapViewRef={mapRef}
-          mapCameraRef={cameraRef}
           scrollEnabled={mode === 'nav'}
           zoomEnabled={mode === 'nav'}
           rotateEnabled={mode === 'nav'}
@@ -275,7 +164,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
         <View style={[styles.topBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
           <Text style={styles.topBannerText}>
             {mode === 'draw'
-              ? t('gpx.drawFreehandHint', { defaultValue: '1 doigt pour tracer · 2 doigts pour bouger la carte' })
+              ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
               : points.length === 0
                 ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
                 : t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: points.length, km: distanceKm.toFixed(1) })}
