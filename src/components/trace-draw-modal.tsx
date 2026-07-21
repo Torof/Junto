@@ -1,13 +1,15 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, Pressable, Modal, TextInput, StyleSheet } from 'react-native';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { View, Text, Pressable, Modal, TextInput, StyleSheet, PanResponder } from 'react-native';
+import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Undo2, Trash2 } from 'lucide-react-native';
-import { JuntoMapView, type MapPin } from './map-view';
+import { X, Undo2, Trash2, Pencil, Hand } from 'lucide-react-native';
+import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { distanceMeters } from '@/utils/geo';
+import { simplifyRDP, type Pt } from '@/utils/simplify-path';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import type { GeoJsonLineString } from '@/services/activity-service';
 
@@ -51,6 +53,57 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     setPoints((prev) => [...prev, [lng, lat]]);
   }, []);
 
+  // Freehand mode: 'nav' = pan/zoom + tap-to-place (default); 'draw' = the map
+  // is locked and the finger traces a line.
+  const [mode, setMode] = useState<'nav' | 'draw'>('nav');
+  const mapRef = useRef<JuntoMapRef>(null);
+  const livePtsRef = useRef<Pt[]>([]);        // current stroke, in screen px
+  const [, setLiveTick] = useState(0);         // forces re-render of the live SVG
+
+  useEffect(() => { if (!visible) setMode('nav'); }, [visible]);
+
+  // On stroke end: thin the finger path (RDP, px) then convert only the kept
+  // points screen→geo in ONE batch (getCoordinateFromView is async), and append
+  // to the trace. Screen-space preview + deferred conversion = no drawing lag.
+  const commitStroke = useCallback(async () => {
+    const raw = livePtsRef.current;
+    livePtsRef.current = [];
+    setLiveTick((t) => t + 1);
+    const map = mapRef.current;
+    if (raw.length < 2 || !map) return;
+    const thinned = simplifyRDP(raw, 3);
+    try {
+      const coords = await Promise.all(thinned.map((p) => map.getCoordinateFromView([p.x, p.y])));
+      const geo = coords
+        .filter((c): c is number[] => Array.isArray(c) && typeof c[0] === 'number' && typeof c[1] === 'number')
+        .map((c) => [c[0]!, c[1]!] as [number, number]);
+      if (geo.length >= 1) setPoints((prev) => [...prev, ...geo]);
+    } catch {
+      /* rare conversion failure — drop this stroke silently */
+    }
+  }, []);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (e) => {
+        livePtsRef.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }];
+        setLiveTick((t) => t + 1);
+      },
+      onPanResponderMove: (e) => {
+        const { locationX: x, locationY: y } = e.nativeEvent;
+        const last = livePtsRef.current[livePtsRef.current.length - 1];
+        if (!last || Math.hypot(x - last.x, y - last.y) >= 2) {
+          livePtsRef.current.push({ x, y });
+          setLiveTick((t) => t + 1);
+        }
+      },
+      onPanResponderRelease: () => { void commitStroke(); },
+      onPanResponderTerminate: () => { void commitStroke(); },
+    }),
+  ).current;
+
   const distanceKm = useMemo(() => {
     let m = 0;
     for (let i = 1; i < points.length; i++) {
@@ -78,9 +131,31 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           center={center}
           pins={pins}
           routeLine={routeLine}
-          onMapPress={addPoint}
+          onMapPress={mode === 'nav' ? addPoint : undefined}
           surfaceView={false}
+          mapViewRef={mapRef}
+          scrollEnabled={mode === 'nav'}
+          zoomEnabled={mode === 'nav'}
+          rotateEnabled={mode === 'nav'}
+          pitchEnabled={mode === 'nav'}
         />
+
+        {mode === 'draw' && (
+          <View style={styles.drawOverlay} {...panResponder.panHandlers}>
+            <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+              {livePtsRef.current.length >= 2 && (
+                <Polyline
+                  points={livePtsRef.current.map((p) => `${p.x},${p.y}`).join(' ')}
+                  fill="none"
+                  stroke={colors.cta}
+                  strokeWidth={4}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              )}
+            </Svg>
+          </View>
+        )}
 
         <Pressable style={[styles.closeBtn, { top: insets.top + spacing.sm }]} onPress={onClose} hitSlop={8}>
           <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
@@ -88,13 +163,28 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
         <View style={[styles.topBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
           <Text style={styles.topBannerText}>
-            {points.length === 0
-              ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
-              : t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: points.length, km: distanceKm.toFixed(1) })}
+            {mode === 'draw'
+              ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
+              : points.length === 0
+                ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
+                : t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: points.length, km: distanceKm.toFixed(1) })}
           </Text>
         </View>
 
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
+          <Pressable
+            style={[styles.modeBtn, mode === 'draw' && styles.modeBtnActive]}
+            onPress={() => setMode((m) => (m === 'nav' ? 'draw' : 'nav'))}
+          >
+            {mode === 'nav'
+              ? <Pencil size={18} color={colors.cta} strokeWidth={2.4} />
+              : <Hand size={18} color="#FFFFFF" strokeWidth={2.4} />}
+            <Text style={[styles.modeBtnText, mode === 'draw' && styles.modeBtnTextActive]}>
+              {mode === 'nav'
+                ? t('gpx.drawFreehand', { defaultValue: 'Dessiner à main levée' })
+                : t('gpx.drawNavigate', { defaultValue: 'Naviguer · placer des points' })}
+            </Text>
+          </Pressable>
           <View style={styles.actionsRow}>
             <Pressable
               style={[styles.secondaryBtn, points.length === 0 && styles.disabled]}
@@ -162,6 +252,15 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  drawOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 5 },
+  modeBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: spacing.sm, borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.cta, backgroundColor: colors.surface,
+  },
+  modeBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  modeBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  modeBtnTextActive: { color: '#FFFFFF' },
   closeBtn: {
     position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',

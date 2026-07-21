@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, type ComponentRef, type RefObject } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
@@ -132,7 +132,18 @@ interface MapViewProps {
   // in a bottom band (Scott 2026-07-12); a TextureView (false) re-measures
   // with its container as it grows, so pass surfaceView={false} there.
   surfaceView?: boolean;
+  // Freehand-draw support (trace-draw-modal): expose the underlying MapView so
+  // the caller can convert screen px → geo (getCoordinateFromView), and let it
+  // lock the map gestures while drawing. All optional/backward-compatible.
+  mapViewRef?: RefObject<JuntoMapRef | null>;
+  scrollEnabled?: boolean;
+  zoomEnabled?: boolean;
+  rotateEnabled?: boolean;
+  pitchEnabled?: boolean;
 }
+
+// Underlying rnmapbox MapView instance type — carries getCoordinateFromView.
+export type JuntoMapRef = ComponentRef<typeof Mapbox.MapView>;
 
 // Single point shape with a type discriminator. The unified Supercluster
 // groups activities, pros, and offerings by spatial proximity regardless
@@ -173,6 +184,11 @@ export function JuntoMapView({
   radiusKm,
   radiusCenter,
   surfaceView = true,
+  mapViewRef,
+  scrollEnabled = true,
+  zoomEnabled = true,
+  rotateEnabled = true,
+  pitchEnabled = true,
 }: MapViewProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -441,8 +457,13 @@ export function JuntoMapView({
 
   const mapView = (
     <Mapbox.MapView
+      ref={mapViewRef}
       style={styles.map}
       surfaceView={surfaceView}
+      scrollEnabled={scrollEnabled}
+      zoomEnabled={zoomEnabled}
+      rotateEnabled={rotateEnabled}
+      pitchEnabled={pitchEnabled}
       styleURL={MAP_STYLE_JSONS[mapStyleKey] ? undefined : MAP_STYLE_URLS[mapStyleKey]}
       styleJSON={MAP_STYLE_JSONS[mapStyleKey]}
       logoEnabled={false}
