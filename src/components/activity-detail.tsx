@@ -12,7 +12,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, List, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -31,6 +31,7 @@ import { formatLevelRange } from '@/constants/sport-levels';
 import { JuntoMapView, type MapPin } from './map-view';
 import { MapLegend } from './map-legend';
 import { TraceDrawModal } from './trace-draw-modal';
+import { TracePickerModal } from './trace-picker-modal';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
 import { ActivityWall } from './activity-wall';
@@ -619,6 +620,19 @@ export function ActivityDetail({
     ]);
   };
 
+  const handleTraceFromLibrary = async (geojson: import('@/services/activity-service').GeoJsonLineString) => {
+    // Library traces are attached as a COPY (the activity keeps its own trace,
+    // independent of the source library entry). Same apply path as import/draw.
+    setShowTracePicker(false);
+    try {
+      await activityService.updateTrace(activity.id, geojson);
+      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    }
+  };
+
   const handleDrawTraceSave = async (geojson: import('@/services/activity-service').GeoJsonLineString) => {
     // Close only on success — if updateTrace fails (offline), keep the draw
     // modal open so the just-drawn trace isn't lost (audit 2026-07-13).
@@ -634,6 +648,7 @@ export function ActivityDetail({
 
   const [activeTab, setActiveTab] = useState<'info' | 'transport' | 'gear' | 'chat'>('info');
   const [showMapMenu, setShowMapMenu] = useState(false);
+  const [showTracePicker, setShowTracePicker] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
   const gearSectionRef = useRef<GearSectionHandle>(null);
   const myOutingCardRef = useRef<MyOutingCardHandle>(null);
@@ -850,6 +865,12 @@ export function ActivityDetail({
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handlePickTrace(); }}>
                           <Route size={15} color={colors.cta} strokeWidth={2.2} />
                           <Text style={styles.mapMenuItemText}>{activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}</Text>
+                        </Pressable>
+                      )}
+                      {isCreator && (
+                        <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setShowTracePicker(true); }}>
+                          <List size={15} color={colors.cta} strokeWidth={2.2} />
+                          <Text style={styles.mapMenuItemText}>{t('activity.traceFromLibrary', { defaultValue: 'Depuis ma bibliothèque' })}</Text>
                         </Pressable>
                       )}
                       {isCreator && (
@@ -1229,6 +1250,12 @@ export function ActivityDetail({
         askName={false}
         onClose={() => setDrawTraceOpen(false)}
         onSave={(_name, geojson) => handleDrawTraceSave(geojson)}
+      />
+
+      <TracePickerModal
+        visible={showTracePicker}
+        onClose={() => setShowTracePicker(false)}
+        onSelect={(geojson) => handleTraceFromLibrary(geojson)}
       />
 
       <Modal visible={showFullMap} animationType="slide" statusBarTranslucent onRequestClose={() => setShowFullMap(false)}>

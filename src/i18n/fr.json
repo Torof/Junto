@@ -95,6 +95,7 @@
     "youAreIn": "Tu participes à cette activité !",
     "traceImport": "Importer une trace GPX",
     "traceReplace": "Remplacer la trace",
+    "traceFromLibrary": "Depuis ma bibliothèque",
     "traceRemove": "Supprimer la trace",
     "traceImported": "Trace importée",
     "traceCleared": "Trace supprimée",
