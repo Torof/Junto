@@ -240,19 +240,24 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.container}>
-        <JuntoMapView
-          center={center}
-          pins={pins}
-          routeLine={routeLine}
-          onMapPress={mode === 'nav' ? addPoint : undefined}
-          surfaceView={false}
-          mapViewRef={mapRef}
-          mapCameraRef={cameraRef}
-          scrollEnabled={mode === 'nav'}
-          zoomEnabled={mode === 'nav'}
-          rotateEnabled={mode === 'nav'}
-          pitchEnabled={mode === 'nav'}
-        />
+        {/* In draw mode the map is pointerEvents:none so the native map can't
+            steal the 2nd finger — ALL touches reach the overlay, which drives
+            the camera programmatically (unaffected by pointerEvents). */}
+        <View style={StyleSheet.absoluteFill} pointerEvents={mode === 'draw' ? 'none' : 'auto'}>
+          <JuntoMapView
+            center={center}
+            pins={pins}
+            routeLine={routeLine}
+            onMapPress={mode === 'nav' ? addPoint : undefined}
+            surfaceView={false}
+            mapViewRef={mapRef}
+            mapCameraRef={cameraRef}
+            scrollEnabled={mode === 'nav'}
+            zoomEnabled={mode === 'nav'}
+            rotateEnabled={mode === 'nav'}
+            pitchEnabled={mode === 'nav'}
+          />
+        </View>
 
         {mode === 'draw' && (
           <View style={styles.drawOverlay} {...panResponder.panHandlers}>
