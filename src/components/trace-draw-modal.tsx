@@ -85,20 +85,13 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
   const panResponder = useRef(
     PanResponder.create({
-      // Claim ONLY a single-finger drag → freehand. Don't grab on touch-down and
-      // decline any 2+ finger move, so two-finger pan/zoom falls through to the
-      // map's native gestures instead of the overlay.
-      onStartShouldSetPanResponder: () => false,
-      onStartShouldSetPanResponderCapture: () => false,
-      onMoveShouldSetPanResponder: (e) => e.nativeEvent.touches.length === 1,
-      onMoveShouldSetPanResponderCapture: (e) => e.nativeEvent.touches.length === 1,
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
         livePtsRef.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }];
         setLiveTick((t) => t + 1);
       },
       onPanResponderMove: (e) => {
-        // A second finger landed mid-stroke → it's a map gesture, stop appending.
-        if (e.nativeEvent.touches.length > 1) return;
         const { locationX: x, locationY: y } = e.nativeEvent;
         const last = livePtsRef.current[livePtsRef.current.length - 1];
         if (!last || Math.hypot(x - last.x, y - last.y) >= 2) {
@@ -108,8 +101,6 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
       },
       onPanResponderRelease: () => { void commitStroke(); },
       onPanResponderTerminate: () => { void commitStroke(); },
-      // Let the map's native recognizers take over if they want the touch.
-      onPanResponderTerminationRequest: () => true,
     }),
   ).current;
 
@@ -143,6 +134,10 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           onMapPress={mode === 'nav' ? addPoint : undefined}
           surfaceView={false}
           mapViewRef={mapRef}
+          scrollEnabled={mode === 'nav'}
+          zoomEnabled={mode === 'nav'}
+          rotateEnabled={mode === 'nav'}
+          pitchEnabled={mode === 'nav'}
         />
 
         {mode === 'draw' && (

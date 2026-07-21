@@ -1323,7 +1323,7 @@
     "drawHint": "Touche la carte pour poser des points",
     "drawFreehand": "Dessiner à main levée",
     "drawNavigate": "Naviguer · placer des points",
-    "drawFreehandHint": "1 doigt pour tracer · 2 doigts pour bouger la carte",
+    "drawFreehandHint": "Trace au doigt · la carte est verrouillée",
     "drawStats": "{{n}} pts · {{km}} km",
     "undo": "Annuler le point",
     "clear": "Effacer",
