@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
-import { Flag, BadgeCheck, ChevronRight, Search, type LucideIcon } from 'lucide-react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Flag, BadgeCheck, ChevronRight, Search, Sparkles, type LucideIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService } from '@/services/report-service';
 import { proService } from '@/services/pro-service';
+import { adminService } from '@/services/admin-service';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 
 // Admin hub — entry point to every admin tool. New tools get a row here.
@@ -21,6 +22,12 @@ export default function AdminHubScreen() {
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: reports } = useQuery({ queryKey: ['admin-reports'], queryFn: () => reportService.getAll(), enabled: isAdmin });
   const { data: pendingPros } = useQuery({ queryKey: ['admin-pending-pros'], queryFn: () => proService.getPendingApplications(), enabled: isAdmin });
+  const queryClient = useQueryClient();
+  const { data: demoOn } = useQuery({ queryKey: ['admin-demo-mode'], queryFn: () => adminService.getDemoMode(), enabled: isAdmin });
+  const demoMutation = useMutation({
+    mutationFn: (on: boolean) => adminService.setDemoMode(on),
+    onSuccess: () => queryClient.invalidateQueries(), // refresh the map so demo appears/disappears
+  });
 
   const pendingReports = (reports ?? []).filter((r) => r.status === 'pending').length;
   const pendingProsCount = (pendingPros ?? []).length;
@@ -67,6 +74,24 @@ export default function AdminHubScreen() {
           onPress={() => router.push('/(auth)/admin/lookup')}
           last
         />
+      </View>
+
+      <View style={styles.card}>
+        <View style={[styles.row, styles.rowLast]}>
+          <View style={styles.iconWrap}><Sparkles size={20} color={colors.cta} strokeWidth={2.2} /></View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.rowLabel}>{t('admin.demoMode', { defaultValue: 'Mode démo' })}</Text>
+            <Text style={styles.rowSub} numberOfLines={2}>
+              {t('admin.demoModeSub', { defaultValue: 'Affiche des sorties de démonstration sur ta carte — visibles par toi seul.' })}
+            </Text>
+          </View>
+          <Switch
+            value={demoOn === true}
+            onValueChange={(v) => demoMutation.mutate(v)}
+            disabled={demoMutation.isPending}
+            trackColor={{ true: colors.cta }}
+          />
+        </View>
       </View>
     </ScrollView>
   );

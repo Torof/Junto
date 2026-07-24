@@ -66,4 +66,20 @@ export const adminService = {
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
+
+  // Demo mode (admin-only). demo_content_visible() returns, for an admin, the
+  // current flag state (flag ON && caller is admin) — reused as the read.
+  getDemoMode: async (): Promise<boolean> => {
+    const { data, error } = await supabase.rpc('demo_content_visible' as 'join_activity',
+      {} as unknown as { p_activity_id: string });
+    if (error) throw error;
+    return (data as unknown) === true;
+  },
+
+  setDemoMode: async (on: boolean): Promise<void> => {
+    const { error } = await supabase.rpc('admin_set_demo_mode' as 'join_activity', {
+      p_on: on,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+  },
 };

@@ -788,6 +788,8 @@
     "emailSubject": "Contestation de suspension de compte"
   },
   "admin": {
+    "demoMode": "Mode démo",
+    "demoModeSub": "Affiche des sorties de démonstration sur ta carte — visibles par toi seul.",
     "pending": "En attente",
     "resolved": "Traités",
     "noReports": "Aucun signalement",

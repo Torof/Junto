@@ -788,6 +788,8 @@
     "emailSubject": "Account suspension appeal"
   },
   "admin": {
+    "demoMode": "Demo mode",
+    "demoModeSub": "Show demo outings on your map — visible to you only.",
     "pending": "Pending",
     "resolved": "Resolved",
     "noReports": "No reports",
