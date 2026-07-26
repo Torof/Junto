@@ -1047,6 +1047,14 @@ export function ActivityDetail({
               })()}
             </View>
 
+            {/* GPX trace indicator — tap to open the full-screen map. */}
+            {activity.trace_geojson && (
+              <Pressable style={styles.tracePill} onPress={() => setShowFullMap(true)} hitSlop={6}>
+                <Route size={13} color={colors.cta} strokeWidth={2.6} />
+                <Text style={styles.tracePillText}>{t('activity.gpxPill', { defaultValue: 'GPX' })}</Text>
+              </Pressable>
+            )}
+
             {/* === LE PARCOURS === precise rendez-vous / objective are
                 members-only; the description is visible to everyone. The map
                 is now the hero, so no second map here. */}
@@ -1501,6 +1509,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   factLabel: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700' },
   factValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  // "GPX" pill in the summary — signals the outing carries a trace; taps open
+  // the full-screen map. Vert vif outline, house pill grammar.
+  tracePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 5,
+    marginLeft: spacing.xs,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.cta,
+    backgroundColor: colors.cta + '18',
+  },
+  tracePillText: {
+    color: colors.cta,
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
   // Stylised section label — small vert vif bar + spaced small caps.
   // Quietly hierarchical, echoes the site's SectionLabel grammar.
   // Airbnb-style section headers: bold sentence-case titles, soft dividers
