@@ -714,14 +714,16 @@ export function JuntoMapView({
             >
               <Pressable onPress={() => {
                 const leaves = cluster.getLeaves(clusterId, Infinity);
-                // Bounding box of every point under this cluster.
+                // Bounding box of every point under this cluster + track the
+                // southernmost leaf (lowest latitude = lowest on screen).
                 let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+                let lowestLng = lng, lowestLat = lat;
                 for (const leaf of leaves) {
                   const llng = leaf.geometry.coordinates[0] ?? 0;
                   const llat = leaf.geometry.coordinates[1] ?? 0;
                   if (llng < minLng) minLng = llng;
                   if (llng > maxLng) maxLng = llng;
-                  if (llat < minLat) minLat = llat;
+                  if (llat < minLat) { minLat = llat; lowestLng = llng; lowestLat = llat; }
                   if (llat > maxLat) maxLat = llat;
                 }
                 // ~3e-5° ≈ 3m, below the pin footprint even at max zoom: these
@@ -739,10 +741,16 @@ export function JuntoMapView({
                 }
                 cameraTouched.current = true;
                 if (separable) {
-                  // Frame the whole cluster in one tap so its pins spread across
-                  // the viewport and decluster at once. (expansionZoom+1 could
-                  // land on a sub-cluster — that's what forced the 2nd tap.)
-                  cameraRef.current?.fitBounds([maxLng, maxLat], [minLng, minLat], 80, 400);
+                  // Center on the southernmost pin (lowest on screen) and zoom
+                  // just enough to break the cluster apart — the other pins
+                  // surface right above it. (Scott's preference over framing the
+                  // midpoint; a large cluster may leave a sub-group to re-tap.)
+                  const expansionZoom = cluster.getClusterExpansionZoom(clusterId);
+                  cameraRef.current?.setCamera({
+                    centerCoordinate: [lowestLng, lowestLat],
+                    zoomLevel: expansionZoom,
+                    animationDuration: 400,
+                  });
                 } else {
                   cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], zoomLevel: 18, animationDuration: 300 });
                 }
