@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, Car, Users, X, Clock, Lock } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, Car, Users, X, Clock, Lock, Route } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -140,10 +140,20 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </View>
             ) : null}
 
-            {signal ? (
+            {(signal || activity.trace_geojson) ? (
               <View style={styles.infoRow}>
                 <BarChart2 size={15} color={accent} strokeWidth={2.2} />
-                <Text style={styles.infoText} numberOfLines={1}>{signal}</Text>
+                {signal ? (
+                  <Text style={styles.infoText} numberOfLines={1}>{signal}</Text>
+                ) : (
+                  <View style={{ flex: 1 }} />
+                )}
+                {activity.trace_geojson ? (
+                  <View style={[styles.gpxPill, { borderColor: accent, backgroundColor: accent + '18' }]}>
+                    <Route size={11} color={accent} strokeWidth={2.6} />
+                    <Text style={[styles.gpxPillText, { color: accent }]}>GPX</Text>
+                  </View>
+                ) : null}
               </View>
             ) : null}
 
@@ -233,6 +243,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
+  // "GPX" pill next to the difficulty — signals the outing carries a trace
+  // (non-members can't open the map, so this is their only cue). Tinted with
+  // the sport accent inline.
+  gpxPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    borderWidth: 1,
+  },
+  gpxPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 0.4 },
   // Same visual language as the PP Aperçu "Voir tout →" links, one size up —
   // it's the teaser's primary action, not a section accessory.
   // Same grammar as the detail screen's join button — solid fill, lg
