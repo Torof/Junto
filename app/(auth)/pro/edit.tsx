@@ -60,6 +60,7 @@ export default function ProEditScreen() {
   const [pinLng, setPinLng] = useState<number | null>(null);
   const [pinLat, setPinLat] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
@@ -253,6 +254,39 @@ export default function ProEditScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Delete the whole pro page (cascades offerings + photos + reviews, tier → free).
+  const handleDelete = () => {
+    Alert.alert(
+      t('pro.deleteTitle', { defaultValue: 'Supprimer ta page pro ?' }),
+      t('pro.deleteBody', {
+        defaultValue:
+          'Ta page pro, ses offres et ses avis seront définitivement supprimés, et ton compte repasse en gratuit. Cette action est irréversible.',
+      }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel' },
+        {
+          text: t('pro.deleteConfirm', { defaultValue: 'Supprimer' }),
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await proService.unregister();
+              await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+              await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+              await queryClient.invalidateQueries({ queryKey: ['pros'] });
+              Burnt.toast({ title: t('pro.deleted', { defaultValue: 'Page pro supprimée' }), preset: 'done' });
+              router.back();
+            } catch (err) {
+              Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   if (isLoading) {
@@ -539,6 +573,17 @@ export default function ProEditScreen() {
                   : t('pro.register', { defaultValue: 'Devenir pro' })}
           </Text>
         </Pressable>
+
+        {isUpdate && (
+          <Pressable style={styles.deleteBtn} onPress={handleDelete} disabled={deleting || saving}>
+            <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
+            <Text style={styles.deleteBtnText}>
+              {deleting
+                ? t('pro.deleting', { defaultValue: 'Suppression…' })
+                : t('pro.deleteAction', { defaultValue: 'Supprimer ma page pro' })}
+            </Text>
+          </Pressable>
+        )}
       </ScrollView>
 
       {/* Full-screen map picker — replaces the tiny inline square that
@@ -814,6 +859,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   submitDisabled: { opacity: 0.4 },
   submitText: {
     color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+  },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 2,
+    marginTop: spacing.md,
+  },
+  deleteBtnText: {
+    color: colors.error,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },
