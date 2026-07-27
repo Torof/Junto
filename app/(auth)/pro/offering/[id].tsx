@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { useMemo, useLayoutEffect } from 'react';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes } from '@/constants/theme';
+import { fontSizes, spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { PageTypeBadge } from '@/components/page-type-badge';
 import { OfferingDetail } from '@/components/offering-detail';
+import { FavoriteButton } from '@/components/favorite-button';
 
 // Deep-link / catalogue page for a pro_offering (RA). Thin wrapper around the
 // shared OfferingDetail so the page and the map drawer are identical.
@@ -33,6 +34,7 @@ export default function ProOfferingDetailScreen() {
     if (!offering) return;
     navigation.setOptions({
       headerTitle: () => <PageTypeBadge type="offering" name={offering.title} />,
+      headerRight: () => <FavoriteButton kind="offering" id={offering.id} style={{ marginRight: spacing.md }} />,
     });
   }, [navigation, offering]);
 

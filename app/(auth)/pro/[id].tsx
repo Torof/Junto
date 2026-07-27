@@ -11,6 +11,7 @@ import { proService } from '@/services/pro-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ProDetail } from '@/components/pro-detail';
 import { PageTypeBadge } from '@/components/page-type-badge';
+import { FavoriteButton } from '@/components/favorite-button';
 
 export default function ProPageScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,8 +35,11 @@ export default function ProPageScreen() {
     if (!pro) return;
     navigation.setOptions({
       headerTitle: () => <PageTypeBadge type="pro" name={pro.display_name} />,
+      headerRight: session?.user?.id !== id
+        ? () => <FavoriteButton kind="pro" id={id ?? ''} style={{ marginRight: spacing.md }} />
+        : undefined,
     });
-  }, [navigation, pro]);
+  }, [navigation, pro, session, id]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
