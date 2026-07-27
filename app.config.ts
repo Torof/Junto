@@ -1,14 +1,20 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+// Dev variant: `APP_VARIANT=preview` (set on the eas.json preview profile) gives
+// a distinct package + name + scheme so the dev app installs ALONGSIDE the Play
+// tester build (no signature/package conflict). Same slug/projectId → same EAS
+// project + OTA channels. Auth is email/password, so the different package is safe.
+const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Junto',
+  name: IS_PREVIEW ? 'Junto (dev)' : 'Junto',
   slug: 'junto',
   version: '0.1.3',
   orientation: 'portrait',
   icon: './assets/junto_icon_square.png',
   userInterfaceStyle: 'light',
-  scheme: 'junto',
+  scheme: IS_PREVIEW ? 'juntodev' : 'junto',
   newArchEnabled: true,
   splash: {
     image: './assets/junto_icon_square.png',
@@ -16,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#3F7A56',
   },
   android: {
-    package: 'app.getjunto',
+    package: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
@@ -42,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'app.getjunto',
+    bundleIdentifier: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
     associatedDomains: [`applinks:${process.env.JUNTO_WEB_HOST ?? 'getjunto.app'}`],
     infoPlist: {
       // Required strings for "Always" location permission so background
