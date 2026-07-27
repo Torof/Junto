@@ -3,7 +3,7 @@ import { View, Text, Pressable, Modal, TextInput, StyleSheet, PanResponder } fro
 import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Undo2, Trash2, Pencil, Hand, Magnet } from 'lucide-react-native';
+import { X, Undo2, Trash2, Pencil, Magnet, Waypoints } from 'lucide-react-native';
 import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -185,6 +185,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
   const snapping = chunks.some((c) => c.pending);
   const fallbackCount = chunks.filter((c) => c.fallback).length;
+  // Snap only applies to Points mode (freehand can't route) → show it "off" in draw mode.
+  const snapVisualOn = snapEnabled && mode !== 'draw';
 
   const pins: MapPin[] = anchors.map((a) => ({ id: `pt-${a.id}`, coordinate: a.coord, color: colors.cta }));
   const routeLine = flatCoords.length >= 2 ? flatCoords : undefined;
@@ -249,31 +251,45 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
         </View>
 
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
-          <View style={styles.modeRow}>
+          {/* Mode — segmented selector, active segment clearly filled so you
+              always see which mode you're in (the old toggle showed the OTHER
+              mode's label, which read backwards). */}
+          <View style={styles.segmented}>
             <Pressable
-              style={[styles.modeBtn, mode === 'draw' && styles.modeBtnActive]}
-              onPress={() => setMode((m) => (m === 'nav' ? 'draw' : 'nav'))}
+              style={[styles.segment, styles.segmentFirst, mode === 'nav' && styles.segmentActive]}
+              onPress={() => setMode('nav')}
             >
-              {mode === 'nav'
-                ? <Pencil size={18} color={colors.cta} strokeWidth={2.4} />
-                : <Hand size={18} color="#FFFFFF" strokeWidth={2.4} />}
-              <Text style={[styles.modeBtnText, mode === 'draw' && styles.modeBtnTextActive]}>
-                {mode === 'nav'
-                  ? t('gpx.drawFreehand', { defaultValue: 'Dessiner à main levée' })
-                  : t('gpx.drawNavigate', { defaultValue: 'Naviguer · placer des points' })}
+              <Waypoints size={17} color={mode === 'nav' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
+              <Text style={[styles.segmentText, mode === 'nav' && styles.segmentTextActive]}>
+                {t('gpx.modePoints', { defaultValue: 'Points' })}
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.snapBtn, snapEnabled && styles.snapBtnActive]}
-              onPress={() => setSnapEnabled((s) => !s)}
-              accessibilityLabel={t('gpx.snapToggle', { defaultValue: 'Coller au sentier' })}
+              style={[styles.segment, mode === 'draw' && styles.segmentActive]}
+              onPress={() => setMode('draw')}
             >
-              <Magnet size={18} color={snapEnabled ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
-              <Text style={[styles.snapBtnText, snapEnabled && styles.snapBtnTextActive]}>
-                {t('gpx.snapToggle', { defaultValue: 'Sentier' })}
+              <Pencil size={17} color={mode === 'draw' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
+              <Text style={[styles.segmentText, mode === 'draw' && styles.segmentTextActive]}>
+                {t('gpx.modeFreehand', { defaultValue: 'Main levée' })}
               </Text>
             </Pressable>
           </View>
+
+          {/* Snap — explicit ON/OFF. Only applies to Points mode (freehand can't
+              route), so it dims + disables in draw mode. */}
+          <Pressable
+            style={[styles.snapRow, mode === 'draw' && styles.snapRowDisabled]}
+            onPress={() => setSnapEnabled((s) => !s)}
+            disabled={mode === 'draw'}
+          >
+            <Magnet size={18} color={snapVisualOn ? colors.cta : colors.textSecondary} strokeWidth={2.4} />
+            <Text style={styles.snapLabel}>{t('gpx.snapLabel', { defaultValue: 'Coller au sentier' })}</Text>
+            <View style={[styles.snapState, snapVisualOn && styles.snapStateOn]}>
+              <Text style={[styles.snapStateText, snapVisualOn && styles.snapStateTextOn]}>
+                {snapEnabled ? t('gpx.on', { defaultValue: 'ON' }) : t('gpx.off', { defaultValue: 'OFF' })}
+              </Text>
+            </View>
+          </Pressable>
           <View style={styles.actionsRow}>
             <Pressable
               style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
@@ -281,7 +297,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               onPress={undoLast}
             >
               <Undo2 size={18} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.secondaryText}>{t('gpx.undo', { defaultValue: 'Annuler le point' })}</Text>
+              <Text style={styles.secondaryText}>{t('gpx.undo', { defaultValue: 'Annuler' })}</Text>
             </Pressable>
             <Pressable
               style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
@@ -346,24 +362,42 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   drawOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 5 },
-  modeRow: { flexDirection: 'row', gap: spacing.sm },
-  modeBtn: {
+  // Segmented mode selector — one glance shows the active mode.
+  segmented: {
+    flexDirection: 'row',
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.cta,
+    overflow: 'hidden',
+  },
+  segment: {
     flex: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: spacing.sm, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.cta, backgroundColor: colors.surface,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    paddingVertical: spacing.sm + 3,
+    backgroundColor: colors.surface,
   },
-  modeBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  modeBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
-  modeBtnTextActive: { color: '#FFFFFF' },
-  snapBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.borderMuted, backgroundColor: colors.surface,
+  segmentFirst: { borderRightWidth: 1.5, borderRightColor: colors.cta },
+  segmentActive: { backgroundColor: colors.cta },
+  segmentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  segmentTextActive: { color: '#FFFFFF' },
+  // Snap row — explicit label + ON/OFF state pill.
+  snapRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
+    borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
   },
-  snapBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  snapBtnText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
-  snapBtnTextActive: { color: '#FFFFFF' },
+  snapRowDisabled: { opacity: 0.45 },
+  snapLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  snapState: {
+    minWidth: 48, alignItems: 'center',
+    paddingVertical: 3, paddingHorizontal: 10,
+    borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted,
+    backgroundColor: colors.background,
+  },
+  snapStateOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  snapStateText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.5 },
+  snapStateTextOn: { color: '#FFFFFF' },
   closeBtn: {
     position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',
