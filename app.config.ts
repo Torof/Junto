@@ -23,7 +23,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
-    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
+    // The dev variant's package (app.getjunto.preview) doesn't match the
+    // google-services.json (registered for app.getjunto), so the google-services
+    // gradle plugin would fail ("no matching client"). Skip it for the dev
+    // variant — FCM push simply isn't wired there, which is fine for testing.
+    googleServicesFile: IS_PREVIEW ? undefined : (process.env.GOOGLE_SERVICES_JSON ?? './google-services.json'),
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
       // Mark-only on transparent + solid green background → uniform green icon,
