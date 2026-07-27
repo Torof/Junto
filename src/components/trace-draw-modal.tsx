@@ -250,7 +250,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           </Text>
         </View>
 
-        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
+        <View style={[styles.toolbar, { bottom: insets.bottom + spacing.sm }]}>
           {/* Mode — segmented selector, active segment clearly filled so you
               always see which mode you're in (the old toggle showed the OTHER
               mode's label, which read backwards). */}
@@ -275,53 +275,51 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
             </Pressable>
           </View>
 
-          {/* Snap — explicit ON/OFF. Only applies to Points mode (freehand can't
-              route), so it dims + disables in draw mode. */}
-          <Pressable
-            style={[styles.snapRow, mode === 'draw' && styles.snapRowDisabled]}
-            onPress={() => setSnapEnabled((s) => !s)}
-            disabled={mode === 'draw'}
-          >
-            <Magnet size={18} color={snapVisualOn ? colors.cta : colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.snapLabel}>{t('gpx.snapLabel', { defaultValue: 'Coller au sentier' })}</Text>
-            <View style={[styles.snapState, snapVisualOn && styles.snapStateOn]}>
-              <Text style={[styles.snapStateText, snapVisualOn && styles.snapStateTextOn]}>
-                {snapEnabled ? t('gpx.on', { defaultValue: 'ON' }) : t('gpx.off', { defaultValue: 'OFF' })}
-              </Text>
-            </View>
-          </Pressable>
+          {/* One compact row: snap · undo · clear · validate. Snap only applies
+              to Points mode → dims + disables in draw mode. */}
           <View style={styles.actionsRow}>
             <Pressable
-              style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
-              disabled={chunks.length === 0}
-              onPress={undoLast}
+              style={[styles.snapChip, snapVisualOn && styles.snapChipOn, mode === 'draw' && styles.chipDisabled]}
+              onPress={() => setSnapEnabled((s) => !s)}
+              disabled={mode === 'draw'}
+              accessibilityLabel={t('gpx.snapLabel', { defaultValue: 'Coller au sentier' })}
             >
-              <Undo2 size={18} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.secondaryText}>{t('gpx.undo', { defaultValue: 'Annuler' })}</Text>
+              <Magnet size={16} color={snapVisualOn ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
+              <Text style={[styles.snapChipText, snapVisualOn && styles.snapChipTextOn]}>
+                {t('gpx.snapChip', { defaultValue: 'Sentier' })}
+              </Text>
             </Pressable>
             <Pressable
-              style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
+              style={[styles.iconBtn, chunks.length === 0 && styles.disabled]}
+              disabled={chunks.length === 0}
+              onPress={undoLast}
+              accessibilityLabel={t('gpx.undo', { defaultValue: 'Annuler' })}
+            >
+              <Undo2 size={18} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+            <Pressable
+              style={[styles.iconBtn, chunks.length === 0 && styles.disabled]}
               disabled={chunks.length === 0}
               onPress={clearAll}
+              accessibilityLabel={t('gpx.clear', { defaultValue: 'Effacer' })}
             >
               <Trash2 size={18} color={colors.error} strokeWidth={2.2} />
-              <Text style={[styles.secondaryText, { color: colors.error }]}>{t('gpx.clear', { defaultValue: 'Effacer' })}</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.saveBtn, !canSave && styles.saveDisabled]}
+              disabled={!canSave}
+              onPress={() => {
+                if (askName) setNaming(true);
+                else onSave('', { type: 'LineString', coordinates: flatCoords });
+              }}
+            >
+              <Text style={styles.saveText} numberOfLines={1}>
+                {snapping
+                  ? t('gpx.snappingWait', { defaultValue: 'Sentier…' })
+                  : t('gpx.validate', { defaultValue: 'Valider' })}
+              </Text>
             </Pressable>
           </View>
-          <Pressable
-            style={[styles.saveBtn, !canSave && styles.saveDisabled]}
-            disabled={!canSave}
-            onPress={() => {
-              if (askName) setNaming(true);
-              else onSave('', { type: 'LineString', coordinates: flatCoords });
-            }}
-          >
-            <Text style={styles.saveText}>
-              {snapping
-                ? t('gpx.snappingWait', { defaultValue: 'Calcul du sentier…' })
-                : t('gpx.validate', { defaultValue: 'Valider la trace' })}
-            </Text>
-          </Pressable>
         </View>
 
         {naming ? (
@@ -372,32 +370,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   segment: {
     flex: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    paddingVertical: spacing.sm + 3,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
   },
   segmentFirst: { borderRightWidth: 1.5, borderRightColor: colors.cta },
   segmentActive: { backgroundColor: colors.cta },
   segmentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   segmentTextActive: { color: '#FFFFFF' },
-  // Snap row — explicit label + ON/OFF state pill.
-  snapRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
+  // Snap chip — compact, fills green when active.
+  snapChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.sm + 2,
     borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
   },
-  snapRowDisabled: { opacity: 0.45 },
-  snapLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  snapState: {
-    minWidth: 48, alignItems: 'center',
-    paddingVertical: 3, paddingHorizontal: 10,
-    borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted,
-    backgroundColor: colors.background,
+  snapChipOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  snapChipText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800' },
+  snapChipTextOn: { color: '#FFFFFF' },
+  chipDisabled: { opacity: 0.45 },
+  iconBtn: {
+    width: 42, height: 42, alignItems: 'center', justifyContent: 'center',
+    borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
   },
-  snapStateOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  snapStateText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.5 },
-  snapStateTextOn: { color: '#FFFFFF' },
   closeBtn: {
     position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',
@@ -410,26 +406,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted,
   },
   topBannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  bottomBar: {
-    position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 10,
-    paddingHorizontal: spacing.md, paddingTop: spacing.md, gap: spacing.sm,
+  // Floating compact toolbar — sits over the map with margins + a soft shadow
+  // so it reads as a light overlay, not a panel eating an eighth of the screen.
+  toolbar: {
+    position: 'absolute', left: spacing.md, right: spacing.md, zIndex: 10,
+    padding: spacing.xs + 2, gap: spacing.xs + 2,
+    borderRadius: radius.lg,
     backgroundColor: colors.background + 'F5',
-    borderTopWidth: 1, borderTopColor: colors.borderMuted,
+    borderWidth: 1, borderColor: colors.borderMuted,
+    elevation: 8,
+    shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
   },
-  actionsRow: { flexDirection: 'row', gap: spacing.sm },
-  secondaryBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: spacing.sm, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.borderMuted, backgroundColor: colors.surface,
-  },
-  secondaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
   disabled: { opacity: 0.4 },
   saveBtn: {
+    flex: 1, height: 42,
     backgroundColor: colors.cta, borderRadius: radius.md,
-    paddingVertical: spacing.sm + 2, alignItems: 'center',
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm,
   },
   saveDisabled: { opacity: 0.5 },
-  saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
+  saveText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
   nameOverlay: {
     ...StyleSheet.absoluteFillObject, zIndex: 20,
     backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center',
