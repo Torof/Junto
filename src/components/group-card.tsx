@@ -530,228 +530,153 @@ export function GroupCard({
               const score = reliabilityById.get(d.user_id) ?? null;
               const ringColor = score !== null ? ringColorFor(score) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
-              const isExpanded = true;
               const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (
-                <View key={d.user_id} style={styles.driverPill}>
-                  {/* Pill body — tap to expand/collapse. Avatar / status
-                      pill / reserve / passengers keep their own handlers
-                      via stopPropagation on their own press events. */}
-                  <View style={styles.pillBody}>
-                    <View style={styles.pillHeader}>
-                      <Pressable
-                        style={[
-                          styles.avatarRing,
-                          ringColor && { borderColor: ringColor },
-                        ]}
-                        onPress={(e) => { e.stopPropagation(); router.push(`/(auth)/profile/${d.user_id}`); }}
-                        hitSlop={4}
-                      >
-                        <UserAvatar
-                          name={d.display_name}
-                          avatarUrl={d.avatar_url}
-                          size={40}
-                          confirmedPresent={d.confirmed_present === true}
-                        />
-                      </Pressable>
-                      <View style={styles.driverIdentity}>
-                        <View style={styles.driverNameRow}>
-                          <Text style={styles.driverName} numberOfLines={1}>
-                            {isExpanded
-                              ? d.display_name
-                              : d.display_name.length > 7
-                                ? `${d.display_name.slice(0, 7)}…`
-                                : d.display_name}
-                          </Text>
-                          {isSelf && (
-                            <View style={styles.youTag}>
-                              <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
-                            </View>
-                          )}
-                          {/* Collapsed: only the city is shown inline.
-                              Time moves to its own row below when the
-                              pill is expanded. */}
-                          {!isExpanded && d.transport_from_name && (
-                            <View style={styles.inlineMetaItem}>
-                              <MapPin size={11} color={colors.textSecondary} strokeWidth={2.2} />
-                              <Text style={styles.driverMetaText} numberOfLines={1}>
-                                {d.transport_from_name}
-                              </Text>
-                            </View>
-                          )}
+                <View key={d.user_id} style={styles.nc}>
+                  <View style={[styles.ncStripe, isFull && styles.ncStripeFull]} />
+
+                  {/* Top row — driver + colour-coded seats badge. */}
+                  <View style={styles.ncTop}>
+                    <Pressable
+                      style={[styles.avatarRing, ringColor && { borderColor: ringColor }]}
+                      onPress={(e) => { e.stopPropagation(); router.push(`/(auth)/profile/${d.user_id}`); }}
+                      hitSlop={4}
+                    >
+                      <UserAvatar
+                        name={d.display_name}
+                        avatarUrl={d.avatar_url}
+                        size={40}
+                        confirmedPresent={d.confirmed_present === true}
+                      />
+                    </Pressable>
+                    <View style={styles.ncNameWrap}>
+                      <Text style={styles.driverName} numberOfLines={1}>{d.display_name}</Text>
+                      {isSelf && (
+                        <View style={styles.youTag}>
+                          <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
                         </View>
-                      </View>
-                      {!isSelf && isMyDriver && (
+                      )}
+                    </View>
+                    <View style={[styles.seatBadge, isFull && styles.seatBadgeFull]}>
+                      <Car size={13} color={isFull ? colors.error : colors.cta} strokeWidth={2.4} />
+                      <Text style={[styles.seatBadgeText, isFull && styles.seatBadgeTextFull]}>
+                        {isFull
+                          ? t('group.full', { defaultValue: 'Complet' })
+                          : t('group.freeSeatsShort', { count: d.free, defaultValue: d.free === 1 ? '1 libre' : `${d.free} libres` })}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Journey line — from → outing · departure time. */}
+                  {hasMeta && (
+                    <View style={styles.journey}>
+                      <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
+                      <Text style={[styles.jFrom, !d.transport_from_name && styles.jMuted]} numberOfLines={1}>
+                        {d.transport_from_name || t('group.departurePlaceholder', { defaultValue: 'Départ' })}
+                      </Text>
+                      <Text style={styles.jArrow}>→</Text>
+                      <Text style={styles.jTo}>{t('group.toOuting', { defaultValue: 'Sortie' })}</Text>
+                      {d.transport_departs_at ? (
+                        <View style={styles.jTime}>
+                          <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                          <Text style={styles.jTimeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
+
+                  {/* Bottom row — passengers (tap to expand) · action/status. */}
+                  <View style={styles.ncBot}>
+                    <Pressable
+                      style={styles.paxToggle}
+                      onPress={(e) => { e.stopPropagation(); if (driverPassengers.length > 0) togglePassengersForDriver(d.user_id); }}
+                      disabled={driverPassengers.length === 0}
+                      hitSlop={4}
+                    >
+                      {driverPassengers.length > 0 && (
+                        <View style={styles.paxStack}>
+                          {driverPassengers.slice(0, 4).map((pp, i) => (
+                            <View key={pp.id} style={[styles.paxAvatar, i > 0 && styles.paxAvatarOverlap]}>
+                              <UserAvatar name={pp.display_name} avatarUrl={pp.avatar_url} size={24} />
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                      <Text style={styles.paxLbl} numberOfLines={1}>
+                        {driverPassengers.length > 0
+                          ? t('group.aboardCount', { count: d.accepted, defaultValue: `${d.accepted} à bord` })
+                          : t('group.noPassengers', { defaultValue: 'Aucun passager' })}
+                      </Text>
+                      {driverPassengers.length > 0 && (
+                        <ChevronDown
+                          size={13} color={colors.textSecondary} strokeWidth={2.4}
+                          style={{ transform: [{ rotate: expandedPassengersByDriver.has(d.user_id) ? '180deg' : '0deg' }] }}
+                        />
+                      )}
+                    </Pressable>
+
+                    {isSelf ? null
+                      : isMyDriver ? (
                         <View style={styles.statusPillSet}>
                           <Check size={10} color={colors.cta} strokeWidth={3} />
                           <Text style={[styles.statusPillText, { color: colors.cta }]}>
                             {t('group.youAreAboard', { defaultValue: 'À bord' })}
                           </Text>
                         </View>
-                      )}
-                      {!isSelf && isPendingFromMe && (
+                      ) : isPendingFromMe ? (
                         <View style={styles.statusPillPending}>
                           <Text style={[styles.statusPillText, { color: colors.textMuted }]}>
                             {t('group.pendingRequest', { defaultValue: 'En attente' })}
                           </Text>
                         </View>
-                      )}
-                    </View>
-
-                    {/* Route line — the carpool as a mini-journey:
-                        dot ┈ pin place · time. Aligned under the name. */}
-                    {isExpanded && hasMeta && (
-                      <View style={styles.routeRow}>
-                        <View style={styles.routeDot} />
-                        <View style={styles.routeDash} />
-                        <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                        {d.transport_from_name ? (
-                          <Text style={styles.routeText} numberOfLines={1}>{d.transport_from_name}</Text>
-                        ) : null}
-                        {d.transport_from_name && d.transport_departs_at ? (
-                          <Text style={styles.routeSep}>·</Text>
-                        ) : null}
-                        {d.transport_departs_at ? (
-                          <>
-                            <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
-                            <Text style={styles.routeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
-                          </>
-                        ) : null}
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Pill footer — seats count on the left, action CTA
-                      on the right (Reserve / Complet). Hidden for self
-                      and for users with an existing relationship (the
-                      status pill in the header carries that). */}
-                  <View style={styles.pillFooter}>
-                    {/* Seats as a cabin map: filled = passenger avatars,
-                        dashed = free. Capped at 6 cells (+N overflow). */}
-                    {(() => {
-                      const cap = Math.max(d.capacity ?? 0, 0);
-                      const shown = Math.min(cap, 6);
-                      const filledAvatars = driverPassengers.slice(0, Math.min(shown, d.accepted));
-                      const ghostFilled = Math.max(0, Math.min(d.accepted, shown) - filledAvatars.length);
-                      const emptyCount = Math.max(0, shown - Math.min(d.accepted, shown));
-                      const overflow = cap > 6 ? cap - 6 : 0;
-                      return (
-                        <View style={styles.seatsRow}>
-                          {filledAvatars.map((pp) => (
-                            <View key={pp.id} style={styles.seatFilled}>
-                              <UserAvatar name={pp.display_name} avatarUrl={pp.avatar_url} size={22} />
-                            </View>
-                          ))}
-                          {Array.from({ length: ghostFilled }).map((_, i) => (
-                            <View key={`g${i}`} style={styles.seatTaken} />
-                          ))}
-                          {Array.from({ length: emptyCount }).map((_, i) => (
-                            <View key={`e${i}`} style={styles.seatEmpty} />
-                          ))}
-                          {overflow > 0 && <Text style={styles.seatOverflow}>+{overflow}</Text>}
-                          <Text style={[styles.seatsLabel, isFull && styles.seatsLabelFull]} numberOfLines={1}>
-                            {isFull
-                              ? t('group.full', { defaultValue: 'Complet' })
-                              : t('group.freeSeatsCount', { count: d.free, defaultValue: d.free === 1 ? '1 place libre' : `${d.free} places libres` })}
-                          </Text>
-                        </View>
-                      );
-                    })()}
-                    {!isSelf && !isMyDriver && !isPendingFromMe && !isFull && canReserve && (
-                      <Pressable
-                        style={styles.reserveBtn}
-                        onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
-                        hitSlop={4}
-                      >
-                        <Text style={styles.reserveBtnText}>
-                          {t('group.reserve', { defaultValue: 'Réserver' })}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
-
-                  {/* Passengers — collapsed by default behind a labelled
-                      "Voir tous…" button. Each block is 2 lines (avatar +
-                      name on top, pickup meta beneath). Tap a block → that
-                      passenger's profile. */}
-                  {driverPassengers.length > 0 && (() => {
-                    const expanded = expandedPassengersByDriver.has(d.user_id);
-                    return (
-                      <>
+                      ) : (!isFull && canReserve) ? (
                         <Pressable
-                          style={styles.passengersToggleRow}
-                          onPress={(e) => { e.stopPropagation(); togglePassengersForDriver(d.user_id); }}
+                          style={styles.reserveBtn}
+                          onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
                           hitSlop={4}
                         >
-                          <Text style={styles.passengersToggleText}>
-                            {t('group.passengersCount', {
-                              count: driverPassengers.length,
-                              defaultValue: driverPassengers.length === 1 ? '1 passager' : `${driverPassengers.length} passagers`,
-                            })}
-                          </Text>
-                          <View style={styles.passengersSeeAll}>
-                            <Text style={styles.passengersSeeAllText}>
-                              {expanded
-                                ? t('group.seeLess', { defaultValue: 'Voir moins' })
-                                : t('group.seeAllPassengers', { defaultValue: 'Voir tous…' })}
-                            </Text>
-                            <ChevronDown
-                              size={13}
-                              color={colors.cta}
-                              strokeWidth={2.4}
-                              style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}
-                            />
-                          </View>
+                          <Text style={styles.reserveBtnText}>{t('group.reserve', { defaultValue: 'Réserver' })}</Text>
                         </Pressable>
-                        {expanded && (
-                          <View style={styles.passengersList}>
-                            {driverPassengers.map((p) => (
-                              <Pressable
-                                key={p.id}
-                                onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
-                                style={styles.passengerBlock}
-                                hitSlop={4}
-                              >
-                                <View style={styles.passengerHeader}>
-                                  <UserAvatar
-                                    name={p.display_name}
-                                    avatarUrl={p.avatar_url}
-                                    size={18}
-                                  />
-                                  <Text style={styles.passengerName} numberOfLines={1}>
-                                    {p.display_name}
-                                  </Text>
-                                </View>
-                                {(p.pickup_from || p.requested_pickup_at) && (
-                                  <View style={styles.passengerMetaRow}>
-                                    {p.pickup_from && (
-                                      <>
-                                        <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                        <Text style={styles.passengerMetaText} numberOfLines={1}>
-                                          {p.pickup_from}
-                                        </Text>
-                                      </>
-                                    )}
-                                    {p.pickup_from && p.requested_pickup_at && (
-                                      <Text style={styles.passengerMetaText}>·</Text>
-                                    )}
-                                    {p.requested_pickup_at && (
-                                      <>
-                                        <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                        <Text style={styles.passengerMetaText}>
-                                          {dayjs(p.requested_pickup_at).format('H[h]mm')}
-                                        </Text>
-                                      </>
-                                    )}
-                                  </View>
-                                )}
-                              </Pressable>
-                            ))}
+                      ) : null}
+                  </View>
+
+                  {/* Expanded passenger detail — pickup city + time per rider. */}
+                  {expandedPassengersByDriver.has(d.user_id) && driverPassengers.length > 0 && (
+                    <View style={styles.passengersList}>
+                      {driverPassengers.map((p) => (
+                        <Pressable
+                          key={p.id}
+                          onPress={() => router.push(`/(auth)/profile/${p.requester_id}`)}
+                          style={styles.passengerBlock}
+                          hitSlop={4}
+                        >
+                          <View style={styles.passengerHeader}>
+                            <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={18} />
+                            <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
                           </View>
-                        )}
-                      </>
-                    );
-                  })()}
+                          {(p.pickup_from || p.requested_pickup_at) && (
+                            <View style={styles.passengerMetaRow}>
+                              {p.pickup_from && (
+                                <>
+                                  <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                  <Text style={styles.passengerMetaText} numberOfLines={1}>{p.pickup_from}</Text>
+                                </>
+                              )}
+                              {p.pickup_from && p.requested_pickup_at && (
+                                <Text style={styles.passengerMetaText}>·</Text>
+                              )}
+                              {p.requested_pickup_at && (
+                                <>
+                                  <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
+                                  <Text style={styles.passengerMetaText}>{dayjs(p.requested_pickup_at).format('H[h]mm')}</Text>
+                                </>
+                              )}
+                            </View>
+                          )}
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
                 </View>
               );
             })}
@@ -1207,6 +1132,45 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
+  // --- Redesigned carpool card: read it in one glance ---
+  nc: {
+    marginHorizontal: -spacing.sm,
+    position: 'relative', overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderWidth: 1.5, borderColor: colors.line, borderRadius: 16,
+    paddingVertical: spacing.sm + 5, paddingRight: spacing.sm + 5, paddingLeft: spacing.sm + 11,
+    gap: 10,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1,
+  },
+  ncStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: colors.cta },
+  ncStripeFull: { backgroundColor: colors.textMuted },
+  ncTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  ncNameWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  seatBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.cta + '1F', borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  seatBadgeFull: { backgroundColor: colors.error + '1A' },
+  seatBadgeText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  seatBadgeTextFull: { color: colors.error },
+  journey: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    backgroundColor: colors.surfaceAlt, borderRadius: 10,
+    paddingHorizontal: 11, paddingVertical: 8,
+  },
+  jFrom: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800', flexShrink: 1 },
+  jMuted: { color: colors.textMuted, fontWeight: '700' },
+  jArrow: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '900' },
+  jTo: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
+  jTime: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 4 },
+  jTimeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  ncBot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  paxToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0 },
+  paxStack: { flexDirection: 'row' },
+  paxAvatar: { borderRadius: 14, borderWidth: 2, borderColor: colors.surface },
+  paxAvatarOverlap: { marginLeft: -9 },
+  paxLbl: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
   routeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, paddingLeft: 2 },
   routeDot: { width: 7, height: 7, borderRadius: 4, borderWidth: 2, borderColor: colors.textSecondary },
   routeDash: { width: 20, height: 0, borderTopWidth: 2, borderColor: colors.textSecondary, borderStyle: 'dashed', opacity: 0.55 },
