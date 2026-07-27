@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, Armchair, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, UserRound, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -558,7 +558,7 @@ export function GroupCard({
                       )}
                     </View>
                     <View style={[styles.seatBadge, isFull && styles.seatBadgeFull]}>
-                      <Armchair size={13} color={isFull ? colors.error : colors.cta} strokeWidth={2.4} />
+                      <UserRound size={13} color={isFull ? colors.error : colors.cta} strokeWidth={2.4} />
                       <Text style={[styles.seatBadgeText, isFull && styles.seatBadgeTextFull]}>
                         {isFull
                           ? t('group.full', { defaultValue: 'Complet' })
