@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
-import { Share2 } from 'lucide-react-native';
+import { Share2, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -11,6 +11,7 @@ import { conversationService } from '@/services/conversation-service';
 import { messageService } from '@/services/message-service';
 import { UserAvatar } from './user-avatar';
 import { LogoSpinner } from './logo-spinner';
+import { InvitePartnersSheet } from './invite-partners-sheet';
 
 interface Props {
   visible: boolean;
@@ -24,6 +25,7 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
@@ -45,11 +47,25 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
   };
 
   return (
+    <>
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
           <Text style={styles.title}>{t('activity.shareTitle')}</Text>
+
+          <Pressable style={styles.inviteRow} onPress={() => setInviteOpen(true)}>
+            <View style={styles.inviteIconWrap}>
+              <UserPlus size={18} color="#FFFFFF" strokeWidth={2.4} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.inviteLabel}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</Text>
+              <Text style={styles.inviteSub} numberOfLines={1}>{t('contacts.inviteSub', { defaultValue: 'Tes contacts + partenaires récents' })}</Text>
+            </View>
+          </Pressable>
+
+          <Text style={styles.orLabel}>{t('activity.shareToConversation', { defaultValue: 'Ou partager dans une conversation' })}</Text>
+
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : !conversations || conversations.length === 0 ? (
@@ -85,6 +101,8 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
         </Pressable>
       </Pressable>
     </Modal>
+    <InvitePartnersSheet visible={inviteOpen} activityId={activityId} onClose={() => setInviteOpen(false)} />
+    </>
   );
 }
 
@@ -100,6 +118,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
+  inviteRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm,
+    borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.cta,
+    backgroundColor: colors.cta + '12',
+  },
+  inviteIconWrap: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cta,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  inviteLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+  inviteSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
+  orLabel: {
+    color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 0.6,
+    marginTop: spacing.lg, marginBottom: spacing.xs,
+  },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl },
   center: { paddingVertical: spacing.xl, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },

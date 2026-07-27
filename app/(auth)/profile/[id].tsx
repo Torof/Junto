@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, TextInput } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal, UserX } from 'lucide-react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -14,6 +14,7 @@ import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
 import { participationService } from '@/services/participation-service';
 import { conversationService } from '@/services/conversation-service';
+import { contactService } from '@/services/contact-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useLayoutEffect, useState, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,6 +57,27 @@ export default function PublicProfileScreen() {
   });
 
   const isOwnProfile = currentUser === id;
+
+  // One-way contacts: add/remove this person from your personal roster.
+  const { data: contacts } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: () => contactService.getContacts(),
+    enabled: !!currentUser && !isOwnProfile,
+  });
+  const isContact = (contacts ?? []).some((c) => c.id === id);
+  const addContactMut = useMutation({
+    mutationFn: () => contactService.addContact(id ?? ''),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      Burnt.toast({ title: t('contacts.added', { defaultValue: 'Ajouté à tes contacts' }), preset: 'done' });
+    },
+    onError: (e) => Burnt.toast({ title: getFriendlyError(e, 'generic') }),
+  });
+  const removeContactMut = useMutation({
+    mutationFn: () => contactService.removeContact(id ?? ''),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contacts'] }),
+    onError: (e) => Burnt.toast({ title: getFriendlyError(e, 'generic') }),
+  });
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['public-profile', id],
@@ -257,6 +279,19 @@ export default function PublicProfileScreen() {
               <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
             </Pressable>
           )}
+          {!isBlocked && (
+            <Pressable
+              style={styles.contactButton}
+              onPress={() => (isContact ? removeContactMut.mutate() : addContactMut.mutate())}
+              disabled={addContactMut.isPending || removeContactMut.isPending}
+            >
+              <Text style={styles.contactButtonText}>
+                {isContact
+                  ? t('contacts.removeAction', { defaultValue: 'Retirer des contacts' })
+                  : t('contacts.addAction', { defaultValue: 'Ajouter aux contacts' })}
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -368,6 +403,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md, alignItems: 'center',
   },
   messageText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  contactButton: {
+    borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.cta,
+    paddingVertical: spacing.md - 2, alignItems: 'center',
+  },
+  contactButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
   menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 56, paddingRight: spacing.md },
   menuSheet: {
     backgroundColor: colors.surface, borderRadius: radius.lg,

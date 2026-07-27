@@ -208,6 +208,8 @@
     "sessionExpired": "Ta session a expiré, reconnecte-toi.",
     "generic": "Une erreur est survenue, réessaie.",
     "code": {
+      "invite_cap": "Tu peux inviter jusqu'à 20 personnes à la fois.",
+      "rate_limited": "Tu envoies trop d'invitations d'un coup. Réessaie dans un moment.",
       "photo_limit": "Tu as atteint la limite de 5 photos pour cette page.",
       "limit_monthly": "Tu as atteint ta limite de création d'activités pour ce mois-ci.",
       "limit_daily": "Tu as atteint ta limite de création d'activités pour aujourd'hui. Réessaie demain.",
