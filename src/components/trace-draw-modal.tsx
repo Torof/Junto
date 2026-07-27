@@ -238,7 +238,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
 
-        <View style={[styles.topBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
+        <View style={[styles.topBanner, { top: insets.top + spacing.sm + 44 }]} pointerEvents="none">
           <Text style={styles.topBannerText}>
             {mode === 'draw'
               ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
