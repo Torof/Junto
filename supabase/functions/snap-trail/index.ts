@@ -85,6 +85,10 @@ Deno.serve(async (req) => {
   // Normalise to [lng,lat] (drop any elevation the client might send).
   const cleanCoords = (coords as number[][]).map((c) => [c[0], c[1]]);
 
+  // 2b) Per-user rate limit — protect the shared ORS quota (200 snaps/hour).
+  const { error: rlErr } = await userClient.rpc('consume_snap_trail_quota');
+  if (rlErr) return json({ ok: false, reason: 'rate_limited' }, 429);
+
   // 3) Call ORS foot-hiking. radiuses bounds the snap distance per point.
   let orsRes: Response;
   try {
