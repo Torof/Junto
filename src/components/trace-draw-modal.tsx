@@ -3,7 +3,7 @@ import { View, Text, Pressable, Modal, TextInput, StyleSheet, PanResponder } fro
 import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Undo2, Trash2, Pencil, Hand } from 'lucide-react-native';
+import { X, Undo2, Trash2, Pencil, Hand, Magnet } from 'lucide-react-native';
 import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -12,6 +12,7 @@ import { distanceMeters } from '@/utils/geo';
 import { simplifyRDP, type Pt } from '@/utils/simplify-path';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import type { GeoJsonLineString } from '@/services/activity-service';
+import { snapTrailService } from '@/services/snap-trail-service';
 
 interface Props {
   visible: boolean;
@@ -23,11 +24,26 @@ interface Props {
   onSave: (name: string, geojson: GeoJsonLineString) => void;
 }
 
-// Reusable trace-drawing tool: tap the map to drop points connected by straight
-// segments (Junto is an organiser, not a precise-topo editor — no snap-to-trail).
-// v1 = append + undo-last + clear; no mid-line editing. Returns a GeoJSON
-// LineString, the same shape as an imported GPX. Used by the library now, and
-// (Phase 2/3) activity creation + the activity map.
+// A chunk = one user action that appended coordinates to the trace:
+//   - a tap in nav mode (anchor + the coords added since the previous anchor,
+//     snapped to the trail or a straight [prev→here]);
+//   - a freehand stroke (anchor null, the whole stroke's coords).
+// The flat trace is just every chunk's coords concatenated. Undo pops the last
+// chunk. Modelling it this way keeps snap, straight-line, freehand and undo all
+// consistent.
+interface Chunk {
+  id: number;
+  kind: 'tap' | 'stroke';
+  anchor: [number, number] | null; // raw tapped point (routing input); null for strokes
+  coords: [number, number][];       // coords this action contributes to the flat line
+  snapped: boolean;
+  pending: boolean;                  // snap request in flight
+  fallback: boolean;                 // snap attempted but off-trail → kept straight
+}
+
+// Reusable trace-drawing tool. Two modes: tap-to-place points (snapped onto the
+// real trail via `snap-trail`, toggleable) or freehand drawing. Returns a GeoJSON
+// LineString, same shape as an imported GPX.
 export function TraceDrawModal({ visible, saving = false, askName = true, onClose, onSave }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -35,23 +51,56 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   const insets = useSafeAreaInsets();
   const { center } = useInitialLocation();
 
-  const [points, setPoints] = useState<[number, number][]>([]);
+  const [chunks, setChunks] = useState<Chunk[]>([]);
+  const [snapEnabled, setSnapEnabled] = useState(true);
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState('');
 
-  // Reset whenever the modal is hidden so a reopen starts blank (the parent
-  // closes on save success without calling our internal reset).
+  const nextId = useRef(1);
+  const chunksRef = useRef<Chunk[]>([]);
+  useEffect(() => { chunksRef.current = chunks; }, [chunks]);
+
+  // Reset whenever the modal is hidden so a reopen starts blank.
   useEffect(() => {
     if (!visible) {
-      setPoints([]);
+      setChunks([]);
       setNaming(false);
       setName('');
+      setSnapEnabled(true);
     }
   }, [visible]);
 
+  // Tap in nav mode → add a waypoint. With snap on, optimistically draw a
+  // straight segment then replace it with the trail-following path when it
+  // returns (or keep straight on off-trail / failure).
   const addPoint = useCallback((lng: number, lat: number) => {
-    setPoints((prev) => [...prev, [lng, lat]]);
-  }, []);
+    const p: [number, number] = [lng, lat];
+    const prev = chunksRef.current;
+    const id = nextId.current++;
+
+    if (prev.length === 0) {
+      setChunks((c) => [...c, { id, kind: 'tap', anchor: p, coords: [p], snapped: false, pending: false, fallback: false }]);
+      return;
+    }
+
+    const from = prev[prev.length - 1]!.anchor ?? prev[prev.length - 1]!.coords.at(-1)!;
+    setChunks((c) => [...c, {
+      id, kind: 'tap', anchor: p, coords: [p], snapped: false, pending: snapEnabled, fallback: false,
+    }]);
+    if (!snapEnabled) return;
+
+    void snapTrailService.snapSegment(from, p).then((res) => {
+      setChunks((c) => c.map((ch) => {
+        if (ch.id !== id) return ch;
+        if (res.ok) {
+          // Drop the routed segment's first point (≈ the previous anchor,
+          // already in the line) to avoid a duplicate at the join.
+          return { ...ch, coords: res.coordinates.slice(1), snapped: true, pending: false, fallback: false };
+        }
+        return { ...ch, pending: false, snapped: false, fallback: true };
+      }));
+    });
+  }, [snapEnabled]);
 
   // Freehand mode: 'nav' = pan/zoom + tap-to-place (default); 'draw' = the map
   // is locked and the finger traces a line.
@@ -62,22 +111,24 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
   useEffect(() => { if (!visible) setMode('nav'); }, [visible]);
 
-  // On stroke end: thin the finger path (RDP, px) then convert only the kept
-  // points screen→geo in ONE batch (getCoordinateFromView is async), and append
-  // to the trace. Screen-space preview + deferred conversion = no drawing lag.
+  // On stroke end: thin the finger path (RDP, px), convert screen→geo in ONE
+  // batch (getCoordinateFromView is async), and append it as one stroke chunk.
   const commitStroke = useCallback(async () => {
     const raw = livePtsRef.current;
     livePtsRef.current = [];
-    setLiveTick((t) => t + 1);
+    setLiveTick((tick) => tick + 1);
     const map = mapRef.current;
     if (raw.length < 2 || !map) return;
     const thinned = simplifyRDP(raw, 3);
     try {
-      const coords = await Promise.all(thinned.map((p) => map.getCoordinateFromView([p.x, p.y])));
-      const geo = coords
+      const converted = await Promise.all(thinned.map((p) => map.getCoordinateFromView([p.x, p.y])));
+      const geo = converted
         .filter((c): c is number[] => Array.isArray(c) && typeof c[0] === 'number' && typeof c[1] === 'number')
         .map((c) => [c[0]!, c[1]!] as [number, number]);
-      if (geo.length >= 1) setPoints((prev) => [...prev, ...geo]);
+      if (geo.length >= 2) {
+        const id = nextId.current++;
+        setChunks((c) => [...c, { id, kind: 'stroke', anchor: null, coords: geo, snapped: false, pending: false, fallback: false }]);
+      }
     } catch {
       /* rare conversion failure — drop this stroke silently */
     }
@@ -89,14 +140,14 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
         livePtsRef.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }];
-        setLiveTick((t) => t + 1);
+        setLiveTick((tick) => tick + 1);
       },
       onPanResponderMove: (e) => {
         const { locationX: x, locationY: y } = e.nativeEvent;
         const last = livePtsRef.current[livePtsRef.current.length - 1];
         if (!last || Math.hypot(x - last.x, y - last.y) >= 2) {
           livePtsRef.current.push({ x, y });
-          setLiveTick((t) => t + 1);
+          setLiveTick((tick) => tick + 1);
         }
       },
       onPanResponderRelease: () => { void commitStroke(); },
@@ -104,24 +155,48 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     }),
   ).current;
 
+  // Flatten every chunk into the trace line. Consecutive duplicate points at
+  // joins are dropped so the saved GeoJSON is clean.
+  const flatCoords = useMemo(() => {
+    const out: [number, number][] = [];
+    for (const ch of chunks) {
+      for (const c of ch.coords) {
+        const last = out[out.length - 1];
+        if (!last || last[0] !== c[0] || last[1] !== c[1]) out.push(c);
+      }
+    }
+    return out;
+  }, [chunks]);
+
+  const anchors = useMemo(
+    () => chunks.filter((c) => c.anchor).map((c) => ({ id: c.id, coord: c.anchor! })),
+    [chunks],
+  );
+
   const distanceKm = useMemo(() => {
     let m = 0;
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1]!;
-      const b = points[i]!;
+    for (let i = 1; i < flatCoords.length; i++) {
+      const a = flatCoords[i - 1]!;
+      const b = flatCoords[i]!;
       m += distanceMeters(a[1], a[0], b[1], b[0]);
     }
     return m / 1000;
-  }, [points]);
+  }, [flatCoords]);
 
-  const pins: MapPin[] = points.map((p, i) => ({ id: `pt-${i}`, coordinate: p, color: colors.cta }));
-  const routeLine = points.length >= 2 ? points : undefined;
-  const canSave = points.length >= 2 && !saving;
+  const snapping = chunks.some((c) => c.pending);
+  const fallbackCount = chunks.filter((c) => c.fallback).length;
+
+  const pins: MapPin[] = anchors.map((a) => ({ id: `pt-${a.id}`, coordinate: a.coord, color: colors.cta }));
+  const routeLine = flatCoords.length >= 2 ? flatCoords : undefined;
+  const canSave = flatCoords.length >= 2 && !saving && !snapping;
+
+  const undoLast = () => setChunks((prev) => prev.slice(0, -1));
+  const clearAll = () => setChunks([]);
 
   const confirmSave = () => {
     const trimmed = name.trim();
-    if (trimmed.length < 1 || saving) return;
-    onSave(trimmed, { type: 'LineString', coordinates: points });
+    if (trimmed.length < 1 || saving || flatCoords.length < 2) return;
+    onSave(trimmed, { type: 'LineString', coordinates: flatCoords });
   };
 
   return (
@@ -165,39 +240,53 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           <Text style={styles.topBannerText}>
             {mode === 'draw'
               ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
-              : points.length === 0
+              : anchors.length === 0
                 ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
-                : t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: points.length, km: distanceKm.toFixed(1) })}
+                : `${t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: anchors.length, km: distanceKm.toFixed(1) })}`
+                  + (snapping ? ` · ${t('gpx.snapping', { defaultValue: 'snap…' })}` : '')
+                  + (fallbackCount > 0 ? ` · ${t('gpx.offTrail', { defaultValue: '{{n}} hors sentier', n: fallbackCount, count: fallbackCount })}` : '')}
           </Text>
         </View>
 
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
-          <Pressable
-            style={[styles.modeBtn, mode === 'draw' && styles.modeBtnActive]}
-            onPress={() => setMode((m) => (m === 'nav' ? 'draw' : 'nav'))}
-          >
-            {mode === 'nav'
-              ? <Pencil size={18} color={colors.cta} strokeWidth={2.4} />
-              : <Hand size={18} color="#FFFFFF" strokeWidth={2.4} />}
-            <Text style={[styles.modeBtnText, mode === 'draw' && styles.modeBtnTextActive]}>
+          <View style={styles.modeRow}>
+            <Pressable
+              style={[styles.modeBtn, mode === 'draw' && styles.modeBtnActive]}
+              onPress={() => setMode((m) => (m === 'nav' ? 'draw' : 'nav'))}
+            >
               {mode === 'nav'
-                ? t('gpx.drawFreehand', { defaultValue: 'Dessiner à main levée' })
-                : t('gpx.drawNavigate', { defaultValue: 'Naviguer · placer des points' })}
-            </Text>
-          </Pressable>
+                ? <Pencil size={18} color={colors.cta} strokeWidth={2.4} />
+                : <Hand size={18} color="#FFFFFF" strokeWidth={2.4} />}
+              <Text style={[styles.modeBtnText, mode === 'draw' && styles.modeBtnTextActive]}>
+                {mode === 'nav'
+                  ? t('gpx.drawFreehand', { defaultValue: 'Dessiner à main levée' })
+                  : t('gpx.drawNavigate', { defaultValue: 'Naviguer · placer des points' })}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.snapBtn, snapEnabled && styles.snapBtnActive]}
+              onPress={() => setSnapEnabled((s) => !s)}
+              accessibilityLabel={t('gpx.snapToggle', { defaultValue: 'Coller au sentier' })}
+            >
+              <Magnet size={18} color={snapEnabled ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
+              <Text style={[styles.snapBtnText, snapEnabled && styles.snapBtnTextActive]}>
+                {t('gpx.snapToggle', { defaultValue: 'Sentier' })}
+              </Text>
+            </Pressable>
+          </View>
           <View style={styles.actionsRow}>
             <Pressable
-              style={[styles.secondaryBtn, points.length === 0 && styles.disabled]}
-              disabled={points.length === 0}
-              onPress={() => setPoints((prev) => prev.slice(0, -1))}
+              style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
+              disabled={chunks.length === 0}
+              onPress={undoLast}
             >
               <Undo2 size={18} color={colors.textPrimary} strokeWidth={2.2} />
               <Text style={styles.secondaryText}>{t('gpx.undo', { defaultValue: 'Annuler le point' })}</Text>
             </Pressable>
             <Pressable
-              style={[styles.secondaryBtn, points.length === 0 && styles.disabled]}
-              disabled={points.length === 0}
-              onPress={() => setPoints([])}
+              style={[styles.secondaryBtn, chunks.length === 0 && styles.disabled]}
+              disabled={chunks.length === 0}
+              onPress={clearAll}
             >
               <Trash2 size={18} color={colors.error} strokeWidth={2.2} />
               <Text style={[styles.secondaryText, { color: colors.error }]}>{t('gpx.clear', { defaultValue: 'Effacer' })}</Text>
@@ -208,10 +297,14 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
             disabled={!canSave}
             onPress={() => {
               if (askName) setNaming(true);
-              else onSave('', { type: 'LineString', coordinates: points });
+              else onSave('', { type: 'LineString', coordinates: flatCoords });
             }}
           >
-            <Text style={styles.saveText}>{t('gpx.validate', { defaultValue: 'Valider la trace' })}</Text>
+            <Text style={styles.saveText}>
+              {snapping
+                ? t('gpx.snappingWait', { defaultValue: 'Calcul du sentier…' })
+                : t('gpx.validate', { defaultValue: 'Valider la trace' })}
+            </Text>
           </Pressable>
         </View>
 
@@ -253,7 +346,9 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   drawOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 5 },
+  modeRow: { flexDirection: 'row', gap: spacing.sm },
   modeBtn: {
+    flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: spacing.sm, borderRadius: radius.md,
     borderWidth: 1, borderColor: colors.cta, backgroundColor: colors.surface,
@@ -261,6 +356,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   modeBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
   modeBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   modeBtnTextActive: { color: '#FFFFFF' },
+  snapBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.borderMuted, backgroundColor: colors.surface,
+  },
+  snapBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  snapBtnText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
+  snapBtnTextActive: { color: '#FFFFFF' },
   closeBtn: {
     position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',
