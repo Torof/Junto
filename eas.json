@@ -15,6 +15,7 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "credentialsSource": "local",
       "env": {
         "APP_VARIANT": "preview"
       },
