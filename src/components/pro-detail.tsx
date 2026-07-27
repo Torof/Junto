@@ -11,6 +11,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
+import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -390,6 +391,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             ) : null}
           </View>
           <View style={styles.heroActions}>
+            <FavoriteButton kind="pro" id={pro.user_id} size={22} />
             {ownerProfile ? (
               <Pressable
                 onPress={() => {

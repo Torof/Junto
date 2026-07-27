@@ -10,6 +10,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { favoriteService } from '@/services/favorite-service';
 import { FavoriteButton } from '@/components/favorite-button';
+import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
 
@@ -46,7 +47,7 @@ export default function FavoritesScreen() {
           <Text style={styles.section}>{t('favorites.activities', { defaultValue: 'Sorties' })}</Text>
           {data.activities.map((a) => (
             <Pressable key={a.id} style={styles.row} onPress={() => router.push(`/(auth)/activity/${a.id}`)}>
-              <View style={styles.thumbFallback}><Text style={styles.thumbEmoji}>🏔️</Text></View>
+              <View style={styles.thumbFallback}><Text style={styles.thumbEmoji}>{getSportIcon(a.sport_key)}</Text></View>
               <View style={styles.rowText}>
                 <Text style={styles.rowTitle} numberOfLines={1}>{a.title}</Text>
                 <Text style={styles.rowSub} numberOfLines={1}>
@@ -66,7 +67,7 @@ export default function FavoritesScreen() {
             <Pressable key={o.id} style={styles.row} onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}>
               {o.image_url
                 ? <Image source={{ uri: o.image_url }} style={styles.thumb} contentFit="cover" />
-                : <View style={styles.thumbFallback}><Text style={styles.thumbEmoji}>🧗</Text></View>}
+                : <View style={styles.thumbFallback}><Text style={styles.thumbEmoji}>{getSportIcon(o.sport_key)}</Text></View>}
               <View style={styles.rowText}>
                 <Text style={styles.rowTitle} numberOfLines={1}>{o.title}</Text>
                 <Text style={styles.rowSub} numberOfLines={1}>

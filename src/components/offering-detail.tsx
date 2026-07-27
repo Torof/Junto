@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
+import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -209,6 +210,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
             </Pressable>
           ) : null}
+          <FavoriteButton kind="offering" id={offering.id} size={22} style={{ marginLeft: 'auto' }} />
         </View>
         <Text style={styles.proLine} numberOfLines={1}>
           {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}

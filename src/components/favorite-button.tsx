@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Bookmark } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
@@ -33,7 +33,7 @@ export function FavoriteButton({ kind, id, size = 22, style }: Props) {
 
   return (
     <Pressable onPress={() => mut.mutate()} disabled={mut.isPending} hitSlop={8} style={[styles.btn, style]}>
-      <Heart
+      <Bookmark
         size={size}
         color={isFav ? colors.cta : colors.textSecondary}
         fill={isFav ? colors.cta : 'transparent'}
