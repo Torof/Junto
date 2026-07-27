@@ -570,15 +570,16 @@ export function GroupCard({
                   {/* Journey line — from → outing · departure time. */}
                   {hasMeta && (
                     <View style={styles.journey}>
-                      <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                      <Text style={[styles.jFrom, !d.transport_from_name && styles.jMuted]} numberOfLines={1}>
-                        {d.transport_from_name || t('group.departurePlaceholder', { defaultValue: 'Départ' })}
-                      </Text>
-                      <Text style={styles.jArrow}>→</Text>
-                      <Text style={styles.jTo}>{t('group.toOuting', { defaultValue: 'Sortie' })}</Text>
+                      {d.transport_from_name ? (
+                        <>
+                          <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
+                          <Text style={styles.jFrom} numberOfLines={1}>{d.transport_from_name}</Text>
+                        </>
+                      ) : null}
                       {d.transport_departs_at ? (
-                        <View style={styles.jTime}>
+                        <View style={[styles.jTime, d.transport_from_name ? styles.jTimePushed : null]}>
                           <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                          <Text style={styles.jTimeLabel}>{t('group.departLabel', { defaultValue: 'départ' })}</Text>
                           <Text style={styles.jTimeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
                         </View>
                       ) : null}
@@ -1160,10 +1161,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 11, paddingVertical: 8,
   },
   jFrom: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800', flexShrink: 1 },
-  jMuted: { color: colors.textMuted, fontWeight: '700' },
-  jArrow: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '900' },
-  jTo: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
-  jTime: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 4 },
+  jTime: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  jTimePushed: { marginLeft: 'auto' },
+  jTimeLabel: { color: colors.textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
   jTimeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   ncBot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   paxToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0 },
