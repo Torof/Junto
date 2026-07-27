@@ -22,7 +22,7 @@ export default function FavoritesScreen() {
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: t('favorites.title', { defaultValue: 'Mes favoris' }) });
+    navigation.setOptions({ title: t('favorites.title', { defaultValue: 'Favoris' }) });
   }, [navigation, t]);
 
   const { data, isLoading } = useQuery({

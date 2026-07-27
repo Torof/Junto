@@ -369,6 +369,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
       >
         {onClose ? (
           <View style={styles.topBar}>
+            <FavoriteButton kind="pro" id={pro.user_id} size={20} style={styles.topBarBtn} />
             <Pressable onPress={sharePage} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.share', { defaultValue: 'Partager' })}>
               <Share2 size={20} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
@@ -391,7 +392,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             ) : null}
           </View>
           <View style={styles.heroActions}>
-            <FavoriteButton kind="pro" id={pro.user_id} size={22} />
+            {!inSheet && <FavoriteButton kind="pro" id={pro.user_id} size={22} />}
             {ownerProfile ? (
               <Pressable
                 onPress={() => {

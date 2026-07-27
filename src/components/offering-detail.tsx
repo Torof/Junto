@@ -192,6 +192,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       <View style={styles.header} onLayout={(e) => onHeaderMeasured?.(Math.round(e.nativeEvent.layout.height))}>
         {inSheet && onClose ? (
           <View style={styles.topBar}>
+            <FavoriteButton kind="offering" id={offering.id} size={20} style={styles.topBarBtn} />
             <Pressable onPress={sharePage} hitSlop={8} style={styles.topBarBtn} accessibilityLabel={t('common.share', { defaultValue: 'Partager' })}>
               <Share2 size={20} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
@@ -210,7 +211,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
             </Pressable>
           ) : null}
-          <FavoriteButton kind="offering" id={offering.id} size={22} style={{ marginLeft: 'auto' }} />
+          {!inSheet && <FavoriteButton kind="offering" id={offering.id} size={22} style={{ marginLeft: 'auto' }} />}
         </View>
         <Text style={styles.proLine} numberOfLines={1}>
           {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}

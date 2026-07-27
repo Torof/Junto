@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Heart } from 'lucide-react-native';
+import { Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Bookmark } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -96,28 +96,28 @@ export function MenuSheet({ open, onClose }: Props) {
 
           <MenuItem
             icon={<Radar size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('menu.alerts', { defaultValue: 'Mes alertes' })}
+            label={t('menu.alerts', { defaultValue: 'Alertes' })}
             onPress={() => go('/(auth)/create-alert')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
             icon={<Route size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('menu.gpxTraces', { defaultValue: 'Mes traces GPX' })}
+            label={t('menu.gpxTraces', { defaultValue: 'Traces GPX' })}
             onPress={() => go('/(auth)/gpx-traces')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
             icon={<Users size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('menu.contacts', { defaultValue: 'Mes contacts' })}
+            label={t('menu.contacts', { defaultValue: 'Contacts' })}
             onPress={() => go('/(auth)/contacts')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Heart size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('menu.favorites', { defaultValue: 'Mes favoris' })}
+            icon={<Bookmark size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            label={t('menu.favorites', { defaultValue: 'Favoris' })}
             onPress={() => go('/(auth)/favorites')}
             styles={styles}
             colors={colors}

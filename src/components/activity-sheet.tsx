@@ -14,6 +14,7 @@ import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { transportService } from '@/services/transport-service';
 import { getSportIcon } from '@/constants/sport-icons';
+import { FavoriteButton } from './favorite-button';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
@@ -107,6 +108,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             >
               <X size={22} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
+            <FavoriteButton kind="activity" id={activity.id} size={21} style={styles.favBtn} />
 
             <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
               <Text style={styles.sportEmoji}>{getSportIcon(activity.sport_key)}</Text>
@@ -240,6 +242,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   kindRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   kindLine: { fontSize: fontSizes.xs, fontWeight: '700' },
   closeBtn: { position: 'absolute', top: 2, right: spacing.lg, zIndex: 1, padding: 2 },
+  favBtn: { position: 'absolute', top: 2, right: spacing.lg + 34, zIndex: 1, padding: 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', lineHeight: 26 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
