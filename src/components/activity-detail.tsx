@@ -27,6 +27,7 @@ import { activityService, type NearbyActivity } from '@/services/activity-servic
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
+import { FavoriteButton } from '@/components/favorite-button';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { JuntoMapView, type MapPin } from './map-view';
 import { MapLegend } from './map-legend';
@@ -266,6 +267,9 @@ export function ActivityDetail({
             </Text>
           </View>
           <View style={{ width: spacing.lg }} />
+          {!isCreator && (
+            <FavoriteButton kind="activity" id={activity.id} size={21} style={{ paddingHorizontal: spacing.sm - 2 }} />
+          )}
           {canShare && (
             <Pressable
               onPress={() => isPrivateLink ? handleShare() : setShowShareSheet(true)}
@@ -289,7 +293,7 @@ export function ActivityDetail({
         </View>
       ),
     });
-  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, activity.visibility, t, handleShare, colors, styles]);
+  }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, activity.visibility, activity.id, t, handleShare, colors, styles]);
 
   // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
   const parseDurationMs = (d: string): number => {

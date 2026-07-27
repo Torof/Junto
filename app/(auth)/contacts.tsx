@@ -22,7 +22,7 @@ export default function ContactsScreen() {
   const queryClient = useQueryClient();
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: t('contacts.title', { defaultValue: 'Mes contacts' }) });
+    navigation.setOptions({ title: t('contacts.title', { defaultValue: 'Contacts' }) });
   }, [navigation, t]);
 
   const { data: contacts, isLoading } = useQuery({
