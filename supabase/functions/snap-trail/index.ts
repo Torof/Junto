@@ -68,13 +68,27 @@ Deno.serve(async (req) => {
     return json({ error: 'Snap unavailable' }, 503);
   }
 
-  // 2) Validate input. Reject oversized bodies before parsing (≤50 short coords
-  // fit comfortably under 20 KB).
-  const contentLength = Number(req.headers.get('content-length') ?? '0');
-  if (contentLength > 20_000) return json({ error: 'Payload too large' }, 413);
+  // 2) Per-user rate limit FIRST — before we buffer/parse any body, so an
+  // over-quota or looping caller can't force unbounded parses. (200 snaps/hour;
+  // protects the shared ORS quota.)
+  const { error: rlErr } = await userClient.rpc('consume_snap_trail_quota');
+  if (rlErr) return json({ ok: false, reason: 'rate_limited' }, 429);
+
+  // 3) Read + validate input. Cap the body by ACTUAL length, not the spoofable/
+  // omittable Content-Length header: read as text, reject >20 KB, THEN parse —
+  // so JSON.parse never runs on an oversized payload (≤50 short coords fit well
+  // under 20 KB). req.text() buffering itself is bounded by the platform ceiling
+  // and now by the rate limit above.
+  let raw: string;
+  try {
+    raw = await req.text();
+  } catch {
+    return json({ error: 'Invalid body' }, 400);
+  }
+  if (raw.length > 20_000) return json({ error: 'Payload too large' }, 413);
   let payload: { coordinates?: unknown };
   try {
-    payload = await req.json();
+    payload = JSON.parse(raw);
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
@@ -88,11 +102,7 @@ Deno.serve(async (req) => {
   // Normalise to [lng,lat] (drop any elevation the client might send).
   const cleanCoords = (coords as number[][]).map((c) => [c[0], c[1]]);
 
-  // 2b) Per-user rate limit — protect the shared ORS quota (200 snaps/hour).
-  const { error: rlErr } = await userClient.rpc('consume_snap_trail_quota');
-  if (rlErr) return json({ ok: false, reason: 'rate_limited' }, 429);
-
-  // 3) Call ORS foot-hiking. radiuses bounds the snap distance per point.
+  // 4) Call ORS foot-hiking. radiuses bounds the snap distance per point.
   let orsRes: Response;
   try {
     orsRes = await fetch(ORS_URL, {
