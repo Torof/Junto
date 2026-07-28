@@ -205,6 +205,7 @@
   "errors": {
     "code": {
       "invite_cap": "You can invite up to 20 people at a time.",
+      "favorite_cap": "You've reached the 500-favorites limit.",
       "rate_limited": "You're sending too many invites at once. Try again in a moment.",
       "photo_limit": "You've reached the 5-photo limit for this page.",
       "limit_monthly": "You've reached your activity creation limit for this month.",

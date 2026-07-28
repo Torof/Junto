@@ -68,7 +68,10 @@ Deno.serve(async (req) => {
     return json({ error: 'Snap unavailable' }, 503);
   }
 
-  // 2) Validate input.
+  // 2) Validate input. Reject oversized bodies before parsing (≤50 short coords
+  // fit comfortably under 20 KB).
+  const contentLength = Number(req.headers.get('content-length') ?? '0');
+  if (contentLength > 20_000) return json({ error: 'Payload too large' }, 413);
   let payload: { coordinates?: unknown };
   try {
     payload = await req.json();
