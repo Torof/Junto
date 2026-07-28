@@ -127,6 +127,20 @@ dispo (page Discovery)  →  demande de contact  →  chat  →  « Proposer une
 
 Une **dispo ≠ une activité** : la dispo dit « **contacte-moi** » (état pré-activité, pas d'événement/places/groupe) ; l'activité dit « **rejoins-moi** ». Cette distinction désamorce à la fois le dating **et** la cannibalisation de la carte. Un **CTA léger** « Proposer une sortie » dans la conversation issue d'une dispo évite que le chat meure en « salut / salut » et ramène l'intention sur la carte.
 
+### Deux actions sur une carte dispo : Contacter + Inviter
+
+Chaque carte porte **deux** actions :
+
+- **Contacter** — envoie une **demande de contact** (flux 00072 : accepter / décliner → chat). L'action par défaut, toujours disponible.
+- **Inviter** — invite la personne à **une de tes propres activités**, mais **uniquement si l'activité correspond aux critères de la dispo** :
+  - **sport** de l'activité ∈ sports de la dispo,
+  - **date/heure** de l'activité ∈ fenêtre de temps de la dispo,
+  - **niveau** de l'activité compatible avec le niveau de la dispo (le critère le plus souple — à préciser au build).
+
+  *Exemple :* dispo « escalade · 6a · cette semaine » → invitable à une sortie **escalade, cette semaine, niveau 6a**. Une dispo « canyon · semaine prochaine » **ne peut pas** être invitée à cette sortie escalade. Si aucune de tes activités ne correspond, le bouton **Inviter** est masqué / inactif.
+
+  **Backend :** réutilise `invite_users_to_activity` (00341/00344, déjà durci à l'audit 2026-07-27/28) + un **contrôle serveur de correspondance dispo ↔ activité** (sport ∩ · date ∈ fenêtre · niveau compatible) ajouté avant l'envoi. À valider dans la chaîne d'autorisation.
+
 ---
 
 ## 11. Périmètre
@@ -136,6 +150,7 @@ Une **dispo ≠ une activité** : la dispo dit « **contacte-moi** » (état pr�
 - Compteur-filtre vivant (§5) + garde-fou petits nombres.
 - Liste de cartes (logistique, sans photo) → tap → profil existant.
 - Contact via le système 00072 (`initiated_from = 'discovery'`).
+- Action **Inviter** (invite à une activité correspondant aux critères de la dispo — voir §10).
 - Carte de prévention sécurité + CTA « Proposer une sortie ».
 - Notifications **pull-only** (seules les *demandes reçues* poussent ; pas de « quelqu'un est apparu »).
 - Nouveau compte = badge **« nouveau »** neutre (peu de signal, sans pénaliser).
