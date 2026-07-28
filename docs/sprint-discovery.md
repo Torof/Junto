@@ -1,313 +1,201 @@
-> ⚠️ **SPEC DORMANTE — jamais construite.** Rédigée le 2026-04-16, cette fonctionnalité n'a jamais été implémentée (aucune migration ni code). Elle ne reflète PAS la roadmap actuelle. Voir la mémoire projet « Discovery feature » pour les règles anti-dérive-dating avant toute reprise. Conservée à titre d'archive.
+# Discovery — Spécification (modèle « dispos »)
 
-# Sprint — Discovery (Partenaires + Demandes)
-
-**Status:** planned, not yet implemented.
-**Scope decision:** 2026-04-16.
-
----
-
-## 1. Goal
-
-Ship a Discovery feature that lets opted-in users find activity partners via mutual geographic consent and a gated request-to-chat flow. Solves Junto's cold-start problem at launch, especially given the flyer/QR distribution strategy.
-
-**Non-goal:** anything that reads as a dating app. See §3.
+> **Statut : modèle décidé, non construit.** Réflexion menée le 2026-07-28 avec Scott.
+> Prochaine étape = construction graphique + templates, **puis** build.
+> Aucune migration ni code à ce jour.
+>
+> ⚠️ Ce document **remplace** l'ancienne spec « Partenaires + Demandes » (annuaire de
+> profils, option A), **abandonnée** : elle inversait le but de Junto et glissait vers
+> le dating / la chasse aux profils. L'historique reste dans `git log`.
 
 ---
 
-## 2. Why now
+## 1. Le problème que ça résout
 
-- Launch is on-demand (flyer/QR in gyms, bakeries, clubs). By design, early users land in low-density regions with no activities visible — they need *something* to do on first open.
-- Feature reuses existing infrastructure (profiles, private messaging, reliability score, PostGIS, notifications). Additive, not disruptive.
-- No testers yet, no revenue, no analytics blocker. The only opportunity cost is ~2-3 days of other planned work (analytics), which is itself premature without users.
+La carte est faite pour de l'**épars et du précis** (des activités dispersées, à un point de RDV, à une heure). Elle ne résout pas trois situations :
 
----
+1. **Carte vide / faible densité** — nouvel arrivant dans une région peu active : rien sur la carte = cul-de-sac.
+2. **« Je serais partant si quelqu'un venait »** — le segment qui ne créera jamais une activité publique mais qui *est dans le coin* ce week-end.
+3. **Le voyage** — « j'arrive à Chamonix la semaine prochaine, qui est chaud ? » (le cœur du positionnement Junto : rejoindre l'outdoor *où que tu sois*).
 
-## 3. Anti-dating scope lock
-
-These constraints are non-negotiable. Any proposed sub-feature that violates them is rejected.
-
-- **No dating-app mechanics:** no swipe deck, no match entity, no "it's a match!", no hearts, no sparkles, no mutual-reveal, no "someone viewed your profile", no likes, no superlikes, no boosts, no premium visibility.
-- **No bio.** Junto profiles already have no bio by design. Discovery inherits that.
-- **No gender field.** Not collected, not displayed.
-- **Reliability + badges + activity count** are the dominant trust signals, not appearance.
-- **Random-generated pseudonyms at signup** encourage functional identity over personal branding.
-- **Pre-seeded request flow** is required — no cold DMs from discovery.
-- **Mutual geographic consent** — bidirectional radius intersection. No unilateral exposure.
-- **No "recently viewed", no "interested in you"** — passive exposure only.
-- **No monetization gates** on discovery — no revenue incentive to distort product.
-- **Decline is silent** — sender never knows they were declined.
-- **Language watch-list:** never use "match", "connect", "find people", "meet someone". Use "partenaires", "demande de contact", "accepter / décliner".
+**Propriété structurante :** la valeur de la Discovery est **inversement proportionnelle à la densité d'activités**. Elle pique au lancement et dans les zones creuses, et s'efface quand la carte se remplit. Ce n'est pas une baguette « zéro utilisateur » — elle résout le « quelques utilisateurs, activités trop éparses ».
 
 ---
 
-## 4. User stories
+## 2. Ce que c'est / ce que ce n'est pas
 
-1. *As a new Junto user in a low-density region, I want to see other active users in my area so I have someone to coordinate with even when no activities are posted.*
-2. *As an existing user, I want to opt into being discovered so people with matching interests can reach me without me exposing myself globally.*
-3. *As a user receiving a contact request, I want to review it (with context: sport + period) and accept or silently decline.*
-4. *As a user who has sent a request, I want to see it's still pending and optionally cancel it.*
-5. *As a user whose request is declined, I do not want to know. I do not want to be able to re-send to the same person.*
+**C'est** : une **page à part** (jamais la carte), une **liste scrollable de cartes sans photo**, chacune une **« dispo »** (disponibilité). On **clique activement** sur une personne pour lui envoyer une **demande de contact**.
 
----
-
-## 5. Data model
-
-### 5.1 Columns added to `users`
-
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `discovery_enabled` | BOOLEAN | NOT NULL DEFAULT FALSE | Opt-in toggle. |
-| `discovery_center` | GEOGRAPHY(POINT, 4326) | NULL allowed | User-picked center, not GPS. |
-| `discovery_radius_km` | INTEGER | NULL allowed, CHECK 10–200 | 10km steps enforced in UI. |
-| `discovery_sport_keys` | TEXT[] | NULL allowed, each key must exist in `sports.key` | Multi-select. |
-| `discovery_transport` | TEXT[] | NULL allowed, values ∈ (`car`, `carpool`, `public_transport`, `bike`, `other`) | Multi-select, optional. |
-
-All five columns added to the `handle_user_update` whitelist trigger as client-modifiable. If `discovery_enabled=TRUE`, then `discovery_center`, `discovery_radius_km`, `discovery_sport_keys` must all be non-null (enforced in function, not constraint).
-
-### 5.2 Columns added to `conversations`
-
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `status` | TEXT | NOT NULL DEFAULT 'active', CHECK IN ('pending_request', 'active', 'declined') | Existing rows backfill to 'active'. |
-| `initiated_from` | TEXT | NULL allowed, CHECK IN ('discovery', 'direct') | For future extensibility. |
-| `request_expires_at` | TIMESTAMPTZ | NULL allowed | Set when status = 'pending_request'; NOW() + 30 days. |
-
-### 5.3 New RPC functions (all SECURITY DEFINER)
-
-See §6 for authorization chains.
-
-- `get_discovery_partners() RETURNS SETOF discovery_partner_row`
-- `update_discovery_settings(p_enabled, p_center_lng, p_center_lat, p_radius_km, p_sport_keys, p_transport)`
-- `send_contact_request(p_target_user_id UUID, p_message TEXT, p_sport_key TEXT, p_period TEXT)`
-- `accept_contact_request(p_conversation_id UUID)`
-- `decline_contact_request(p_conversation_id UUID)`
-- `cancel_contact_request(p_conversation_id UUID)`
-
-### 5.4 Views / queries
-
-- Existing `messagerie` query splits by `status`:
-  - Active conversations → primary list.
-  - Pending (as recipient) → Reçues section of Demandes.
-  - Pending (as sender) → Envoyées section of Demandes.
-  - Declined → invisible to sender, invisible to recipient (hard delete or soft hide — decide in §7 open questions).
+**Ce n'est pas** :
+- ❌ Pas sur la carte — 50 personnes dans une ville = 50 pins au même endroit ; des pins de *gens* se lisent comme du dating.
+- ❌ Pas de swipe — on scrolle et on clique pour contacter, ce n'est pas « j'aime / j'aime pas ».
+- ❌ Pas d'annuaire de profils, pas d'entité « match », pas de DM à froid.
 
 ---
 
-## 6. Authorization chains (per CLAUDE.md rule — these need Scott's sign-off before any function is written)
+## 3. L'objet « dispo »
 
-### 6.1 `get_discovery_partners()`
+Quatre champs, **tous logistiques**, **tous requis pour entrer** (voir §5, réciprocité) :
 
-1. Auth check (`auth.uid() IS NULL` → reject).
-2. Caller's suspension check (`suspended_at IS NOT NULL` → reject).
-3. Caller's `discovery_enabled` check — must be TRUE (can't see partners without opting in yourself).
-4. Caller has non-null `discovery_center`, `discovery_radius_km`, `discovery_sport_keys`.
-5. Return: users WHERE
-   - `discovery_enabled = TRUE`
-   - `suspended_at IS NULL`
-   - `id != auth.uid()`
-   - At least one shared sport key with caller (`discovery_sport_keys && caller.discovery_sport_keys`)
-   - Bidirectional radius intersection: `ST_DWithin(caller.center, their.center, caller.radius + their.radius)` — if their zones overlap at all, they're visible to each other
-   - Not blocked by caller and not blocking caller (join against `blocked_users`)
-6. Return only public-profile columns + reliability_score + activity_count + sport overlap + distance from caller's center.
-7. Sort by reliability_score DESC, activity_count DESC.
-8. REVOKE EXECUTE from `anon`.
+| Champ | Détail | Notes |
+|---|---|---|
+| **Sport(s)** | 1 à 3 max | >3 = signal dating → refusé. Affiché en pilule `sport · cotation`. |
+| **Fenêtre de temps** | bornée, courte, expire seule | Le **début peut être futur** (cas voyage). |
+| **Lieu + rayon** | un **lieu choisi** (pas le GPS) + rayon | Paliers **5 / 10 / 15 / 30 / 50 km + « peu importe »**. Les cartes remontées sont autour de **ce lieu**. |
+| **Motorisé** | 🚗 oui / 🚶 non | Aucun plafond de rayon pour les non-motorisés (stop, bus, vélo, à pied). |
 
-### 6.2 `update_discovery_settings(...)`
-
-1. Auth check.
-2. Suspension check.
-3. Validate inputs:
-   - If `p_enabled=TRUE`, all required fields non-null.
-   - Radius in [10, 200].
-   - Sport keys exist in `sports` table.
-   - Transport values in enum set.
-4. Use `set_config('junto.bypass_lock', 'true', true)` to allow UPDATE on the whitelisted columns.
-5. UPDATE own user row.
-6. REVOKE EXECUTE from `anon`.
-
-### 6.3 `send_contact_request(p_target_user_id, p_message, p_sport_key, p_period)`
-
-1. Auth check.
-2. Suspension check (caller).
-3. Target existence + not suspended.
-4. Target ≠ caller.
-5. Not blocked (either direction).
-6. Target has `discovery_enabled = TRUE`.
-7. Sport key is shared between the two discovery profiles.
-8. Period in ('weekend', 'month', 'ongoing').
-9. Rate limit — advisory lock on caller UUID:
-   - Count pending requests from caller → reject if ≥ 10.
-   - Check for existing pending or active conversation with target → reject.
-10. Message content length in [1, 2000], strip HTML.
-11. Create `conversations` row (caller + target ordered pair, `status='pending_request'`, `initiated_from='discovery'`, `request_expires_at=NOW()+30 days`).
-12. Create `private_messages` row with the message content.
-13. Create notification for target (type `contact_request`, no content in body — privacy).
-14. REVOKE EXECUTE from `anon`.
-
-### 6.4 `accept_contact_request(p_conversation_id)`
-
-1. Auth check.
-2. Suspension check (caller).
-3. Conversation exists + status = 'pending_request'.
-4. Caller is the recipient (not the sender) of this conversation.
-5. Flip status to 'active'.
-6. Clear `request_expires_at`.
-7. Notification to sender (type `contact_request_accepted`, generic text, no content reveal).
-8. REVOKE EXECUTE from `anon`.
-
-### 6.5 `decline_contact_request(p_conversation_id)`
-
-1. Auth check.
-2. Suspension check.
-3. Conversation exists + status = 'pending_request'.
-4. Caller is the recipient.
-5. Flip status to 'declined'.
-6. No notification to sender (silent).
-7. REVOKE EXECUTE from `anon`.
-
-### 6.6 `cancel_contact_request(p_conversation_id)`
-
-1. Auth check.
-2. Conversation exists + status = 'pending_request'.
-3. Caller is the sender.
-4. Hard delete or soft status (TBD — see open questions).
-5. REVOKE EXECUTE from `anon`.
-
-### 6.7 Auto-expiration
-
-- Edge function (or pg_cron equivalent) runs daily: for all `conversations` with `status='pending_request'` AND `request_expires_at < NOW()`, transition to `declined` (no notifications).
-
-### 6.8 Cascade handling
-
-- If A blocks B: any `pending_request` between A and B is marked declined (no notifications).
-- If user is suspended: their `discovery_enabled` is forced to FALSE; all their pending requests (sent or received) are marked declined.
+- **Niveau par sport** : une pilule par sport, avec sa cotation propre (`🧗 Escalade · 5c`, `🎿 Ski rando · autonome`). Montré, mais **jamais un filtre** — jugement humain (cf. §6).
+- **Motorisation** : en v1 on **ne modélise pas** le « je viens te chercher ». Le badge 🚗/🚶 est affiché, le covoiturage se règle dans le chat.
+- **Une seule dispo active** par utilisateur en v1 (éditable). Les *presets* multiples sont reportés en v2 (§11).
 
 ---
 
-## 7. UI flows
+## 4. La règle de compatibilité (matching)
 
-### 7.1 Discovery opt-in
+**Te sont remontés = même sport ∩ zones qui se recoupent ∩ fenêtres qui se chevauchent.**
 
-Screen: `app/(auth)/discovery/settings.tsx` (or modal).
+- **Sport** : identique.
+- **Zone** : les rayons se recoupent — `distance(base_A, base_B) < rayon_A + rayon_B`. Ex. « 70 km autour de Briançon » voit « 10 km autour de Gap ». **Symétrique** par construction (si tu le vois, il te voit → réciprocité).
+- **Temps** : simple **chevauchement**, la durée n'importe pas (un « 3 jours » et un « 2 semaines » matchent s'ils se recoupent). Comme les dispos expirent, seules des fenêtres actives existent.
 
-- Toggle: "Activer la découverte".
-- When ON:
-  - Map pin picker: select center point (reuse activity creation flow).
-  - Radius slider: 10–200 km, 10km steps, default 50km.
-  - Sport multi-select: uses existing SportDropdown component.
-  - Transport multi-select (optional): Car, Covoiturage, TC, Vélo, Autre.
-- Save button hits `update_discovery_settings` RPC.
-
-### 7.2 Discovery tab — Partenaires
-
-Screen: `app/(auth)/(tabs)/discovery.tsx`.
-
-Segmented control at top: **Partenaires** | **Demandes**.
-
-Partenaires list:
-- Each row: avatar (40px) + pseudo + sport icons with level + reliability emoji + activity count + distance ("à 12 km").
-- Sorted by reliability_score DESC, activity_count DESC.
-- Tap → full public profile screen (existing).
-- From public profile, new button: "Envoyer une demande de contact".
-- Empty state: "Active la découverte pour voir des partenaires". If no matches despite opt-in: "Aucun partenaire pour l'instant — essaye d'élargir ton rayon ou d'ajouter des sports."
-
-### 7.3 Contact request modal
-
-Modal triggered from the profile screen.
-
-- Header: "Envoyer une demande à [Pseudo]".
-- Row 1 — Sport picker: chips of sports shared between the two (tap to select one).
-- Row 2 — Period picker: chips "ce weekend" / "ce mois-ci" / "à voir ensemble".
-- Below: auto-generated message (editable):
-  `"Salut ! Je t'ai vu sur la découverte. Tu serais partant·e pour faire [ski de rando] [ce weekend] ?"`
-- Send button hits `send_contact_request` RPC.
-- On success → toast "Demande envoyée", close modal.
-- Error states: rate limit, already sent, target blocked.
-
-### 7.4 Discovery tab — Demandes
-
-- Top section: **Reçues** — list of pending requests with: sender avatar + pseudo + reliability + sport + period + message text + Accepter / Décliner buttons.
-- Collapsible: **Envoyées** — list of pending requests you sent + Annuler button. Shows recipient pseudo, sport, period, sent-ago.
-- Empty state: "Aucune demande en attente".
-
-### 7.5 Message board swap
-
-- On `carte.tsx`, the floating AlertButton icon changes from `BellPlus` to `Radar` (Lucide).
-
-### 7.6 Accepted flow
-
-- Sender gets push notification "Ta demande a été acceptée" (no content reveal).
-- Conversation appears in both users' Messagerie with regular message threading.
-- Pre-seeded message is the first message in the thread.
-
-### 7.7 Declined flow
-
-- Recipient: conversation disappears from Demandes list. No trace.
-- Sender: nothing happens, ever. No notification, no status update. Rate limit (1-per-pair) prevents re-sending.
+> Note : le rayon est **à vol d'oiseau** — approximation généreuse, pas une promesse de proximité routière (50 km en montagne ≠ 50 km en plaine). Le badge motorisation + le chat gèrent la nuance.
 
 ---
 
-## 8. i18n keys to add
+## 5. L'expérience d'entrée : recherche à compteur vivant + réciprocité
 
-FR + EN:
-- `discovery.tab` (tab label)
-- `discovery.enable` / `discovery.disable`
-- `discovery.settingsTitle`
-- `discovery.centerPicker`
-- `discovery.radius`, `discovery.radiusKm`
-- `discovery.sports`, `discovery.transport`
-- `discovery.transport.car`, `.carpool`, `.public_transport`, `.bike`, `.other`
-- `discovery.partners`, `discovery.requests`
-- `discovery.sendRequest`, `discovery.cancelRequest`
-- `discovery.acceptRequest`, `discovery.declineRequest`
-- `discovery.emptyPartners`, `discovery.emptyRequests`
-- `discovery.messageTemplate` (with `{sport}` and `{period}` placeholders)
-- `discovery.period.weekend`, `.month`, `.ongoing`
-- `discovery.requestSent`, `.requestAccepted`
-- `discovery.distance` (e.g. "à {{km}} km")
-- Notification titles: `notif.contactRequest.title`, `notif.contactRequestAccepted.title`
+La « recherche » et la « dispo » sont **le même objet** vu des deux côtés. À mesure qu'on pose ses critères, une **pilule-compteur se met à jour en direct** :
 
----
+```
+Chamonix · 30 km          → « 300 personnes cherchent du sport autour »
++ 🧗 escalade             → « 120 personnes »
++ 14–18 juillet           → « 8 personnes »
+```
 
-## 9. Scope staging
+On *sent* la densité en construisant → on apprend à élargir/rétrécir. C'est l'anti-lurker rendu utile.
 
-- **Ship 1** (this sprint): Partenaires + Demandes flow.
-- **Ship 2** (future, only if Ship 1 proves itself): Annonces wall (§10 below).
+**Deux états distincts (clé du modèle) :**
+- **Composer** — je règle mes filtres, je vois les **compteurs flous** → je ne suis **pas encore visible**.
+- **Activer ma dispo** — ma recherche courante **devient** ma dispo → je deviens **visible** *et* je vois les **cartes**.
 
-Do not build Annonces now. Ship, watch, decide.
+La réciprocité tient : les compteurs pendant la compo sont gratuits ; pour accéder aux vraies personnes, je m'expose aussi.
+
+**Garde-fou** : quand le compteur descend très bas (1–2), afficher **« quelques personnes »** plutôt que le chiffre exact — sinon « 1 personne, ce sport, cette micro-zone, ces dates » peut désigner quelqu'un avant toute exposition mutuelle.
 
 ---
 
-## 10. Deferred — Annonces (wall of open calls)
+## 6. Carte vs profil — séparation par fonction
 
-Out of scope for this sprint. Idea preserved for future:
-- One active "call" per user per sport at a time.
-- Sport + level + period + region + optional 200-char note.
-- Appears in a third tab of Discovery.
-- Reply button → pre-seeded conversation (reuse `send_contact_request` with `initiated_from='annonce'`).
+- **La carte Discovery porte la LOGISTIQUE de l'intention** : sport, niveau, fenêtre, distance, motorisation, fiabilité (emoji). Tout ce qui décide « *peut-on faire ce truc ensemble ?* ». **Pas de photo.**
+- **Le profil porte l'IDENTITÉ / la confiance** : photo, jugements des pairs, historique de sorties, fiabilité détaillée. Tout ce qui décide « *ai-je envie / confiance ?* ».
 
-Risks to re-evaluate before building: potential to cannibalize activity creation (users post calls instead of activities because friction is lower). If Ship 1 usage shows users creating activities from matches, build Annonces. If Ship 1 usage is low, Annonces won't help.
+→ Carte minimale et rapide à scroller → **tap → profil** pour qui veut creuser. On ne tire pas le profil dans la carte : ça alourdit le scroll et retransforme le parcours en browsing de profils (ce qu'on évite).
 
 ---
 
-## 11. Open questions (resolve before Phase B migrations)
+## 7. Sécurité
 
-1. **Declined conversations**: hard delete or soft hide via status? Soft hide preserves audit history but clutters the table; hard delete is cleaner but loses moderation signal. Lean: soft hide (status='declined') + periodic cleanup after 90 days.
-2. **Cancellation of sent requests**: hard delete, status='cancelled' new state, or revert to 'declined'? Lean: new 'cancelled' status for clarity, treat same as declined for visibility.
-3. **Minimum activity count floor**: any anti-spam gating? Decision: no, per Scott. Add later if spam.
-4. **Request message content size**: max 500 chars? 2000? Lean: 500 — this is a greeting, not an essay.
-5. **Notification for declined requests**: silent as specified, but does Sentry track the decline event for funnel analytics? Out of scope for this sprint.
+Posture assumée (Scott) : **pas d'appareillage lourd**. Réservé aux **18+** (mineurs déjà interdits) + jugement adulte — comme les apps de rencontre outdoor qui fonctionnent malgré des RDV en lieux inconnus.
+
+- **Carte de prévention** au premier contact (« retrouvez-vous d'abord dans un lieu public / au parking du départ », « préviens un proche de ta sortie »).
+- **Le funnel vers l'activité est le vrai levier de sécurité** : transformer un 1:1 privé en **sortie postée sur la carte** (point de RDV public, d'autres peuvent voir/rejoindre) est plus sûr — et ça alimente le cœur de l'app (§10).
+- Hérité de 00072 : demande → accepter/décliner, décline silencieux, block/report, secteur jamais = domicile ni point exact.
 
 ---
 
-## 12. Checklist before writing code
+## 8. Zéro barrière d'entrée (v1)
 
-- [ ] Scott validates the §6 authorization chains.
-- [ ] Open questions §11 resolved.
-- [ ] Sprint doc merged to main.
-- [ ] `docs/DECISIONS.md` entry added.
-- [ ] `docs/BACKLOG.md` updated (Ship 1 items added, Annonces parked).
-- [ ] Memory file updated with final scope.
+Pas de plancher d'activité, pas d'ancienneté de compte, pas de vérification renforcée. Décision Scott (2026-07-28) : lancement **local (commune/région)**, friction minimale voulue au départ ; les abus seront traités *s'ils apparaissent*.
 
-Once these are green, Phase B (migrations) starts.
+---
+
+## 9. Navigation — où on la place
+
+**Pas de 6ᵉ onglet** dans la navbar (dilue la barre, écrase la carte, et la feature est **épisodique**, pas quotidienne).
+
+- **Entrée permanente dans le menu** (accès délibéré).
+- **+ Entrée contextuelle depuis la carte** quand c'est creux autour : bandeau discret *« Rien autour ? 🔎 Vois qui est dispo pour une sortie »*. Ça la fait apparaître **pile au moment du besoin** (carte vide = moment cold-start), sans l'imposer.
+
+---
+
+## 10. Le funnel — Discovery nourrit la carte
+
+```
+dispo (page Discovery)  →  demande de contact  →  chat  →  « Proposer une sortie »  →  activité sur la carte
+                            [réutilise 00072]                  [CTA léger dans le chat]     [le cœur reste vivant]
+```
+
+Une **dispo ≠ une activité** : la dispo dit « **contacte-moi** » (état pré-activité, pas d'événement/places/groupe) ; l'activité dit « **rejoins-moi** ». Cette distinction désamorce à la fois le dating **et** la cannibalisation de la carte. Un **CTA léger** « Proposer une sortie » dans la conversation issue d'une dispo évite que le chat meure en « salut / salut » et ramène l'intention sur la carte.
+
+---
+
+## 11. Périmètre
+
+### v1 (ce qu'on construit)
+- Composer/activer une dispo (une seule active, éditable).
+- Compteur-filtre vivant (§5) + garde-fou petits nombres.
+- Liste de cartes (logistique, sans photo) → tap → profil existant.
+- Contact via le système 00072 (`initiated_from = 'discovery'`).
+- Carte de prévention sécurité + CTA « Proposer une sortie ».
+- Notifications **pull-only** (seules les *demandes reçues* poussent ; pas de « quelqu'un est apparu »).
+- Nouveau compte = badge **« nouveau »** neutre (peu de signal, sans pénaliser).
+- Nav : menu + entrée contextuelle carte.
+
+### v2 (reporté, conçu pour se greffer sans refonte)
+- **Recherches enregistrées / presets** (façon Wyylde) : plusieurs presets (« maison », « voyage »), **seul le preset actif = ta dispo** (une seule active → règle v1 préservée). Sert pile le cas voyage. Purement additif.
+- **Messagerie comme hub** : covoiturage, questions, demande privée à un orga, création d'activité après match — cf. mémoire « Messaging + requests UX backlog ». Pour l'instant : simple.
+
+---
+
+## 12. Dos serveur — ~60 % déjà construit
+
+Le **système de demande de connexion (migration 00072**, durci à l'audit 2026-07-27/28) **est** la couche de contact de la Discovery :
+- `conversations.status` ∈ (`pending_request`, `active`, `declined`) ; `initiated_from` accepte déjà `'discovery'`.
+- `send_contact_request` / `accept` / `decline` / `cancel`, plafond **10 demandes en attente**, cascade de blocage, **décline silencieux**, une demande par paire (pas de renvoi).
+
+**Ce qui reste à construire :** le stockage de la dispo, la requête de matching, le compteur-filtre, l'UI.
+
+---
+
+## 13. Verrous anti-dating (non négociables)
+
+Pas de swipe, pas d'entité match, pas de « c'est un match », pas de bio, pas de genre, tri par **fiabilité** (jamais par photo), décline silencieux. **Vocabulaire** : « partenaires », « demande de contact », « accepter / décliner » — **jamais** « match ».
+
+---
+
+## 14. Esquisse de modèle de données (à valider avant build)
+
+> ⚠️ Per CLAUDE.md : **toute fonction SECURITY DEFINER doit voir sa chaîne d'autorisation présentée à Scott et validée avant d'être codée.** Ce qui suit est une *esquisse de conception*, pas une spec figée.
+
+**Table proposée `discovery_availabilities`** (une ligne active/utilisateur en v1 ; forme prête pour les presets v2) :
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `user_id` | UUID FK users, ON DELETE CASCADE | |
+| `sport_keys` | TEXT[] | 1–3, chaque clé ∈ `sports.key` |
+| `levels` | JSONB | niveau par sport `{ "escalade": "5c" }` |
+| `base` | GEOGRAPHY(POINT,4326) | lieu choisi, pas le GPS |
+| `radius_km` | INTEGER | ∈ {5,10,15,30,50} ou NULL = « peu importe » |
+| `motorized` | BOOLEAN NOT NULL | |
+| `window_start` | TIMESTAMPTZ | ≥ maintenant possible dans le futur |
+| `window_end` | TIMESTAMPTZ | CHECK > start, borne max (ex. +4 semaines) |
+| `is_active` | BOOLEAN NOT NULL DEFAULT false | index partiel unique `(user_id) WHERE is_active` |
+| `created_at` | TIMESTAMPTZ | |
+
+RLS ENABLE + FORCE dès la création ; écritures **uniquement via fonctions SECURITY DEFINER** ; colonnes privilégiées (`user_id`, `is_active`, `created_at`) forcées via trigger whitelist ; gate `(is_demo…)` sans objet ici mais suspension à filtrer.
+
+**Fonctions pressenties (chaînes d'autorisation à définir + valider) :**
+- `upsert_dispo(...)` — crée/édite la dispo ; valide sport ≤3, rayon dans l'ensemble, fenêtre bornée, motorisé non-null.
+- `activate_dispo(...)` / `deactivate_dispo()` — bascule `is_active` (une seule active).
+- `get_discovery_count(filtres)` — compteur flou, **planché** sous un seuil (« quelques »). Ne révèle aucune identité.
+- `get_discovery_cards()` — cartes pour la dispo active (exige `is_active` = réciprocité) ; filtre suspension + blocage bidirectionnel ; tri fiabilité.
+- Contact : **réutilise** `send_contact_request` avec `initiated_from = 'discovery'`.
+
+---
+
+## 15. Prochaines étapes
+
+1. **Construction graphique + templates** : écran « composer/activer ma dispo » (avec compteur-filtre vivant), carte-dispo (logistique, sans photo), écran liste, carte de prévention, entrée contextuelle carte.
+2. Puis, avant tout code serveur : **présenter les chaînes d'autorisation à Scott** (§14) et les valider.
+3. Puis build v1.
