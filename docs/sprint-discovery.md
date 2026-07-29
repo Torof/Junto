@@ -1,8 +1,8 @@
 # Discovery — Spécification (modèle « dispos »)
 
-> **Statut : modèle décidé, non construit.** Réflexion menée le 2026-07-28 avec Scott.
-> Prochaine étape = construction graphique + templates, **puis** build.
-> Aucune migration ni code à ce jour.
+> **Statut : modèle + design décidés, non construits.** Réflexion 2026-07-28, design/maquettes 2026-07-29 (Scott).
+> Prochaine étape = **décider go / no-go** (la feature est-elle utile ?), puis valider les chaînes d'autorisation, puis build.
+> Aucune migration ni code à ce jour. Maquettes de référence : voir « Design validé — maquettes ».
 >
 > ⚠️ Ce document **remplace** l'ancienne spec « Partenaires + Demandes » (annuaire de
 > profils, option A), **abandonnée** : elle inversait le but de Junto et glissait vers
@@ -41,11 +41,11 @@ Quatre champs, **tous logistiques**, **tous requis pour entrer** (voir §5, réc
 |---|---|---|
 | **Sport(s)** | 1 à 3 max | >3 = signal dating → refusé. Affiché en pilule `sport · cotation`. |
 | **Fenêtre de temps** | bornée, courte, expire seule | Le **début peut être futur** (cas voyage). |
-| **Lieu + rayon** | un **lieu choisi** (pas le GPS) + rayon | Paliers **5 / 10 / 15 / 30 / 50 km + « peu importe »**. Les cartes remontées sont autour de **ce lieu**. |
-| **Motorisé** | 🚗 oui / 🚶 non | Aucun plafond de rayon pour les non-motorisés (stop, bus, vélo, à pied). |
+| **Lieu + rayon** | un **lieu choisi** (pas le GPS, via géocodage — voir « Géocoding ») + rayon | Paliers **5 / 10 / 15 / 30 / 50 km + « peu importe »**. Les cartes remontées sont autour de **ce lieu**. |
+| **Déplacement** | **5 modes multi-choix** : voiture · moto · vélo · à pied · transports | Aucun plafond de rayon selon le mode (stop / bus / vélo / à pied possibles). |
 
 - **Niveau par sport** : une pilule par sport, avec sa cotation propre (`🧗 Escalade · 5c`, `🎿 Ski rando · autonome`). Montré, mais **jamais un filtre** — jugement humain (cf. §6).
-- **Motorisation** : en v1 on **ne modélise pas** le « je viens te chercher ». Le badge 🚗/🚶 est affiché, le covoiturage se règle dans le chat.
+- **Déplacement** : en v1 on **ne modélise pas** le « je viens te chercher ». Les modes sont affichés en pilules ; le covoiturage se règle dans le chat.
 - **Une seule dispo active** par utilisateur en v1 (éditable). Les *presets* multiples sont reportés en v2 (§11).
 
 ---
@@ -86,7 +86,7 @@ La réciprocité tient : les compteurs pendant la compo sont gratuits ; pour acc
 
 ## 6. Carte vs profil — séparation par fonction
 
-- **La carte Discovery porte la LOGISTIQUE de l'intention** : sport, niveau, fenêtre, distance, motorisation, fiabilité (emoji). Tout ce qui décide « *peut-on faire ce truc ensemble ?* ». **Pas de photo.**
+- **La carte Discovery porte la LOGISTIQUE de l'intention** : sport, niveau, fenêtre, distance, déplacement, fiabilité (**avatar + anneau**, pas d'emoji). Tout ce qui décide « *peut-on faire ce truc ensemble ?* ». Pas de photo *dominante* — l'avatar n'apparaît que petit, cerclé, comme signal de fiabilité.
 - **Le profil porte l'IDENTITÉ / la confiance** : photo, jugements des pairs, historique de sorties, fiabilité détaillée. Tout ce qui décide « *ai-je envie / confiance ?* ».
 
 → Carte minimale et rapide à scroller → **tap → profil** pour qui veut creuser. On ne tire pas le profil dans la carte : ça alourdit le scroll et retransforme le parcours en browsing de profils (ce qu'on évite).
@@ -159,6 +159,7 @@ Chaque carte porte **deux** actions :
 ### v2 (reporté, conçu pour se greffer sans refonte)
 - **Recherches enregistrées / presets** (façon Wyylde) : plusieurs presets (« maison », « voyage »), **seul le preset actif = ta dispo** (une seule active → règle v1 préservée). Sert pile le cas voyage. Purement additif.
 - **Messagerie comme hub** : covoiturage, questions, demande privée à un orga, création d'activité après match — cf. mémoire « Messaging + requests UX backlog ». Pour l'instant : simple.
+- **Recherche par spot précis** (idée Scott, 2026-07-29) : « je cherche un compagnon pour le **Canyon de Fressinières** » — ancrée sur un **lieu/spot nommé** (pas une ville), **sans date obligatoire**, avec **niveau(x)**. C'est le pendant « intention sur un spot » de la dispo (qui, elle, est « intention sur un secteur + une fenêtre »). Recoupe l'idée « annonce » parkée + les **spots fixes** (mémoire `project_fixed_spots_idea`). Nécessite un **géocodage de toponymes** (IGN Géoplateforme / Photon), donc dépend de ce chantier. Feature distincte du mode dispo — à cadrer à part.
 
 ---
 
@@ -178,6 +179,36 @@ Pas de swipe, pas d'entité match, pas de « c'est un match », pas de bio, pas 
 
 ---
 
+## Design validé — maquettes (2026-07-29)
+
+Design UI/UX arrêté avec Scott dans le langage maison (thème clair crème `#F5EEDF`, vert `#2FA46A`, cartes à liseré, labels capitales). Maquettes de référence (artifacts privés) :
+- **Carte dispo (modèle)** : https://claude.ai/code/artifact/0ce9be7e-633e-4d82-8908-75a41ce3df7f
+- **Écran Découverte (liste)** : https://claude.ai/code/artifact/4147c772-823c-422e-ba58-63dc75e4e763
+- **Composer ma dispo** : https://claude.ai/code/artifact/466996dc-f618-4e4c-957a-b6279e4afac2
+
+### La carte dispo (modèle validé)
+- **En-tête** : `Pseudo · à X km` — la **distance de toi** juste après le pseudo (jamais le rayon d'autrui, qui n'est pas affiché) ; **sorties** en sous-ligne, ou badge **« nouveau »** neutre (compte neuf, peu de signal).
+- **Fiabilité** = **avatar + anneau** (le ring du profil : vert fiable / ambre intermédiaire / gris nouveau). Vraie photo dans l'app. **Seul élément hors pilule.**
+- **Contenu en pilules, sans label** : pilule **sport colorée par son univers** (montagne `#4A7C59` · eau `#2563EB` · air `#8B5CF6` · vélo `#64748B` · à pied `#E11D48`, cf. `src/utils/sport-category-color.ts` — c'est ce qui distingue le multi-sport). Icône **sport** = son icône dédiée (`sport-icons.ts`) ; les **autres pilules** (fenêtre, déplacement) = **icônes en trait** (lucide).
+- **3 actions en liens** (style hyperlien souligné, **uniformes**) : **Voir profil · Inviter · Contacter**. Pas de boutons-pavés.
+
+### L'écran Découverte (liste)
+- Titre **« Découverte »**, **pas** de bouton réglages en haut.
+- **Ta dispo active** en tête : encart vert rappelant tes critères en pilules + liens *Modifier / Désactiver*.
+- Séparateur **« N correspondances »**, puis la liste scrollable des cartes.
+
+### L'écran Composer
+- **Sport** : réutilise le **SportDropdown existant** (barre qu'on ouvre → recherche + liste des ~36 sports), 1–3, cotation par sport **inline** sur le tag sélectionné.
+- **Lieu** : champ **autocomplete géocodé** (voir « Géocoding ») ; **Rayon** : **glissière** (paliers 5/10/15/30/50/∞).
+- **Quand** : champ ouvrant un **date picker** natif.
+- **Déplacement** : **5 modes** multi-choix (voiture · moto · vélo · à pied · transports), icônes en trait.
+- **Compteur épinglé** au-dessus du CTA, **épuré** : juste « **N** personnes correspondent dans ta zone, sur ces critères » (pas de détail 300→120→8). Planché à « quelques » sous 1–2 (cf. §5). CTA **« Activer ma dispo »**.
+
+### Géocoding — champ « Lieu »
+**Décision (2026-07-29, cf. DECISIONS.md).** L'app n'utilisait pas de géocodage (on plaçait un pin sur la carte). Pour la Discovery, le lieu se choisit par **autocomplete sur la Base Adresse Nationale** (`api-adresse.data.gouv.fr`, `type=municipality`) : **gratuit, sans clé, sans quota réel, pérenne** (service public Etalab), granularité **commune** — exactement le bon niveau pour un secteur. **France uniquement.** On garde le **pin sur carte** comme alternative/fallback. Les **toponymes naturels** (sommets, cols, spots) ne sont **pas** couverts par la BAN → réservés à **IGN Géoplateforme** ou **Photon/Nominatim** le jour des « spots fixes » (cf. §v2 + la recherche par spot). À l'international : **Photon auto-hébergé** (gratuit, mondial) ou un tier payant.
+
+---
+
 ## 14. Esquisse de modèle de données (à valider avant build)
 
 > ⚠️ Per CLAUDE.md : **toute fonction SECURITY DEFINER doit voir sa chaîne d'autorisation présentée à Scott et validée avant d'être codée.** Ce qui suit est une *esquisse de conception*, pas une spec figée.
@@ -190,9 +221,10 @@ Pas de swipe, pas d'entité match, pas de « c'est un match », pas de bio, pas 
 | `user_id` | UUID FK users, ON DELETE CASCADE | |
 | `sport_keys` | TEXT[] | 1–3, chaque clé ∈ `sports.key` |
 | `levels` | JSONB | niveau par sport `{ "escalade": "5c" }` |
-| `base` | GEOGRAPHY(POINT,4326) | lieu choisi, pas le GPS |
+| `base` | GEOGRAPHY(POINT,4326) | lieu choisi (autocomplete BAN → commune, ou pin carte), pas le GPS |
+| `base_label` | TEXT | libellé commune pour l'affichage (« Chamonix-Mont-Blanc ») |
 | `radius_km` | INTEGER | ∈ {5,10,15,30,50} ou NULL = « peu importe » |
-| `motorized` | BOOLEAN NOT NULL | |
+| `transport_modes` | TEXT[] NOT NULL | ⊂ {`car`,`motorbike`,`bike`,`on_foot`,`public_transport`}, ≥1 |
 | `window_start` | TIMESTAMPTZ | ≥ maintenant possible dans le futur |
 | `window_end` | TIMESTAMPTZ | CHECK > start, borne max (ex. +4 semaines) |
 | `is_active` | BOOLEAN NOT NULL DEFAULT false | index partiel unique `(user_id) WHERE is_active` |
@@ -211,6 +243,7 @@ RLS ENABLE + FORCE dès la création ; écritures **uniquement via fonctions SEC
 
 ## 15. Prochaines étapes
 
-1. **Construction graphique + templates** : écran « composer/activer ma dispo » (avec compteur-filtre vivant), carte-dispo (logistique, sans photo), écran liste, carte de prévention, entrée contextuelle carte.
-2. Puis, avant tout code serveur : **présenter les chaînes d'autorisation à Scott** (§14) et les valider.
-3. Puis build v1.
+1. ~~Construction graphique + templates~~ **FAIT** (2026-07-29) — voir « Design validé — maquettes ».
+2. **Décision go / no-go** : la feature est-elle utile ? l'ajoute-t-on ? (discussion à mener — le design est prêt, la décision d'embarquer ne l'est pas encore).
+3. Si go : **présenter les chaînes d'autorisation à Scott** (§14) et les valider, **avant** tout code serveur.
+4. Puis build v1.

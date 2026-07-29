@@ -327,3 +327,17 @@ Règles verrouillées :
 **Optionnel des deux côtés — propriété clé :** Rien n'est forcé. **Déclarer** un niveau est facultatif (sans déclaration, pas de jugement de niveau) ; **juger** les autres l'est aussi — remplir le questionnaire de fin est volontaire, donc le jugement de comportement (fiabilité / reputation badges) n'existe *que si* les pairs y répondent. Personne n'est contraint ni de s'exposer, ni de noter. L'auto-régulation se fait par la confiance : qui ne déclare rien (20 sorties, aucun niveau jugé) s'expose seulement à être **moins accepté** (les autres peuvent refuser faute d'info), sans pénalité imposée. C'était l'intention depuis le début : un **ajout optionnel** pour augmenter la confiance simplement et **sans pression**, en évitant autant que possible de tomber dans le **jugement personnel** — on juge la justesse d'un niveau et la fiabilité logistique (des faits utiles à la sécurité), jamais la personne (cf. Junto est logistique, pas une plateforme de notation).
 
 **Alternative considérée (rejetée) :** version sans verrou (niveau librement modifiable, la seule visibilité du ▼ suffit à l'honnêteté). Rejetée car niveau libre + reset = **blanchiment** : descendre puis remonter efface les votes rouges. Le verrou de montée est structurellement nécessaire, pas un choix esthétique. La gamification qui l'entourait (déblocage/score/progression) était en revanche une dérive de Claude, retirée.
+
+---
+
+## 2026-07-29 — Géocodage : Base Adresse Nationale (BAN), gratuite, pour le champ « Lieu »
+
+**Contexte :** l'app n'utilise pas de géocodage — on place un pin sur la carte, tout part de là. La Discovery (champ « Lieu » d'une dispo) gagnerait à un **autocomplete** (taper « Chamonix » → suggestions → coordonnées). Question : le géocodage est-il forcément payant ?
+
+**Décision :** utiliser la **Base Adresse Nationale** — `api-adresse.data.gouv.fr`, endpoint `/search/?q=…&type=municipality`. **Gratuite, sans clé, sans quota réel** (fair-use ~50 req/s/IP), maintenue par l'État (Etalab) — ce n'est **pas** un forfait d'essai. Granularité **commune**, qui est exactement le bon niveau pour un **secteur** de dispo. On garde le **pin sur carte** en alternative/fallback.
+
+**Pourquoi :** la donnée géo (OSM/BAN) est libre ; ce qui est payant, c'est un service hébergé (Google, Mapbox au-delà du quota, HERE…). Pour une feature à fort trafic qui doit **rester gratuite**, la BAN est le socle idéal tant que Junto est **franco-français**.
+
+**Limites assumées :** (1) **France uniquement** — à l'international, basculer sur **Photon auto-hébergé** (OSM, gratuit, mondial) ou un tier payant. (2) La BAN ne connaît **pas les toponymes naturels** (sommets, cols, spots, refuges) : ce sera **IGN Géoplateforme** ou **Photon/Nominatim** le jour des « spots fixes » / de la recherche par spot (cf. `docs/sprint-discovery.md` §v2).
+
+**Alternatives considérées :** Google Places / Mapbox / LocationIQ / Geoapify (forfaits qui deviennent payants au volume → écartés pour une feature fréquente) ; jeu de communes embarqué en local (viable, hors-ligne, mais la BAN est plus simple et plus riche) ; auto-hébergement addok/Photon dès maintenant (repoussé — inutile tant qu'on est en France).
