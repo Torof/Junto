@@ -351,3 +351,15 @@ Règles verrouillées :
 **Pourquoi :** anti-spam / anti-dérive-dating (personne ne peut « collectionner » quelqu'un sans son accord), et unification : le système mutuel décrit par Scott existait déjà (00072) — deux notions parallèles étaient une source d'ambiguïté (éligibilité groupes/invitations) et de surface d'attaque (les oracles patchés en 00348/00349 partent avec le répertoire).
 
 **Séquencement :** le répertoire live reste tel quel jusqu'à la vague de migrations de la refonte messagerie (rien ne casse pour les testeurs d'ici là).
+
+---
+
+## 2026-08-04 — Messagerie : modèle de conversation unifié (renverse « Deux tables de messages » du 2026-04-09)
+
+**Décision :** un seul modèle conversationnel pour DM / groupes / activités : `conversations` **étendue** (`type` + champs conditionnels par CHECK, la paire DM et le statut 00072 restent la colonne vertébrale), `conversation_members` (appartenance uniforme + `last_read_at`), `messages` (stock unique — remplace `private_messages` et `wall_messages`). Le mur reste DANS l'activité côté UX : l'activité **possède** sa conversation (trigger de création), membres asservis aux participations.
+
+**Pourquoi :** la messagerie est un axe central (hub, groupes, cartes riches, vision messagerie-hub) — chaque feature (non-lus, aperçus, cartes, recherche…) doit se coder **une** fois, pas 3-4. Les trois raisons de la séparation de 2026-04-09 (RLS différents, realtime différents, suppression différente) sont résolues autrement : RLS uniforme par appartenance, realtime par broadcast-trigger curé, sémantique de suppression par type. Fenêtre unique : **aucune donnée réelle en prod** → migrer ne coûte rien ; c'est le moment le moins cher de la vie de l'app pour bâtir le modèle durable (choix Scott : « le plus propre et le plus sécurisé »).
+
+**Garde-fous :** gate 00072 porté quasi verbatim ; décline silencieux verrouillé **au niveau DB** (pas de lecture directe de `conversations`, vues curées coalesçant declined→pending côté émetteur, realtime par broadcast curé) ; revue adverse du design **avant** toute migration, audit adverse après le code (rituel).
+
+**Alternatives considérées :** *présentation* (agréger 3-4 sources — chaque feature codée ×4, dette croissante, rejetée) ; *hybride* (DM+groupes unifiés, mur séparé — écartée : son seul avantage était d'éviter un risque de migration qui n'existe pas faute de données).
