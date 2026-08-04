@@ -197,21 +197,14 @@ export default function ConversationScreen() {
   useEffect(() => {
     if (!id) return;
 
+    // Unified store (00359): thread liveness is a curated broadcast 'change'
+    // on the membership-gated conversation topic (private_messages is retired).
     const channel = supabase
-      .channel(`dm:${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'private_messages',
-          filter: `conversation_id=eq.${id}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['messages', id] });
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        },
-      )
+      .channel(`conversation:${id}`, { config: { private: true } })
+      .on('broadcast', { event: 'change' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['messages', id] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      })
       .subscribe();
 
     return () => {

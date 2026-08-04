@@ -84,9 +84,12 @@ export const conversationService = {
     return row ? { id: row.id, status: row.state } : null;
   },
 
+  // Unified store (00355): per-member hidden_at (the old hide_conversation wrote
+  // hidden_by_user_* which the new hub no longer reads).
   hideConversation: async (conversationId: string): Promise<void> => {
-    const { error } = await supabase.rpc('hide_conversation', {
+    const { error } = await supabase.rpc('set_conversation_hidden', {
       p_conversation_id: conversationId,
+      p_hidden: true,
     });
     if (error) throw error;
   },
