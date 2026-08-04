@@ -9,7 +9,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface Payload {
-  user_id: string;
+  user_id?: string;          // single-recipient (legacy callers)
+  user_ids?: string[];       // batched fan-out (messaging trigger, ≤20 users)
   title: string;
   body: string;
   data?: Record<string, unknown>;
@@ -66,8 +67,11 @@ Deno.serve(async (req) => {
   } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
-  const { user_id, title, body, data, collapseId } = payload;
-  if (!user_id || !title) {
+  const { user_id, user_ids, title, body, data, collapseId } = payload;
+  const targets = (user_ids && user_ids.length > 0 ? user_ids : (user_id ? [user_id] : []))
+    .filter((u): u is string => typeof u === 'string' && u.length > 0)
+    .slice(0, 50); // hard bound — the group cap is 20, anything above is a bug
+  if (targets.length === 0 || !title) {
     return new Response('Missing fields', { status: 400 });
   }
 
@@ -81,15 +85,16 @@ Deno.serve(async (req) => {
   const { data: tokenRows, error } = await supabase
     .from('push_tokens')
     .select('token')
-    .eq('user_id', user_id);
+    .in('user_id', targets);
 
   let tokens = (tokenRows ?? []).map((r) => r.token).filter(Boolean);
 
-  if (tokens.length === 0 && !error) {
+  // Legacy fallback only makes sense for the single-recipient shape.
+  if (tokens.length === 0 && !error && targets.length === 1) {
     const { data: legacy } = await supabase
       .from('users')
       .select('push_token')
-      .eq('id', user_id)
+      .eq('id', targets[0])
       .single();
     if (legacy?.push_token) tokens = [legacy.push_token];
   }
@@ -115,22 +120,37 @@ Deno.serve(async (req) => {
     return msg;
   });
 
-  const expoRes = await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(messages),
-  });
-
-  const expoBody = await expoRes.text();
-
-  // Best-effort token cleanup. Expo returns one ticket per submitted message,
-  // in the same order. Tickets with status=error and a permanent-dead error
-  // code mean the token will never deliver again — drop the row so we stop
-  // burning fan-out time and potentially hitting rate limits on bad tokens.
-  if (expoRes.ok) {
+  // Expo accepts up to 100 messages per request — chunk the batch (a 20-user
+  // group with multiple devices each can exceed 100 tokens).
+  let anyFailed = false;
+  let expoBody = '';
+  const allTickets: ExpoTicket[] = [];
+  for (let i = 0; i < messages.length; i += 100) {
+    const chunk = messages.slice(i, i + 100);
+    const expoRes = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(chunk),
+    });
+    expoBody = await expoRes.text();
+    if (!expoRes.ok) {
+      anyFailed = true;
+      continue;
+    }
     try {
       const parsed = JSON.parse(expoBody);
-      const tickets: ExpoTicket[] = Array.isArray(parsed?.data) ? parsed.data : [];
+      const chunkTickets: ExpoTicket[] = Array.isArray(parsed?.data) ? parsed.data : [];
+      allTickets.push(...chunkTickets);
+    } catch {
+      console.warn('[send-push] expo response parse failed');
+    }
+  }
+
+  // Best-effort token cleanup. Tickets align with the flat token order only
+  // when every chunk succeeded and parsed — skip cleanup otherwise.
+  if (!anyFailed && allTickets.length === tokens.length) {
+    try {
+      const tickets: ExpoTicket[] = allTickets;
       const deadTokens: string[] = [];
       tickets.forEach((ticket, i) => {
         if (
@@ -164,8 +184,8 @@ Deno.serve(async (req) => {
 
   // Pass Expo's body through so per-message statuses are visible in
   // net._http_response.content (DeviceNotRegistered, MismatchSenderId, etc).
-  return new Response(expoBody, {
-    status: expoRes.ok ? 200 : 502,
+  return new Response(expoBody || '{}', {
+    status: anyFailed ? 502 : 200,
     headers: { 'Content-Type': 'application/json' },
   });
 });
