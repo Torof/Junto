@@ -803,7 +803,9 @@ function MessageBubble({
   }));
 
   const isTrace = item.metadata?.type === 'shared_trace' && item.metadata.trace_geojson;
-  const isDriver = !!seatReqId && item.receiver_id === currentUser;
+  // In a 2-party thread, "I received this" ⇔ I'm not the sender (receiver_id
+  // died with the unified messages store, 00358).
+  const isDriver = !!seatReqId && item.sender_id !== currentUser;
   const isActing = !!seatReqId && seatActionId === seatReqId;
 
   return (

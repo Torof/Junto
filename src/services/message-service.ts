@@ -27,7 +27,6 @@ export interface PrivateMessage {
   id: string;
   conversation_id: string;
   sender_id: string;
-  receiver_id: string;
   content: string;
   edited_at: string | null;
   deleted_at: string | null;
@@ -43,10 +42,11 @@ type RawMessageRow = Omit<PrivateMessage, 'reply_to'> & {
 
 export const messageService = {
   getMessages: async (conversationId: string): Promise<PrivateMessage[]> => {
+    // Unified store (00358): direct RLS read on `messages` (member-gated).
     const { data, error } = await supabase
-      .from('private_messages')
+      .from('messages')
       .select(`
-        id, conversation_id, sender_id, receiver_id, content,
+        id, conversation_id, sender_id, content,
         edited_at, deleted_at, created_at, metadata, reply_to_message_id,
         reply_to:reply_to_message_id (id, sender_id, content, deleted_at)
       `)
@@ -83,19 +83,19 @@ export const messageService = {
     return data;
   },
 
+  // Unified store (00358): sender-only edit/delete on `messages`.
   edit: async (messageId: string, content: string): Promise<void> => {
-    const { error } = await supabase.rpc('edit_private_message' as 'join_activity', {
+    const { error } = await supabase.rpc('edit_message', {
       p_message_id: messageId,
       p_content: content,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
   deleteMessage: async (messageId: string): Promise<void> => {
-    const { error } = await supabase.rpc('edit_private_message' as 'join_activity', {
+    const { error } = await supabase.rpc('delete_message', {
       p_message_id: messageId,
-      p_delete: true,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 

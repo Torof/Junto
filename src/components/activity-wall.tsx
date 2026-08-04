@@ -90,34 +90,15 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
 
   // Supabase Realtime subscription
   useEffect(() => {
+    // Unified store (00359/00360): wall liveness arrives as a curated
+    // broadcast 'wall' event on the membership-gated activity topic —
+    // postgres_changes on wall_messages is retired. Edits/deletes ride the
+    // 15s poll (no broadcast on UPDATE; rare + non-urgent).
     const channel = supabase
-      .channel(`wall:${activityId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'wall_messages',
-          filter: `activity_id=eq.${activityId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'wall_messages',
-          filter: `activity_id=eq.${activityId}`,
-        },
-        () => {
-          // Catches edits + soft-deletes so the list stays fresh without
-          // waiting for the 15s poll.
-          queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
-        },
-      )
+      .channel(`activity:${activityId}`, { config: { private: true } })
+      .on('broadcast', { event: 'wall' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
+      })
       .subscribe();
 
     return () => {

@@ -494,53 +494,180 @@ export type Database = {
           },
         ]
       }
+      conversation_members: {
+        Row: {
+          added_by: string | null
+          conversation_id: string
+          hidden_at: string | null
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          conversation_id: string
+          hidden_at?: string | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          added_by?: string | null
+          conversation_id?: string
+          hidden_at?: string | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
+          activity_id: string | null
           created_at: string
+          created_by: string | null
           hidden_by_user_1: boolean
           hidden_by_user_2: boolean
+          icon: string | null
           id: string
-          initiated_by: string
+          initiated_by: string | null
           initiated_from: string | null
           last_message_at: string | null
+          name: string | null
           request_expires_at: string | null
           request_message: string | null
           request_sender_id: string | null
           status: string
-          user_1: string
-          user_2: string
+          type: string
+          user_1: string | null
+          user_2: string | null
         }
         Insert: {
+          activity_id?: string | null
           created_at?: string
+          created_by?: string | null
           hidden_by_user_1?: boolean
           hidden_by_user_2?: boolean
+          icon?: string | null
           id?: string
-          initiated_by: string
+          initiated_by?: string | null
           initiated_from?: string | null
           last_message_at?: string | null
+          name?: string | null
           request_expires_at?: string | null
           request_message?: string | null
           request_sender_id?: string | null
           status?: string
-          user_1: string
-          user_2: string
+          type?: string
+          user_1?: string | null
+          user_2?: string | null
         }
         Update: {
+          activity_id?: string | null
           created_at?: string
+          created_by?: string | null
           hidden_by_user_1?: boolean
           hidden_by_user_2?: boolean
+          icon?: string | null
           id?: string
-          initiated_by?: string
+          initiated_by?: string | null
           initiated_from?: string | null
           last_message_at?: string | null
+          name?: string | null
           request_expires_at?: string | null
           request_message?: string | null
           request_sender_id?: string | null
           status?: string
-          user_1?: string
-          user_2?: string
+          type?: string
+          user_1?: string | null
+          user_2?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_initiated_by_fkey"
             columns: ["initiated_by"]
@@ -775,6 +902,71 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          metadata: Json | null
+          reply_to_message_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reply_to_message_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reply_to_message_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_message_id_fkey"
+            columns: ["reply_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string
@@ -894,6 +1086,8 @@ export type Database = {
           confirmed_present: boolean | null
           created_at: string
           id: string
+          invite_message: string | null
+          invited_by: string | null
           left_at: string | null
           left_reason: string | null
           penalty_waived: boolean
@@ -910,6 +1104,8 @@ export type Database = {
           confirmed_present?: boolean | null
           created_at?: string
           id?: string
+          invite_message?: string | null
+          invited_by?: string | null
           left_at?: string | null
           left_reason?: string | null
           penalty_waived?: boolean
@@ -926,6 +1122,8 @@ export type Database = {
           confirmed_present?: boolean | null
           created_at?: string
           id?: string
+          invite_message?: string | null
+          invited_by?: string | null
           left_at?: string | null
           left_reason?: string | null
           penalty_waived?: boolean
@@ -971,6 +1169,20 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -2920,6 +3132,10 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      accept_activity_invitation: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       accept_contact_request: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -2933,6 +3149,10 @@ export type Database = {
       add_contact: { Args: { p_contact_id: string }; Returns: undefined }
       add_favorite: {
         Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
+      add_group_member: {
+        Args: { p_conversation_id: string; p_user_id: string }
         Returns: undefined
       }
       add_missing_gear: {
@@ -3130,6 +3350,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_group: {
+        Args: { p_icon: string; p_member_ids: string[]; p_name: string }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_body: string
@@ -3176,6 +3400,10 @@ export type Database = {
         Args: { p_reason: string; p_target_id: string; p_target_type: string }
         Returns: string
       }
+      decline_activity_invitation: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       decline_contact_request: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -3185,6 +3413,7 @@ export type Database = {
         Returns: undefined
       }
       delete_gpx_trace: { Args: { p_id: string }; Returns: undefined }
+      delete_message: { Args: { p_message_id: string }; Returns: undefined }
       delete_offering_review: {
         Args: { p_review_id: string }
         Returns: undefined
@@ -3227,6 +3456,10 @@ export type Database = {
           }
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
+      edit_message: {
+        Args: { p_content: string; p_message_id: string }
+        Returns: undefined
+      }
       edit_private_message: {
         Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
         Returns: undefined
@@ -3509,6 +3742,20 @@ export type Database = {
           user_2: string
         }[]
       }
+      get_my_invitations: {
+        Args: never
+        Returns: {
+          activity_id: string
+          activity_title: string
+          invite_message: string
+          invited_at: string
+          invited_by: string
+          inviter_avatar: string
+          inviter_name: string
+          sport_id: string
+          starts_at: string
+        }[]
+      }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
       get_pending_contact_requests: {
         Args: never
@@ -3604,6 +3851,18 @@ export type Database = {
           voter_id: string
         }[]
       }
+      get_wall_messages: {
+        Args: { p_activity_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          edited_at: string
+          id: string
+          metadata: Json
+          reply_to_message_id: string
+          user_id: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       give_reputation_badge: {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
@@ -3622,6 +3881,7 @@ export type Database = {
         Args: { p_activity_id: string; p_reason?: string }
         Returns: undefined
       }
+      leave_group: { Args: { p_conversation_id: string }; Returns: undefined }
       log_admin_action: {
         Args: {
           p_action: string
@@ -3634,6 +3894,10 @@ export type Database = {
         Returns: undefined
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
       mark_tutorial_seen: { Args: never; Returns: undefined }
       moderate_report: {
         Args: {
@@ -3810,6 +4074,10 @@ export type Database = {
         Args: { p_id: string; p_name: string }
         Returns: undefined
       }
+      rename_group: {
+        Args: { p_conversation_id: string; p_icon: string; p_name: string }
+        Returns: undefined
+      }
       reorder_pro_offering_photos: {
         Args: { p_offering_id: string; p_photo_ids: string[] }
         Returns: undefined
@@ -3825,6 +4093,14 @@ export type Database = {
       reply_to_pro_review: {
         Args: { p_reply?: string; p_review_id: string }
         Returns: undefined
+      }
+      reply_to_request: {
+        Args: {
+          p_content: string
+          p_request_id: string
+          p_request_type: string
+        }
+        Returns: string
       }
       request_seat: {
         Args: {
@@ -3847,8 +4123,24 @@ export type Database = {
         Returns: undefined
       }
       sanitize_notif_text: { Args: { p: string }; Returns: string }
+      send_activity_invitations: {
+        Args: {
+          p_activity_id: string
+          p_message?: string
+          p_user_ids: string[]
+        }
+        Returns: undefined
+      }
       send_contact_request: {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
+        Returns: string
+      }
+      send_message: {
+        Args: {
+          p_content: string
+          p_conversation_id: string
+          p_reply_to_message_id?: string
+        }
         Returns: string
       }
       send_private_message: {
@@ -3865,6 +4157,10 @@ export type Database = {
       }
       set_activity_gear: {
         Args: { p_activity_id: string; p_items: Json }
+        Returns: undefined
+      }
+      set_conversation_hidden: {
+        Args: { p_conversation_id: string; p_hidden: boolean }
         Returns: undefined
       }
       set_participation_transport: {

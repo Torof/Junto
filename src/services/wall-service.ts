@@ -17,17 +17,22 @@ export interface WallMessageWithProfile extends WallMessage {
 
 export const wallService = {
   getMessages: async (activityId: string): Promise<WallMessageWithProfile[]> => {
-    const { data: messages, error } = await supabase
-      .from('wall_messages')
-      .select('id, activity_id, user_id, content, edited_at, deleted_at, created_at')
-      .eq('activity_id', activityId)
-      .is('deleted_at', null)
-      // Latest 200, served oldest-first for the UI. Hard cap so a busy
-      // wall doesn't fetch unbounded history (prod audit D).
-      .order('created_at', { ascending: false })
-      .limit(200);
+    // Unified store (00358): curated RPC — membership + author filters
+    // server-side; rows come back oldest-first already.
+    const { data: rows, error } = await supabase.rpc('get_wall_messages', {
+      p_activity_id: activityId,
+    });
     if (error) throw error;
-    messages?.reverse();
+    // Latest 200, oldest-first for the UI (prod audit D cap, kept client-side).
+    const messages = (rows ?? []).slice(-200).map((r) => ({
+      id: r.id,
+      activity_id: activityId,
+      user_id: r.user_id,
+      content: r.content,
+      edited_at: r.edited_at,
+      deleted_at: null,
+      created_at: r.created_at,
+    }));
 
     // Resolve display names from public_profiles
     const userIds = [...new Set((messages ?? []).map((m) => m.user_id).filter(Boolean))] as string[];
@@ -60,24 +65,19 @@ export const wallService = {
     return data as unknown as string;
   },
 
-  // Both routes go through edit_wall_message (mig 00177) — content edit
-  // when p_delete=false, soft-delete when p_delete=true. Auth chain
-  // enforces caller-is-author + activity-still-active server-side.
+  // Unified store (00358): sender-only edit/delete on `messages`.
   edit: async (messageId: string, content: string): Promise<void> => {
-    const { error } = await supabase.rpc('edit_wall_message' as 'join_activity', {
+    const { error } = await supabase.rpc('edit_message', {
       p_message_id: messageId,
       p_content: content,
-      p_delete: false,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
   remove: async (messageId: string): Promise<void> => {
-    const { error } = await supabase.rpc('edit_wall_message' as 'join_activity', {
+    const { error } = await supabase.rpc('delete_message', {
       p_message_id: messageId,
-      p_content: null,
-      p_delete: true,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 };

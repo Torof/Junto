@@ -124,22 +124,20 @@ export default function TabsLayout() {
           queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
         },
       )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'private_messages',
-          filter: `receiver_id=eq.${currentUserId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
-        },
-      )
+      .subscribe();
+    // Unified store (00359): incoming-message liveness is an 'inbox' broadcast
+    // on my personal topic (RLS: strictly self). Single subscriber app-wide —
+    // the messagerie screen relies on these invalidations.
+    const inboxChannel = supabase
+      .channel(`user:${currentUserId}`, { config: { private: true } })
+      .on('broadcast', { event: 'inbox' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
+      })
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(inboxChannel);
     };
   }, [queryClient, currentUserId]);
 

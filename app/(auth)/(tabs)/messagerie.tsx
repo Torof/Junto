@@ -50,25 +50,13 @@ export default function MessagerieScreen() {
     queryFn: () => conversationService.getAll(),
   });
 
-  // Refresh the conversation list whenever a new private_message arrives for
-  // this user — covers seat-accept seeded messages and any other server-side
-  // INSERT that bypasses the local invalidation path.
+  // Incoming-message liveness now rides the user:<id> 'inbox' broadcast,
+  // subscribed ONCE in the tabs layout (which invalidates ['conversations']).
+  // Here we only keep the seat_requests stream for the driver inbox.
   useEffect(() => {
     if (!currentUserId) return;
     const channel = supabase
       .channel(`messagerie-incoming:${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'private_messages',
-          filter: `receiver_id=eq.${currentUserId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        },
-      )
       .on(
         'postgres_changes',
         {
