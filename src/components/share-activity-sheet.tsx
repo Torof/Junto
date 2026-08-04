@@ -32,6 +32,10 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
     queryFn: () => conversationService.getAll(),
     enabled: visible,
   });
+  // Share into a direct conversation. The hub RPC now returns all 3 types
+  // (00368) under this shared cache key — filter to DM at render (never in the
+  // queryFn: it would poison the hub's ['conversations'] cache).
+  const dmConversations = (conversations ?? []).filter((c) => c.type === 'dm');
 
   const handleShare = async (conversationId: string) => {
     setSendingTo(conversationId);
@@ -68,11 +72,11 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
 
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>
-          ) : !conversations || conversations.length === 0 ? (
+          ) : dmConversations.length === 0 ? (
             <Text style={styles.empty}>{t('activity.shareNoConversations')}</Text>
           ) : (
             <FlatList
-              data={conversations}
+              data={dmConversations}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <Pressable
@@ -80,8 +84,8 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
                   onPress={() => handleShare(item.id)}
                   disabled={sendingTo !== null}
                 >
-                  <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={40} />
-                  <Text style={styles.name} numberOfLines={1}>{item.other_user_name}</Text>
+                  <UserAvatar name={item.other_user_name ?? '?'} avatarUrl={item.other_user_avatar} size={40} />
+                  <Text style={styles.name} numberOfLines={1}>{item.other_user_name ?? '?'}</Text>
                 </Pressable>
               )}
             />

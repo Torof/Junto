@@ -34,6 +34,10 @@ export function TraceShareSheet({ visible, geojson, name, onClose, onExternalSha
     queryFn: () => conversationService.getAll(),
     enabled: visible,
   });
+  // Share into a direct conversation. Filter to DM at render — the hub RPC
+  // (00368) now returns all types under this shared cache key; filtering in the
+  // queryFn would poison the hub's ['conversations'] cache.
+  const dmConversations = (conversations ?? []).filter((c) => c.type === 'dm');
 
   const handleShare = async (conversationId: string) => {
     if (!geojson) return;
@@ -57,11 +61,11 @@ export function TraceShareSheet({ visible, geojson, name, onClose, onExternalSha
           <Text style={styles.title}>{t('gpx.shareTitle', { defaultValue: 'Partager la trace' })}</Text>
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>
-          ) : !conversations || conversations.length === 0 ? (
+          ) : dmConversations.length === 0 ? (
             <Text style={styles.empty}>{t('activity.shareNoConversations')}</Text>
           ) : (
             <FlatList
-              data={conversations}
+              data={dmConversations}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <Pressable
@@ -69,8 +73,8 @@ export function TraceShareSheet({ visible, geojson, name, onClose, onExternalSha
                   onPress={() => handleShare(item.id)}
                   disabled={sendingTo !== null}
                 >
-                  <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={40} />
-                  <Text style={styles.name} numberOfLines={1}>{item.other_user_name}</Text>
+                  <UserAvatar name={item.other_user_name ?? '?'} avatarUrl={item.other_user_avatar} size={40} />
+                  <Text style={styles.name} numberOfLines={1}>{item.other_user_name ?? '?'}</Text>
                 </Pressable>
               )}
             />

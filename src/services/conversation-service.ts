@@ -1,18 +1,33 @@
 import { supabase } from './supabase';
 import type { MessageMetadata } from './message-service';
 
+export type ConversationType = 'dm' | 'group' | 'activity';
+
 export interface Conversation {
   id: string;
-  user_1: string;
-  user_2: string;
+  type: ConversationType;
   status: string;
   last_message_at: string | null;
   created_at: string;
-  other_user_name: string;
-  other_user_avatar: string | null;
   last_message_content: string | null;
   last_message_sender_id: string | null;
   last_message_metadata: MessageMetadata | null;
+  is_unread: boolean;
+  // DM
+  user_1: string | null;
+  user_2: string | null;
+  other_user_id: string | null;
+  other_user_name: string | null;
+  other_user_avatar: string | null;
+  other_user_reliability_tier: string | null;
+  // Groupe
+  name: string | null;
+  icon: string | null;
+  member_count: number | null;
+  // Activité
+  activity_id: string | null;
+  activity_title: string | null;
+  sport_id: string | null;
 }
 
 export interface PendingRequest {
@@ -36,8 +51,18 @@ export const conversationService = {
     if (error) throw error;
     return (data ?? []).map((c) => ({
       ...c,
+      type: c.type as ConversationType,
       last_message_metadata: (c.last_message_metadata ?? null) as MessageMetadata | null,
     }));
+  },
+
+  // Unified store (00355): server-side read receipt (own conversation_members
+  // row). Drives the hub's is_unread + the tab badge — call on opening a thread.
+  markRead: async (conversationId: string): Promise<void> => {
+    const { error } = await supabase.rpc('mark_conversation_read', {
+      p_conversation_id: conversationId,
+    });
+    if (error) throw error;
   },
 
   // Curated read (00351) — recipient-side pending requests; expiry filtered

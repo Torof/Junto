@@ -11,7 +11,6 @@ import { fontSizes } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
 import { conversationService } from '@/services/conversation-service';
-import { useMessageStore } from '@/store/message-store';
 import { supabase } from '@/services/supabase';
 
 function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: boolean }) {
@@ -59,12 +58,6 @@ function NotificationTabIcon({ focused }: { focused: boolean }) {
 function MessageTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isConversationUnread } = useMessageStore();
-
-  const { data: currentUserId } = useQuery({
-    queryKey: ['currentUser-id'],
-    queryFn: async () => (await supabase.auth.getUser()).data.user?.id,
-  });
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations-badge'],
@@ -72,9 +65,9 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
     refetchInterval: 30000,
   });
 
-  const hasUnread = (conversations ?? []).some(
-    (c) => isConversationUnread(c.id, c.last_message_at, c.last_message_sender_id, c.last_message_metadata, currentUserId)
-  );
+  // Server-driven unread (00368): is_unread comes straight from the hub RPC
+  // (last_read_at), covering DM + group + activity threads uniformly.
+  const hasUnread = (conversations ?? []).some((c) => c.is_unread);
 
   return (
     <View style={styles.bellContainer}>

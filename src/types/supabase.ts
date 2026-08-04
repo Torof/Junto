@@ -3729,15 +3729,25 @@ export type Database = {
       get_my_conversations: {
         Args: never
         Returns: {
+          activity_id: string
+          activity_title: string
           created_at: string
+          icon: string
           id: string
+          is_unread: boolean
           last_message_at: string
           last_message_content: string
           last_message_metadata: Json
           last_message_sender_id: string
+          member_count: number
+          name: string
           other_user_avatar: string
+          other_user_id: string
           other_user_name: string
+          other_user_reliability_tier: string
+          sport_id: string
           status: string
+          type: string
           user_1: string
           user_2: string
         }[]
@@ -3855,6 +3865,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: {
           content: string
+          conversation_id: string
           created_at: string
           edited_at: string
           id: string

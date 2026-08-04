@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 export interface WallMessage {
   id: string;
+  conversation_id: string;
   activity_id: string;
   user_id: string | null;
   content: string;
@@ -26,6 +27,7 @@ export const wallService = {
     // Latest 200, oldest-first for the UI (prod audit D cap, kept client-side).
     const messages = (rows ?? []).slice(-200).map((r) => ({
       id: r.id,
+      conversation_id: r.conversation_id,
       activity_id: activityId,
       user_id: r.user_id,
       content: r.content,

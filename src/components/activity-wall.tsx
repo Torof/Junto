@@ -11,6 +11,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { wallService, type WallMessageWithProfile } from '@/services/wall-service';
+import { conversationService } from '@/services/conversation-service';
 import { participationService } from '@/services/participation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useMessageStore } from '@/store/message-store';
@@ -83,10 +84,22 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
   useEffect(() => {
     if (messages !== undefined) {
       markWallRead(activityId);
+      // Server last_read_at (00368) so the unified hub / tab badge clear this
+      // activity's unread when its Chat tab is opened. conversation_id rides
+      // get_wall_messages (00369); absent only when the wall has no messages.
+      const convId = messages[0]?.conversation_id;
+      if (isActive && convId) {
+        conversationService.markRead(convId)
+          .then(() => {
+            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            void queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
+          })
+          .catch(() => {});
+      }
       const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
       return () => clearTimeout(t);
     }
-  }, [messages, activityId, markWallRead]);
+  }, [messages, activityId, markWallRead, isActive, queryClient]);
 
   // Supabase Realtime subscription
   useEffect(() => {

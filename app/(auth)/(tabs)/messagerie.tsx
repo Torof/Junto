@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Check, X, Car } from 'lucide-react-native';
+import { Check, X, Car, Users } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -16,7 +16,10 @@ import { participationService } from '@/services/participation-service';
 import { transportService } from '@/services/transport-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from '@/components/user-avatar';
-import { useMessageStore } from '@/store/message-store';
+import { ReliabilityRing } from '@/components/reliability-ring';
+import { useSports } from '@/hooks/use-sports';
+import { sportCategoryColor } from '@/utils/sport-category-color';
+import { getSportIcon } from '@/constants/sport-icons';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -38,7 +41,13 @@ export default function MessagerieScreen() {
   const [hidingConversationId, setHidingConversationId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { isConversationUnread } = useMessageStore();
+  // Sport reference (id → key/category) to render the activity square's
+  // universe colour + icon, same source the activity cards use.
+  const { data: sports } = useSports();
+  const sportMap = useMemo(
+    () => new Map((sports ?? []).map((s) => [s.id, s])),
+    [sports],
+  );
 
   const { data: currentUserId } = useQuery({
     queryKey: ['currentUser-id'],
@@ -344,32 +353,72 @@ export default function MessagerieScreen() {
             data={conversations}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
-              const isUnread = isConversationUnread(item.id, item.last_message_at, item.last_message_sender_id, item.last_message_metadata, currentUserId);
-              const otherUserId = item.user_1 === currentUserId ? item.user_2 : item.user_1;
+              const isUnread = item.is_unread;
+              const time = item.last_message_at
+                ? dayjs(item.last_message_at).locale(i18n.language).fromNow(true)
+                : null;
+              const meta = item.last_message_metadata;
+              const preview =
+                meta?.type === 'shared_trace' ? t('messagerie.previewTrace')
+                : meta?.type === 'shared_activity' ? t('messagerie.previewActivity')
+                : (meta?.type === 'seat_accepted' || meta?.type === 'seat_request_pending') ? t('messagerie.previewSeat')
+                : item.last_message_content;
+
+              // Leading visual + title + tap target, by conversation type.
+              let leading: React.ReactNode;
+              let title: string;
+              let onPress: () => void;
+              let onLongPress: (() => void) | undefined;
+
+              if (item.type === 'activity') {
+                const sport = item.sport_id ? sportMap.get(item.sport_id) : undefined;
+                leading = (
+                  <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(sport?.category, colors.cta) }]}>
+                    <Text style={styles.squareEmoji}>{sport ? getSportIcon(sport.key) : '📍'}</Text>
+                  </View>
+                );
+                title = item.activity_title ?? t('messagerie.activityThread');
+                onPress = () => router.push(`/(auth)/activity/${item.activity_id}`);
+              } else if (item.type === 'group') {
+                title = item.name ?? t('messagerie.group');
+                leading = (
+                  <View style={[styles.leadingSquare, styles.groupSquare]}>
+                    {item.icon
+                      ? <Text style={styles.squareEmoji}>{item.icon}</Text>
+                      : <Users size={22} color={colors.textSecondary} strokeWidth={2.2} />}
+                  </View>
+                );
+                onPress = () => router.push(`/(auth)/conversation/${item.id}`);
+                onLongPress = () => handleHideConversation(item.id, title);
+              } else {
+                const name = item.other_user_name ?? '?';
+                title = name;
+                leading = (
+                  <Pressable onPress={() => item.other_user_id && router.push(`/(auth)/profile/${item.other_user_id}`)} hitSlop={4}>
+                    <ReliabilityRing tier={item.other_user_reliability_tier} size={40} strokeWidth={2.5} showLabel={false}>
+                      <UserAvatar name={name} avatarUrl={item.other_user_avatar} size={40} />
+                    </ReliabilityRing>
+                  </Pressable>
+                );
+                onPress = () => router.push(`/(auth)/conversation/${item.id}`);
+                onLongPress = () => handleHideConversation(item.id, name);
+              }
+
               return (
                 <Pressable
                   style={[styles.row, isUnread && styles.rowUnread]}
-                  onPress={() => router.push(`/(auth)/conversation/${item.id}`)}
-                  onLongPress={() => handleHideConversation(item.id, item.other_user_name)}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
                 >
-                  <Pressable
-                    onPress={() => router.push(`/(auth)/profile/${otherUserId}`)}
-                    hitSlop={4}
-                  >
-                    <UserAvatar name={item.other_user_name} avatarUrl={item.other_user_avatar} size={44} />
-                  </Pressable>
+                  <View style={styles.leadingBox}>{leading}</View>
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
-                      <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{item.other_user_name}</Text>
+                      <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</Text>
                       {isUnread && <View style={styles.unreadDot} />}
-                      {item.last_message_at && (
-                        <Text style={styles.time}>
-                          {dayjs(item.last_message_at).locale(i18n.language).fromNow(true)}
-                        </Text>
-                      )}
+                      {time && <Text style={styles.time}>{time}</Text>}
                     </View>
-                    {item.last_message_content && (
-                      <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{item.last_message_content}</Text>
+                    {preview && (
+                      <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{preview}</Text>
                     )}
                   </View>
                 </Pressable>
@@ -577,6 +626,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta,
     alignSelf: 'center',
   },
+  // Leading visual — fixed box so the DM reliability ring and the
+  // activity/group squares all align on the same left rail.
+  leadingBox: { width: 52, alignItems: 'center', justifyContent: 'center' },
+  leadingSquare: {
+    width: 44, height: 44, borderRadius: radius.md,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  groupSquare: { backgroundColor: colors.surfaceAlt },
+  squareEmoji: { fontSize: 22 },
   rowContent: { flex: 1, minWidth: 0 },
   rowHeader: {
     flexDirection: 'row',

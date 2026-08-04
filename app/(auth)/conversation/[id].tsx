@@ -63,10 +63,18 @@ export default function ConversationScreen() {
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const navigation = useNavigation();
 
-  // Mark conversation as read when opened
+  // Mark conversation as read when opened — local store (legacy surfaces) +
+  // server last_read_at (drives the unified hub / tab badge is_unread, 00368).
   useEffect(() => {
-    if (id) markConversationRead(id);
-  }, [id, markConversationRead]);
+    if (!id) return;
+    markConversationRead(id);
+    conversationService.markRead(id)
+      .then(() => {
+        void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        void queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
+      })
+      .catch(() => {});
+  }, [id, markConversationRead, queryClient]);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser-id'],
