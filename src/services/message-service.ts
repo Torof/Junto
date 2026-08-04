@@ -76,7 +76,9 @@ export const messageService = {
       p_conversation_id: conversationId,
       p_content: content,
       p_reply_to_message_id: replyToMessageId ?? null,
-    } as { p_conversation_id: string; p_content: string; p_reply_to_message_id: string | null });
+      // Regenerated types (00351) declare the param optional (undefined) but we
+      // MUST ship an explicit null key for overload routing — see comment above.
+    } as unknown as { p_conversation_id: string; p_content: string; p_reply_to_message_id?: string });
     if (error) throw error;
     return data;
   },

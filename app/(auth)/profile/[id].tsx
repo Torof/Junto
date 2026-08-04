@@ -134,7 +134,9 @@ export default function PublicProfileScreen() {
   });
 
   const existingConversationId = conversationState?.status === 'active' ? conversationState.id : null;
-  const requestAlreadySent = conversationState?.status === 'pending_request' || conversationState?.status === 'declined';
+  // 'pending' merges pending_request + declined server-side (00351) — the
+  // sender must never be able to tell them apart.
+  const requestAlreadySent = conversationState?.status === 'pending';
 
   useLayoutEffect(() => {
     navigation.setOptions({

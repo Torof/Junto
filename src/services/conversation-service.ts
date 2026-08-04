@@ -28,121 +28,24 @@ export interface PendingRequest {
 }
 
 export const conversationService = {
+  // Curated read (00351) — the conversations base table is no longer directly
+  // readable by clients (design-review fix: raw `status` leaked the silent
+  // decline). The RPC returns active conversations + peer + last message.
   getAll: async (): Promise<Conversation[]> => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return [];
-
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('id, user_1, user_2, status, last_message_at, created_at, hidden_by_user_1, hidden_by_user_2')
-      .eq('status', 'active')
-      .order('last_message_at', { ascending: false, nullsFirst: false });
+    const { data, error } = await supabase.rpc('get_my_conversations');
     if (error) throw error;
-
-    if (!data || data.length === 0) return [];
-
-    // Filter out hidden conversations for this user
-    const visible = data.filter((c) => {
-      if (c.user_1 === userId && c.hidden_by_user_1) return false;
-      if (c.user_2 === userId && c.hidden_by_user_2) return false;
-      return true;
-    });
-
-    if (visible.length === 0) return [];
-
-    const otherUserIds = visible.map((c) =>
-      c.user_1 === userId ? c.user_2 : c.user_1
-    );
-    const { data: profiles } = await supabase
-      .from('public_profiles')
-      .select('id, display_name, avatar_url')
-      .in('id', otherUserIds);
-
-    const profileMap = new Map(
-      (profiles ?? []).map((p) => [p.id, p])
-    );
-
-    const conversationIds = visible.map((c) => c.id);
-    const { data: lastMessages } = await supabase
-      .from('private_messages')
-      .select('conversation_id, content, sender_id, created_at, metadata')
-      .in('conversation_id', conversationIds)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .returns<{ conversation_id: string; content: string; sender_id: string; created_at: string; metadata: MessageMetadata | null }[]>();
-
-    const lastMessageMap = new Map<string, { content: string; sender_id: string; metadata: MessageMetadata | null }>();
-    for (const msg of lastMessages ?? []) {
-      if (!lastMessageMap.has(msg.conversation_id)) {
-        lastMessageMap.set(msg.conversation_id, { content: msg.content, sender_id: msg.sender_id, metadata: msg.metadata });
-      }
-    }
-
-    return visible.map((c) => {
-      const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
-      const profile = profileMap.get(otherId);
-      const lastMsg = lastMessageMap.get(c.id);
-      return {
-        ...c,
-        other_user_name: profile?.display_name ?? '?',
-        other_user_avatar: profile?.avatar_url ?? null,
-        last_message_content: lastMsg?.content ?? null,
-        last_message_sender_id: lastMsg?.sender_id ?? null,
-        last_message_metadata: lastMsg?.metadata ?? null,
-      };
-    });
+    return (data ?? []).map((c) => ({
+      ...c,
+      last_message_metadata: (c.last_message_metadata ?? null) as MessageMetadata | null,
+    }));
   },
 
+  // Curated read (00351) — recipient-side pending requests; expiry filtered
+  // server-side, the expiry column itself is never exposed.
   getPendingReceived: async (): Promise<PendingRequest[]> => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return [];
-
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('id, user_1, user_2, request_sender_id, initiated_from, request_message, created_at, request_expires_at')
-      .eq('status', 'pending_request')
-      .order('created_at', { ascending: false });
+    const { data, error } = await supabase.rpc('get_pending_contact_requests');
     if (error) throw error;
-
-    // Filter: only requests where I'm the RECIPIENT (not the sender)
-    // and skip rows that have already passed their expiry — the server
-    // cleanup runs on activity-transition checks, so there's a small window
-    // where stale rows still appear if the user opens the tab before the
-    // next transition tick fires.
-    const now = Date.now();
-    const received = (data ?? []).filter(
-      (c) =>
-        (c.user_1 === userId || c.user_2 === userId) &&
-        c.request_sender_id !== userId
-    ).filter((c) => {
-      const exp = (c as { request_expires_at?: string | null }).request_expires_at;
-      return !exp || new Date(exp).getTime() > now;
-    });
-
-    if (received.length === 0) return [];
-
-    const senderIds = received
-      .map((c) => c.request_sender_id)
-      .filter((id): id is string => id !== null);
-    const { data: profiles } = await supabase
-      .from('public_profiles')
-      .select('id, display_name, avatar_url')
-      .in('id', senderIds);
-
-    const profileMap = new Map(
-      (profiles ?? []).map((p) => [p.id, p])
-    );
-
-    return received
-      .filter((c): c is typeof c & { request_sender_id: string } => c.request_sender_id !== null)
-      .map((c) => {
-        const profile = profileMap.get(c.request_sender_id);
-        return {
-          ...c,
-          sender_name: profile?.display_name ?? '?',
-          sender_avatar: profile?.avatar_url ?? null,
-        };
-      });
+    return data ?? [];
   },
 
   sendContactRequest: async (targetUserId: string, message: string, source: string = 'profile'): Promise<string> => {
@@ -169,18 +72,16 @@ export const conversationService = {
     if (error) throw error;
   },
 
+  // Curated read (00351) — returns 'active' | 'pending' | null. 'pending'
+  // deliberately merges pending_request and declined (silent decline must be
+  // indistinguishable for the sender, at the DB level, not just in the UI).
   getConversationStateWith: async (otherUserId: string): Promise<{ id: string; status: string } | null> => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return null;
-    const u1 = userId < otherUserId ? userId : otherUserId;
-    const u2 = userId < otherUserId ? otherUserId : userId;
-    const { data } = await supabase
-      .from('conversations')
-      .select('id, status')
-      .eq('user_1', u1)
-      .eq('user_2', u2)
-      .maybeSingle();
-    return data ?? null;
+    const { data, error } = await supabase.rpc('get_conversation_state_with', {
+      p_other_user_id: otherUserId,
+    });
+    if (error) throw error;
+    const row = (data ?? [])[0];
+    return row ? { id: row.id, status: row.state } : null;
   },
 
   hideConversation: async (conversationId: string): Promise<void> => {

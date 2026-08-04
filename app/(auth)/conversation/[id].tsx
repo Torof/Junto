@@ -83,18 +83,16 @@ export default function ConversationScreen() {
     queryKey: ['conversation-other-user', id, currentUser ?? null],
     queryFn: async () => {
       if (!id || !currentUser) return null;
-      const { data: conv } = await supabase
-        .from('conversations')
-        .select('user_1, user_2')
-        .eq('id', id)
-        .maybeSingle();
-      if (!conv) return { exists: false, profile: null };
-      const otherId = conv.user_1 === currentUser ? conv.user_2 : conv.user_1;
-      const { data: profile } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, avatar_url')
-        .eq('id', otherId)
-        .maybeSingle();
+      // Curated read (00351) — the conversations table has no direct client
+      // SELECT anymore; the RPC returns the peer of MY conversation only.
+      const { data } = await supabase.rpc('get_conversation_peer', {
+        p_conversation_id: id,
+      });
+      const row = (data ?? [])[0];
+      if (!row) return { exists: false, profile: null };
+      const profile = row.display_name != null
+        ? { id: row.other_id, display_name: row.display_name, avatar_url: row.avatar_url }
+        : null;
       return { exists: true, profile };
     },
     enabled: !!id && !!currentUser,

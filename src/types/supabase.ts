@@ -26,6 +26,7 @@ export type Database = {
           elevation_gain_m: number | null
           id: string
           invite_token: string
+          is_demo: boolean
           level: string
           level_max: string | null
           location_end: unknown
@@ -55,6 +56,7 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
+          is_demo?: boolean
           level: string
           level_max?: string | null
           location_end?: unknown
@@ -84,6 +86,7 @@ export type Database = {
           elevation_gain_m?: number | null
           id?: string
           invite_token?: string
+          is_demo?: boolean
           level?: string
           level_max?: string | null
           location_end?: unknown
@@ -334,6 +337,54 @@ export type Database = {
           },
         ]
       }
+      admin_actions: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_config: {
         Row: {
           name: string
@@ -390,6 +441,53 @@ export type Database = {
           {
             foreignKeyName: "blocked_users_blocker_id_fkey"
             columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          contact_id: string
+          created_at: string
+          owner_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          owner_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_owner_id_fkey"
+            columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -501,6 +599,104 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          activity_id: string | null
+          created_at: string
+          id: string
+          offering_id: string | null
+          owner_id: string
+          pro_id: string | null
+        }
+        Insert: {
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          offering_id?: string | null
+          owner_id: string
+          pro_id?: string | null
+        }
+        Update: {
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          offering_id?: string | null
+          owner_id?: string
+          pro_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "pro_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       gear_catalog: {
         Row: {
           category_key: string
@@ -533,6 +729,51 @@ export type Database = {
           sport_keys?: string[]
         }
         Relationships: []
+      }
+      gpx_traces: {
+        Row: {
+          created_at: string
+          distance_km: number
+          geojson: Json
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          distance_km: number
+          geojson: Json
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          distance_km?: number
+          geojson?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gpx_traces_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gpx_traces_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1102,6 +1343,7 @@ export type Database = {
           duration: string | null
           elevation_gain_m: number | null
           id: string
+          is_demo: boolean
           level: string
           location: unknown
           location_name: string
@@ -1122,6 +1364,7 @@ export type Database = {
           duration?: string | null
           elevation_gain_m?: number | null
           id?: string
+          is_demo?: boolean
           level: string
           location: unknown
           location_name: string
@@ -1142,6 +1385,7 @@ export type Database = {
           duration?: string | null
           elevation_gain_m?: number | null
           id?: string
+          is_demo?: boolean
           level?: string
           location?: unknown
           location_name?: string
@@ -1213,6 +1457,7 @@ export type Database = {
           email: string | null
           facebook: string | null
           instagram: string | null
+          is_demo: boolean
           last_location_change_at: string
           phone: string | null
           pin_icon: string | null
@@ -1239,6 +1484,7 @@ export type Database = {
           email?: string | null
           facebook?: string | null
           instagram?: string | null
+          is_demo?: boolean
           last_location_change_at?: string
           phone?: string | null
           pin_icon?: string | null
@@ -1265,6 +1511,7 @@ export type Database = {
           email?: string | null
           facebook?: string | null
           instagram?: string | null
+          is_demo?: boolean
           last_location_change_at?: string
           phone?: string | null
           pin_icon?: string | null
@@ -1463,6 +1710,7 @@ export type Database = {
         Row: {
           activity_id: string
           badge_key: string
+          counted_at: string | null
           created_at: string
           id: string
           voted_id: string
@@ -1471,6 +1719,7 @@ export type Database = {
         Insert: {
           activity_id: string
           badge_key: string
+          counted_at?: string | null
           created_at?: string
           id?: string
           voted_id: string
@@ -1479,6 +1728,7 @@ export type Database = {
         Update: {
           activity_id?: string
           badge_key?: string
+          counted_at?: string | null
           created_at?: string
           id?: string
           voted_id?: string
@@ -1650,6 +1900,36 @@ export type Database = {
           },
         ]
       }
+      snap_trail_calls: {
+        Row: {
+          called_at: string
+          user_id: string
+        }
+        Insert: {
+          called_at?: string
+          user_id: string
+        }
+        Update: {
+          called_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "snap_trail_calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "snap_trail_calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
@@ -1755,6 +2035,7 @@ export type Database = {
           email: string
           id: string
           is_admin: boolean
+          is_demo: boolean
           is_pro_verified: boolean
           levels_per_sport: Json | null
           notification_preferences: Json
@@ -1778,6 +2059,7 @@ export type Database = {
           email: string
           id: string
           is_admin?: boolean
+          is_demo?: boolean
           is_pro_verified?: boolean
           levels_per_sport?: Json | null
           notification_preferences?: Json
@@ -1801,6 +2083,7 @@ export type Database = {
           email?: string
           id?: string
           is_admin?: boolean
+          is_demo?: boolean
           is_pro_verified?: boolean
           levels_per_sport?: Json | null
           notification_preferences?: Json
@@ -2647,6 +2930,11 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
+      add_contact: { Args: { p_contact_id: string }; Returns: undefined }
+      add_favorite: {
+        Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
       add_missing_gear: {
         Args: { p_activity_id: string; p_name: string; p_quantity?: number }
         Returns: undefined
@@ -2703,6 +2991,41 @@ export type Database = {
             }
             Returns: string
           }
+      admin_pro_owner: {
+        Args: { p_pro_id: string }
+        Returns: {
+          owner_display_name: string
+          owner_email: string
+          pro_id: string
+          pro_name: string
+          status: string
+        }[]
+      }
+      admin_remove_content: {
+        Args: { p_reason: string; p_target_id: string; p_target_type: string }
+        Returns: undefined
+      }
+      admin_resolve_user: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          is_admin: boolean
+          suspended_at: string
+          tier: string
+        }[]
+      }
+      admin_set_demo_mode: { Args: { p_on: boolean }; Returns: undefined }
+      admin_suspend_user: {
+        Args: { p_reason: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_unsuspend_user: {
+        Args: { p_reason: string; p_user_id: string }
+        Returns: undefined
+      }
       approve_pro: { Args: { p_user_id: string }; Returns: undefined }
       award_badge_progression: {
         Args: { p_silent?: boolean; p_user_id: string }
@@ -2750,6 +3073,7 @@ export type Database = {
         Args: { p_skip_push?: boolean; p_token: string }
         Returns: string
       }
+      consume_snap_trail_quota: { Args: never; Returns: undefined }
       create_activity: {
         Args: {
           p_description: string
@@ -2787,6 +3111,24 @@ export type Database = {
           p_starts_on?: string
         }
         Returns: string
+      }
+      create_gpx_trace: {
+        Args: { p_geojson: Json; p_name: string }
+        Returns: {
+          created_at: string
+          distance_km: number
+          geojson: Json
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "gpx_traces"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_notification: {
         Args: {
@@ -2842,6 +3184,7 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      delete_gpx_trace: { Args: { p_id: string }; Returns: undefined }
       delete_offering_review: {
         Args: { p_review_id: string }
         Returns: undefined
@@ -2852,6 +3195,7 @@ export type Database = {
         Returns: undefined
       }
       delete_pro_review: { Args: { p_review_id: string }; Returns: undefined }
+      demo_content_visible: { Args: never; Returns: boolean }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -3104,6 +3448,38 @@ export type Database = {
           requester_id: string
         }[]
       }
+      get_contacts: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+        }[]
+      }
+      get_conversation_peer: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          other_id: string
+        }[]
+      }
+      get_conversation_state_with: {
+        Args: { p_other_user_id: string }
+        Returns: {
+          id: string
+          state: string
+        }[]
+      }
+      get_favorites: {
+        Args: never
+        Returns: {
+          created_at: string
+          kind: string
+          ref_id: string
+        }[]
+      }
       get_my_active_presence_activities: {
         Args: never
         Returns: {
@@ -3117,7 +3493,45 @@ export type Database = {
           title: string
         }[]
       }
+      get_my_conversations: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          last_message_at: string
+          last_message_content: string
+          last_message_metadata: Json
+          last_message_sender_id: string
+          other_user_avatar: string
+          other_user_name: string
+          status: string
+          user_1: string
+          user_2: string
+        }[]
+      }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
+      get_pending_contact_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          initiated_from: string
+          request_message: string
+          request_sender_id: string
+          sender_avatar: string
+          sender_name: string
+          user_1: string
+          user_2: string
+        }[]
+      }
+      get_recent_partners: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+        }[]
+      }
       get_top_vouched_badges: {
         Args: { p_user_ids: string[] }
         Returns: {
@@ -3199,9 +3613,24 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      invite_users_to_activity: {
+        Args: { p_activity_id: string; p_user_ids: string[] }
+        Returns: number
+      }
       join_activity: { Args: { p_activity_id: string }; Returns: string }
       leave_activity: {
         Args: { p_activity_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      log_admin_action: {
+        Args: {
+          p_action: string
+          p_admin: string
+          p_metadata?: Json
+          p_reason?: string
+          p_target_id: string
+          p_target_type: string
+        }
         Returns: undefined
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
@@ -3355,6 +3784,11 @@ export type Database = {
         Returns: undefined
       }
       reliability_tier: { Args: { p_score: number }; Returns: string }
+      remove_contact: { Args: { p_contact_id: string }; Returns: undefined }
+      remove_favorite: {
+        Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
       remove_missing_gear: {
         Args: { p_activity_id: string; p_name: string }
         Returns: undefined
@@ -3372,6 +3806,10 @@ export type Database = {
         Returns: undefined
       }
       remove_pro_photo: { Args: { p_photo_id: string }; Returns: undefined }
+      rename_gpx_trace: {
+        Args: { p_id: string; p_name: string }
+        Returns: undefined
+      }
       reorder_pro_offering_photos: {
         Args: { p_offering_id: string; p_photo_ids: string[] }
         Returns: undefined
