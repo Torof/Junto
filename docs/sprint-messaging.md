@@ -19,6 +19,7 @@ Sorties + groupes + DM **mélangés, triés par récence**, avec **aperçu + non
 - **dans la liste** : aperçu du message + accepter/refuser rapides ;
 - **au tap** : la **conversation s'ouvre** (carte de contexte + message complet + discuter avant de décider + accepter/refuser).
 Modèle unifié : une demande = une **conversation en attente** (déjà vrai pour le contact, 00072). Refus contact **silencieux**.
+**Fil pré-acceptation (arbitrage 2026-08-04)** : possible **seulement** sur rejoindre / covoit / invitation (refus non silencieux là), **ouvert par le destinataire** — l'émetteur ne peut jamais écrire au-delà du message porté par sa demande. Demandes de **contact** : 1 message, pas de fil avant acceptation.
 
 ### 3. Les messages riches (composer « + »)
 Dans un fil : **partager une trace GPX** · **partager une sortie** (belle carte tappable : vignette carte + pilule sport + titre + infos) · **créer une sortie** depuis la conversation (pré-remplit les participants du fil). Carte trace GPX = aperçu du tracé + stats (km · D+ · durée) + **profil altimétrique**.
@@ -63,7 +64,7 @@ Créés depuis tes **contacts / partenaires récents** (piocher + nommer). MVP *
 | | **DM** | **Groupe** | **Activité** |
 |---|---|---|---|
 | Création | **UNIQUEMENT** `send_contact_request` / invite → `pending_request` (invariant 00072 verbatim) | `create_group(name, ids)` — éligibilité ci-dessous, non bloqués, non suspendus | **trigger à la création de l'activité** + membre créateur |
-| Membres | 2, figés (lignes créées avec la paire, immuables) | chacun ajoute **ses** éligibles (groupes mixtes, façon WhatsApp) | **asservis aux participations** : `accepted` ⇔ ligne membre (trigger sur `participations`, déjà no-direct-writes → chokepoint unique). ⚠️ Le **créateur n'a PAS de ligne participation** — sa ligne membre vient du trigger de création et la sync ne doit **jamais** la toucher |
+| Membres | 2, figés (lignes créées avec la paire, immuables) | chacun ajoute **ses** éligibles (groupes mixtes, façon WhatsApp) | **asservis aux participations** : `accepted` ⇔ ligne membre, **créateur compris** (`create_activity` insère sa ligne `accepted` — 00316:179 ; c'est déjà comme ça qu'il lit le mur, RLS 00324 n'a aucune clause créateur). **Aucun cas spécial** : le trigger de création ne crée QUE la conversation ; toutes les lignes membres viennent de la sync (trigger sur `participations`, no-direct-writes → chokepoint unique) |
 | Envoyer | membre + `status='active'` + pas de blocage (2 sens) + rate 15/min (00264) | membre + rate | membre + activité vivante + rate |
 | Blocage | envoi coupé ; cascade pending→declined (trigger porté) | messages **restent visibles** (choix WhatsApp assumé) ; bloque l'ajout à de *nouveaux* groupes ; partir = soupape | inchangé (la coordination prime) |
 | Lecture (RLS) | ligne membre | ligne membre | ligne membre ≡ RLS actuel du mur (participants acceptés + créateur, 00324) |
@@ -76,17 +77,35 @@ Créés depuis tes **contacts / partenaires récents** (piocher + nommer). MVP *
 - **Non-lus** : messages `> last_read_at`, sender ≠ moi, non supprimés ; RPC mark-read.
 - **Suppression de compte** (par type) : DM = cascade ; groupe/activité = ligne membre cascade + messages anonymisés (`sender SET NULL`). → MAJ « Stratégie de suppression par table » (SECURITY.md) au build.
 
-**Éligibilité inviter / ajouter à un groupe (DÉCIDÉ 2026-08-04)** : **connexions actives ∪ partenaires récents** (une sortie faite ensemble = consentement réel, infalsifiable à bas coût — le cas « groupe post-sortie »).
+**Éligibilité inviter / ajouter à un groupe (DÉCIDÉ 2026-08-04, durci post-revue)** : **connexions actives ∪ partenaires récents durcis** — partenaire récent = **ma présence validée** sur une sortie commune non annulée/expirée, fenêtre 180 j (l'ancienne définition se fabriquait en un simple join public). Pour l'**ajout à un groupe**, condition supplémentaire : **aucune conversation non-active** entre la paire (un décliné/pending ne peut pas être contourné par un « groupe de 2 » = DM sans gate).
 
-**Registre des risques (missions de la revue adverse) :**
-1. 🔴 **Décline silencieux au niveau DB** — vérifier qu'aucun canal (RLS, vues, realtime, notifs, erreurs de re-send) ne révèle `declined` à l'émetteur ; **vérifier aussi si la fuite existe déjà en prod aujourd'hui** (status lisible via PostgREST ?).
-2. 🟠 **Sync membres ⇄ participations** — énumérer TOUTES les transitions de statut (join/rejoin, accept, refuse, withdraw, remove, expire, invited, suppression de compte, démo) ; le membre-créateur hors participations.
-3. 🟡 Double représentation DM (paire + membres) — immuable, créée en une transaction, invariant documenté.
-4. 🟡 Fan-out push groupes — cap taille (proposition : 20).
-5. 🟡 Realtime → bascule complète sur broadcast curé.
-6. ⚪ Blocage-dans-groupe visible (assumé) · rename groupe = créateur seul (MVP) · reports sur groupes/messages.
+### Durcissements issus de la revue adverse du design (2026-08-04 — 3 relecteurs, tout intégré)
 
-**Paramètres ouverts (non bloquants)** : cap membres groupe (20 ?) · messages système (« X a ajouté Y ») en v1 ? · purge des `declined` à 90 j.
+**Fait immédiatement (migration `00350`, appliquée en prod)** : `decline_contact_request` interdit à l'émetteur (oracle) · plafond des 10 compté **émetteur seul** · compteurs **decline-blind** (un `declined` occupe son slot jusqu'à `created_at + 30 j`, comme un pending intouché — idem compteur invite) · `join_activity` gate `is_demo`.
+**Reste vivant, assumé jusqu'au rebuild** : la policy SELECT de `conversations` expose `status` à l'émetteur (PostgREST). **Première brique du build** = lectures curées (aucun utilisateur réel actif ; risque documenté).
+
+**Sync membres ⇄ participations** : trigger row-level `AFTER INSERT OR UPDATE OR DELETE`, `WHEN (OLD.status IS DISTINCT FROM NEW.status)` sur UPDATE ; règle de gain (`→accepted` ⇒ INSERT membre `ON CONFLICT DO NOTHING`) et de perte (`accepted→autre` ⇒ DELETE tolérant) — **symétrique** car re-join = UPDATE et retrait = UPDATE ; pur trigger de données (jamais `auth.uid()`, tolérant aux cascades — suppression de compte, reset démo — sinon ces flux avortent) ; **non DEFERRABLE** ; RAISE si `user_id`/`activity_id` re-pointés ; script de **réconciliation/backfill** (sert aussi au backfill initial des activités existantes). L'inventaire des **23 transitions** vérifiées est dans le rapport de revue (mission sync).
+
+**Invitations — intégration au cycle réel** : `invited` **expire** (étendre le trigger 00263 à `('pending','invited')` + filtrer la lecture sur activité vivante) · `join_activity` reçoit une **branche `invited`** (sinon il dégrade l'invitation en demande) · la **cascade de blocage** nettoie aussi les `invited` · le refus d'invitation n'écrit **pas** `refused_at` (sinon cooldown 24 h infligé) — statut terminal propre ; ré-inviter un `withdrawn/refused/expired` = UPDATE `terminal→invited` · `send_activity_invitations` : éligibilité **côté serveur**, cap **par 24 h** (pas seulement par appel), `RETURNS VOID` (aucun décompte observable), message + titre strippés.
+
+**Groupes — anti-abus** : éligibilité durcie (ci-dessous) · blocage vérifié addee ↔ **chaque membre** (refus de l'ajout) · **notification à l'ajout** (jamais de membre silencieux) · rate limits `create_group` ~5/j + ajouts ~30/j · cap **20 membres** · `name` strip-HTML + 1–60, `icon` CHECK court · groupe **reportable** (nouveaux targets de report : `message` unifié + `group`) · pushes **supprimés** vers les membres ayant bloqué l'émetteur (le message reste visible) · groupe vide (dernier départ) ⇒ suppression de la conversation.
+
+**Schéma — compléments obligatoires** : `reply_to_message_id UUID REFERENCES messages ON DELETE SET NULL` (**les réponses en fil existent depuis 00208 — ne pas les perdre**) + validation même-conversation · trigger **strip-HTML** sur `messages` (pattern 00006) · index `sender_id` · `created_by`/`added_by` **nullable + ON DELETE SET NULL** (sinon la suppression de compte casse sur FK ; rename impossible si `created_by IS NULL`) · `conversation_members.hidden_at` (**porte `hide_conversation`**, dé-masquage au message entrant — généralise aux 3 types) · CHECKs par type complets **dont `user_1 < user_2`** (l'ordre n'est garanti que par les fonctions aujourd'hui) · bornes numériques lon/lat/ele sur le GeoJSON des traces partagées.
+
+**Lectures & temps réel** : helper `private.is_conversation_member(uuid,uuid)` SECURITY DEFINER (sans lui, couper la lecture de `conversations` casse les policies de `messages` — piège RLS réel) · les vues émetteur **ne font jamais disparaître une ligne** (bloqué/décliné/expiré rendus identiques à pending) et **calculent** `request_expires_at = created_at + 30 j` au lieu d'exposer la colonne · jamais `status` exposé · badge du hub via topic broadcast **par utilisateur** (ou polling) — plus de `postgres_changes` sur les tables.
+
+**Push & limites** : `send-push` étendu à `user_ids[]` → **1 seul** `http_post` par message (fan-out dans l'edge function, Expo batch 100) · rate limits : DM 15/min · groupe & activité 30/min (parité mur) · **cap global émetteur 60/min** toutes conversations · nom de groupe **sanitized** avant tout push (UGC en territoire notification).
+
+**Doctrine & dette doc à porter dans la vague** : colonnes privilégiées par table (whitelist triggers, `last_read_at` = seul champ client-atteignable, via RPC monotone) · codes `junto.*` + i18n FR/EN pour tous les nouveaux cas (y compris le rate-limit de `share_activity_message` resté générique) · MAJ CLAUDE.md (liste no-direct-writes : `conversations`/`conversation_members`/`messages`), SECURITY.md (matrice RLS, stratégie de suppression, rate limits, realtime/push, classification des fonctions), régénération des types TS, seed du read-state local (sinon tout apparaît non-lu au premier lancement post-refonte) · l'**inventaire complet des objets de la vague** (tables/policies/triggers/16 fonctions/realtime/client) est dans le rapport de revue (mission holistique).
+
+### Arbitrages Scott (2026-08-04 — tous validés)
+1. **Fil pré-acceptation** : uniquement sur **rejoindre / covoit / invitation** (où le refus n'est pas silencieux), et c'est **le destinataire qui ouvre** le fil (l'émetteur n'a que son message porté par la demande). Les **demandes de contact** : 1 message, pas de fil, décline silencieux intact.
+2. **Partenaire récent (durci)** = **ma présence validée** sur la sortie (geo/QR/pairs) + activité non annulée/expirée + fenêtre 180 j. (L'ancienne définition se fabriquait en un join public.)
+3. **Rétention hub** : conversations d'activités terminées visibles **~30 j** après la fin, puis masquées du hub (historique toujours lisible via l'activité) ; les `deleted_at` (modération) jamais montrées.
+4. **`hide_conversation`** : porté en `hidden_at` par membre.
+5. **Accusés de lecture : non** — chacun ne voit que son propre `last_read_at` (RLS membres = own rows ; jamais d'état de lecture d'autrui, surtout pas sur un DM pending).
+
+**Paramètres restants (à fixer au build, non bloquants)** : messages système (« X a ajouté Y ») en v1 ? · purge des `declined` à 90 j.
 
 ### 7. Extensions (v2, parké)
 **Canaux ouverts / par thème** (façon Summeet channels) rattachés au Discovery « gros » — distincts des groupes privés. Messagerie-hub élargie (covoit, questions, demande privée à un orga).
@@ -95,7 +114,7 @@ Créés depuis tes **contacts / partenaires récents** (piocher + nommer). MVP *
 
 **Plus aucun contact unilatéral.** Scott : « un contact ne se fait pas s'il n'a pas été approuvé ; une fois validé, les deux sont contacts. » Conséquence : le **répertoire one-way (00341)** est **retiré** au moment de la refonte (pas avant — séquencement identique aux invitations). « Mes contacts » ≡ **connexions acceptées du 00072** (send_contact_request → Demandes → accept). La notification « demande en attente » existe déjà (push `contact_request` + section Demandes). Les **partenaires récents** restent une source de *suggestions* (pour envoyer une demande / inviter), pas des contacts. Retrait d'un contact : MVP = le blocage couvre le cas hostile (pas de « déconnexion » douce pour l'instant).
 
-**Éligibilité inviter / ajouter à un groupe** : **connexions ∪ partenaires récents** (une sortie faite ensemble = consentement réel, infalsifiable à bas coût ; c'est le cas d'usage « groupe post-sortie »). **Confirmé par Scott (2026-08-04).**
+**Éligibilité inviter / ajouter à un groupe** : **connexions ∪ partenaires récents durcis** — définition canonique en §6 (présence validée + activité vivante + garde anti-« groupe de 2 »). **Confirmé par Scott (2026-08-04).**
 
 ## Cadrage & invariants
 - **Table-stakes, standard-good**, pas maximaliste. Test à chaque écran : *ça ajoute du bruit / on peut se perdre ?* → couper.
@@ -111,8 +130,6 @@ Créés depuis tes **contacts / partenaires récents** (piocher + nommer). MVP *
 - Invitation dans la vraie étape 4 : https://claude.ai/code/artifact/ad9b35a7-f39e-4314-afe0-c20add17c3c9
 
 ## Prochaines étapes
-1. ~~Vérifier les surfaces d'invitation~~ **FAIT** — l'émission existe (`InvitePartnersSheet`, à repointer au build) ; la réception appartient à la refonte ; l'étape-4 création est le seul ajout UI.
-2. ~~Trancher le fork~~ **FAIT** — modèle unifié (§6, décidé 2026-08-04).
-3. **Revue adverse du DESIGN** (en cours) — missions : fuite decline (n°1), sync participations (n°2), œil neuf global. Synthèse → corrections du modèle si besoin.
-4. **Chaînes d'autorisation fonction par fonction** (validation Scott à chaque fois — celle des invitations §5 est déjà validée) : contact-request portées, send_message, create_group/add/leave/rename, triggers (activité, sync, blocage), vues curées, mark-read.
-5. **Ordre de build** : une seule vague de migrations (modèle unifié + invitations + contacts-mutuels) + port des fonctions + seed démo régénérée + **audit adverse post-code** (rituel) — puis l'UI (hub → conversation → groupes → invitations → « créer une sortie depuis le chat »).
+1. ~~Vérifier les surfaces d'invitation~~ **FAIT** · 2. ~~Trancher le fork~~ **FAIT** (modèle unifié) · 3. ~~Revue adverse du DESIGN~~ **FAIT** (2026-08-04, 3 relecteurs — tout intégré ci-dessus) · 4. ~~Fixes vivants~~ **FAIT** (migration `00350` appliquée).
+5. **Chaînes d'autorisation fonction par fonction** (validation Scott à chaque fois — invitations §5 déjà validées) : contact-request portées (dont recipient status-blind au decline), send_message, create_group/add_member/leave/rename, mark-read, hide, triggers (création conversation, sync participations, blocage étendu, expiry étendu), vues curées, edge send-push batch.
+6. **Ordre de build** : lectures curées d'abord (ferme la fuite `status`), puis une seule vague de migrations (modèle unifié + invitations + contacts-mutuels) + port des fonctions + backfill/réconciliation + seed démo régénérée + **audit adverse post-code** (rituel) — puis l'UI (hub → conversation → groupes → invitations → « créer une sortie depuis le chat »).
