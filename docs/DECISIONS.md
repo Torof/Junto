@@ -341,3 +341,13 @@ Règles verrouillées :
 **Limites assumées :** (1) **France uniquement** — à l'international, basculer sur **Photon auto-hébergé** (OSM, gratuit, mondial) ou un tier payant. (2) La BAN ne connaît **pas les toponymes naturels** (sommets, cols, spots, refuges) : ce sera **IGN Géoplateforme** ou **Photon/Nominatim** le jour des « spots fixes » / de la recherche par spot (cf. `docs/sprint-discovery.md` §v2).
 
 **Alternatives considérées :** Google Places / Mapbox / LocationIQ / Geoapify (forfaits qui deviennent payants au volume → écartés pour une feature fréquente) ; jeu de communes embarqué en local (viable, hors-ligne, mais la BAN est plus simple et plus riche) ; auto-hébergement addok/Photon dès maintenant (repoussé — inutile tant qu'on est en France).
+
+---
+
+## 2026-08-04 — Contacts : modèle mutuel, le répertoire unilatéral est retiré
+
+**Décision :** un contact n'existe que **par demande acceptée** (les deux parties sont contacts, ou rien). Le répertoire « contacts » one-way (00341 — ajout silencieux, sans accord ni notification) est **retiré** lors de la refonte messagerie ; « Mes contacts » ≡ les **connexions actives du 00072** (send_contact_request → Demandes → accept). Les « partenaires récents » restent une source de suggestions, pas des contacts.
+
+**Pourquoi :** anti-spam / anti-dérive-dating (personne ne peut « collectionner » quelqu'un sans son accord), et unification : le système mutuel décrit par Scott existait déjà (00072) — deux notions parallèles étaient une source d'ambiguïté (éligibilité groupes/invitations) et de surface d'attaque (les oracles patchés en 00348/00349 partent avec le répertoire).
+
+**Séquencement :** le répertoire live reste tel quel jusqu'à la vague de migrations de la refonte messagerie (rien ne casse pour les testeurs d'ici là).

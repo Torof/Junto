@@ -45,6 +45,12 @@ C'est ce qui décide si c'est un gros ou un très gros chantier.
 ### 7. Extensions (v2, parké)
 **Canaux ouverts / par thème** (façon Summeet channels) rattachés au Discovery « gros » — distincts des groupes privés. Messagerie-hub élargie (covoit, questions, demande privée à un orga).
 
+## Contacts = connexions mutuelles (DÉCIDÉ 2026-08-04)
+
+**Plus aucun contact unilatéral.** Scott : « un contact ne se fait pas s'il n'a pas été approuvé ; une fois validé, les deux sont contacts. » Conséquence : le **répertoire one-way (00341)** est **retiré** au moment de la refonte (pas avant — séquencement identique aux invitations). « Mes contacts » ≡ **connexions acceptées du 00072** (send_contact_request → Demandes → accept). La notification « demande en attente » existe déjà (push `contact_request` + section Demandes). Les **partenaires récents** restent une source de *suggestions* (pour envoyer une demande / inviter), pas des contacts. Retrait d'un contact : MVP = le blocage couvre le cas hostile (pas de « déconnexion » douce pour l'instant).
+
+**Éligibilité inviter / ajouter à un groupe** : reco = **connexions ∪ partenaires récents** (une sortie faite ensemble = consentement réel, infalsifiable à bas coût ; c'est le cas d'usage « groupe post-sortie »). — *à confirmer par Scott.*
+
 ## Cadrage & invariants
 - **Table-stakes, standard-good**, pas maximaliste. Test à chaque écran : *ça ajoute du bruit / on peut se perdre ?* → couper.
 - **Consentement / anti-spam** : contacts via demande acceptée ; groupes = contacts only ; blocage = soupape ; refus contact silencieux (00072).
