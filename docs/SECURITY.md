@@ -279,37 +279,44 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 ### Conversations & messagerie
 
-**`create_or_get_conversation(p_other_user_id, p_source TEXT, p_message TEXT DEFAULT NULL)`** :
-- Auth + non suspendu
-- Other user existe et non suspendu
-- Blocage bidirectionnel (ni A→B ni B→A)
-- Rate limit : 10 demandes pending par sender (rolling)
-- Si conversation `active` existe : retourne l'existante ; sinon `pending_request` créée avec `request_expires_at = NOW() + 30 days`
+> **Modèle unifié (refonte messagerie 2026-08-04, migs 00350-00367).** Trois sources (wall/private/conversations) fusionnées en un seul store : `conversations` (étendue avec `type` dm/group/activity + `activity_id`/`name`/`icon`/`created_by`), `conversation_members` (appartenance + `last_read_at`/`hidden_at`), `messages` (store unique). L'appartenance à un fil activité ⇔ `participations.status='accepted'` (créateur inclus). RLS `messages` via `private.is_conversation_member` + `private.message_author_visible` (le blocage d'un pair masque tout le fil DM). Voir `docs/sprint-messaging.md` (spec + 23 chaînes validées) et `docs/DECISIONS.md` (2026-08-04, réversion du modèle 2-tables).
 
-**`accept_contact_request` / `decline_contact_request`** :
-- Auth + non suspendu
-- User est destinataire (pas le sender)
-- Status = `pending_request`
+**Helper `private.is_messaging_eligible(caller, target)`** — éligibilité invitation/ajout-groupe : connexion active (00072) **∪** partenaire récent durci (présence validée du caller + sortie commune vivante ≤180j + aucune conversation non-`active` entre la paire).
 
-**`send_wall_message`** (mig 00095) :
+**`send_message(p_conversation_id, p_content, p_reply_to_message_id DEFAULT NULL)`** — cœur d'écriture unifié :
 - Auth + non suspendu
-- Activity status IN (`published`, `in_progress`)
-- User est participant accepté
-- Rate limit : 30 messages / minute / activité
-- Advisory lock pour la sérialisation
+- Membre de la conversation (`private.is_conversation_member`)
+- Gate par type : **DM** → blocage bidirectionnel + pair non suspendu ; **activité** → status IN (`published`,`in_progress`) ; **groupe** → appartenance seule
+- `content` trim ∈ [1, 2000] ; `reply_to` (si fourni) dans la même conversation et non supprimé
+- Rate limit sous advisory lock : par conversation **15 (DM) / 30 (activité) / 30 (groupe)** par minute (`junto.dm_rate_limit`/`junto.wall_rate_limit`) + plafond global **60/min/sender** (`junto.send_rate_limit`)
+- `send_wall_message`/`send_private_message` = **wrappers** de compatibilité au-dessus de `send_message` (00358)
 
-**`send_private_message`** :
-- Auth + non suspendu
-- Conversation existe et user est user_1 ou user_2
-- Status conversation = `active`
-- Blocage bidirectionnel
-- Rate limit similaire au wall
+**`accept_contact_request` / `decline_contact_request`** (portées 00355) :
+- Auth + non suspendu ; user est destinataire (pas le sender) ; conversation de type `dm`
+- Decline **status-blind** (silencieux : `pending_request` et `declined` indistinguables pour le sender) ; accept re-vérifie le blocage
 
-**`edit_wall_message` / `edit_private_message`** :
-- Auth + non suspendu
-- User est l'auteur (`user_id = auth.uid()`)
-- Modifie uniquement `content` + `edited_at`
-- Wall : status activité IN (`published`, `in_progress`)
+**`reply_to_request(p_conversation_id, p_content)`** (00355) — le destinataire d'une demande rejoindre/covoit/invitation ouvre le DM (`initiated_from='request_reply'`, status → `active`). Amende l'invariant 00072 : « pas de DM `active` sans le consentement des DEUX parties ». Ne réactive **jamais** un DM contact `pending`/`declined` (`Operation not permitted`, 00363).
+
+**`mark_conversation_read` / `set_conversation_hidden`** (00355) : écrivent uniquement `last_read_at` / `hidden_at` de **sa propre** ligne `conversation_members`.
+
+**Groupes** (00356, durcis 00364) :
+- `create_group` : ≥2 membres éligibles retenus (min 3 total), `name` ≤ 60, `icon` ≤ 8, **5/jour** (`junto.group_*`)
+- `add_group_member` : caller membre + cible éligible ; cap **20** ; **30/jour** ; advisory lock scoped conversation (anti-race cap)
+- `leave_group` : sa propre appartenance ; dernier membre → tombstone `[Groupe retiré]`
+- `rename_group` : membre uniquement
+
+**Invitations** (00357, durcies 00365) — miroir des demandes de rejoindre :
+- `send_activity_invitations(p_activity_id, p_user_ids[], p_message)` : créateur ; cibles éligibles ; cap **20** par appel (`junto.invite_cap`) ; **30/jour** (`junto.invite_daily_cap`, EXIT en boucle) ; `p_message` ≤ 500 (`junto.message_too_long`)
+- `accept_activity_invitation` : invité ; activité vivante (`deleted_at IS NULL`, non terminée) ; garde `ROW_COUNT` ; → participant `accepted`
+- `decline_activity_invitation` / `get_my_invitations`
+
+**`share_activity_message` / `share_trace_message`** (portées 00358) : membre du fil ; bornes numériques GeoJSON ; cap **1/min** (`junto.share_rate_limit`) ; insèrent une carte riche (`metadata`) dans `messages`
+
+**`edit_message` / `delete_message`** (00358, durcies 00363) :
+- Auth + non suspendu ; user est l'auteur ; membre + (fil activité) activité vivante re-vérifiée
+- `edit_message` ne touche que `content` + `edited_at` ; `delete_message` = soft delete (`deleted_at`)
+
+**Lectures curées** (00351, `conversations` non lisible en direct — 00352) : `get_my_conversations`, `get_conversation_state_with` (coalesce `declined`→`pending`), `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages` (LIMIT 200), `get_my_invitations`.
 
 ### Présence — auto-expire
 
@@ -411,7 +418,8 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`
 
-**Conversations :** `create_or_get_conversation`, `accept_contact_request`, `decline_contact_request`, `hide_conversation`, `send_wall_message`, `send_private_message`, `edit_wall_message`, `edit_private_message`, `delete_wall_message`, `delete_private_message`, `share_trace_message`
+**Messagerie (modèle unifié, migs 00350-00367) :** `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `reply_to_request`, `mark_conversation_read`, `set_conversation_hidden`, `edit_message`, `delete_message`, `share_activity_message`, `share_trace_message`, `create_group`, `add_group_member`, `leave_group`, `rename_group`, `send_activity_invitations`, `accept_activity_invitation`, `decline_activity_invitation`, `get_my_conversations`, `get_conversation_state_with`, `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages`, `get_my_invitations`
+  - *Legacy encore GRANTé (à REVOKE/DROP au port final)* : `hide_conversation`, `edit_wall_message`, `edit_private_message` (client repointé sur les équivalents unifiés)
 
 **Transport / sièges :** `set_participation_transport`, `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`
 
@@ -431,6 +439,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 - `check_alerts_for_activity`
 - `award_badge_progression`, `recalculate_reliability_score`
 - `handle_new_user`, `handle_user_update`, `handle_activity_update`, `strip_html_*` (triggers)
+- **Messagerie (triggers/helpers, migs 00353-00367)** : `create_activity_conversation`, `sync_activity_membership`, `create_dm_member_rows`, `cascade_block_invited`, `expire_invited_on_activity_end`, `broadcast_and_push_message`, `mirror_private_message`, `conversations_whitelist_columns`, `conversation_members_whitelist_columns`, `messages_whitelist_columns` (triggers) ; `private.is_conversation_member`, `private.message_author_visible`, `private.is_messaging_eligible`, `private.insert_rich_message`, `private.assert_can_send` (helpers, hors schéma `public`)
 - `push_notification_to_device` (trigger)
 - `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
 - `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
@@ -473,10 +482,11 @@ AS $$ ... $$;
 |-------|---------------------|--------|---------------------|
 | `users` | INSERT | Empêche injection de is_admin, skip age check | Trigger `handle_new_user` + RPC `ensure_user_row` |
 | `notifications` | INSERT, DELETE | Empêche création de fausses notifications | `create_notification` + helpers `notify_*` |
-| `wall_messages` | INSERT, UPDATE, DELETE | Bypass rate limit, status, participant check | `send_wall_message`, `edit_wall_message`, `delete_wall_message` |
-| `private_messages` | INSERT, UPDATE, DELETE | Bypass rate limit, blocked check | `send_private_message`, `edit_private_message`, `delete_private_message`, `share_trace_message` |
+| `messages` | INSERT, UPDATE, DELETE | Store unifié — bypass rate limit, membership, blocage, longueur, gel `metadata`/`sender_id` | `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `share_activity_message`, `share_trace_message`, `edit_message`, `delete_message`, `admin_remove_content` |
+| `conversation_members` | INSERT, UPDATE, DELETE | Appartenance **dérivée** (participations/groupes) — jamais forgée côté client | triggers `sync_activity_membership`/`create_dm_member_rows` + `create_group`/`add_group_member`/`leave_group` ; UPDATE limité à `mark_conversation_read`/`set_conversation_hidden` (sa propre ligne) |
+| `wall_messages` / `private_messages` | INSERT, UPDATE, DELETE | **Legacy** (refonte 2026-08-04) — lecture retirée ; 3 écrivains restants (invite card, `request_seat`, `accept_seat_request`) mirrorés → `messages` via `mirror_private_message` (00361). À dropper post-fenêtre OTA | wrappers/écrivains legacy uniquement |
 | `participations` | INSERT, UPDATE, DELETE | Bypass concurrent join, status, removal rules | `join_activity`, `accept_*`, `refuse_*`, `remove_participant`, `leave_activity`, `set_participation_transport`, `confirm_presence_via_*`, `peer_validate_presence` |
-| `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check | `create_or_get_conversation`, `accept_contact_request`, `decline_contact_request`, `send_private_message` (last_message_at), `hide_conversation` |
+| `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check ; **SELECT révoqué** — lecture curée uniquement (00352) | `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `reply_to_request`, `create_group`, `rename_group`, `leave_group`, `create_activity_conversation` (trigger), `send_message` (`last_message_at`) |
 | `pro_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, pro), rate limit, self-review, reply ownership | `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review` |
 | `offering_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, offering), rate limit, self-review, reply ownership | `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` |
 | `peer_validations` | INSERT, UPDATE, DELETE | Bypass voter-presence + threshold logic | `peer_validate_presence` |
@@ -520,7 +530,8 @@ La règle générique ne s'applique qu'aux échecs **sensibles**. Les échecs **
 **Codes actuels** (sweep complet migs 00268-00272) :
 - **Activité** (00268/00269 ; `date_in_past`/`date_too_far`/`premium_required` (00308), `participants_range` (00310), `title_too_short` aussi levés par `update_activity`) : `limit_monthly`, `limit_daily`, `date_in_past`, `date_too_far`, `participants_range`, `premium_required`, `title_too_short`, `activity_full`, `join_rate_limit`, `already_joined`, `refuse_cooldown`, `cancel_reason_invalid`
 - **Transport/seat/alerte** (00270) : `activity_locked`, `seat_rate_limit`, `no_seats_available`, `seats_exhausted`, `seat_already_requested`, `seats_still_active`, `pickup_out_of_window`, `depart_out_of_window`, `alert_limit_reached`, `alert_date_invalid`
-- **Messagerie/report/onboarding** (00271) : `wall_rate_limit`, `dm_rate_limit`, `trace_rate_limit`, `contact_request_pending_cap`, `contact_request_daily_cap`, `report_reason_too_short`, `report_already_filed`, `report_rate_limit`, `dob_underage`
+- **Messagerie/report/onboarding** (00271) : `wall_rate_limit`, `dm_rate_limit`, `contact_request_pending_cap`, `contact_request_daily_cap`, `report_reason_too_short`, `report_already_filed`, `report_rate_limit`, `dob_underage`
+- **Refonte messagerie** (migs 00355-00365, i18n 2026-08-04) : `send_rate_limit`, `share_rate_limit` (remplace `trace_rate_limit`, retiré), `message_too_long`, `group_name_invalid`, `group_min_members`, `group_cap`, `group_rate_limit`, `group_add_rate_limit`, `invite_daily_cap`
 - **Pro/présence/badge** (00272) : `offering_cap`, `photo_cap`, `review_duplicate`, `review_rate_limit`, `presence_unavailable`, `presence_window_closed`, `presence_too_far`, `presence_token_invalid`, `presence_token_window_closed`, `peer_review_window_not_open`, `peer_review_window_closed`, `peer_already_validated`, `peer_voter_not_present`, `badge_rate_limit`, `badge_window_not_open`, `badge_window_closed`
 
 Note : les codes présence/peer venaient de mig 00139 SANS préfixe `junto.` (jamais captés par `getFriendlyError`) ; 00272 les a préfixés.
@@ -620,7 +631,7 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 - `status` — via les fonctions de participation (`accept_participation`, `refuse_participation`, `leave_activity`, `remove_participant`)
 - `transport_*` — via `set_participation_transport` (et `accept_seat_request` / `cancel_accepted_seat` pour le décrément/refund de `transport_seats`)
 
-**Convention `bypass_lock` (dette technique connue)** : `junto.bypass_lock` n'est interprété que par les triggers whitelist sur `users` et `activities`. Les appels `set_config('junto.bypass_lock', 'true', true)` qui précèdent uniquement des écritures sur `participations`, `peer_validations`, `seat_requests` ou `notifications` sont des **no-ops bénins** (pas de trigger qui les lit). Mig 00200 a déjà nettoyé `set_participation_transport`, `accept_seat_request`, `cancel_accepted_seat`. Les appels morts résiduels (`join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `cascade_block_cleanup`, `peer_validate_presence`, `create_activity`) seront supprimés **opportunistiquement** la prochaine fois que la fonction est réécrite pour une autre raison — pas de migration cosmétique dédiée.
+**Convention `bypass_lock` (dette technique connue)** : `junto.bypass_lock` est interprété par les triggers whitelist sur `users`, `activities` et les 3 tables messagerie `conversations`/`conversation_members`/`messages` (00367). Les appels `set_config('junto.bypass_lock', 'true', true)` qui précèdent uniquement des écritures sur `participations`, `peer_validations`, `seat_requests` ou `notifications` sont des **no-ops bénins** (pas de trigger qui les lit). Sur les tables messagerie, aucun écrivain n'a besoin du bypass : l'ensemble gelé est disjoint des colonnes qu'ils mutent. Mig 00200 a déjà nettoyé `set_participation_transport`, `accept_seat_request`, `cancel_accepted_seat`. Les appels morts résiduels (`join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `cascade_block_cleanup`, `peer_validate_presence`, `create_activity`) seront supprimés **opportunistiquement** la prochaine fois que la fonction est réécrite pour une autre raison — pas de migration cosmétique dédiée.
 
 ### Table `notifications`
 - INSERT interdit pour les clients (fonctions seulement)
@@ -632,6 +643,14 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 
 ### Table `blocked_users`
 - INSERT/DELETE uniquement avec `blocker_id = auth.uid()`
+
+### Tables messagerie `conversations` / `conversation_members` / `messages` (mig 00367)
+
+Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes gelées à OLD sauf `bypass_lock`. Défense en profondeur derrière le REVOKE (aucun GRANT d'écriture client). L'ensemble gelé est **disjoint** des colonnes que les fonctions live mutent → aucun écrivain ne change.
+
+- `conversations` — gelées : `id`, `user_1`, `user_2`, `type`, `activity_id`, `created_by`, `created_at`, `initiated_by`, `initiated_from`, `request_sender_id` · mutables : `status`, `name`, `icon`, `last_message_at`, `request_expires_at`, `request_message`, `hidden_by_user_*`
+- `conversation_members` — gelées : `conversation_id`, `user_id`, `added_by`, `joined_at` · mutables : `last_read_at`, `hidden_at`
+- `messages` — gelées : `id`, `conversation_id`, `sender_id`, `reply_to_message_id`, `created_at`, `metadata` (payload de carte de partage) · mutables : `content`, `edited_at`, `deleted_at`
 
 ---
 
@@ -659,15 +678,20 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 |--------|--------|--------|--------|
 | Créateur voit toutes pour son activité ; participant voit la sienne ; accepted voient les autres accepted | 🔧 Functions only | 🔧 Functions only | 🔧 Functions only |
 
-#### `wall_messages`
+#### `messages` (store unifié, mig 00353)
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| Accepted participants, blocked filtered on user_id | 🔧 `send_wall_message` | 🔧 `edit_wall_message` | 🔧 Soft delete |
+| Membre du fil (`private.is_conversation_member`) **ET** `private.message_author_visible` (blocage d'un pair masque tout le fil DM) | 🔧 `send_message` (+ shares) | 🔧 `edit_message` + whitelist `messages_lock_privileged` | 🔧 Soft delete (`delete_message`, `admin_remove_content`) |
 
-#### `private_messages`
+#### `conversation_members` (mig 00353)
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| Sender/receiver, **bidirectional** block check | 🔧 `send_private_message` | 🔧 `edit_private_message` | 🔧 Soft delete |
+| Own rows (`user_id = auth.uid()`) | 🔧 triggers sync + fns groupes | 🔧 `mark_conversation_read`/`set_conversation_hidden` (own row) + whitelist | 🔧 leave/cascade |
+
+#### `wall_messages` / `private_messages` — **legacy** (refonte 2026-08-04)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| Lecture retirée (client repointé sur `messages`) | 🔧 3 écrivains legacy, mirrorés → `messages` (00361) | 🔧 wrappers legacy | 🔧 Soft delete — À dropper post-OTA |
 
 #### `notifications`
 | SELECT | INSERT | UPDATE | DELETE |
@@ -682,7 +706,7 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 #### `conversations`
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| `user_1 = auth.uid() OR user_2 = auth.uid()`, **bidirectional** block | 🔧 Functions only | 🔧 Functions only | ❌ Soft via `hide_conversation` |
+| ❌ **SELECT révoqué** (00352) — lecture curée uniquement (`get_my_conversations`, `get_conversation_state_with`, …) | 🔧 Functions only | 🔧 Functions only + whitelist `conversations_lock_privileged` | ❌ Masquage via `conversation_members.hidden_at` |
 
 #### `reports`
 | SELECT | INSERT | UPDATE | DELETE |
@@ -815,6 +839,8 @@ Bayesian avec PRIOR = 3. Recalculé sur chaque flip de `confirmed_present`. Stoc
 - Trigger AFTER INSERT sur `notifications` : `push_notification_to_device`
 - L'envoi passe par l'Edge Function `send-push` (header secret partagé) qui appelle Expo Push API
 
+**Chemin messagerie — broadcast + push groupé (migs 00359/00366) :** trigger AFTER INSERT sur `messages` → `broadcast_and_push_message` : (1) `realtime.send` sur les topics `conversation:<id>` (event `change`), `activity:<id>` (event `wall`) et `inbox` `user:<id>` — realtime **privé** membership-gated, plus de `postgres_changes` sur les tables messages ; (2) push groupé via `send-push` (`user_ids[]` ≤ 50, chunké par 100 côté Expo), destinataires = membres non-bloqués ≠ sender, `collapseId = message-<conv>`. Un flag txn-local `junto.skip_message_push` supprime la jambe push pour les lignes mirrorées depuis un écrivain legacy (00366, anti double-push) tout en gardant les broadcasts.
+
 ### Routing par type
 
 ```sql
@@ -941,13 +967,19 @@ Validation client :
 - **Admin** : illimité (skipé)
 - Advisory lock par user pour sérialiser concurrent creates
 
-### Wall messages (mig 00095)
-- 30 messages / minute / activité / user
-- Advisory lock pour sérialisation
+### Messages — `send_message` unifié (mig 00355)
+- Par conversation / minute : **15 (DM) · 30 (activité) · 30 (groupe)** + plafond global **60/min/sender**
+- Advisory lock `<user>_send_message` (per-conversation + plafond global sous un seul lock)
+- Histoire : la limite DM originelle 1/min cassait les conversations (bug "popup bloque l'écriture", 2026-05-05) ; le rework reply (00208-00220) l'a perdue entièrement ; 00264 l'a réinstaurée, la refonte 00355 l'a portée dans le store unifié
 
-### Private messages (mig 00264)
-- **15 messages / minute / conversation / user** + advisory lock
-- Histoire : la limite originelle 1/min cassait les conversations (bug "popup bloque l'écriture", 2026-05-05) ; le rework reply (00208-00220) l'a perdue entièrement (zéro limite + zéro lock) ; 00264 réinstaure à un niveau sain
+### Partage de carte (activité / trace, mig 00358)
+- **1 partage / minute / sender** (`junto.share_rate_limit`)
+
+### Groupes (mig 00356/00364)
+- Création : **5/jour** · membres : cap **20** · ajouts : **30/jour** (advisory lock scoped conversation)
+
+### Invitations activité (mig 00357/00365)
+- **20 par appel** (`invite_cap`) · **30/jour** (`invite_daily_cap`) · message ≤ 500 car.
 
 ### Création de conversation
 - 10 demandes pending par sender (rolling, pas par heure — les pending occupent le quota)
@@ -975,9 +1007,10 @@ Validation client :
 |-------|------------------------------|-----|
 | participations | Supprimer | CASCADE |
 | activities (créées) | Annuler via Edge Function puis CASCADE | CASCADE |
-| wall_messages | Anonymiser | SET NULL (user_id) |
-| private_messages | Supprimer | CASCADE |
-| conversations | Supprimer | CASCADE |
+| messages | Anonymiser | SET NULL (sender_id) |
+| conversation_members | Supprimer | CASCADE (user_id) |
+| conversations (DM) | Supprimer | CASCADE (user_1/user_2) ; activité/groupe : `created_by` SET NULL, la conversation survit |
+| wall_messages / private_messages | *legacy* — Anonymiser / Supprimer | SET NULL / CASCADE (à dropper post-OTA) |
 | notifications | Supprimer | CASCADE |
 | reputation_votes (voter) | Supprimer | CASCADE |
 | reputation_votes (voted) | Supprimer | CASCADE |
@@ -1009,7 +1042,8 @@ Validation client :
 
 ### Tables
 - `blocked_users` — affecte RLS sur toutes tables
-- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only
+- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only. Cibles étendues au store unifié (00362) : `message` et `group` (en plus de `user`/`activity`/`wall_message`/`private_message` legacy)
+- `admin_remove_content` (00362) — soft-delete sur `messages` / masquage `conversations` (repointé du legacy wall/private vers le store unifié)
 
 ---
 

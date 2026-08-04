@@ -27,6 +27,7 @@
 | Write a function that rate-limits | `docs/SECURITY.md` → "Rate Limiting" (for limits) + "Intégrité des données" (advisory locks) |
 | Build a screen or component | `docs/UX_UI.md` for design + `docs/PRODUCT.md` for behavior |
 | Build a query that shows user info | Always JOIN on `public_profiles`, not `users`. See "Limitation RLS : colonnes" |
+| Work on messaging (conversations, messages, groups, invitations) | `docs/sprint-messaging.md` (unified model + validated auth chains) + `docs/SECURITY.md` → "Conversations & messagerie" + RLS matrix (`messages`/`conversation_members`/`conversations`) |
 | Work on notifications | `docs/SECURITY.md` → "Notifications push — contenu" |
 | Work on blocking | `docs/SECURITY.md` → "Blocage — directionnalité" |
 | Work on storage / upload | `docs/SECURITY.md` → "Storage" (buckets, policies, validation) |
@@ -116,10 +117,11 @@
 All operations via SECURITY DEFINER functions only:
 - `users` (INSERT) — trigger only
 - `notifications` (INSERT, DELETE)
-- `wall_messages` (INSERT, UPDATE, DELETE)
-- `private_messages` (INSERT, UPDATE, DELETE)
+- `messages` (INSERT, UPDATE, DELETE) — unified store (refonte 2026-08-04); writes via `send_message`/shares/`edit_message`/`delete_message`
+- `conversation_members` (INSERT, UPDATE, DELETE) — membership derived from participations/groups
+- `conversations` (INSERT, UPDATE, DELETE) — SELECT also revoked (curated RPCs only, 00352)
+- `wall_messages` / `private_messages` (INSERT, UPDATE, DELETE) — **legacy**, reads retired, mirrored → `messages` (00361), to drop post-OTA
 - `participations` (INSERT, UPDATE, DELETE)
-- `conversations` (INSERT, UPDATE, DELETE)
 - `peer_validations` (INSERT, UPDATE, DELETE)
 - `reputation_votes` (INSERT, UPDATE, DELETE)
 - `presence_tokens` (INSERT, UPDATE, DELETE)
