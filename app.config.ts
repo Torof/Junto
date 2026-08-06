@@ -45,6 +45,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/invite' },
           // /pro covers both /pro/{id} and /pro/offering/{id} (prefix match).
           { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/pro' },
+          // /u/{id} — contact-share QR/link (takes effect on next native build;
+          // the web relay page handles it meanwhile).
+          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/u' },
         ],
         category: ['BROWSABLE', 'DEFAULT'],
       },

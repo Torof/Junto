@@ -67,6 +67,7 @@ export default function AuthLayout() {
         <Stack.Screen name="admin/lookup" options={{ title: 'Recherche & modération' }} />
         <Stack.Screen name="create-alert" />
         <Stack.Screen name="create-group" options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="my-contact" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="legal/terms" options={{ title: '' }} />
         <Stack.Screen name="legal/privacy" options={{ title: '' }} />
         <Stack.Screen name="peer-review/[id]" options={{ title: '' }} />

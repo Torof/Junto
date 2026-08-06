@@ -15,7 +15,7 @@ import { badgeService } from '@/services/badge-service';
 import { ProfileHero, reliabilityTierFromScore } from '@/components/profile-hero';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { BadgeDisplay } from '@/components/badge-display';
-import { BadgeCheck, Pencil } from 'lucide-react-native';
+import { BadgeCheck, Pencil, QrCode } from 'lucide-react-native';
 import { SettingsDrawer } from '@/components/settings-drawer';
 import { SportLevelsEditor } from '@/components/sport-levels-editor';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -81,7 +81,14 @@ export default function ProfilScreen() {
       ),
       headerTitleAlign: 'left' as const,
       headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingRight: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingRight: spacing.md }}>
+          <Pressable
+            onPress={() => router.push('/(auth)/my-contact')}
+            hitSlop={8}
+            accessibilityLabel={t('contactShare.title', { defaultValue: 'Mon contact' })}
+          >
+            <QrCode size={22} color={colors.textPrimary} strokeWidth={2} />
+          </Pressable>
           {tier === 'pro' && userId && (
             <Pressable
               onPress={() => router.push(`/(auth)/pro/${userId}`)}
