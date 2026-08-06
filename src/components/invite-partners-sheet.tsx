@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Modal, Pressable, SectionList, StyleSheet } from 'react-native';
+import { View, Text, Modal, Pressable, SectionList, StyleSheet, TextInput } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { contactService } from '@/services/contact-service';
+import { invitationService } from '@/services/invitation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from './user-avatar';
 import { LogoSpinner } from './logo-spinner';
@@ -18,16 +19,20 @@ interface Props {
   onClose: () => void;
 }
 
-// Multi-select invite: pick from your contacts + recent partners, then drop the
-// activity as a tappable card into each one's DM (invite_users_to_activity).
+// Multi-select official invitation-to-join (Brique 4e): pick from your contacts
+// + recent partners (+ optional message), then send real invitations via
+// send_activity_invitations. Creator-only, pre-approved (accept = participant);
+// the invitee sees it in their Demandes → Invitations. Eligibility is enforced
+// server-side (ineligible/blocked/dup skipped silently, RETURNS VOID).
 export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  useEffect(() => { if (!visible) { setSelected(new Set()); setSending(false); } }, [visible]);
+  useEffect(() => { if (!visible) { setSelected(new Set()); setMessage(''); setSending(false); } }, [visible]);
 
   const { data: contacts, isLoading: loadingContacts } = useQuery({
     queryKey: ['contacts'], queryFn: () => contactService.getContacts(), enabled: visible,
@@ -55,8 +60,8 @@ export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
     if (selected.size === 0 || sending) return;
     setSending(true);
     try {
-      const n = await contactService.inviteToActivity(activityId, [...selected]);
-      Burnt.toast({ title: t('contacts.invitedN', { defaultValue: '{{count}} invité·e·s', count: n }), preset: 'done' });
+      await invitationService.sendInvitations(activityId, [...selected], message);
+      Burnt.toast({ title: t('contacts.invitationsSent', { defaultValue: 'Invitations envoyées' }), preset: 'done' });
       onClose();
     } catch (e) {
       Burnt.toast({ title: getFriendlyError(e, 'generic') });
@@ -97,6 +102,18 @@ export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
                   </Pressable>
                 );
               }}
+            />
+          )}
+
+          {sections.length > 0 && (
+            <TextInput
+              style={styles.messageInput}
+              value={message}
+              onChangeText={setMessage}
+              placeholder={t('contacts.inviteMessagePlaceholder', { defaultValue: 'Un mot (optionnel)…' })}
+              placeholderTextColor={colors.textSecondary}
+              maxLength={500}
+              multiline
             />
           )}
 
@@ -141,6 +158,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   checkOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  messageInput: {
+    color: colors.textPrimary, fontSize: fontSizes.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    marginTop: spacing.md, maxHeight: 90,
+  },
   cta: {
     backgroundColor: colors.cta, borderRadius: radius.md,
     paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md,

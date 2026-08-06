@@ -18,9 +18,12 @@ interface Props {
   activityId: string;
   onClose: () => void;
   onExternalShare?: () => void;
+  // Inviting-to-join is creator-only (server-gated). Non-creators still get the
+  // "share into a conversation" list, just not the invite row.
+  isCreator?: boolean;
 }
 
-export function ShareActivitySheet({ visible, activityId, onClose, onExternalShare }: Props) {
+export function ShareActivitySheet({ visible, activityId, onClose, onExternalShare, isCreator }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -58,17 +61,21 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
           <View style={styles.handle} />
           <Text style={styles.title}>{t('activity.shareTitle')}</Text>
 
-          <Pressable style={styles.inviteRow} onPress={() => setInviteOpen(true)}>
-            <View style={styles.inviteIconWrap}>
-              <UserPlus size={18} color="#FFFFFF" strokeWidth={2.4} />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.inviteLabel}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</Text>
-              <Text style={styles.inviteSub} numberOfLines={1}>{t('contacts.inviteSub', { defaultValue: 'Tes contacts + partenaires récents' })}</Text>
-            </View>
-          </Pressable>
+          {isCreator && (
+            <>
+              <Pressable style={styles.inviteRow} onPress={() => setInviteOpen(true)}>
+                <View style={styles.inviteIconWrap}>
+                  <UserPlus size={18} color="#FFFFFF" strokeWidth={2.4} />
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.inviteLabel}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</Text>
+                  <Text style={styles.inviteSub} numberOfLines={1}>{t('contacts.inviteSub', { defaultValue: 'Tes contacts + partenaires récents' })}</Text>
+                </View>
+              </Pressable>
 
-          <Text style={styles.orLabel}>{t('activity.shareToConversation', { defaultValue: 'Ou partager dans une conversation' })}</Text>
+              <Text style={styles.orLabel}>{t('activity.shareToConversation', { defaultValue: 'Ou partager dans une conversation' })}</Text>
+            </>
+          )}
 
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>

@@ -1317,6 +1317,7 @@ export function ActivityDetail({
         activityId={activity.id}
         onClose={() => setShowShareSheet(false)}
         onExternalShare={handleShare}
+        isCreator={isCreator}
       />
 
       {showMenu && (
