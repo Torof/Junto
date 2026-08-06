@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send } from 'lucide-react-native';
+import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send, Users } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
@@ -35,6 +35,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
+import { groupService } from '@/services/group-service';
 import { MessageCircleOff } from 'lucide-react-native';
 
 export default function ConversationScreen() {
@@ -111,10 +112,32 @@ export default function ConversationScreen() {
   });
   const otherUser = convMeta?.profile ?? null;
 
+  // Group thread (Brique 4d) — only probed once convMeta resolves to "not a DM"
+  // (get_conversation_peer returns nothing for group/activity conversations).
+  const { data: groupInfo, isLoading: groupLoading } = useQuery({
+    queryKey: ['group-info', id],
+    queryFn: () => groupService.getInfo(id!),
+    enabled: !!id && convMeta?.exists === false,
+    staleTime: 60_000,
+  });
+  const isGroup = !!groupInfo;
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        otherUser?.id ? (
+        isGroup && groupInfo ? (
+          <Pressable style={styles.headerRow} onPress={() => setShowHeaderMenu(true)} hitSlop={6}>
+            <View style={styles.headerGroupIcon}>
+              {groupInfo.icon
+                ? <Text style={{ fontSize: 16 }}>{groupInfo.icon}</Text>
+                : <Users size={16} color={colors.textPrimary} strokeWidth={2.2} />}
+            </View>
+            <View style={{ minWidth: 0 }}>
+              <Text style={styles.headerName} numberOfLines={1}>{groupInfo.name}</Text>
+              <Text style={styles.headerGroupSub}>{t('group.memberCount', { defaultValue: '{{count}} membres', count: groupInfo.members.length })}</Text>
+            </View>
+          </Pressable>
+        ) : otherUser?.id ? (
           <Pressable
             style={styles.headerRow}
             onPress={() => router.push(`/(auth)/profile/${otherUser.id}`)}
@@ -128,7 +151,7 @@ export default function ConversationScreen() {
         ) : null
       ),
       headerRight: () => (
-        otherUser ? (
+        (otherUser || isGroup) ? (
           <Pressable
             onPress={() => setShowHeaderMenu(true)}
             hitSlop={10}
@@ -139,7 +162,7 @@ export default function ConversationScreen() {
         ) : null
       ),
     });
-  }, [navigation, otherUser, router, styles, colors]);
+  }, [navigation, otherUser, isGroup, groupInfo, router, styles, colors, t]);
 
   const handleBlockUser = () => {
     const otherId = otherUser?.id;
@@ -351,6 +374,30 @@ export default function ConversationScreen() {
     router.push('/(auth)/create/step1');
   };
 
+  const handleLeaveGroup = () => {
+    setShowHeaderMenu(false);
+    Alert.alert(
+      t('group.leaveConfirmTitle', { defaultValue: 'Quitter le groupe ?' }),
+      t('group.leaveConfirmMsg', { defaultValue: 'Tu ne verras plus les messages de ce groupe.' }),
+      [
+        { text: t('activity.no'), style: 'cancel' },
+        {
+          text: t('group.leave', { defaultValue: 'Quitter' }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await groupService.leave(id!);
+              await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+              router.back();
+            } catch (e) {
+              Burnt.toast({ title: getFriendlyError(e, 'generic') });
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleShareActivity = async (activityId: string) => {
     if (!id) return;
     try {
@@ -486,10 +533,10 @@ export default function ConversationScreen() {
   // participant) → graceful screen instead of an empty thread the user could
   // type into. A deleted-account other party keeps exists=true, so the thread
   // stays readable.
-  if (convLoading) {
+  if (convLoading || (convMeta?.exists === false && groupLoading)) {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
-  if (convMeta && !convMeta.exists) {
+  if (convMeta && !convMeta.exists && !isGroup) {
     return (
       <ActivityUnavailable
         fallbackHref="/(auth)/(tabs)/messagerie"
@@ -638,8 +685,10 @@ export default function ConversationScreen() {
             <Pressable style={styles.menuRow} onPress={() => {
               setAttachMenuOpen(false);
               useCreateStore.getState().resetForm();
-              const peerId = convMeta?.profile?.id;
-              if (peerId) useCreateStore.getState().updateForm({ invitees: [peerId] });
+              const invitees = isGroup && groupInfo
+                ? groupInfo.members.map((m) => m.id).filter((mid) => mid !== currentUser)
+                : (convMeta?.profile?.id ? [convMeta.profile.id] : []);
+              if (invitees.length) useCreateStore.getState().updateForm({ invitees });
               router.push('/(auth)/create/step1');
             }}>
               <Plus size={20} color={colors.textPrimary} strokeWidth={2.2} />
@@ -713,11 +762,17 @@ export default function ConversationScreen() {
                 {t('messagerie.hideConversation', { defaultValue: 'Supprimer la conversation' })}
               </Text>
             </Pressable>
-            <Pressable style={styles.menuItem} onPress={handleBlockUser}>
-              <Text style={styles.menuTextDanger}>
-                {t('messagerie.blockUser', { defaultValue: 'Bloquer le passionné' })}
-              </Text>
-            </Pressable>
+            {isGroup ? (
+              <Pressable style={styles.menuItem} onPress={handleLeaveGroup}>
+                <Text style={styles.menuTextDanger}>{t('group.leave', { defaultValue: 'Quitter le groupe' })}</Text>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.menuItem} onPress={handleBlockUser}>
+                <Text style={styles.menuTextDanger}>
+                  {t('messagerie.blockUser', { defaultValue: 'Bloquer le passionné' })}
+                </Text>
+              </Pressable>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -1120,6 +1175,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: -0.05,
     maxWidth: 200,
   },
+  headerGroupIcon: {
+    width: 28, height: 28, borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center',
+  },
+  headerGroupSub: { color: colors.textSecondary, fontSize: fontSizes.xs - 1 },
 
   // Bottom dock — single full-width column wrapping the reply
   // preview (when active) and the input row. Guarantees both rows

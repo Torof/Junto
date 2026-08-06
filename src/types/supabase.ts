@@ -3713,6 +3713,18 @@ export type Database = {
           ref_id: string
         }[]
       }
+      get_group_info: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          created_by: string
+          group_icon: string
+          group_name: string
+          member_avatar: string
+          member_id: string
+          member_joined_at: string
+          member_name: string
+        }[]
+      }
       get_my_active_presence_activities: {
         Args: never
         Returns: {
