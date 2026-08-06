@@ -36,6 +36,7 @@ import { JuntoMapView } from '@/components/map-view';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { groupService } from '@/services/group-service';
+import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { MessageCircleOff } from 'lucide-react-native';
 
 export default function ConversationScreen() {
@@ -63,6 +64,7 @@ export default function ConversationScreen() {
   const [isAttaching, setIsAttaching] = useState(false);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [pickActivityOpen, setPickActivityOpen] = useState(false);
+  const [showGroupManage, setShowGroupManage] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const navigation = useNavigation();
@@ -126,7 +128,7 @@ export default function ConversationScreen() {
     navigation.setOptions({
       headerTitle: () => (
         isGroup && groupInfo ? (
-          <Pressable style={styles.headerRow} onPress={() => setShowHeaderMenu(true)} hitSlop={6}>
+          <Pressable style={styles.headerRow} onPress={() => setShowGroupManage(true)} hitSlop={6}>
             <View style={styles.headerGroupIcon}>
               {groupInfo.icon
                 ? <Text style={{ fontSize: 16 }}>{groupInfo.icon}</Text>
@@ -703,6 +705,15 @@ export default function ConversationScreen() {
         onClose={() => setPickActivityOpen(false)}
         onPick={handleShareActivity}
       />
+
+      {id && isGroup && groupInfo && (
+        <GroupManageSheet
+          visible={showGroupManage}
+          conversationId={id}
+          group={groupInfo}
+          onClose={() => setShowGroupManage(false)}
+        />
+      )}
 
       {/* Trace preview modal */}
       <Modal visible={tracePreview !== null} animationType="slide" onRequestClose={() => setTracePreview(null)}>
