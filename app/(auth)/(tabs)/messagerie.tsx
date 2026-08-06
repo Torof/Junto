@@ -12,6 +12,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
+import { invitationService } from '@/services/invitation-service';
 import { participationService } from '@/services/participation-service';
 import { transportService } from '@/services/transport-service';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -92,12 +93,20 @@ export default function MessagerieScreen() {
       void queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
       void queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       void queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+      void queryClient.invalidateQueries({ queryKey: ['invitations-received'] });
     }, [queryClient]),
   );
 
   const { data: pendingRequests } = useQuery({
     queryKey: ['pending-requests'],
     queryFn: () => conversationService.getPendingReceived(),
+  });
+
+  // Invitation reception (Brique 4b) — my `invited` participations, mirror of
+  // the join requests. Accept = participant (pre-approved), decline = silent.
+  const { data: invitations } = useQuery({
+    queryKey: ['invitations-received'],
+    queryFn: () => invitationService.getMyInvitations(),
   });
 
   // Join requests on MY activities (approval / private_link_approval).
@@ -269,6 +278,35 @@ export default function MessagerieScreen() {
     }
   };
 
+  const handleAcceptInvitation = async (activityId: string) => {
+    haptic.success();
+    setLoadingRequestId(activityId);
+    try {
+      await invitationService.accept(activityId);
+      await queryClient.invalidateQueries({ queryKey: ['invitations-received'] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['participants'] });
+      Burnt.toast({ title: t('messagerie.invitationAccepted'), preset: 'done' });
+      router.push(`/(auth)/activity/${activityId}`);
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+
+  const handleDeclineInvitation = async (activityId: string) => {
+    setLoadingRequestId(activityId);
+    try {
+      await invitationService.decline(activityId);
+      await queryClient.invalidateQueries({ queryKey: ['invitations-received'] });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    } finally {
+      setLoadingRequestId(null);
+    }
+  };
+
   const handleHideConversation = (conversationId: string, name: string) => {
     Alert.alert(
       t('messagerie.hideTitle'),
@@ -296,10 +334,12 @@ export default function MessagerieScreen() {
     await queryClient.invalidateQueries({ queryKey: ['conversations'] });
     await queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
     await queryClient.invalidateQueries({ queryKey: ['seat-requests-received'] });
+    await queryClient.invalidateQueries({ queryKey: ['join-requests-received'] });
+    await queryClient.invalidateQueries({ queryKey: ['invitations-received'] });
     setRefreshing(false);
   };
 
-  const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length + (joinRequests ?? []).length;
+  const pendingCount = (pendingRequests ?? []).length + (seatRequests ?? []).length + (joinRequests ?? []).length + (invitations ?? []).length;
 
   const sourceLabel = (source: string | null) => {
     if (source === 'discovery') return t('messagerie.viaDiscovery');
@@ -446,6 +486,9 @@ export default function MessagerieScreen() {
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
             {/* Join requests — same row grammar as the other request kinds. */}
+            {(joinRequests ?? []).length > 0 && (
+              <Text style={styles.sectionHeader}>{t('messagerie.sectionJoin')}</Text>
+            )}
             {(joinRequests ?? []).map((jr) => (
               <Pressable
                 key={jr.participation_id}
@@ -478,6 +521,9 @@ export default function MessagerieScreen() {
             ))}
 
             {/* Seat requests */}
+            {(seatRequests ?? []).length > 0 && (
+              <Text style={styles.sectionHeader}>{t('messagerie.sectionSeat')}</Text>
+            )}
             {(seatRequests ?? []).map((sr) => {
               const subtitleParts = [
                 sr.pickup_from,
@@ -528,6 +574,9 @@ export default function MessagerieScreen() {
             })}
 
             {/* Contact requests */}
+            {(pendingRequests ?? []).length > 0 && (
+              <Text style={styles.sectionHeader}>{t('messagerie.sectionContact')}</Text>
+            )}
             {(pendingRequests ?? []).map((req) => (
               <Pressable
                 key={req.id}
@@ -564,6 +613,50 @@ export default function MessagerieScreen() {
                 </View>
               </Pressable>
             ))}
+
+            {/* Invitations — mirror of join requests (X invites you). */}
+            {(invitations ?? []).length > 0 && (
+              <Text style={styles.sectionHeader}>{t('messagerie.sectionInvitations')}</Text>
+            )}
+            {(invitations ?? []).map((inv) => {
+              const sport = inv.sport_id ? sportMap.get(inv.sport_id) : undefined;
+              return (
+                <Pressable
+                  key={inv.activity_id}
+                  style={styles.requestRow}
+                  onPress={() => router.push(`/(auth)/activity/${inv.activity_id}`)}
+                >
+                  <UserAvatar name={inv.inviter_name ?? '?'} avatarUrl={inv.inviter_avatar} size={44} />
+                  <View style={styles.requestInfo}>
+                    <Text style={styles.requestActivityTitle} numberOfLines={1}>
+                      {sport ? `${getSportIcon(sport.key)} ` : ''}{inv.activity_title}
+                    </Text>
+                    <Text style={styles.requestSource} numberOfLines={1}>
+                      {t('messagerie.invitedBy', { name: inv.inviter_name ?? '?' })}
+                    </Text>
+                    {inv.invite_message && (
+                      <Text style={styles.requestMessage} numberOfLines={2}>{inv.invite_message}</Text>
+                    )}
+                  </View>
+                  <View style={styles.requestActions}>
+                    <Pressable
+                      style={[styles.acceptBtn, loadingRequestId === inv.activity_id && styles.btnDisabled]}
+                      onPress={(e) => { e.stopPropagation(); handleAcceptInvitation(inv.activity_id); }}
+                      disabled={loadingRequestId === inv.activity_id}
+                    >
+                      <Check size={18} color="#FFFFFF" strokeWidth={3} />
+                    </Pressable>
+                    <Pressable
+                      style={[styles.declineBtn, loadingRequestId === inv.activity_id && styles.btnDisabled]}
+                      onPress={(e) => { e.stopPropagation(); handleDeclineInvitation(inv.activity_id); }}
+                      disabled={loadingRequestId === inv.activity_id}
+                    >
+                      <X size={18} color="#FFFFFF" strokeWidth={3} />
+                    </Pressable>
+                  </View>
+                </Pressable>
+              );
+            })}
           </ScrollView>
         )
       )}
@@ -647,6 +740,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   preview: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
   previewUnread: { color: colors.textPrimary },
 
+  // Section header — brutalist uppercase label above each request kind.
+  sectionHeader: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
   // Request row — flat row with avatar/icon + info + accept/decline
   requestRow: {
     flexDirection: 'row',
