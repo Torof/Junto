@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, Paperclip, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send } from 'lucide-react-native';
+import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
@@ -34,6 +34,7 @@ import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
+import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { MessageCircleOff } from 'lucide-react-native';
 
 export default function ConversationScreen() {
@@ -59,6 +60,8 @@ export default function ConversationScreen() {
   const [tracePreview, setTracePreview] = useState<{ name: string; coords: [number, number][]; geo: GeoJsonLineString } | null>(null);
   const createGpxTrace = useCreateGpxTrace();
   const [isAttaching, setIsAttaching] = useState(false);
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  const [pickActivityOpen, setPickActivityOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const navigation = useNavigation();
@@ -348,6 +351,17 @@ export default function ConversationScreen() {
     router.push('/(auth)/create/step1');
   };
 
+  const handleShareActivity = async (activityId: string) => {
+    if (!id) return;
+    try {
+      await messageService.shareActivity(id, activityId);
+      await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+      Burnt.toast({ title: t('messagerie.outingShared', { defaultValue: 'Sortie partagée' }), preset: 'done' });
+    } catch (err) {
+      Burnt.toast({ title: getFriendlyError(err, 'generic') });
+    }
+  };
+
   const handleAttachTrace = () => {
     Alert.alert(
       t('messagerie.tracePrivacyTitle'),
@@ -582,11 +596,11 @@ export default function ConversationScreen() {
         <View style={styles.inputRow}>
           <Pressable
             style={[styles.attachButton, isAttaching && styles.sendDisabled]}
-            onPress={handleAttachTrace}
+            onPress={() => setAttachMenuOpen(true)}
             disabled={isAttaching}
             hitSlop={6}
           >
-            <Paperclip size={20} color={colors.textSecondary} strokeWidth={2.2} />
+            <Plus size={22} color={colors.textSecondary} strokeWidth={2.2} />
           </Pressable>
           <TextInput
             style={styles.input}
@@ -606,6 +620,40 @@ export default function ConversationScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* Attach menu (Brique 4c) — share an outing or a GPX trace. */}
+      <Modal visible={attachMenuOpen} animationType="slide" transparent onRequestClose={() => setAttachMenuOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setAttachMenuOpen(false)}>
+          <Pressable style={styles.menuSheet} onPress={() => {}}>
+            <View style={styles.menuHandle} />
+            <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); setPickActivityOpen(true); }}>
+              <MapPin size={20} color={colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.menuLabel}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</Text>
+            </Pressable>
+            <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); handleAttachTrace(); }}>
+              <RouteIcon size={20} color={colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.menuLabel}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</Text>
+            </Pressable>
+            {/* Create an outing from the chat — prefills the peer as an invitee (4e-2). */}
+            <Pressable style={styles.menuRow} onPress={() => {
+              setAttachMenuOpen(false);
+              useCreateStore.getState().resetForm();
+              const peerId = convMeta?.profile?.id;
+              if (peerId) useCreateStore.getState().updateForm({ invitees: [peerId] });
+              router.push('/(auth)/create/step1');
+            }}>
+              <Plus size={20} color={colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.menuLabel}>{t('messagerie.createOutingFromChat', { defaultValue: 'Créer une sortie' })}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <PickActivitySheet
+        visible={pickActivityOpen}
+        onClose={() => setPickActivityOpen(false)}
+        onPick={handleShareActivity}
+      />
 
       {/* Trace preview modal */}
       <Modal visible={tracePreview !== null} animationType="slide" onRequestClose={() => setTracePreview(null)}>
@@ -1233,6 +1281,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   menuItem: { paddingVertical: spacing.md },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+  menuLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   menuText: { color: colors.textPrimary, fontSize: fontSizes.md },
   menuTextDanger: { color: colors.error, fontSize: fontSizes.md },
   editBar: {
