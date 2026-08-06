@@ -3146,7 +3146,6 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
-      add_contact: { Args: { p_contact_id: string }; Returns: undefined }
       add_favorite: {
         Args: { p_id: string; p_kind: string }
         Returns: undefined
@@ -4071,7 +4070,10 @@ export type Database = {
         Returns: undefined
       }
       reliability_tier: { Args: { p_score: number }; Returns: string }
-      remove_contact: { Args: { p_contact_id: string }; Returns: undefined }
+      remove_connection: {
+        Args: { p_other_user_id: string }
+        Returns: undefined
+      }
       remove_favorite: {
         Args: { p_id: string; p_kind: string }
         Returns: undefined

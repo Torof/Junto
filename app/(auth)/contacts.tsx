@@ -30,17 +30,18 @@ export default function ContactsScreen() {
   });
 
   const removeMut = useMutation({
-    mutationFn: (id: string) => contactService.removeContact(id),
+    mutationFn: (id: string) => contactService.removeConnection(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-partners'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (e) => Burnt.toast({ title: getFriendlyError(e, 'generic') }),
   });
 
   const confirmRemove = (id: string, name: string) => Alert.alert(
     t('contacts.removeTitle', { defaultValue: 'Retirer ce contact ?' }),
-    t('contacts.removeBody', { defaultValue: '{{name}} sera retiré de tes contacts.', name }),
+    t('contacts.removeBody', { defaultValue: '{{name}} ne sera plus dans tes contacts, des deux côtés, et votre conversation sera supprimée. Vous pourrez vous reconnecter plus tard.', name }),
     [
       { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel' },
       { text: t('contacts.remove', { defaultValue: 'Retirer' }), style: 'destructive', onPress: () => removeMut.mutate(id) },

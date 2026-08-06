@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
-// One-way contacts roster + recent-partner suggestions + batch invite.
-// Backed by the SECURITY DEFINER functions in migration 00341.
+// Contacts = mutual connections (Brique 5, mig 00371): get_contacts reads active
+// DM connections; recent-partner suggestions; remove_connection ends a connection.
 
 export interface ContactRow {
   id: string;
@@ -31,15 +31,9 @@ export const contactService = {
     return (data ?? []) as unknown as PartnerRow[];
   },
 
-  addContact: async (userId: string): Promise<void> => {
-    const { error } = await supabase.rpc('add_contact' as 'join_activity',
-      { p_contact_id: userId } as unknown as { p_activity_id: string });
-    if (error) throw error;
-  },
-
-  removeContact: async (userId: string): Promise<void> => {
-    const { error } = await supabase.rpc('remove_contact' as 'join_activity',
-      { p_contact_id: userId } as unknown as { p_activity_id: string });
+  // Ends a mutual connection — deletes the shared DM (symmetric; re-requestable).
+  removeConnection: async (userId: string): Promise<void> => {
+    const { error } = await supabase.rpc('remove_connection', { p_other_user_id: userId });
     if (error) throw error;
   },
 
