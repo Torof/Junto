@@ -15,8 +15,13 @@ import { LogoSpinner } from './logo-spinner';
 
 interface Props {
   visible: boolean;
-  activityId: string;
   onClose: () => void;
+  // Send mode (default): sends invitations to `activityId` immediately.
+  activityId?: string;
+  // Select mode (create step 4): returns the chosen ids to the caller instead
+  // of sending — no activity exists yet. `initialSelected` prefills the list.
+  onConfirm?: (userIds: string[]) => void;
+  initialSelected?: string[];
 }
 
 // Multi-select official invitation-to-join (Brique 4e): pick from your contacts
@@ -24,15 +29,19 @@ interface Props {
 // send_activity_invitations. Creator-only, pre-approved (accept = participant);
 // the invitee sees it in their Demandes → Invitations. Eligibility is enforced
 // server-side (ineligible/blocked/dup skipped silently, RETURNS VOID).
-export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
+export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, initialSelected }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const selectMode = !!onConfirm;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  useEffect(() => { if (!visible) { setSelected(new Set()); setMessage(''); setSending(false); } }, [visible]);
+  useEffect(() => {
+    if (visible) setSelected(new Set(initialSelected ?? []));
+    else { setSelected(new Set()); setMessage(''); setSending(false); }
+  }, [visible, initialSelected]);
 
   const { data: contacts, isLoading: loadingContacts } = useQuery({
     queryKey: ['contacts'], queryFn: () => contactService.getContacts(), enabled: visible,
@@ -58,6 +67,14 @@ export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
 
   const handleInvite = async () => {
     if (selected.size === 0 || sending) return;
+    // Select mode: hand the chosen ids back to the caller (create flow), which
+    // sends them after the activity is created.
+    if (selectMode) {
+      onConfirm!([...selected]);
+      onClose();
+      return;
+    }
+    if (!activityId) return;
     setSending(true);
     try {
       await invitationService.sendInvitations(activityId, [...selected], message);
@@ -105,7 +122,7 @@ export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
             />
           )}
 
-          {sections.length > 0 && (
+          {!selectMode && sections.length > 0 && (
             <TextInput
               style={styles.messageInput}
               value={message}
@@ -125,7 +142,9 @@ export function InvitePartnersSheet({ visible, activityId, onClose }: Props) {
             <Text style={styles.ctaText}>
               {sending
                 ? t('contacts.inviting', { defaultValue: 'Envoi…' })
-                : t('contacts.inviteCta', { defaultValue: 'Inviter ({{count}})', count: selected.size })}
+                : selectMode
+                  ? t('contacts.selectCta', { defaultValue: 'Ajouter ({{count}})', count: selected.size })
+                  : t('contacts.inviteCta', { defaultValue: 'Inviter ({{count}})', count: selected.size })}
             </Text>
           </Pressable>
         </Pressable>

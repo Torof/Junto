@@ -6,13 +6,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
+import { UserPlus, ChevronRight } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { InvitePartnersSheet } from '@/components/invite-partners-sheet';
 import { activityService } from '@/services/activity-service';
+import { invitationService } from '@/services/invitation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
@@ -22,8 +25,9 @@ export default function CreateStep4() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { form, resetForm } = useCreateStore();
+  const { form, resetForm, updateForm } = useCreateStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const handlePublish = async () => {
     if (!form.location_meeting || !form.starts_at) return;
@@ -58,6 +62,13 @@ export default function CreateStep4() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['activities'] });
+
+      // Best-effort invitations (Brique 4e-2) — the activity already exists; a
+      // send failure must not fail creation (mirrors the private-link share).
+      if (form.invitees.length > 0) {
+        try { await invitationService.sendInvitations(activityId, form.invitees); } catch { /* ignore — activity exists */ }
+      }
+
       haptic.success();
       const isPrivate = form.visibility === 'private_link' || form.visibility === 'private_link_approval';
       const title = form.title;
@@ -97,6 +108,7 @@ export default function CreateStep4() {
   };
 
   return (
+    <>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.stepLabel}>{t('create.step', { current: 4, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step4Title')}</Text>
@@ -133,6 +145,20 @@ export default function CreateStep4() {
         ) : null}
       </View>
 
+      {/* Invite partners (Brique 4e-2) — optional; sent on publish. */}
+      <Pressable style={styles.inviteField} onPress={() => setPickerOpen(true)}>
+        <UserPlus size={18} color={colors.textPrimary} strokeWidth={2.2} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.inviteFieldLabel}>{t('create.invitePartners', { defaultValue: 'Inviter des partenaires' })}</Text>
+          <Text style={styles.inviteFieldSub} numberOfLines={1}>
+            {form.invitees.length > 0
+              ? t('create.inviteCount', { defaultValue: '{{count}} sélectionné·es', count: form.invitees.length })
+              : t('create.inviteOptional', { defaultValue: 'Optionnel · tes contacts + partenaires récents' })}
+          </Text>
+        </View>
+        <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} />
+      </Pressable>
+
       <Pressable
         style={[styles.publishButton, isLoading && styles.buttonDisabled]}
         onPress={handlePublish}
@@ -145,6 +171,14 @@ export default function CreateStep4() {
         )}
       </Pressable>
     </ScrollView>
+
+    <InvitePartnersSheet
+      visible={pickerOpen}
+      onConfirm={(ids) => updateForm({ invitees: ids })}
+      initialSelected={form.invitees}
+      onClose={() => setPickerOpen(false)}
+    />
+    </>
   );
 }
 
@@ -173,6 +207,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   descSection: { marginTop: spacing.sm },
   recapLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   recapDesc: { color: colors.textPrimary, fontSize: fontSizes.sm },
+  inviteField: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    padding: spacing.md, marginTop: spacing.md,
+    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
+  },
+  inviteFieldLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  inviteFieldSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
   publishButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
   publishText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

@@ -21,6 +21,9 @@ interface CreateFormState {
   duration_minutes: number;
   visibility: 'public' | 'approval' | 'private_link' | 'private_link_approval';
   requires_presence: boolean;
+  // Partners to invite-to-join on publish (Brique 4e-2). Sent best-effort after
+  // the activity is created (creator-only, pre-approved). User ids.
+  invitees: string[];
 }
 
 interface CreateStore {
@@ -49,6 +52,7 @@ const DEFAULT_FORM: CreateFormState = {
   duration_minutes: 0,
   visibility: 'public',
   requires_presence: true,
+  invitees: [],
 };
 
 export const useCreateStore = create<CreateStore>((set) => ({
