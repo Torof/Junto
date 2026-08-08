@@ -214,7 +214,7 @@ export default function TabsLayout() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            setMenuOpen(true);
+            setMenuOpen((o) => !o);
           },
         }}
       />

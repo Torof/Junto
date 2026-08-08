@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop, type BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -43,6 +43,11 @@ export function MenuSheet({ open, onClose }: Props) {
     else modalRef.current?.dismiss();
   }, [open]);
 
+  // Tapping the map / anything behind the sheet closes it (was swipe-only).
+  const renderBackdrop = useCallback((props: BottomSheetBackdropProps) => (
+    <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
+  ), []);
+
   const { data: profile } = useQuery({
     queryKey: ['public-profile', userId],
     queryFn: () => userService.getPublicProfile(userId as string),
@@ -73,6 +78,7 @@ export function MenuSheet({ open, onClose }: Props) {
         bottomInset={tabBarHeight}
         enablePanDownToClose
         enableDynamicSizing
+        backdropComponent={renderBackdrop}
         onDismiss={onClose}
         backgroundStyle={styles.bg}
         handleComponent={() => (
