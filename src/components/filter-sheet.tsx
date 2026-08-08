@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal, Alert, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -14,8 +14,10 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
 import { CollapsibleSection } from './collapsible-section';
+import { PlaceSearchBar } from './place-search-bar';
 import { useSports } from '@/hooks/use-sports';
 import { getSportIcon } from '@/constants/sport-icons';
+import type { PlaceResult } from '@/services/geocode-service';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
 
@@ -44,6 +46,9 @@ interface FilterSheetProps {
   // (map context). mes-activites passes false — that screen surfaces
   // catalog via a dedicated sub-tab, not the entity filter.
   showEntityFilter?: boolean;
+  // Map context: pick a place from the filter → fly the map there (and usually
+  // close the filter). Omitted where there's no map (e.g. mes-activites).
+  onPlaceSelect?: (place: PlaceResult) => void;
 }
 
 export function FilterSheet({
@@ -53,6 +58,7 @@ export function FilterSheet({
   showSortTab = false,
   useStore = useMapStore,
   showEntityFilter = true,
+  onPlaceSelect,
 }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -144,6 +150,7 @@ export function FilterSheet({
               toggleShowActivities={toggleShowActivities}
               toggleShowProOfferings={toggleShowProOfferings}
               showEntityFilter={showEntityFilter}
+              onPlaceSelect={onPlaceSelect}
               resetFilters={resetFilters}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
@@ -196,6 +203,7 @@ interface FiltersTabProps {
   toggleShowActivities: () => void;
   toggleShowProOfferings: () => void;
   showEntityFilter: boolean;
+  onPlaceSelect?: (place: PlaceResult) => void;
   resetFilters: () => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
@@ -212,12 +220,19 @@ interface FiltersTabProps {
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
   toggleLevelTier, setRadiusKm, setSortBy, setSortDir,
-  toggleShowActivities, toggleShowProOfferings, showEntityFilter, resetFilters,
+  toggleShowActivities, toggleShowProOfferings, showEntityFilter, onPlaceSelect, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
   const { data: sports } = useSports();
   const levelTierList = Object.keys(LEVEL_KEY) as LevelTier[];
+  const [sportSearch, setSportSearch] = useState('');
+  const visibleSports = useMemo(() => {
+    const q = sportSearch.trim().toLowerCase();
+    const all = sports ?? [];
+    if (!q) return all;
+    return all.filter((s) => t(`sports.${s.key}`, { defaultValue: s.key }).toLowerCase().includes(q));
+  }, [sports, sportSearch, t]);
 
   const activePills: { id: string; label: string; clear: () => void }[] = [];
 
@@ -291,6 +306,11 @@ function FiltersTab({
 
   return (
     <>
+      {onPlaceSelect && (
+        <View style={styles.placeSearchWrap}>
+          <PlaceSearchBar onSelect={onPlaceSelect} />
+        </View>
+      )}
       {activePills.length > 0 && (
         <View style={styles.activePillsWrap}>
           {activePills.map((pill) => (
@@ -404,7 +424,15 @@ function FiltersTab({
         </CollapsibleSection>
 
         <CollapsibleSection title={t('map.sportLabel')} summary={sportActive ? sportLabel : null}>
-          {(sports ?? []).map((s) => {
+          <TextInput
+            style={styles.sportSearch}
+            value={sportSearch}
+            onChangeText={setSportSearch}
+            placeholder={t('map.searchSport')}
+            placeholderTextColor={colors.textSecondary}
+            autoCorrect={false}
+          />
+          {visibleSports.map((s) => {
             const on = filters.sportKeys.includes(s.key);
             return (
               <Pressable key={s.key} style={styles.optRow} onPress={() => toggleSportFilter(s.key)}>
@@ -734,6 +762,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   optEmoji: { fontSize: 18, width: 24, textAlign: 'center' },
   optLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
   optLabelActive: { fontWeight: '700', color: colors.cta },
+  sportSearch: {
+    color: colors.textPrimary, fontSize: fontSizes.md,
+    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.sm,
+  },
+  placeSearchWrap: { marginBottom: spacing.sm, zIndex: 20 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

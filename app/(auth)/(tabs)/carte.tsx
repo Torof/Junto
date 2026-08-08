@@ -513,7 +513,11 @@ export default function CarteScreen() {
           onOpenPro={(userId, coordinate) => { setSelectedOffering(null); setSelectedProId(userId); flyToPin(coordinate); }}
         />
 
-        <FilterSheet visible={showFilters} onClose={() => setShowFilters(false)} />
+        <FilterSheet
+          visible={showFilters}
+          onClose={() => setShowFilters(false)}
+          onPlaceSelect={(p) => { flyToPin([p.lng, p.lat]); setShowFilters(false); }}
+        />
       </View>
 
       {showIntro && <IntroCarousel onDone={dismissIntro} />}
