@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Bookmark } from 'lucide-react-native';
+import { Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Bookmark, Compass } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -100,6 +100,13 @@ export function MenuSheet({ open, onClose }: Props) {
 
           <View style={styles.divider} />
 
+          <MenuItem
+            icon={<Compass size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            label={t('menu.discovery', { defaultValue: 'Découverte' })}
+            onPress={() => go('/(auth)/discovery')}
+            styles={styles}
+            colors={colors}
+          />
           <MenuItem
             icon={<Radar size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.alerts', { defaultValue: 'Alertes' })}

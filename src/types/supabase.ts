@@ -3853,6 +3853,22 @@ export type Database = {
           user_2: string
         }[]
       }
+      get_my_dispo: {
+        Args: never
+        Returns: {
+          base_label: string
+          base_lat: number
+          base_lng: number
+          id: string
+          is_active: boolean
+          levels: Json
+          radius_km: number
+          sport_keys: string[]
+          transport_modes: string[]
+          window_end: string
+          window_start: string
+        }[]
+      }
       get_my_invitations: {
         Args: never
         Returns: {
