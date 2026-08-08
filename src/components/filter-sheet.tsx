@@ -9,12 +9,13 @@ import Slider from '@react-native-community/slider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react-native';
+import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown, Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
-import { SportPickerSheet } from './sport-picker-sheet';
-import { LevelPickerSheet } from './level-picker-sheet';
+import { CollapsibleSection } from './collapsible-section';
+import { useSports } from '@/hooks/use-sports';
+import { getSportIcon } from '@/constants/sport-icons';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
 
@@ -213,10 +214,10 @@ function FiltersTab({
   toggleLevelTier, setRadiusKm, setSortBy, setSortDir,
   toggleShowActivities, toggleShowProOfferings, showEntityFilter, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
-  onClose, t, lang, styles, colors, useStore,
+  onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
-  const [showSport, setShowSport] = useState(false);
-  const [showLevel, setShowLevel] = useState(false);
+  const { data: sports } = useSports();
+  const levelTierList = Object.keys(LEVEL_KEY) as LevelTier[];
 
   const activePills: { id: string; label: string; clear: () => void }[] = [];
 
@@ -277,6 +278,17 @@ function FiltersTab({
       ? t(`map.levelTier.${LEVEL_KEY[filters.levelTiers[0]!]}`)
       : `${t('map.levelLabel')} · ${filters.levelTiers.length}`;
 
+  const dateSummary = filters.dateMode === 'all' ? null
+    : filters.dateMode === 'today' ? t('map.date.today')
+    : filters.dateMode === 'week' ? t('map.date.week')
+    : filters.dateMode === 'date' && filters.specificDate
+      ? dayjs(filters.specificDate).locale(lang).format('D MMM')
+    : filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
+      ? (dayjs(filters.rangeFrom).isSame(filters.rangeTo, 'day')
+          ? dayjs(filters.rangeFrom).locale(lang).format('D MMM')
+          : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
+      : null;
+
   return (
     <>
       {activePills.length > 0 && (
@@ -293,7 +305,7 @@ function FiltersTab({
       )}
 
       <ScrollView
-        style={{ flexGrow: 0 }}
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
@@ -302,8 +314,13 @@ function FiltersTab({
             Hidden in mes-activites context (no offerings shown there
             via this filter; the Catalogue sub-tab handles it). */}
         {showEntityFilter && (
-        <View style={styles.typeSection}>
-          <Text style={styles.sectionTitle}>{t('map.showLabel', { defaultValue: 'Afficher' })}</Text>
+        <CollapsibleSection
+          title={t('map.showLabel', { defaultValue: 'Afficher' })}
+          summary={filters.showActivities && filters.showProOfferings ? null
+            : filters.showActivities ? t('map.typeActivities', { defaultValue: 'Passionnés' })
+            : filters.showProOfferings ? t('map.typePros', { defaultValue: 'Pros' })
+            : t('map.showNone', { defaultValue: 'Rien' })}
+        >
           <View style={styles.typeRow}>
             <Pressable
               style={[styles.typeChip, filters.showActivities && styles.typeChipActive]}
@@ -332,67 +349,84 @@ function FiltersTab({
               </Text>
             </Pressable>
           </View>
-        </View>
+        </CollapsibleSection>
         )}
 
-        {/* Radius */}
-        <View style={styles.radiusHeader}>
-          <Text style={styles.sectionTitle}>{t('map.radiusLabel')}</Text>
-          <Text style={styles.radiusValue}>
-            {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
-          </Text>
-        </View>
-        <Slider
-          minimumValue={0}
-          maximumValue={200}
-          step={5}
-          value={filters.radiusKm ?? 0}
-          onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
-          minimumTrackTintColor={colors.cta}
-          maximumTrackTintColor={colors.borderMuted}
-          thumbTintColor={colors.cta}
-        />
-        <View style={styles.sliderBounds}>
-          <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
-          <Text style={styles.sliderBoundText}>200 km</Text>
-        </View>
+        <CollapsibleSection
+          title={t('map.radiusLabel')}
+          summary={filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
+        >
+          <Slider
+            minimumValue={0}
+            maximumValue={200}
+            step={5}
+            value={filters.radiusKm ?? 0}
+            onValueChange={(v) => setRadiusKm(v === 0 ? null : v)}
+            minimumTrackTintColor={colors.cta}
+            maximumTrackTintColor={colors.borderMuted}
+            thumbTintColor={colors.cta}
+          />
+          <View style={styles.sliderBounds}>
+            <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
+            <Text style={styles.sliderBoundText}>200 km</Text>
+          </View>
+        </CollapsibleSection>
 
-        {/* Période + Sport + Niveau on one line. Each opens its own
-            picker. The period chip uses a range picker that also covers
-            single-day selection (pick same day twice). */}
-        <View style={styles.chipRow}>
-          <Pressable
-            style={[styles.chip, filters.dateMode === 'range' && styles.chipActive]}
-            onPress={() => setShowRangeFrom(true)}
-          >
-            <Text style={[styles.chipText, filters.dateMode === 'range' && styles.chipTextActive]}>
-              {filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
-                ? (dayjs(filters.rangeFrom).isSame(filters.rangeTo, 'day')
-                    ? dayjs(filters.rangeFrom).locale(lang).format('D MMM')
-                    : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
-                : t('map.date.pickRange')}
-            </Text>
-            <ChevronDown size={12} color={filters.dateMode === 'range' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
-          </Pressable>
-          <Pressable
-            style={[styles.chip, sportActive && styles.chipActive]}
-            onPress={() => setShowSport(true)}
-          >
-            <Text style={[styles.chipText, sportActive && styles.chipTextActive]} numberOfLines={1}>
-              {sportLabel}
-            </Text>
-            <ChevronDown size={12} color={sportActive ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
-          </Pressable>
-          <Pressable
-            style={[styles.chip, levelActive && styles.chipActive]}
-            onPress={() => setShowLevel(true)}
-          >
-            <Text style={[styles.chipText, levelActive && styles.chipTextActive]} numberOfLines={1}>
-              {levelLabel}
-            </Text>
-            <ChevronDown size={12} color={levelActive ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
-          </Pressable>
-        </View>
+        <CollapsibleSection title={t('map.dateLabel', { defaultValue: 'Période' })} summary={dateSummary}>
+          <View style={styles.chipRow}>
+            {(['all', 'today', 'week'] as const).map((mode) => (
+              <Pressable
+                key={mode}
+                style={[styles.chip, filters.dateMode === mode && styles.chipActive]}
+                onPress={() => setDateMode(mode)}
+              >
+                <Text style={[styles.chipText, filters.dateMode === mode && styles.chipTextActive]}>
+                  {mode === 'all' ? t('map.date.all', { defaultValue: 'Toutes' })
+                    : mode === 'today' ? t('map.date.today')
+                    : t('map.date.week')}
+                </Text>
+              </Pressable>
+            ))}
+            <Pressable
+              style={[styles.chip, filters.dateMode === 'range' && styles.chipActive]}
+              onPress={() => setShowRangeFrom(true)}
+            >
+              <Text style={[styles.chipText, filters.dateMode === 'range' && styles.chipTextActive]}>
+                {filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
+                  ? (dayjs(filters.rangeFrom).isSame(filters.rangeTo, 'day')
+                      ? dayjs(filters.rangeFrom).locale(lang).format('D MMM')
+                      : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
+                  : t('map.date.pickRange')}
+              </Text>
+              <ChevronDown size={12} color={filters.dateMode === 'range' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
+            </Pressable>
+          </View>
+        </CollapsibleSection>
+
+        <CollapsibleSection title={t('map.sportLabel')} summary={sportActive ? sportLabel : null}>
+          {(sports ?? []).map((s) => {
+            const on = filters.sportKeys.includes(s.key);
+            return (
+              <Pressable key={s.key} style={styles.optRow} onPress={() => toggleSportFilter(s.key)}>
+                <Text style={styles.optEmoji}>{getSportIcon(s.key)}</Text>
+                <Text style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
+                {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
+              </Pressable>
+            );
+          })}
+        </CollapsibleSection>
+
+        <CollapsibleSection title={t('map.levelLabel')} summary={levelActive ? levelLabel : null}>
+          {levelTierList.map((tier) => {
+            const on = filters.levelTiers.includes(tier);
+            return (
+              <Pressable key={tier} style={styles.optRow} onPress={() => toggleLevelTier(tier)}>
+                <Text style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`map.levelTier.${LEVEL_KEY[tier]}`)}</Text>
+                {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
+              </Pressable>
+            );
+          })}
+        </CollapsibleSection>
 
         {showRangeFrom && (
           <DateTimePicker
@@ -422,8 +456,6 @@ function FiltersTab({
 
       </ScrollView>
 
-      <SportPickerSheet visible={showSport} onClose={() => setShowSport(false)} useStore={useStore} />
-      <LevelPickerSheet visible={showLevel} onClose={() => setShowLevel(false)} useStore={useStore} />
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
@@ -473,7 +505,7 @@ function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }:
   return (
     <>
       <ScrollView
-        style={{ flexGrow: 0 }}
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
@@ -589,7 +621,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
-    padding: spacing.md, maxHeight: '85%',
+    padding: spacing.md, height: '96%',
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
 
@@ -698,6 +730,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   radiusValue: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4, marginBottom: spacing.md },
   sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
+  optRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
+  optEmoji: { fontSize: 18, width: 24, textAlign: 'center' },
+  optLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
+  optLabelActive: { fontWeight: '700', color: colors.cta },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
