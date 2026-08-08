@@ -726,6 +726,69 @@ export type Database = {
           },
         ]
       }
+      discovery_availabilities: {
+        Row: {
+          base: unknown
+          base_label: string
+          created_at: string
+          id: string
+          is_active: boolean
+          levels: Json | null
+          radius_km: number | null
+          sport_keys: string[]
+          transport_modes: string[]
+          updated_at: string
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          base: unknown
+          base_label: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          levels?: Json | null
+          radius_km?: number | null
+          sport_keys: string[]
+          transport_modes: string[]
+          updated_at?: string
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          base?: unknown
+          base_label?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          levels?: Json | null
+          radius_km?: number | null
+          sport_keys?: string[]
+          transport_modes?: string[]
+          updated_at?: string
+          user_id?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_availabilities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_availabilities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           activity_id: string | null
