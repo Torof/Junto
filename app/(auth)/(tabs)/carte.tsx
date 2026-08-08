@@ -12,6 +12,7 @@ import { ProSheet } from '@/components/pro-sheet';
 import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
+import { PlaceSearchBar } from '@/components/place-search-bar';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
@@ -295,11 +296,21 @@ export default function CarteScreen() {
             Mapbox compass at top-right. Hidden while a preview is up OR the
             list drawer is raised, so the list reads as a clean layer. */}
         {!previewOpen && !listOpen && (
-          <View style={[styles.topControls, { top: insets.top + spacing.xs }]}>
-            <FilterButton onPress={() => setShowFilters(true)} />
-            <MapStyleButton />
-            <EntityTypeToggles />
-          </View>
+          <>
+            {/* Place search (Photon) — fly to a typed place; activities around
+                then load via the bounds search. */}
+            <View style={[styles.searchArea, { top: insets.top + spacing.xs }]}>
+              <PlaceSearchBar
+                onSelect={(p) => flyToPin([p.lng, p.lat])}
+                bias={{ lng: (currentLocation ?? center)[0], lat: (currentLocation ?? center)[1] }}
+              />
+            </View>
+            <View style={[styles.topControls, { top: insets.top + spacing.xs + 52 }]}>
+              <FilterButton onPress={() => setShowFilters(true)} />
+              <MapStyleButton />
+              <EntityTypeToggles />
+            </View>
+          </>
         )}
 
         <>
@@ -561,6 +572,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     zIndex: 10,
+  },
+  searchArea: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 20,
   },
 });
 
