@@ -122,6 +122,9 @@ interface MapViewProps {
   onStuckClusterPress?: (activities: NearbyActivity[]) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
   compassEnabled?: boolean;
+  // Move the native compass to the bottom-right (above the recenter button) so
+  // it doesn't sit under the map's place-search bar (carte tab). Default = top.
+  compassBottomRight?: boolean;
   // Radius filter overlay — draws a tinted circle around radiusCenter
   // showing the search-radius area. Both must be set to render.
   radiusKm?: number | null;
@@ -181,6 +184,7 @@ export function JuntoMapView({
   onStuckClusterPress,
   flyTo,
   compassEnabled = true,
+  compassBottomRight = false,
   radiusKm,
   radiusCenter,
   surfaceView = true,
@@ -469,7 +473,8 @@ export function JuntoMapView({
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled={compassEnabled}
-      compassViewMargins={{ x: 12, y: insets.top + 2 }}
+      compassViewPosition={compassBottomRight ? 3 : 1}
+      compassViewMargins={compassBottomRight ? { x: 12, y: 152 } : { x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
       // onCameraChanged is throttled and can miss the FINAL settle frame, so

@@ -381,6 +381,7 @@ export default function CarteScreen() {
                 </View>
               ) : undefined}
               flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
+              compassBottomRight
               selectedActivity={selectedActivity}
               selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
