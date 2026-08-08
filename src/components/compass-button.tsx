@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
-import { Navigation } from 'lucide-react-native';
+import { Navigation2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -22,7 +22,7 @@ export function CompassButton({ heading, onPress }: Props) {
   return (
     <Pressable style={styles.button} onPress={onPress} hitSlop={8} accessibilityLabel={t('map.north', { defaultValue: 'Nord' })}>
       <View style={{ transform: [{ rotate: `${-heading}deg` }] }}>
-        <Navigation size={20} color={colors.cta} fill={colors.cta} strokeWidth={1.5} />
+        <Navigation2 size={20} color={colors.cta} fill={colors.cta} strokeWidth={1.5} />
       </View>
     </Pressable>
   );
