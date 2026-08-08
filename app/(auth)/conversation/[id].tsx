@@ -116,13 +116,18 @@ export default function ConversationScreen() {
 
   // Group thread (Brique 4d) — only probed once convMeta resolves to "not a DM"
   // (get_conversation_peer returns nothing for group/activity conversations).
-  const { data: groupInfo, isLoading: groupLoading } = useQuery({
+  const { data: groupInfo, isError: groupError } = useQuery({
     queryKey: ['group-info', id],
     queryFn: () => groupService.getInfo(id!),
     enabled: !!id && convMeta?.exists === false,
     staleTime: 60_000,
   });
   const isGroup = !!groupInfo;
+  // Per-sender identity for group bubbles (DM threads use the single peer).
+  const groupMemberById = useMemo(
+    () => new Map((groupInfo?.members ?? []).map((m) => [m.id, m])),
+    [groupInfo],
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -535,7 +540,11 @@ export default function ConversationScreen() {
   // participant) → graceful screen instead of an empty thread the user could
   // type into. A deleted-account other party keeps exists=true, so the thread
   // stays readable.
-  if (convLoading || (convMeta?.exists === false && groupLoading)) {
+  // Group probe is still resolving: convMeta says "not a DM" but get_group_info
+  // hasn't returned yet (data undefined, no error). Show the spinner rather than
+  // flashing the unavailable screen for a real group (audit M5).
+  const groupProbePending = convMeta?.exists === false && groupInfo === undefined && !groupError;
+  if (convLoading || groupProbePending) {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
   if (convMeta && !convMeta.exists && !isGroup) {
@@ -584,15 +593,25 @@ export default function ConversationScreen() {
               !next ||
               next.sender_id !== item.sender_id ||
               !dayjs(item.created_at).isSame(dayjs(next.created_at), 'day');
+            // Group: resolve the bubble's author from members; DM: the peer.
+            const own = isOwnMessage(item);
+            const senderMember = isGroup && !own ? groupMemberById.get(item.sender_id ?? '') : undefined;
+            const bubbleName = isGroup ? (senderMember?.display_name ?? '?') : (otherUser?.display_name ?? null);
+            const bubbleAvatar = isGroup ? (senderMember?.avatar_url ?? null) : (otherUser?.avatar_url ?? null);
+            const replyToName = item.reply_to && item.reply_to.sender_id !== currentUser
+              ? (isGroup ? (groupMemberById.get(item.reply_to.sender_id ?? '')?.display_name ?? '?') : (otherUser?.display_name ?? '?'))
+              : null;
             return (
               <MessageBubble
                 item={item}
-                isOwn={isOwnMessage(item)}
+                isOwn={own}
                 isFirstInGroup={isFirstInGroup}
                 isLastInGroup={isLastInGroup}
+                showAuthor={isGroup && !own && isFirstInGroup}
+                replyToName={replyToName}
                 currentUser={currentUser ?? null}
-                otherUserName={otherUser?.display_name ?? null}
-                otherUserAvatarUrl={otherUser?.avatar_url ?? null}
+                otherUserName={bubbleName}
+                otherUserAvatarUrl={bubbleAvatar}
                 seatReqId={seatReqId}
                 seatReqStatus={seatReqStatus}
                 seatActionId={seatActionId}
@@ -847,6 +866,8 @@ type MessageBubbleProps = {
   isOwn: boolean;
   isFirstInGroup: boolean;
   isLastInGroup: boolean;
+  showAuthor: boolean;
+  replyToName: string | null;
   currentUser: string | null;
   otherUserName: string | null;
   otherUserAvatarUrl: string | null;
@@ -869,6 +890,8 @@ function MessageBubble({
   isOwn,
   isFirstInGroup,
   isLastInGroup,
+  showAuthor,
+  replyToName,
   currentUser,
   otherUserName,
   otherUserAvatarUrl,
@@ -953,6 +976,9 @@ function MessageBubble({
           ]}
           onLongPress={() => onLongPress(item)}
         >
+          {showAuthor && (
+            <Text style={styles.bubbleAuthor} numberOfLines={1}>{otherUserName ?? '?'}</Text>
+          )}
           {item.reply_to && (
             <View style={[styles.bubbleReplyQuote, isOwn && styles.bubbleReplyQuoteOwn]}>
               <View style={[styles.bubbleReplyBar, isOwn && styles.bubbleReplyBarOwn]} />
@@ -960,7 +986,7 @@ function MessageBubble({
                 <Text style={[styles.bubbleReplyAuthor, isOwn && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
                   {item.reply_to.sender_id === currentUser
                     ? t('messagerie.you', { defaultValue: 'Toi' })
-                    : otherUserName ?? '?'}
+                    : replyToName ?? '?'}
                 </Text>
                 <Text style={[styles.bubbleReplyContent, isOwn && styles.bubbleReplyContentOwn]} numberOfLines={2}>
                   {item.reply_to.deleted_at
@@ -1113,6 +1139,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   bubbleText: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, lineHeight: 21 },
   bubbleTextOwn: { color: '#FFFFFF' },
+  bubbleAuthor: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', marginBottom: 2 },
   // Seat-request inline action row — sits inside the seed bubble so
   // the driver can accept / decline without leaving the chat. Buttons
   // are pill-shaped, full-width, with action-coloured backgrounds.

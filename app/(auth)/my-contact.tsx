@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Share, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,8 @@ import { supabase } from '@/services/supabase';
 import { LogoSpinner } from '@/components/logo-spinner';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+// Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>.
+const CONTACT_LINK_RE = /(?:\/u\/|profile\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
 
 export default function MyContactScreen() {
   const colors = useColors();
@@ -25,6 +26,8 @@ export default function MyContactScreen() {
 
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  // onBarcodeScanned fires every frame — latch so one QR pushes exactly once.
+  const handledRef = useRef(false);
 
   const { data: userId } = useQuery({
     queryKey: ['currentUser-id'],
@@ -48,15 +51,18 @@ export default function MyContactScreen() {
         return;
       }
     }
+    handledRef.current = false;
     setScanning(true);
   };
 
   const handleScanned = ({ data }: { data: string }) => {
-    const match = data.match(UUID_RE);
+    if (handledRef.current) return;
+    const match = data.match(CONTACT_LINK_RE);
     if (!match) return;
-    const scannedId = match[0];
-    setScanning(false);
+    const scannedId = match[1];
     if (scannedId === userId) return; // your own code — no-op
+    handledRef.current = true;
+    setScanning(false);
     router.push(`/(auth)/profile/${scannedId}`);
   };
 

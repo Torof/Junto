@@ -61,13 +61,16 @@ export function GroupManageSheet({ visible, conversationId, group, onClose }: Pr
     const existing = new Set(group.members.map((m) => m.id));
     const fresh = ids.filter((x) => !existing.has(x));
     if (fresh.length === 0) return;
-    try {
-      for (const uid of fresh) await groupService.addMember(conversationId, uid);
-      await refresh();
-      Burnt.toast({ title: t('group.membersAdded', { defaultValue: 'Membres ajoutés' }), preset: 'done' });
-    } catch (e) {
-      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+    // Resilient: one add failing (e.g. a block rule) must not abort the rest.
+    let added = 0;
+    let lastErr: unknown = null;
+    for (const uid of fresh) {
+      try { await groupService.addMember(conversationId, uid); added++; }
+      catch (e) { lastErr = e; }
     }
+    await refresh();
+    if (added > 0) Burnt.toast({ title: t('group.membersAdded', { defaultValue: 'Membres ajoutés' }), preset: 'done' });
+    else if (lastErr) Burnt.toast({ title: getFriendlyError(lastErr, 'generic') });
   };
 
   return (
@@ -108,6 +111,7 @@ export function GroupManageSheet({ visible, conversationId, group, onClose }: Pr
       <InvitePartnersSheet
         visible={addOpen}
         onConfirm={handleAdd}
+        excludeIds={group.members.map((m) => m.id)}
         onClose={() => setAddOpen(false)}
       />
     </Modal>

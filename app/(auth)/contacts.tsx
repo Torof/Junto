@@ -31,10 +31,11 @@ export default function ContactsScreen() {
 
   const removeMut = useMutation({
     mutationFn: (id: string) => contactService.removeConnection(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-partners'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['conversation-state', id] });
     },
     onError: (e) => Burnt.toast({ title: getFriendlyError(e, 'generic') }),
   });
@@ -58,7 +59,7 @@ export default function ContactsScreen() {
         contentContainerStyle={styles.content}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {t('contacts.empty', { defaultValue: 'Aucun contact pour l’instant. Ajoute des partenaires depuis leur profil pour les inviter plus vite sur tes sorties.' })}
+            {t('contacts.empty', { defaultValue: 'Aucun contact pour l’instant. Envoie une demande depuis un profil, ou partage ton QR — une fois acceptée, vous êtes connectés.' })}
           </Text>
         }
         renderItem={({ item }) => (

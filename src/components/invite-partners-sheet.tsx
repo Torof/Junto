@@ -22,6 +22,8 @@ interface Props {
   // of sending — no activity exists yet. `initialSelected` prefills the list.
   onConfirm?: (userIds: string[]) => void;
   initialSelected?: string[];
+  // Hide these ids from the pick list (e.g. current group members when adding).
+  excludeIds?: string[];
 }
 
 // Multi-select official invitation-to-join (Brique 4e): pick from your contacts
@@ -29,7 +31,7 @@ interface Props {
 // send_activity_invitations. Creator-only, pre-approved (accept = participant);
 // the invitee sees it in their Demandes → Invitations. Eligibility is enforced
 // server-side (ineligible/blocked/dup skipped silently, RETURNS VOID).
-export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, initialSelected }: Props) {
+export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, initialSelected, excludeIds }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -58,10 +60,14 @@ export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, i
 
   const sections = useMemo(() => {
     const out: { title: string; data: { id: string; display_name: string; avatar_url: string | null }[] }[] = [];
-    if (contacts && contacts.length) out.push({ title: t('contacts.myContacts', { defaultValue: 'Mes contacts' }), data: contacts });
-    if (partners && partners.length) out.push({ title: t('contacts.recentPartners', { defaultValue: 'Partenaires récents' }), data: partners });
+    const excluded = new Set(excludeIds ?? []);
+    const contactList = (contacts ?? []).filter((c) => !excluded.has(c.id));
+    const contactIds = new Set(contactList.map((c) => c.id));
+    const freshPartners = (partners ?? []).filter((p) => !contactIds.has(p.id) && !excluded.has(p.id));
+    if (contactList.length) out.push({ title: t('contacts.myContacts', { defaultValue: 'Mes contacts' }), data: contactList });
+    if (freshPartners.length) out.push({ title: t('contacts.recentPartners', { defaultValue: 'Partenaires récents' }), data: freshPartners });
     return out;
-  }, [contacts, partners, t]);
+  }, [contacts, partners, excludeIds, t]);
 
   const loading = loadingContacts || loadingPartners;
 

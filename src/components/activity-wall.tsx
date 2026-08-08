@@ -87,8 +87,11 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
       // Server last_read_at (00368) so the unified hub / tab badge clear this
       // activity's unread when its Chat tab is opened. conversation_id rides
       // get_wall_messages (00369); absent only when the wall has no messages.
+      // Mount == the Chat tab is open (this component only renders then), so
+      // always advance server last_read_at — including on a finished activity,
+      // else the hub/badge unread for it can never clear (audit M3).
       const convId = messages[0]?.conversation_id;
-      if (isActive && convId) {
+      if (convId) {
         conversationService.markRead(convId)
           .then(() => {
             void queryClient.invalidateQueries({ queryKey: ['conversations'] });
@@ -99,7 +102,7 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
       const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
       return () => clearTimeout(t);
     }
-  }, [messages, activityId, markWallRead, isActive, queryClient]);
+  }, [messages, activityId, markWallRead, queryClient]);
 
   // Supabase Realtime subscription
   useEffect(() => {

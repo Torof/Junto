@@ -34,8 +34,10 @@ export default function CreateGroupScreen() {
 
   const sections = useMemo(() => {
     const out: { title: string; data: { id: string; display_name: string; avatar_url: string | null }[] }[] = [];
+    const contactIds = new Set((contacts ?? []).map((c) => c.id));
+    const freshPartners = (partners ?? []).filter((p) => !contactIds.has(p.id));
     if (contacts && contacts.length) out.push({ title: t('contacts.myContacts', { defaultValue: 'Mes contacts' }), data: contacts });
-    if (partners && partners.length) out.push({ title: t('contacts.recentPartners', { defaultValue: 'Partenaires récents' }), data: partners });
+    if (freshPartners.length) out.push({ title: t('contacts.recentPartners', { defaultValue: 'Partenaires récents' }), data: freshPartners });
     return out;
   }, [contacts, partners, t]);
 

@@ -11,6 +11,7 @@ import { fontSizes } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
 import { conversationService } from '@/services/conversation-service';
+import { invitationService } from '@/services/invitation-service';
 import { supabase } from '@/services/supabase';
 
 function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: boolean }) {
@@ -64,10 +65,20 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
     queryFn: () => conversationService.getAll(),
     refetchInterval: 30000,
   });
+  // Demandes that live in this tab also deserve the dot (audit L4): pending
+  // contact requests + activity invitations. Same cache keys as the hub screen.
+  const { data: pendingRequests } = useQuery({
+    queryKey: ['pending-requests'], queryFn: () => conversationService.getPendingReceived(), refetchInterval: 30000,
+  });
+  const { data: invitations } = useQuery({
+    queryKey: ['invitations-received'], queryFn: () => invitationService.getMyInvitations(), refetchInterval: 30000,
+  });
 
-  // Server-driven unread (00368): is_unread comes straight from the hub RPC
-  // (last_read_at), covering DM + group + activity threads uniformly.
-  const hasUnread = (conversations ?? []).some((c) => c.is_unread);
+  // Server-driven unread (00368): is_unread from the hub RPC (last_read_at),
+  // plus any pending contact request / invitation shown in this tab.
+  const hasUnread = (conversations ?? []).some((c) => c.is_unread)
+    || (pendingRequests?.length ?? 0) > 0
+    || (invitations?.length ?? 0) > 0;
 
   return (
     <View style={styles.bellContainer}>
