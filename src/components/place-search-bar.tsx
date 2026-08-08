@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, MapPin } from 'lucide-react-native';
@@ -71,20 +71,15 @@ export function PlaceSearchBar({ onSelect, bias }: Props) {
 
       {showResults && (results?.length ?? 0) > 0 && (
         <View style={styles.dropdown}>
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <Pressable style={styles.row} onPress={() => pick(item)}>
-                <MapPin size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.rowLabel} numberOfLines={1}>{item.label}</Text>
-                  {!!item.sublabel && <Text style={styles.rowSub} numberOfLines={1}>{item.sublabel}</Text>}
-                </View>
-              </Pressable>
-            )}
-          />
+          {(results ?? []).map((item) => (
+            <Pressable key={item.id} style={styles.row} onPress={() => pick(item)}>
+              <MapPin size={16} color={colors.textSecondary} strokeWidth={2.2} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.rowLabel} numberOfLines={1}>{item.label}</Text>
+                {!!item.sublabel && <Text style={styles.rowSub} numberOfLines={1}>{item.sublabel}</Text>}
+              </View>
+            </Pressable>
+          ))}
         </View>
       )}
     </View>
@@ -103,7 +98,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dropdown: {
     marginTop: spacing.xs, backgroundColor: colors.background,
     borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong,
-    overflow: 'hidden', maxHeight: 260,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,

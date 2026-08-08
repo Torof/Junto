@@ -14,6 +14,7 @@ import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/compo
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { CompassButton } from '@/components/compass-button';
+import type { PlaceResult } from '@/services/geocode-service';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
@@ -95,6 +96,9 @@ export default function CarteScreen() {
   const [flyToKey, setFlyToKey] = useState(0);
   const [heading, setHeading] = useState(0);
   const [resetBearingKey, setResetBearingKey] = useState(0);
+  // The radius + activity search center on a chosen place if one was searched,
+  // otherwise on my position (GPS, or IP fallback via useInitialLocation).
+  const [searchPlace, setSearchPlace] = useState<PlaceResult | null>(null);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
@@ -117,8 +121,9 @@ export default function CarteScreen() {
   const { data: activities } = useNearbyActivities(searchBounds);
   const { data: pros } = useNearbyPros(searchBounds);
   const { data: proOfferings } = useNearbyProOfferings(searchBounds);
-  const filtered = useFilteredActivities(activities ?? [], currentLocation ?? center);
-  const filteredOfferings = useFilteredOfferings(proOfferings ?? [], currentLocation ?? center);
+  const searchCenter: [number, number] = searchPlace ? [searchPlace.lng, searchPlace.lat] : (currentLocation ?? center);
+  const filtered = useFilteredActivities(activities ?? [], searchCenter);
+  const filteredOfferings = useFilteredOfferings(proOfferings ?? [], searchCenter);
   const radiusKm = useMapStore((s) => s.filters.radiusKm);
   // Entity-type filter — both default true; the filter sheet's
   // Activités / Pros checkboxes flip these. Empty arrays go to both
@@ -305,7 +310,7 @@ export default function CarteScreen() {
                 then load via the bounds search. */}
             <View style={[styles.searchArea, { top: insets.top + spacing.xs }]}>
               <PlaceSearchBar
-                onSelect={(p) => flyToPin([p.lng, p.lat])}
+                onSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat]); }}
                 bias={{ lng: (currentLocation ?? center)[0], lat: (currentLocation ?? center)[1] }}
               />
             </View>
@@ -350,7 +355,7 @@ export default function CarteScreen() {
               }}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
-              radiusCenter={currentLocation ?? center}
+              radiusCenter={searchCenter}
               tapMarker={tappedPoint && !selectedActivity ? [tappedPoint.lng, tappedPoint.lat] : null}
               tapMarkerContent={tappedPoint && !selectedActivity ? (
                 <View style={styles.tapMarkerContent}>
@@ -516,7 +521,9 @@ export default function CarteScreen() {
         <FilterSheet
           visible={showFilters}
           onClose={() => setShowFilters(false)}
-          onPlaceSelect={(p) => { flyToPin([p.lng, p.lat]); setShowFilters(false); }}
+          onPlaceSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat]); setShowFilters(false); }}
+          onResetLocation={() => { setSearchPlace(null); flyToPin(currentLocation ?? center); setShowFilters(false); }}
+          locationLabel={searchPlace?.label ?? null}
         />
       </View>
 

@@ -9,7 +9,7 @@ import Slider from '@react-native-community/slider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown, Check } from 'lucide-react-native';
+import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown, Check, LocateFixed } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
@@ -49,6 +49,8 @@ interface FilterSheetProps {
   // Map context: pick a place from the filter → fly the map there (and usually
   // close the filter). Omitted where there's no map (e.g. mes-activites).
   onPlaceSelect?: (place: PlaceResult) => void;
+  onResetLocation?: () => void;         // back to "my position"
+  locationLabel?: string | null;        // chosen place name, or null = my position
 }
 
 export function FilterSheet({
@@ -59,6 +61,8 @@ export function FilterSheet({
   useStore = useMapStore,
   showEntityFilter = true,
   onPlaceSelect,
+  onResetLocation,
+  locationLabel,
 }: FilterSheetProps) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -151,6 +155,8 @@ export function FilterSheet({
               toggleShowProOfferings={toggleShowProOfferings}
               showEntityFilter={showEntityFilter}
               onPlaceSelect={onPlaceSelect}
+              onResetLocation={onResetLocation}
+              locationLabel={locationLabel}
               resetFilters={resetFilters}
               showRangeFrom={showRangeFrom}
               setShowRangeFrom={setShowRangeFrom}
@@ -204,6 +210,8 @@ interface FiltersTabProps {
   toggleShowProOfferings: () => void;
   showEntityFilter: boolean;
   onPlaceSelect?: (place: PlaceResult) => void;
+  onResetLocation?: () => void;
+  locationLabel?: string | null;
   resetFilters: () => void;
   showRangeFrom: boolean;
   setShowRangeFrom: (v: boolean) => void;
@@ -220,7 +228,7 @@ interface FiltersTabProps {
 function FiltersTab({
   filters, toggleSportFilter, setDateMode, setDateRange,
   toggleLevelTier, setRadiusKm, setSortBy, setSortDir,
-  toggleShowActivities, toggleShowProOfferings, showEntityFilter, onPlaceSelect, resetFilters,
+  toggleShowActivities, toggleShowProOfferings, showEntityFilter, onPlaceSelect, onResetLocation, locationLabel, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
   onClose, t, lang, styles, colors,
 }: FiltersTabProps) {
@@ -306,11 +314,6 @@ function FiltersTab({
 
   return (
     <>
-      {onPlaceSelect && (
-        <View style={styles.placeSearchWrap}>
-          <PlaceSearchBar onSelect={onPlaceSelect} />
-        </View>
-      )}
       {activePills.length > 0 && (
         <View style={styles.activePillsWrap}>
           {activePills.map((pill) => (
@@ -329,6 +332,21 @@ function FiltersTab({
         contentContainerStyle={{ paddingBottom: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
+        {onPlaceSelect && (
+          <CollapsibleSection
+            title={t('map.locationLabel', { defaultValue: 'Localisation' })}
+            summary={locationLabel ?? t('map.myPosition', { defaultValue: 'Ma position' })}
+          >
+            <PlaceSearchBar onSelect={onPlaceSelect} />
+            {locationLabel && onResetLocation && (
+              <Pressable style={styles.optRow} onPress={onResetLocation}>
+                <LocateFixed size={16} color={colors.cta} strokeWidth={2.2} />
+                <Text style={[styles.optLabel, { color: colors.cta }]}>{t('map.backToMyPosition', { defaultValue: 'Revenir à ma position' })}</Text>
+              </Pressable>
+            )}
+          </CollapsibleSection>
+        )}
+
         {/* Entity-type filter — controls what shows on the map AND in
             the drawer. Both on by default; user opts out per type.
             Hidden in mes-activites context (no offerings shown there
