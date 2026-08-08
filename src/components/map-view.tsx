@@ -122,9 +122,10 @@ interface MapViewProps {
   onStuckClusterPress?: (activities: NearbyActivity[]) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
   compassEnabled?: boolean;
-  // Move the native compass to the bottom-right (above the recenter button) so
-  // it doesn't sit under the map's place-search bar (carte tab). Default = top.
-  compassBottomRight?: boolean;
+  // Report the map's heading (degrees) so a custom compass button can rotate.
+  onHeadingChange?: (heading: number) => void;
+  // Bump this to animate the camera back to north (heading 0).
+  resetBearingKey?: number;
   // Radius filter overlay — draws a tinted circle around radiusCenter
   // showing the search-radius area. Both must be set to render.
   radiusKm?: number | null;
@@ -184,7 +185,8 @@ export function JuntoMapView({
   onStuckClusterPress,
   flyTo,
   compassEnabled = true,
-  compassBottomRight = false,
+  onHeadingChange,
+  resetBearingKey,
   radiusKm,
   radiusCenter,
   surfaceView = true,
@@ -399,7 +401,15 @@ export function JuntoMapView({
     }
   }, [flyTo?.key]);
 
+  // Reset the map to north when the custom compass button is tapped.
+  useEffect(() => {
+    if (resetBearingKey && cameraRef.current) {
+      cameraRef.current.setCamera({ heading: 0, animationDuration: 300, animationMode: 'easeTo' });
+    }
+  }, [resetBearingKey]);
+
   const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
+    onHeadingChange?.(state.properties.heading);
     const zoom = state.properties.zoom;
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
@@ -434,7 +444,7 @@ export function JuntoMapView({
       centerLng: cLng,
       centerLat: cLat,
     });
-  }, [onBoundsChange]);
+  }, [onBoundsChange, onHeadingChange]);
 
   // Keep the latest user GPS / center / zoom in a ref so the style-change
   // effect below can read them without firing on every location update.
@@ -473,8 +483,7 @@ export function JuntoMapView({
       logoEnabled={false}
       attributionEnabled={false}
       compassEnabled={compassEnabled}
-      compassViewPosition={compassBottomRight ? 3 : 1}
-      compassViewMargins={compassBottomRight ? { x: 12, y: 152 } : { x: 12, y: insets.top + 2 }}
+      compassViewMargins={{ x: 12, y: insets.top + 2 }}
       scaleBarEnabled={false}
       onCameraChanged={handleCameraChanged}
       // onCameraChanged is throttled and can miss the FINAL settle frame, so

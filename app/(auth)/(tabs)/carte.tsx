@@ -13,6 +13,7 @@ import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
 import { PlaceSearchBar } from '@/components/place-search-bar';
+import { CompassButton } from '@/components/compass-button';
 import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
@@ -92,6 +93,8 @@ export default function CarteScreen() {
   // map-style controls so the raised list reads as a clean layer.
   const [listOpen, setListOpen] = useState(false);
   const [flyToKey, setFlyToKey] = useState(0);
+  const [heading, setHeading] = useState(0);
+  const [resetBearingKey, setResetBearingKey] = useState(0);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
@@ -287,6 +290,7 @@ export default function CarteScreen() {
           <>
             <CreateButton />
             <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            <CompassButton heading={heading} onPress={() => setResetBearingKey((k) => k + 1)} />
           </>
         )}
 
@@ -381,7 +385,9 @@ export default function CarteScreen() {
                 </View>
               ) : undefined}
               flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
-              compassBottomRight
+              compassEnabled={false}
+              onHeadingChange={setHeading}
+              resetBearingKey={resetBearingKey}
               selectedActivity={selectedActivity}
               selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
