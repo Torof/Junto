@@ -3209,6 +3209,7 @@ export type Database = {
       }
       accept_seat_request: { Args: { p_request_id: string }; Returns: string }
       accept_tos: { Args: never; Returns: undefined }
+      activate_dispo: { Args: never; Returns: undefined }
       add_favorite: {
         Args: { p_id: string; p_kind: string }
         Returns: undefined
@@ -3462,6 +3463,7 @@ export type Database = {
         Args: { p_reason: string; p_target_id: string; p_target_type: string }
         Returns: string
       }
+      deactivate_dispo: { Args: never; Returns: undefined }
       decline_activity_invitation: {
         Args: { p_activity_id: string }
         Returns: undefined
@@ -3766,6 +3768,31 @@ export type Database = {
           id: string
           state: string
         }[]
+      }
+      get_discovery_cards: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          distance_km: number
+          levels: Json
+          reliability_tier: string
+          sorties_count: number
+          sport_keys: string[]
+          transport_modes: string[]
+          user_id: string
+        }[]
+      }
+      get_discovery_count: {
+        Args: {
+          p_base_lat: number
+          p_base_lng: number
+          p_radius_km: number
+          p_sport_keys: string[]
+          p_window_end: string
+          p_window_start: string
+        }
+        Returns: number
       }
       get_favorites: {
         Args: never
@@ -4953,6 +4980,20 @@ export type Database = {
           new_srid_in: number
           schema_name: string
           table_name: string
+        }
+        Returns: string
+      }
+      upsert_dispo: {
+        Args: {
+          p_base_label: string
+          p_base_lat: number
+          p_base_lng: number
+          p_levels: Json
+          p_radius_km: number
+          p_sport_keys: string[]
+          p_transport_modes: string[]
+          p_window_end: string
+          p_window_start: string
         }
         Returns: string
       }
