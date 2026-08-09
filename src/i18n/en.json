@@ -201,6 +201,57 @@
       "conditions": "Field conditions"
     }
   },
+  "discovery": {
+    "title": "Discovery",
+    "composeTitle": "My availability",
+    "sportsLabel": "Sport(s) — 1 to 3",
+    "levelLabel": "Level per sport (optional)",
+    "placeLabel": "Around which place?",
+    "radiusLabel": "Radius",
+    "radiusAny": "Any distance",
+    "whenLabel": "When?",
+    "transportLabel": "How you get around",
+    "intentLabel": "What you're after (optional)",
+    "intent": {
+      "discovery": "Discovery",
+      "fun": "Fun",
+      "performance": "Performance"
+    },
+    "counterIncomplete": "Fill in your criteria to see how many enthusiasts match.",
+    "counterFew": "A few people match in your area.",
+    "counterNone": "Nobody yet — widen your area or dates.",
+    "counterN_one": "{{count}} person matches in your area.",
+    "counterN_other": "{{count}} people match in your area.",
+    "activateCta": "Activate my availability",
+    "activating": "Activating…",
+    "activated": "Your availability is live",
+    "emptyTitle": "See who's up for an outing",
+    "emptyBody": "Set your availability (sport, area, dates) — you become visible and you see who matches around you.",
+    "composeDispo": "Set my availability",
+    "editDispo": "Resume my availability",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "matchesCount_one": "{{count}} match",
+    "matchesCount_other": "{{count}} matches",
+    "noMatches": "Nobody for now. Come back later, or widen your area / dates.",
+    "atKm": "{{km}} km away",
+    "sortiesCount_one": "{{count}} outing",
+    "sortiesCount_other": "{{count}} outings",
+    "newcomer": "new",
+    "viewProfile": "View profile",
+    "invite": "Invite",
+    "contact": "Contact",
+    "contactedShort": "Request sent",
+    "contactMessage": "Hi! We match on Discovery — fancy an outing?",
+    "contactSent": "Request sent",
+    "inviteTitle": "Invite to an outing",
+    "inviteEmpty": "None of your outings match their availability. Create one that matches their sport and dates.",
+    "inviteSent": "Invitation sent",
+    "mapHook": "Nothing around? See who's available"
+  },
+  "menu": {
+    "discovery": "Discovery"
+  },
   "errors": {
     "code": {
       "invite_cap": "You can invite up to 20 people at a time.",
