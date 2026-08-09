@@ -1,12 +1,13 @@
 import { supabase } from './supabase';
 
 export type TransportMode = 'car' | 'motorbike' | 'bike' | 'on_foot' | 'public_transport';
-export type DispoIntent = 'discovery' | 'fun' | 'performance';
+export type DispoIntent = 'discovery' | 'progression' | 'performance' | 'detente' | 'conviviality';
+export const DISPO_INTENTS: DispoIntent[] = ['discovery', 'progression', 'performance', 'detente', 'conviviality'];
 
 export interface DispoDraft {
   sportKeys: string[];              // 1–3
   levels: Record<string, string>;   // per-sport grade, may be empty
-  intent: DispoIntent | null;       // "what you're after", optional
+  intent: DispoIntent[];            // "what you're after", 0–5
   baseLng: number;
   baseLat: number;
   baseLabel: string;
@@ -20,7 +21,7 @@ export interface MyDispo {
   id: string;
   sport_keys: string[];
   levels: Record<string, string> | null;
-  intent: DispoIntent | null;
+  intent: DispoIntent[] | null;
   base_lng: number;
   base_lat: number;
   base_label: string;
@@ -39,11 +40,18 @@ export interface DiscoveryCard {
   sport_keys: string[];
   levels: Record<string, string> | null;
   transport_modes: TransportMode[];
+  radius_km: number | null;
   window_start: string;
   window_end: string;
-  intent: DispoIntent | null;
+  intent: DispoIntent[] | null;
   distance_km: number;
   sorties_count: number;
+}
+
+export interface DispoZone {
+  base_lng: number;
+  base_lat: number;
+  radius_km: number | null;
 }
 
 export interface InvitableActivity {
@@ -75,7 +83,7 @@ export const discoveryService = {
       p_transport_modes: d.transportModes,
       p_window_start: d.windowStart,
       p_window_end: d.windowEnd,
-      p_intent: d.intent as unknown as string, // DB accepts NULL
+      p_intent: d.intent, // 0–5 codes; empty → NULL server-side
     });
     if (error) throw error;
     return data as string;
@@ -132,5 +140,13 @@ export const discoveryService = {
       p_activity_id: activityId,
     });
     if (error) throw error;
+  },
+
+  // A match's zone (base + radius) for the zone map. Gated server-side: only a
+  // user who already matches my active dispo. Empty → not visible.
+  getDispoZone: async (targetUserId: string): Promise<DispoZone | null> => {
+    const { data, error } = await supabase.rpc('get_dispo_zone', { p_user_id: targetUserId });
+    if (error) throw error;
+    return ((data ?? [])[0] ?? null) as unknown as DispoZone | null;
   },
 };

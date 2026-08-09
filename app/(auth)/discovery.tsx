@@ -26,7 +26,8 @@ const TRANSPORT_ICON: Record<TransportMode, typeof Car> = {
   car: Car, motorbike: Zap, bike: Bike, on_foot: Footprints, public_transport: Bus,
 };
 const INTENT_LABEL: Record<DispoIntent, string> = {
-  discovery: 'Découverte', fun: 'Fun', performance: 'Performance',
+  discovery: 'Découverte', progression: 'Progression', performance: 'Performance',
+  detente: 'Détente', conviviality: 'Convivialité',
 };
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
@@ -117,11 +118,19 @@ export default function DiscoveryScreen() {
       })}
     </View>
   );
-  const intentChip = (intent: DispoIntent) => (
-    <View style={styles.intentChip}>
-      <Text style={styles.intentChipText}>{t(`discovery.intent.${intent}`, { defaultValue: INTENT_LABEL[intent] })}</Text>
+  const intentChips = (intents: DispoIntent[]) => (
+    <View style={styles.intentWrap}>
+      {intents.map((it) => (
+        <View key={it} style={styles.intentChip}>
+          <Text style={styles.intentChipText}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+        </View>
+      ))}
     </View>
   );
+  const radiusText = (km: number | null) =>
+    km ? `${km} km` : t('discovery.radiusAny', { defaultValue: 'Peu importe' });
+  const openZone = (params: Record<string, string>) =>
+    router.push({ pathname: '/(auth)/discovery-zone', params });
 
   const renderCard = ({ item }: { item: DiscoveryCard }) => (
     <View style={styles.card}>
@@ -151,12 +160,20 @@ export default function DiscoveryScreen() {
         <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
           <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
         </Row>
+        <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
+          <View style={styles.radiusValue}>
+            <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
+            <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
+              <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+            </Pressable>
+          </View>
+        </Row>
         <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
           {transportIcons(item.transport_modes)}
         </Row>
-        {item.intent && (
+        {item.intent && item.intent.length > 0 && (
           <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
-            {intentChip(item.intent)}
+            {intentChips(item.intent)}
           </Row>
         )}
       </View>
@@ -199,7 +216,7 @@ export default function DiscoveryScreen() {
       {/* My active dispo — collapsible so it stays reviewable without eating
           the list's space (Scott, 2026-08-09). */}
       {mine && (() => {
-        const radiusText = mine.radius_km ? ` · ${mine.radius_km} km` : ` · ${t('discovery.radiusAny', { defaultValue: 'Peu importe' })}`;
+        const placeText = `${mine.base_label} · ${radiusText(mine.radius_km)}`;
         return (
           <View style={styles.myDispoWrap}>
             <CollapsibleSection
@@ -211,7 +228,12 @@ export default function DiscoveryScreen() {
                   <View style={styles.pillWrap}>{mine.sport_keys.map((k) => sportPill(k, mine.levels?.[k]))}</View>
                 </Row>
                 <Row label={t('discovery.row.place', { defaultValue: 'Lieu' })}>
-                  <Text style={styles.infoText}>{mine.base_label}{radiusText}</Text>
+                  <View style={styles.radiusValue}>
+                    <Text style={styles.infoText}>{placeText}</Text>
+                    <Pressable onPress={() => openZone({ lng: String(mine.base_lng), lat: String(mine.base_lat), radius: mine.radius_km ? String(mine.radius_km) : '', label: mine.base_label })} hitSlop={6}>
+                      <Text style={styles.zoneLink}>{t('discovery.seeMyZone', { defaultValue: 'Voir mon rayon' })}</Text>
+                    </Pressable>
+                  </View>
                 </Row>
                 <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
                   <Text style={styles.infoText}>{formatPeriod(mine.window_start, mine.window_end)}</Text>
@@ -219,9 +241,9 @@ export default function DiscoveryScreen() {
                 <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
                   {transportIcons(mine.transport_modes)}
                 </Row>
-                {mine.intent && (
+                {mine.intent && mine.intent.length > 0 && (
                   <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
-                    {intentChip(mine.intent)}
+                    {intentChips(mine.intent)}
                   </Row>
                 )}
               </View>
@@ -313,8 +335,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoValue: { flex: 1, minWidth: 0 },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 3 },
   intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
+  radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', textDecorationLine: 'underline' },
   actions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   linkDone: { color: colors.textSecondary, textDecorationLine: 'none' },

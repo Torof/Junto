@@ -70,6 +70,7 @@ export default function AuthLayout() {
         <Stack.Screen name="my-contact" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="discovery" options={{ title: '' }} />
         <Stack.Screen name="discovery-compose" options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="discovery-zone" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="legal/terms" options={{ title: '' }} />
         <Stack.Screen name="legal/privacy" options={{ title: '' }} />
         <Stack.Screen name="peer-review/[id]" options={{ title: '' }} />

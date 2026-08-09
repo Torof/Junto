@@ -30,8 +30,10 @@ const MODES: { key: TransportMode; icon: typeof Car; label: string }[] = [
 ];
 const INTENTS: { key: DispoIntent; label: string }[] = [
   { key: 'discovery', label: 'Découverte' },
-  { key: 'fun', label: 'Fun' },
+  { key: 'progression', label: 'Progression' },
   { key: 'performance', label: 'Performance' },
+  { key: 'detente', label: 'Détente' },
+  { key: 'conviviality', label: 'Convivialité' },
 ];
 
 export default function DiscoveryComposeScreen() {
@@ -44,7 +46,7 @@ export default function DiscoveryComposeScreen() {
 
   const [sportKeys, setSportKeys] = useState<string[]>([]);
   const [levels, setLevels] = useState<Record<string, string>>({});
-  const [intent, setIntent] = useState<DispoIntent | null>(null);
+  const [intent, setIntent] = useState<DispoIntent[]>([]);
   const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState<number | null>(30);
   const [modes, setModes] = useState<TransportMode[]>(['car']);
@@ -60,7 +62,7 @@ export default function DiscoveryComposeScreen() {
     if (!mine) return;
     setSportKeys(mine.sport_keys);
     setLevels(mine.levels ?? {});
-    setIntent(mine.intent ?? null);
+    setIntent(mine.intent ?? []);
     setBase({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label });
     setRadiusKm(mine.radius_km);
     setModes(mine.transport_modes);
@@ -82,6 +84,8 @@ export default function DiscoveryComposeScreen() {
   });
   const toggleMode = (m: TransportMode) => setModes((prev) =>
     prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]);
+  const toggleIntent = (k: DispoIntent) => setIntent((prev) =>
+    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= 5 ? prev : [...prev, k]);
 
   const ready = sportKeys.length >= 1 && !!base && modes.length >= 1 && windowEnd > windowStart;
 
@@ -209,9 +213,9 @@ export default function DiscoveryComposeScreen() {
         <Text style={styles.section}>{t('discovery.intentLabel', { defaultValue: 'Ce que tu cherches (optionnel)' })}</Text>
         <View style={styles.chipRow}>
           {INTENTS.map(({ key, label }) => {
-            const on = intent === key;
+            const on = intent.includes(key);
             return (
-              <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => setIntent(on ? null : key)}>
+              <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleIntent(key)}>
                 <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</Text>
               </Pressable>
             );

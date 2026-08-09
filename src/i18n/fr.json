@@ -210,6 +210,7 @@
       "when": "Quand",
       "transport": "Trajet",
       "intent": "Cherche",
+      "radius": "Rayon",
       "sportsCount_one": "{{count}} sport",
       "sportsCount_other": "{{count}} sports"
     },
@@ -224,8 +225,10 @@
     "intentLabel": "Ce que tu cherches (optionnel)",
     "intent": {
       "discovery": "Découverte",
-      "fun": "Fun",
-      "performance": "Performance"
+      "progression": "Progression",
+      "performance": "Performance",
+      "detente": "Détente",
+      "conviviality": "Convivialité"
     },
     "counterIncomplete": "Complète tes critères pour voir combien de passionnés correspondent.",
     "counterFew": "Quelques personnes correspondent dans ta zone.",
@@ -257,7 +260,13 @@
     "inviteTitle": "Inviter à une sortie",
     "inviteEmpty": "Aucune de tes sorties ne correspond à sa dispo. Crée une sortie qui matche son sport et ses dates.",
     "inviteSent": "Invitation envoyée",
-    "mapHook": "Rien autour ? Vois qui est dispo"
+    "mapHook": "Rien autour ? Vois qui est dispo",
+    "seeZone": "Voir la zone",
+    "seeMyZone": "Voir mon rayon",
+    "zoneTitle": "Zone de dispo",
+    "zoneUnavailable": "Zone indisponible.",
+    "zoneRadius": "Dispo dans un rayon de {{km}} km",
+    "zoneAny": "Dispo peu importe la distance"
   },
   "menu": {
     "discovery": "Découverte"

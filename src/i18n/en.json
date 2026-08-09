@@ -210,6 +210,7 @@
       "when": "When",
       "transport": "Travel",
       "intent": "Wants",
+      "radius": "Radius",
       "sportsCount_one": "{{count}} sport",
       "sportsCount_other": "{{count}} sports"
     },
@@ -224,8 +225,10 @@
     "intentLabel": "What you're after (optional)",
     "intent": {
       "discovery": "Discovery",
-      "fun": "Fun",
-      "performance": "Performance"
+      "progression": "Progression",
+      "performance": "Performance",
+      "detente": "Chill",
+      "conviviality": "Social"
     },
     "counterIncomplete": "Fill in your criteria to see how many enthusiasts match.",
     "counterFew": "A few people match in your area.",
@@ -257,7 +260,13 @@
     "inviteTitle": "Invite to an outing",
     "inviteEmpty": "None of your outings match their availability. Create one that matches their sport and dates.",
     "inviteSent": "Invitation sent",
-    "mapHook": "Nothing around? See who's available"
+    "mapHook": "Nothing around? See who's available",
+    "seeZone": "See zone",
+    "seeMyZone": "See my radius",
+    "zoneTitle": "Availability zone",
+    "zoneUnavailable": "Zone unavailable.",
+    "zoneRadius": "Available within {{km}} km",
+    "zoneAny": "Available whatever the distance"
   },
   "menu": {
     "discovery": "Discovery"
