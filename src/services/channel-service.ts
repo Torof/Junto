@@ -41,6 +41,15 @@ export interface ChannelDetail {
   is_closed: boolean;
 }
 
+export interface ChannelMember {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  reliability_tier: string | null;
+  is_creator: boolean;
+  joined_at: string;
+}
+
 export interface SearchChannelsFilters {
   query?: string | null;
   sportKey?: string | null;
@@ -92,6 +101,12 @@ export const channelService = {
     const { data, error } = await supabase.rpc('get_channel', { p_conversation_id: conversationId });
     if (error) throw error;
     return ((data ?? [])[0] ?? null) as unknown as ChannelDetail | null;
+  },
+
+  members: async (conversationId: string): Promise<ChannelMember[]> => {
+    const { data, error } = await supabase.rpc('get_channel_members', { p_conversation_id: conversationId });
+    if (error) throw error;
+    return (data ?? []) as unknown as ChannelMember[];
   },
 
   rename: async (conversationId: string, name: string): Promise<void> => {

@@ -447,6 +447,160 @@ export type Database = {
           },
         ]
       }
+      channel_bans: {
+        Row: {
+          banned_at: string
+          banned_by: string | null
+          conversation_id: string
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          banned_by?: string | null
+          conversation_id: string
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          banned_by?: string | null
+          conversation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_bans_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_bans_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_bans_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["conversation_id"]
+          },
+          {
+            foreignKeyName: "channel_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          base: unknown
+          base_label: string
+          closed_at: string | null
+          conversation_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          sport_key: string
+        }
+        Insert: {
+          base: unknown
+          base_label: string
+          closed_at?: string | null
+          conversation_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          sport_key: string
+        }
+        Update: {
+          base?: unknown
+          base_label?: string
+          closed_at?: string | null
+          conversation_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          sport_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fkey"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           contact_id: string
@@ -3377,6 +3531,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      close_channel: { Args: { p_conversation_id: string }; Returns: undefined }
       close_due_presence_windows: { Args: never; Returns: undefined }
       close_presence_window_for: {
         Args: { p_activity_id: string }
@@ -3435,6 +3590,21 @@ export type Database = {
           p_starts_on?: string
         }
         Returns: string
+      }
+      create_channel: {
+        Args: {
+          p_base_label: string
+          p_base_lat: number
+          p_base_lng: number
+          p_description: string
+          p_force?: boolean
+          p_name: string
+          p_sport_key: string
+        }
+        Returns: {
+          conversation_id: string
+          duplicate: boolean
+        }[]
       }
       create_gpx_trace: {
         Args: { p_geojson: Json; p_name: string }
@@ -3786,6 +3956,33 @@ export type Database = {
           requester_id: string
         }[]
       }
+      get_channel: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          base_label: string
+          base_lat: number
+          base_lng: number
+          conversation_id: string
+          description: string
+          is_closed: boolean
+          is_creator: boolean
+          is_member: boolean
+          member_count: number
+          name: string
+          sport_key: string
+        }[]
+      }
+      get_channel_members: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          is_creator: boolean
+          joined_at: string
+          reliability_tier: string
+          user_id: string
+        }[]
+      }
       get_contacts: {
         Args: never
         Returns: {
@@ -4069,10 +4266,12 @@ export type Database = {
         Returns: number
       }
       join_activity: { Args: { p_activity_id: string }; Returns: string }
+      join_channel: { Args: { p_conversation_id: string }; Returns: undefined }
       leave_activity: {
         Args: { p_activity_id: string; p_reason?: string }
         Returns: undefined
       }
+      leave_channel: { Args: { p_conversation_id: string }; Returns: undefined }
       leave_group: { Args: { p_conversation_id: string }; Returns: undefined }
       log_admin_action: {
         Args: {
@@ -4240,6 +4439,10 @@ export type Database = {
         Returns: undefined
       }
       reliability_tier: { Args: { p_score: number }; Returns: string }
+      remove_channel_member: {
+        Args: { p_conversation_id: string; p_user_id: string }
+        Returns: undefined
+      }
       remove_connection: {
         Args: { p_other_user_id: string }
         Returns: undefined
@@ -4265,6 +4468,10 @@ export type Database = {
         Returns: undefined
       }
       remove_pro_photo: { Args: { p_photo_id: string }; Returns: undefined }
+      rename_channel: {
+        Args: { p_conversation_id: string; p_name: string }
+        Returns: undefined
+      }
       rename_gpx_trace: {
         Args: { p_id: string; p_name: string }
         Returns: undefined
@@ -4318,6 +4525,26 @@ export type Database = {
         Returns: undefined
       }
       sanitize_notif_text: { Args: { p: string }; Returns: string }
+      search_channels: {
+        Args: {
+          p_near_lat?: number
+          p_near_lng?: number
+          p_query?: string
+          p_radius_km?: number
+          p_sport_key?: string
+        }
+        Returns: {
+          base_label: string
+          conversation_id: string
+          description: string
+          distance_km: number
+          is_creator: boolean
+          is_member: boolean
+          member_count: number
+          name: string
+          sport_key: string
+        }[]
+      }
       send_activity_invitations: {
         Args: {
           p_activity_id: string

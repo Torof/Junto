@@ -296,7 +296,9 @@
     "closeChannel": "Close the channel",
     "leave": "Leave the channel",
     "renamed": "Channel renamed",
-    "closedDone": "Channel closed"
+    "closedDone": "Channel closed",
+    "members": "Members",
+    "creatorTag": "Host"
   },
   "menu": {
     "discovery": "Discovery",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send, Users } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
@@ -38,7 +38,7 @@ import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
-import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon } from 'lucide-react-native';
+import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus } from 'lucide-react-native';
 
 export default function ConversationScreen() {
   const colors = useColors();
@@ -181,6 +181,20 @@ export default function ConversationScreen() {
       Burnt.toast({ title: t('channels.closedDone', { defaultValue: 'Canal fermé' }) });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
+  const handleRemoveMember = async (userId: string) => {
+    try {
+      await channelService.removeMember(id!, userId);
+      await queryClient.invalidateQueries({ queryKey: ['channel-members', id] });
+      await queryClient.invalidateQueries({ queryKey: ['channel-info', id] });
+      await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+  const { data: channelMembers } = useQuery({
+    queryKey: ['channel-members', id],
+    queryFn: () => channelService.members(id!),
+    enabled: !!id && isChannel && channelIsCreator && showChannelManage,
+    staleTime: 15_000,
+  });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -839,6 +853,27 @@ export default function ConversationScreen() {
                     <Lock size={18} color={colors.error} strokeWidth={2.2} />
                     <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer le canal' })}</Text>
                   </Pressable>
+
+                  {(channelMembers ?? []).length > 0 && (
+                    <>
+                      <Text style={styles.channelMembersLabel}>{t('channels.members', { defaultValue: 'Membres' })}</Text>
+                      <ScrollView style={styles.channelMembersList}>
+                        {(channelMembers ?? []).map((m) => (
+                          <View key={m.user_id} style={styles.channelMemberRow}>
+                            <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size={32} />
+                            <Text style={styles.channelMemberName} numberOfLines={1}>{m.display_name}</Text>
+                            {m.is_creator ? (
+                              <Text style={styles.channelMemberTag}>{t('channels.creatorTag', { defaultValue: 'Animateur' })}</Text>
+                            ) : (
+                              <Pressable onPress={() => handleRemoveMember(m.user_id)} hitSlop={8}>
+                                <UserMinus size={18} color={colors.error} strokeWidth={2.2} />
+                              </Pressable>
+                            )}
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </>
+                  )}
                 </>
               )}
               {channelIsMember && !channelIsCreator && (
@@ -1462,6 +1497,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   channelRowBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2 },
   channelRowBtnText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  channelMembersLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
+  channelMembersList: { maxHeight: 240 },
+  channelMemberRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs + 2 },
+  channelMemberName: { flex: 1, minWidth: 0, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  channelMemberTag: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
   input: {
     flex: 1, backgroundColor: colors.surface, color: colors.textPrimary,
     borderRadius: 22, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,

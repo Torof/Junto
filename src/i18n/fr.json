@@ -296,7 +296,9 @@
     "closeChannel": "Fermer le canal",
     "leave": "Quitter le canal",
     "renamed": "Canal renommé",
-    "closedDone": "Canal fermé"
+    "closedDone": "Canal fermé",
+    "members": "Membres",
+    "creatorTag": "Animateur"
   },
   "menu": {
     "discovery": "Découverte",
