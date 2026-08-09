@@ -242,6 +242,8 @@
     "dispo_transport": "Choisis au moins un mode de déplacement.",
     "dispo_window": "Choisis une fenêtre de dates valide (jusqu'à 4 semaines).",
     "dispo_place": "Choisis un lieu valide.",
+    "dispo_levels": "Niveau invalide pour un sport non sélectionné.",
+    "dispo_intent": "Choisis ce que tu cherches.",
     "discovery_no_match": "Cette sortie ne correspond plus à sa dispo (sport ou dates). Choisis-en une autre.",
       "share_rate_limit": "Tu partages trop vite. Patiente une minute.",
       "send_rate_limit": "Tu envoies trop de messages. Ralentis un peu.",

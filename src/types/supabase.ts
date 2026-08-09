@@ -770,6 +770,7 @@ export type Database = {
           base_label: string
           created_at: string
           id: string
+          intent: string | null
           is_active: boolean
           levels: Json | null
           radius_km: number | null
@@ -785,6 +786,7 @@ export type Database = {
           base_label: string
           created_at?: string
           id?: string
+          intent?: string | null
           is_active?: boolean
           levels?: Json | null
           radius_km?: number | null
@@ -800,6 +802,7 @@ export type Database = {
           base_label?: string
           created_at?: string
           id?: string
+          intent?: string | null
           is_active?: boolean
           levels?: Json | null
           radius_km?: number | null
@@ -3813,12 +3816,15 @@ export type Database = {
           avatar_url: string
           display_name: string
           distance_km: number
+          intent: string
           levels: Json
           reliability_tier: string
           sorties_count: number
           sport_keys: string[]
           transport_modes: string[]
           user_id: string
+          window_end: string
+          window_start: string
         }[]
       }
       get_discovery_count: {
@@ -3908,6 +3914,7 @@ export type Database = {
           base_lat: number
           base_lng: number
           id: string
+          intent: string
           is_active: boolean
           levels: Json
           radius_km: number
@@ -5056,6 +5063,7 @@ export type Database = {
           p_base_label: string
           p_base_lat: number
           p_base_lng: number
+          p_intent?: string
           p_levels: Json
           p_radius_km: number
           p_sport_keys: string[]

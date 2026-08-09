@@ -238,6 +238,8 @@
     "dispo_transport": "Pick at least one way to get around.",
     "dispo_window": "Pick a valid date window (up to 4 weeks).",
     "dispo_place": "Pick a valid place.",
+    "dispo_levels": "Invalid level for a sport you haven't selected.",
+    "dispo_intent": "Pick what you're looking for.",
     "discovery_no_match": "This outing no longer matches their availability (sport or dates). Pick another one.",
       "share_rate_limit": "You're sharing too fast. Wait a minute.",
       "send_rate_limit": "You're sending messages too fast. Slow down a little.",

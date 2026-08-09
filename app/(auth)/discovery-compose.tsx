@@ -14,7 +14,9 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
-import { discoveryService, type TransportMode } from '@/services/discovery-service';
+import { discoveryService, type TransportMode, type DispoIntent } from '@/services/discovery-service';
+import { getSportIcon } from '@/constants/sport-icons';
+import { getLevelScale, OPEN_LEVEL } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
@@ -26,6 +28,11 @@ const MODES: { key: TransportMode; icon: typeof Car; label: string }[] = [
   { key: 'on_foot', icon: Footprints, label: 'À pied' },
   { key: 'public_transport', icon: Bus, label: 'Transports' },
 ];
+const INTENTS: { key: DispoIntent; label: string }[] = [
+  { key: 'discovery', label: 'Découverte' },
+  { key: 'fun', label: 'Fun' },
+  { key: 'performance', label: 'Performance' },
+];
 
 export default function DiscoveryComposeScreen() {
   const colors = useColors();
@@ -36,6 +43,8 @@ export default function DiscoveryComposeScreen() {
   const insets = useSafeAreaInsets();
 
   const [sportKeys, setSportKeys] = useState<string[]>([]);
+  const [levels, setLevels] = useState<Record<string, string>>({});
+  const [intent, setIntent] = useState<DispoIntent | null>(null);
   const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState<number | null>(30);
   const [modes, setModes] = useState<TransportMode[]>(['car']);
@@ -50,6 +59,8 @@ export default function DiscoveryComposeScreen() {
   useEffect(() => {
     if (!mine) return;
     setSportKeys(mine.sport_keys);
+    setLevels(mine.levels ?? {});
+    setIntent(mine.intent ?? null);
     setBase({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label });
     setRadiusKm(mine.radius_km);
     setModes(mine.transport_modes);
@@ -57,8 +68,18 @@ export default function DiscoveryComposeScreen() {
     setWindowEnd(new Date(mine.window_end));
   }, [mine]);
 
-  const toggleSport = (key: string) => setSportKeys((prev) =>
-    prev.includes(key) ? prev.filter((k) => k !== key) : prev.length >= 3 ? prev : [...prev, key]);
+  const toggleSport = (key: string) => setSportKeys((prev) => {
+    if (prev.includes(key)) {
+      setLevels((lv) => { const next = { ...lv }; delete next[key]; return next; }); // prune orphan grade
+      return prev.filter((k) => k !== key);
+    }
+    return prev.length >= 3 ? prev : [...prev, key];
+  });
+  const setSportLevel = (sport: string, label: string) => setLevels((prev) => {
+    const next = { ...prev };
+    if (label === OPEN_LEVEL) delete next[sport]; else next[sport] = label; // "Tous niveaux" = unset
+    return next;
+  });
   const toggleMode = (m: TransportMode) => setModes((prev) =>
     prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]);
 
@@ -89,7 +110,7 @@ export default function DiscoveryComposeScreen() {
     try {
       haptic.success();
       await discoveryService.upsert({
-        sportKeys, levels: {}, baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label,
+        sportKeys, levels, intent, baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label,
         radiusKm, transportModes: modes, windowStart: windowStart.toISOString(), windowEnd: windowEnd.toISOString(),
       });
       await discoveryService.activate();
@@ -116,6 +137,27 @@ export default function DiscoveryComposeScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.section}>{t('discovery.sportsLabel', { defaultValue: 'Sport(s) — 1 à 3' })}</Text>
         <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
+
+        {sportKeys.length > 0 && (
+          <>
+            <Text style={styles.section}>{t('discovery.levelLabel', { defaultValue: 'Niveau par sport (optionnel)' })}</Text>
+            {sportKeys.map((sk) => (
+              <View key={sk} style={styles.levelBlock}>
+                <Text style={styles.levelSport}>{getSportIcon(sk)} {t(`sports.${sk}`, { defaultValue: sk })}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.levelChips}>
+                  {getLevelScale(sk).map((opt) => {
+                    const sel = (levels[sk] ?? OPEN_LEVEL) === opt.label;
+                    return (
+                      <Pressable key={opt.label} style={[styles.levelChip, sel && styles.chipActive]} onPress={() => setSportLevel(sk, opt.label)}>
+                        <Text style={[styles.levelChipText, sel && styles.chipTextActive]}>{opt.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ))}
+          </>
+        )}
 
         <Text style={styles.section}>{t('discovery.placeLabel', { defaultValue: 'Autour de quel lieu ?' })}</Text>
         {base && <Text style={styles.chosenPlace}>{base.label}</Text>}
@@ -163,6 +205,18 @@ export default function DiscoveryComposeScreen() {
             );
           })}
         </View>
+
+        <Text style={styles.section}>{t('discovery.intentLabel', { defaultValue: 'Ce que tu cherches (optionnel)' })}</Text>
+        <View style={styles.chipRow}>
+          {INTENTS.map(({ key, label }) => {
+            const on = intent === key;
+            return (
+              <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => setIntent(on ? null : key)}>
+                <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
@@ -187,6 +241,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   chipTextActive: { color: '#FFFFFF' },
+  levelBlock: { marginBottom: spacing.sm },
+  levelSport: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', marginBottom: spacing.xs },
+  levelChips: { gap: spacing.xs + 2, paddingRight: spacing.md },
+  levelChip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 1 },
+  levelChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   dateChip: { borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   dateChipText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   dateArrow: { color: colors.textSecondary, fontSize: fontSizes.lg },

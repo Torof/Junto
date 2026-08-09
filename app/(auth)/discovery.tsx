@@ -6,18 +6,29 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import { Car, Bike, Footprints, Bus, Zap, CalendarDays } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { discoveryService, type DiscoveryCard } from '@/services/discovery-service';
+import { discoveryService, type DiscoveryCard, type DispoIntent, type TransportMode } from '@/services/discovery-service';
 import { conversationService } from '@/services/conversation-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { getSportIcon } from '@/constants/sport-icons';
+import { OPEN_LEVEL } from '@/constants/sport-levels';
 import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
+
+const TRANSPORT_ICON: Record<TransportMode, typeof Car> = {
+  car: Car, motorbike: Zap, bike: Bike, on_foot: Footprints, public_transport: Bus,
+};
+const INTENT_LABEL: Record<DispoIntent, string> = {
+  discovery: 'Découverte', fun: 'Fun', performance: 'Performance',
+};
+const formatPeriod = (start: string, end: string) =>
+  `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
 
 export default function DiscoveryScreen() {
   const colors = useColors();
@@ -77,11 +88,14 @@ export default function DiscoveryScreen() {
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
 
-  const sportPill = (key: string) => {
+  const sportPill = (key: string, level?: string) => {
     const cat = sportById.get(key)?.category;
+    const showLevel = level && level !== OPEN_LEVEL;
     return (
       <View key={key} style={[styles.sportPill, { backgroundColor: sportCategoryColor(cat, colors.cta) }]}>
-        <Text style={styles.sportPillText}>{getSportIcon(key)} {t(`sports.${key}`, { defaultValue: key })}</Text>
+        <Text style={styles.sportPillText}>
+          {getSportIcon(key)} {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
+        </Text>
       </View>
     );
   };
@@ -106,7 +120,21 @@ export default function DiscoveryScreen() {
         </View>
       </View>
 
-      <View style={styles.pillWrap}>{item.sport_keys.map(sportPill)}</View>
+      <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
+
+      <View style={styles.metaRow}>
+        <CalendarDays size={13} color={colors.textSecondary} strokeWidth={2.2} />
+        <Text style={styles.metaText}>{formatPeriod(item.window_start, item.window_end)}</Text>
+        {item.transport_modes.map((m) => {
+          const Icon = TRANSPORT_ICON[m];
+          return Icon ? <Icon key={m} size={13} color={colors.textSecondary} strokeWidth={2.2} /> : null;
+        })}
+        {item.intent && (
+          <View style={styles.intentChip}>
+            <Text style={styles.intentChipText}>{t(`discovery.intent.${item.intent}`, { defaultValue: INTENT_LABEL[item.intent] })}</Text>
+          </View>
+        )}
+      </View>
 
       <View style={styles.actions}>
         <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
@@ -143,7 +171,7 @@ export default function DiscoveryScreen() {
     <View style={styles.container}>
       {/* My active dispo */}
       <View style={styles.myDispo}>
-        <View style={styles.pillWrap}>{(mine?.sport_keys ?? []).map(sportPill)}</View>
+        <View style={styles.pillWrap}>{(mine?.sport_keys ?? []).map((k) => sportPill(k, mine?.levels?.[k]))}</View>
         <Text style={styles.myDispoMeta}>
           {mine?.base_label}{mine?.radius_km ? ` · ${mine.radius_km} km` : ` · ${t('discovery.radiusAny', { defaultValue: 'peu importe' })}`}
         </Text>
@@ -225,6 +253,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs + 2 },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600', marginRight: spacing.xs },
+  intentChip: { backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
   actions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   linkDone: { color: colors.textSecondary, textDecorationLine: 'none' },

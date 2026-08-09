@@ -1,10 +1,12 @@
 import { supabase } from './supabase';
 
 export type TransportMode = 'car' | 'motorbike' | 'bike' | 'on_foot' | 'public_transport';
+export type DispoIntent = 'discovery' | 'fun' | 'performance';
 
 export interface DispoDraft {
   sportKeys: string[];              // 1–3
   levels: Record<string, string>;   // per-sport grade, may be empty
+  intent: DispoIntent | null;       // "what you're after", optional
   baseLng: number;
   baseLat: number;
   baseLabel: string;
@@ -18,6 +20,7 @@ export interface MyDispo {
   id: string;
   sport_keys: string[];
   levels: Record<string, string> | null;
+  intent: DispoIntent | null;
   base_lng: number;
   base_lat: number;
   base_label: string;
@@ -36,6 +39,9 @@ export interface DiscoveryCard {
   sport_keys: string[];
   levels: Record<string, string> | null;
   transport_modes: TransportMode[];
+  window_start: string;
+  window_end: string;
+  intent: DispoIntent | null;
   distance_km: number;
   sorties_count: number;
 }
@@ -69,6 +75,7 @@ export const discoveryService = {
       p_transport_modes: d.transportModes,
       p_window_start: d.windowStart,
       p_window_end: d.windowEnd,
+      p_intent: d.intent as unknown as string, // DB accepts NULL
     });
     if (error) throw error;
     return data as string;
