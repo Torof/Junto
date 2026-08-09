@@ -37,7 +37,8 @@ import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
-import { MessageCircleOff } from 'lucide-react-native';
+import { channelService } from '@/services/channel-service';
+import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon } from 'lucide-react-native';
 
 export default function ConversationScreen() {
   const colors = useColors();
@@ -129,10 +130,75 @@ export default function ConversationScreen() {
     [groupInfo],
   );
 
+  // Channel thread — probed like the group thread once it's not a DM.
+  const { data: channelInfo } = useQuery({
+    queryKey: ['channel-info', id],
+    queryFn: () => channelService.get(id!),
+    enabled: !!id && convMeta?.exists === false,
+    staleTime: 30_000,
+  });
+  const isChannel = !!channelInfo;
+  const channelIsMember = channelInfo?.is_member === true;
+  const channelIsCreator = channelInfo?.is_creator === true;
+  const channelClosed = channelInfo?.is_closed === true;
+  const [showChannelManage, setShowChannelManage] = useState(false);
+  const [channelRename, setChannelRename] = useState('');
+
+  const invalidateChannel = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['channel-info', id] });
+    await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+    await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    await queryClient.invalidateQueries({ queryKey: ['channels'] });
+  };
+  const handleJoinChannel = async () => {
+    try { await channelService.join(id!); await invalidateChannel(); }
+    catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+  const handleLeaveChannel = async () => {
+    try {
+      await channelService.leave(id!);
+      setShowChannelManage(false);
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['channels'] });
+      router.back();
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+  const handleRenameChannel = async () => {
+    const n = channelRename.trim();
+    if (!n) return;
+    try {
+      await channelService.rename(id!, n);
+      setChannelRename('');
+      await invalidateChannel();
+      Burnt.toast({ title: t('channels.renamed', { defaultValue: 'Canal renommé' }), preset: 'done' });
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+  const handleCloseChannel = async () => {
+    try {
+      await channelService.close(id!);
+      setShowChannelManage(false);
+      await invalidateChannel();
+      Burnt.toast({ title: t('channels.closedDone', { defaultValue: 'Canal fermé' }) });
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        isGroup && groupInfo ? (
+        isChannel && channelInfo ? (
+          <Pressable style={styles.headerRow} onPress={() => setShowChannelManage(true)} hitSlop={6}>
+            <View style={styles.headerGroupIcon}>
+              <Hash size={16} color={colors.textPrimary} strokeWidth={2.2} />
+            </View>
+            <View style={{ minWidth: 0 }}>
+              <Text style={styles.headerName} numberOfLines={1}>{channelInfo.name}</Text>
+              <Text style={styles.headerGroupSub}>
+                {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
+                {channelInfo.is_closed ? ` · ${t('channels.closed', { defaultValue: 'fermé' })}` : ''}
+              </Text>
+            </View>
+          </Pressable>
+        ) : isGroup && groupInfo ? (
           <Pressable style={styles.headerRow} onPress={() => setShowGroupManage(true)} hitSlop={6}>
             <View style={styles.headerGroupIcon}>
               {groupInfo.icon
@@ -169,7 +235,7 @@ export default function ConversationScreen() {
         ) : null
       ),
     });
-  }, [navigation, otherUser, isGroup, groupInfo, router, styles, colors, t]);
+  }, [navigation, otherUser, isGroup, groupInfo, isChannel, channelInfo, router, styles, colors, t]);
 
   const handleBlockUser = () => {
     const otherId = otherUser?.id;
@@ -661,32 +727,43 @@ export default function ConversationScreen() {
           </View>
         )}
 
-        <View style={styles.inputRow}>
-          <Pressable
-            style={[styles.attachButton, isAttaching && styles.sendDisabled]}
-            onPress={() => setAttachMenuOpen(true)}
-            disabled={isAttaching}
-            hitSlop={6}
-          >
-            <Plus size={22} color={colors.textSecondary} strokeWidth={2.2} />
+        {isChannel && !channelIsMember ? (
+          <Pressable style={styles.channelJoinBar} onPress={handleJoinChannel}>
+            <Text style={styles.channelJoinText}>{t('channels.joinToPost', { defaultValue: 'Rejoindre pour participer' })}</Text>
           </Pressable>
-          <TextInput
-            style={styles.input}
-            value={message}
-            onChangeText={setMessage}
-            placeholder={t('messagerie.placeholder')}
-            placeholderTextColor={colors.textSecondary}
-            maxLength={2000}
-            multiline
-          />
-          <Pressable
-            style={[styles.sendButton, (!message.trim() || isSending) && styles.sendDisabled]}
-            onPress={handleSend}
-            disabled={!message.trim() || isSending}
-          >
-            <Send size={16} color="#FFFFFF" strokeWidth={2.4} />
-          </Pressable>
-        </View>
+        ) : isChannel && channelClosed ? (
+          <View style={styles.channelClosedBar}>
+            <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Canal fermé — lecture seule' })}</Text>
+          </View>
+        ) : (
+          <View style={styles.inputRow}>
+            <Pressable
+              style={[styles.attachButton, isAttaching && styles.sendDisabled]}
+              onPress={() => setAttachMenuOpen(true)}
+              disabled={isAttaching}
+              hitSlop={6}
+            >
+              <Plus size={22} color={colors.textSecondary} strokeWidth={2.2} />
+            </Pressable>
+            <TextInput
+              style={styles.input}
+              value={message}
+              onChangeText={setMessage}
+              placeholder={t('messagerie.placeholder')}
+              placeholderTextColor={colors.textSecondary}
+              maxLength={2000}
+              multiline
+            />
+            <Pressable
+              style={[styles.sendButton, (!message.trim() || isSending) && styles.sendDisabled]}
+              onPress={handleSend}
+              disabled={!message.trim() || isSending}
+            >
+              <Send size={16} color="#FFFFFF" strokeWidth={2.4} />
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {/* Attach menu (Brique 4c) — share an outing or a GPX trace. */}
@@ -732,6 +809,47 @@ export default function ConversationScreen() {
           group={groupInfo}
           onClose={() => setShowGroupManage(false)}
         />
+      )}
+
+      {isChannel && channelInfo && (
+        <Modal visible={showChannelManage} transparent animationType="slide" onRequestClose={() => setShowChannelManage(false)}>
+          <Pressable style={styles.menuBackdrop} onPress={() => setShowChannelManage(false)}>
+            <Pressable style={styles.channelSheet} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.channelSheetTitle}>{channelInfo.name}</Text>
+              <Text style={styles.channelSheetSub}>
+                {t(`sports.${channelInfo.sport_key}`, { defaultValue: channelInfo.sport_key })} · {channelInfo.base_label} · {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
+              </Text>
+              {channelInfo.description ? <Text style={styles.channelSheetDesc}>{channelInfo.description}</Text> : null}
+
+              {channelIsCreator && !channelClosed && (
+                <>
+                  <TextInput
+                    style={styles.channelRenameInput}
+                    value={channelRename}
+                    onChangeText={setChannelRename}
+                    placeholder={t('channels.renamePlaceholder', { defaultValue: 'Renommer le canal…' })}
+                    placeholderTextColor={colors.textSecondary}
+                    maxLength={60}
+                  />
+                  <Pressable style={styles.channelRowBtn} onPress={handleRenameChannel} disabled={!channelRename.trim()}>
+                    <Pencil size={18} color={colors.textPrimary} strokeWidth={2.2} />
+                    <Text style={styles.channelRowBtnText}>{t('channels.rename', { defaultValue: 'Renommer' })}</Text>
+                  </Pressable>
+                  <Pressable style={styles.channelRowBtn} onPress={handleCloseChannel}>
+                    <Lock size={18} color={colors.error} strokeWidth={2.2} />
+                    <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer le canal' })}</Text>
+                  </Pressable>
+                </>
+              )}
+              {channelIsMember && !channelIsCreator && (
+                <Pressable style={styles.channelRowBtn} onPress={handleLeaveChannel}>
+                  <LogOutIcon size={18} color={colors.error} strokeWidth={2.2} />
+                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.leave', { defaultValue: 'Quitter le canal' })}</Text>
+                </Pressable>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       )}
 
       {/* Trace preview modal */}
@@ -1320,6 +1438,30 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md, gap: spacing.xs,
     borderTopWidth: 1, borderTopColor: colors.surface,
   },
+  channelJoinBar: {
+    alignSelf: 'stretch', margin: spacing.md, backgroundColor: colors.cta,
+    borderRadius: radius.md, paddingVertical: spacing.sm + 3, alignItems: 'center',
+  },
+  channelJoinText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
+  channelClosedBar: {
+    alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.xs, padding: spacing.md, borderTopWidth: 1, borderTopColor: colors.surface,
+  },
+  channelClosedText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  channelSheet: {
+    backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
+    padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.sm,
+  },
+  channelSheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
+  channelSheetSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  channelSheetDesc: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 21, marginTop: spacing.xs },
+  channelRenameInput: {
+    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, color: colors.textPrimary, fontSize: fontSizes.md,
+    marginTop: spacing.sm,
+  },
+  channelRowBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2 },
+  channelRowBtnText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   input: {
     flex: 1, backgroundColor: colors.surface, color: colors.textPrimary,
     borderRadius: 22, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,

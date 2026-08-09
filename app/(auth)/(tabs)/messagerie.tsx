@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
-import { Check, X, Car, Users } from 'lucide-react-native';
+import { Check, X, Car, Users, Hash } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -430,6 +430,15 @@ export default function MessagerieScreen() {
                     {item.icon
                       ? <Text style={styles.squareEmoji}>{item.icon}</Text>
                       : <Users size={22} color={colors.textSecondary} strokeWidth={2.2} />}
+                  </View>
+                );
+                onPress = () => router.push(`/(auth)/conversation/${item.id}`);
+                onLongPress = () => handleHideConversation(item.id, title);
+              } else if (item.type === 'channel') {
+                title = item.name ?? t('messagerie.channel', { defaultValue: 'Canal' });
+                leading = (
+                  <View style={[styles.leadingSquare, styles.groupSquare]}>
+                    <Hash size={22} color={colors.textSecondary} strokeWidth={2.2} />
                   </View>
                 );
                 onPress = () => router.push(`/(auth)/conversation/${item.id}`);

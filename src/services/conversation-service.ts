@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { MessageMetadata } from './message-service';
 
-export type ConversationType = 'dm' | 'group' | 'activity';
+export type ConversationType = 'dm' | 'group' | 'activity' | 'channel';
 
 export interface Conversation {
   id: string;
