@@ -203,6 +203,16 @@
   },
   "discovery": {
     "title": "Discovery",
+    "myDispoTitle": "Your availability",
+    "row": {
+      "sports": "Sports",
+      "place": "Place",
+      "when": "When",
+      "transport": "Travel",
+      "intent": "Wants",
+      "sportsCount_one": "{{count}} sport",
+      "sportsCount_other": "{{count}} sports"
+    },
     "composeTitle": "My availability",
     "sportsLabel": "Sport(s) — 1 to 3",
     "levelLabel": "Level per sport (optional)",

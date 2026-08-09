@@ -203,6 +203,16 @@
   },
   "discovery": {
     "title": "Découverte",
+    "myDispoTitle": "Ta dispo",
+    "row": {
+      "sports": "Sports",
+      "place": "Lieu",
+      "when": "Quand",
+      "transport": "Trajet",
+      "intent": "Cherche",
+      "sportsCount_one": "{{count}} sport",
+      "sportsCount_other": "{{count}} sports"
+    },
     "composeTitle": "Ma dispo",
     "sportsLabel": "Sport(s) — 1 à 3",
     "levelLabel": "Niveau par sport (optionnel)",

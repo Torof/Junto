@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet, Modal } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, CalendarDays } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -15,6 +15,7 @@ import { conversationService } from '@/services/conversation-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { CollapsibleSection } from '@/components/collapsible-section';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { getSportIcon } from '@/constants/sport-icons';
 import { OPEN_LEVEL } from '@/constants/sport-levels';
@@ -100,6 +101,28 @@ export default function DiscoveryScreen() {
     );
   };
 
+  // Shared labeled row (fixed-width label column + free value) — used by both
+  // "Ta dispo" and the match cards so the two read as the same system.
+  const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <View style={styles.infoValue}>{children}</View>
+    </View>
+  );
+  const transportIcons = (modes: TransportMode[]) => (
+    <View style={styles.transportIcons}>
+      {modes.map((m) => {
+        const Icon = TRANSPORT_ICON[m];
+        return Icon ? <Icon key={m} size={16} color={colors.textSecondary} strokeWidth={2.2} /> : null;
+      })}
+    </View>
+  );
+  const intentChip = (intent: DispoIntent) => (
+    <View style={styles.intentChip}>
+      <Text style={styles.intentChipText}>{t(`discovery.intent.${intent}`, { defaultValue: INTENT_LABEL[intent] })}</Text>
+    </View>
+  );
+
   const renderCard = ({ item }: { item: DiscoveryCard }) => (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -122,19 +145,23 @@ export default function DiscoveryScreen() {
 
       <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
 
-      <View style={styles.metaRow}>
-        <CalendarDays size={13} color={colors.textSecondary} strokeWidth={2.2} />
-        <Text style={styles.metaText}>{formatPeriod(item.window_start, item.window_end)}</Text>
-        {item.transport_modes.map((m) => {
-          const Icon = TRANSPORT_ICON[m];
-          return Icon ? <Icon key={m} size={13} color={colors.textSecondary} strokeWidth={2.2} /> : null;
-        })}
+      <View style={styles.cardDivider} />
+
+      <View style={styles.infoRows}>
+        <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
+          <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
+        </Row>
+        <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
+          {transportIcons(item.transport_modes)}
+        </Row>
         {item.intent && (
-          <View style={styles.intentChip}>
-            <Text style={styles.intentChipText}>{t(`discovery.intent.${item.intent}`, { defaultValue: INTENT_LABEL[item.intent] })}</Text>
-          </View>
+          <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+            {intentChip(item.intent)}
+          </Row>
         )}
       </View>
+
+      <View style={styles.cardDivider} />
 
       <View style={styles.actions}>
         <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
@@ -169,17 +196,43 @@ export default function DiscoveryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* My active dispo */}
-      <View style={styles.myDispo}>
-        <View style={styles.pillWrap}>{(mine?.sport_keys ?? []).map((k) => sportPill(k, mine?.levels?.[k]))}</View>
-        <Text style={styles.myDispoMeta}>
-          {mine?.base_label}{mine?.radius_km ? ` · ${mine.radius_km} km` : ` · ${t('discovery.radiusAny', { defaultValue: 'peu importe' })}`}
-        </Text>
-        <View style={styles.actions}>
-          <Pressable onPress={() => router.push('/(auth)/discovery-compose')}><Text style={styles.link}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text></Pressable>
-          <Pressable onPress={handleDeactivate}><Text style={[styles.link, styles.linkDanger]}>{t('discovery.deactivate', { defaultValue: 'Désactiver' })}</Text></Pressable>
-        </View>
-      </View>
+      {/* My active dispo — collapsible so it stays reviewable without eating
+          the list's space (Scott, 2026-08-09). */}
+      {mine && (() => {
+        const radiusText = mine.radius_km ? ` · ${mine.radius_km} km` : ` · ${t('discovery.radiusAny', { defaultValue: 'Peu importe' })}`;
+        return (
+          <View style={styles.myDispoWrap}>
+            <CollapsibleSection
+              title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
+              summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label}`}
+            >
+              <View style={styles.infoRows}>
+                <Row label={t('discovery.row.sports', { defaultValue: 'Sports' })}>
+                  <View style={styles.pillWrap}>{mine.sport_keys.map((k) => sportPill(k, mine.levels?.[k]))}</View>
+                </Row>
+                <Row label={t('discovery.row.place', { defaultValue: 'Lieu' })}>
+                  <Text style={styles.infoText}>{mine.base_label}{radiusText}</Text>
+                </Row>
+                <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
+                  <Text style={styles.infoText}>{formatPeriod(mine.window_start, mine.window_end)}</Text>
+                </Row>
+                <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
+                  {transportIcons(mine.transport_modes)}
+                </Row>
+                {mine.intent && (
+                  <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+                    {intentChip(mine.intent)}
+                  </Row>
+                )}
+              </View>
+              <View style={styles.myDispoActions}>
+                <Pressable onPress={() => router.push('/(auth)/discovery-compose')}><Text style={styles.link}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text></Pressable>
+                <Pressable onPress={handleDeactivate}><Text style={[styles.link, styles.linkDanger]}>{t('discovery.deactivate', { defaultValue: 'Désactiver' })}</Text></Pressable>
+              </View>
+            </CollapsibleSection>
+          </View>
+        );
+      })()}
 
       {isLoading ? (
         <View style={styles.center}><LogoSpinner size={40} /></View>
@@ -241,21 +294,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   emptyBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22 },
   cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.xl, marginTop: spacing.md },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
-  myDispo: { backgroundColor: colors.cta + '14', borderBottomWidth: 1, borderBottomColor: colors.borderMuted, padding: spacing.md, gap: spacing.sm },
-  myDispoMeta: { color: colors.textSecondary, fontSize: fontSizes.sm },
+  myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '0D' },
+  myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
   matchesLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingVertical: spacing.sm },
   noMatches: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
   list: { padding: spacing.md },
-  card: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, gap: spacing.sm },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  cardDivider: { height: 1, backgroundColor: colors.line },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs + 2 },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600', marginRight: spacing.xs },
-  intentChip: { backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  infoRows: { gap: spacing.sm },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  infoLabel: { width: 62, color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
+  infoValue: { flex: 1, minWidth: 0 },
+  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 3 },
   intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
   actions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
