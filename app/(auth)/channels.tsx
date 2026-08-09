@@ -8,6 +8,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { channelService, type ChannelListItem } from '@/services/channel-service';
+import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -83,17 +84,11 @@ export default function ChannelsScreen() {
           />
         </View>
 
-        <View style={styles.sportChips}>
-          {(sports ?? []).map((s) => {
-            const on = sportKey === s.key;
-            return (
-              <Pressable key={s.key} style={[styles.chip, on && { backgroundColor: sportCategoryColor(s.category, colors.cta), borderColor: sportCategoryColor(s.category, colors.cta) }]}
-                onPress={() => setSportKey(on ? null : s.key)}>
-                <Text style={[styles.chipText, on && styles.chipTextOn]}>{getSportIcon(s.key)} {t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SportDropdown
+          selected={sportKey ? [sportKey] : []}
+          onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))}
+          label={t('map.sportLabel')}
+        />
 
         {near && <Text style={styles.nearLabel}>{t('channels.around', { defaultValue: 'Autour de' })} {near.label} · <Text style={styles.nearClear} onPress={() => setNear(null)}>{t('channels.clear', { defaultValue: 'retirer' })}</Text></Text>}
         <PlaceSearchBar onSelect={(p) => setNear({ lng: p.lng, lat: p.lat, label: p.label })} />

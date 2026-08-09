@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, StyleSheet, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, StyleSheet, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -73,6 +73,7 @@ export default function CreateChannelScreen() {
         <View style={{ width: 24 }} />
       </View>
 
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport' })}</Text>
         <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))} label={t('map.sportLabel')} />
@@ -102,6 +103,7 @@ export default function CreateChannelScreen() {
           maxLength={500}
         />
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Pressable style={[styles.cta, !ready && styles.ctaDisabled]} disabled={!ready || saving} onPress={() => submit(false)}>
@@ -132,7 +134,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: spacing.md },
   headerTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
-  content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
+  content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl + 80 },
   section: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.lg, marginBottom: spacing.sm },
   chosenPlace: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginBottom: spacing.sm },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, color: colors.textPrimary, fontSize: fontSizes.md },
