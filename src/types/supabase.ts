@@ -570,6 +570,7 @@ export type Database = {
           initiated_from: string | null
           last_message_at: string | null
           name: string | null
+          pending_activity_id: string | null
           request_expires_at: string | null
           request_message: string | null
           request_sender_id: string | null
@@ -590,6 +591,7 @@ export type Database = {
           initiated_from?: string | null
           last_message_at?: string | null
           name?: string | null
+          pending_activity_id?: string | null
           request_expires_at?: string | null
           request_message?: string | null
           request_sender_id?: string | null
@@ -610,6 +612,7 @@ export type Database = {
           initiated_from?: string | null
           last_message_at?: string | null
           name?: string | null
+          pending_activity_id?: string | null
           request_expires_at?: string | null
           request_message?: string | null
           request_sender_id?: string | null
@@ -680,6 +683,41 @@ export type Database = {
             columns: ["initiated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_pending_activity_id_fkey"
+            columns: ["pending_activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_pending_activity_id_fkey"
+            columns: ["pending_activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_pending_activity_id_fkey"
+            columns: ["pending_activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_pending_activity_id_fkey"
+            columns: ["pending_activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_pending_activity_id_fkey"
+            columns: ["pending_activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
             referencedColumns: ["id"]
           },
           {
@@ -3814,6 +3852,16 @@ export type Database = {
           member_name: string
         }[]
       }
+      get_invitable_activities_for_dispo: {
+        Args: { p_target_user_id: string }
+        Returns: {
+          id: string
+          max_participants: number
+          sport_key: string
+          starts_at: string
+          title: string
+        }[]
+      }
       get_my_active_presence_activities: {
         Args: never
         Returns: {
@@ -4264,6 +4312,10 @@ export type Database = {
       }
       send_contact_request: {
         Args: { p_message: string; p_source?: string; p_target_user_id: string }
+        Returns: string
+      }
+      send_discovery_invite: {
+        Args: { p_activity_id: string; p_target_user_id: string }
         Returns: string
       }
       send_message: {

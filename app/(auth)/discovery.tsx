@@ -1,9 +1,11 @@
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
+import { View, Text, Pressable, FlatList, StyleSheet, Modal } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -25,6 +27,13 @@ export default function DiscoveryScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const [contacted, setContacted] = useState<Set<string>>(new Set());
+  const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
+
+  const { data: invitable, isLoading: invitableLoading } = useQuery({
+    queryKey: ['invitable-activities', inviteTargetId],
+    queryFn: () => discoveryService.getInvitableActivities(inviteTargetId as string),
+    enabled: !!inviteTargetId,
+  });
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t('discovery.title', { defaultValue: 'Découverte' }) });
@@ -54,6 +63,17 @@ export default function DiscoveryScreen() {
       await conversationService.sendContactRequest(userId, t('discovery.contactMessage', { defaultValue: 'Salut ! On matche sur Découverte — ça te dit une sortie ?' }), 'discovery');
       setContacted((prev) => new Set(prev).add(userId));
       Burnt.toast({ title: t('discovery.contactSent', { defaultValue: 'Demande envoyée' }), preset: 'done' });
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+
+  const handleInvite = async (activityId: string) => {
+    const target = inviteTargetId;
+    if (!target) return;
+    try {
+      await discoveryService.sendDiscoveryInvite(target, activityId);
+      setContacted((prev) => new Set(prev).add(target));
+      setInviteTargetId(null);
+      Burnt.toast({ title: t('discovery.inviteSent', { defaultValue: 'Invitation envoyée' }), preset: 'done' });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
 
@@ -91,6 +111,11 @@ export default function DiscoveryScreen() {
       <View style={styles.actions}>
         <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
           <Text style={styles.link}>{t('discovery.viewProfile', { defaultValue: 'Voir profil' })}</Text>
+        </Pressable>
+        <Pressable onPress={() => setInviteTargetId(item.user_id)} disabled={contacted.has(item.user_id)}>
+          <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
+            {t('discovery.invite', { defaultValue: 'Inviter' })}
+          </Text>
         </Pressable>
         <Pressable onPress={() => handleContact(item.user_id)} disabled={contacted.has(item.user_id)}>
           <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
@@ -146,6 +171,36 @@ export default function DiscoveryScreen() {
           }
         />
       )}
+
+      {/* Invite picker — pick one of my activities that matches their dispo.
+          The request stays a contact request until they accept (gate intact). */}
+      <Modal visible={!!inviteTargetId} transparent animationType="slide" onRequestClose={() => setInviteTargetId(null)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setInviteTargetId(null)}>
+          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>{t('discovery.inviteTitle', { defaultValue: 'Inviter à une sortie' })}</Text>
+            {invitableLoading ? (
+              <View style={styles.modalCenter}><LogoSpinner size={32} /></View>
+            ) : (invitable ?? []).length === 0 ? (
+              <Text style={styles.modalEmpty}>
+                {t('discovery.inviteEmpty', { defaultValue: 'Aucune de tes sorties ne correspond à sa dispo. Crée une sortie qui matche son sport et ses dates.' })}
+              </Text>
+            ) : (
+              (invitable ?? []).map((a) => (
+                <Pressable key={a.id} style={styles.inviteRow} onPress={() => handleInvite(a.id)}>
+                  <Text style={styles.inviteRowIcon}>{getSportIcon(a.sport_key)}</Text>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.inviteRowTitle} numberOfLines={1}>{a.title}</Text>
+                    <Text style={styles.inviteRowMeta}>{dayjs(a.starts_at).locale('fr').format('ddd D MMM · H[h]mm')}</Text>
+                  </View>
+                </Pressable>
+              ))
+            )}
+            <Pressable style={styles.modalCancel} onPress={() => setInviteTargetId(null)}>
+              <Text style={styles.modalCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -174,4 +229,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   linkDone: { color: colors.textSecondary, textDecorationLine: 'none' },
   linkDanger: { color: colors.error },
+  modalBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
+  modalSheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    paddingBottom: spacing.xl,
+  },
+  modalCenter: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl },
+  modalTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: spacing.xs },
+  modalEmpty: { color: colors.textSecondary, fontSize: fontSizes.md, lineHeight: 22, paddingVertical: spacing.md },
+  inviteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+  },
+  inviteRowIcon: { fontSize: 22 },
+  inviteRowTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  inviteRowMeta: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2, textTransform: 'capitalize' },
+  modalCancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },
+  modalCancelText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '700' },
 });

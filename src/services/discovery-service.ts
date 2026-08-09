@@ -40,6 +40,14 @@ export interface DiscoveryCard {
   sorties_count: number;
 }
 
+export interface InvitableActivity {
+  id: string;
+  title: string;
+  sport_key: string;
+  starts_at: string;
+  max_participants: number;
+}
+
 // get_discovery_count returns -1 as the "quelques" floor (1–2 matches).
 export const DISCOVERY_FEW = -1;
 
@@ -98,5 +106,24 @@ export const discoveryService = {
     const { data, error } = await supabase.rpc('get_discovery_cards');
     if (error) throw error;
     return (data ?? []) as unknown as DiscoveryCard[];
+  },
+
+  // My future activities that match the target's active dispo — feeds the
+  // "Inviter" picker. Empty = nothing to invite them to.
+  getInvitableActivities: async (targetUserId: string): Promise<InvitableActivity[]> => {
+    const { data, error } = await supabase.rpc('get_invitable_activities_for_dispo', {
+      p_target_user_id: targetUserId,
+    });
+    if (error) throw error;
+    return (data ?? []) as unknown as InvitableActivity[];
+  },
+
+  // Contact request framed around an activity. On accept → connected + invited.
+  sendDiscoveryInvite: async (targetUserId: string, activityId: string): Promise<void> => {
+    const { error } = await supabase.rpc('send_discovery_invite', {
+      p_target_user_id: targetUserId,
+      p_activity_id: activityId,
+    });
+    if (error) throw error;
   },
 };
