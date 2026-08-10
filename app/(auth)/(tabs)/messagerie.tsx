@@ -28,6 +28,13 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 dayjs.extend(relativeTime);
 
 type Tab = 'messages' | 'requests';
+type Segment = 'all' | 'direct' | 'activity' | 'channel';
+const SEGMENTS: { key: Segment; label: string; dflt: string }[] = [
+  { key: 'all', label: 'messagerie.segAll', dflt: 'Tout' },
+  { key: 'direct', label: 'messagerie.segDirect', dflt: 'Directs' },
+  { key: 'activity', label: 'messagerie.segActivity', dflt: 'Sorties' },
+  { key: 'channel', label: 'messagerie.segChannel', dflt: 'Canaux' },
+];
 
 export default function MessagerieScreen() {
   const colors = useColors();
@@ -37,6 +44,7 @@ export default function MessagerieScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>(tab === 'requests' ? 'requests' : 'messages');
+  const [segment, setSegment] = useState<Segment>('all');
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const [hidingConversationId, setHidingConversationId] = useState<string | null>(null);
@@ -59,6 +67,16 @@ export default function MessagerieScreen() {
     queryKey: ['conversations'],
     queryFn: () => conversationService.getAll(),
   });
+
+  const filteredConversations = useMemo(() => {
+    const list = conversations ?? [];
+    switch (segment) {
+      case 'direct': return list.filter((c) => c.type === 'dm' || c.type === 'group');
+      case 'activity': return list.filter((c) => c.type === 'activity');
+      case 'channel': return list.filter((c) => c.type === 'channel');
+      default: return list;
+    }
+  }, [conversations, segment]);
 
   // Incoming-message liveness now rides the user:<id> 'inbox' broadcast,
   // subscribed ONCE in the tabs layout (which invalidates ['conversations']).
@@ -393,8 +411,21 @@ export default function MessagerieScreen() {
             <Text style={styles.emptyText}>{t('messagerie.empty')}</Text>
           </View>
         ) : (
+          <>
+          <View style={styles.segments}>
+            {SEGMENTS.map((seg) => (
+              <Pressable key={seg.key} style={[styles.segment, segment === seg.key && styles.segmentActive]} onPress={() => setSegment(seg.key)}>
+                <Text style={[styles.segmentText, segment === seg.key && styles.segmentTextActive]}>{t(seg.label, { defaultValue: seg.dflt })}</Text>
+              </Pressable>
+            ))}
+          </View>
+          {filteredConversations.length === 0 ? (
+            <View style={styles.center}>
+              <Text style={styles.emptyText}>{t('messagerie.emptySegment', { defaultValue: 'Rien dans cette catégorie.' })}</Text>
+            </View>
+          ) : (
           <FlatList
-            data={conversations}
+            data={filteredConversations}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
               const isUnread = item.is_unread;
@@ -487,6 +518,8 @@ export default function MessagerieScreen() {
               />
             }
           />
+          )}
+          </>
         )
       )}
 
@@ -680,6 +713,11 @@ export default function MessagerieScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { paddingBottom: spacing.md },
+  segments: { flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted },
+  segment: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted },
+  segmentActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  segmentText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  segmentTextActive: { color: '#FFFFFF' },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
 
