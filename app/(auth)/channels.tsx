@@ -1,19 +1,23 @@
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, FlatList, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, FlatList, TextInput, StyleSheet, Modal } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Plus, Users } from 'lucide-react-native';
+import { Search, Plus, Users, SlidersHorizontal, MapPin, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { channelService, type ChannelListItem } from '@/services/channel-service';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
+import { CollapsibleSection } from '@/components/collapsible-section';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
+import { useInitialLocation } from '@/hooks/use-initial-location';
+
+const RADII: (number | null)[] = [5, 10, 15, 30, 50, null];
 
 export default function ChannelsScreen() {
   const colors = useColors();
@@ -22,9 +26,13 @@ export default function ChannelsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
 
+  const { currentLocation } = useInitialLocation();
+
   const [query, setQuery] = useState('');
   const [sportKey, setSportKey] = useState<string | null>(null);
   const [near, setNear] = useState<{ lng: number; lat: number; label: string } | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number | null>(30);
+  const [showFilters, setShowFilters] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t('channels.title', { defaultValue: 'Canaux' }) });
@@ -33,17 +41,23 @@ export default function ChannelsScreen() {
   const { data: sports } = useSports();
   const sportById = useMemo(() => new Map((sports ?? []).map((s) => [s.key, s])), [sports]);
 
+  const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0);
   const trimmed = query.trim();
   const { data: channels, isLoading } = useQuery({
-    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat],
+    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat, near ? radiusKm : null],
     queryFn: () => channelService.search({
       query: trimmed || null,
       sportKey,
       nearLng: near?.lng ?? null,
       nearLat: near?.lat ?? null,
-      radiusKm: null,
+      radiusKm: near ? radiusKm : null,
     }),
   });
+
+  const useMyLocation = () => {
+    if (!currentLocation) return;
+    setNear({ lng: currentLocation[0], lat: currentLocation[1], label: t('channels.myLocation', { defaultValue: 'Ma position' }) });
+  };
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
     const place = item.base_label
@@ -74,27 +88,89 @@ export default function ChannelsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.filters}>
-        <View style={styles.searchBox}>
-          <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
-          <TextInput
-            style={styles.searchInput}
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t('channels.searchPlaceholder', { defaultValue: 'Chercher un canal…' })}
-            placeholderTextColor={colors.textMuted}
-            returnKeyType="search"
-          />
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
+            <TextInput
+              style={styles.searchInput}
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t('channels.searchPlaceholder', { defaultValue: 'Chercher un canal…' })}
+              placeholderTextColor={colors.textMuted}
+              returnKeyType="search"
+            />
+          </View>
+          <Pressable style={[styles.filterBtn, activeFilters > 0 && styles.filterBtnActive]} onPress={() => setShowFilters(true)}>
+            <SlidersHorizontal size={18} color={activeFilters > 0 ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.2} />
+            {activeFilters > 0 && <Text style={styles.filterBtnCount}>{activeFilters}</Text>}
+          </Pressable>
         </View>
-
-        <SportDropdown
-          selected={sportKey ? [sportKey] : []}
-          onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))}
-          label={t('map.sportLabel')}
-        />
-
-        {near && <Text style={styles.nearLabel}>{t('channels.around', { defaultValue: 'Autour de' })} {near.label} · <Text style={styles.nearClear} onPress={() => setNear(null)}>{t('channels.clear', { defaultValue: 'retirer' })}</Text></Text>}
-        <PlaceSearchBar onSelect={(p) => setNear({ lng: p.lng, lat: p.lat, label: p.label })} />
       </View>
+
+      {/* Filter sheet — mirrors the map filter (Localisation / Rayon / Sport). */}
+      <Modal visible={showFilters} transparent animationType="slide" onRequestClose={() => setShowFilters(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setShowFilters(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t('channels.filters', { defaultValue: 'Filtres' })}</Text>
+              <Pressable onPress={() => setShowFilters(false)} hitSlop={8}><X size={22} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
+            </View>
+
+            <CollapsibleSection
+              title={t('channels.filterLocation', { defaultValue: 'Localisation' })}
+              summary={near?.label ?? null}
+              defaultExpanded={!!near}
+            >
+              {near && (
+                <View style={styles.chosenPlaceRow}>
+                  <MapPin size={14} color={colors.cta} strokeWidth={2.4} />
+                  <Text style={styles.chosenPlace} numberOfLines={1}>{near.label}</Text>
+                  <Text style={styles.placeClear} onPress={() => setNear(null)}>{t('channels.clear', { defaultValue: 'retirer' })}</Text>
+                </View>
+              )}
+              <PlaceSearchBar onSelect={(p) => setNear({ lng: p.lng, lat: p.lat, label: p.label })} />
+              {currentLocation && (
+                <Pressable style={styles.myPosBtn} onPress={useMyLocation}>
+                  <MapPin size={15} color={colors.cta} strokeWidth={2.4} />
+                  <Text style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</Text>
+                </Pressable>
+              )}
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title={t('channels.filterRadius', { defaultValue: 'Rayon' })}
+              summary={near ? (radiusKm ? `${radiusKm} km` : t('channels.radiusAny', { defaultValue: 'Peu importe' })) : null}
+            >
+              {!near && <Text style={styles.radiusHint}>{t('channels.radiusHint', { defaultValue: 'Choisis d’abord un lieu.' })}</Text>}
+              <View style={styles.chipRow}>
+                {RADII.map((r) => (
+                  <Pressable key={String(r)} style={[styles.chip, radiusKm === r && styles.chipActive, !near && styles.chipDisabled]}
+                    disabled={!near} onPress={() => setRadiusKm(r)}>
+                    <Text style={[styles.chipText, radiusKm === r && styles.chipTextOn]}>
+                      {r === null ? t('channels.radiusAny', { defaultValue: 'Peu importe' }) : `${r} km`}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title={t('channels.filterSport', { defaultValue: 'Sport' })}
+              summary={sportKey ? t(`sports.${sportKey}`, { defaultValue: sportKey }) : null}
+            >
+              <SportDropdown
+                selected={sportKey ? [sportKey] : []}
+                onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))}
+                label={t('map.sportLabel')}
+              />
+            </CollapsibleSection>
+
+            <Pressable style={styles.sheetApply} onPress={() => setShowFilters(false)}>
+              <Text style={styles.sheetApplyText}>{t('channels.applyFilters', { defaultValue: 'Voir les canaux' })}</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {isLoading ? (
         <View style={styles.center}><LogoSpinner size={40} /></View>
@@ -121,15 +197,31 @@ export default function ChannelsScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  filters: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted, paddingBottom: spacing.sm },
-  searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, height: 42 },
+  filters: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted, paddingBottom: spacing.sm },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, height: 42 },
   searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, padding: 0 },
-  sportChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 42, paddingHorizontal: spacing.md, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, backgroundColor: colors.surface },
+  filterBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  filterBtnCount: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
+  chip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5 },
+  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  chipDisabled: { opacity: 0.4 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   chipTextOn: { color: '#FFFFFF' },
-  nearLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  nearClear: { color: colors.cta, fontWeight: '700', textDecorationLine: 'underline' },
+  sheetBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
+  sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
+  chosenPlaceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
+  chosenPlace: { flex: 1, minWidth: 0, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
+  myPosBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, marginTop: spacing.xs },
+  myPosText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
+  radiusHint: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
+  sheetApply: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.lg },
+  sheetApplyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, paddingBottom: 96 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
