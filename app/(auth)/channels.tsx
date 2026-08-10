@@ -46,18 +46,20 @@ export default function ChannelsScreen() {
   });
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
-    const cat = sportById.get(item.sport_key)?.category;
+    const place = item.base_label
+      ? `${item.base_label}${item.distance_km != null ? ` · ${Math.round(item.distance_km)} km` : ''}`
+      : t('channels.noPlace', { defaultValue: 'Partout' });
     return (
       <Pressable style={styles.row} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
         <View style={styles.rowMain}>
           <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
           <View style={styles.rowMeta}>
-            <View style={[styles.sportPill, { backgroundColor: sportCategoryColor(cat, colors.cta) }]}>
-              <Text style={styles.sportPillText}>{getSportIcon(item.sport_key)} {t(`sports.${item.sport_key}`, { defaultValue: item.sport_key })}</Text>
-            </View>
-            <Text style={styles.rowPlace} numberOfLines={1}>
-              {item.base_label}{item.distance_km != null ? ` · ${Math.round(item.distance_km)} km` : ''}
-            </Text>
+            {item.sport_keys.map((sk) => (
+              <View key={sk} style={[styles.sportPill, { backgroundColor: sportCategoryColor(sportById.get(sk)?.category, colors.cta) }]}>
+                <Text style={styles.sportPillText}>{getSportIcon(sk)} {t(`sports.${sk}`, { defaultValue: sk })}</Text>
+              </View>
+            ))}
+            <Text style={styles.rowPlace} numberOfLines={1}>{place}</Text>
           </View>
         </View>
         <View style={styles.rowCount}>
