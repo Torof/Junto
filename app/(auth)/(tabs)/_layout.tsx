@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, MessageSquare, Menu, Users, Search, type LucideIcon } from 'lucide-react-native';
+import { Map, MessageCircle, Menu, UserSearch, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -27,21 +27,6 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
 
 // Notifications is Junto's action center (requests, presence, transport) —
 // Scott's call (2026-07-06): it stays a first-class tab, bell + count badge
-// Custom "Partenaires" icon: two people + a small magnifying glass (find +
-// talk to partners). The loupe sits in a cutout badge over the Users icon.
-function PartnersTabIcon({ focused }: { focused: boolean }) {
-  const colors = useColors();
-  const color = focused ? colors.cta : colors.textSecondary;
-  return (
-    <View style={{ width: 30, height: 28, alignItems: 'center', justifyContent: 'center' }}>
-      <Users size={26} color={color} strokeWidth={focused ? 2.4 : 2} />
-      <View style={{ position: 'absolute', right: -1, bottom: -1, backgroundColor: colors.background, borderRadius: 9, padding: 1.5 }}>
-        <Search size={12} color={color} strokeWidth={2.8} />
-      </View>
-    </View>
-  );
-}
-
 function MessageTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -73,7 +58,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
 
   return (
     <View style={styles.bellContainer}>
-      <MessageSquare size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
+      <MessageCircle size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
       {hasUnread && <View style={styles.dot} />}
     </View>
   );
@@ -156,7 +141,8 @@ export default function TabsLayout() {
           paddingBottom: insets.bottom + 4,
           paddingTop: 8,
         },
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarActiveTintColor: colors.cta,
         tabBarInactiveTintColor: colors.textSecondary,
         headerStyle: {
@@ -177,7 +163,7 @@ export default function TabsLayout() {
         name="partenaires"
         options={{
           title: t('tabs.partenaires', { defaultValue: 'Partenaires' }),
-          tabBarIcon: ({ focused }) => <PartnersTabIcon focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon={UserSearch} focused={focused} />,
         }}
       />
       {/* Mes activités absorbed into the menu (navbar refonte lot 3) — off the
