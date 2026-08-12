@@ -12,6 +12,8 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
+import { notificationService } from '@/services/notification-service';
+import { NotificationsView } from '@/components/notifications-view';
 import { invitationService } from '@/services/invitation-service';
 import { participationService } from '@/services/participation-service';
 import { transportService } from '@/services/transport-service';
@@ -27,7 +29,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 
 dayjs.extend(relativeTime);
 
-type Tab = 'messages' | 'requests';
+type Tab = 'messages' | 'requests' | 'notifications';
 type Segment = 'all' | 'direct' | 'activity' | 'channel';
 const SEGMENTS: { key: Segment; label: string; dflt: string }[] = [
   { key: 'all', label: 'messagerie.segAll', dflt: 'Tout' },
@@ -43,7 +45,9 @@ export default function MessagerieScreen() {
   const router = useRouter();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<Tab>(tab === 'requests' ? 'requests' : 'messages');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    tab === 'requests' ? 'requests' : tab === 'notifications' ? 'notifications' : 'messages',
+  );
   const [segment, setSegment] = useState<Segment>('all');
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
@@ -66,6 +70,11 @@ export default function MessagerieScreen() {
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => conversationService.getAll(),
+  });
+
+  const { data: notifUnread } = useQuery({
+    queryKey: ['notifications-count'],
+    queryFn: () => notificationService.getUnreadCount(),
   });
 
   const filteredConversations = useMemo(() => {
@@ -398,6 +407,19 @@ export default function MessagerieScreen() {
             </View>
           )}
         </Pressable>
+        <Pressable
+          style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
+          onPress={() => setActiveTab('notifications')}
+        >
+          <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>
+            {t('messagerie.notificationsTab', { defaultValue: 'Notifications' })}
+          </Text>
+          {(notifUnread ?? 0) > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{notifUnread! > 99 ? '99+' : notifUnread}</Text>
+            </View>
+          )}
+        </Pressable>
         <View style={{ flex: 1 }} />
         <Pressable onPress={() => router.push('/(auth)/create-group')} hitSlop={8} style={styles.newGroupBtn}>
           <Users size={20} color={colors.textPrimary} strokeWidth={2.2} />
@@ -706,6 +728,8 @@ export default function MessagerieScreen() {
           </ScrollView>
         )
       )}
+
+      {activeTab === 'notifications' && <NotificationsView />}
     </View>
   );
 }

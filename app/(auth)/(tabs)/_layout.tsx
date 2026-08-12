@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, CalendarDays, Bell, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
+import { Map, CalendarDays, MessageSquare, Menu, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -27,35 +27,6 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
 
 // Notifications is Junto's action center (requests, presence, transport) —
 // Scott's call (2026-07-06): it stays a first-class tab, bell + count badge
-// (the old wiggle animation intentionally not restored — calmer bar).
-function NotificationTabIcon({ focused }: { focused: boolean }) {
-  const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const { data: count } = useQuery({
-    queryKey: ['notifications-count'],
-    queryFn: () => notificationService.getUnreadCount(),
-    refetchInterval: 30000,
-  });
-
-  const hasUnread = (count ?? 0) > 0;
-
-  return (
-    <View style={styles.bellContainer}>
-      <Bell
-        size={26}
-        color={focused ? colors.cta : hasUnread ? colors.cta : colors.textSecondary}
-        strokeWidth={focused ? 2.4 : 2}
-      />
-      {hasUnread && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{count! > 99 ? '99+' : count}</Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
 function MessageTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -73,12 +44,17 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
   const { data: invitations } = useQuery({
     queryKey: ['invitations-received'], queryFn: () => invitationService.getMyInvitations(), refetchInterval: 30000,
   });
+  // Notifications now live in this hub too (navbar refonte 2026-08-12).
+  const { data: notifCount } = useQuery({
+    queryKey: ['notifications-count'], queryFn: () => notificationService.getUnreadCount(), refetchInterval: 30000,
+  });
 
   // Server-driven unread (00368): is_unread from the hub RPC (last_read_at),
-  // plus any pending contact request / invitation shown in this tab.
+  // plus any pending contact request / invitation / notification shown in this tab.
   const hasUnread = (conversations ?? []).some((c) => c.is_unread)
     || (pendingRequests?.length ?? 0) > 0
-    || (invitations?.length ?? 0) > 0;
+    || (invitations?.length ?? 0) > 0
+    || (notifCount ?? 0) > 0;
 
   return (
     <View style={styles.bellContainer}>
@@ -189,13 +165,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon icon={CalendarDays} focused={focused} />,
         }}
       />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: t('tabs.notifications'),
-          tabBarIcon: ({ focused }) => <NotificationTabIcon focused={focused} />,
-        }}
-      />
+      {/* Notifications folded into the messaging hub (navbar refonte 2026-08-12).
+          Route kept off the bar so any direct navigation still resolves. */}
+      <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen
         name="messagerie"
         options={{

@@ -865,6 +865,7 @@
     "traceUseInActivity": "Create activity",
     "messagesTab": "Messages",
     "requestsTab": "Requests",
+    "notificationsTab": "Notifications",
     "noRequests": "No contact requests",
     "previewTrace": "🗺️ Trace shared",
     "previewActivity": "📍 Outing shared",
