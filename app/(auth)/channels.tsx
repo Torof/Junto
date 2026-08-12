@@ -17,8 +17,6 @@ import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 
-const RADII: (number | null)[] = [5, 10, 15, 30, 50, null];
-
 export default function ChannelsScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -31,7 +29,6 @@ export default function ChannelsScreen() {
   const [query, setQuery] = useState('');
   const [sportKey, setSportKey] = useState<string | null>(null);
   const [near, setNear] = useState<{ lng: number; lat: number; label: string } | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number | null>(30);
   const [showFilters, setShowFilters] = useState(false);
 
   useLayoutEffect(() => {
@@ -44,13 +41,12 @@ export default function ChannelsScreen() {
   const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0);
   const trimmed = query.trim();
   const { data: channels, isLoading } = useQuery({
-    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat, near ? radiusKm : null],
+    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat],
     queryFn: () => channelService.search({
       query: trimmed || null,
       sportKey,
       nearLng: near?.lng ?? null,
       nearLat: near?.lat ?? null,
-      radiusKm: near ? radiusKm : null,
     }),
   });
 
@@ -60,20 +56,16 @@ export default function ChannelsScreen() {
   };
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
-    const place = item.base_label
-      ? `${item.base_label}${item.distance_km != null ? ` · ${Math.round(item.distance_km)} km` : ''}`
-      : t('channels.noPlace', { defaultValue: 'Partout' });
+    const zone = `${item.base_label} · ${item.radius_km} km${item.distance_km != null ? ` · ${t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}` : ''}`;
     return (
       <Pressable style={styles.row} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
         <View style={styles.rowMain}>
           <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
           <View style={styles.rowMeta}>
-            {item.sport_keys.map((sk) => (
-              <View key={sk} style={[styles.sportPill, { backgroundColor: sportCategoryColor(sportById.get(sk)?.category, colors.cta) }]}>
-                <Text style={styles.sportPillText}>{getSportIcon(sk)} {t(`sports.${sk}`, { defaultValue: sk })}</Text>
-              </View>
-            ))}
-            <Text style={styles.rowPlace} numberOfLines={1}>{place}</Text>
+            <View style={[styles.sportPill, { backgroundColor: sportCategoryColor(sportById.get(item.sport_key)?.category, colors.cta) }]}>
+              <Text style={styles.sportPillText}>{getSportIcon(item.sport_key)} {t(`sports.${item.sport_key}`, { defaultValue: item.sport_key })}</Text>
+            </View>
+            <Text style={styles.rowPlace} numberOfLines={1}>{zone}</Text>
           </View>
         </View>
         <View style={styles.rowCount}>
@@ -135,23 +127,6 @@ export default function ChannelsScreen() {
                   <Text style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</Text>
                 </Pressable>
               )}
-            </CollapsibleSection>
-
-            <CollapsibleSection
-              title={t('channels.filterRadius', { defaultValue: 'Rayon' })}
-              summary={near ? (radiusKm ? `${radiusKm} km` : t('channels.radiusAny', { defaultValue: 'Peu importe' })) : null}
-            >
-              {!near && <Text style={styles.radiusHint}>{t('channels.radiusHint', { defaultValue: 'Choisis d’abord un lieu.' })}</Text>}
-              <View style={styles.chipRow}>
-                {RADII.map((r) => (
-                  <Pressable key={String(r)} style={[styles.chip, radiusKm === r && styles.chipActive, !near && styles.chipDisabled]}
-                    disabled={!near} onPress={() => setRadiusKm(r)}>
-                    <Text style={[styles.chipText, radiusKm === r && styles.chipTextOn]}>
-                      {r === null ? t('channels.radiusAny', { defaultValue: 'Peu importe' }) : `${r} km`}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
             </CollapsibleSection>
 
             <CollapsibleSection

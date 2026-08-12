@@ -831,9 +831,7 @@ export default function ConversationScreen() {
             <Pressable style={styles.channelSheet} onPress={(e) => e.stopPropagation()}>
               <Text style={styles.channelSheetTitle}>{channelInfo.name}</Text>
               <Text style={styles.channelSheetSub}>
-                {channelInfo.sport_keys.map((sk) => t(`sports.${sk}`, { defaultValue: sk })).join(' · ')}
-                {channelInfo.base_label ? ` · ${channelInfo.base_label}` : ''}
-                {' · '}{t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
+                {t(`sports.${channelInfo.sport_key}`, { defaultValue: channelInfo.sport_key })} · {channelInfo.base_label} · {channelInfo.radius_km} km · {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
               </Text>
               {channelInfo.description ? <Text style={styles.channelSheetDesc}>{channelInfo.description}</Text> : null}
 

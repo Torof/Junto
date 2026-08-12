@@ -507,33 +507,36 @@ export type Database = {
       channels: {
         Row: {
           base: unknown
-          base_label: string | null
+          base_label: string
           closed_at: string | null
           conversation_id: string
           created_at: string
           created_by: string | null
           description: string | null
-          sport_keys: string[]
+          radius_km: number
+          sport_key: string
         }
         Insert: {
-          base?: unknown
-          base_label?: string | null
+          base: unknown
+          base_label: string
           closed_at?: string | null
           conversation_id: string
           created_at?: string
           created_by?: string | null
           description?: string | null
-          sport_keys: string[]
+          radius_km: number
+          sport_key: string
         }
         Update: {
           base?: unknown
-          base_label?: string | null
+          base_label?: string
           closed_at?: string | null
           conversation_id?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
-          sport_keys?: string[]
+          radius_km?: number
+          sport_key?: string
         }
         Relationships: [
           {
@@ -556,6 +559,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["key"]
           },
         ]
       }
@@ -3551,13 +3596,14 @@ export type Database = {
       }
       create_channel: {
         Args: {
-          p_base_label?: string
-          p_base_lat?: number
-          p_base_lng?: number
+          p_base_label: string
+          p_base_lat: number
+          p_base_lng: number
           p_description?: string
           p_force?: boolean
           p_name: string
-          p_sport_keys: string[]
+          p_radius_km: number
+          p_sport_key: string
         }
         Returns: {
           conversation_id: string
@@ -3927,7 +3973,8 @@ export type Database = {
           is_member: boolean
           member_count: number
           name: string
-          sport_keys: string[]
+          radius_km: number
+          sport_key: string
         }[]
       }
       get_channel_members: {
@@ -4488,7 +4535,6 @@ export type Database = {
           p_near_lat?: number
           p_near_lng?: number
           p_query?: string
-          p_radius_km?: number
           p_sport_key?: string
         }
         Returns: {
@@ -4500,7 +4546,8 @@ export type Database = {
           is_member: boolean
           member_count: number
           name: string
-          sport_keys: string[]
+          radius_km: number
+          sport_key: string
         }[]
       }
       send_activity_invitations: {

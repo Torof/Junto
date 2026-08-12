@@ -11,7 +11,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
-import { channelService } from '@/services/channel-service';
+import { channelService, CHANNEL_RADII } from '@/services/channel-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
@@ -23,18 +23,16 @@ export default function CreateChannelScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
-  const [sportKeys, setSportKeys] = useState<string[]>([]);
+  const [sportKey, setSportKey] = useState<string | null>(null);
   const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number>(35);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [dupId, setDupId] = useState<string | null>(null);
 
-  const toggleSport = (k: string) => setSportKeys((prev) =>
-    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= 3 ? prev : [...prev, k]);
-
-  // Place is optional (a channel can be a general topic with no precise spot).
-  const ready = sportKeys.length >= 1 && name.trim().length >= 1;
+  // A channel = 1 sport + a zone (centre + radius). Both required.
+  const ready = !!sportKey && !!base && name.trim().length >= 1;
 
   const goTo = (id: string) => {
     queryClient.invalidateQueries({ queryKey: ['channels'] });
@@ -48,8 +46,8 @@ export default function CreateChannelScreen() {
     try {
       haptic.success();
       const res = await channelService.create({
-        sportKeys, name: name.trim(),
-        baseLng: base?.lng ?? null, baseLat: base?.lat ?? null, baseLabel: base?.label ?? null,
+        sportKey: sportKey!, name: name.trim(),
+        baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label, radiusKm,
         description: description.trim() || null, force,
       });
       if (res.duplicate) { setDupId(res.conversationId); setSaving(false); return; }
@@ -80,10 +78,10 @@ export default function CreateChannelScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport(s) — 1 à 3' })}</Text>
-        <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
+        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport' })}</Text>
+        <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))} label={t('map.sportLabel')} />
 
-        <Text style={styles.section}>{t('channels.placeLabelOpt', { defaultValue: 'Lieu / secteur (optionnel)' })}</Text>
+        <Text style={styles.section}>{t('channels.zoneLabel', { defaultValue: 'Zone — lieu central' })}</Text>
         {base && (
           <View style={styles.chosenPlaceRow}>
             <Text style={styles.chosenPlace}>{base.label}</Text>
@@ -91,6 +89,15 @@ export default function CreateChannelScreen() {
           </View>
         )}
         <PlaceSearchBar onSelect={(p) => setBase({ lng: p.lng, lat: p.lat, label: p.label })} />
+
+        <Text style={styles.section}>{t('channels.radiusLabel', { defaultValue: 'Rayon de la zone' })}</Text>
+        <View style={styles.radiusRow}>
+          {CHANNEL_RADII.map((r) => (
+            <Pressable key={r} style={[styles.radiusChip, radiusKm === r && styles.radiusChipActive]} onPress={() => setRadiusKm(r)}>
+              <Text style={[styles.radiusChipText, radiusKm === r && styles.radiusChipTextActive]}>{r} km</Text>
+            </Pressable>
+          ))}
+        </View>
 
         <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom du canal' })}</Text>
         <TextInput
@@ -146,6 +153,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headerTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl + 80 },
   section: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.lg, marginBottom: spacing.sm },
+  radiusRow: { flexDirection: 'row', gap: spacing.xs + 2 },
+  radiusChip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 1 },
+  radiusChipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  radiusChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  radiusChipTextActive: { color: '#FFFFFF' },
   chosenPlaceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   chosenPlace: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', flexShrink: 1 },
   placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },

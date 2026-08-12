@@ -1,11 +1,14 @@
 import { supabase } from './supabase';
 
+export const CHANNEL_RADII = [20, 35, 50] as const;
+
 export interface ChannelDraft {
-  sportKeys: string[];              // 1–3
+  sportKey: string;
   name: string;
-  baseLng: number | null;          // null = placeless channel
-  baseLat: number | null;
-  baseLabel: string | null;
+  baseLng: number;                 // zone centre (required)
+  baseLat: number;
+  baseLabel: string;
+  radiusKm: number;                // 20 | 35 | 50 — the zone's territory
   description: string | null;
   force?: boolean;
 }
@@ -18,8 +21,9 @@ export interface CreateChannelResult {
 export interface ChannelListItem {
   conversation_id: string;
   name: string;
-  sport_keys: string[];
-  base_label: string | null;
+  sport_key: string;
+  base_label: string;
+  radius_km: number;
   description: string | null;
   distance_km: number | null;
   member_count: number;
@@ -30,10 +34,11 @@ export interface ChannelListItem {
 export interface ChannelDetail {
   conversation_id: string;
   name: string;
-  sport_keys: string[];
-  base_lng: number | null;
-  base_lat: number | null;
-  base_label: string | null;
+  sport_key: string;
+  base_lng: number;
+  base_lat: number;
+  base_label: string;
+  radius_km: number;
   description: string | null;
   member_count: number;
   is_member: boolean;
@@ -55,17 +60,17 @@ export interface SearchChannelsFilters {
   sportKey?: string | null;
   nearLng?: number | null;
   nearLat?: number | null;
-  radiusKm?: number | null;
 }
 
 export const channelService = {
   create: async (d: ChannelDraft): Promise<CreateChannelResult> => {
     const { data, error } = await supabase.rpc('create_channel', {
-      p_sport_keys: d.sportKeys,
+      p_sport_key: d.sportKey,
       p_name: d.name,
-      p_base_lng: d.baseLng as unknown as number, // DB accepts NULL (placeless)
-      p_base_lat: d.baseLat as unknown as number,
-      p_base_label: d.baseLabel as unknown as string,
+      p_base_lng: d.baseLng,
+      p_base_lat: d.baseLat,
+      p_base_label: d.baseLabel,
+      p_radius_km: d.radiusKm,
       p_description: d.description as unknown as string,
       p_force: d.force ?? false,
     });
@@ -91,7 +96,6 @@ export const channelService = {
       p_sport_key: (f.sportKey ?? null) as unknown as string,
       p_near_lng: (f.nearLng ?? null) as unknown as number,
       p_near_lat: (f.nearLat ?? null) as unknown as number,
-      p_radius_km: (f.radiusKm ?? null) as unknown as number,
     });
     if (error) throw error;
     return (data ?? []) as unknown as ChannelListItem[];
