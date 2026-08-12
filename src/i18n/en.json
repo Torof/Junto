@@ -283,6 +283,8 @@
     "away": "{{km}} km away",
     "placeLabel": "Place / area",
     "clearPlace": "clear",
+    "member": "Member",
+    "join": "Join",
     "filters": "Filters",
     "filterLocation": "Location",
     "filterRadius": "Radius",

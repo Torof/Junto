@@ -8,7 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Check, X, Car, Users, Hash } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
@@ -738,9 +738,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { paddingBottom: spacing.md },
   segments: { flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted },
-  segment: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted },
-  segmentActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  segmentText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  segment: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 3, borderRadius: radius.full, backgroundColor: colors.surfaceAlt },
+  segmentActive: { backgroundColor: colors.cta },
+  segmentText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   segmentTextActive: { color: '#FFFFFF' },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
@@ -763,8 +763,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: { borderBottomColor: colors.borderStrong },
-  tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '500' },
+  tabActive: { borderBottomColor: colors.cta },
+  tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '600' },
   tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   badge: {
     minWidth: 16, height: 16, borderRadius: radius.sm,
@@ -779,15 +779,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingLeft: spacing.md,
-    paddingRight: spacing.md,
-    gap: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 2,
+    marginHorizontal: spacing.sm,
+    gap: spacing.sm + 2,
+    borderRadius: 16,
   },
-  // Unread — same grammar as the notifications screen: light cta tint + dot.
-  rowUnread: { backgroundColor: colors.cta + '12' },
+  // Unread — floats as a soft card so the "new" block reads at a glance.
+  rowUnread: { backgroundColor: colors.surface, ...shadows.card },
   unreadDot: {
     width: 8,
     height: 8,
@@ -799,7 +798,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // activity/group squares all align on the same left rail.
   leadingBox: { width: 52, alignItems: 'center', justifyContent: 'center' },
   leadingSquare: {
-    width: 44, height: 44, borderRadius: radius.md,
+    width: 46, height: 46, borderRadius: 15,
     alignItems: 'center', justifyContent: 'center',
   },
   groupSquare: { backgroundColor: colors.surfaceAlt },
@@ -810,10 +809,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'baseline',
     gap: spacing.sm,
   },
-  name: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
-  nameUnread: { fontWeight: '700' },
-  time: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  preview: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  name: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600', letterSpacing: -0.2 },
+  nameUnread: { fontWeight: '800' },
+  time: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '600' },
+  preview: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
   previewUnread: { color: colors.textPrimary },
 
   // Section header — brutalist uppercase label above each request kind.

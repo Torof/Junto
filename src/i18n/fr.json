@@ -283,6 +283,8 @@
     "away": "à {{km}} km",
     "placeLabel": "Lieu / secteur",
     "clearPlace": "retirer",
+    "member": "Membre",
+    "join": "Rejoindre",
     "filters": "Filtres",
     "filterLocation": "Localisation",
     "filterRadius": "Rayon",

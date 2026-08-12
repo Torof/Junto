@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { Car, Bike, Footprints, Bus, Zap } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { discoveryService, type DiscoveryCard, type DispoIntent, type TransportMode } from '@/services/discovery-service';
 import { conversationService } from '@/services/conversation-service';
@@ -174,22 +174,22 @@ export function DiscoveryView() {
         )}
       </View>
 
-      <View style={styles.cardDivider} />
-
       <View style={styles.actions}>
-        <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
-          <Text style={styles.link}>{t('discovery.viewProfile', { defaultValue: 'Voir profil' })}</Text>
+        <Pressable style={styles.btnGhost} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
+          <Text style={styles.btnGhostText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
         </Pressable>
-        <Pressable onPress={() => setInviteTargetId(item.user_id)} disabled={contacted.has(item.user_id)}>
-          <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
-            {t('discovery.invite', { defaultValue: 'Inviter' })}
-          </Text>
+        <Pressable style={[styles.btnGhost, contacted.has(item.user_id) && styles.btnDisabled]} onPress={() => setInviteTargetId(item.user_id)} disabled={contacted.has(item.user_id)}>
+          <Text style={styles.btnGhostText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
         </Pressable>
-        <Pressable onPress={() => handleContact(item.user_id)} disabled={contacted.has(item.user_id)}>
-          <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
-            {contacted.has(item.user_id) ? t('discovery.contactedShort', { defaultValue: 'Demande envoyée' }) : t('discovery.contact', { defaultValue: 'Contacter' })}
-          </Text>
-        </Pressable>
+        {contacted.has(item.user_id) ? (
+          <View style={styles.btnSent}>
+            <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Demande envoyée' })}</Text>
+          </View>
+        ) : (
+          <Pressable style={styles.btnPrimary} onPress={() => handleContact(item.user_id)}>
+            <Text style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -310,36 +310,42 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   empty: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
   emptyTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', textAlign: 'center' },
   emptyBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22 },
-  cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.xl, marginTop: spacing.md },
+  cta: { backgroundColor: colors.cta, borderRadius: 14, paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.xl, marginTop: spacing.md, ...shadows.card },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
-  myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '0D' },
+  myDispoWrap: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
-  matchesLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingVertical: spacing.sm },
+  matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingVertical: spacing.sm, paddingHorizontal: 2 },
   noMatches: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
-  list: { padding: spacing.md },
-  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
-  cardSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
-  cardDivider: { height: 1, backgroundColor: colors.line },
-  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
-  sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
+  list: { padding: spacing.md, gap: spacing.md },
+  card: { backgroundColor: colors.surface, borderRadius: 18, padding: spacing.md, gap: spacing.sm, ...shadows.card },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  cardName: { color: colors.textPrimary, fontSize: fontSizes.md + 1, fontWeight: '800', letterSpacing: -0.2 },
+  cardSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, fontWeight: '600' },
+  cardDivider: { height: 1, backgroundColor: colors.line, marginVertical: 2 },
+  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
   infoRows: { gap: spacing.sm },
-  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  infoLabel: { width: 62, color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  infoLabel: { width: 62, color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, paddingTop: 2 },
   infoValue: { flex: 1, minWidth: 0 },
-  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 3 },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
-  zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', textDecorationLine: 'underline' },
-  actions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
-  link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
-  linkDone: { color: colors.textSecondary, textDecorationLine: 'none' },
-  linkDanger: { color: colors.error },
+  zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
+  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  btnGhost: { flex: 1, alignItems: 'center', backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  btnPrimary: { flex: 1, alignItems: 'center', backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3, ...shadows.card },
+  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
+  btnDisabled: { opacity: 0.45 },
+  btnSent: { flex: 1, alignItems: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  linkDanger: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '800' },
   modalBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: colors.background,

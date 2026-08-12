@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Plus, Users, SlidersHorizontal, MapPin, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { channelService, type ChannelListItem } from '@/services/channel-service';
 import { SportDropdown } from '@/components/sport-dropdown';
@@ -52,22 +52,28 @@ export function ChannelsView() {
   };
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
+    const cat = sportById.get(item.sport_key)?.category;
+    const tint = sportCategoryColor(cat, colors.cta);
     const zone = `${item.base_label} · ${item.radius_km} km${item.distance_km != null ? ` · ${t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}` : ''}`;
     return (
       <Pressable style={styles.row} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
+        <View style={[styles.thumb, { backgroundColor: tint + '22' }]}>
+          <Text style={styles.thumbIcon}>{getSportIcon(item.sport_key)}</Text>
+        </View>
         <View style={styles.rowMain}>
           <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
-          <View style={styles.rowMeta}>
-            <View style={[styles.sportPill, { backgroundColor: sportCategoryColor(sportById.get(item.sport_key)?.category, colors.cta) }]}>
-              <Text style={styles.sportPillText}>{getSportIcon(item.sport_key)} {t(`sports.${item.sport_key}`, { defaultValue: item.sport_key })}</Text>
-            </View>
-            <Text style={styles.rowPlace} numberOfLines={1}>{zone}</Text>
-          </View>
+          <Text style={styles.rowPlace} numberOfLines={1}>{zone}</Text>
         </View>
-        <View style={styles.rowCount}>
-          <Users size={13} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.rowCountText}>{item.member_count}</Text>
-          {item.is_member && <View style={styles.memberDot} />}
+        <View style={styles.rowRight}>
+          <View style={styles.rowCount}>
+            <Users size={13} color={colors.textSecondary} strokeWidth={2.4} />
+            <Text style={styles.rowCountText}>{item.member_count}</Text>
+          </View>
+          <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
+            <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
+              {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
+            </Text>
+          </View>
         </View>
       </Pressable>
     );
@@ -168,12 +174,12 @@ export function ChannelsView() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  filters: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted, paddingBottom: spacing.sm },
+  filters: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.sm },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, height: 42 },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderRadius: 14, paddingHorizontal: spacing.md, height: 46, ...shadows.card },
   searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, padding: 0 },
-  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 42, paddingHorizontal: spacing.md, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, backgroundColor: colors.surface },
-  filterBtnActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 46, paddingHorizontal: spacing.md, borderRadius: 14, backgroundColor: colors.surface, ...shadows.card },
+  filterBtnActive: { backgroundColor: colors.cta },
   filterBtnCount: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
   chip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5 },
   chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
@@ -194,18 +200,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetApply: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.lg },
   sheetApplyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: spacing.md, paddingBottom: 96 },
+  list: { padding: spacing.md, gap: spacing.sm + 2, paddingBottom: 100 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.lg, backgroundColor: colors.surface, padding: spacing.md, marginBottom: spacing.sm },
-  rowMain: { flex: 1, minWidth: 0, gap: spacing.xs },
-  rowName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
-  rowMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3 },
-  sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
-  rowPlace: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, borderRadius: 18, backgroundColor: colors.surface, padding: spacing.sm + 4, ...shadows.card },
+  thumb: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  thumbIcon: { fontSize: 24 },
+  rowMain: { flex: 1, minWidth: 0, gap: 2 },
+  rowName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2 },
+  rowPlace: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
+  rowRight: { alignItems: 'flex-end', gap: spacing.xs + 2 },
   rowCount: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rowCountText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
-  memberDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cta, marginLeft: 4 },
-  fab: { position: 'absolute', right: spacing.md, bottom: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2, ...(colors ? {} : {}) },
+  rowCountText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
+  tag: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 1, paddingVertical: 3 },
+  tagMember: { backgroundColor: colors.cta + '22' },
+  tagMemberText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  tagJoin: { backgroundColor: colors.cta },
+  tagJoinText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  fab: { position: 'absolute', right: spacing.md, bottom: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 3, ...shadows.raised },
   fabText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
 });
