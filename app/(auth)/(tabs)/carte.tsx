@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Trophy, Search } from 'lucide-react-native';
+import { X, MapPin, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivitySheet } from '@/components/activity-sheet';
 import { ProSheet } from '@/components/pro-sheet';
@@ -135,8 +135,6 @@ export default function CarteScreen() {
   // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
   // AND offering pins (RA). It used to hide only the offerings.
   const filteredProsByType = showProOfferings ? (pros ?? []) : [];
-  // Sparse map = surface Discovery ("Rien autour ?") — value ∝ 1/density.
-  const sparse = (filteredActivitiesByType.length + filteredProsByType.length + filteredOfferingsByType.length) < 3;
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -299,21 +297,6 @@ export default function CarteScreen() {
             <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
             <CompassButton heading={heading} onPress={() => setResetBearingKey((k) => k + 1)} />
           </>
-        )}
-
-        {/* Contextual Discovery hook — Junto's value is inverse to activity
-            density, so we surface "who's dispo" exactly when the map reads
-            empty. Discreet bottom-centre pill, clear of the right-edge button
-            stack; hidden under a preview or the raised list. (Discovery §117) */}
-        {!previewOpen && !listOpen && sparse && (
-          <View style={styles.discoveryHookWrap} pointerEvents="box-none">
-            <Pressable style={styles.discoveryHook} onPress={() => router.push('/(auth)/(tabs)/partenaires?tab=discovery')} hitSlop={8}>
-              <Search size={15} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.discoveryHookText} numberOfLines={1}>
-                {t('discovery.mapHook', { defaultValue: 'Rien autour ? Vois qui est dispo' })}
-              </Text>
-            </Pressable>
-          </View>
         )}
 
         {/* Top-left controls row — filters chip + map style icon
@@ -599,32 +582,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  discoveryHookWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 32,
-    alignItems: 'center',
-    zIndex: 15,
-  },
-  discoveryHook: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    maxWidth: '78%',
-  },
-  discoveryHookText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    flexShrink: 1,
   },
   topControls: {
     position: 'absolute',
