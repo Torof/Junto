@@ -88,10 +88,11 @@ export function DiscoveryView() {
 
   const sportPill = (key: string, level?: string) => {
     const cat = sportById.get(key)?.category;
+    const c = sportCategoryColor(cat, colors.cta);
     const showLevel = level && level !== OPEN_LEVEL;
     return (
-      <View key={key} style={[styles.sportPill, { backgroundColor: sportCategoryColor(cat, colors.cta) }]}>
-        <Text style={styles.sportPillText}>
+      <View key={key} style={[styles.sportPill, { backgroundColor: c + '22' }]}>
+        <Text style={[styles.sportPillText, { color: c }]}>
           {getSportIcon(key)} {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
         </Text>
       </View>
@@ -150,31 +151,32 @@ export function DiscoveryView() {
 
       <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
 
-      <View style={styles.cardDivider} />
-
-      <View style={styles.infoRows}>
-        <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
-          <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
-        </Row>
-        <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
-          <View style={styles.radiusValue}>
-            <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
-            <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
-              <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
-            </Pressable>
-          </View>
-        </Row>
-        <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
-          {transportIcons(item.transport_modes)}
-        </Row>
-        {item.intent && item.intent.length > 0 && (
-          <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
-            {intentChips(item.intent)}
+      <CollapsibleSection
+        title={t('discovery.details', { defaultValue: 'Détails' })}
+        summary={`${formatPeriod(item.window_start, item.window_end)} · ${radiusText(item.radius_km)}`}
+      >
+        <View style={styles.infoRows}>
+          <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
+            <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
           </Row>
-        )}
-      </View>
-
-      <View style={styles.cardDivider} />
+          <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
+            <View style={styles.radiusValue}>
+              <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
+              <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
+                <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+              </Pressable>
+            </View>
+          </Row>
+          <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
+            {transportIcons(item.transport_modes)}
+          </Row>
+          {item.intent && item.intent.length > 0 && (
+            <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+              {intentChips(item.intent)}
+            </Row>
+          )}
+        </View>
+      </CollapsibleSection>
 
       <View style={styles.actions}>
         <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
@@ -317,14 +319,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   matchesLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingVertical: spacing.sm },
   noMatches: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
   list: { padding: spacing.md },
-  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: 18, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
   cardDivider: { height: 1, backgroundColor: colors.line },
-  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
-  sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
+  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  sportPillText: { fontSize: fontSizes.xs, fontWeight: '800' },
   infoRows: { gap: spacing.sm },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   infoLabel: { width: 62, color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },

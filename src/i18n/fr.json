@@ -205,6 +205,7 @@
   "discovery": {
     "title": "Découverte",
     "myDispoTitle": "Ta dispo",
+    "details": "Détails",
     "row": {
       "sports": "Sports",
       "place": "Lieu",

@@ -205,6 +205,7 @@
   "discovery": {
     "title": "Discovery",
     "myDispoTitle": "Your availability",
+    "details": "Details",
     "row": {
       "sports": "Sports",
       "place": "Place",
