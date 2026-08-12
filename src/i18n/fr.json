@@ -320,7 +320,8 @@
   },
   "menu": {
     "discovery": "Découverte",
-    "channels": "Canaux"
+    "channels": "Canaux",
+    "mesActivites": "Mes sorties"
   },
   "errors": {
     "network": "Problème de connexion — vérifie ton internet.",

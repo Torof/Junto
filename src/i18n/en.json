@@ -320,7 +320,8 @@
   },
   "menu": {
     "discovery": "Discovery",
-    "channels": "Channels"
+    "channels": "Channels",
+    "mesActivites": "My outings"
   },
   "errors": {
     "code": {

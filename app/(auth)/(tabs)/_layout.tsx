@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, CalendarDays, MessageSquare, Menu, Users, Search, type LucideIcon } from 'lucide-react-native';
+import { Map, MessageSquare, Menu, Users, Search, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -180,13 +180,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <PartnersTabIcon focused={focused} />,
         }}
       />
-      <Tabs.Screen
-        name="mes-activites"
-        options={{
-          title: t('tabs.mesActivites'),
-          tabBarIcon: ({ focused }) => <TabIcon icon={CalendarDays} focused={focused} />,
-        }}
-      />
+      {/* Mes activités absorbed into the menu (navbar refonte lot 3) — off the
+          bar, route alive. */}
+      <Tabs.Screen name="mes-activites" options={{ title: t('tabs.mesActivites'), href: null }} />
       {/* Notifications folded into the messaging hub (navbar refonte 2026-08-12).
           Route kept off the bar so any direct navigation still resolves. */}
       <Tabs.Screen name="notifications" options={{ href: null }} />
