@@ -307,7 +307,7 @@ export default function CarteScreen() {
             stack; hidden under a preview or the raised list. (Discovery §117) */}
         {!previewOpen && !listOpen && sparse && (
           <View style={styles.discoveryHookWrap} pointerEvents="box-none">
-            <Pressable style={styles.discoveryHook} onPress={() => router.push('/(auth)/discovery')} hitSlop={8}>
+            <Pressable style={styles.discoveryHook} onPress={() => router.push('/(auth)/(tabs)/partenaires?tab=discovery')} hitSlop={8}>
               <Search size={15} color={colors.cta} strokeWidth={2.4} />
               <Text style={styles.discoveryHookText} numberOfLines={1}>
                 {t('discovery.mapHook', { defaultValue: 'Rien autour ? Vois qui est dispo' })}

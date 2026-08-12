@@ -1,6 +1,7 @@
 {
   "tabs": {
     "carte": "Carte",
+    "partenaires": "Partenaires",
     "mesActivites": "Mes sorties",
     "messagerie": "Messagerie",
     "notifications": "Notifications",
@@ -312,6 +313,10 @@
     "closedDone": "Canal fermé",
     "members": "Membres",
     "creatorTag": "Animateur"
+  },
+  "partenaires": {
+    "discovery": "Découverte",
+    "channels": "Canaux"
   },
   "menu": {
     "discovery": "Découverte",

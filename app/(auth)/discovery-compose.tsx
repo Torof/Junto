@@ -121,7 +121,7 @@ export default function DiscoveryComposeScreen() {
       await queryClient.invalidateQueries({ queryKey: ['my-dispo'] });
       await queryClient.invalidateQueries({ queryKey: ['discovery-cards'] });
       Burnt.toast({ title: t('discovery.activated', { defaultValue: 'Ta dispo est active' }), preset: 'done' });
-      router.replace('/(auth)/discovery');
+      router.replace('/(auth)/(tabs)/partenaires?tab=discovery');
     } catch (e) {
       Burnt.toast({ title: getFriendlyError(e, 'generic') });
       setSaving(false);

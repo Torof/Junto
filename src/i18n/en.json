@@ -1,6 +1,7 @@
 {
   "tabs": {
     "carte": "Map",
+    "partenaires": "Partners",
     "mesActivites": "My outings",
     "messagerie": "Messages",
     "notifications": "Notifications",
@@ -312,6 +313,10 @@
     "closedDone": "Channel closed",
     "members": "Members",
     "creatorTag": "Host"
+  },
+  "partenaires": {
+    "discovery": "Discovery",
+    "channels": "Channels"
   },
   "menu": {
     "discovery": "Discovery",

@@ -1,6 +1,8 @@
 # Sprint — Canaux de discussion (Discovery « gros », v2 activée)
 
-**Statut : conception validée (Scott 2026-08-09), build phase 1 en cours.**
+**Statut : conception validée (Scott 2026-08-09), PHASE 1 CONSTRUITE (sur preview).**
+
+Phase 1 livrée (2026-08-09) : mig 00381 (table channels + widening name CHECK) · 00382 (channel_bans + create/join/leave/search) · 00383 (rename/remove_member/close + delete_message ext + read-only trigger) · 00384 (hub + get_channel) · 00385 (get_channel_members). Client : `channels.tsx` (liste), `create-channel.tsx` (form + dédup), `conversation/[id]` (vue canal : en-tête, join-gating, lecture seule si fermé, sheet animateur rename/close/membres+retrait), hub + menu « Canaux ». i18n FR+EN complet. **Reste = phase 2** (proposer une sortie + surfaçage carte).
 
 Active la brique parkée du PLAN (« Discovery gros = canaux ouverts + propositions de sortie, façon Summeet, distincts des groupes privés »). Le type `conversations.type='channel'` était **réservé** (mig 00353) — on construit dessus, on ne recrée pas de système.
 

@@ -1,6 +1,6 @@
-import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet, Modal } from 'react-native';
-import { useRouter, useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -32,12 +32,11 @@ const INTENT_LABEL: Record<DispoIntent, string> = {
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
 
-export default function DiscoveryScreen() {
+export function DiscoveryView() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
-  const navigation = useNavigation();
   const queryClient = useQueryClient();
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
@@ -48,9 +47,6 @@ export default function DiscoveryScreen() {
     enabled: !!inviteTargetId,
   });
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: t('discovery.title', { defaultValue: 'Découverte' }) });
-  }, [navigation, t]);
 
   const { data: sports } = useSports();
   const sportById = useMemo(() => new Map((sports ?? []).map((s) => [s.key, s])), [sports]);

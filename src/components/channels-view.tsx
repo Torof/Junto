@@ -1,6 +1,6 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, StyleSheet, Modal } from 'react-native';
-import { useRouter, useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Plus, Users, SlidersHorizontal, MapPin, X } from 'lucide-react-native';
@@ -17,12 +17,11 @@ import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 
-export default function ChannelsScreen() {
+export function ChannelsView() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
-  const navigation = useNavigation();
 
   const { currentLocation } = useInitialLocation();
 
@@ -31,9 +30,6 @@ export default function ChannelsScreen() {
   const [near, setNear] = useState<{ lng: number; lat: number; label: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: t('channels.title', { defaultValue: 'Canaux' }) });
-  }, [navigation, t]);
 
   const { data: sports } = useSports();
   const sportById = useMemo(() => new Map((sports ?? []).map((s) => [s.key, s])), [sports]);
