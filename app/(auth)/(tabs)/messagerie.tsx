@@ -467,11 +467,14 @@ export default function MessagerieScreen() {
               let onPress: () => void;
               let onLongPress: (() => void) | undefined;
 
+              // Sport of an activity or channel thread (shown as a small label).
+              const rowSport = (item.type === 'activity' || item.type === 'channel') && item.sport_id
+                ? sportMap.get(item.sport_id) : undefined;
+
               if (item.type === 'activity') {
-                const sport = item.sport_id ? sportMap.get(item.sport_id) : undefined;
                 leading = (
-                  <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(sport?.category, colors.cta) }]}>
-                    <Text style={styles.squareEmoji}>{sport ? getSportIcon(sport.key) : '📍'}</Text>
+                  <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(rowSport?.category, colors.cta) + '22' }]}>
+                    <Text style={styles.squareEmoji}>{rowSport ? getSportIcon(rowSport.key) : '📍'}</Text>
                   </View>
                 );
                 title = item.activity_title ?? t('messagerie.activityThread');
@@ -523,6 +526,11 @@ export default function MessagerieScreen() {
                       {isUnread && <View style={styles.unreadDot} />}
                       {time && <Text style={styles.time}>{time}</Text>}
                     </View>
+                    {rowSport && (
+                      <Text style={styles.sportLabel} numberOfLines={1}>
+                        {getSportIcon(rowSport.key)} {t(`sports.${rowSport.key}`, { defaultValue: rowSport.key })}
+                      </Text>
+                    )}
                     {preview && (
                       <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{preview}</Text>
                     )}
@@ -812,6 +820,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   name: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600', letterSpacing: -0.2 },
   nameUnread: { fontWeight: '800' },
   time: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '600' },
+  sportLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
   preview: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
   previewUnread: { color: colors.textPrimary },
 
