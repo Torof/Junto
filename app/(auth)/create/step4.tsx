@@ -12,6 +12,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { useCreateStore } from '@/store/create-store';
+import { messageService } from '@/services/message-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { InvitePartnersSheet } from '@/components/invite-partners-sheet';
 import { activityService } from '@/services/activity-service';
@@ -25,7 +26,7 @@ export default function CreateStep4() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { form, resetForm, updateForm } = useCreateStore();
+  const { form, resetForm, updateForm, shareToConversationId, setShareTo } = useCreateStore();
   const [isLoading, setIsLoading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -72,8 +73,21 @@ export default function CreateStep4() {
       haptic.success();
       const isPrivate = form.visibility === 'private_link' || form.visibility === 'private_link_approval';
       const title = form.title;
+      const shareTo = shareToConversationId; // capture before reset
       resetForm();
+      setShareTo(null);
       Burnt.toast({ title: t('toast.activityCreated'), preset: 'done' });
+
+      // Proposed from a channel → post the outing card into that conversation
+      // (best-effort; the activity already exists) and land there.
+      if (shareTo) {
+        try { await messageService.shareActivity(shareTo, activityId); } catch { /* activity exists */ }
+        await queryClient.invalidateQueries({ queryKey: ['messages', shareTo] });
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        router.dismissAll();
+        router.navigate(`/(auth)/conversation/${shareTo}` as never);
+        return;
+      }
 
       if (isPrivate) {
         // Best-effort: the activity is already created. A token-fetch or share

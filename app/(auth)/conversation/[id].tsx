@@ -38,6 +38,7 @@ import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
+import { useSports } from '@/hooks/use-sports';
 import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus } from 'lucide-react-native';
 
 export default function ConversationScreen() {
@@ -138,6 +139,8 @@ export default function ConversationScreen() {
     staleTime: 30_000,
   });
   const isChannel = !!channelInfo;
+  const { data: sportsList } = useSports();
+  const sportIdByKey = useMemo(() => new Map((sportsList ?? []).map((s) => [s.key, s.id])), [sportsList]);
   const channelIsMember = channelInfo?.is_member === true;
   const channelIsCreator = channelInfo?.is_creator === true;
   const channelClosed = channelInfo?.is_closed === true;
@@ -793,18 +796,30 @@ export default function ConversationScreen() {
               <RouteIcon size={20} color={colors.textPrimary} strokeWidth={2.2} />
               <Text style={styles.menuLabel}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</Text>
             </Pressable>
-            {/* Create an outing from the chat — prefills the peer as an invitee (4e-2). */}
+            {/* Create an outing from the chat. Channels: prefill the sport + post
+                the card back into the channel on publish. DM/group: prefill the
+                peer(s) as invitees (4e-2). */}
             <Pressable style={styles.menuRow} onPress={() => {
               setAttachMenuOpen(false);
               useCreateStore.getState().resetForm();
-              const invitees = isGroup && groupInfo
-                ? groupInfo.members.map((m) => m.id).filter((mid) => mid !== currentUser)
-                : (convMeta?.profile?.id ? [convMeta.profile.id] : []);
-              if (invitees.length) useCreateStore.getState().updateForm({ invitees });
+              if (isChannel && channelInfo) {
+                const sid = sportIdByKey.get(channelInfo.sport_key);
+                if (sid) useCreateStore.getState().updateForm({ sport_id: sid });
+                useCreateStore.getState().setShareTo(id!);
+              } else {
+                const invitees = isGroup && groupInfo
+                  ? groupInfo.members.map((m) => m.id).filter((mid) => mid !== currentUser)
+                  : (convMeta?.profile?.id ? [convMeta.profile.id] : []);
+                if (invitees.length) useCreateStore.getState().updateForm({ invitees });
+              }
               router.push('/(auth)/create/step1');
             }}>
               <Plus size={20} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.menuLabel}>{t('messagerie.createOutingFromChat', { defaultValue: 'Créer une sortie' })}</Text>
+              <Text style={styles.menuLabel}>
+                {isChannel
+                  ? t('messagerie.proposeOutingFromChannel', { defaultValue: 'Proposer une sortie' })
+                  : t('messagerie.createOutingFromChat', { defaultValue: 'Créer une sortie' })}
+              </Text>
             </Pressable>
           </Pressable>
         </Pressable>

@@ -30,6 +30,10 @@ interface CreateStore {
   form: CreateFormState;
   updateForm: (updates: Partial<CreateFormState>) => void;
   resetForm: () => void;
+  // When an activity is created from a channel ("Proposer une sortie"), post its
+  // card into that conversation on publish, then land there. Cleared on consume.
+  shareToConversationId: string | null;
+  setShareTo: (conversationId: string | null) => void;
 }
 
 const DEFAULT_FORM: CreateFormState = {
@@ -59,5 +63,9 @@ export const useCreateStore = create<CreateStore>((set) => ({
   form: DEFAULT_FORM,
   updateForm: (updates) =>
     set((state) => ({ form: { ...state.form, ...updates } })),
-  resetForm: () => set({ form: DEFAULT_FORM }),
+  // resetForm also clears the channel post-back target, so an abandoned
+  // "Proposer une sortie" never leaks into a later normal creation.
+  resetForm: () => set({ form: DEFAULT_FORM, shareToConversationId: null }),
+  shareToConversationId: null,
+  setShareTo: (conversationId) => set({ shareToConversationId: conversationId }),
 }));
