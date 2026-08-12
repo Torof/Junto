@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Compass, Hash } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -23,11 +24,13 @@ export default function PartenairesScreen() {
     <View style={styles.container}>
       <View style={styles.segments}>
         <Pressable style={[styles.segment, sub === 'discovery' && styles.segmentActive]} onPress={() => setSub('discovery')}>
+          <Compass size={16} color={sub === 'discovery' ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.2} />
           <Text style={[styles.segmentText, sub === 'discovery' && styles.segmentTextActive]}>
             {t('partenaires.discovery', { defaultValue: 'Découverte' })}
           </Text>
         </Pressable>
         <Pressable style={[styles.segment, sub === 'channels' && styles.segmentActive]} onPress={() => setSub('channels')}>
+          <Hash size={16} color={sub === 'channels' ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.2} />
           <Text style={[styles.segmentText, sub === 'channels' && styles.segmentTextActive]}>
             {t('partenaires.channels', { defaultValue: 'Canaux' })}
           </Text>
@@ -52,7 +55,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   segment: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
     borderWidth: 1,
