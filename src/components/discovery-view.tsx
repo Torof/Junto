@@ -139,10 +139,24 @@ export function DiscoveryView() {
     km ? `${km} km` : t('discovery.radiusAny', { defaultValue: 'Peu importe' });
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
+  // Mirror the ReliabilityRing tier→color so the pill matches the ring.
+  const tierColor = (tier: DiscoveryCard['reliability_tier']): string => {
+    switch (tier) {
+      case 'excellent':
+      case 'good':
+        return colors.success;
+      case 'fair':
+      case 'poor':
+        return colors.warning;
+      default:
+        return colors.textSecondary;
+    }
+  };
 
   const renderCard = ({ item }: { item: DiscoveryCard }) => {
     const expanded = openDetails.has(item.user_id);
     const done = contacted.has(item.user_id);
+    const relColor = tierColor(item.reliability_tier);
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
@@ -155,7 +169,9 @@ export function DiscoveryView() {
             <View style={styles.nameRow}>
               <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
               {item.reliability_tier ? (
-                <View style={styles.relChip}><Text style={styles.relChipText}>{t(`reliability.tier.${item.reliability_tier}`)}</Text></View>
+                <View style={[styles.relChip, { backgroundColor: relColor + '22' }]}>
+                  <Text style={[styles.relChipText, { color: relColor }]}>{t(`reliability.tier.${item.reliability_tier}`)}</Text>
+                </View>
               ) : null}
             </View>
             <View style={styles.subRow}>
@@ -423,8 +439,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minWidth: 0 },
   cardName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.3, flexShrink: 1 },
-  relChip: { backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
-  relChipText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
@@ -443,7 +459,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
   intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
