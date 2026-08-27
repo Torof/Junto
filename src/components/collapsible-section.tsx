@@ -11,18 +11,21 @@ interface Props {
   // (e.g. "3 sports", "50 km", "Cette semaine"). null → nothing.
   summary?: string | null;
   defaultExpanded?: boolean;
+  // Bottom divider line (default true). Set false when the section sits inside
+  // its own bordered container (e.g. the "Ta dispo" panel).
+  bordered?: boolean;
   children: ReactNode;
 }
 
 // A filter section: tappable header with a chevron that expands/collapses the
 // body. Collapsed by default; the header shows a summary of the current choice.
-export function CollapsibleSection({ title, summary, defaultExpanded = false, children }: Props) {
+export function CollapsibleSection({ title, summary, defaultExpanded = false, bordered = true, children }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, !bordered && { borderBottomWidth: 0 }]}>
       <Pressable style={styles.header} onPress={() => setExpanded((e) => !e)}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.right}>
