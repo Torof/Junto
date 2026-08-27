@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { fontSizes } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { reliabilityColorForScore } from '@/utils/reliability-color';
 
 type Tier = 'excellent' | 'good' | 'fair' | 'poor' | 'new';
 
@@ -18,13 +19,6 @@ interface Props {
   strokeWidth?: number;
   showLabel?: boolean;
   children: React.ReactNode;
-}
-
-function colorFor(score: number, colors: AppColors): string {
-  if (score >= 75) return colors.success;
-  if (score >= 50) return colors.warning;
-  if (score >= 25) return colors.warning;
-  return colors.error;
 }
 
 function tierToScore(tier: string): number | null {
@@ -54,7 +48,7 @@ export function ReliabilityRing({ score, tier, size, strokeWidth = 10, showLabel
   const clamped = effectiveScore !== null ? Math.max(0, Math.min(100, effectiveScore)) : 0;
   const progress = clamped / 100;
   const filledLength = arcLength * progress;
-  const ringColor = effectiveScore !== null ? colorFor(clamped, colors) : colors.surface;
+  const ringColor = effectiveScore !== null ? reliabilityColorForScore(clamped, colors) : colors.surface;
 
   // Gap is on the right side (3-o'clock position). Arc starts just after
   // the gap and goes clockwise around to just before the gap.

@@ -17,6 +17,7 @@ import { ReliabilityRing } from '@/components/reliability-ring';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { reliabilityColorForTier } from '@/utils/reliability-color';
 import { getSportIcon } from '@/constants/sport-icons';
 import { OPEN_LEVEL } from '@/constants/sport-levels';
 import { useSports } from '@/hooks/use-sports';
@@ -139,24 +140,10 @@ export function DiscoveryView() {
     km ? `${km} km` : t('discovery.radiusAny', { defaultValue: 'Peu importe' });
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
-  // Mirror the ReliabilityRing tier→color so the pill matches the ring.
-  const tierColor = (tier: DiscoveryCard['reliability_tier']): string => {
-    switch (tier) {
-      case 'excellent':
-      case 'good':
-        return colors.success;
-      case 'fair':
-      case 'poor':
-        return colors.warning;
-      default:
-        return colors.textSecondary;
-    }
-  };
-
   const renderCard = ({ item }: { item: DiscoveryCard }) => {
     const expanded = openDetails.has(item.user_id);
     const done = contacted.has(item.user_id);
-    const relColor = tierColor(item.reliability_tier);
+    const relColor = reliabilityColorForTier(item.reliability_tier, colors);
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
