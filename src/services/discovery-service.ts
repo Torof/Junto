@@ -1,8 +1,15 @@
 import { supabase } from './supabase';
 
 export type TransportMode = 'car' | 'motorbike' | 'bike' | 'on_foot' | 'public_transport';
-export type DispoIntent = 'discovery' | 'progression' | 'performance' | 'detente' | 'conviviality';
-export const DISPO_INTENTS: DispoIntent[] = ['discovery', 'progression', 'performance', 'detente', 'conviviality'];
+// "Vibe pills" — one unified, closed set (ambiance + compagnie + rythme), ≤6.
+// Kept on the `intent` column server-side. GIN-indexed for future matching.
+export type DispoIntent =
+  | 'discovery' | 'progression' | 'performance' | 'detente' | 'conviviality'
+  | 'dog' | 'child' | 'group' | 'solo' | 'active' | 'calm' | 'early';
+export const DISPO_INTENTS: DispoIntent[] = [
+  'discovery', 'progression', 'performance', 'detente', 'conviviality',
+  'dog', 'child', 'group', 'solo', 'active', 'calm', 'early',
+];
 
 export interface DispoDraft {
   sportKeys: string[];              // 1–3

@@ -26,8 +26,10 @@ const TRANSPORT_ICON: Record<TransportMode, typeof Car> = {
   car: Car, motorbike: Zap, bike: Bike, on_foot: Footprints, public_transport: Bus,
 };
 const INTENT_LABEL: Record<DispoIntent, string> = {
-  discovery: 'Découverte', progression: 'Progression', performance: 'Performance',
-  detente: 'Détente', conviviality: 'Convivialité',
+  discovery: '🧭 Découverte', progression: '📈 Progression', performance: '🔥 Performance',
+  detente: '🍃 Détente', conviviality: '🤝 Convivialité',
+  dog: '🐕 Chien', child: '👶 Enfant', group: '👥 En groupe', solo: '🧍 Solo',
+  active: '⚡ Actif', calm: '😌 Calme', early: '🌅 Matinal',
 };
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;

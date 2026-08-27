@@ -28,13 +28,29 @@ const MODES: { key: TransportMode; icon: typeof Car; label: string }[] = [
   { key: 'on_foot', icon: Footprints, label: 'À pied' },
   { key: 'public_transport', icon: Bus, label: 'Transports' },
 ];
-const INTENTS: { key: DispoIntent; label: string }[] = [
-  { key: 'discovery', label: 'Découverte' },
-  { key: 'progression', label: 'Progression' },
-  { key: 'performance', label: 'Performance' },
-  { key: 'detente', label: 'Détente' },
-  { key: 'conviviality', label: 'Convivialité' },
+// Vibe pills grouped for the picker (shown flat on the card). Labels carry an
+// emoji for the Tinder-like feel. i18n key discovery.intent.<key> overrides.
+const VIBE_GROUPS: { group: string; groupKey: string; items: { key: DispoIntent; label: string }[] }[] = [
+  { group: 'Ambiance', groupKey: 'ambiance', items: [
+    { key: 'discovery', label: '🧭 Découverte' },
+    { key: 'progression', label: '📈 Progression' },
+    { key: 'performance', label: '🔥 Performance' },
+    { key: 'detente', label: '🍃 Détente' },
+    { key: 'conviviality', label: '🤝 Convivialité' },
+  ] },
+  { group: 'Compagnie', groupKey: 'compagnie', items: [
+    { key: 'dog', label: '🐕 Chien' },
+    { key: 'child', label: '👶 Enfant' },
+    { key: 'group', label: '👥 En groupe' },
+    { key: 'solo', label: '🧍 Solo' },
+  ] },
+  { group: 'Rythme', groupKey: 'rythme', items: [
+    { key: 'active', label: '⚡ Actif' },
+    { key: 'calm', label: '😌 Calme' },
+    { key: 'early', label: '🌅 Matinal' },
+  ] },
 ];
+const MAX_VIBES = 6;
 
 export default function DiscoveryComposeScreen() {
   const colors = useColors();
@@ -85,7 +101,7 @@ export default function DiscoveryComposeScreen() {
   const toggleMode = (m: TransportMode) => setModes((prev) =>
     prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]);
   const toggleIntent = (k: DispoIntent) => setIntent((prev) =>
-    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= 5 ? prev : [...prev, k]);
+    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_VIBES ? prev : [...prev, k]);
 
   const ready = sportKeys.length >= 1 && !!base && modes.length >= 1 && windowEnd > windowStart;
 
@@ -210,17 +226,22 @@ export default function DiscoveryComposeScreen() {
           })}
         </View>
 
-        <Text style={styles.section}>{t('discovery.intentLabel', { defaultValue: 'Ce que tu cherches (optionnel)' })}</Text>
-        <View style={styles.chipRow}>
-          {INTENTS.map(({ key, label }) => {
-            const on = intent.includes(key);
-            return (
-              <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleIntent(key)}>
-                <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <Text style={styles.section}>{t('discovery.vibesLabel', { defaultValue: 'Toi & ta sortie (optionnel)' })}</Text>
+        {VIBE_GROUPS.map(({ group, groupKey, items }) => (
+          <View key={groupKey} style={styles.vibeGroup}>
+            <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
+            <View style={styles.chipRow}>
+              {items.map(({ key, label }) => {
+                const on = intent.includes(key);
+                return (
+                  <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleIntent(key)}>
+                    <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ))}
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
@@ -240,6 +261,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
   section: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.lg, marginBottom: spacing.sm },
   chosenPlace: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginBottom: spacing.sm },
+  vibeGroup: { marginBottom: spacing.sm + 2 },
+  vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs + 1 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, alignItems: 'center' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 1 },
   chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
