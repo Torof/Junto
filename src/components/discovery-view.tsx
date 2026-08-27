@@ -386,7 +386,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   steps: { alignSelf: 'stretch', gap: spacing.sm + 2, marginTop: spacing.md },
   step: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
-    borderRadius: 16, padding: spacing.sm + 4,
+    borderRadius: 16, padding: spacing.sm + 4, borderWidth: 1, borderColor: colors.borderMuted,
     ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10 }, android: { elevation: 1 } }),
   },
   stepN: { width: 27, height: 27, borderRadius: 14, backgroundColor: colors.cta + '1A', alignItems: 'center', justifyContent: 'center' },
@@ -415,6 +415,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   list: { padding: spacing.md, paddingBottom: spacing.lg },
   card: {
     backgroundColor: colors.surface, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
+    borderWidth: 1, borderColor: colors.borderMuted,
     ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 16 }, android: { elevation: 3 } }),
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
