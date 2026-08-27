@@ -929,6 +929,7 @@ export type Database = {
           id: string
           intent: string[] | null
           is_active: boolean
+          is_demo: boolean
           levels: Json | null
           radius_km: number | null
           sport_keys: string[]
@@ -945,6 +946,7 @@ export type Database = {
           id?: string
           intent?: string[] | null
           is_active?: boolean
+          is_demo?: boolean
           levels?: Json | null
           radius_km?: number | null
           sport_keys: string[]
@@ -961,6 +963,7 @@ export type Database = {
           id?: string
           intent?: string[] | null
           is_active?: boolean
+          is_demo?: boolean
           levels?: Json | null
           radius_km?: number | null
           sport_keys?: string[]
