@@ -103,7 +103,7 @@ export function DiscoveryView() {
     const c = sportCategoryColor(cat, colors.cta);
     const showLevel = level && level !== OPEN_LEVEL;
     return (
-      <View key={key} style={[styles.sportPill, { backgroundColor: c + '22' }]}>
+      <View key={key} style={[styles.sportPill, { backgroundColor: c + '22', borderColor: c + '55' }]}>
         <Text style={[styles.sportPillText, { color: c }]}>
           {getSportIcon(key)} {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
         </Text>
@@ -156,7 +156,7 @@ export function DiscoveryView() {
             <View style={styles.nameRow}>
               <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
               {item.reliability_tier ? (
-                <View style={[styles.relChip, { backgroundColor: relColor + '22' }]}>
+                <View style={[styles.relChip, { backgroundColor: relColor + '22', borderColor: relColor + '55' }]}>
                   <Text style={[styles.relChipText, { color: relColor }]}>{t(`reliability.tier.${item.reliability_tier}`)}</Text>
                 </View>
               ) : null}
@@ -426,12 +426,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minWidth: 0 },
   cardName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.3, flexShrink: 1 },
-  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1 },
   relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6 },
+  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
 
   detailsBox: { backgroundColor: colors.surfaceAlt, borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm },
@@ -439,7 +439,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   detailsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
   detailsSummary: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
-  infoRows: { gap: spacing.sm, marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.line },
+  infoRows: { gap: spacing.sm, marginTop: spacing.sm },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   infoLabel: { width: 62, color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
   infoValue: { flex: 1, minWidth: 0 },
@@ -453,14 +453,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   // --- actions ---
   acts: { flexDirection: 'row', gap: spacing.sm },
-  btnGhost: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnGhost: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.borderMuted },
   btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   btnPrimary: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
     ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
   },
   btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
-  btnSent: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnSent: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.cta + '40' },
   btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   btnFaded: { opacity: 0.45 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
