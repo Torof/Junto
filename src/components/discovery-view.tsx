@@ -434,7 +434,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
 
-  detailsBox: { backgroundColor: colors.surfaceAlt, borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm },
+  detailsBox: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
   detailsToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   detailsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
@@ -453,7 +453,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   // --- actions ---
   acts: { flexDirection: 'row', gap: spacing.sm },
-  btnGhost: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.borderMuted },
+  btnGhost: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.borderMuted,
+    ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 5 }, android: { elevation: 2 } }),
+  },
   btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   btnPrimary: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3,
