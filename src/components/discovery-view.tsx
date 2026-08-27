@@ -402,7 +402,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ctaBigText: { color: '#FFFFFF', fontSize: fontSizes.md + 1, fontWeight: '800' },
 
   // --- Ta dispo panel ---
-  myDispoWrap: { marginHorizontal: spacing.md, marginTop: spacing.sm, paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderRadius: 18 },
+  myDispoWrap: { marginHorizontal: spacing.md, marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderRadius: 18, borderWidth: 1, borderColor: colors.cta + '3D' },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
   matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingVertical: spacing.sm, paddingHorizontal: 2 },
 
@@ -443,8 +443,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
-  intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
