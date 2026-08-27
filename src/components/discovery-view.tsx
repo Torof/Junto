@@ -1,12 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { View, Text, Pressable, FlatList, StyleSheet, Modal } from 'react-native';
+import { View, Text, Pressable, FlatList, StyleSheet, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, ChevronDown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -32,6 +32,10 @@ const INTENT_LABEL: Record<DispoIntent, string> = {
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export function DiscoveryView() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -40,6 +44,11 @@ export function DiscoveryView() {
   const queryClient = useQueryClient();
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
+  const [openDetails, setOpenDetails] = useState<Set<string>>(new Set());
+  const toggleDetails = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+    setOpenDetails((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  };
 
   const { data: invitable, isLoading: invitableLoading } = useQuery({
     queryKey: ['invitable-activities', inviteTargetId],
@@ -129,81 +138,129 @@ export function DiscoveryView() {
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
 
-  const renderCard = ({ item }: { item: DiscoveryCard }) => (
-    <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} hitSlop={4}>
-          <ReliabilityRing tier={item.reliability_tier} size={44} strokeWidth={3} showLabel={false}>
-            <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={44} />
-          </ReliabilityRing>
-        </Pressable>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.cardName} numberOfLines={1}>
-            {item.display_name} · {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}
-          </Text>
-          <Text style={styles.cardSub}>
-            {item.sorties_count > 0
-              ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
-              : t('discovery.newcomer', { defaultValue: 'nouveau' })}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
-
-      <CollapsibleSection
-        title={t('discovery.details', { defaultValue: 'Détails' })}
-        summary={`${formatPeriod(item.window_start, item.window_end)} · ${radiusText(item.radius_km)}`}
-      >
-        <View style={styles.infoRows}>
-          <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
-            <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
-          </Row>
-          <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
-            <View style={styles.radiusValue}>
-              <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
-              <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
-                <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
-              </Pressable>
+  const renderCard = ({ item }: { item: DiscoveryCard }) => {
+    const expanded = openDetails.has(item.user_id);
+    const done = contacted.has(item.user_id);
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardTop}>
+          <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} hitSlop={4}>
+            <ReliabilityRing tier={item.reliability_tier} size={56} strokeWidth={3} showLabel={false}>
+              <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={56} />
+            </ReliabilityRing>
+          </Pressable>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={styles.nameRow}>
+              <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
+              {item.reliability_tier ? (
+                <View style={styles.relChip}><Text style={styles.relChipText}>{t(`reliability.tier.${item.reliability_tier}`)}</Text></View>
+              ) : null}
             </View>
-          </Row>
-          <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
-            {transportIcons(item.transport_modes)}
-          </Row>
-          {item.intent && item.intent.length > 0 && (
-            <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
-              {intentChips(item.intent)}
-            </Row>
+            <View style={styles.subRow}>
+              <MapPin size={13} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.cardSub} numberOfLines={1}>
+                {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}
+                {' · '}
+                {item.sorties_count > 0
+                  ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
+                  : t('discovery.newcomer', { defaultValue: 'nouveau' })}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
+
+        <View style={styles.detailsBox}>
+          <Pressable style={styles.detailsToggle} onPress={() => toggleDetails(item.user_id)} hitSlop={6}>
+            <Text style={styles.detailsToggleText}>{t('discovery.details', { defaultValue: 'Détails' })}</Text>
+            <View style={styles.detailsRight}>
+              {!expanded && (
+                <Text style={styles.detailsSummary} numberOfLines={1}>
+                  {formatPeriod(item.window_start, item.window_end)} · {radiusText(item.radius_km)}
+                </Text>
+              )}
+              <View style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}>
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2.4} />
+              </View>
+            </View>
+          </Pressable>
+          {expanded && (
+            <View style={styles.infoRows}>
+              <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
+                <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
+              </Row>
+              <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
+                <View style={styles.radiusValue}>
+                  <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
+                  <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
+                    <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+                  </Pressable>
+                </View>
+              </Row>
+              <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
+                {transportIcons(item.transport_modes)}
+              </Row>
+              {item.intent && item.intent.length > 0 && (
+                <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+                  {intentChips(item.intent)}
+                </Row>
+              )}
+            </View>
           )}
         </View>
-      </CollapsibleSection>
 
-      <View style={styles.actions}>
-        <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
-          <Text style={styles.link}>{t('discovery.viewProfile', { defaultValue: 'Voir profil' })}</Text>
-        </Pressable>
-        <Pressable onPress={() => setInviteTargetId(item.user_id)} disabled={contacted.has(item.user_id)}>
-          <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
-            {t('discovery.invite', { defaultValue: 'Inviter' })}
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => handleContact(item.user_id)} disabled={contacted.has(item.user_id)}>
-          <Text style={[styles.link, contacted.has(item.user_id) && styles.linkDone]}>
-            {contacted.has(item.user_id) ? t('discovery.contactedShort', { defaultValue: 'Demande envoyée' }) : t('discovery.contact', { defaultValue: 'Contacter' })}
-          </Text>
-        </Pressable>
+        <View style={styles.acts}>
+          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
+            <User size={15} color={colors.textPrimary} strokeWidth={2.4} />
+            <Text style={styles.btnGhostText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed, done && styles.btnFaded]} onPress={() => setInviteTargetId(item.user_id)} disabled={done}>
+            <UserPlus size={15} color={colors.textPrimary} strokeWidth={2.4} />
+            <Text style={styles.btnGhostText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
+          </Pressable>
+          {done ? (
+            <View style={styles.btnSent}>
+              <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Envoyée' })}</Text>
+            </View>
+          ) : (
+            <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary]} onPress={() => handleContact(item.user_id)}>
+              <Send size={15} color="#FFFFFF" strokeWidth={2.4} />
+              <Text style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  // No active dispo → invite to compose.
+  // No active dispo → warm onboarding.
   if (!active) {
+    const steps: { t: string; s: string }[] = [
+      { t: t('discovery.onbStep1', { defaultValue: 'Ta dispo' }), s: t('discovery.onbStep1s', { defaultValue: 'Sport, zone, dates, transport' }) },
+      { t: t('discovery.onbStep2', { defaultValue: 'Tu deviens visible' }), s: t('discovery.onbStep2s', { defaultValue: 'Et tu vois qui correspond' }) },
+      { t: t('discovery.onbStep3', { defaultValue: 'Vous vous contactez' }), s: t('discovery.onbStep3s', { defaultValue: 'Puis une vraie sortie sur la carte' }) },
+    ];
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>{t('discovery.emptyTitle', { defaultValue: 'Vois qui est dispo pour une sortie' })}</Text>
-        <Text style={styles.emptyBody}>{t('discovery.emptyBody', { defaultValue: 'Compose ta dispo (sport, zone, dates) — tu deviens visible et tu vois qui correspond autour de toi.' })}</Text>
-        <Pressable style={styles.cta} onPress={() => router.push('/(auth)/discovery-compose')}>
-          <Text style={styles.ctaText}>{mine ? t('discovery.editDispo', { defaultValue: 'Reprendre ma dispo' }) : t('discovery.composeDispo', { defaultValue: 'Composer ma dispo' })}</Text>
+      <View style={styles.onbWrap}>
+        <View style={styles.onb}>
+          <View style={styles.halo}><Handshake size={46} color={colors.cta} strokeWidth={2} /></View>
+          <Text style={styles.onbTitle}>{t('discovery.onbTitle', { defaultValue: 'Trouve des partenaires autour de toi' })}</Text>
+          <Text style={styles.onbBody}>{t('discovery.onbBody', { defaultValue: 'Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.' })}</Text>
+          <View style={styles.steps}>
+            {steps.map((st, i) => (
+              <View key={i} style={styles.step}>
+                <View style={styles.stepN}><Text style={styles.stepNText}>{i + 1}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.stepT}>{st.t}</Text>
+                  <Text style={styles.stepS}>{st.s}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+        <Pressable style={({ pressed }) => [styles.ctaBig, pressed && styles.pressedPrimary]} onPress={() => router.push('/(auth)/discovery-compose')}>
+          <Text style={styles.ctaBigText}>{mine ? t('discovery.editDispo', { defaultValue: 'Reprendre ma dispo' }) : t('discovery.composeDispo', { defaultValue: 'Composer ma dispo' })}</Text>
         </Pressable>
       </View>
     );
@@ -268,7 +325,14 @@ export function DiscoveryView() {
             </Text>
           }
           ListEmptyComponent={
-            <Text style={styles.noMatches}>{t('discovery.noMatches', { defaultValue: 'Personne pour l’instant. Reviens plus tard, ou élargis ta zone / tes dates.' })}</Text>
+            <View style={styles.emptyMatches}>
+              <View style={styles.emptyIc}><Telescope size={32} color={colors.textMuted} strokeWidth={2} /></View>
+              <Text style={styles.emptyMatchesTitle}>{t('discovery.noMatchesTitle', { defaultValue: 'Personne pour l’instant' })}</Text>
+              <Text style={styles.emptyMatchesBody}>{t('discovery.noMatchesBody', { defaultValue: 'Reviens plus tard, ou élargis ta zone et tes dates pour croiser plus de monde.' })}</Text>
+              <Pressable onPress={() => router.push('/(auth)/discovery-compose')} hitSlop={8}>
+                <Text style={styles.emptyMatchesEdit}>{t('discovery.editMyDispo', { defaultValue: 'Modifier ma dispo' })}</Text>
+              </Pressable>
+            </View>
           }
         />
       )}
@@ -309,39 +373,94 @@ export function DiscoveryView() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  empty: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
-  emptyTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', textAlign: 'center' },
-  emptyBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22 },
-  cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.xl, marginTop: spacing.md },
-  ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
-  myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '0D' },
-  myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
-  matchesLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingVertical: spacing.sm },
-  noMatches: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
-  list: { padding: spacing.md },
-  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: 18, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
-  cardSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
-  cardDivider: { height: 1, backgroundColor: colors.line },
+  // --- Onboarding (no dispo) ---
+  onbWrap: { flex: 1, backgroundColor: colors.background, padding: spacing.lg, justifyContent: 'space-between' },
+  onb: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  halo: {
+    width: 108, height: 108, borderRadius: 54, backgroundColor: colors.cta + '18',
+    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
+    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 16 }, android: { elevation: 2 } }),
+  },
+  onbTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', textAlign: 'center', letterSpacing: -0.4, lineHeight: 30 },
+  onbBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22, maxWidth: 300, marginBottom: spacing.xs },
+  steps: { alignSelf: 'stretch', gap: spacing.sm + 2, marginTop: spacing.md },
+  step: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
+    borderRadius: 16, padding: spacing.sm + 4,
+    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10 }, android: { elevation: 1 } }),
+  },
+  stepN: { width: 27, height: 27, borderRadius: 14, backgroundColor: colors.cta + '1A', alignItems: 'center', justifyContent: 'center' },
+  stepNText: { color: colors.cta, fontWeight: '800', fontSize: fontSizes.sm },
+  stepT: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
+  stepS: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', marginTop: 1 },
+  ctaBig: {
+    backgroundColor: colors.cta, borderRadius: 16, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
+    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.34, shadowRadius: 14 }, android: { elevation: 4 } }),
+  },
+  ctaBigText: { color: '#FFFFFF', fontSize: fontSizes.md + 1, fontWeight: '800' },
+
+  // --- Ta dispo panel ---
+  myDispoWrap: { marginHorizontal: spacing.md, marginTop: spacing.sm, paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderRadius: 18 },
+  myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
+  matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingVertical: spacing.sm, paddingHorizontal: 2 },
+
+  // --- Empty matches ---
+  emptyMatches: { alignItems: 'center', paddingVertical: spacing.xl + spacing.md, gap: spacing.sm, paddingHorizontal: spacing.lg },
+  emptyIc: { width: 76, height: 76, borderRadius: 38, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  emptyMatchesTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
+  emptyMatchesBody: { color: colors.textSecondary, fontSize: fontSizes.sm + 1, textAlign: 'center', lineHeight: 21, maxWidth: 260 },
+  emptyMatchesEdit: { color: colors.cta, fontSize: fontSizes.sm + 1, fontWeight: '800', marginTop: spacing.xs },
+
+  // --- Match card ---
+  list: { padding: spacing.md, paddingBottom: spacing.lg },
+  card: {
+    backgroundColor: colors.surface, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
+    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 16 }, android: { elevation: 3 } }),
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minWidth: 0 },
+  cardName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.3, flexShrink: 1 },
+  relChip: { backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  relChipText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
+  cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
-  sportPillText: { fontSize: fontSizes.xs, fontWeight: '800' },
-  infoRows: { gap: spacing.sm },
+  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6 },
+  sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
+
+  detailsBox: { backgroundColor: colors.surfaceAlt, borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm },
+  detailsToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  detailsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
+  detailsSummary: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
+  infoRows: { gap: spacing.sm, marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.line },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  infoLabel: { width: 62, color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
+  infoLabel: { width: 62, color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
   infoValue: { flex: 1, minWidth: 0 },
-  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 3 },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   intentChipText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
-  zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', textDecorationLine: 'underline' },
-  actions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
-  link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
-  linkDone: { color: colors.textSecondary, textDecorationLine: 'none' },
-  linkDanger: { color: colors.error },
+  zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
+
+  // --- actions ---
+  acts: { flexDirection: 'row', gap: spacing.sm },
+  btnGhost: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  btnPrimary: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3,
+    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
+  },
+  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
+  btnSent: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3 },
+  btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  btnFaded: { opacity: 0.45 },
+  pressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
+  pressedPrimary: { transform: [{ scale: 0.97 }] },
+  link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  linkDanger: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '800' },
   modalBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: colors.background,
