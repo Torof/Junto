@@ -206,6 +206,8 @@
     "title": "Discovery",
     "myDispoTitle": "Your availability",
     "details": "Details",
+    "showDetails": "See details",
+    "hideDetails": "Hide details",
     "onbTitle": "Find partners around you",
     "onbBody": "Post your availability — a sport, an area, dates — and see who's after the same.",
     "onbStep1": "Your availability",

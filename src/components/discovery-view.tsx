@@ -177,16 +177,20 @@ export function DiscoveryView() {
         <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
 
         <View style={styles.detailsBox}>
-          <Pressable style={styles.detailsToggle} onPress={() => toggleDetails(item.user_id)} hitSlop={6}>
-            <Text style={styles.detailsToggleText}>{t('discovery.details', { defaultValue: 'Détails' })}</Text>
+          <Pressable style={({ pressed }) => [styles.detailsToggle, pressed && styles.pressed]} onPress={() => toggleDetails(item.user_id)} hitSlop={6}>
+            <Text style={styles.detailsToggleText}>
+              {expanded
+                ? t('discovery.hideDetails', { defaultValue: 'Masquer les détails' })
+                : t('discovery.showDetails', { defaultValue: 'Voir les détails' })}
+            </Text>
             <View style={styles.detailsRight}>
               {!expanded && (
                 <Text style={styles.detailsSummary} numberOfLines={1}>
                   {formatPeriod(item.window_start, item.window_end)} · {radiusText(item.radius_km)}
                 </Text>
               )}
-              <View style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}>
-                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2.4} />
+              <View style={[styles.chevBtn, { transform: [{ rotate: expanded ? '180deg' : '0deg' }] }]}>
+                <ChevronDown size={18} color={colors.cta} strokeWidth={2.6} />
               </View>
             </View>
           </Pressable>
@@ -406,7 +410,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ctaBigText: { color: '#FFFFFF', fontSize: fontSizes.md + 1, fontWeight: '800' },
 
   // --- Ta dispo panel ---
-  myDispoWrap: { marginHorizontal: spacing.md, marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderRadius: 18, borderWidth: 1, borderColor: colors.cta + '3D' },
+  myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderBottomWidth: 1, borderBottomColor: colors.cta + '3D' },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
   matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingVertical: spacing.sm, paddingHorizontal: 2 },
 
@@ -437,7 +441,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   detailsBox: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
   detailsToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  detailsToggleText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  chevBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.cta + '1A', borderWidth: 1, borderColor: colors.cta + '40', alignItems: 'center', justifyContent: 'center' },
   detailsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
   detailsSummary: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
   infoRows: { gap: spacing.sm, marginTop: spacing.sm },

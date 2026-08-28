@@ -206,6 +206,8 @@
     "title": "Découverte",
     "myDispoTitle": "Ta dispo",
     "details": "Détails",
+    "showDetails": "Voir les détails",
+    "hideDetails": "Masquer les détails",
     "onbTitle": "Trouve des partenaires autour de toi",
     "onbBody": "Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.",
     "onbStep1": "Ta dispo",
