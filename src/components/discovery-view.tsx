@@ -52,6 +52,11 @@ export function DiscoveryView() {
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setOpenDetails((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   };
+  const [openAbout, setOpenAbout] = useState<Set<string>>(new Set());
+  const toggleAbout = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+    setOpenAbout((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  };
 
   const { data: invitable, isLoading: invitableLoading } = useQuery({
     queryKey: ['invitable-activities', inviteTargetId],
@@ -175,6 +180,23 @@ export function DiscoveryView() {
         </View>
 
         <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
+
+        {item.about ? (
+          <View style={styles.aboutCard}>
+            <Text style={styles.aboutText} numberOfLines={openAbout.has(item.user_id) ? undefined : 3}>
+              {item.about}
+            </Text>
+            {item.about.length > 160 && (
+              <Pressable onPress={() => toggleAbout(item.user_id)} hitSlop={6}>
+                <Text style={styles.aboutMore}>
+                  {openAbout.has(item.user_id)
+                    ? t('discovery.seeLess', { defaultValue: 'Voir moins' })
+                    : t('discovery.seeMore', { defaultValue: 'Voir plus' })}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        ) : null}
 
         <View style={styles.detailsBox}>
           <Pressable style={styles.detailsToggle} onPress={() => toggleDetails(item.user_id)} hitSlop={6}>
@@ -435,6 +457,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
 
+  aboutCard: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 2, borderWidth: 1, borderColor: colors.borderMuted, gap: spacing.xs },
+  aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
+  aboutMore: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   detailsBox: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
   detailsToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },

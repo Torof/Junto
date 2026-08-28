@@ -22,6 +22,7 @@ export interface DispoDraft {
   transportModes: TransportMode[];  // ≥1
   windowStart: string;              // ISO
   windowEnd: string;                // ISO
+  about: string;                    // free-text intro, ≤250 words (empty → NULL server-side)
 }
 
 export interface MyDispo {
@@ -37,6 +38,7 @@ export interface MyDispo {
   window_start: string;
   window_end: string;
   is_active: boolean;
+  about: string | null;
 }
 
 export interface DiscoveryCard {
@@ -53,6 +55,7 @@ export interface DiscoveryCard {
   intent: DispoIntent[] | null;
   distance_km: number;
   sorties_count: number;
+  about: string | null;
 }
 
 export interface DispoZone {
@@ -91,6 +94,7 @@ export const discoveryService = {
       p_window_start: d.windowStart,
       p_window_end: d.windowEnd,
       p_intent: d.intent, // 0–5 codes; empty → NULL server-side
+      p_about: d.about, // free-text intro; empty → NULL server-side
     });
     if (error) throw error;
     return data as string;

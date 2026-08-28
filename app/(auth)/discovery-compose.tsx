@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Platform, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -68,6 +68,7 @@ export default function DiscoveryComposeScreen() {
   const [modes, setModes] = useState<TransportMode[]>(['car']);
   const [windowStart, setWindowStart] = useState<Date>(new Date());
   const [windowEnd, setWindowEnd] = useState<Date>(dayjs().add(7, 'day').toDate());
+  const [about, setAbout] = useState('');
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -84,6 +85,7 @@ export default function DiscoveryComposeScreen() {
     setModes(mine.transport_modes);
     setWindowStart(new Date(mine.window_start));
     setWindowEnd(new Date(mine.window_end));
+    setAbout(mine.about ?? '');
   }, [mine]);
 
   const toggleSport = (key: string) => setSportKeys((prev) => {
@@ -103,6 +105,8 @@ export default function DiscoveryComposeScreen() {
   const toggleIntent = (k: DispoIntent) => setIntent((prev) =>
     prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_VIBES ? prev : [...prev, k]);
 
+  const aboutWords = about.trim() ? about.trim().split(/\s+/).length : 0;
+  const aboutOk = aboutWords <= 250;
   const ready = sportKeys.length >= 1 && !!base && modes.length >= 1 && windowEnd > windowStart;
 
   // Live counter (debounced) — free during compose; seeing people needs activating.
@@ -125,13 +129,14 @@ export default function DiscoveryComposeScreen() {
   };
 
   const handleActivate = async () => {
-    if (!ready || saving) return;
+    if (!ready || !aboutOk || saving) return;
     setSaving(true);
     try {
       haptic.success();
       await discoveryService.upsert({
         sportKeys, levels, intent, baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label,
         radiusKm, transportModes: modes, windowStart: windowStart.toISOString(), windowEnd: windowEnd.toISOString(),
+        about,
       });
       await discoveryService.activate();
       await queryClient.invalidateQueries({ queryKey: ['my-dispo'] });
@@ -242,11 +247,26 @@ export default function DiscoveryComposeScreen() {
             </View>
           </View>
         ))}
+
+        <Text style={styles.section}>{t('discovery.aboutLabel', { defaultValue: 'Présentation (optionnel)' })}</Text>
+        <TextInput
+          style={styles.aboutInput}
+          value={about}
+          onChangeText={setAbout}
+          multiline
+          textAlignVertical="top"
+          placeholder={t('discovery.aboutPlaceholder', { defaultValue: 'Présente-toi en quelques lignes : qui tu es, ce que tu cherches, tes attentes…' })}
+          placeholderTextColor={colors.textMuted}
+          maxLength={1600}
+        />
+        <Text style={[styles.aboutCounter, !aboutOk && styles.aboutCounterOver]}>
+          {t('discovery.aboutCounter', { defaultValue: '{{count}}/250 mots', count: aboutWords })}
+        </Text>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Text style={styles.counter}>{counterText()}</Text>
-        <Pressable style={[styles.cta, !ready && styles.ctaDisabled]} disabled={!ready || saving} onPress={handleActivate}>
+        <Pressable style={[styles.cta, (!ready || !aboutOk) && styles.ctaDisabled]} disabled={!ready || !aboutOk || saving} onPress={handleActivate}>
           <Text style={styles.ctaText}>{saving ? t('discovery.activating', { defaultValue: 'Activation…' }) : t('discovery.activateCta', { defaultValue: 'Activer ma dispo' })}</Text>
         </Pressable>
       </View>
@@ -261,6 +281,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
   section: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.lg, marginBottom: spacing.sm },
   chosenPlace: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginBottom: spacing.sm },
+  aboutInput: { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.sm + 2, minHeight: 110, color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
+  aboutCounter: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', alignSelf: 'flex-end', marginTop: spacing.xs },
+  aboutCounterOver: { color: colors.error },
   vibeGroup: { marginBottom: spacing.sm + 2 },
   vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs + 1 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, alignItems: 'center' },

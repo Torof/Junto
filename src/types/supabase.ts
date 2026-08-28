@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -923,6 +923,7 @@ export type Database = {
       }
       discovery_availabilities: {
         Row: {
+          about: string | null
           base: unknown
           base_label: string
           created_at: string
@@ -940,6 +941,7 @@ export type Database = {
           window_start: string
         }
         Insert: {
+          about?: string | null
           base: unknown
           base_label: string
           created_at?: string
@@ -957,6 +959,7 @@ export type Database = {
           window_start: string
         }
         Update: {
+          about?: string | null
           base?: unknown
           base_label?: string
           created_at?: string
@@ -4018,6 +4021,7 @@ export type Database = {
       get_discovery_cards: {
         Args: never
         Returns: {
+          about: string
           avatar_url: string
           display_name: string
           distance_km: number
@@ -4124,6 +4128,7 @@ export type Database = {
       get_my_dispo: {
         Args: never
         Returns: {
+          about: string
           base_label: string
           base_lat: number
           base_lng: number
@@ -5304,6 +5309,7 @@ export type Database = {
       }
       upsert_dispo: {
         Args: {
+          p_about?: string
           p_base_label: string
           p_base_lat: number
           p_base_lng: number
