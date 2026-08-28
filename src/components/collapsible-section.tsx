@@ -14,12 +14,15 @@ interface Props {
   // Bottom divider line (default true). Set false when the section sits inside
   // its own bordered container (e.g. the "Ta dispo" panel).
   bordered?: boolean;
+  // Render the chevron inside a round tinted button (default false), matching
+  // the Discovery partner cards' details toggle.
+  chevronBoxed?: boolean;
   children: ReactNode;
 }
 
 // A filter section: tappable header with a chevron that expands/collapses the
 // body. Collapsed by default; the header shows a summary of the current choice.
-export function CollapsibleSection({ title, summary, defaultExpanded = false, bordered = true, children }: Props) {
+export function CollapsibleSection({ title, summary, defaultExpanded = false, bordered = true, chevronBoxed = false, children }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -30,8 +33,8 @@ export function CollapsibleSection({ title, summary, defaultExpanded = false, bo
         <Text style={styles.title}>{title}</Text>
         <View style={styles.right}>
           {!expanded && !!summary && <Text style={styles.summary} numberOfLines={1}>{summary}</Text>}
-          <View style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}>
-            <ChevronDown size={18} color={colors.textSecondary} strokeWidth={2.4} />
+          <View style={[chevronBoxed && styles.chevBtn, { transform: [{ rotate: expanded ? '180deg' : '0deg' }] }]}>
+            <ChevronDown size={18} color={chevronBoxed ? colors.cta : colors.textSecondary} strokeWidth={chevronBoxed ? 2.6 : 2.4} />
           </View>
         </View>
       </Pressable>
@@ -50,4 +53,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   right: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
   summary: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   body: { paddingBottom: spacing.md },
+  chevBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.cta + '1A', borderWidth: 1, borderColor: colors.cta + '40', alignItems: 'center', justifyContent: 'center' },
 });

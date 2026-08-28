@@ -305,6 +305,7 @@ export function DiscoveryView() {
               title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
               summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label}`}
               bordered={false}
+              chevronBoxed
             >
               <View style={styles.infoRows}>
                 <Row label={t('discovery.row.sports', { defaultValue: 'Sports' })}>
