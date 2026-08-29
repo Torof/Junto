@@ -5,10 +5,16 @@ export type TransportMode = 'car' | 'motorbike' | 'bike' | 'on_foot' | 'public_t
 // Kept on the `intent` column server-side. GIN-indexed for future matching.
 export type DispoIntent =
   | 'discovery' | 'progression' | 'performance' | 'detente' | 'conviviality'
-  | 'dog' | 'child' | 'group' | 'solo' | 'active' | 'calm' | 'early';
+  | 'dog' | 'child' | 'group' | 'solo' | 'active' | 'calm' | 'early'
+  | 'nature' | 'challenge' | 'photo' | 'mixed' | 'same_level' | 'beginners'
+  | 'long_outing' | 'after_work' | 'regular' | 'adapted' | 'training'
+  | 'experienced' | 'competition';
 export const DISPO_INTENTS: DispoIntent[] = [
   'discovery', 'progression', 'performance', 'detente', 'conviviality',
   'dog', 'child', 'group', 'solo', 'active', 'calm', 'early',
+  'nature', 'challenge', 'photo', 'mixed', 'same_level', 'beginners',
+  'long_outing', 'after_work', 'regular', 'adapted', 'training',
+  'experienced', 'competition',
 ];
 
 export interface DispoDraft {

@@ -37,17 +37,32 @@ const VIBE_GROUPS: { group: string; groupKey: string; items: { key: DispoIntent;
     { key: 'performance', label: '🔥 Performance' },
     { key: 'detente', label: '🍃 Détente' },
     { key: 'conviviality', label: '🤝 Convivialité' },
+    { key: 'nature', label: '🌲 Nature' },
+    { key: 'challenge', label: '🎯 Défi' },
+    { key: 'photo', label: '📷 Photo' },
   ] },
   { group: 'Compagnie', groupKey: 'compagnie', items: [
     { key: 'dog', label: '🐕 Chien' },
     { key: 'child', label: '👶 Enfant' },
     { key: 'group', label: '👥 En groupe' },
     { key: 'solo', label: '🧍 Solo' },
+    { key: 'mixed', label: '⚥ Groupe mixte' },
+    { key: 'same_level', label: '🎚️ Même niveau' },
+    { key: 'beginners', label: '🌱 Débutants bienvenus' },
   ] },
   { group: 'Rythme', groupKey: 'rythme', items: [
     { key: 'active', label: '⚡ Actif' },
     { key: 'calm', label: '😌 Calme' },
     { key: 'early', label: '🌅 Matinal' },
+    { key: 'long_outing', label: '🥾 Sortie longue' },
+    { key: 'after_work', label: '🌆 Après le boulot' },
+    { key: 'regular', label: '🔁 Partenaire régulier' },
+  ] },
+  { group: 'Profil / accès', groupKey: 'profil', items: [
+    { key: 'adapted', label: '♿ Handi / adapté' },
+    { key: 'training', label: '💪 Entraînement' },
+    { key: 'experienced', label: '🎖️ Expérimenté' },
+    { key: 'competition', label: '🏁 Prépa compét' },
   ] },
 ];
 const MAX_VIBES = 6;

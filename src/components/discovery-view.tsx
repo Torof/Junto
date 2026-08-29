@@ -31,6 +31,11 @@ const INTENT_LABEL: Record<DispoIntent, string> = {
   detente: '🍃 Détente', conviviality: '🤝 Convivialité',
   dog: '🐕 Chien', child: '👶 Enfant', group: '👥 En groupe', solo: '🧍 Solo',
   active: '⚡ Actif', calm: '😌 Calme', early: '🌅 Matinal',
+  nature: '🌲 Nature', challenge: '🎯 Défi', photo: '📷 Photo',
+  mixed: '⚥ Groupe mixte', same_level: '🎚️ Même niveau', beginners: '🌱 Débutants bienvenus',
+  long_outing: '🥾 Sortie longue', after_work: '🌆 Après le boulot', regular: '🔁 Partenaire régulier',
+  adapted: '♿ Handi / adapté', training: '💪 Entraînement', experienced: '🎖️ Expérimenté',
+  competition: '🏁 Prépa compét',
 };
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
