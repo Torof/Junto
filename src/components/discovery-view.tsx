@@ -443,7 +443,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // --- Match card ---
   list: { padding: spacing.md, paddingBottom: spacing.lg },
   card: {
-    backgroundColor: colors.surface, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
+    backgroundColor: colors.background, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
     borderWidth: 1, borderColor: colors.borderMuted,
     ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 16 }, android: { elevation: 3 } }),
   },
