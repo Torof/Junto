@@ -65,7 +65,7 @@ const VIBE_GROUPS: { group: string; groupKey: string; items: { key: DispoIntent;
     { key: 'competition', label: '🏁 Prépa compét' },
   ] },
 ];
-const MAX_VIBES = 6;
+const MAX_VIBES = 10;
 
 export default function DiscoveryComposeScreen() {
   const colors = useColors();
