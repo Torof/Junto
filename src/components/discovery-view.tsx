@@ -123,10 +123,10 @@ export function DiscoveryView() {
 
   // Shared labeled row (fixed-width label column + free value) — used by both
   // "Ta dispo" and the match cards so the two read as the same system.
-  const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-    <View style={styles.infoRow}>
+  const Row = ({ label, children, stack }: { label: string; children: ReactNode; stack?: boolean }) => (
+    <View style={stack ? styles.infoRowStack : styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
-      <View style={styles.infoValue}>{children}</View>
+      <View style={stack ? styles.infoValueStack : styles.infoValue}>{children}</View>
     </View>
   );
   const transportIcons = (modes: TransportMode[]) => (
@@ -234,7 +234,7 @@ export function DiscoveryView() {
                 {transportIcons(item.transport_modes)}
               </Row>
               {item.intent && item.intent.length > 0 && (
-                <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+                <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })} stack>
                   {intentChips(item.intent)}
                 </Row>
               )}
@@ -331,7 +331,7 @@ export function DiscoveryView() {
                   {transportIcons(mine.transport_modes)}
                 </Row>
                 {mine.intent && mine.intent.length > 0 && (
-                  <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })}>
+                  <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })} stack>
                     {intentChips(mine.intent)}
                   </Row>
                 )}
@@ -474,8 +474,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   detailsSummary: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
   infoRows: { gap: spacing.sm, marginTop: spacing.sm },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  infoRowStack: { gap: spacing.xs + 2 },
   infoLabel: { width: 62, color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.3, paddingTop: 2 },
   infoValue: { flex: 1, minWidth: 0 },
+  infoValueStack: { width: '100%' },
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
