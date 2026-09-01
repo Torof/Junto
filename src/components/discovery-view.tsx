@@ -175,19 +175,20 @@ export function DiscoveryView() {
                   : t('discovery.newcomer', { defaultValue: 'nouveau' })}
               </Text>
             </View>
-            <View style={styles.headMeta}>
-              <Calendar size={12} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
-              <Text style={styles.metaDot}>·</Text>
-              <Text style={styles.metaText}>{radiusText(item.radius_km)}</Text>
-              <Text style={styles.metaDot}>·</Text>
-              {transportIcons(item.transport_modes, 14)}
-              <Text style={styles.metaDot}>·</Text>
-              <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
-                <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
-              </Pressable>
-            </View>
           </View>
+        </View>
+
+        <View style={styles.headMeta}>
+          <Calendar size={13} color={colors.textSecondary} strokeWidth={2.2} />
+          <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.metaText}>{radiusText(item.radius_km)}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          {transportIcons(item.transport_modes, 15)}
+          <Text style={styles.metaDot}>·</Text>
+          <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
+            <Text style={[styles.metaText, styles.metaZone]}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+          </Pressable>
         </View>
 
         <View style={styles.pillWrap}>
@@ -437,13 +438,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
-  headMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 5 },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
-  metaDot: { color: colors.textMuted, fontSize: fontSizes.xs },
+  headMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  metaDot: { color: colors.textMuted, fontSize: fontSizes.sm },
+  metaZone: { color: colors.cta, fontWeight: '800' },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   pillBreak: { width: '100%', height: 0 },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
-  sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  sportPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
 
   aboutCard: { gap: 3 },
   aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
@@ -458,7 +460,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   intentChip: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
-  intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
+  intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '800' },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
