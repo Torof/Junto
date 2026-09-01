@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { View, Text, Pressable, FlatList, StyleSheet, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, Pressable, FlatList, ScrollView, StyleSheet, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -275,6 +275,7 @@ export function DiscoveryView() {
     ];
     return (
       <View style={styles.onbWrap}>
+        <ScrollView contentContainerStyle={styles.onbScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.onb}>
           <View style={styles.halo}><Handshake size={46} color={colors.cta} strokeWidth={2} /></View>
           <Text style={styles.onbTitle}>{t('discovery.onbTitle', { defaultValue: 'Trouve des partenaires autour de toi' })}</Text>
@@ -291,6 +292,7 @@ export function DiscoveryView() {
             ))}
           </View>
         </View>
+        </ScrollView>
         <Pressable style={({ pressed }) => [styles.ctaBig, pressed && styles.pressedPrimary]} onPress={() => router.push('/(auth)/discovery-compose')}>
           <Text style={styles.ctaBigText}>{mine ? t('discovery.editDispo', { defaultValue: 'Reprendre ma dispo' }) : t('discovery.composeDispo', { defaultValue: 'Composer ma dispo' })}</Text>
         </Pressable>
@@ -408,8 +410,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   // --- Onboarding (no dispo) ---
-  onbWrap: { flex: 1, backgroundColor: colors.background, padding: spacing.lg, justifyContent: 'space-between' },
-  onb: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  onbWrap: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
+  onbScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.lg },
+  onb: { alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   halo: {
     width: 108, height: 108, borderRadius: 54, backgroundColor: colors.cta + '18',
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,

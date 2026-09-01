@@ -159,7 +159,8 @@ export default function DiscoveryComposeScreen() {
       Burnt.toast({ title: t('discovery.activated', { defaultValue: 'Ta dispo est active' }), preset: 'done' });
       router.replace('/(auth)/(tabs)/partenaires?tab=discovery');
     } catch (e) {
-      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+      // TEMP diag (Scott 2026-09-01): surface the raw error to pin down the save bug.
+      Burnt.toast({ title: getFriendlyError(e, 'generic'), message: String((e as { message?: string })?.message ?? e).slice(0, 200) });
       setSaving(false);
     }
   };
