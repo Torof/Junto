@@ -89,32 +89,42 @@ export default function TabsLayout() {
   // Migration 00184 ensures both tables are in supabase_realtime.
   useEffect(() => {
     if (!currentUserId) return;
-    const channel = supabase
-      .channel(`tabs-badges:${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${currentUserId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
-        },
-      )
-      .subscribe();
+    // supabase.channel() dedupes by topic and, on a fast remount, returns a
+    // channel that is still subscribed (removeChannel unsubscribes async).
+    // Calling .on() on an already-subscribed channel throws ("cannot add
+    // postgres_changes callbacks ... after subscribe()"). So bind + subscribe
+    // ONLY when the channel is freshly created ('closed'); otherwise reuse the
+    // live one as-is (its callbacks invalidate the same queries).
+    const channel = supabase.channel(`tabs-badges:${currentUserId}`);
+    if ((channel.state as string) === 'closed') {
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${currentUserId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+          },
+        )
+        .subscribe();
+    }
     // Unified store (00359): incoming-message liveness is an 'inbox' broadcast
     // on my personal topic (RLS: strictly self). Single subscriber app-wide —
     // the messagerie screen relies on these invalidations.
-    const inboxChannel = supabase
-      .channel(`user:${currentUserId}`, { config: { private: true } })
-      .on('broadcast', { event: 'inbox' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
-      })
-      .subscribe();
+    const inboxChannel = supabase.channel(`user:${currentUserId}`, { config: { private: true } });
+    if ((inboxChannel.state as string) === 'closed') {
+      inboxChannel
+        .on('broadcast', { event: 'inbox' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          queryClient.invalidateQueries({ queryKey: ['conversations-badge'] });
+        })
+        .subscribe();
+    }
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(inboxChannel);
