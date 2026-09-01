@@ -98,8 +98,16 @@ export default function DiscoveryComposeScreen() {
     setBase({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label });
     setRadiusKm(mine.radius_km);
     setModes(mine.transport_modes);
-    setWindowStart(new Date(mine.window_start));
-    setWindowEnd(new Date(mine.window_end));
+    // Clamp a stale window to the present: an existing dispo's start can be in
+    // the past, which upsert_dispo rejects (junto.dispo_window). Keep valid
+    // future dates as-is; otherwise reset start to now and end to +7 days.
+    const nowD = new Date();
+    const ws0 = new Date(mine.window_start);
+    const we0 = new Date(mine.window_end);
+    const ws = ws0 > nowD ? ws0 : nowD;
+    const we = we0 > ws ? we0 : dayjs(ws).add(7, 'day').toDate();
+    setWindowStart(ws);
+    setWindowEnd(we);
     setAbout(mine.about ?? '');
   }, [mine]);
 
@@ -159,9 +167,7 @@ export default function DiscoveryComposeScreen() {
       Burnt.toast({ title: t('discovery.activated', { defaultValue: 'Ta dispo est active' }), preset: 'done' });
       router.replace('/(auth)/(tabs)/partenaires?tab=discovery');
     } catch (e) {
-      // TEMP diag (Scott 2026-09-01): raw error in the TITLE (guaranteed visible) to pin down the save bug.
-      const x = (e ?? {}) as { message?: string; code?: string; details?: string };
-      Burnt.toast({ title: `DIAG ${x.code ?? ''} ${x.message ?? x.details ?? String(e)}`.slice(0, 150) });
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
       setSaving(false);
     }
   };
