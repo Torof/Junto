@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -175,13 +175,15 @@ export function DiscoveryView() {
                   : t('discovery.newcomer', { defaultValue: 'nouveau' })}
               </Text>
             </View>
+            <View style={styles.dateRow}>
+              <Calendar size={13} color={colors.textSecondary} strokeWidth={2.2} />
+              <Text style={styles.metaText} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.headMeta}>
-          <Calendar size={13} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
-          <Text style={styles.metaDot}>·</Text>
+          <LocateFixed size={13} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.metaText}>{radiusText(item.radius_km)}</Text>
           <Text style={styles.metaDot}>·</Text>
           {transportIcons(item.transport_modes, 15)}
@@ -438,6 +440,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   headMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   metaDot: { color: colors.textMuted, fontSize: fontSizes.sm },
