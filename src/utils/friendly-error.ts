@@ -18,7 +18,15 @@ type ErrorAction =
   | 'generic';
 
 export function getFriendlyError(err: unknown, action: ErrorAction = 'generic'): string {
-  const rawMsg = err instanceof Error ? err.message : '';
+  // Supabase/PostgREST errors are plain objects ({ message, code, details }),
+  // NOT Error instances — read the message from either shape so coded
+  // `junto.*` failures surface their specific friendly message.
+  const rawMsg =
+    err instanceof Error
+      ? err.message
+      : typeof err === 'object' && err !== null && typeof (err as { message?: unknown }).message === 'string'
+        ? (err as { message: string }).message
+        : '';
   const raw = rawMsg.toLowerCase();
   const t = i18n.t.bind(i18n);
 
