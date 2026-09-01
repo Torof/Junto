@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, ChevronDown } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -52,11 +52,6 @@ export function DiscoveryView() {
   const queryClient = useQueryClient();
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
-  const [openDetails, setOpenDetails] = useState<Set<string>>(new Set());
-  const toggleDetails = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-    setOpenDetails((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  };
   const [openAbout, setOpenAbout] = useState<Set<string>>(new Set());
   const toggleAbout = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
@@ -129,11 +124,11 @@ export function DiscoveryView() {
       <View style={stack ? styles.infoValueStack : styles.infoValue}>{children}</View>
     </View>
   );
-  const transportIcons = (modes: TransportMode[]) => (
+  const transportIcons = (modes: TransportMode[], size = 16) => (
     <View style={styles.transportIcons}>
       {modes.map((m) => {
         const Icon = TRANSPORT_ICON[m];
-        return Icon ? <Icon key={m} size={16} color={colors.textSecondary} strokeWidth={2.2} /> : null;
+        return Icon ? <Icon key={m} size={size} color={colors.textSecondary} strokeWidth={2.2} /> : null;
       })}
     </View>
   );
@@ -151,7 +146,6 @@ export function DiscoveryView() {
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
   const renderCard = ({ item }: { item: DiscoveryCard }) => {
-    const expanded = openDetails.has(item.user_id);
     const done = contacted.has(item.user_id);
     const relColor = reliabilityColorForTier(item.reliability_tier, colors);
     return (
@@ -180,6 +174,18 @@ export function DiscoveryView() {
                   ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
                   : t('discovery.newcomer', { defaultValue: 'nouveau' })}
               </Text>
+            </View>
+            <View style={styles.headMeta}>
+              <Calendar size={12} color={colors.textSecondary} strokeWidth={2.2} />
+              <Text style={[styles.metaText, { flexShrink: 1 }]} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
+              <Text style={styles.metaDot}>·</Text>
+              <Text style={styles.metaText}>{radiusText(item.radius_km)}</Text>
+              <Text style={styles.metaDot}>·</Text>
+              {transportIcons(item.transport_modes, 14)}
+              <Text style={styles.metaDot}>·</Text>
+              <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
+                <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -210,40 +216,6 @@ export function DiscoveryView() {
             )}
           </View>
         ) : null}
-
-        <View style={styles.detailsBox}>
-          <Pressable style={styles.detailsToggle} onPress={() => toggleDetails(item.user_id)} hitSlop={6}>
-            <Text style={styles.detailsToggleText}>{t('discovery.details', { defaultValue: 'Détails' })}</Text>
-            <View style={styles.detailsRight}>
-              {!expanded && (
-                <Text style={styles.detailsSummary} numberOfLines={1}>
-                  {formatPeriod(item.window_start, item.window_end)} · {radiusText(item.radius_km)}
-                </Text>
-              )}
-              <View style={[styles.chevBtn, { transform: [{ rotate: expanded ? '180deg' : '0deg' }] }]}>
-                <ChevronDown size={18} color={colors.cta} strokeWidth={2.6} />
-              </View>
-            </View>
-          </Pressable>
-          {expanded && (
-            <View style={styles.infoRows}>
-              <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
-                <Text style={styles.infoText}>{formatPeriod(item.window_start, item.window_end)}</Text>
-              </Row>
-              <Row label={t('discovery.row.radius', { defaultValue: 'Rayon' })}>
-                <View style={styles.radiusValue}>
-                  <Text style={styles.infoText}>{radiusText(item.radius_km)}</Text>
-                  <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
-                    <Text style={styles.zoneLink}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
-                  </Pressable>
-                </View>
-              </Row>
-              <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
-                {transportIcons(item.transport_modes)}
-              </Row>
-            </View>
-          )}
-        </View>
 
         <View style={styles.acts}>
           <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
@@ -465,6 +437,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
+  headMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 5 },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
+  metaDot: { color: colors.textMuted, fontSize: fontSizes.xs },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   pillBreak: { width: '100%', height: 0 },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
@@ -473,12 +448,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   aboutCard: { gap: 3 },
   aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
   aboutMore: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
-  detailsBox: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
-  detailsToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  detailsToggleText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
-  chevBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.cta + '1A', borderWidth: 1, borderColor: colors.cta + '40', alignItems: 'center', justifyContent: 'center' },
-  detailsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
-  detailsSummary: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
   infoRows: { gap: spacing.sm, marginTop: spacing.sm },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   infoRowStack: { gap: spacing.xs + 2 },
