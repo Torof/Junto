@@ -184,14 +184,22 @@ export function DiscoveryView() {
           </View>
         </View>
 
-        <View style={styles.pillWrap}>{item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}</View>
+        <View style={styles.pillWrap}>
+          {item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}
+          {item.intent && item.intent.length > 0 && <View style={styles.pillBreak} />}
+          {item.intent?.map((it) => (
+            <View key={it} style={styles.intentChip}>
+              <Text style={styles.intentChipText}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+            </View>
+          ))}
+        </View>
 
         {item.about ? (
           <View style={styles.aboutCard}>
-            <Text style={styles.aboutText} numberOfLines={openAbout.has(item.user_id) ? undefined : 3}>
+            <Text style={styles.aboutText} numberOfLines={openAbout.has(item.user_id) ? undefined : 2}>
               {item.about}
             </Text>
-            {item.about.length > 160 && (
+            {item.about.length > 110 && (
               <Pressable onPress={() => toggleAbout(item.user_id)} hitSlop={6}>
                 <Text style={styles.aboutMore}>
                   {openAbout.has(item.user_id)
@@ -233,11 +241,6 @@ export function DiscoveryView() {
               <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
                 {transportIcons(item.transport_modes)}
               </Row>
-              {item.intent && item.intent.length > 0 && (
-                <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })} stack>
-                  {intentChips(item.intent)}
-                </Row>
-              )}
             </View>
           )}
         </View>
@@ -463,6 +466,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  pillBreak: { width: '100%', height: 0 },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
 
