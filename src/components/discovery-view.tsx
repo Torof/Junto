@@ -470,7 +470,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs + 1, fontWeight: '800' },
 
-  aboutCard: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 2, borderWidth: 1, borderColor: colors.borderMuted, gap: spacing.xs },
+  aboutCard: { gap: 3 },
   aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
   aboutMore: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   detailsBox: { borderRadius: 14, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
