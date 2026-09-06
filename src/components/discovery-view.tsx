@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -37,6 +37,13 @@ const INTENT_LABEL: Record<DispoIntent, string> = {
   adapted: '♿ Handi / adapté', training: '💪 Entraînement', experienced: '🎖️ Expérimenté',
   competition: '🏁 Prépa compét',
 };
+// Vibe filter groups (keys only; labels from INTENT_LABEL / i18n).
+const VIBE_FILTER_GROUPS: { key: string; items: DispoIntent[] }[] = [
+  { key: 'compagnie', items: ['dog', 'child', 'group', 'solo', 'mixed', 'same_level', 'beginners'] },
+  { key: 'ambiance', items: ['discovery', 'progression', 'performance', 'detente', 'conviviality', 'nature', 'challenge', 'photo'] },
+  { key: 'rythme', items: ['active', 'calm', 'early', 'long_outing', 'after_work', 'regular'] },
+  { key: 'profil', items: ['adapted', 'training', 'experienced', 'competition'] },
+];
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
 
@@ -52,6 +59,11 @@ export function DiscoveryView() {
   const queryClient = useQueryClient();
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
+  const [filterVibes, setFilterVibes] = useState<Set<DispoIntent>>(new Set());
+  const [filterOpen, setFilterOpen] = useState(false);
+  const toggleFilterVibe = (v: DispoIntent) => setFilterVibes((prev) => {
+    const n = new Set(prev); if (n.has(v)) n.delete(v); else n.add(v); return n;
+  });
   const [openAbout, setOpenAbout] = useState<Set<string>>(new Set());
   const toggleAbout = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
@@ -196,11 +208,14 @@ export function DiscoveryView() {
         <View style={styles.pillWrap}>
           {item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}
           {item.intent && item.intent.length > 0 && <View style={styles.pillBreak} />}
-          {item.intent?.map((it) => (
-            <View key={it} style={styles.intentChip}>
-              <Text style={styles.intentChipText}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+          {item.intent?.map((it) => {
+            const hl = filterVibes.has(it);
+            return (
+            <View key={it} style={[styles.intentChip, hl && styles.intentChipHl]}>
+              <Text style={[styles.intentChipText, hl && styles.intentChipTextHl]}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
             </View>
-          ))}
+            );
+          })}
         </View>
 
         {item.about ? (
@@ -278,6 +293,12 @@ export function DiscoveryView() {
     );
   }
 
+  const allCards = cards ?? [];
+  const filteredCards = filterVibes.size === 0
+    ? allCards
+    : allCards.filter((c) => c.intent?.some((i) => filterVibes.has(i)));
+  const filterActive = filterVibes.size > 0;
+
   return (
     <View style={styles.container}>
       {/* My active dispo — collapsible so it stays reviewable without eating
@@ -329,24 +350,61 @@ export function DiscoveryView() {
         <View style={styles.center}><LogoSpinner size={40} /></View>
       ) : (
         <FlatList
-          data={cards ?? []}
+          data={filteredCards}
           keyExtractor={(i) => i.user_id}
           renderItem={renderCard}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
-            <Text style={styles.matchesLabel}>
-              {t('discovery.matchesCount', { defaultValue: '{{count}} correspondances', count: (cards ?? []).length })}
-            </Text>
+            <View style={styles.matchesHead}>
+              <View style={styles.matchesTop}>
+                <Text style={styles.matchesLabel}>
+                  {t('discovery.matchesCount', { defaultValue: '{{count}} correspondances', count: filteredCards.length })}
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [styles.filterBtn, filterActive && styles.filterBtnOn, pressed && styles.pressed]}
+                  onPress={() => setFilterOpen(true)}
+                  hitSlop={6}
+                >
+                  <SlidersHorizontal size={15} color={colors.cta} strokeWidth={2.4} />
+                  <Text style={styles.filterBtnText}>{t('discovery.filter', { defaultValue: 'Filtrer' })}</Text>
+                  {filterActive && <View style={styles.filterBadge}><Text style={styles.filterBadgeText}>{filterVibes.size}</Text></View>}
+                </Pressable>
+              </View>
+              {filterActive && (
+                <View style={styles.activeRow}>
+                  {[...filterVibes].map((v) => (
+                    <Pressable key={v} style={styles.fchip} onPress={() => toggleFilterVibe(v)} hitSlop={4}>
+                      <Text style={styles.fchipText}>{t(`discovery.intent.${v}`, { defaultValue: INTENT_LABEL[v] })}</Text>
+                      <X size={12} color="#FFFFFF" strokeWidth={2.6} />
+                    </Pressable>
+                  ))}
+                  <Pressable onPress={() => setFilterVibes(new Set())} hitSlop={6}>
+                    <Text style={styles.clearAll}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
           }
           ListEmptyComponent={
-            <View style={styles.emptyMatches}>
-              <View style={styles.emptyIc}><Telescope size={32} color={colors.textMuted} strokeWidth={2} /></View>
-              <Text style={styles.emptyMatchesTitle}>{t('discovery.noMatchesTitle', { defaultValue: 'Personne pour l’instant' })}</Text>
-              <Text style={styles.emptyMatchesBody}>{t('discovery.noMatchesBody', { defaultValue: 'Reviens plus tard, ou élargis ta zone et tes dates pour croiser plus de monde.' })}</Text>
-              <Pressable onPress={() => router.push('/(auth)/discovery-compose')} hitSlop={8}>
-                <Text style={styles.emptyMatchesEdit}>{t('discovery.editMyDispo', { defaultValue: 'Modifier ma dispo' })}</Text>
-              </Pressable>
-            </View>
+            filterActive ? (
+              <View style={styles.emptyMatches}>
+                <View style={styles.emptyIc}><SlidersHorizontal size={28} color={colors.textMuted} strokeWidth={2} /></View>
+                <Text style={styles.emptyMatchesTitle}>{t('discovery.filterEmptyTitle', { defaultValue: 'Aucun avec ces filtres' })}</Text>
+                <Text style={styles.emptyMatchesBody}>{t('discovery.filterEmptyBody', { defaultValue: 'Aucun partenaire ne correspond à ces vibes. Retire-en quelques-unes.' })}</Text>
+                <Pressable onPress={() => setFilterVibes(new Set())} hitSlop={8}>
+                  <Text style={styles.emptyMatchesEdit}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.emptyMatches}>
+                <View style={styles.emptyIc}><Telescope size={32} color={colors.textMuted} strokeWidth={2} /></View>
+                <Text style={styles.emptyMatchesTitle}>{t('discovery.noMatchesTitle', { defaultValue: 'Personne pour l’instant' })}</Text>
+                <Text style={styles.emptyMatchesBody}>{t('discovery.noMatchesBody', { defaultValue: 'Reviens plus tard, ou élargis ta zone et tes dates pour croiser plus de monde.' })}</Text>
+                <Pressable onPress={() => router.push('/(auth)/discovery-compose')} hitSlop={8}>
+                  <Text style={styles.emptyMatchesEdit}>{t('discovery.editMyDispo', { defaultValue: 'Modifier ma dispo' })}</Text>
+                </Pressable>
+              </View>
+            )
           }
         />
       )}
@@ -377,6 +435,46 @@ export function DiscoveryView() {
             <Pressable style={styles.modalCancel} onPress={() => setInviteTargetId(null)}>
               <Text style={styles.modalCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
             </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Vibe filter sheet — client-side, OR logic (any selected vibe). */}
+      <Modal visible={filterOpen} transparent animationType="slide" onRequestClose={() => setFilterOpen(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setFilterOpen(false)}>
+          <Pressable style={[styles.modalSheet, styles.filterSheet]} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            <View style={styles.filterHead}>
+              <Text style={styles.modalTitle}>{t('discovery.filterTitle', { defaultValue: 'Filtrer' })}</Text>
+              <Pressable onPress={() => setFilterOpen(false)} hitSlop={8}>
+                <X size={20} color={colors.textSecondary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
+            <ScrollView style={styles.filterScroll} showsVerticalScrollIndicator={false}>
+              {VIBE_FILTER_GROUPS.map((g) => (
+                <View key={g.key} style={styles.filterGroup}>
+                  <Text style={styles.filterGroupLabel}>{t(`discovery.vibeGroup.${g.key}`, { defaultValue: g.key })}</Text>
+                  <View style={styles.filterChips}>
+                    {g.items.map((it) => {
+                      const on = filterVibes.has(it);
+                      return (
+                        <Pressable key={it} style={[styles.fsChip, on && styles.fsChipOn]} onPress={() => toggleFilterVibe(it)}>
+                          <Text style={[styles.fsChipText, on && styles.fsChipTextOn]}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            <View style={styles.filterFoot}>
+              <Pressable style={({ pressed }) => [styles.filterClearBtn, pressed && styles.pressed]} onPress={() => setFilterVibes(new Set())}>
+                <Text style={styles.filterClearBtnText}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</Text>
+              </Pressable>
+              <Pressable style={({ pressed }) => [styles.filterApplyBtn, pressed && styles.pressedPrimary]} onPress={() => setFilterOpen(false)}>
+                <Text style={styles.filterApplyText}>{t('discovery.filterResults', { defaultValue: 'Voir les {{count}} résultats', count: filteredCards.length })}</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -417,7 +515,38 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // --- Ta dispo panel ---
   myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderBottomWidth: 1, borderBottomColor: colors.cta + '3D' },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
+  matchesHead: { paddingTop: spacing.xs },
+  matchesTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingVertical: spacing.sm, paddingHorizontal: 2 },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cta + '14', borderWidth: 1, borderColor: colors.cta + '55', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 6 },
+  filterBtnOn: { backgroundColor: colors.cta + '22' },
+  filterBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  filterBadge: { minWidth: 17, height: 17, borderRadius: 9, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  filterBadgeText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  activeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs + 2, paddingBottom: spacing.sm, paddingTop: 2 },
+  fchip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.cta, borderRadius: radius.full, paddingLeft: spacing.sm + 2, paddingRight: spacing.sm, paddingVertical: 5 },
+  fchipText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  clearAll: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800', paddingHorizontal: 2 },
+  // filter sheet
+  filterSheet: { maxHeight: '82%' },
+  grab: { width: 38, height: 5, borderRadius: 3, backgroundColor: colors.borderMuted, alignSelf: 'center', marginBottom: spacing.sm },
+  filterHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  filterScroll: { marginTop: spacing.sm },
+  filterGroup: { marginBottom: spacing.md },
+  filterGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.sm },
+  filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  fsChip: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 8 },
+  fsChipOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  fsChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
+  fsChipTextOn: { color: '#FFFFFF', fontWeight: '800' },
+  filterFoot: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.line },
+  filterClearBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: 14, paddingVertical: spacing.sm + 4 },
+  filterClearBtnText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  filterApplyBtn: {
+    flex: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta, borderRadius: 14, paddingVertical: spacing.sm + 4,
+    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
+  },
+  filterApplyText: { color: '#FFFFFF', fontSize: fontSizes.sm + 1, fontWeight: '800' },
 
   // --- Empty matches ---
   emptyMatches: { alignItems: 'center', paddingVertical: spacing.xl + spacing.md, gap: spacing.sm, paddingHorizontal: spacing.lg },
@@ -464,6 +593,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   intentChip: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
   intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  intentChipHl: { backgroundColor: colors.cta + '1F', borderColor: colors.cta },
+  intentChipTextHl: { color: colors.cta },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
