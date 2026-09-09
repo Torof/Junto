@@ -7,7 +7,8 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Image } from 'expo-image';
-import { Check, X, Car, Users, Hash } from 'lucide-react-native';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -520,7 +521,7 @@ export default function MessagerieScreen() {
                 onLongPress = () => handleHideConversation(item.id, name);
               }
 
-              return (
+              const rowNode = (
                 <Pressable
                   style={[styles.row, isUnread && styles.rowUnread]}
                   onPress={onPress}
@@ -543,6 +544,28 @@ export default function MessagerieScreen() {
                     )}
                   </View>
                 </Pressable>
+              );
+
+              // Swipe right → reveal a trash action on the left → hide the
+              // conversation (same confirm as long-press). Only where a hide
+              // action exists (dm / group / channel; not activity threads).
+              if (!onLongPress) return rowNode;
+              const onDelete = onLongPress;
+              return (
+                <ReanimatedSwipeable
+                  friction={2}
+                  leftThreshold={40}
+                  renderLeftActions={(_progress, _translation, methods) => (
+                    <Pressable
+                      style={styles.swipeDelete}
+                      onPress={() => { methods.close(); onDelete(); }}
+                    >
+                      <Trash2 size={22} color="#FFFFFF" strokeWidth={2.2} />
+                    </Pressable>
+                  )}
+                >
+                  {rowNode}
+                </ReanimatedSwipeable>
               );
             }}
             contentContainerStyle={styles.list}
@@ -799,9 +822,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginHorizontal: spacing.sm,
     gap: spacing.sm + 2,
     borderRadius: 16,
+    // Opaque so the swipe-to-delete action underneath doesn't show through.
+    backgroundColor: colors.background,
   },
   // Unread — floats as a soft card so the "new" block reads at a glance.
   rowUnread: { backgroundColor: colors.surface, ...shadows.card },
+  // Revealed on swipe-right — a rounded red tile aligned to the row's inset.
+  swipeDelete: {
+    width: 72,
+    marginLeft: spacing.sm,
+    marginVertical: 2,
+    borderRadius: 16,
+    backgroundColor: colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   unreadDot: {
     width: 8,
     height: 8,
