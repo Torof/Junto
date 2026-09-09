@@ -729,6 +729,7 @@
     "sportLabel": "Sport",
     "searchSport": "Rechercher un sport",
     "searchPlace": "Rechercher un lieu…",
+    "useFreeText": "Utiliser « {{text}} »",
     "radiusLabel": "Rayon",
     "radiusOff": "Tout",
     "sortBy": {

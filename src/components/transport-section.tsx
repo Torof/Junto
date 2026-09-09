@@ -215,7 +215,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 <View style={styles.fromPlaceWrap}>
                   <Text style={styles.fromLabel}>{t('transport.from')}</Text>
                   {fromName ? <Text style={styles.fromChosen}>{fromName}</Text> : null}
-                  <PlaceSearchBar onSelect={(p) => setFromName(p.label)} />
+                  <PlaceSearchBar onSelect={(p) => setFromName(p.label)} onFreeText={setFromName} />
                 </View>
 
                 {/* Departure time is useful for any mode — a cyclist or
