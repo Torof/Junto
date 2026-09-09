@@ -332,10 +332,13 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - `search_channels` / `get_channel` — auth + non suspendu ; **filtrent les bannis** (`channel_bans`, get_channel depuis mig 00406).
 - `get_channel_members` — membres uniquement ; JOIN `public_profiles`.
 - `rename_channel` / `remove_channel_member` / `close_channel` — auth + **non suspendu** (mig 00405) + **créateur uniquement**. `remove` pose un `channel_bans` pour que le retrait tienne.
-- `set_channel_photo` — auth + non suspendu + créateur + canal ouvert ; URL épinglée au chemin storage public `channel-photos/{uid}/` (mig 00405) ; écrit via `bypass_lock`.
+- `set_channel_photo` — auth + non suspendu + créateur + canal ouvert ; URL **ancrée au domaine storage du projet** `https://<ref>.supabase.co/storage/v1/object/public/channel-photos/{uid}/` (pas de `%` en tête — mig 00408, durcit 00405) ; écrit via `bypass_lock`.
 - `delete_message` (branche canal) — auteur OU créateur du canal ; auth + non suspendu (mig 00405).
 - `share_activity_message` — **verrou sport** : si le canal a un `sport_key`, l'activité doit être de ce sport → `junto.channel_sport_mismatch` ; canal sans sport = tout permis.
+- `private.assert_can_send` (branche canal, mig 00410) — **rejette un expéditeur banni** (`channel_bans`) : le ban est autoritaire sur le chemin d'envoi, pas seulement via l'absence d'appartenance.
+- `join_channel` + `remove_channel_member` (mig 00410) — **sérialisés** sous verrou `hashtext(conversation_id||'_channel_members')` ; `remove` bannit-puis-retire → l'état membre+banni ne peut pas naître (course fermée, lectures RLS restent refusées).
 - Trigger `messages_block_closed_channel` (BEFORE INSERT) — bloque tout post sur canal fermé.
+- **Suppression du créateur** (`delete_own_account`, mig 00412) — chaque canal créé est **transféré au membre le plus ancien restant** (sinon fermé) avant la suppression du user → plus de canal orphelin non modéré.
 
 **Storage — bucket `channel-photos`** (mig 00403) : public read, écriture owner-scoped `{uid}/…`, 5 Mo, `{jpeg,png,webp}`. La policy ne contraint que le chemin `{uid}` ; l'appartenance créateur est vérifiée dans `create_channel`/`set_channel_photo`, qui exigent aussi l'URL du bucket sous `{uid}` (mig 00405). Objets orphelins tolérés.
 
@@ -359,7 +362,8 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - `upsert_dispo` — auth + non suspendu ; validation sports actifs, `levels` (objet JSONB, clés ⊆ sports, valeurs ≤ 20 car — mig 00405), vibes (vocab fermé ≤10), about (HTML-strip ≤250 mots/1600 car), rayon, transport, fenêtre (≤4 sem, ≥ -1 jour), lieu.
 - `get_discovery_cards` / `get_discovery_count` — auth + **non suspendu** (count depuis mig 00407) ; gate démo + `blocked_users` bidirectionnel ; count floore 1-2 → « quelques ».
 - `get_dispo_zone` — match requis (cf. invariant A).
-- `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte.
+- `get_invitable_activities_for_dispo` / `send_discovery_invite` — **réciprocité + gate démo** (mig 00409) : l'appelant doit détenir une dispo active qui matche la cible (prédicat `get_discovery_cards`) et la dispo cible est démo-gatée → pas d'oracle de disponibilité pour un non-match, pas d'interaction avec une dispo démo.
+- `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte. `accept_contact_request` re-vérifie la suspension de l'**expéditeur** au moment de l'acceptation (mig 00411).
 - `activate_dispo` / `deactivate_dispo` — flip `is_active` via `bypass_lock`.
 
 **Codes d'erreur (SAFE)** : `junto.dispo_{sports,levels,radius,transport,window,place,about,intent}`, `discovery_no_match`, `contact_request_pending_cap`/`daily_cap`.
