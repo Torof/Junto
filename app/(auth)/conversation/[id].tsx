@@ -132,7 +132,7 @@ export default function ConversationScreen() {
   );
 
   // Channel thread — probed like the group thread once it's not a DM.
-  const { data: channelInfo } = useQuery({
+  const { data: channelInfo, isError: channelError } = useQuery({
     queryKey: ['channel-info', id],
     queryFn: () => channelService.get(id!),
     enabled: !!id && convMeta?.exists === false,
@@ -627,10 +627,14 @@ export default function ConversationScreen() {
   // hasn't returned yet (data undefined, no error). Show the spinner rather than
   // flashing the unavailable screen for a real group (audit M5).
   const groupProbePending = convMeta?.exists === false && groupInfo === undefined && !groupError;
-  if (convLoading || groupProbePending) {
+  // Same for the channel probe: don't flash "unavailable" while get_channel is
+  // still resolving for a real channel (it was missing → channels always hit the
+  // unavailable screen because the guard below only excluded groups).
+  const channelProbePending = convMeta?.exists === false && channelInfo === undefined && !channelError;
+  if (convLoading || groupProbePending || channelProbePending) {
     return <View style={styles.center}><LogoSpinner /></View>;
   }
-  if (convMeta && !convMeta.exists && !isGroup) {
+  if (convMeta && !convMeta.exists && !isGroup && !isChannel) {
     return (
       <ActivityUnavailable
         fallbackHref="/(auth)/(tabs)/messagerie"
