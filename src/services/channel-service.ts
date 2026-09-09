@@ -1,7 +1,5 @@
 import { supabase } from './supabase';
 
-import type { VibeKey } from '@/constants/vibes';
-
 export const CHANNEL_RADII = [35, 60, 100] as const;
 
 export interface ChannelDraft {
@@ -11,7 +9,6 @@ export interface ChannelDraft {
   baseLabel: string;
   radiusKm: number;                // 35 | 60 | 100 — the zone's territory
   sportKeys: string[];             // optional labels, 0-3
-  intent: VibeKey[];               // optional vibe labels
   description: string | null;
   force?: boolean;
 }
@@ -25,7 +22,6 @@ export interface ChannelListItem {
   conversation_id: string;
   name: string;
   sport_keys: string[] | null;
-  intent: string[] | null;
   base_label: string;
   radius_km: number;
   description: string | null;
@@ -39,7 +35,6 @@ export interface ChannelDetail {
   conversation_id: string;
   name: string;
   sport_keys: string[] | null;
-  intent: string[] | null;
   base_lng: number;
   base_lat: number;
   base_label: string;
@@ -65,7 +60,6 @@ export interface SearchChannelsFilters {
   sportKey?: string | null;
   nearLng?: number | null;
   nearLat?: number | null;
-  intent?: string[] | null;
 }
 
 export const channelService = {
@@ -77,7 +71,6 @@ export const channelService = {
       p_base_label: d.baseLabel,
       p_radius_km: d.radiusKm,
       p_sport_keys: (d.sportKeys.length ? d.sportKeys : null) as unknown as string[],
-      p_intent: (d.intent.length ? d.intent : null) as unknown as string[],
       p_description: d.description as unknown as string,
       p_force: d.force ?? false,
     });
@@ -103,7 +96,6 @@ export const channelService = {
       p_sport_key: (f.sportKey ?? null) as unknown as string,
       p_near_lng: (f.nearLng ?? null) as unknown as number,
       p_near_lat: (f.nearLat ?? null) as unknown as number,
-      p_intent: (f.intent && f.intent.length ? f.intent : null) as unknown as string[],
     });
     if (error) throw error;
     return (data ?? []) as unknown as ChannelListItem[];

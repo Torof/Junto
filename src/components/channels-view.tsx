@@ -16,7 +16,6 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { VIBE_GROUPS, VIBE_LABEL, type VibeKey } from '@/constants/vibes';
 
 export function ChannelsView() {
   const colors = useColors();
@@ -29,24 +28,21 @@ export function ChannelsView() {
   const [query, setQuery] = useState('');
   const [sportKey, setSportKey] = useState<string | null>(null);
   const [near, setNear] = useState<{ lng: number; lat: number; label: string } | null>(null);
-  const [intent, setIntent] = useState<VibeKey[]>([]);
-  const toggleVibe = (k: VibeKey) => setIntent((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]);
   const [showFilters, setShowFilters] = useState(false);
 
 
   const { data: sports } = useSports();
   const sportById = useMemo(() => new Map((sports ?? []).map((s) => [s.key, s])), [sports]);
 
-  const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0) + (intent.length > 0 ? 1 : 0);
+  const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0);
   const trimmed = query.trim();
   const { data: channels, isLoading } = useQuery({
-    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat, intent.join(',')],
+    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat],
     queryFn: () => channelService.search({
       query: trimmed || null,
       sportKey,
       nearLng: near?.lng ?? null,
       nearLat: near?.lat ?? null,
-      intent: intent.length ? intent : null,
     }),
   });
 
@@ -58,26 +54,44 @@ export function ChannelsView() {
   const renderItem = ({ item }: { item: ChannelListItem }) => {
     const firstSport = item.sport_keys?.[0] ?? null;
     const cat = firstSport ? sportById.get(firstSport)?.category : undefined;
-    const tint = sportCategoryColor(cat, colors.cta);
-    const zone = `${item.base_label} · ${item.radius_km} km${item.distance_km != null ? ` · ${t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}` : ''}`;
+    // Tinted banner in the sport's universe colour → each channel reads at a
+    // glance; a sport-less channel stays neutral (💬, no pill).
+    const tint = firstSport ? sportCategoryColor(cat, colors.cta) : null;
+    const sportName = firstSport ? t(`sports.${firstSport}`, { defaultValue: firstSport }) : null;
     return (
-      <Pressable style={styles.row} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
-        <View style={[styles.thumb, { backgroundColor: tint + '22' }]}>
+      <Pressable
+        style={[styles.card, { backgroundColor: tint ? tint + '26' : colors.surface }]}
+        onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}
+      >
+        <View style={[styles.thumb, { backgroundColor: tint ? 'rgba(255,255,255,0.55)' : colors.background }]}>
           <Text style={styles.thumbIcon}>{firstSport ? getSportIcon(firstSport) : '💬'}</Text>
         </View>
-        <View style={styles.rowMain}>
-          <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.rowPlace} numberOfLines={1}>{zone}</Text>
-        </View>
-        <View style={styles.rowRight}>
-          <View style={styles.rowCount}>
-            <Users size={13} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.rowCountText}>{item.member_count}</Text>
+        <View style={styles.cardText}>
+          <View style={styles.topline}>
+            <Text style={styles.rowName} numberOfLines={2}>{item.name}</Text>
+            <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
+              <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
+                {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
+              </Text>
+            </View>
           </View>
-          <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
-            <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
-              {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
-            </Text>
+          <View style={styles.metaRow}>
+            {sportName && tint && (
+              <View style={[styles.sportPill, { backgroundColor: tint }]}>
+                <Text style={styles.sportPillText} numberOfLines={1}>{sportName}</Text>
+              </View>
+            )}
+            <View style={styles.metaItem}>
+              <MapPin size={12} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.metaText} numberOfLines={1}>{item.base_label} · {item.radius_km} km</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Users size={12} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.metaText}>{item.member_count}</Text>
+            </View>
+            {item.distance_km != null && (
+              <Text style={styles.metaText}>· {t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}</Text>
+            )}
           </View>
         </View>
       </Pressable>
@@ -147,27 +161,6 @@ export function ChannelsView() {
               />
             </CollapsibleSection>
 
-            <CollapsibleSection
-              title={t('channels.filterVibes', { defaultValue: 'Ambiances' })}
-              summary={intent.length ? String(intent.length) : null}
-            >
-              {VIBE_GROUPS.map(({ groupKey, group, items }) => (
-                <View key={groupKey} style={styles.vibeGroup}>
-                  <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
-                  <View style={styles.chipRow}>
-                    {items.map((k) => {
-                      const on = intent.includes(k);
-                      return (
-                        <Pressable key={k} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleVibe(k)}>
-                          <Text style={[styles.chipText, on && styles.chipTextOn]}>{t(`discovery.intent.${k}`, { defaultValue: VIBE_LABEL[k] })}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              ))}
-            </CollapsibleSection>
-
             <Pressable style={styles.sheetApply} onPress={() => setShowFilters(false)}>
               <Text style={styles.sheetApplyText}>{t('channels.applyFilters', { defaultValue: 'Voir les canaux' })}</Text>
             </Pressable>
@@ -207,12 +200,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 46, paddingHorizontal: spacing.md, borderRadius: 14, backgroundColor: colors.surface, ...shadows.card },
   filterBtnActive: { backgroundColor: colors.cta },
   filterBtnCount: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
-  chip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5 },
-  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  chipDisabled: { opacity: 0.4 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-  chipTextOn: { color: '#FFFFFF' },
   sheetBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
@@ -223,27 +210,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   myPosBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, marginTop: spacing.xs },
   myPosText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
   radiusHint: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
-  vibeGroup: { marginBottom: spacing.sm },
-  vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs },
   sheetApply: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.lg },
   sheetApplyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, gap: spacing.sm + 2, paddingBottom: 100 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, borderRadius: 18, backgroundColor: colors.surface, padding: spacing.sm + 4, ...shadows.card },
+  // Tinted banner card (variant B): sport-universe colour, full-width title on
+  // up to 2 lines, action top-right, meta line (sport · place · radius · members).
+  card: { flexDirection: 'row', gap: spacing.sm + 2, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: spacing.sm + 4, ...shadows.card },
   thumb: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   thumbIcon: { fontSize: 24 },
-  rowMain: { flex: 1, minWidth: 0, gap: 2 },
-  rowName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2 },
-  rowPlace: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
-  rowRight: { alignItems: 'flex-end', gap: spacing.xs + 2 },
-  rowCount: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rowCountText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '800' },
-  tag: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 1, paddingVertical: 3 },
-  tagMember: { backgroundColor: colors.cta + '22' },
-  tagMemberText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  cardText: { flex: 1, minWidth: 0 },
+  topline: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm + 2 },
+  rowName: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2, lineHeight: 21 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 7 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: spacing.sm },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3, marginRight: spacing.xs + 2 },
+  sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  tag: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5, alignSelf: 'flex-start' },
+  tagMember: { backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: colors.border },
+  tagMemberText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800' },
   tagJoin: { backgroundColor: colors.cta },
-  tagJoinText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  tagJoinText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
   fab: { position: 'absolute', right: spacing.md, bottom: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 3, ...shadows.raised },
   fabText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
 });

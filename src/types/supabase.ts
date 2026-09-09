@@ -513,7 +513,6 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
-          intent: string[] | null
           radius_km: number
           sport_keys: string[] | null
         }
@@ -525,7 +524,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          intent?: string[] | null
           radius_km: number
           sport_keys?: string[] | null
         }
@@ -537,7 +535,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          intent?: string[] | null
           radius_km?: number
           sport_keys?: string[] | null
         }
@@ -3574,7 +3571,6 @@ export type Database = {
           p_base_lng: number
           p_description?: string
           p_force?: boolean
-          p_intent?: string[]
           p_name: string
           p_radius_km: number
           p_sport_keys?: string[]
@@ -3944,7 +3940,6 @@ export type Database = {
           base_lng: number
           conversation_id: string
           description: string
-          intent: string[]
           is_closed: boolean
           is_creator: boolean
           is_member: boolean
@@ -4511,7 +4506,6 @@ export type Database = {
       sanitize_notif_text: { Args: { p: string }; Returns: string }
       search_channels: {
         Args: {
-          p_intent?: string[]
           p_near_lat?: number
           p_near_lng?: number
           p_query?: string
@@ -4522,7 +4516,6 @@ export type Database = {
           conversation_id: string
           description: string
           distance_km: number
-          intent: string[]
           is_creator: boolean
           is_member: boolean
           member_count: number

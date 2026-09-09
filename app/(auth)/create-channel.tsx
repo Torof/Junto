@@ -12,12 +12,10 @@ import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { channelService, CHANNEL_RADII } from '@/services/channel-service';
-import { VIBE_GROUPS, VIBE_LABEL, type VibeKey } from '@/constants/vibes';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
 const MAX_SPORTS = 3;
-const MAX_VIBES = 6;
 
 export default function CreateChannelScreen() {
   const colors = useColors();
@@ -31,18 +29,15 @@ export default function CreateChannelScreen() {
   const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState<number>(60);
   const [sportKeys, setSportKeys] = useState<string[]>([]);
-  const [intent, setIntent] = useState<VibeKey[]>([]);
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [dupId, setDupId] = useState<string | null>(null);
 
-  // Identity = title + zone (both required). Sports + vibes are optional labels.
+  // Identity = title + zone (both required). Sports are optional labels.
   const ready = !!base && name.trim().length >= 1;
 
   const toggleSport = (k: string) => setSportKeys((prev) =>
     prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_SPORTS ? prev : [...prev, k]);
-  const toggleVibe = (k: VibeKey) => setIntent((prev) =>
-    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_VIBES ? prev : [...prev, k]);
 
   const goTo = (id: string) => {
     queryClient.invalidateQueries({ queryKey: ['channels'] });
@@ -58,7 +53,7 @@ export default function CreateChannelScreen() {
       const res = await channelService.create({
         name: name.trim(),
         baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label, radiusKm,
-        sportKeys, intent,
+        sportKeys,
         description: description.trim() || null, force,
       });
       if (res.duplicate) { setDupId(res.conversationId); setSaving(false); return; }
@@ -120,23 +115,6 @@ export default function CreateChannelScreen() {
         <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sports (optionnel — jusqu’à 3)' })}</Text>
         <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
 
-        <Text style={styles.section}>{t('channels.vibesLabel', { defaultValue: 'Ambiances (optionnel)' })}</Text>
-        {VIBE_GROUPS.map(({ groupKey, group, items }) => (
-          <View key={groupKey} style={styles.vibeGroup}>
-            <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
-            <View style={styles.chipRow}>
-              {items.map((k) => {
-                const on = intent.includes(k);
-                return (
-                  <Pressable key={k} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleVibe(k)}>
-                    <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${k}`, { defaultValue: VIBE_LABEL[k] })}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ))}
-
         <Text style={styles.section}>{t('channels.descLabel', { defaultValue: 'Description (optionnel)' })}</Text>
         <TextInput
           style={[styles.input, styles.inputMulti]}
@@ -191,13 +169,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, color: colors.textPrimary, fontSize: fontSizes.md },
   inputMulti: { minHeight: 88, textAlignVertical: 'top' },
-  vibeGroup: { marginBottom: spacing.sm + 2 },
-  vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs + 1 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  chip: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 7 },
-  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '800' },
   footer: { borderTopWidth: 1, borderTopColor: colors.borderMuted, paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
