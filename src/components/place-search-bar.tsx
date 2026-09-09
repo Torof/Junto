@@ -88,6 +88,14 @@ export function PlaceSearchBar({ onSelect, bias, onFreeText }: Props) {
 
       {((showResults && (results?.length ?? 0) > 0) || showFreeRow) && (
         <View style={styles.dropdown}>
+          {showFreeRow && (
+            <Pressable style={styles.row} onPress={useFree}>
+              <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
+              <Text style={styles.freeRowText} numberOfLines={1}>
+                {t('map.useFreeText', { defaultValue: 'Utiliser « {{text}} »', text: freeText })}
+              </Text>
+            </Pressable>
+          )}
           {showResults && (results ?? []).map((item) => (
             <Pressable key={item.id} style={styles.row} onPress={() => pick(item)}>
               <MapPin size={16} color={colors.textSecondary} strokeWidth={2.2} />
@@ -97,14 +105,6 @@ export function PlaceSearchBar({ onSelect, bias, onFreeText }: Props) {
               </View>
             </Pressable>
           ))}
-          {showFreeRow && (
-            <Pressable style={[styles.row, styles.freeRow]} onPress={useFree}>
-              <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
-              <Text style={styles.freeRowText} numberOfLines={1}>
-                {t('map.useFreeText', { defaultValue: 'Utiliser « {{text}} »', text: freeText })}
-              </Text>
-            </Pressable>
-          )}
         </View>
       )}
     </View>
@@ -132,6 +132,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   rowLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   rowSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
-  freeRow: { borderBottomWidth: 0 },
   freeRowText: { flex: 1, color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
 });
