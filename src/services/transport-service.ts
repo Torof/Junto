@@ -15,6 +15,8 @@ export interface ParticipantTransport {
   transport_seats: number | null;
   transport_from_name: string | null;
   transport_departs_at: string | null;
+  transport_from_lat: number | null;
+  transport_from_lng: number | null;
   confirmed_present?: boolean | null;
 }
 
@@ -48,6 +50,8 @@ export const transportService = {
     seats?: number | null,
     fromName?: string | null,
     departsAt?: string | null,
+    fromLat?: number | null,
+    fromLng?: number | null,
   ): Promise<void> => {
     const { error } = await supabase.rpc('set_participation_transport', {
       p_activity_id: activityId,
@@ -55,6 +59,8 @@ export const transportService = {
       p_transport_seats: seats ?? undefined,
       p_transport_from_name: fromName ?? undefined,
       p_transport_departs_at: departsAt ?? undefined,
+      p_transport_from_lat: fromLat ?? undefined,
+      p_transport_from_lng: fromLng ?? undefined,
     });
     if (error) throw error;
   },
@@ -183,6 +189,8 @@ export const transportService = {
         transport_seats: r.transport_seats,
         transport_from_name: r.transport_from_name,
         transport_departs_at: r.transport_departs_at,
+        transport_from_lat: r.transport_from_lat,
+        transport_from_lng: r.transport_from_lng,
       })) as ParticipantTransport[];
   },
 

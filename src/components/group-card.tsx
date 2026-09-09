@@ -1,13 +1,22 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, UserRound, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, UserRound, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack, Navigation } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
+
+// Open a departure point in the phone's maps app (Apple Maps on iOS, Google
+// Maps elsewhere) — a deep link, not an embedded map.
+function openMaps(lat: number, lng: number, label?: string | null): void {
+  const url = Platform.OS === 'ios'
+    ? `https://maps.apple.com/?ll=${lat},${lng}${label ? `&q=${encodeURIComponent(label)}` : ''}`
+    : `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  Linking.openURL(url).catch(() => {});
+}
 import type { AppColors } from '@/constants/colors';
 import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
@@ -571,10 +580,18 @@ export function GroupCard({
                   {hasMeta && (
                     <View style={styles.journey}>
                       {d.transport_from_name ? (
-                        <View style={styles.jFromRow}>
+                        <Pressable
+                          style={styles.jFromRow}
+                          disabled={d.transport_from_lat == null || d.transport_from_lng == null}
+                          onPress={(e) => { e.stopPropagation(); openMaps(d.transport_from_lat as number, d.transport_from_lng as number, d.transport_from_name); }}
+                          hitSlop={4}
+                        >
                           <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                          <Text style={styles.jFrom} numberOfLines={2}>{d.transport_from_name}</Text>
-                        </View>
+                          <Text style={[styles.jFrom, d.transport_from_lat != null && styles.jFromLink]} numberOfLines={2}>{d.transport_from_name}</Text>
+                          {d.transport_from_lat != null && d.transport_from_lng != null ? (
+                            <Navigation size={12} color={colors.cta} strokeWidth={2.4} />
+                          ) : null}
+                        </Pressable>
                       ) : null}
                       {d.transport_departs_at ? (
                         <View style={styles.jTime}>
@@ -1162,6 +1179,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   jFromRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
   jFrom: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800', flexShrink: 1 },
+  jFromLink: { color: colors.cta },
   jTime: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   jTimeLabel: { color: colors.textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
   jTimeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },

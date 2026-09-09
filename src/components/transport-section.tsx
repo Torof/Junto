@@ -51,6 +51,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
   const [fromName, setFromName] = useState('');
+  const [fromLat, setFromLat] = useState<number | null>(null);
+  const [fromLng, setFromLng] = useState<number | null>(null);
   const [departsAt, setDepartsAt] = useState<Date | null>(null);
   const [showDepartsPicker, setShowDepartsPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,11 +91,15 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       setSelectedType(myTransport.transport_type);
       setSeats(myTransport.transport_seats ?? 0);
       setFromName(myTransport.transport_from_name ?? '');
+      setFromLat(myTransport.transport_from_lat ?? null);
+      setFromLng(myTransport.transport_from_lng ?? null);
       setDepartsAt(myTransport.transport_departs_at ? new Date(myTransport.transport_departs_at) : null);
     } else {
       setSelectedType(null);
       setSeats(0);
       setFromName('');
+      setFromLat(null);
+      setFromLng(null);
       setDepartsAt(activityStartsAt ? new Date(activityStartsAt.getTime() - 30 * 60 * 1000) : null);
     }
     setShowEditor(true);
@@ -126,6 +132,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         // Departure time persists for every mode now — cyclists and
         // pedestrians can log when they leave too. Seats stay car-only.
         departsAt ? departsAt.toISOString() : null,
+        fromLat,
+        fromLng,
       );
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['transport-summary', activityId] });
@@ -215,7 +223,10 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 <View style={styles.fromPlaceWrap}>
                   <Text style={styles.fromLabel}>{t('transport.from')}</Text>
                   {fromName ? <Text style={styles.fromChosen}>{fromName}</Text> : null}
-                  <PlaceSearchBar onSelect={(p) => setFromName(p.label)} onFreeText={setFromName} />
+                  <PlaceSearchBar
+                    onSelect={(p) => { setFromName(p.label); setFromLat(p.lat); setFromLng(p.lng); }}
+                    onFreeText={(txt) => { setFromName(txt); setFromLat(null); setFromLng(null); }}
+                  />
                 </View>
 
                 {/* Departure time is useful for any mode — a cyclist or
