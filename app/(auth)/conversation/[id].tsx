@@ -35,6 +35,8 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
+import { PickTraceSheet } from '@/components/pick-trace-sheet';
+import type { GpxTrace } from '@/services/gpx-trace-service';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
@@ -66,6 +68,7 @@ export default function ConversationScreen() {
   const [isAttaching, setIsAttaching] = useState(false);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [pickActivityOpen, setPickActivityOpen] = useState(false);
+  const [pickTraceOpen, setPickTraceOpen] = useState(false);
   const [showGroupManage, setShowGroupManage] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
@@ -516,6 +519,30 @@ export default function ConversationScreen() {
     );
   };
 
+  // Share a trace picked from the in-app GPX library (same privacy confirm).
+  const shareLibraryTrace = (trace: GpxTrace) => {
+    Alert.alert(
+      t('messagerie.tracePrivacyTitle'),
+      t('messagerie.tracePrivacyMessage'),
+      [
+        { text: t('messagerie.cancel'), style: 'cancel' },
+        { text: t('messagerie.tracePrivacyContinue'), onPress: async () => {
+          if (!id) return;
+          try {
+            setIsAttaching(true);
+            await messageService.shareTrace(id, trace.geojson, trace.name);
+            await queryClient.invalidateQueries({ queryKey: ['messages', id] });
+            Burnt.toast({ title: t('messagerie.traceSent'), preset: 'done' });
+          } catch (err) {
+            Alert.alert(t('auth.error'), getFriendlyError(err, 'sendMessage'));
+          } finally {
+            setIsAttaching(false);
+          }
+        } },
+      ],
+    );
+  };
+
   const pickAndSendTrace = async () => {
     if (!id) return;
     try {
@@ -808,7 +835,7 @@ export default function ConversationScreen() {
               <MapPin size={20} color={colors.textPrimary} strokeWidth={2.2} />
               <Text style={styles.menuLabel}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</Text>
             </Pressable>
-            <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); handleAttachTrace(); }}>
+            <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); setPickTraceOpen(true); }}>
               <RouteIcon size={20} color={colors.textPrimary} strokeWidth={2.2} />
               <Text style={styles.menuLabel}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</Text>
             </Pressable>
@@ -846,6 +873,13 @@ export default function ConversationScreen() {
         visible={pickActivityOpen}
         onClose={() => setPickActivityOpen(false)}
         onPick={handleShareActivity}
+      />
+
+      <PickTraceSheet
+        visible={pickTraceOpen}
+        onClose={() => setPickTraceOpen(false)}
+        onPick={shareLibraryTrace}
+        onImportFile={handleAttachTrace}
       />
 
       {id && isGroup && groupInfo && (
