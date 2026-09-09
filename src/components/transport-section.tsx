@@ -10,6 +10,7 @@ import * as Burnt from 'burnt';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { transportService } from '@/services/transport-service';
+import { PlaceSearchBar } from '@/components/place-search-bar';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -211,16 +212,10 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   </View>
                 )}
 
-                <View style={styles.fromRow}>
+                <View style={styles.fromPlaceWrap}>
                   <Text style={styles.fromLabel}>{t('transport.from')}</Text>
-                  <TextInput
-                    style={styles.fromInput}
-                    value={fromName}
-                    onChangeText={setFromName}
-                    placeholder={t('transport.fromPlaceholder')}
-                    placeholderTextColor={colors.textSecondary}
-                    maxLength={100}
-                  />
+                  {fromName ? <Text style={styles.fromChosen}>{fromName}</Text> : null}
+                  <PlaceSearchBar onSelect={(p) => setFromName(p.label)} />
                 </View>
 
                 {/* Departure time is useful for any mode — a cyclist or
@@ -382,6 +377,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fromLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
   fromInput: { color: colors.textPrimary, fontSize: fontSizes.md },
+  fromPlaceWrap: { marginBottom: spacing.md },
+  fromChosen: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: spacing.xs, marginBottom: spacing.sm },
   timeButton: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     alignSelf: 'flex-start',
