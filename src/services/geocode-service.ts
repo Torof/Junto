@@ -54,4 +54,20 @@ export const geocodeService = {
       })
       .filter((r): r is PlaceResult => r !== null);
   },
+
+  // Reverse geocode a point (Photon /reverse) → the nearest named place. Used to
+  // label a departure the user placed by hand on the map. Returns null if
+  // nothing usable is found (caller falls back to a generic label).
+  reverse: async (lat: number, lng: number, signal?: AbortSignal): Promise<string | null> => {
+    const params = new URLSearchParams({ lat: String(lat), lon: String(lng), lang: 'fr' });
+    const res = await fetch(`https://photon.komoot.io/reverse?${params.toString()}`, { signal });
+    if (!res.ok) throw new Error(`reverse ${res.status}`);
+    const json = (await res.json()) as { features?: PhotonFeature[] };
+    const p = (json.features ?? [])[0]?.properties;
+    if (!p) return null;
+    const label = p.name ?? p.city ?? p.county ?? null;
+    if (!label) return null;
+    const extra = [p.city, p.county].find((x) => !!x && x !== label);
+    return extra ? `${label}, ${extra}` : label;
+  },
 };

@@ -3,7 +3,8 @@ import { useState, useMemo, useCallback, forwardRef, useImperativeHandle } from 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import { Car, Bike, TrainFront, Footprints, HelpCircle, Clock } from 'lucide-react-native';
+import { Car, Bike, TrainFront, Footprints, HelpCircle, Clock, MapPin, X } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
@@ -11,6 +12,9 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { transportService } from '@/services/transport-service';
 import { PlaceSearchBar } from '@/components/place-search-bar';
+import { JuntoMapView } from '@/components/map-view';
+import { geocodeService } from '@/services/geocode-service';
+import { useInitialLocation } from '@/hooks/use-initial-location';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -56,6 +60,11 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
   const [departsAt, setDepartsAt] = useState<Date | null>(null);
   const [showDepartsPicker, setShowDepartsPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [mapPickedPoint, setMapPickedPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [picking, setPicking] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { center: initialCenter } = useInitialLocation();
 
   // Seat-reserve state.
   const [requestingFromDriver, setRequestingFromDriver] = useState<string | null>(null);
@@ -176,6 +185,18 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     }
   };
 
+  const confirmMapPoint = async () => {
+    if (!mapPickedPoint) return;
+    setPicking(true);
+    let label: string | null = null;
+    try { label = await geocodeService.reverse(mapPickedPoint.lat, mapPickedPoint.lng); } catch { /* fall back to generic */ }
+    setFromName(label ?? t('transport.mapPoint', { defaultValue: 'Point sur la carte' }));
+    setFromLat(mapPickedPoint.lat);
+    setFromLng(mapPickedPoint.lng);
+    setPicking(false);
+    setShowMapPicker(false);
+  };
+
   return (
     <>
       {/* Transport editor modal — declare / edit own transport. */}
@@ -227,6 +248,16 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                     onSelect={(p) => { setFromName(p.label); setFromLat(p.lat); setFromLng(p.lng); }}
                     onFreeText={(txt) => { setFromName(txt); setFromLat(null); setFromLng(null); }}
                   />
+                  <Pressable
+                    style={styles.placeOnMapBtn}
+                    onPress={() => {
+                      setMapPickedPoint(fromLat != null && fromLng != null ? { lat: fromLat, lng: fromLng } : null);
+                      setShowMapPicker(true);
+                    }}
+                  >
+                    <MapPin size={15} color={colors.cta} strokeWidth={2.2} />
+                    <Text style={styles.placeOnMapText}>{t('transport.placeOnMap', { defaultValue: 'Placer sur la carte' })}</Text>
+                  </Pressable>
                 </View>
 
                 {/* Departure time is useful for any mode — a cyclist or
@@ -344,6 +375,39 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Full-screen map picker — drop a pin for a precise (non-geocodable)
+          departure. Reverse-geocoding names it; the pin's coords are kept. */}
+      <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
+        <View style={styles.mapPickerWrap}>
+          <JuntoMapView
+            center={mapPickedPoint ? [mapPickedPoint.lng, mapPickedPoint.lat] : (initialCenter ?? undefined)}
+            onMapPress={(lng, lat) => setMapPickedPoint({ lat, lng })}
+            pins={mapPickedPoint ? [{ id: 'dep', coordinate: [mapPickedPoint.lng, mapPickedPoint.lat], color: colors.cta }] : []}
+          />
+          <View style={[styles.mapPickerHeader, { paddingTop: insets.top + spacing.sm }]}>
+            <Pressable style={styles.mapPickerClose} onPress={() => setShowMapPicker(false)} hitSlop={8}>
+              <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
+            </Pressable>
+            <Text style={styles.mapPickerHint} numberOfLines={1}>
+              {t('transport.mapPickHint', { defaultValue: 'Touche la carte pour placer ton départ' })}
+            </Text>
+          </View>
+          <View style={[styles.mapPickerFooter, { paddingBottom: insets.bottom + spacing.md }]}>
+            <Pressable
+              style={[styles.saveButton, (!mapPickedPoint || picking) && { opacity: 0.4 }]}
+              disabled={!mapPickedPoint || picking}
+              onPress={confirmMapPoint}
+            >
+              <Text style={styles.saveText}>
+                {picking
+                  ? t('transport.mapPicking', { defaultValue: 'Localisation…' })
+                  : t('transport.mapPickConfirm', { defaultValue: 'Valider ce point' })}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 });
@@ -390,6 +454,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fromInput: { color: colors.textPrimary, fontSize: fontSizes.md },
   fromPlaceWrap: { marginBottom: spacing.md },
   fromChosen: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: spacing.xs, marginBottom: spacing.sm },
+  placeOnMapBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: spacing.sm, paddingVertical: spacing.xs },
+  placeOnMapText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  mapPickerWrap: { flex: 1, backgroundColor: colors.background },
+  mapPickerHeader: {
+    position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingHorizontal: spacing.md, paddingBottom: spacing.sm, backgroundColor: colors.background + 'E6',
+  },
+  mapPickerClose: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  mapPickerHint: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  mapPickerFooter: {
+    position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.md,
+    backgroundColor: colors.background + 'E6',
+  },
   timeButton: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     alignSelf: 'flex-start',
