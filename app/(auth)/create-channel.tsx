@@ -12,8 +12,12 @@ import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { channelService, CHANNEL_RADII } from '@/services/channel-service';
+import { VIBE_GROUPS, VIBE_LABEL, type VibeKey } from '@/constants/vibes';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
+
+const MAX_SPORTS = 3;
+const MAX_VIBES = 6;
 
 export default function CreateChannelScreen() {
   const colors = useColors();
@@ -23,16 +27,22 @@ export default function CreateChannelScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
-  const [sportKey, setSportKey] = useState<string | null>(null);
-  const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number>(35);
   const [name, setName] = useState('');
+  const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number>(60);
+  const [sportKeys, setSportKeys] = useState<string[]>([]);
+  const [intent, setIntent] = useState<VibeKey[]>([]);
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [dupId, setDupId] = useState<string | null>(null);
 
-  // A channel = 1 sport + a zone (centre + radius). Both required.
-  const ready = !!sportKey && !!base && name.trim().length >= 1;
+  // Identity = title + zone (both required). Sports + vibes are optional labels.
+  const ready = !!base && name.trim().length >= 1;
+
+  const toggleSport = (k: string) => setSportKeys((prev) =>
+    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_SPORTS ? prev : [...prev, k]);
+  const toggleVibe = (k: VibeKey) => setIntent((prev) =>
+    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_VIBES ? prev : [...prev, k]);
 
   const goTo = (id: string) => {
     queryClient.invalidateQueries({ queryKey: ['channels'] });
@@ -46,8 +56,9 @@ export default function CreateChannelScreen() {
     try {
       haptic.success();
       const res = await channelService.create({
-        sportKey: sportKey!, name: name.trim(),
+        name: name.trim(),
         baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label, radiusKm,
+        sportKeys, intent,
         description: description.trim() || null, force,
       });
       if (res.duplicate) { setDupId(res.conversationId); setSaving(false); return; }
@@ -78,8 +89,15 @@ export default function CreateChannelScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport' })}</Text>
-        <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))} label={t('map.sportLabel')} />
+        <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom du canal' })}</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder={t('channels.namePlaceholder', { defaultValue: 'Ex. Outdoor Briançonnais' })}
+          placeholderTextColor={colors.textMuted}
+          maxLength={60}
+        />
 
         <Text style={styles.section}>{t('channels.zoneLabel', { defaultValue: 'Zone — lieu central' })}</Text>
         {base && (
@@ -99,15 +117,25 @@ export default function CreateChannelScreen() {
           ))}
         </View>
 
-        <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom du canal' })}</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder={t('channels.namePlaceholder', { defaultValue: 'Ex. Rando Briançonnais' })}
-          placeholderTextColor={colors.textMuted}
-          maxLength={60}
-        />
+        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sports (optionnel — jusqu’à 3)' })}</Text>
+        <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
+
+        <Text style={styles.section}>{t('channels.vibesLabel', { defaultValue: 'Ambiances (optionnel)' })}</Text>
+        {VIBE_GROUPS.map(({ groupKey, group, items }) => (
+          <View key={groupKey} style={styles.vibeGroup}>
+            <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
+            <View style={styles.chipRow}>
+              {items.map((k) => {
+                const on = intent.includes(k);
+                return (
+                  <Pressable key={k} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleVibe(k)}>
+                    <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${k}`, { defaultValue: VIBE_LABEL[k] })}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ))}
 
         <Text style={styles.section}>{t('channels.descLabel', { defaultValue: 'Description (optionnel)' })}</Text>
         <TextInput
@@ -128,12 +156,12 @@ export default function CreateChannelScreen() {
         </Pressable>
       </View>
 
-      {/* Dedupe: an equivalent open channel already exists. */}
+      {/* Dedupe: an equivalent open channel already covers this zone. */}
       <Modal visible={!!dupId} transparent animationType="fade" onRequestClose={() => setDupId(null)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setDupId(null)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>{t('channels.dupTitle', { defaultValue: 'Un canal existe déjà' })}</Text>
-            <Text style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Un canal pour ce sport existe déjà dans cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</Text>
+            <Text style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Un canal couvre déjà cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</Text>
             <Pressable style={styles.modalPrimary} onPress={joinExisting}>
               <Text style={styles.modalPrimaryText}>{t('channels.dupJoin', { defaultValue: 'Rejoindre l’existant' })}</Text>
             </Pressable>
@@ -163,6 +191,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, color: colors.textPrimary, fontSize: fontSizes.md },
   inputMulti: { minHeight: 88, textAlignVertical: 'top' },
+  vibeGroup: { marginBottom: spacing.sm + 2 },
+  vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs + 1 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
+  chip: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 7 },
+  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '800' },
   footer: { borderTopWidth: 1, borderTopColor: colors.borderMuted, paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },

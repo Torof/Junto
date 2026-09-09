@@ -16,6 +16,7 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { VIBE_GROUPS, VIBE_LABEL, type VibeKey } from '@/constants/vibes';
 
 export function ChannelsView() {
   const colors = useColors();
@@ -28,21 +29,24 @@ export function ChannelsView() {
   const [query, setQuery] = useState('');
   const [sportKey, setSportKey] = useState<string | null>(null);
   const [near, setNear] = useState<{ lng: number; lat: number; label: string } | null>(null);
+  const [intent, setIntent] = useState<VibeKey[]>([]);
+  const toggleVibe = (k: VibeKey) => setIntent((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]);
   const [showFilters, setShowFilters] = useState(false);
 
 
   const { data: sports } = useSports();
   const sportById = useMemo(() => new Map((sports ?? []).map((s) => [s.key, s])), [sports]);
 
-  const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0);
+  const activeFilters = (sportKey ? 1 : 0) + (near ? 1 : 0) + (intent.length > 0 ? 1 : 0);
   const trimmed = query.trim();
   const { data: channels, isLoading } = useQuery({
-    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat],
+    queryKey: ['channels', trimmed, sportKey, near?.lng, near?.lat, intent.join(',')],
     queryFn: () => channelService.search({
       query: trimmed || null,
       sportKey,
       nearLng: near?.lng ?? null,
       nearLat: near?.lat ?? null,
+      intent: intent.length ? intent : null,
     }),
   });
 
@@ -52,13 +56,14 @@ export function ChannelsView() {
   };
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
-    const cat = sportById.get(item.sport_key)?.category;
+    const firstSport = item.sport_keys?.[0] ?? null;
+    const cat = firstSport ? sportById.get(firstSport)?.category : undefined;
     const tint = sportCategoryColor(cat, colors.cta);
     const zone = `${item.base_label} · ${item.radius_km} km${item.distance_km != null ? ` · ${t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}` : ''}`;
     return (
       <Pressable style={styles.row} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
         <View style={[styles.thumb, { backgroundColor: tint + '22' }]}>
-          <Text style={styles.thumbIcon}>{getSportIcon(item.sport_key)}</Text>
+          <Text style={styles.thumbIcon}>{firstSport ? getSportIcon(firstSport) : '💬'}</Text>
         </View>
         <View style={styles.rowMain}>
           <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
@@ -142,6 +147,27 @@ export function ChannelsView() {
               />
             </CollapsibleSection>
 
+            <CollapsibleSection
+              title={t('channels.filterVibes', { defaultValue: 'Ambiances' })}
+              summary={intent.length ? String(intent.length) : null}
+            >
+              {VIBE_GROUPS.map(({ groupKey, group, items }) => (
+                <View key={groupKey} style={styles.vibeGroup}>
+                  <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
+                  <View style={styles.chipRow}>
+                    {items.map((k) => {
+                      const on = intent.includes(k);
+                      return (
+                        <Pressable key={k} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleVibe(k)}>
+                          <Text style={[styles.chipText, on && styles.chipTextOn]}>{t(`discovery.intent.${k}`, { defaultValue: VIBE_LABEL[k] })}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </CollapsibleSection>
+
             <Pressable style={styles.sheetApply} onPress={() => setShowFilters(false)}>
               <Text style={styles.sheetApplyText}>{t('channels.applyFilters', { defaultValue: 'Voir les canaux' })}</Text>
             </Pressable>
@@ -197,6 +223,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   myPosBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, marginTop: spacing.xs },
   myPosText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
   radiusHint: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
+  vibeGroup: { marginBottom: spacing.sm },
+  vibeGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.xs },
   sheetApply: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.lg },
   sheetApplyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
