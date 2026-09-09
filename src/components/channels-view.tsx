@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Plus, Users, SlidersHorizontal, MapPin, X } from 'lucide-react-native';
-import { useColors } from '@/hooks/use-theme';
+import { useColors, useResolvedTheme } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { channelService, type ChannelListItem } from '@/services/channel-service';
@@ -12,13 +12,13 @@ import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { sportCategoryColor } from '@/utils/sport-category-color';
-import { getSportIcon } from '@/constants/sport-icons';
+import { sportCategoryColor, mixHex } from '@/utils/sport-category-color';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 
 export function ChannelsView() {
   const colors = useColors();
+  const resolvedTheme = useResolvedTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
@@ -51,47 +51,46 @@ export function ChannelsView() {
     setNear({ lng: currentLocation[0], lat: currentLocation[1], label: t('channels.myLocation', { defaultValue: 'Ma position' }) });
   };
 
+  // Card tint: sport-universe colour blended 30% into an opaque base (white in
+  // light, the surface in dark) — clearly marked, dark title still legible, and
+  // OPAQUE so Android's elevation doesn't ghost a grey rectangle behind it.
+  const tintBase = resolvedTheme === 'light' ? '#FFFFFF' : colors.surface;
+  const neutralTint = resolvedTheme === 'light' ? '#E7DBC2' : colors.surface;
+
   const renderItem = ({ item }: { item: ChannelListItem }) => {
     const firstSport = item.sport_keys?.[0] ?? null;
     const cat = firstSport ? sportById.get(firstSport)?.category : undefined;
-    // Tinted banner in the sport's universe colour → each channel reads at a
-    // glance; a sport-less channel stays neutral (💬, no pill).
     const tint = firstSport ? sportCategoryColor(cat, colors.cta) : null;
     const sportName = firstSport ? t(`sports.${firstSport}`, { defaultValue: firstSport }) : null;
+    const cardBg = tint ? mixHex(tint, tintBase, 0.3) : neutralTint;
     return (
       <Pressable
-        style={[styles.card, { backgroundColor: tint ? tint + '26' : colors.surface }]}
+        style={[styles.card, { backgroundColor: cardBg }]}
         onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}
       >
-        <View style={[styles.thumb, { backgroundColor: tint ? 'rgba(255,255,255,0.55)' : colors.background }]}>
-          <Text style={styles.thumbIcon}>{firstSport ? getSportIcon(firstSport) : '💬'}</Text>
-        </View>
-        <View style={styles.cardText}>
-          <View style={styles.topline}>
-            <Text style={styles.rowName} numberOfLines={2}>{item.name}</Text>
-            <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
-              <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
-                {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
-              </Text>
+        <Text style={styles.rowName} numberOfLines={2}>{item.name}</Text>
+        <View style={styles.metaRow}>
+          {sportName && tint && (
+            <View style={[styles.sportPill, { backgroundColor: tint }]}>
+              <Text style={styles.sportPillText} numberOfLines={1}>{sportName}</Text>
             </View>
+          )}
+          <View style={styles.metaItem}>
+            <MapPin size={12} color={colors.textSecondary} strokeWidth={2.4} />
+            <Text style={styles.metaText} numberOfLines={1}>
+              {item.base_label} · {item.radius_km} km{item.distance_km != null ? ` · ${t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}` : ''}
+            </Text>
           </View>
-          <View style={styles.metaRow}>
-            {sportName && tint && (
-              <View style={[styles.sportPill, { backgroundColor: tint }]}>
-                <Text style={styles.sportPillText} numberOfLines={1}>{sportName}</Text>
-              </View>
-            )}
-            <View style={styles.metaItem}>
-              <MapPin size={12} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{item.base_label} · {item.radius_km} km</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Users size={12} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText}>{item.member_count}</Text>
-            </View>
-            {item.distance_km != null && (
-              <Text style={styles.metaText}>· {t('channels.away', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}</Text>
-            )}
+        </View>
+        <View style={styles.footRow}>
+          <View style={styles.metaItem}>
+            <Users size={13} color={colors.textSecondary} strokeWidth={2.4} />
+            <Text style={styles.metaText}>{t('channels.memberCount', { count: item.member_count, defaultValue: '{{count}} membres' })}</Text>
+          </View>
+          <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
+            <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
+              {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
+            </Text>
           </View>
         </View>
       </Pressable>
@@ -215,21 +214,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, gap: spacing.sm + 2, paddingBottom: 100 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },
-  // Tinted banner card (variant B): sport-universe colour, full-width title on
-  // up to 2 lines, action top-right, meta line (sport · place · radius · members).
-  card: { flexDirection: 'row', gap: spacing.sm + 2, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: spacing.sm + 4, ...shadows.card },
-  thumb: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  thumbIcon: { fontSize: 24 },
-  cardText: { flex: 1, minWidth: 0 },
-  topline: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm + 2 },
-  rowName: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2, lineHeight: 21 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 7 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: spacing.sm },
+  // Tinted card (variant A base): opaque sport-universe tint, full-width title
+  // on up to 2 lines, meta line (sport · place · radius), and a footer with the
+  // member count + Rejoindre/Membre. No emoji thumb (redundant with the pill).
+  card: { borderRadius: 18, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 4, ...shadows.card },
+  rowName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2, lineHeight: 21 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 8 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 0, flexShrink: 1 },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3, marginRight: spacing.xs + 2 },
   sportPillText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
-  tag: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5, alignSelf: 'flex-start' },
-  tagMember: { backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: colors.border },
+  footRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
+  tag: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5 },
+  tagMember: { backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: colors.border },
   tagMemberText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800' },
   tagJoin: { backgroundColor: colors.cta },
   tagJoinText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },

@@ -331,6 +331,8 @@
     "clearPlace": "clear",
     "member": "Member",
     "join": "Join",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
     "filters": "Filters",
     "filterLocation": "Location",
     "filterRadius": "Radius",

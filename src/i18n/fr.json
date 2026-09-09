@@ -331,6 +331,8 @@
     "clearPlace": "retirer",
     "member": "Membre",
     "join": "Rejoindre",
+    "memberCount_one": "{{count}} membre",
+    "memberCount_other": "{{count}} membres",
     "filters": "Filtres",
     "filterLocation": "Localisation",
     "filterRadius": "Rayon",

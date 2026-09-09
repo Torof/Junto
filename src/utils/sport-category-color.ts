@@ -15,3 +15,22 @@ export function sportCategoryColor(category: string | null | undefined, fallback
   if (!category) return fallback;
   return SPORT_CATEGORY_COLORS[category] ?? fallback;
 }
+
+function parseHex(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16), parseInt(full.slice(4, 6), 16)];
+}
+
+/**
+ * Blend two hex colours into an OPAQUE hex (`t` = weight of `a`, 0..1).
+ * Used for the channel-card tint: an opaque tint dodges the Android
+ * elevation-on-translucent-background artifact (a grey ghost rectangle).
+ */
+export function mixHex(a: string, b: string, t: number): string {
+  const [ar, ag, ab] = parseHex(a);
+  const [br, bg, bb] = parseHex(b);
+  const w = Math.max(0, Math.min(1, t));
+  const ch = (x: number, y: number) => Math.round(x * w + y * (1 - w)).toString(16).padStart(2, '0');
+  return `#${ch(ar, br)}${ch(ag, bg)}${ch(ab, bb)}`;
+}
