@@ -195,9 +195,15 @@ export default function ConversationScreen() {
   const { data: channelMembers } = useQuery({
     queryKey: ['channel-members', id],
     queryFn: () => channelService.members(id!),
-    enabled: !!id && isChannel && channelIsCreator && showChannelManage,
+    enabled: !!id && isChannel,
     staleTime: 15_000,
   });
+  // Per-sender identity for channel bubbles — a channel is strangers, so each
+  // third-party message shows its author (avatar + name), like group threads.
+  const channelMemberById = useMemo(
+    () => new Map((channelMembers ?? []).map((m) => [m.user_id, m])),
+    [channelMembers],
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -682,11 +688,17 @@ export default function ConversationScreen() {
               !dayjs(item.created_at).isSame(dayjs(next.created_at), 'day');
             // Group: resolve the bubble's author from members; DM: the peer.
             const own = isOwnMessage(item);
-            const senderMember = isGroup && !own ? groupMemberById.get(item.sender_id ?? '') : undefined;
-            const bubbleName = isGroup ? (senderMember?.display_name ?? '?') : (otherUser?.display_name ?? null);
-            const bubbleAvatar = isGroup ? (senderMember?.avatar_url ?? null) : (otherUser?.avatar_url ?? null);
+            const showAuthorId = isGroup || isChannel;
+            const senderMember = showAuthorId && !own
+              ? (isChannel ? channelMemberById.get(item.sender_id ?? '') : groupMemberById.get(item.sender_id ?? ''))
+              : undefined;
+            const bubbleName = showAuthorId ? (senderMember?.display_name ?? '?') : (otherUser?.display_name ?? null);
+            const bubbleAvatar = showAuthorId ? (senderMember?.avatar_url ?? null) : (otherUser?.avatar_url ?? null);
+            const replyMember = item.reply_to && item.reply_to.sender_id !== currentUser
+              ? (isChannel ? channelMemberById.get(item.reply_to.sender_id ?? '') : groupMemberById.get(item.reply_to.sender_id ?? ''))
+              : undefined;
             const replyToName = item.reply_to && item.reply_to.sender_id !== currentUser
-              ? (isGroup ? (groupMemberById.get(item.reply_to.sender_id ?? '')?.display_name ?? '?') : (otherUser?.display_name ?? '?'))
+              ? (showAuthorId ? (replyMember?.display_name ?? '?') : (otherUser?.display_name ?? '?'))
               : null;
             return (
               <MessageBubble
@@ -694,7 +706,7 @@ export default function ConversationScreen() {
                 isOwn={own}
                 isFirstInGroup={isFirstInGroup}
                 isLastInGroup={isLastInGroup}
-                showAuthor={isGroup && !own && isFirstInGroup}
+                showAuthor={showAuthorId && !own && isFirstInGroup}
                 replyToName={replyToName}
                 currentUser={currentUser ?? null}
                 otherUserName={bubbleName}
