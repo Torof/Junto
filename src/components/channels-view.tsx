@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, StyleSheet, Modal } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -68,6 +69,11 @@ export function ChannelsView() {
         style={[styles.card, { backgroundColor: cardBg }]}
         onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}
       >
+        {!!item.photo_url && (
+          <View style={styles.cardPhotoClip}>
+            <Image source={{ uri: item.photo_url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} />
+          </View>
+        )}
         <Text style={styles.rowName} numberOfLines={2}>{item.name}</Text>
         <View style={styles.metaRow}>
           {sportName && tint && (
@@ -218,6 +224,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // on up to 2 lines, meta line (sport · place · radius), and a footer with the
   // member count + Rejoindre/Membre. No emoji thumb (redundant with the pill).
   card: { borderRadius: 18, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 4, ...shadows.card },
+  // Optional channel photo — faint behind the opaque tint (direction A); the
+  // dark title stays legible. Clipped to the card radius in its own layer so
+  // the card itself keeps overflow:visible (Android needs that to cast the
+  // elevation shadow), and painted before the content so it sits underneath.
+  cardPhotoClip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 18, overflow: 'hidden', opacity: 0.22 },
   rowName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2, lineHeight: 21 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 8 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 0, flexShrink: 1 },

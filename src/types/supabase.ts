@@ -513,6 +513,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          photo_url: string | null
           radius_km: number
           sport_keys: string[] | null
         }
@@ -524,6 +525,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          photo_url?: string | null
           radius_km: number
           sport_keys?: string[] | null
         }
@@ -535,6 +537,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          photo_url?: string | null
           radius_km?: number
           sport_keys?: string[] | null
         }
@@ -3572,6 +3575,7 @@ export type Database = {
           p_description?: string
           p_force?: boolean
           p_name: string
+          p_photo_url?: string
           p_radius_km: number
           p_sport_keys?: string[]
         }
@@ -3945,6 +3949,7 @@ export type Database = {
           is_member: boolean
           member_count: number
           name: string
+          photo_url: string
           radius_km: number
           sport_keys: string[]
         }[]
@@ -4520,6 +4525,7 @@ export type Database = {
           is_member: boolean
           member_count: number
           name: string
+          photo_url: string
           radius_km: number
           sport_keys: string[]
         }[]
@@ -4562,6 +4568,10 @@ export type Database = {
       }
       set_activity_gear: {
         Args: { p_activity_id: string; p_items: Json }
+        Returns: undefined
+      }
+      set_channel_photo: {
+        Args: { p_conversation_id: string; p_photo_url: string }
         Returns: undefined
       }
       set_conversation_hidden: {

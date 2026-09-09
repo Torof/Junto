@@ -42,7 +42,8 @@ import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
 import { useSports } from '@/hooks/use-sports';
-import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus } from 'lucide-react-native';
+import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff } from 'lucide-react-native';
+import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 
 export default function ConversationScreen() {
   const colors = useColors();
@@ -150,6 +151,7 @@ export default function ConversationScreen() {
   const channelClosed = channelInfo?.is_closed === true;
   const [showChannelManage, setShowChannelManage] = useState(false);
   const [channelRename, setChannelRename] = useState('');
+  const [channelPhotoBusy, setChannelPhotoBusy] = useState(false);
 
   const invalidateChannel = async () => {
     await queryClient.invalidateQueries({ queryKey: ['channel-info', id] });
@@ -187,6 +189,27 @@ export default function ConversationScreen() {
       await invalidateChannel();
       Burnt.toast({ title: t('channels.closedDone', { defaultValue: 'Canal fermé' }) });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+  const handleChangeChannelPhoto = async () => {
+    if (channelPhotoBusy) return;
+    setChannelPhotoBusy(true);
+    try {
+      const url = await pickAndUploadChannelPhoto();
+      if (url) {
+        await channelService.setPhoto(id!, url);
+        await invalidateChannel();
+      }
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setChannelPhotoBusy(false); }
+  };
+  const handleRemoveChannelPhoto = async () => {
+    if (channelPhotoBusy) return;
+    setChannelPhotoBusy(true);
+    try {
+      await channelService.setPhoto(id!, null);
+      await invalidateChannel();
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setChannelPhotoBusy(false); }
   };
   const handleRemoveMember = async (userId: string) => {
     try {
@@ -916,6 +939,22 @@ export default function ConversationScreen() {
                     <Pencil size={18} color={colors.textPrimary} strokeWidth={2.2} />
                     <Text style={styles.channelRowBtnText}>{t('channels.rename', { defaultValue: 'Renommer' })}</Text>
                   </Pressable>
+                  <Pressable style={styles.channelRowBtn} onPress={handleChangeChannelPhoto} disabled={channelPhotoBusy}>
+                    <ImagePlus size={18} color={colors.textPrimary} strokeWidth={2.2} />
+                    <Text style={styles.channelRowBtnText}>
+                      {channelPhotoBusy
+                        ? t('channels.photoUploading', { defaultValue: 'Envoi…' })
+                        : channelInfo.photo_url
+                          ? t('channels.changePhoto', { defaultValue: 'Changer la photo' })
+                          : t('channels.addPhoto', { defaultValue: 'Ajouter une photo' })}
+                    </Text>
+                  </Pressable>
+                  {!!channelInfo.photo_url && (
+                    <Pressable style={styles.channelRowBtn} onPress={handleRemoveChannelPhoto} disabled={channelPhotoBusy}>
+                      <ImageOff size={18} color={colors.error} strokeWidth={2.2} />
+                      <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer la photo' })}</Text>
+                    </Pressable>
+                  )}
                   <Pressable style={styles.channelRowBtn} onPress={handleCloseChannel}>
                     <Lock size={18} color={colors.error} strokeWidth={2.2} />
                     <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer le canal' })}</Text>

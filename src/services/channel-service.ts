@@ -10,6 +10,7 @@ export interface ChannelDraft {
   radiusKm: number;                // 35 | 60 | 100 — the zone's territory
   sportKeys: string[];             // optional labels, 0-3
   description: string | null;
+  photoUrl?: string | null;        // optional channel-photos bucket URL
   force?: boolean;
 }
 
@@ -25,6 +26,7 @@ export interface ChannelListItem {
   base_label: string;
   radius_km: number;
   description: string | null;
+  photo_url: string | null;
   distance_km: number | null;
   member_count: number;
   is_member: boolean;
@@ -40,6 +42,7 @@ export interface ChannelDetail {
   base_label: string;
   radius_km: number;
   description: string | null;
+  photo_url: string | null;
   member_count: number;
   is_member: boolean;
   is_creator: boolean;
@@ -72,6 +75,7 @@ export const channelService = {
       p_radius_km: d.radiusKm,
       p_sport_keys: (d.sportKeys.length ? d.sportKeys : null) as unknown as string[],
       p_description: d.description as unknown as string,
+      p_photo_url: (d.photoUrl ?? null) as unknown as string,
       p_force: d.force ?? false,
     });
     if (error) throw error;
@@ -115,6 +119,14 @@ export const channelService = {
 
   rename: async (conversationId: string, name: string): Promise<void> => {
     const { error } = await supabase.rpc('rename_channel', { p_conversation_id: conversationId, p_name: name });
+    if (error) throw error;
+  },
+
+  setPhoto: async (conversationId: string, photoUrl: string | null): Promise<void> => {
+    const { error } = await supabase.rpc('set_channel_photo', {
+      p_conversation_id: conversationId,
+      p_photo_url: photoUrl as unknown as string,
+    });
     if (error) throw error;
   },
 

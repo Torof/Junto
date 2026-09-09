@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
-import { X } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { X, ImagePlus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -12,6 +13,7 @@ import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { channelService, CHANNEL_RADII } from '@/services/channel-service';
+import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
@@ -30,14 +32,29 @@ export default function CreateChannelScreen() {
   const [radiusKm, setRadiusKm] = useState<number>(60);
   const [sportKeys, setSportKeys] = useState<string[]>([]);
   const [description, setDescription] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dupId, setDupId] = useState<string | null>(null);
 
-  // Identity = title + zone (both required). Sports are optional labels.
+  // Identity = title + zone (both required). Sports + photo are optional.
   const ready = !!base && name.trim().length >= 1;
 
   const toggleSport = (k: string) => setSportKeys((prev) =>
     prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_SPORTS ? prev : [...prev, k]);
+
+  const addPhoto = async () => {
+    if (photoBusy) return;
+    setPhotoBusy(true);
+    try {
+      const url = await pickAndUploadChannelPhoto();
+      if (url) setPhotoUrl(url);
+    } catch (e) {
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   const goTo = (id: string) => {
     queryClient.invalidateQueries({ queryKey: ['channels'] });
@@ -54,7 +71,7 @@ export default function CreateChannelScreen() {
         name: name.trim(),
         baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label, radiusKm,
         sportKeys,
-        description: description.trim() || null, force,
+        description: description.trim() || null, photoUrl, force,
       });
       if (res.duplicate) { setDupId(res.conversationId); setSaving(false); return; }
       goTo(res.conversationId);
@@ -115,6 +132,28 @@ export default function CreateChannelScreen() {
         <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sports (optionnel — jusqu’à 3)' })}</Text>
         <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
 
+        <Text style={styles.section}>{t('channels.photoLabel', { defaultValue: 'Photo (optionnel)' })}</Text>
+        {photoUrl ? (
+          <View style={styles.photoWrap}>
+            <Image source={{ uri: photoUrl }} style={styles.photoPreview} contentFit="cover" />
+            <View style={styles.photoActions}>
+              <Pressable style={styles.photoBtn} onPress={addPhoto} disabled={photoBusy}>
+                <Text style={styles.photoBtnText}>{t('channels.changePhoto', { defaultValue: 'Changer' })}</Text>
+              </Pressable>
+              <Pressable style={styles.photoBtn} onPress={() => setPhotoUrl(null)} disabled={photoBusy}>
+                <Text style={[styles.photoBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer' })}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable style={styles.photoAdd} onPress={addPhoto} disabled={photoBusy}>
+            <ImagePlus size={18} color={colors.cta} strokeWidth={2.2} />
+            <Text style={styles.photoAddText}>
+              {photoBusy ? t('channels.photoUploading', { defaultValue: 'Envoi…' }) : t('channels.addPhoto', { defaultValue: 'Ajouter une photo' })}
+            </Text>
+          </Pressable>
+        )}
+
         <Text style={styles.section}>{t('channels.descLabel', { defaultValue: 'Description (optionnel)' })}</Text>
         <TextInput
           style={[styles.input, styles.inputMulti]}
@@ -169,6 +208,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, color: colors.textPrimary, fontSize: fontSizes.md },
   inputMulti: { minHeight: 88, textAlignVertical: 'top' },
+  photoAdd: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderStyle: 'dashed' },
+  photoAddText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
+  photoWrap: { gap: spacing.sm },
+  photoPreview: { width: '100%', aspectRatio: 3 / 2, borderRadius: radius.md, backgroundColor: colors.surface },
+  photoActions: { flexDirection: 'row', gap: spacing.md },
+  photoBtn: { paddingVertical: spacing.xs },
+  photoBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   footer: { borderTopWidth: 1, borderTopColor: colors.borderMuted, paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
