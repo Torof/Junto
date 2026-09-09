@@ -8,6 +8,7 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Image } from 'expo-image';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { RectButton } from 'react-native-gesture-handler';
 import { Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -481,6 +482,7 @@ export default function MessagerieScreen() {
                 );
                 title = item.activity_title ?? t('messagerie.activityThread');
                 onPress = () => router.push(`/(auth)/activity/${item.activity_id}`);
+                onLongPress = () => handleHideConversation(item.id, title);
               } else if (item.type === 'group') {
                 title = item.name ?? t('messagerie.group');
                 leading = (
@@ -556,12 +558,12 @@ export default function MessagerieScreen() {
                   friction={2}
                   leftThreshold={40}
                   renderLeftActions={(_progress, _translation, methods) => (
-                    <Pressable
+                    <RectButton
                       style={styles.swipeDelete}
                       onPress={() => { methods.close(); onDelete(); }}
                     >
                       <Trash2 size={22} color="#FFFFFF" strokeWidth={2.2} />
-                    </Pressable>
+                    </RectButton>
                   )}
                 >
                   {rowNode}
