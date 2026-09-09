@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send, Users } from 'lucide-react-native';
+import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send, Users, Share2 } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
+import { SharedActivityCard } from '@/components/shared-activity-card';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
 import { haptic } from '@/lib/haptics';
@@ -1160,10 +1161,50 @@ function MessageBubble({
   }));
 
   const isTrace = item.metadata?.type === 'shared_trace' && item.metadata.trace_geojson;
+  const isSharedActivity = item.metadata?.type === 'shared_activity' && !!item.metadata.activity_id;
   // In a 2-party thread, "I received this" ⇔ I'm not the sender (receiver_id
   // died with the unified messages store, 00358).
   const isDriver = !!seatReqId && item.sender_id !== currentUser;
   const isActing = !!seatReqId && seatActionId === seatReqId;
+
+  // Shared outing — breaks out of the bubble into a full-width card (image,
+  // full title, sport + level, date · place · seats), so a shared activity
+  // reads like an outing rather than a cramped text bubble.
+  if (isSharedActivity) {
+    const captionName = isOwn ? t('messagerie.you', { defaultValue: 'Toi' }) : (otherUserName ?? '?');
+    return (
+      <View
+        style={[
+          styles.messageRow,
+          isOwn ? styles.messageRight : styles.messageLeft,
+          isFirstInGroup ? styles.firstInGroup : styles.midInGroup,
+        ]}
+      >
+        {!isOwn && (
+          <View style={styles.avatarSlot}>
+            {isLastInGroup && (
+              <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+            )}
+          </View>
+        )}
+        <GestureDetector gesture={pan}>
+          <Animated.View style={[animatedStyle, styles.sharedActivityCol]}>
+            <View style={styles.shareCaption}>
+              <Share2 size={12} color={colors.textSecondary} strokeWidth={2.4} />
+              <Text style={styles.shareCaptionText} numberOfLines={1}>
+                {t('messagerie.sharedActivityCaption', { name: captionName, defaultValue: '{{name}} a partagé une sortie' })}
+              </Text>
+            </View>
+            <SharedActivityCard
+              activityId={item.metadata!.activity_id!}
+              onPress={onActivityNav}
+              fallbackTitle={item.content ? item.content.replace(/^📍\s*/, '') : null}
+            />
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -1328,6 +1369,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   midInGroup: { marginTop: 2 },
   avatarSlot: { width: 34, justifyContent: 'flex-end' },
   bubbleCol: { maxWidth: '78%' },
+  // Shared-outing card claims near-full width (minus the avatar gutter) so the
+  // hero + meta read comfortably — it's a card, not a chat bubble.
+  sharedActivityCol: { flex: 1, maxWidth: '92%' },
+  shareCaption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 6,
+    marginLeft: 2,
+  },
+  shareCaptionText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
   bubble: {
     borderRadius: 18,
     paddingVertical: spacing.sm,
