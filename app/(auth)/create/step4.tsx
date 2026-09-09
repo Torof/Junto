@@ -81,7 +81,14 @@ export default function CreateStep4() {
       // Proposed from a channel → post the outing card into that conversation
       // (best-effort; the activity already exists) and land there.
       if (shareTo) {
-        try { await messageService.shareActivity(shareTo, activityId); } catch { /* activity exists */ }
+        // The activity already exists; surface a share failure (e.g. the
+        // channel is locked to another sport → junto.channel_sport_mismatch)
+        // instead of silently dropping the card.
+        try {
+          await messageService.shareActivity(shareTo, activityId);
+        } catch (shareErr) {
+          Burnt.toast({ title: getFriendlyError(shareErr, 'generic') });
+        }
         await queryClient.invalidateQueries({ queryKey: ['messages', shareTo] });
         await queryClient.invalidateQueries({ queryKey: ['conversations'] });
         router.dismissAll();

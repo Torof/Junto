@@ -233,11 +233,11 @@ export default function DiscoveryComposeScreen() {
           </Pressable>
         </View>
         {showStart && (
-          <DateTimePicker value={windowStart} mode="date" minimumDate={new Date()}
+          <DateTimePicker value={windowStart} mode="date" minimumDate={new Date()} maximumDate={dayjs().add(4, 'week').toDate()}
             onChange={(_e, d) => { setShowStart(Platform.OS === 'ios'); if (d) { setWindowStart(d); if (d >= windowEnd) setWindowEnd(dayjs(d).add(3, 'day').toDate()); } }} />
         )}
         {showEnd && (
-          <DateTimePicker value={windowEnd} mode="date" minimumDate={windowStart}
+          <DateTimePicker value={windowEnd} mode="date" minimumDate={windowStart} maximumDate={dayjs().add(4, 'week').toDate()}
             onChange={(_e, d) => { setShowEnd(Platform.OS === 'ios'); if (d) setWindowEnd(d); }} />
         )}
 
