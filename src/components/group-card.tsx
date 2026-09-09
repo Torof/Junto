@@ -567,17 +567,17 @@ export function GroupCard({
                     </View>
                   </View>
 
-                  {/* Journey line — from → outing · departure time. */}
+                  {/* Journey — from (own line, may wrap) then departure time below. */}
                   {hasMeta && (
                     <View style={styles.journey}>
                       {d.transport_from_name ? (
-                        <>
+                        <View style={styles.jFromRow}>
                           <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                          <Text style={styles.jFrom} numberOfLines={1}>{d.transport_from_name}</Text>
-                        </>
+                          <Text style={styles.jFrom} numberOfLines={2}>{d.transport_from_name}</Text>
+                        </View>
                       ) : null}
                       {d.transport_departs_at ? (
-                        <View style={[styles.jTime, d.transport_from_name ? styles.jTimePushed : null]}>
+                        <View style={styles.jTime}>
                           <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
                           <Text style={styles.jTimeLabel}>{t('group.departLabel', { defaultValue: 'départ' })}</Text>
                           <Text style={styles.jTimeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
@@ -1156,13 +1156,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   seatBadgeText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   seatBadgeTextFull: { color: colors.error },
   journey: {
-    flexDirection: 'row', alignItems: 'center', gap: 7,
+    flexDirection: 'column', alignItems: 'flex-start', gap: 5,
     backgroundColor: colors.surfaceAlt, borderRadius: 10,
     paddingHorizontal: 11, paddingVertical: 8,
   },
+  jFromRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
   jFrom: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800', flexShrink: 1 },
   jTime: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  jTimePushed: { marginLeft: 'auto' },
   jTimeLabel: { color: colors.textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
   jTimeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   ncBot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
