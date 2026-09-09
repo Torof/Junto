@@ -745,7 +745,7 @@ export default function MessagerieScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { paddingBottom: spacing.md },
-  segments: { flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted },
+  segments: { flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   segment: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 3, borderRadius: radius.full, backgroundColor: colors.surfaceAlt },
   segmentActive: { backgroundColor: colors.cta },
   segmentText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },

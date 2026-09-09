@@ -28,6 +28,7 @@ export default function AuthLayout() {
   }
   const screenOptions = useMemo(() => ({
     headerStyle: { backgroundColor: colors.background },
+    headerShadowVisible: false,
     headerTintColor: colors.textPrimary,
     contentStyle: { backgroundColor: colors.background },
   }), [colors]);

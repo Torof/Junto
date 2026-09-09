@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, MessageCircle, Menu, UserSearch, type LucideIcon } from 'lucide-react-native';
+import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes } from '@/constants/theme';
@@ -158,6 +158,7 @@ export default function TabsLayout() {
         headerStyle: {
           backgroundColor: colors.background,
         },
+        headerShadowVisible: false,
         headerTintColor: colors.textPrimary,
       }}
     >
@@ -173,12 +174,24 @@ export default function TabsLayout() {
         name="partenaires"
         options={{
           title: t('tabs.partenaires', { defaultValue: 'Partenaires' }),
+          headerLeft: () => (
+            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+              <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          ),
           tabBarIcon: ({ focused }) => <TabIcon icon={UserSearch} focused={focused} />,
         }}
       />
       {/* Mes activités absorbed into the menu (navbar refonte lot 3) — off the
           bar, route alive. */}
-      <Tabs.Screen name="mes-activites" options={{ title: t('tabs.mesActivites'), href: null }} />
+      <Tabs.Screen name="mes-activites" options={{
+        title: t('tabs.mesActivites'), href: null,
+        headerLeft: () => (
+          <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+            <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        ),
+      }} />
       {/* Notifications folded into the messaging hub (navbar refonte 2026-08-12).
           Route kept off the bar so any direct navigation still resolves. */}
       <Tabs.Screen name="notifications" options={{ href: null }} />
@@ -186,6 +199,11 @@ export default function TabsLayout() {
         name="messagerie"
         options={{
           title: t('tabs.messagerie'),
+          headerLeft: () => (
+            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+              <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          ),
           tabBarIcon: ({ focused }) => <MessageTabIcon focused={focused} />,
         }}
       />
@@ -207,7 +225,14 @@ export default function TabsLayout() {
       {/* Absorbed into the menu sheet — hidden from the bar, route alive. */}
       <Tabs.Screen
         name="profil"
-        options={{ title: t('tabs.profil'), href: null }}
+        options={{
+          title: t('tabs.profil'), href: null,
+          headerLeft: () => (
+            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+              <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          ),
+        }}
       />
     </Tabs>
 

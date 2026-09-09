@@ -50,8 +50,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
   },
   segment: {
     flex: 1,
