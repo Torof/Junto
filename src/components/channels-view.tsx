@@ -214,7 +214,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   placeClear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   myPosBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, marginTop: spacing.xs },
   myPosText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
-  radiusHint: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
   sheetApply: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.lg },
   sheetApplyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },

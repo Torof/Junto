@@ -1,26 +1,19 @@
 import { supabase } from './supabase';
 
 export type TransportMode = 'car' | 'motorbike' | 'bike' | 'on_foot' | 'public_transport';
-// "Vibe pills" — one unified, closed set (ambiance + compagnie + rythme), ≤6.
-// Kept on the `intent` column server-side. GIN-indexed for future matching.
+// "Vibe pills" — one unified, closed set of 25 (ambiance + compagnie + rythme +
+// profil), ≤10 selectable. Kept on the `intent` column server-side, GIN-indexed.
 export type DispoIntent =
   | 'discovery' | 'progression' | 'performance' | 'detente' | 'conviviality'
   | 'dog' | 'child' | 'group' | 'solo' | 'active' | 'calm' | 'early'
   | 'nature' | 'challenge' | 'photo' | 'mixed' | 'same_level' | 'beginners'
   | 'long_outing' | 'after_work' | 'regular' | 'adapted' | 'training'
   | 'experienced' | 'competition';
-export const DISPO_INTENTS: DispoIntent[] = [
-  'discovery', 'progression', 'performance', 'detente', 'conviviality',
-  'dog', 'child', 'group', 'solo', 'active', 'calm', 'early',
-  'nature', 'challenge', 'photo', 'mixed', 'same_level', 'beginners',
-  'long_outing', 'after_work', 'regular', 'adapted', 'training',
-  'experienced', 'competition',
-];
 
 export interface DispoDraft {
   sportKeys: string[];              // 1–3
   levels: Record<string, string>;   // per-sport grade, may be empty
-  intent: DispoIntent[];            // "what you're after", 0–5
+  intent: DispoIntent[];            // "what you're after", 0–10
   baseLng: number;
   baseLat: number;
   baseLabel: string;
@@ -99,7 +92,7 @@ export const discoveryService = {
       p_transport_modes: d.transportModes,
       p_window_start: d.windowStart,
       p_window_end: d.windowEnd,
-      p_intent: d.intent, // 0–5 codes; empty → NULL server-side
+      p_intent: d.intent, // 0–10 codes; empty → NULL server-side
       p_about: d.about, // free-text intro; empty → NULL server-side
     });
     if (error) throw error;
