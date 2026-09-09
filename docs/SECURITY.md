@@ -318,6 +318,52 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 **Lectures curées** (00351, `conversations` non lisible en direct — 00352) : `get_my_conversations`, `get_conversation_state_with` (coalesce `declined`→`pending`), `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages` (LIMIT 200), `get_my_invitations`.
 
+### Canaux (channels) — mig 00381-00406
+
+Conversations ouvertes thématiques (`conversations.type='channel'`) + table `channels` (identité) + `channel_bans`. Un canal = **titre + zone** (centre + rayon 35/60/100 km) + **0-1 sport optionnel** + **photo optionnelle**. Métadonnées publiques (aperçu pré-adhésion) ; base du canal publique (contrairement aux dispos Découverte).
+
+**Tables** : `channels` et `channel_bans` — `ENABLE` + `FORCE` RLS, **aucune policy** (deny-all), `REVOKE ALL FROM anon, authenticated`. Tout accès via RPC SECURITY DEFINER.
+
+**Colonnes gelées** (trigger `channels_whitelist_columns`) : `conversation_id, sport_key, base, base_label, radius_km, photo_url, created_by, created_at`. Mutables uniquement via RPC : `closed_at` (via `close_channel`), `photo_url` (via `set_channel_photo` + `bypass_lock`) ; `description` non gelée mais aucune RPC ne l'écrit hors create.
+
+**Fonctions** (SECURITY DEFINER + `search_path`, REVOKE anon, GRANT authenticated) :
+- `create_channel` — auth + non suspendu ; validation nom/desc/lieu/rayon/sport actif/photo ; caps 5 ouverts + 5/jour (advisory lock) ; dédup **par zone** (`ST_DWithin`, sport-agnostique) ; INSERT conversation + channel + membre.
+- `join_channel` / `leave_channel` — auth + non suspendu ; join refusé si banni ou canal fermé.
+- `search_channels` / `get_channel` — auth + non suspendu ; **filtrent les bannis** (`channel_bans`, get_channel depuis mig 00406).
+- `get_channel_members` — membres uniquement ; JOIN `public_profiles`.
+- `rename_channel` / `remove_channel_member` / `close_channel` — auth + **non suspendu** (mig 00405) + **créateur uniquement**. `remove` pose un `channel_bans` pour que le retrait tienne.
+- `set_channel_photo` — auth + non suspendu + créateur + canal ouvert ; URL épinglée au chemin storage public `channel-photos/{uid}/` (mig 00405) ; écrit via `bypass_lock`.
+- `delete_message` (branche canal) — auteur OU créateur du canal ; auth + non suspendu (mig 00405).
+- `share_activity_message` — **verrou sport** : si le canal a un `sport_key`, l'activité doit être de ce sport → `junto.channel_sport_mismatch` ; canal sans sport = tout permis.
+- Trigger `messages_block_closed_channel` (BEFORE INSERT) — bloque tout post sur canal fermé.
+
+**Storage — bucket `channel-photos`** (mig 00403) : public read, écriture owner-scoped `{uid}/…`, 5 Mo, `{jpeg,png,webp}`. La policy ne contraint que le chemin `{uid}` ; l'appartenance créateur est vérifiée dans `create_channel`/`set_channel_photo`, qui exigent aussi l'URL du bucket sous `{uid}` (mig 00405). Objets orphelins tolérés.
+
+**Rideau démo — DÉCISION (Scott 2026-09-09)** : les canaux sont **exemptés du rideau démo** (globaux par nature, pas de séparation démo/réel). Un admin en mode démo peut donc partager une activité démo dans un canal ; le titre démo peut y persister en texte. Accepté : donnée factice, admin uniquement, canaux non-curtainés par design.
+
+**Codes d'erreur (SAFE)** : `junto.channel_{name,place,sport,radius,photo,desc,cap,rate_limit,sport_mismatch}`.
+
+### Découverte (dispos) — mig 00375-00396
+
+`discovery_availabilities` (1 dispo/user) : sports 1-3 + niveaux, base + rayon, fenêtre **≤ 4 semaines**, transport, vibes ≤ 10, présentation ≤ 250 mots. Matching = **sport ∩ zone ∩ temps**.
+
+**Table** : `ENABLE` + `FORCE` RLS ; **policy SELECT-own uniquement** ; `GRANT SELECT` à authenticated (pas d'INSERT/UPDATE/DELETE client). Colonnes gelées (trigger) : `id, user_id, is_active, is_demo, created_at`.
+
+**Invariant A — vie privée de la base** : la base (commune choisie, **jamais le domicile ni un point exact**) n'est JAMAIS renvoyée aux autres. `get_discovery_cards` ne renvoie que `distance_km`. Seul `get_dispo_zone` expose un centre, et **uniquement à un vrai match** (réciprocité : l'appelant a sa propre dispo active + prédicat sport ∩ zone ∩ temps identique).
+
+**Invariant B — rideau démo** : gate `(is_demo = false OR demo_content_visible())` sur `get_discovery_cards`, `_count`, `_zone`. `get_my_dispo` = own-row. La policy RLS SELECT-own bloque toute lecture directe d'une dispo démo par un non-admin.
+
+**#5 — get_dispo_zone (acté, Scott 2026-09-09)** : le gate « match » est contrôlable par l'attaquant (une dispo maximale transforme beaucoup d'actifs en matches → révèle leur commune + rayon). **Gardé tel quel** : risque faible car la base est une commune choisie, pas le domicile ; durcissement possible plus tard (grille grossière sur le centre, ou contact accepté avant révélation).
+
+**Fonctions** (SECURITY DEFINER + `search_path`, REVOKE anon, GRANT authenticated) :
+- `upsert_dispo` — auth + non suspendu ; validation sports actifs, `levels` (objet JSONB, clés ⊆ sports, valeurs ≤ 20 car — mig 00405), vibes (vocab fermé ≤10), about (HTML-strip ≤250 mots/1600 car), rayon, transport, fenêtre (≤4 sem, ≥ -1 jour), lieu.
+- `get_discovery_cards` / `get_discovery_count` — auth + **non suspendu** (count depuis mig 00407) ; gate démo + `blocked_users` bidirectionnel ; count floore 1-2 → « quelques ».
+- `get_dispo_zone` — match requis (cf. invariant A).
+- `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte.
+- `activate_dispo` / `deactivate_dispo` — flip `is_active` via `bypass_lock`.
+
+**Codes d'erreur (SAFE)** : `junto.dispo_{sports,levels,radius,transport,window,place,about,intent}`, `discovery_no_match`, `contact_request_pending_cap`/`daily_cap`.
+
 ### Présence — auto-expire
 
 **`expire_stale_contact_requests()`** (mig 00142) — interne :

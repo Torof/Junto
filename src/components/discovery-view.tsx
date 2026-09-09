@@ -38,9 +38,10 @@ const INTENT_LABEL: Record<DispoIntent, string> = {
   competition: '🏁 Prépa compét',
 };
 // Vibe filter groups (keys only; labels from INTENT_LABEL / i18n).
+// Same group order as the compose picker (ambiance → compagnie → rythme → profil).
 const VIBE_FILTER_GROUPS: { key: string; items: DispoIntent[] }[] = [
-  { key: 'compagnie', items: ['dog', 'child', 'group', 'solo', 'mixed', 'same_level', 'beginners'] },
   { key: 'ambiance', items: ['discovery', 'progression', 'performance', 'detente', 'conviviality', 'nature', 'challenge', 'photo'] },
+  { key: 'compagnie', items: ['dog', 'child', 'group', 'solo', 'mixed', 'same_level', 'beginners'] },
   { key: 'rythme', items: ['active', 'calm', 'early', 'long_outing', 'after_work', 'regular'] },
   { key: 'profil', items: ['adapted', 'training', 'experienced', 'competition'] },
 ];
