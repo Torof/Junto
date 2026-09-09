@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -25,6 +26,7 @@ export default function CreateStep4() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { form, resetForm, updateForm, shareToConversationId, setShareTo } = useCreateStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -130,7 +132,7 @@ export default function CreateStep4() {
 
   return (
     <>
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <Text style={styles.stepLabel}>{t('create.step', { current: 4, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step4Title')}</Text>
 

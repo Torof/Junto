@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -21,10 +22,11 @@ export default function CreateStep3() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { form, updateForm } = useCreateStore();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.md }]}>
       <Text style={styles.stepLabel}>{t('create.step', { current: 3, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step3Title')}</Text>
 

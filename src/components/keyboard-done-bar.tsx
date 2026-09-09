@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { runOnJS, useAnimatedKeyboard, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated';
+import { useEffect, useMemo, useState } from 'react';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedKeyboard, useAnimatedStyle } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react-native';
 import { fontSizes, spacing } from '@/constants/theme';
@@ -10,31 +11,39 @@ import type { AppColors } from '@/constants/colors';
 // A "Terminé" accessory bar pinned just above the keyboard — the dismiss
 // affordance multiline fields lack (their return key inserts a newline, so
 // there's no Done). Follows the IME via reanimated's useAnimatedKeyboard (the
-// primitive that works under edge-to-edge). Mounted only while the keyboard is
-// up. Drop it once per screen that has text inputs.
+// primitive that works under edge-to-edge). Drop it once per screen that has
+// text inputs.
+//
+// Visibility is driven by the real Keyboard show/hide events, NOT by
+// `keyboard.height.value > 0`: on Android edge-to-edge that height can rest at a
+// stale non-zero value, which left the bar stuck mid-screen. We also hide when
+// the screen isn't focused — Expo Router keeps previous stack screens mounted,
+// so a background step's bar could otherwise show through.
 
 export function KeyboardDoneBar() {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [visible, setVisible] = useState(false);
+  const [kbdUp, setKbdUp] = useState(false);
+  const focused = useIsFocused();
 
   const keyboard = useAnimatedKeyboard({
     isStatusBarTranslucentAndroid: true,
     isNavigationBarTranslucentAndroid: true,
   });
 
-  useAnimatedReaction(
-    () => keyboard.height.value > 0,
-    (up, prev) => {
-      if (up !== prev) runOnJS(setVisible)(up);
-    },
-  );
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, () => setKbdUp(true));
+    const hide = Keyboard.addListener(hideEvt, () => setKbdUp(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   // Sit flush on top of the keyboard, tracking it as it animates.
   const barStyle = useAnimatedStyle(() => ({ bottom: keyboard.height.value }));
 
-  if (!visible) return null;
+  if (!kbdUp || !focused) return null;
 
   return (
     <Animated.View style={[styles.bar, barStyle]}>

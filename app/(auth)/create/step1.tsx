@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useSports } from '@/hooks/use-sports';
 import { useColors } from '@/hooks/use-theme';
@@ -17,6 +18,7 @@ export default function CreateStep1() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { form, updateForm } = useCreateStore();
 
   const { data: sports } = useSports();
@@ -54,7 +56,7 @@ export default function CreateStep1() {
     <View style={styles.root}>
     <KeyboardAwareScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
     >
       <Text style={styles.stepLabel}>{t('create.step', { current: 1, total: 4 })}</Text>
       <Text style={styles.title}>{t('create.step1Title')}</Text>
