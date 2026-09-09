@@ -8,7 +8,7 @@ export interface ChannelDraft {
   baseLat: number;
   baseLabel: string;
   radiusKm: number;                // 35 | 60 | 100 — the zone's territory
-  sportKeys: string[];             // optional labels, 0-3
+  sportKey: string | null;         // optional single sport (0 or 1)
   description: string | null;
   photoUrl?: string | null;        // optional channel-photos bucket URL
   force?: boolean;
@@ -22,7 +22,7 @@ export interface CreateChannelResult {
 export interface ChannelListItem {
   conversation_id: string;
   name: string;
-  sport_keys: string[] | null;
+  sport_key: string | null;
   base_label: string;
   radius_km: number;
   description: string | null;
@@ -36,7 +36,7 @@ export interface ChannelListItem {
 export interface ChannelDetail {
   conversation_id: string;
   name: string;
-  sport_keys: string[] | null;
+  sport_key: string | null;
   base_lng: number;
   base_lat: number;
   base_label: string;
@@ -73,7 +73,7 @@ export const channelService = {
       p_base_lat: d.baseLat,
       p_base_label: d.baseLabel,
       p_radius_km: d.radiusKm,
-      p_sport_keys: (d.sportKeys.length ? d.sportKeys : null) as unknown as string[],
+      p_sport_key: (d.sportKey ?? null) as unknown as string,
       p_description: d.description as unknown as string,
       p_photo_url: (d.photoUrl ?? null) as unknown as string,
       p_force: d.force ?? false,

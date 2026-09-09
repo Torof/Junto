@@ -870,8 +870,7 @@ export default function ConversationScreen() {
               setAttachMenuOpen(false);
               useCreateStore.getState().resetForm();
               if (isChannel && channelInfo) {
-                const chSports = channelInfo.sport_keys ?? [];
-                const sid = chSports.length === 1 && chSports[0] ? sportIdByKey.get(chSports[0]) : undefined;
+                const sid = channelInfo.sport_key ? sportIdByKey.get(channelInfo.sport_key) : undefined;
                 if (sid) useCreateStore.getState().updateForm({ sport_id: sid });
                 useCreateStore.getState().setShareTo(id!);
               } else {
@@ -897,6 +896,7 @@ export default function ConversationScreen() {
         visible={pickActivityOpen}
         onClose={() => setPickActivityOpen(false)}
         onPick={handleShareActivity}
+        sportFilterKey={isChannel ? channelInfo?.sport_key ?? null : null}
       />
 
       <PickTraceSheet
@@ -921,7 +921,7 @@ export default function ConversationScreen() {
             <Pressable style={styles.channelSheet} onPress={(e) => e.stopPropagation()}>
               <Text style={styles.channelSheetTitle}>{channelInfo.name}</Text>
               <Text style={styles.channelSheetSub}>
-                {channelInfo.sport_keys?.length ? `${channelInfo.sport_keys.map((k) => t(`sports.${k}`, { defaultValue: k })).join(' · ')} · ` : ''}{channelInfo.base_label} · {channelInfo.radius_km} km · {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
+                {channelInfo.sport_key ? `${t(`sports.${channelInfo.sport_key}`, { defaultValue: channelInfo.sport_key })} · ` : ''}{channelInfo.base_label} · {channelInfo.radius_km} km · {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
               </Text>
               {channelInfo.description ? <Text style={styles.channelSheetDesc}>{channelInfo.description}</Text> : null}
 

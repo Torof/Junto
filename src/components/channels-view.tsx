@@ -59,7 +59,7 @@ export function ChannelsView() {
   const neutralTint = resolvedTheme === 'light' ? '#E7DBC2' : colors.surface;
 
   const renderItem = ({ item }: { item: ChannelListItem }) => {
-    const firstSport = item.sport_keys?.[0] ?? null;
+    const firstSport = item.sport_key;
     const cat = firstSport ? sportById.get(firstSport)?.category : undefined;
     const tint = firstSport ? sportCategoryColor(cat, colors.cta) : null;
     const sportName = firstSport ? t(`sports.${firstSport}`, { defaultValue: firstSport }) : null;

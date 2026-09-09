@@ -16,12 +16,15 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onPick: (activityId: string) => void;
+  // When set (a channel locked to one sport), only outings of that sport are
+  // offered — the DB enforces the same rule on share.
+  sportFilterKey?: string | null;
 }
 
 // Pick one of MY shareable outings (created ∪ joined, still live) to drop into a
 // conversation as a rich card (Brique 4c). Complements ShareActivitySheet, which
 // goes the other way (a given activity → pick a conversation).
-export function PickActivitySheet({ visible, onClose, onPick }: Props) {
+export function PickActivitySheet({ visible, onClose, onPick, sportFilterKey }: Props) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -35,11 +38,12 @@ export function PickActivitySheet({ visible, onClose, onPick }: Props) {
 
   const activities = useMemo(() => {
     const live = [...(created ?? []), ...(joined ?? [])].filter(
-      (a) => a.status === 'published' || a.status === 'in_progress',
+      (a) => (a.status === 'published' || a.status === 'in_progress')
+        && (!sportFilterKey || a.sport_key === sportFilterKey),
     );
     const byId = new Map(live.map((a) => [a.id, a]));
     return [...byId.values()].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
-  }, [created, joined]);
+  }, [created, joined, sportFilterKey]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -51,7 +55,11 @@ export function PickActivitySheet({ visible, onClose, onPick }: Props) {
           {l1 || l2 ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : activities.length === 0 ? (
-            <Text style={styles.empty}>{t('messagerie.shareOutingEmpty', { defaultValue: 'Aucune sortie à venir à partager.' })}</Text>
+            <Text style={styles.empty}>
+              {sportFilterKey
+                ? t('messagerie.shareOutingEmptySport', { defaultValue: 'Aucune sortie de ce sport à partager.' })
+                : t('messagerie.shareOutingEmpty', { defaultValue: 'Aucune sortie à venir à partager.' })}
+            </Text>
           ) : (
             <FlatList
               data={activities}

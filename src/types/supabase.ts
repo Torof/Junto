@@ -515,7 +515,7 @@ export type Database = {
           description: string | null
           photo_url: string | null
           radius_km: number
-          sport_keys: string[] | null
+          sport_key: string | null
         }
         Insert: {
           base: unknown
@@ -527,7 +527,7 @@ export type Database = {
           description?: string | null
           photo_url?: string | null
           radius_km: number
-          sport_keys?: string[] | null
+          sport_key?: string | null
         }
         Update: {
           base?: unknown
@@ -539,7 +539,7 @@ export type Database = {
           description?: string | null
           photo_url?: string | null
           radius_km?: number
-          sport_keys?: string[] | null
+          sport_key?: string | null
         }
         Relationships: [
           {
@@ -562,6 +562,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["sport_key"]
+          },
+          {
+            foreignKeyName: "channels_sport_key_fk"
+            columns: ["sport_key"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["key"]
           },
         ]
       }
@@ -3577,7 +3619,7 @@ export type Database = {
           p_name: string
           p_photo_url?: string
           p_radius_km: number
-          p_sport_keys?: string[]
+          p_sport_key?: string
         }
         Returns: {
           conversation_id: string
@@ -3951,7 +3993,7 @@ export type Database = {
           name: string
           photo_url: string
           radius_km: number
-          sport_keys: string[]
+          sport_key: string
         }[]
       }
       get_channel_members: {
@@ -4527,7 +4569,7 @@ export type Database = {
           name: string
           photo_url: string
           radius_km: number
-          sport_keys: string[]
+          sport_key: string
         }[]
       }
       send_activity_invitations: {

@@ -17,8 +17,6 @@ import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 
-const MAX_SPORTS = 3;
-
 export default function CreateChannelScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -30,18 +28,17 @@ export default function CreateChannelScreen() {
   const [name, setName] = useState('');
   const [base, setBase] = useState<{ lng: number; lat: number; label: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState<number>(60);
-  const [sportKeys, setSportKeys] = useState<string[]>([]);
+  const [sportKey, setSportKey] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dupId, setDupId] = useState<string | null>(null);
 
-  // Identity = title + zone (both required). Sports + photo are optional.
+  // Identity = title + zone (both required). Sport + photo are optional.
   const ready = !!base && name.trim().length >= 1;
 
-  const toggleSport = (k: string) => setSportKeys((prev) =>
-    prev.includes(k) ? prev.filter((x) => x !== k) : prev.length >= MAX_SPORTS ? prev : [...prev, k]);
+  const toggleSport = (k: string) => setSportKey((prev) => (prev === k ? null : k));
 
   const addPhoto = async () => {
     if (photoBusy) return;
@@ -70,7 +67,7 @@ export default function CreateChannelScreen() {
       const res = await channelService.create({
         name: name.trim(),
         baseLng: base!.lng, baseLat: base!.lat, baseLabel: base!.label, radiusKm,
-        sportKeys,
+        sportKey,
         description: description.trim() || null, photoUrl, force,
       });
       if (res.duplicate) { setDupId(res.conversationId); setSaving(false); return; }
@@ -129,8 +126,8 @@ export default function CreateChannelScreen() {
           ))}
         </View>
 
-        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sports (optionnel — jusqu’à 3)' })}</Text>
-        <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
+        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport (optionnel)' })}</Text>
+        <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={toggleSport} label={t('map.sportLabel')} />
 
         <Text style={styles.section}>{t('channels.photoLabel', { defaultValue: 'Photo (optionnel)' })}</Text>
         {photoUrl ? (
