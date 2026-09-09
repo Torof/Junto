@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
+import { Image } from 'expo-image';
 import { Check, X, Car, Users, Hash } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -492,9 +493,15 @@ export default function MessagerieScreen() {
                 onLongPress = () => handleHideConversation(item.id, title);
               } else if (item.type === 'channel') {
                 title = item.name ?? t('messagerie.channel', { defaultValue: 'Canal' });
-                leading = (
-                  <View style={[styles.leadingSquare, styles.groupSquare]}>
-                    <Hash size={22} color={colors.textSecondary} strokeWidth={2.2} />
+                // Mirror the channel card: its photo when set, else a square
+                // tinted in the sport's universe colour (Hash if no sport).
+                leading = item.photo_url ? (
+                  <Image source={{ uri: item.photo_url }} style={styles.leadingSquare} contentFit="cover" transition={150} />
+                ) : (
+                  <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(rowSport?.category, colors.cta) + '22' }]}>
+                    {rowSport
+                      ? <Text style={styles.squareEmoji}>{getSportIcon(rowSport.key)}</Text>
+                      : <Hash size={22} color={colors.textSecondary} strokeWidth={2.2} />}
                   </View>
                 );
                 onPress = () => router.push(`/(auth)/conversation/${item.id}`);

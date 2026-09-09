@@ -28,6 +28,8 @@ export interface Conversation {
   activity_id: string | null;
   activity_title: string | null;
   sport_id: string | null;
+  // Canal
+  photo_url: string | null;
 }
 
 export interface PendingRequest {
