@@ -523,6 +523,14 @@ export default function MessagerieScreen() {
                 onLongPress = () => handleHideConversation(item.id, name);
               }
 
+              // Type pill next to the name so DM / Sortie / Canal / Groupe read
+              // at a glance (a DM carries no pill — its round avatar says it).
+              const typeMeta =
+                item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: '#E11D48', bg: '#E11D4820' } :
+                item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Canal' }), text: '#2F6FED', bg: '#2F6FED20' } :
+                item.type === 'group' ? { label: t('messagerie.typeGroup', { defaultValue: 'Groupe' }), text: colors.textSecondary, bg: colors.surfaceAlt } :
+                null;
+
               const rowNode = (
                 <Pressable
                   style={[styles.row, isUnread && styles.rowUnread]}
@@ -533,6 +541,11 @@ export default function MessagerieScreen() {
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
                       <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</Text>
+                      {typeMeta && (
+                        <View style={[styles.typePill, { backgroundColor: typeMeta.bg }]}>
+                          <Text style={[styles.typePillText, { color: typeMeta.text }]}>{typeMeta.label}</Text>
+                        </View>
+                      )}
                       {isUnread && <View style={styles.unreadDot} />}
                       {time && <Text style={styles.time}>{time}</Text>}
                     </View>
@@ -863,6 +876,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   name: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600', letterSpacing: -0.2 },
   nameUnread: { fontWeight: '800' },
+  typePill: { flexShrink: 0, alignSelf: 'center', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.full },
+  typePillText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
   time: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '600' },
   sportLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
   preview: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
