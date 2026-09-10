@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -132,6 +132,7 @@ export default function TabsLayout() {
   }, [queryClient, currentUserId]);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -175,7 +176,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.partenaires', { defaultValue: 'Partenaires' }),
           headerLeft: () => (
-            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+            <Pressable onPress={() => router.navigate('/(auth)/(tabs)/carte')} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
               <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           ),
@@ -187,7 +188,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="mes-activites" options={{
         title: t('tabs.mesActivites'), href: null,
         headerLeft: () => (
-          <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+          <Pressable onPress={() => router.navigate('/(auth)/(tabs)/carte')} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
             <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
           </Pressable>
         ),
@@ -200,7 +201,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.messagerie'),
           headerLeft: () => (
-            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+            <Pressable onPress={() => router.navigate('/(auth)/(tabs)/carte')} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
               <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           ),
@@ -228,7 +229,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.profil'), href: null,
           headerLeft: () => (
-            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
+            <Pressable onPress={() => router.navigate('/(auth)/(tabs)/carte')} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
               <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           ),
