@@ -32,7 +32,6 @@ const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox coords of the emoji center (same drop geometry as the UA pin).
 const ICON_CENTER_Y_VBX = 24;
 const DROP_OFFSET_VBX = 4; // drop shifted right; capsule room on the left
-const DROP_SPAN_VBX = 54;
 // Ivory plate circle (cx=27+offset, cy=24, r=18.5 in viewBox units) in screen
 // px — the icon clips to it (same mask as the UA pin, Scott 2026-09-11).
 const SCALE = PIN_WIDTH / VIEWBOX_W;
