@@ -16,10 +16,11 @@ export const SPORT_UNIVERSE: Record<string, string> = {
   snowboarding: 'mountain', snowshoeing: 'mountain', 'ski-freeride': 'mountain',
   splitboard: 'mountain', 'via-ferrata': 'mountain',
   // on-foot
-  hiking: 'on-foot', running: 'on-foot', 'trail-running': 'on-foot', trekking: 'on-foot',
+  hiking: 'on-foot', running: 'on-foot', 'trail-running': 'on-foot', trekking: 'on-foot', football: 'on-foot',
   // water
   canyoning: 'water', diving: 'water', kayaking: 'water', rafting: 'water', sailing: 'water',
   'stand-up-paddle': 'water', surfing: 'water', swimming: 'water', freediving: 'water', canoe: 'water',
+  windsurfing: 'water', wakeboard: 'water',
 };
 
 /** Universe colour for a sport key (T1 tint). Falls back to the given colour. */

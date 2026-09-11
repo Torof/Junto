@@ -38,6 +38,9 @@ const sportIcons: Record<string, string> = {
   'speed-riding': '🪂',
   'hang-gliding': '🛩',
   freediving: '🤿',
+  football: '⚽',
+  windsurfing: '🏄',
+  wakeboard: '🏄',
 };
 
 export function getSportIcon(sportKey: string): string {
