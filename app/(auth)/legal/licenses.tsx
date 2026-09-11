@@ -58,6 +58,19 @@ const LICENSES: { group: string; items: License[] }[] = [
     ],
   },
   {
+    // Attribution requise (CC BY) pour game-icons + Font Awesome ; les autres
+    // listés par courtoisie. Sources du jeu d'icônes sport embarqué (2026-09-11).
+    group: 'Icônes de sport',
+    items: [
+      { name: 'game-icons.net — Lorc, Delapouite, sbed, Caro Asercion', license: 'CC BY 3.0', url: 'https://game-icons.net' },
+      { name: 'Font Awesome Free (ski de rando)', license: 'CC BY 4.0', url: 'https://fontawesome.com/license/free' },
+      { name: 'Material Design Icons (dry-tooling)', license: 'Apache 2.0', url: 'https://pictogrammers.com/library/mdi/' },
+      { name: 'Temaki (rafting, wakeboard)', license: 'CC0', url: 'https://github.com/rapideditor/temaki' },
+      { name: 'Map Icons (natation)', license: 'OFL 1.1', url: 'https://github.com/scottdejonge/map-icons' },
+      { name: 'Fontisto (apnée)', license: 'MIT', url: 'https://github.com/kenangundogan/fontisto' },
+    ],
+  },
+  {
     group: 'Utilities',
     items: [
       { name: 'day.js', license: 'MIT', url: 'https://github.com/iamkun/dayjs' },
