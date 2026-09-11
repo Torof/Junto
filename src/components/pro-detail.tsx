@@ -26,12 +26,12 @@ import { ReviewSection } from './review-section';
 import { StarRating } from './star-rating';
 import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
-import { getSportIcon } from '@/constants/sport-icons';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { JuntoMapView } from './map-view';
 import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
 import { PhotoLightbox } from './photo-lightbox';
+import { SportIcon } from '@/components/sport-icon';
 
 const GALLERY_MAX = 25;
 const REVIEW_CARD_WIDTH = 220;
@@ -777,7 +777,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           <Image source={{ uri: o.image_url }} style={styles.expImage} contentFit="cover" />
                         ) : (
                           <View style={[styles.expImage, styles.expImageFallback, { backgroundColor: accent }]}>
-                            <Text style={styles.expFallbackEmoji}>{getSportIcon(o.sport_key)}</Text>
+                            <SportIcon sportKey={o.sport_key} size={26} color="#FFFFFF" />
                           </View>
                         )}
                         <View style={styles.expSportPill}>

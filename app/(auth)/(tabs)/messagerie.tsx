@@ -25,7 +25,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
 import { useSports } from '@/hooks/use-sports';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -477,7 +477,7 @@ export default function MessagerieScreen() {
               if (item.type === 'activity') {
                 leading = (
                   <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(rowSport?.category, colors.cta) + '22' }]}>
-                    <Text style={styles.squareEmoji}>{rowSport ? getSportIcon(rowSport.key) : '📍'}</Text>
+                    {rowSport ? <SportIcon sportKey={rowSport.key} size={24} /> : <Text style={styles.squareEmoji}>📍</Text>}
                   </View>
                 );
                 title = item.activity_title ?? t('messagerie.activityThread');
@@ -503,7 +503,7 @@ export default function MessagerieScreen() {
                 ) : (
                   <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(rowSport?.category, colors.cta) + '22' }]}>
                     {rowSport
-                      ? <Text style={styles.squareEmoji}>{getSportIcon(rowSport.key)}</Text>
+                      ? <SportIcon sportKey={rowSport.key} size={24} />
                       : <Hash size={22} color={colors.textSecondary} strokeWidth={2.2} />}
                   </View>
                 );
@@ -550,9 +550,12 @@ export default function MessagerieScreen() {
                       {time && <Text style={styles.time}>{time}</Text>}
                     </View>
                     {rowSport && (
-                      <Text style={styles.sportLabel} numberOfLines={1}>
-                        {getSportIcon(rowSport.key)} {t(`sports.${rowSport.key}`, { defaultValue: rowSport.key })}
-                      </Text>
+                      <View style={styles.sportLabelRow}>
+                        <SportIcon sportKey={rowSport.key} size={12} />
+                        <Text style={styles.sportLabel} numberOfLines={1}>
+                          {t(`sports.${rowSport.key}`, { defaultValue: rowSport.key })}
+                        </Text>
+                      </View>
                     )}
                     {preview && (
                       <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{preview}</Text>
@@ -750,7 +753,7 @@ export default function MessagerieScreen() {
                   <UserAvatar name={inv.inviter_name ?? '?'} avatarUrl={inv.inviter_avatar} size={44} />
                   <View style={styles.requestInfo}>
                     <Text style={styles.requestActivityTitle} numberOfLines={1}>
-                      {sport ? `${getSportIcon(sport.key)} ` : ''}{inv.activity_title}
+                      {inv.activity_title}
                     </Text>
                     <Text style={styles.requestSource} numberOfLines={1}>
                       {t('messagerie.invitedBy', { name: inv.inviter_name ?? '?' })}
@@ -879,7 +882,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   typePill: { flexShrink: 0, alignSelf: 'center', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.full },
   typePillText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
   time: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '600' },
-  sportLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
+  sportLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  sportLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },
   preview: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
   previewUnread: { color: colors.textPrimary },
 

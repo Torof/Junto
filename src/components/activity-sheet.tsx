@@ -13,11 +13,11 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type NearbyActivity } from '@/services/activity-service';
 import { transportService } from '@/services/transport-service';
-import { getSportIcon } from '@/constants/sport-icons';
 import { FavoriteButton } from './favorite-button';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
+import { SportIcon } from '@/components/sport-icon';
 
 // UA (peer outing) drawer — a pure TEASER (Scott, 2026-07-05): what catches the
 // eye + what decides "do I want to know more", nothing else. Joining and the
@@ -111,7 +111,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             <FavoriteButton kind="activity" id={activity.id} size={21} style={styles.favBtn} />
 
             <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-              <Text style={styles.sportEmoji}>{getSportIcon(activity.sport_key)}</Text>
+              <SportIcon sportKey={activity.sport_key} size={15} color={accent} />
               <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
                 {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
               </Text>

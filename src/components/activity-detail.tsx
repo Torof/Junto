@@ -41,7 +41,6 @@ import { useMessageStore } from '@/store/message-store';
 import { ReportModal } from './report-modal';
 import { ShareActivitySheet } from './share-activity-sheet';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
-import { getSportIcon } from '@/constants/sport-icons';
 import { TransportSection, type TransportSectionHandle } from './transport-section';
 import { GearSection, type GearSectionHandle } from './gear-section';
 import { MyOutingCard, type MyOutingCardHandle } from './my-outing-card';
@@ -50,6 +49,7 @@ import { ActivityDescription } from './activity-description';
 import { transportService } from '@/services/transport-service';
 import { distanceMeters, distanceToPolylineMeters } from '@/utils/geo';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
+import { SportIcon } from '@/components/sport-icon';
 
 interface ActivityDetailProps {
   activity: NearbyActivity;
@@ -796,7 +796,7 @@ export function ActivityDetail({
                 {/* Same sport-chip grammar as the UA drawer (outline + tint +
                     sport glyph), on a solid base for map legibility. */}
                 <View style={[styles.heroSportChip, { borderColor: sportAccent, backgroundColor: sportChipBg }]}>
-                  <Text style={styles.heroSportEmoji}>{getSportIcon(activity.sport_key)}</Text>
+                  <SportIcon sportKey={activity.sport_key} size={15} color={sportAccent} />
                   <Text style={[styles.heroSportChipText, { color: sportAccent }]} numberOfLines={1}>
                     {t(`sports.${activity.sport_key}`, activity.sport_key)}
                   </Text>

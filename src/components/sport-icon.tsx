@@ -1,11 +1,14 @@
 import { memo } from 'react';
 import { SvgXml } from 'react-native-svg';
 import { SPORT_ICON_XML } from '@/constants/sport-icon-svgs';
+import { sportIconColor } from '@/constants/sport-universe';
 
 interface SportIconProps {
   sportKey: string;
   size: number;
-  color: string;
+  /** Defaults to the sport's universe colour (T1). Pass ink for map pins,
+      white on solid universe surfaces. */
+  color?: string;
 }
 
 // The professional sport glyph that replaces the emoji set (validated
@@ -16,5 +19,5 @@ interface SportIconProps {
 export const SportIcon = memo(function SportIcon({ sportKey, size, color }: SportIconProps) {
   const xml = SPORT_ICON_XML[sportKey];
   if (!xml) return null;
-  return <SvgXml xml={xml} width={size} height={size} color={color} />;
+  return <SvgXml xml={xml} width={size} height={size} color={color ?? sportIconColor(sportKey, '#1F1A15')} />;
 });

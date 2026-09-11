@@ -16,7 +16,7 @@ import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/
 import { CollapsibleSection } from './collapsible-section';
 import { PlaceSearchBar } from './place-search-bar';
 import { useSports } from '@/hooks/use-sports';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import type { PlaceResult } from '@/services/geocode-service';
 import { alertService } from '@/services/alert-service';
 import type { AppColors } from '@/constants/colors';
@@ -454,7 +454,7 @@ function FiltersTab({
             const on = filters.sportKeys.includes(s.key);
             return (
               <Pressable key={s.key} style={styles.optRow} onPress={() => toggleSportFilter(s.key)}>
-                <Text style={styles.optEmoji}>{getSportIcon(s.key)}</Text>
+                <View style={styles.optIconBox}><SportIcon sportKey={s.key} size={19} /></View>
                 <Text style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
                 {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
               </Pressable>
@@ -777,7 +777,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4, marginBottom: spacing.md },
   sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   optRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
-  optEmoji: { fontSize: 18, width: 24, textAlign: 'center' },
+  optIconBox: { width: 24, alignItems: 'center' },
   optLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
   optLabelActive: { fontWeight: '700', color: colors.cta },
   sportSearch: {

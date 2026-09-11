@@ -12,7 +12,7 @@ import { useColors } from '@/hooks/use-theme';
 import { activityService } from '@/services/activity-service';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -98,7 +98,7 @@ export function SharedActivityCard({ activityId, onPress, fallbackTitle }: Share
           <View style={[StyleSheet.absoluteFill, styles.heroFallback, { backgroundColor: sportAccent + '22' }]} />
         )}
         <View style={styles.heroPin}>
-          <Text style={styles.heroPinIcon}>{getSportIcon(activity.sport_key)}</Text>
+          <SportIcon sportKey={activity.sport_key} size={22} />
         </View>
         <View style={styles.heroPills}>
           <View style={[styles.pill, { backgroundColor: sportAccent }]}>
@@ -184,9 +184,6 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
       ...shadows.raised,
-    },
-    heroPinIcon: {
-      fontSize: 20,
     },
     heroPills: {
       position: 'absolute',

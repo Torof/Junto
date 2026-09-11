@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import { LogoSpinner } from './logo-spinner';
 
 interface Props {
@@ -68,7 +68,7 @@ export function PickActivitySheet({ visible, onClose, onPick, sportFilterKey }: 
               renderItem={({ item }) => (
                 <Pressable style={styles.row} onPress={() => { onPick(item.id); onClose(); }}>
                   <View style={[styles.square, { backgroundColor: sportCategoryColor(item.sport_category, colors.cta) }]}>
-                    <Text style={styles.squareEmoji}>{getSportIcon(item.sport_key)}</Text>
+                    <SportIcon sportKey={item.sport_key} size={24} color="#FFFFFF" />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.name} numberOfLines={1}>{item.title}</Text>
@@ -100,7 +100,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   list: { maxHeight: 420 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
   square: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  squareEmoji: { fontSize: 22 },
   name: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   sub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
 });

@@ -15,7 +15,6 @@ import {
 import { spacing, fontSizes, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
-import { getSportIcon } from '@/constants/sport-icons';
 import { useSports } from '@/hooks/use-sports';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +32,7 @@ import {
 import { userService } from '@/services/user-service';
 import { LEVELS } from '@/types/activity-form';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { SportIcon } from '@/components/sport-icon';
 
 const SCREEN_H = Dimensions.get('window').height;
 
@@ -752,7 +752,7 @@ function SportRow({
             hitSlop={4}
             style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
           >
-            <Text style={styles.sportEmoji}>{getSportIcon(it.sportKey)}</Text>
+            <SportIcon sportKey={it.sportKey} size={16} />
             {it.count > 0 && <Text style={styles.sportCountInline}>×{it.count}</Text>}
             {lvl && it.count > 0 && <View style={styles.sportSep} />}
             {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
@@ -1243,7 +1243,7 @@ function SportDetail({
     <>
       <View style={styles.sportIdentityRow}>
         <View style={[styles.sportEmojiSquare, { backgroundColor: accent + '1F', borderColor: accent + '40' }]}>
-          <Text style={styles.sportEmojiBig}>{getSportIcon(item.sportKey)}</Text>
+          <SportIcon sportKey={item.sportKey} size={26} color={accent} />
         </View>
         <View style={styles.sportIdentityText}>
           <Text style={styles.sportName}>{item.label}</Text>

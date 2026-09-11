@@ -8,7 +8,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { useMapStore } from '@/store/map-store';
 import { useSports } from '@/hooks/use-sports';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 
 // Shared multi-select sport picker, bound to useMapStore.filters.sportKeys.
@@ -81,7 +81,7 @@ export function SportPickerSheet({ visible, onClose, useStore = useMapStore }: P
                 style={styles.row}
                 onPress={() => toggleSportFilter(s.key)}
               >
-                <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                <SportIcon sportKey={s.key} size={20} />
                 <Text style={[styles.rowLabel, isSelected && styles.rowLabelActive]} numberOfLines={1}>
                   {t(`sports.${s.key}`, { defaultValue: s.key })}
                 </Text>
@@ -138,11 +138,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
-  },
-  rowEmoji: {
-    fontSize: 20,
-    width: 28,
-    textAlign: 'center',
   },
   rowLabel: {
     flex: 1,

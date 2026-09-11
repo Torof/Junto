@@ -16,12 +16,12 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
-import { getSportIcon } from '@/constants/sport-icons';
 import { UserAvatar } from '@/components/user-avatar';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { supabase } from '@/services/supabase';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
+import { SportIcon } from '@/components/sport-icon';
 
 // Per-trait Lucide icons — match the profile's vouched line for the
 // positives, distinct shapes for the negatives that don't collide with
@@ -410,7 +410,7 @@ export default function PeerReviewScreen() {
               )}
               {activity.sport_key && p.declared_level && (
                 <View style={styles.levelPill}>
-                  <Text style={styles.levelSportIcon}>{getSportIcon(activity.sport_key)}</Text>
+                  <SportIcon sportKey={activity.sport_key} size={16} />
                   <View style={styles.levelDivider} />
                   {LEVEL_VOTE_KEYS.map((levelKey) => {
                     const voted = p.my_badge_votes.includes(levelKey);

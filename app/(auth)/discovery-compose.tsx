@@ -15,10 +15,10 @@ import type { AppColors } from '@/constants/colors';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { discoveryService, type TransportMode, type DispoIntent } from '@/services/discovery-service';
-import { getSportIcon } from '@/constants/sport-icons';
 import { getLevelScale, OPEN_LEVEL } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
+import { SportIcon } from '@/components/sport-icon';
 
 const RADII: (number | null)[] = [5, 10, 15, 30, 50, null];
 const MODES: { key: TransportMode; icon: typeof Car; label: string }[] = [
@@ -191,7 +191,7 @@ export default function DiscoveryComposeScreen() {
             <Text style={styles.section}>{t('discovery.levelLabel', { defaultValue: 'Niveau par sport (optionnel)' })}</Text>
             {sportKeys.map((sk) => (
               <View key={sk} style={styles.levelBlock}>
-                <Text style={styles.levelSport}>{getSportIcon(sk)} {t(`sports.${sk}`, { defaultValue: sk })}</Text>
+                <View style={styles.levelSportRow}><SportIcon sportKey={sk} size={14} /><Text style={styles.levelSport}>{t(`sports.${sk}`, { defaultValue: sk })}</Text></View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.levelChips}>
                   {getLevelScale(sk).map((opt) => {
                     const sel = (levels[sk] ?? OPEN_LEVEL) === opt.label;
@@ -315,6 +315,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   chipTextActive: { color: '#FFFFFF' },
   levelBlock: { marginBottom: spacing.sm },
+  levelSportRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   levelSport: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', marginBottom: spacing.xs },
   levelChips: { gap: spacing.xs + 2, paddingRight: spacing.md },
   levelChip: { borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 1 },

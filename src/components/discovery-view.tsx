@@ -18,10 +18,10 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { reliabilityColorForTier } from '@/utils/reliability-color';
-import { getSportIcon } from '@/constants/sport-icons';
 import { OPEN_LEVEL } from '@/constants/sport-levels';
 import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { SportIcon } from '@/components/sport-icon';
 
 const TRANSPORT_ICON: Record<TransportMode, typeof Car> = {
   car: Car, motorbike: Zap, bike: Bike, on_foot: Footprints, public_transport: Bus,
@@ -122,8 +122,9 @@ export function DiscoveryView() {
     const showLevel = level && level !== OPEN_LEVEL;
     return (
       <View key={key} style={[styles.sportPill, { backgroundColor: c + '22', borderColor: c + '55' }]}>
+        <SportIcon sportKey={key} size={13} color={c} />
         <Text style={[styles.sportPillText, { color: c }]}>
-          {getSportIcon(key)} {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
+          {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
         </Text>
       </View>
     );
@@ -425,7 +426,7 @@ export function DiscoveryView() {
             ) : (
               (invitable ?? []).map((a) => (
                 <Pressable key={a.id} style={styles.inviteRow} onPress={() => handleInvite(a.id)}>
-                  <Text style={styles.inviteRowIcon}>{getSportIcon(a.sport_key)}</Text>
+                  <SportIcon sportKey={a.sport_key} size={20} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.inviteRowTitle} numberOfLines={1}>{a.title}</Text>
                     <Text style={styles.inviteRowMeta}>{dayjs(a.starts_at).locale('fr').format('ddd D MMM · H[h]mm')}</Text>
@@ -577,7 +578,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   metaZone: { color: colors.cta, fontWeight: '800' },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   pillBreak: { width: '100%', height: 0 },
-  sportPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
+  sportPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
   sportPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
 
   aboutCard: { gap: 3 },

@@ -8,7 +8,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { useSports } from '@/hooks/use-sports';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import { LEVELS } from '@/types/activity-form';
 import { userService } from '@/services/user-service';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -99,7 +99,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
                   const lvl = levels[s.key] ?? '';
                   return (
                     <View key={s.key} style={styles.declaredRow}>
-                      <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                      <SportIcon sportKey={s.key} size={19} />
                       <Text style={styles.declaredName} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
                       <Text style={styles.declaredLevel}>{SHORT[lvl] ?? CAP(lvl)}</Text>
                     </View>
@@ -124,7 +124,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
                         onPress={() => setOpenAdd(open ? null : s.key)}
                         disabled={!!busy}
                       >
-                        <Text style={styles.rowEmoji}>{getSportIcon(s.key)}</Text>
+                        <SportIcon sportKey={s.key} size={19} />
                         <Text style={styles.addName} numberOfLines={1}>{sportName}</Text>
                         {busy === s.key ? (
                           <ActivityIndicator color={colors.cta} />
@@ -187,7 +187,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800',
     letterSpacing: 0.6, textTransform: 'uppercase', marginTop: spacing.lg, marginBottom: spacing.sm,
   },
-  rowEmoji: { fontSize: 18 },
   declaredRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderMuted,

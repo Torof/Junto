@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, X, Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useSports } from '@/hooks/use-sports';
-import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
@@ -101,7 +101,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
                   style={[styles.item, isSelected && styles.itemSelected]}
                   onPress={() => handleSelect(sport.key)}
                 >
-                  <Text style={styles.itemIcon}>{getSportIcon(sport.key)}</Text>
+                  <View style={styles.itemIconBox}><SportIcon sportKey={sport.key} size={20} /></View>
                   <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
                     {t(`sports.${sport.key}`, sport.key)}
                   </Text>
@@ -148,7 +148,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.md, marginBottom: spacing.xs,
   },
   itemSelected: { backgroundColor: colors.cta + '20' },
-  itemIcon: { fontSize: 20, width: 28 },
+  itemIconBox: { width: 28 },
   itemText: { color: colors.textPrimary, fontSize: fontSizes.md, flex: 1 },
   itemTextSelected: { color: colors.cta, fontWeight: 'bold' },
 });
