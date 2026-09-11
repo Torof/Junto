@@ -94,9 +94,9 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
         </SvgText>
       </Svg>
       <View style={styles.iconWrap}>
-        {/* Same ink-on-ivory glyph as the UA pin (decision 2026-09-11). */}
+        {/* Same universe-coloured glyph as the UA pin (option B, 2026-09-11). */}
         {hasSportIcon(offering.sport_key) ? (
-          <SportIcon sportKey={offering.sport_key} size={23} color="#221D17" />
+          <SportIcon sportKey={offering.sport_key} size={23} />
         ) : (
           <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
         )}

@@ -73,12 +73,12 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         />
       </Svg>
       <View style={styles.iconWrap}>
-        {/* Ink glyph on the ivory plate (decision 2026-09-11: pins stay
-            neutral — the frame keeps the status colour channel; universe
-            colours live on in-app surfaces). Fixed on-map colour, like
-            every pin colour (decision eb1596f). */}
+        {/* Universe-coloured glyph on the ivory plate (option B, Scott
+            2026-09-11 — ink lost the at-a-glance pop the emojis had; the
+            5 universe colours restore it AND mean something). The frame
+            still carries the status colour. */}
         {hasSportIcon(activity.sport_key) ? (
-          <SportIcon sportKey={activity.sport_key} size={23} color="#221D17" />
+          <SportIcon sportKey={activity.sport_key} size={23} />
         ) : (
           <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
         )}
