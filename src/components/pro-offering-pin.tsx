@@ -4,6 +4,8 @@ import Svg, { Path, Circle, Rect, G, Text as SvgText } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
+import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type ProOffering } from '@/services/pro-offering-service';
 
 interface ProOfferingPinProps {
@@ -92,7 +94,12 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
         </SvgText>
       </Svg>
       <View style={styles.iconWrap}>
-        <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
+        {/* Same ink-on-ivory glyph as the UA pin (decision 2026-09-11). */}
+        {hasSportIcon(offering.sport_key) ? (
+          <SportIcon sportKey={offering.sport_key} size={23} color="#221D17" />
+        ) : (
+          <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
+        )}
       </View>
     </View>
   );

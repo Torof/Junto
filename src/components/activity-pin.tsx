@@ -6,6 +6,8 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
+import { SportIcon } from '@/components/sport-icon';
+import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type NearbyActivity } from '@/services/activity-service';
 
 interface ActivityPinProps {
@@ -71,7 +73,15 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         />
       </Svg>
       <View style={styles.iconWrap}>
-        <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+        {/* Ink glyph on the ivory plate (decision 2026-09-11: pins stay
+            neutral — the frame keeps the status colour channel; universe
+            colours live on in-app surfaces). Fixed on-map colour, like
+            every pin colour (decision eb1596f). */}
+        {hasSportIcon(activity.sport_key) ? (
+          <SportIcon sportKey={activity.sport_key} size={23} color="#221D17" />
+        ) : (
+          <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+        )}
       </View>
       {/* Private outing — only its members ever see this pin (view 00315),
           so the padlock reads as "your private outing", not someone's
