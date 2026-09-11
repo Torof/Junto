@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/services/supabase';
 
 export interface SportRow {
@@ -28,7 +30,8 @@ export interface SportRow {
  *    on reconnect/focus that could swap the array mid-interaction.
  */
 export function useSports() {
-  return useQuery({
+  const { t, i18n } = useTranslation();
+  const query = useQuery({
     queryKey: ['sports'],
     queryFn: async (): Promise<SportRow[]> => {
       const { data, error } = await supabase
@@ -42,4 +45,20 @@ export function useSports() {
     staleTime: Infinity,
     gcTime: Infinity,
   });
+
+  // Alphabetical by TRANSLATED name in the active locale (Scott 2026-09-11) —
+  // sorting here means every selector (dropdown, picker, filters, levels
+  // editor, create/edit flows) inherits the order for free, in any language.
+  // Map-building consumers don't care about order. display_order remains in
+  // the row for any future curated use.
+  const sorted = useMemo(() => {
+    if (!query.data) return query.data;
+    return [...query.data].sort((a, b) =>
+      t(`sports.${a.key}`, { defaultValue: a.key }).localeCompare(
+        t(`sports.${b.key}`, { defaultValue: b.key }),
+        i18n.language,
+      ));
+  }, [query.data, t, i18n.language]);
+
+  return { ...query, data: sorted } as typeof query;
 }

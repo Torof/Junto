@@ -23,6 +23,13 @@ const PIN_WIDTH = 40;
 const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 // viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
 const ICON_CENTER_Y_VBX = 24;
+// Ivory plate geometry (circle cx=27 cy=24 r=18.5 in viewBox units), projected
+// to screen px — the icon is clipped to this circle so no glyph ever spills
+// past the plate (same icon size, just masked; Scott 2026-09-11).
+const SCALE = PIN_WIDTH / VIEWBOX_W;
+const PLATE_D = 2 * 18.5 * SCALE;
+const PLATE_LEFT = 27 * SCALE - PLATE_D / 2;
+const PLATE_TOP = ICON_CENTER_Y_VBX * SCALE - PLATE_D / 2;
 
 // Location-pin silhouette with a short, softly-pointed bottom (2026-07-01) —
 // the tail sits at y≈52 and the lower control points ride just above the tip
@@ -72,7 +79,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           strokeOpacity={0.95}
         />
       </Svg>
-      <View style={styles.iconWrap}>
+      <View style={styles.plateClip}>
         {/* Universe-coloured glyph on the ivory plate (option B, Scott
             2026-09-11 — ink lost the at-a-glance pop the emojis had; the
             5 universe colours restore it AND mean something). The frame
@@ -124,12 +131,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     shadowRadius: 6,
     elevation: 10,
   },
-  iconWrap: {
+  plateClip: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: PIN_HEIGHT * (1 - 2 * (ICON_CENTER_Y_VBX / VIEWBOX_H)),
+    left: PLATE_LEFT,
+    top: PLATE_TOP,
+    width: PLATE_D,
+    height: PLATE_D,
+    borderRadius: PLATE_D / 2,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },

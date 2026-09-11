@@ -33,6 +33,12 @@ const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
 const ICON_CENTER_Y_VBX = 24;
 const DROP_OFFSET_VBX = 4; // drop shifted right; capsule room on the left
 const DROP_SPAN_VBX = 54;
+// Ivory plate circle (cx=27+offset, cy=24, r=18.5 in viewBox units) in screen
+// px — the icon clips to it (same mask as the UA pin, Scott 2026-09-11).
+const SCALE = PIN_WIDTH / VIEWBOX_W;
+const PLATE_D = 2 * 18.5 * SCALE;
+const PLATE_LEFT = (27 + DROP_OFFSET_VBX) * SCALE - PLATE_D / 2;
+const PLATE_TOP = ICON_CENTER_Y_VBX * SCALE - PLATE_D / 2;
 
 // Identical silhouette to the UA teardrop (activity-pin.tsx), drawn in 0..54
 // coords and shifted right by DROP_OFFSET_VBX via a <G>.
@@ -93,7 +99,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           PRO
         </SvgText>
       </Svg>
-      <View style={styles.iconWrap}>
+      <View style={styles.plateClip}>
         {/* Same universe-coloured glyph as the UA pin (option B, 2026-09-11). */}
         {hasSportIcon(offering.sport_key) ? (
           <SportIcon sportKey={offering.sport_key} size={23} />
@@ -116,14 +122,14 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     shadowRadius: 6,
     elevation: 10,
   },
-  iconWrap: {
+  plateClip: {
     position: 'absolute',
-    top: 0,
-    // Span only the drop's 4..58 portion so the emoji centers on the drop
-    // (x=31), not on the capsule-widened 58-unit box.
-    left: PIN_WIDTH * (DROP_OFFSET_VBX / VIEWBOX_W),
-    width: PIN_WIDTH * (DROP_SPAN_VBX / VIEWBOX_W),
-    bottom: PIN_HEIGHT * (1 - 2 * (ICON_CENTER_Y_VBX / VIEWBOX_H)),
+    left: PLATE_LEFT,
+    top: PLATE_TOP,
+    width: PLATE_D,
+    height: PLATE_D,
+    borderRadius: PLATE_D / 2,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
