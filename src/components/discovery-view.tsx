@@ -1,12 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { View, Text, Pressable, FlatList, ScrollView, StyleSheet, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, Pressable, FlatList, ScrollView, StyleSheet, Modal, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, ChevronRight, SlidersHorizontal, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -17,7 +17,6 @@ import { ReliabilityRing } from '@/components/reliability-ring';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { reliabilityColorForTier } from '@/utils/reliability-color';
 import { OPEN_LEVEL } from '@/constants/sport-levels';
 import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -47,10 +46,9 @@ const VIBE_FILTER_GROUPS: { key: string; items: DispoIntent[] }[] = [
 ];
 const formatPeriod = (start: string, end: string) =>
   `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+// Vibe labels carry a leading emoji in the pickers; the sheet shows them as a
+// quiet text line, so strip anything before the first letter.
+const stripEmoji = (s: string) => s.replace(/^[^\p{L}]+/u, '');
 
 export function DiscoveryView() {
   const colors = useColors();
@@ -65,11 +63,8 @@ export function DiscoveryView() {
   const toggleFilterVibe = (v: DispoIntent) => setFilterVibes((prev) => {
     const n = new Set(prev); if (n.has(v)) n.delete(v); else n.add(v); return n;
   });
-  const [openAbout, setOpenAbout] = useState<Set<string>>(new Set());
-  const toggleAbout = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-    setOpenAbout((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  };
+  // Partner sheet — the compact card opens everything else here.
+  const [sheetCard, setSheetCard] = useState<DiscoveryCard | null>(null);
 
   const { data: invitable, isLoading: invitableLoading } = useQuery({
     queryKey: ['invitable-activities', inviteTargetId],
@@ -121,10 +116,10 @@ export function DiscoveryView() {
     const c = sportCategoryColor(cat, colors.cta);
     const showLevel = level && level !== OPEN_LEVEL;
     return (
-      <View key={key} style={[styles.sportPill, { backgroundColor: c + '22', borderColor: c + '55' }]}>
+      <View key={key} style={[styles.sportPill, { backgroundColor: c + '1A' }]}>
         <SportIcon sportKey={key} size={13} color={c} />
         <Text style={[styles.sportPillText, { color: c }]}>
-          {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
+          {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` ${level}` : ''}
         </Text>
       </View>
     );
@@ -159,93 +154,114 @@ export function DiscoveryView() {
     km ? `${km} km` : t('discovery.radiusAny', { defaultValue: 'Peu importe' });
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
-  const renderCard = ({ item }: { item: DiscoveryCard }) => {
-    const done = contacted.has(item.user_id);
-    const relColor = reliabilityColorForTier(item.reliability_tier, colors);
-    return (
-      <View style={styles.card}>
-        <View style={styles.cardTop}>
-          <Pressable onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} hitSlop={4}>
-            <ReliabilityRing tier={item.reliability_tier} size={56} strokeWidth={3} showLabel={false}>
-              <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={56} />
-            </ReliabilityRing>
-          </Pressable>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={styles.nameRow}>
-              <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
-              {item.reliability_tier ? (
-                <View style={[styles.relChip, { backgroundColor: relColor + '22', borderColor: relColor + '55' }]}>
-                  <Text style={[styles.relChipText, { color: relColor }]}>{t(`reliability.tier.${item.reliability_tier}`)}</Text>
-                </View>
-              ) : null}
-            </View>
-            <View style={styles.subRow}>
-              <MapPin size={13} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.cardSub} numberOfLines={1}>
-                {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}
-                {' · '}
-                {item.sorties_count > 0
-                  ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
-                  : t('discovery.newcomer', { defaultValue: 'nouveau' })}
-              </Text>
-            </View>
-            <View style={styles.dateRow}>
-              <Calendar size={13} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.metaText} numberOfLines={1}>{formatPeriod(item.window_start, item.window_end)}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.headMeta}>
-          <LocateFixed size={13} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.metaText}>{radiusText(item.radius_km)}</Text>
-          <Text style={styles.metaDot}>·</Text>
-          {transportIcons(item.transport_modes, 15)}
-          <Text style={styles.metaDot}>·</Text>
-          <Pressable onPress={() => openZone({ userId: item.user_id, name: item.display_name })} hitSlop={6}>
-            <Text style={[styles.metaText, styles.metaZone]}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.pillWrap}>
+  // Compact card — avatar, name, one quiet meta line, sport pills. Everything
+  // else lives in the partner sheet (Scott, 2026-09-15).
+  const renderCard = ({ item }: { item: DiscoveryCard }) => (
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => setSheetCard(item)}
+    >
+      <ReliabilityRing tier={item.reliability_tier} size={48} strokeWidth={3} showLabel={false}>
+        <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={48} />
+      </ReliabilityRing>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
+        <Text style={styles.cardMeta} numberOfLines={1}>
+          {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}
+          {' · '}
+          {formatPeriod(item.window_start, item.window_end)}
+        </Text>
+        <View style={[styles.pillWrap, styles.cardPills]}>
           {item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}
-          {item.intent && item.intent.length > 0 && <View style={styles.pillBreak} />}
-          {item.intent?.map((it) => {
-            const hl = filterVibes.has(it);
-            return (
-            <View key={it} style={[styles.intentChip, hl && styles.intentChipHl]}>
-              <Text style={[styles.intentChipText, hl && styles.intentChipTextHl]}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
-            </View>
-            );
-          })}
+        </View>
+      </View>
+      <ChevronRight size={20} color={colors.textMuted} strokeWidth={2.2} />
+    </Pressable>
+  );
+
+  // Partner sheet content — facts first (vibes, dates, zone, transport), the
+  // bio as the human conclusion, then the actions.
+  const renderSheet = (item: DiscoveryCard) => {
+    const done = contacted.has(item.user_id);
+    const closeThen = (fn: () => void) => { setSheetCard(null); setTimeout(fn, 0); };
+    return (
+      <>
+        <View style={styles.sheetHead}>
+          <ReliabilityRing tier={item.reliability_tier} size={60} strokeWidth={3} showLabel={false}>
+            <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={60} />
+          </ReliabilityRing>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.sheetName} numberOfLines={1}>{item.display_name}</Text>
+            <Text style={styles.sheetMeta}>
+              {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(item.distance_km) })}
+              {' · '}
+              {item.sorties_count > 0
+                ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
+                : t('discovery.newcomer', { defaultValue: 'nouveau' })}
+            </Text>
+            <Pressable onPress={() => closeThen(() => router.push(`/(auth)/profile/${item.user_id}`))} hitSlop={6}>
+              <Text style={styles.sheetProfil}>{t('discovery.viewProfile', { defaultValue: 'Profil' })} ›</Text>
+            </Pressable>
+          </View>
         </View>
 
-        {item.about ? (
-          <View style={styles.aboutCard}>
-            <Text style={styles.aboutText} numberOfLines={openAbout.has(item.user_id) ? undefined : 2}>
-              {item.about}
-            </Text>
-            {item.about.length > 110 && (
-              <Pressable onPress={() => toggleAbout(item.user_id)} hitSlop={6}>
-                <Text style={styles.aboutMore}>
-                  {openAbout.has(item.user_id)
-                    ? t('discovery.seeLess', { defaultValue: 'Voir moins' })
-                    : t('discovery.seeMore', { defaultValue: 'Voir plus' })}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        ) : null}
+        <View style={[styles.pillWrap, styles.sheetPills]}>
+          {item.sport_keys.map((k) => sportPill(k, item.levels?.[k]))}
+        </View>
 
-        <View style={styles.acts}>
-          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
-            <User size={15} color={colors.textPrimary} strokeWidth={2.4} />
-            <Text style={styles.btnGhostText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
+        {item.intent && item.intent.length > 0 && (
+          <Text style={styles.sheetVibes}>
+            {item.intent.map((it) => stripEmoji(t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] }))).join(' · ')}
+          </Text>
+        )}
+
+        <View style={styles.sheetInfo}>
+          <View style={styles.sheetLine}>
+            <Calendar size={16} color={colors.textMuted} strokeWidth={2} />
+            <Text style={styles.sheetLineText}>
+              {t('discovery.sheetWhen', {
+                defaultValue: 'Du {{start}} au {{end}}',
+                start: dayjs(item.window_start).locale('fr').format('D MMMM'),
+                end: dayjs(item.window_end).locale('fr').format('D MMMM'),
+              })}
+            </Text>
+          </View>
+          <View style={styles.sheetLine}>
+            <MapPin size={16} color={colors.textMuted} strokeWidth={2} />
+            <Text style={styles.sheetLineText}>
+              {item.radius_km
+                ? t('discovery.sheetRadius', { defaultValue: 'Dans un rayon de {{km}} km', km: item.radius_km })
+                : t('discovery.radiusAny', { defaultValue: 'Peu importe' })}
+              {'  '}
+              <Text
+                style={styles.sheetZone}
+                onPress={() => closeThen(() => openZone({ userId: item.user_id, name: item.display_name }))}
+              >
+                {t('discovery.seeZone', { defaultValue: 'Voir la zone' })}
+              </Text>
+            </Text>
+          </View>
+          <View style={styles.sheetLine}>
+            <Car size={16} color={colors.textMuted} strokeWidth={2} />
+            <Text style={styles.sheetLineText}>
+              {item.transport_modes.map((m) => t(`transport.type.${m}`, { defaultValue: m })).join(' · ')}
+            </Text>
+          </View>
+        </View>
+
+        {item.about ? <Text style={styles.sheetBio}>{item.about}</Text> : null}
+
+        <View style={styles.sheetActs}>
+          <Pressable
+            style={[styles.sheetLink, done && styles.btnFaded]}
+            disabled={done}
+            onPress={() => closeThen(() => setInviteTargetId(item.user_id))}
+            hitSlop={6}
+          >
+            <UserPlus size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.sheetLinkText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
           </Pressable>
-          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed, done && styles.btnFaded]} onPress={() => setInviteTargetId(item.user_id)} disabled={done}>
-            <UserPlus size={15} color={colors.textPrimary} strokeWidth={2.4} />
-            <Text style={styles.btnGhostText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
-          </Pressable>
+          <View style={{ flex: 1 }} />
           {done ? (
             <View style={styles.btnSent}>
               <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Envoyée' })}</Text>
@@ -257,7 +273,7 @@ export function DiscoveryView() {
             </Pressable>
           )}
         </View>
-      </View>
+      </>
     );
   };
 
@@ -441,6 +457,18 @@ export function DiscoveryView() {
         </Pressable>
       </Modal>
 
+      {/* Partner sheet — everything the compact card doesn't show. */}
+      <Modal visible={!!sheetCard} transparent animationType="slide" onRequestClose={() => setSheetCard(null)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setSheetCard(null)}>
+          <Pressable style={[styles.modalSheet, styles.partnerSheet]} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+              {sheetCard && renderSheet(sheetCard)}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Vibe filter sheet — client-side, OR logic (any selected vibe). */}
       <Modal visible={filterOpen} transparent animationType="slide" onRequestClose={() => setFilterOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setFilterOpen(false)}>
@@ -557,34 +585,38 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   emptyMatchesBody: { color: colors.textSecondary, fontSize: fontSizes.sm + 1, textAlign: 'center', lineHeight: 21, maxWidth: 260 },
   emptyMatchesEdit: { color: colors.cta, fontSize: fontSizes.sm + 1, fontWeight: '800', marginTop: spacing.xs },
 
-  // --- Match card ---
+  // --- Match card (compact — everything else in the partner sheet) ---
   list: { padding: spacing.md, paddingBottom: spacing.lg },
   card: {
-    backgroundColor: colors.background, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
-    borderWidth: 1, borderColor: colors.borderMuted,
-    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 16 }, android: { elevation: 3 } }),
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4,
+    backgroundColor: colors.surface, borderRadius: 16, paddingVertical: spacing.sm + 5, paddingHorizontal: spacing.md, marginBottom: spacing.sm + 2,
+    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 }, android: { elevation: 1 } }),
   },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minWidth: 0 },
-  cardName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.3, flexShrink: 1 },
-  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1 },
-  relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
-  subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
-  cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
-  headMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
-  metaDot: { color: colors.textMuted, fontSize: fontSizes.sm },
-  metaZone: { color: colors.cta, fontWeight: '800' },
+  cardPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  cardName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', letterSpacing: -0.2 },
+  cardMeta: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, marginTop: 1 },
+  cardPills: { marginTop: 7 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  pillBreak: { width: '100%', height: 0 },
   sportPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
-  sportPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
+    flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: radius.full, paddingHorizontal: spacing.sm + 4, paddingVertical: 6 },
+  sportPillText: { fontSize: fontSizes.xs, fontWeight: '600' },
 
-  aboutCard: { gap: 3 },
-  aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
-  aboutMore: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  // --- Partner sheet ---
+  partnerSheet: { maxHeight: '86%' },
+  sheetHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  sheetName: { color: colors.textPrimary, fontSize: fontSizes.xl - 2, fontWeight: '700', letterSpacing: -0.3 },
+  sheetMeta: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
+  sheetProfil: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600', marginTop: 4 },
+  sheetPills: { marginTop: spacing.md + 2 },
+  sheetVibes: { color: colors.textMuted, fontSize: fontSizes.sm - 1, marginTop: spacing.sm + 2 },
+  sheetInfo: { marginTop: spacing.md + 2, gap: spacing.sm + 2 },
+  sheetLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  sheetLineText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
+  sheetZone: { color: colors.cta, fontWeight: '600' },
+  sheetBio: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, lineHeight: 22, marginTop: spacing.md + 2 },
+  sheetActs: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.lg, paddingBottom: spacing.xs },
+  sheetLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sheetLinkText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   infoRows: { gap: spacing.sm, marginTop: spacing.sm },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   infoRowStack: { gap: spacing.xs + 2 },
@@ -596,26 +628,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   intentChip: { alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
   intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '800' },
-  intentChipHl: { backgroundColor: colors.cta + '1F', borderColor: colors.cta },
-  intentChipTextHl: { color: colors.cta },
   radiusValue: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
-  // --- actions ---
-  acts: { flexDirection: 'row', gap: spacing.sm },
-  btnGhost: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.borderMuted,
-    ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 5 }, android: { elevation: 2 } }),
-  },
-  btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  // --- actions (sheet) ---
   btnPrimary: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg,
+    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.30, shadowRadius: 10 }, android: { elevation: 3 } }),
   },
-  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
-  btnSent: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.cta + '40' },
-  btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
+  btnSent: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: radius.full, paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg },
+  btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   btnFaded: { opacity: 0.45 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
   pressedPrimary: { transform: [{ scale: 0.97 }] },
