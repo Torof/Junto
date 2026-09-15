@@ -7,6 +7,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { SportIcon } from '@/components/sport-icon';
 
 interface ProOfferingCardProps {
   offering: ProOffering;
@@ -45,6 +46,7 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         <Text style={styles.title} numberOfLines={1}>{offering.title}</Text>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: accent }]}>
+            <SportIcon sportKey={offering.sport_key} size={12} color={accent} />
             <Text style={[styles.sport, { color: accent }]} numberOfLines={1}>
               {t(`sports.${offering.sport_key}`, offering.sport_key)}
             </Text>
@@ -116,6 +118,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
     borderWidth: 1,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs + 2,

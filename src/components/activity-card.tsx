@@ -11,6 +11,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces, type ActivityTimeStatus } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { SportIcon } from '@/components/sport-icon';
 
 interface ActivityCardProps {
   activity: NearbyActivity;
@@ -65,6 +66,7 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
         </View>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: sportAccent }]}>
+            <SportIcon sportKey={activity.sport_key} size={12} color={sportAccent} />
             <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
               {t(`sports.${activity.sport_key}`, activity.sport_key)}
             </Text>
@@ -175,6 +177,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
     borderWidth: 1,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs + 2,
