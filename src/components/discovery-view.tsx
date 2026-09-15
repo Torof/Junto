@@ -239,11 +239,11 @@ export function DiscoveryView() {
 
         <View style={styles.acts}>
           <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} hitSlop={6}>
-            <User size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <User size={13} color={colors.textSecondary} strokeWidth={2.2} />
             <Text style={styles.actLinkText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
           </Pressable>
           <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed, done && styles.btnFaded]} onPress={() => setInviteTargetId(item.user_id)} disabled={done} hitSlop={6}>
-            <UserPlus size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <UserPlus size={13} color={colors.textSecondary} strokeWidth={2.2} />
             <Text style={styles.actLinkText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
           </Pressable>
           <View style={{ flex: 1 }} />
@@ -253,7 +253,7 @@ export function DiscoveryView() {
             </View>
           ) : (
             <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary]} onPress={() => handleContact(item.user_id)}>
-              <Send size={15} color="#FFFFFF" strokeWidth={2.4} />
+              <Send size={13} color="#FFFFFF" strokeWidth={2.4} />
               <Text style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</Text>
             </Pressable>
           )}
@@ -603,17 +603,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
   // --- actions ---
-  acts: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  actLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  actLinkText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
+  acts: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  actLink: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  actLinkText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600' },
   btnPrimary: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: radius.full,
-    paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
     ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
   },
-  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
-  btnSent: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: radius.full, paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg },
-  btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
+  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  btnSent: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md },
+  btnSentText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   btnFaded: { opacity: 0.45 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
   pressedPrimary: { transform: [{ scale: 0.97 }] },
