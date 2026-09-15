@@ -238,14 +238,15 @@ export function DiscoveryView() {
         ) : null}
 
         <View style={styles.acts}>
-          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)}>
-            <User size={15} color={colors.textPrimary} strokeWidth={2.4} />
-            <Text style={styles.btnGhostText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
+          <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed]} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} hitSlop={6}>
+            <User size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.actLinkText}>{t('discovery.viewProfile', { defaultValue: 'Profil' })}</Text>
           </Pressable>
-          <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed, done && styles.btnFaded]} onPress={() => setInviteTargetId(item.user_id)} disabled={done}>
-            <UserPlus size={15} color={colors.textPrimary} strokeWidth={2.4} />
-            <Text style={styles.btnGhostText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
+          <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed, done && styles.btnFaded]} onPress={() => setInviteTargetId(item.user_id)} disabled={done} hitSlop={6}>
+            <UserPlus size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <Text style={styles.actLinkText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
           </Pressable>
+          <View style={{ flex: 1 }} />
           {done ? (
             <View style={styles.btnSent}>
               <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Envoyée' })}</Text>
@@ -602,19 +603,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   zoneLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
 
   // --- actions ---
-  acts: { flexDirection: 'row', gap: spacing.sm },
-  btnGhost: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.borderMuted,
-    ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 5 }, android: { elevation: 2 } }),
-  },
-  btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
+  acts: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  actLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  actLinkText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   btnPrimary: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: 13, paddingVertical: spacing.sm + 3,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg,
     ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
   },
   btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
-  btnSent: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: 13, paddingVertical: spacing.sm + 3, borderWidth: 1, borderColor: colors.cta + '40' },
+  btnSent: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: radius.full, paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.lg },
   btnSentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   btnFaded: { opacity: 0.45 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
