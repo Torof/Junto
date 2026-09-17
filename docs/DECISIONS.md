@@ -363,3 +363,15 @@ Règles verrouillées :
 **Garde-fous :** gate 00072 porté quasi verbatim ; décline silencieux verrouillé **au niveau DB** (pas de lecture directe de `conversations`, vues curées coalesçant declined→pending côté émetteur, realtime par broadcast curé) ; revue adverse du design **avant** toute migration, audit adverse après le code (rituel).
 
 **Alternatives considérées :** *présentation* (agréger 3-4 sources — chaque feature codée ×4, dette croissante, rejetée) ; *hybride* (DM+groupes unifiés, mur séparé — écartée : son seul avantage était d'éviter un risque de migration qui n'existe pas faute de données).
+
+---
+
+## 2026-09-17 — Pro : de la devanture à la suite de gestion (renverse « storefront, pas de booking » du système Pro)
+
+**Décision :** le système Pro évolue d'une **devanture** (fiche + offres sur la carte, contact hors-app) vers une **suite de gestion** : calendrier de disponibilités (demi-journées), réservations in-app (demande → acceptation, **sans paiement — jamais**, on paie sur place), gestion des clients, communication in-app (notifications, chat ouvert à l'acceptation). Cible : qu'un pro n'ait plus besoin de site perso, de site de booking, du bureau des guides ni d'une page Facebook pour travailler.
+
+**Pourquoi :** les pros sont le moteur de revenu prévu (abonnement pro ; les utilisateurs paient au plus un déblocage unique — symbiose : plus d'utilisateurs entre eux → plus de visibilité pour les pros). Une devanture « à la Google Maps » n'a pas assez de valeur pour porter un abonnement ; un outil de travail quotidien, oui. Le bureau des guides rend ce service bien plus cher (et est identifié concurrent — jamais de partenariat, cf. MARKETING.md).
+
+**Conséquences à surveiller :** les avis pro/offering avaient été conçus non-conditionnés PARCE QUE « pas de booking » (DECISIONS 2026-07) — à réexaminer post-v1 (avis réservés aux clients ayant réservé ?). `delete_pro_offering`/`unregister_as_pro` doivent refuser tant que des réservations futures existent. Pas de paiement in-app même en v2 (responsabilité légale sur les activités, structure juridique — position Scott ferme).
+
+**Périmètre v1 (validé sur le principe, chaînes en validation) :** `pro_availabilities` (demi-journées am/pm) + `bookings` (pending/accepted/declined/cancelled/cancelled_pro/expired), tout via SECURITY DEFINER, DM activé seulement à l'acceptation (double consentement frais), pas de décompte de capacité (le pro juge), notifs in-app uniquement.
