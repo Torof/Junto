@@ -378,7 +378,8 @@
   "menu": {
     "discovery": "Discovery",
     "channels": "Channels",
-    "mesActivites": "My outings"
+    "mesActivites": "My outings",
+    "proSpace": "Pro space"
   },
   "errors": {
     "code": {
@@ -470,7 +471,16 @@
       "admin_reason_required": "A reason is required for this action.",
       "peer_review_not_completed": "The outing is not marked finished yet. Try again in a moment.",
       "peer_review_no_presence": "This outing doesn't require presence validation.",
-      "peer_review_target_not_in": "This participant is no longer in the outing."
+      "peer_review_target_not_in": "This participant is no longer in the outing.",
+      "booking_date": "This date can't be booked (past or too far ahead).",
+      "booking_slot_unavailable": "This slot is no longer available — pick another one.",
+      "booking_party_size": "Invalid party size for this offering.",
+      "booking_message": "Message too long (500 characters max).",
+      "booking_already": "You already have a request on this slot.",
+      "booking_pending_cap": "You already have 5 pending requests — wait for an answer.",
+      "booking_daily_cap": "Request limit reached for today.",
+      "booking_manual_name": "Invalid client name or phone.",
+      "offering_has_bookings": "Not possible: upcoming bookings still exist."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
@@ -844,7 +854,11 @@
       "contact_request": "Contact request",
       "contact_request_accepted": "Contact accepted",
       "review_received": "New review on your pro page",
-      "review_reply": "Pro's reply to your review"
+      "review_reply": "Pro's reply to your review",
+      "booking_request": "Booking request",
+      "booking_accepted": "Booking confirmed",
+      "booking_declined": "Booking declined",
+      "booking_cancelled": "Booking cancelled"
     },
     "editPhoto": "Change photo",
     "sportsSeeAll": "See all ({{count}})",

@@ -138,8 +138,8 @@ export function MenuSheet({ open, onClose }: Props) {
           {proProfile ? (
             <MenuItem
               icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
-              label={t('menu.proPage', { defaultValue: 'Ma page pro' })}
-              onPress={() => go(`/(auth)/pro/${userId}`)}
+              label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
+              onPress={() => go('/(auth)/pro/espace')}
               styles={styles}
               colors={colors}
             />

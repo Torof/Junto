@@ -447,6 +447,97 @@ export type Database = {
           },
         ]
       }
+      bookings: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          day: string
+          id: string
+          manual_name: string | null
+          manual_phone: string | null
+          message: string | null
+          offering_id: string
+          party_size: number
+          period: string
+          pro_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          day: string
+          id?: string
+          manual_name?: string | null
+          manual_phone?: string | null
+          message?: string | null
+          offering_id: string
+          party_size: number
+          period: string
+          pro_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          day?: string
+          id?: string
+          manual_name?: string | null
+          manual_phone?: string | null
+          message?: string | null
+          offering_id?: string
+          party_size?: number
+          period?: string
+          pro_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_bans: {
         Row: {
           banned_at: string
@@ -1698,6 +1789,45 @@ export type Database = {
           {
             foreignKeyName: "private_messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_availabilities: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          period: string
+          pro_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          id?: string
+          period: string
+          pro_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          period?: string
+          pro_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_availabilities_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_availabilities_pro_id_fkey"
+            columns: ["pro_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -3412,6 +3542,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      accept_booking: { Args: { p_booking_id: string }; Returns: string }
       accept_contact_request: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -3540,6 +3671,8 @@ export type Database = {
         Args: { p_activity_id: string; p_reason: string }
         Returns: undefined
       }
+      cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
+      cancel_booking_pro: { Args: { p_booking_id: string }; Returns: undefined }
       cancel_pending_seat_request: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -3609,6 +3742,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_booking: {
+        Args: {
+          p_day: string
+          p_message?: string
+          p_offering_id: string
+          p_party_size: number
+          p_period: string
+        }
+        Returns: string
+      }
       create_channel: {
         Args: {
           p_base_label: string
@@ -3646,6 +3789,17 @@ export type Database = {
       }
       create_group: {
         Args: { p_icon: string; p_member_ids: string[]; p_name: string }
+        Returns: string
+      }
+      create_manual_booking: {
+        Args: {
+          p_day: string
+          p_name: string
+          p_offering_id: string
+          p_party_size: number
+          p_period: string
+          p_phone?: string
+        }
         Returns: string
       }
       create_notification: {
@@ -3699,6 +3853,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      decline_booking: { Args: { p_booking_id: string }; Returns: undefined }
       decline_contact_request: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -4112,6 +4267,22 @@ export type Database = {
           title: string
         }[]
       }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          created_at: string
+          day: string
+          id: string
+          offering_id: string
+          offering_title: string
+          party_size: number
+          period: string
+          pro_id: string
+          pro_name: string
+          status: string
+        }[]
+      }
       get_my_conversations: {
         Args: never
         Returns: {
@@ -4184,6 +4355,31 @@ export type Database = {
           sender_name: string
           user_1: string
           user_2: string
+        }[]
+      }
+      get_pro_agenda: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          day: string
+          id: string
+          is_manual: boolean
+          kind: string
+          manual_phone: string
+          message: string
+          offering_id: string
+          offering_title: string
+          party_size: number
+          period: string
+          status: string
+        }[]
+      }
+      get_pro_availability: {
+        Args: { p_pro_id: string }
+        Returns: {
+          day: string
+          period: string
         }[]
       }
       get_recent_partners: {
@@ -4631,6 +4827,10 @@ export type Database = {
           p_transport_seats?: number
           p_transport_type: string
         }
+        Returns: undefined
+      }
+      set_pro_availability: {
+        Args: { p_available: boolean; p_day: string; p_period: string }
         Returns: undefined
       }
       set_pro_banner: { Args: { p_banner_url: string }; Returns: undefined }

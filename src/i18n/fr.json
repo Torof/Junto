@@ -378,7 +378,8 @@
   "menu": {
     "discovery": "Découverte",
     "channels": "Canaux",
-    "mesActivites": "Mes sorties"
+    "mesActivites": "Mes sorties",
+    "proSpace": "Espace pro"
   },
   "errors": {
     "network": "Problème de connexion — vérifie ton internet.",
@@ -474,7 +475,16 @@
       "admin_reason_required": "Une raison est obligatoire pour cette action.",
       "peer_review_not_completed": "L'activité n'est pas encore marquée comme terminée. Réessaie dans un instant.",
       "peer_review_no_presence": "Cette sortie ne demande pas de validation de présence.",
-      "peer_review_target_not_in": "Ce participant n'est plus dans la sortie."
+      "peer_review_target_not_in": "Ce participant n'est plus dans la sortie.",
+      "booking_date": "Cette date n'est pas réservable (passée ou trop lointaine).",
+      "booking_slot_unavailable": "Ce créneau n'est plus disponible — choisis-en un autre.",
+      "booking_party_size": "Nombre de personnes invalide pour cette offre.",
+      "booking_message": "Message trop long (500 caractères max).",
+      "booking_already": "Tu as déjà une demande sur ce créneau.",
+      "booking_pending_cap": "Tu as déjà 5 demandes en attente — attends une réponse.",
+      "booking_daily_cap": "Limite de demandes atteinte pour aujourd'hui.",
+      "booking_manual_name": "Nom ou téléphone du client invalide.",
+      "offering_has_bookings": "Impossible : des réservations à venir existent encore."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
@@ -844,7 +854,11 @@
       "contact_request": "Demande de contact",
       "contact_request_accepted": "Contact accepté",
       "review_received": "Nouvel avis sur ta vitrine pro",
-      "review_reply": "Réponse du pro à ton avis"
+      "review_reply": "Réponse du pro à ton avis",
+      "booking_request": "Demande de réservation",
+      "booking_accepted": "Réservation confirmée",
+      "booking_declined": "Réservation refusée",
+      "booking_cancelled": "Réservation annulée"
     },
     "editPhoto": "Modifier la photo",
     "sportsSeeAll": "Voir tout ({{count}})",
