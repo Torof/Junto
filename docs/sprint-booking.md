@@ -6,6 +6,15 @@
 > Décision de renversement loggée dans DECISIONS.md (2026-09-17).
 > **Jamais de paiement in-app** (responsabilité légale) — on paie sur place.
 
+## Principe directeur (Scott, 2026-09-17) — l'outil mono-joueur
+
+Le système booking/organisation doit valoir l'adoption **à lui seul** : un pro qui
+n'utilise rien d'autre de Junto doit quand même vouloir ce calendrier. Les clients
+venus de Junto sont un bonus, pas un prérequis. Conséquences : la **réservation
+manuelle hors-app est v1** (l'agenda = source de vérité unique dès le jour 1, clients
+sans compte inclus) ; la **page publique de réservation (P2) monte en priorité** ;
+le **flux ICS** (lecture seule vers Google Calendar) est retenu comme pont d'adoption.
+
 ## Phasage de la suite (vision)
 
 | Phase | Contenu | Remplace |
@@ -58,9 +67,19 @@ P2-P4 : idées cadrées, non design-ées — ne rien construire sans repasser pa
 - [x] Demi-journée dès la v1 (2026-09-17)
 - [x] Tout in-app, pas d'email (2026-09-17)
 - [x] Calendrier de dispos pro (pas de demande libre) (2026-09-17)
-- [ ] DM activé à l'acceptation (réactivation possible d'une ligne declined — double consentement frais)
-- [ ] Decline notifie le client (déviation de la règle silencieuse)
-- [ ] Pas de décompte de capacité (le pro groupe/juge lui-même)
+- [x] Réservation manuelle hors-app en v1 (client sans compte : nom + tél saisis par le pro) (2026-09-17)
+- Défauts recommandés, à infirmer sur maquette sinon actés : DM activé à l'acceptation
+  (double consentement frais, réactivation d'une ligne declined possible) · decline
+  notifie le client (logistique, pas social) · pas de décompte de capacité (le pro
+  groupe/juge) · fiche client opérationnelle (questions par offre : poids/pointure/
+  niveau) reportée en **v1.5**.
+
+### Ajout modèle pour la réservation manuelle
+`bookings.client_id` devient NULLABLE + `manual_name TEXT` / `manual_phone TEXT`
+(CHECK : soit client_id, soit manual_name — jamais les deux ni aucun ; manual_* saisis
+et visibles par le pro seul). Créée directement `accepted` via `create_manual_booking`
+(chaîne : auth → non suspendu → triple check pro → offre à soi → bornes date → strip).
+Pas de notif, pas de conversation. Comptée dans l'agenda, pas dans les rate limits client.
 
 ## UI (après GO sur le modèle)
 Aucune grille calendrier n'existe dans l'app → composant mensuel am/pm fait main.
