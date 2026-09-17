@@ -91,3 +91,12 @@ Aucune grille calendrier n'existe dans l'app → composant mensuel am/pm fait ma
 - « Agenda » pro (grille + demandes + confirmés + « Ajouter une résa » manuelle)
 - Flux « Réserver » client (grille lecture seule → demi-journée → taille + message).
 Méthode : maquette artifact → validation → RN.
+
+## État d'avancement
+- ✅ 2026-09-17 : DB v1 complète (migs 00416-00417, chaînes dans SECURITY.md).
+- ✅ 2026-09-17 : côté PRO shippé preview (commit b1948be) — Espace pro (hub, menu),
+  Agenda (AvailabilityCalendar am/pm fait main, demandes accepter/refuser, à venir,
+  résa manuelle), booking-service, i18n FR/EN, types régénérés.
+- ⏳ Côté CLIENT : bouton Réserver sur offering-detail → flux calendrier-lecture →
+  demande ; écran « Mes réservations » (statuts + annulation + chat) ; routing des
+  notifications booking_*.
