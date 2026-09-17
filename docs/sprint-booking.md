@@ -83,6 +83,11 @@ Pas de notif, pas de conversation. Comptée dans l'agenda, pas dans les rate lim
 
 ## UI (après GO sur le modèle)
 Aucune grille calendrier n'existe dans l'app → composant mensuel am/pm fait main.
-Écrans : « Agenda » pro (grille + demandes + confirmés) · flux « Réserver » client
-(grille lecture seule → demi-journée → taille + message). Méthode : maquette artifact →
-validation → RN.
+Écrans (maquettes dans l'artifact booking, 2026-09-17) :
+- **« Espace pro » (hub, demandé par Scott 2026-09-17)** — entrée unique de la gestion :
+  Agenda · Demandes (badge) · Réservations à venir (7 j) · Messages clients (messagerie
+  existante filtrée) · Mes offres (rapatrié) · Ma page publique (prévisualiser/partager).
+  Stats + historique clients = P3 (place réservée dans le hub, non construits).
+- « Agenda » pro (grille + demandes + confirmés + « Ajouter une résa » manuelle)
+- Flux « Réserver » client (grille lecture seule → demi-journée → taille + message).
+Méthode : maquette artifact → validation → RN.
