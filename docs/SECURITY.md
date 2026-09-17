@@ -1269,3 +1269,20 @@ Le bypass est nécessaire car `is_admin` est dans la whitelist du trigger user.
 ## Ce document est la référence sécurité
 
 Toute question de sécurité se réfère à ce document. Mis à jour au fil du développement (la dernière refonte est postérieure à la mig 00149).
+
+## Réservations pro (booking) — migs 00416-00417
+
+**Tables** : `pro_availabilities` (pro_id, day, period am/pm — présence = dispo ; UNIQUE(pro,day,period)) · `bookings` (offering_id CASCADE, pro_id/client_id CASCADE, client Junto XOR manuel (manual_name/phone, pro-only), day, period, party_size 1-50, message ≤500 strippé, status pending/accepted/declined/cancelled/cancelled_pro/expired, UNIQUE(offering,client,day,period)). ENABLE+FORCE RLS ; SELECT own (dispos) / parties (bookings) ; **zéro write policy** ; triggers whitelist (bookings : identité+créneau figés, status via RPC sous bypass) ; REVOKE SELECT anon (00417 — manual_phone).
+
+**Chaînes d'autorisation** :
+- `private.assert_approved_pro(uid)` (interne, REVOKE all) : tier='pro' + pro_profiles existe + status='approved' + non suspendu.
+- `set_pro_availability` : auth → assert_approved_pro → period ∈ am/pm → date [aujourd'hui, +6 mois] → upsert/delete own.
+- `create_booking` : auth → non suspendu → offre d'un pro approuvé/non suspendu/tier pro → ≠ soi → gate démo (pp.is_demo OR demo_content_visible) → blocage bidirectionnel → date bornée → créneau présent dans pro_availabilities → party_size ≤ LEAST(max_participants,50) → strip HTML → advisory lock `uid_booking` + caps **5 pending / 10 par 24 h** (le slot survit au decline — anti-oracle 00350) → resubmit façon seat_requests (reset si declined/cancelled/expired, `junto.booking_already` sinon, backstop unique_violation) → notif `booking_request` (copy générique, message client jamais dans title/body).
+- `create_manual_booking` : auth → assert_approved_pro → offre à soi → date bornée (dispo NON requise — son agenda) → party_size borné → strip name/phone → advisory lock + cap 30/24 h → INSERT direct `accepted`, sans notif ni conversation.
+- `accept_booking` : auth → non suspendu → FOR UPDATE → status=pending ∧ client_id NOT NULL → caller=pro_id → date non passée → client non suspendu → re-check blocage → UPDATE guardé (bypass, ROW_COUNT) → **DM : réutilise/réactive toute ligne de la paire ou crée active `initiated_from='booking'`** (invariant 00072 respecté : demande = consentement client, accept = consentement pro — consentements FRAIS, contrairement à reply_to_request) → message seed dans `messages` (metadata.type='booking_accepted') → notif `booking_accepted`. 'booking' est LOGISTIQUE (hors listes sociales 00372).
+- `decline_booking` : auth → FOR UPDATE → pending ∧ caller=pro → flip declined → **notif `booking_declined` (DÉVIATION ASSUMÉE du decline silencieux : logistique, pas social — copy neutre, sprint-booking.md)**.
+- `cancel_booking` (client, pending|accepted→cancelled, notif pro seulement si accepted) · `cancel_booking_pro` (pro, →cancelled_pro, notif client si accepted).
+- `get_pro_availability(pro)` : authed non suspendu → cible approuvée/non suspendue/gate démo/non bloquée → jours futurs only. `get_pro_agenda(from,to)` : own, ≤12 mois, expire les pending passés (lazy). `get_my_bookings()` : own client, expire lazy, renvoie le DM actif de la paire s'il existe.
+- Garde-fous : `delete_pro_offering` + `unregister_as_pro` → `junto.offering_has_bookings` si réservations futures pending/accepted (sinon CASCADE silencieux).
+
+**Codes** : junto.booking_date / booking_slot_unavailable / booking_party_size / booking_message / booking_already / booking_pending_cap / booking_daily_cap / booking_manual_name / offering_has_bookings (i18n à livrer avec l'UI). **Notifs** : booking_request / booking_accepted / booking_declined / booking_cancelled — defaults + backfill 00168 ; push par défaut (branche ELSE 00117).
