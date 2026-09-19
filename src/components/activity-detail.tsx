@@ -19,9 +19,10 @@ import { PresenceQrModal } from './presence-qr-modal';
 import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, glow, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { PressableScale } from '@/components/pressable-scale';
 import { supabase } from '@/services/supabase';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -973,7 +974,7 @@ export function ActivityDetail({
                 </Text>
                 <View style={styles.presenceActions}>
                   {canConfirmGeo && (
-                    <Pressable
+                    <PressableScale
                       style={[styles.presenceButton, isConfirming && styles.buttonDisabled]}
                       onPress={handleCheckIn}
                       disabled={isConfirming}
@@ -981,20 +982,20 @@ export function ActivityDetail({
                       <Text style={styles.presenceButtonText} numberOfLines={1}>
                         {isConfirming ? '...' : t('presence.confirm')}
                       </Text>
-                    </Pressable>
+                    </PressableScale>
                   )}
                   {canScanQr && (
-                    <Pressable style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
+                    <PressableScale style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
                       <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
-                    </Pressable>
+                    </PressableScale>
                   )}
                 </View>
               </View>
             )}
             {isCreator && isQrAvailable && (
-              <Pressable style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+              <PressableScale style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
                 <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
-              </Pressable>
+              </PressableScale>
             )}
 
             <Text style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
@@ -1099,9 +1100,9 @@ export function ActivityDetail({
             </View>
 
             {!isCreator && isAuthenticated && (
-              <Pressable style={styles.reportLink} onPress={() => setShowReport(true)}>
+              <PressableScale style={styles.reportLink} onPress={() => setShowReport(true)}>
                 <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
-              </Pressable>
+              </PressableScale>
             )}
           </ScrollView>
 
@@ -1110,13 +1111,13 @@ export function ActivityDetail({
           {(showJoinButton || showFullButton || showLeaveButton) && (
             <View style={[styles.stickyFooter, { paddingBottom: Math.max(spacing.md, insets.bottom + spacing.xs) }]}>
               {showJoinButton && (
-                <Pressable
+                <PressableScale
                   style={[styles.joinButton, isLoading && styles.buttonDisabled]}
                   onPress={handleJoin}
                   disabled={isLoading}
                 >
                   <Text style={styles.joinButtonText}>{isLoading ? '...' : joinLabel}</Text>
-                </Pressable>
+                </PressableScale>
               )}
               {showFullButton && (
                 <View style={styles.fullButton}>
@@ -1125,13 +1126,13 @@ export function ActivityDetail({
                 </View>
               )}
               {showLeaveButton && (
-                <Pressable
+                <PressableScale
                   style={[styles.leaveButton, isLoading && styles.buttonDisabled]}
                   onPress={() => setShowLeaveModal(true)}
                   disabled={isLoading}
                 >
                   <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
-                </Pressable>
+                </PressableScale>
               )}
             </View>
           )}
@@ -1525,7 +1526,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     minWidth: 16, height: 16, paddingHorizontal: 4,
     alignItems: 'center', justifyContent: 'center',
   },
-  tabBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  tabBadgeText: { color: colors.onCta, fontSize: 10, fontWeight: '700' },
   // Unified presence pill — both states (à confirmer / confirmée) share the
   // same shape, slot and spacing on the Info tab so one literally replaces
   // the other when the user confirms.
@@ -1588,7 +1589,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignSelf: 'stretch',
   },
   headerVisText: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontWeight: '600', maxWidth: 110 },
-  headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
+  headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '700' },
   participantsModalRoot: { flex: 1, backgroundColor: colors.background },
   participantsModalHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1600,56 +1601,50 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', right: 12, zIndex: 10 },
-  closeMapButton: { position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
-  navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10 },
-  navigateText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  closeMapButton: { position: 'absolute', left: 20, width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', zIndex: 10, ...shadows.card },
+  navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10, ...glow(colors.cta) },
+  navigateText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   presenceBlock: {
-    backgroundColor: colors.surface, borderRadius: radius.sm, padding: spacing.md,
+    backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md,
     marginTop: spacing.md, marginBottom: spacing.md, gap: spacing.sm,
-    borderWidth: 1, borderColor: colors.borderMuted,
+    ...shadows.card,
   },
   presenceBlockActive: {
     borderColor: colors.success, backgroundColor: colors.success + '20',
   },
   presenceHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  presenceTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  presenceTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   presenceSubtitle: { color: colors.textSecondary, fontSize: fontSizes.xs },
   presenceActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   presenceButton: {
-    flex: 1, backgroundColor: colors.cta, borderRadius: radius.sm,
+    flex: 1, backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
-  presenceButtonText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '700' },
+  presenceButtonText: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '700' },
   presenceSecondaryButton: {
-    flex: 1, backgroundColor: 'transparent', borderRadius: radius.sm,
+    flex: 1, backgroundColor: colors.surface, borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
-    borderWidth: 1, borderColor: colors.borderStrong,
   },
   presenceSecondaryText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
   presenceCreatorButton: {
-    backgroundColor: 'transparent', borderRadius: radius.sm,
+    backgroundColor: colors.cta + '14', borderRadius: radius.full,
     paddingVertical: spacing.sm + 2, alignItems: 'center',
     marginTop: spacing.sm, marginBottom: spacing.sm,
-    borderWidth: 1, borderColor: colors.cta,
   },
   presenceCreatorText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   joinButton: {
     backgroundColor: colors.cta,
-    borderRadius: radius.lg,
+    borderRadius: radius.full,
     paddingVertical: spacing.md + 2,
     alignItems: 'center',
-    shadowColor: colors.cta,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
+    ...glow(colors.cta),
   },
-  fullButton: { flexDirection: 'row', backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderWidth: 1, borderColor: colors.error },
+  fullButton: { flexDirection: 'row', backgroundColor: colors.error + '14', borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: '700' },
-  leaveButton: { backgroundColor: 'transparent', borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', borderWidth: 1, borderColor: colors.borderStrong },
+  leaveButton: { backgroundColor: colors.surface, borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
-  joinButtonText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  joinButtonText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   reportLink: { paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.md },
   reportLinkText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   tooltipBackdrop: { flex: 1 },
