@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { fontSizes, radius, spacing, glow } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { PressableScale } from '@/components/pressable-scale';
