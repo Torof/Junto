@@ -49,3 +49,7 @@ play-service-account*.json
 # Local EAS dev credentials (Junto dev variant) — never commit keystores
 credentials.json
 credentials/
+
+# Coverage artifacts + local scratch
+.nyc_output/
+live2.html
