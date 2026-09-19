@@ -7,7 +7,8 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { userService } from '@/services/user-service';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
@@ -120,7 +121,7 @@ export default function PublicProfileScreen() {
     navigation.setOptions({
       headerTitle: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
+          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.2 }}>
             {profile?.display_name ?? '...'}
           </Text>
         </View>
@@ -244,20 +245,20 @@ export default function PublicProfileScreen() {
       {!isOwnProfile && (
         <View style={styles.actions}>
           {existingConversationId ? (
-            <Pressable style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
+            <PressableScale style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
               <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
-            </Pressable>
+            </PressableScale>
           ) : requestAlreadySent ? (
             <View style={[styles.messageButton, { opacity: 0.4 }]}>
               <Text style={styles.messageText}>{t('publicProfile.requestPending')}</Text>
             </View>
           ) : (
-            <Pressable style={styles.messageButton} onPress={() => {
+            <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => {
               setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));
               setShowRequestModal(true);
             }}>
               <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
-            </Pressable>
+            </PressableScale>
           )}
         </View>
       )}
@@ -267,18 +268,18 @@ export default function PublicProfileScreen() {
         <Pressable style={styles.menuBackdrop} onPress={() => setShowMenu(false)}>
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             {isBlocked ? (
-              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); void handleUnblock(); }}>
+              <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); void handleUnblock(); }}>
                 <Text style={styles.menuItemText}>{t('publicProfile.unblock')}</Text>
-              </Pressable>
+              </PressableScale>
             ) : (
-              <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); handleBlock(); }}>
+              <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); handleBlock(); }}>
                 <Text style={[styles.menuItemText, { color: colors.error }]}>{t('publicProfile.block')}</Text>
-              </Pressable>
+              </PressableScale>
             )}
             <View style={styles.menuDivider} />
-            <Pressable style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReport(true); }}>
+            <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReport(true); }}>
               <Text style={[styles.menuItemText, { color: colors.error }]}>{t('report.reportUser')}</Text>
-            </Pressable>
+            </PressableScale>
           </Pressable>
         </Pressable>
       </Modal>
@@ -307,8 +308,8 @@ export default function PublicProfileScreen() {
             placeholder={t('publicProfile.requestPlaceholder')}
             placeholderTextColor={colors.textSecondary}
           />
-          <Pressable
-            style={[styles.modalSendButton, requestSending && { opacity: 0.4 }]}
+          <PressableScale
+            style={[styles.modalSendButton, glow(colors.cta), requestSending && { opacity: 0.4 }]}
             onPress={async () => {
               if (!requestMessage.trim()) return;
               setRequestSending(true);
@@ -328,7 +329,7 @@ export default function PublicProfileScreen() {
             disabled={requestSending || !requestMessage.trim()}
           >
             <Text style={styles.modalSendText}>{t('publicProfile.sendRequest')}</Text>
-          </Pressable>
+          </PressableScale>
         </Pressable>
       </Pressable>
     </Modal>
@@ -339,20 +340,20 @@ export default function PublicProfileScreen() {
           {t('participants.requestFor', { title: activityTitle ? safeDecode(activityTitle) : '...' })}
         </Text>
         <View style={styles.requestButtons}>
-          <Pressable
+          <PressableScale
             style={[styles.requestAccept, requestLoading && styles.requestDisabled]}
             onPress={() => handleParticipation('accept')}
             disabled={requestLoading}
           >
             <Text style={styles.requestAcceptText}>{t('participants.accept')}</Text>
-          </Pressable>
-          <Pressable
+          </PressableScale>
+          <PressableScale
             style={[styles.requestRefuse, requestLoading && styles.requestDisabled]}
             onPress={() => handleParticipation('refuse')}
             disabled={requestLoading}
           >
             <Text style={styles.requestRefuseText}>{t('participants.refuse')}</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       </View>
     )}
@@ -374,23 +375,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.cta,
     paddingVertical: spacing.md - 2, alignItems: 'center',
   },
-  contactButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  contactButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 56, paddingRight: spacing.md },
   menuSheet: {
-    backgroundColor: colors.surface, borderRadius: radius.lg,
+    backgroundColor: colors.surface, borderRadius: radius.card,
     minWidth: 220, paddingVertical: spacing.xs,
-    elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
+    ...shadows.raised,
   },
   menuItem: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   menuItemText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
   menuDivider: { height: 1, backgroundColor: colors.background, marginVertical: 2 },
   modalBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   modalSheet: {
-    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
+    backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     padding: spacing.lg, paddingBottom: spacing.xl + 16,
   },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
-  modalTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.md },
+  modalTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.2, marginBottom: spacing.md },
   requestInput: {
     backgroundColor: colors.surface, borderRadius: radius.md,
     padding: spacing.md, color: colors.textPrimary, fontSize: fontSizes.sm,
@@ -403,9 +404,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   modalSendText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   requestCard: {
     position: 'absolute', left: spacing.lg, right: spacing.lg,
-    backgroundColor: colors.surface, borderRadius: radius.lg,
+    backgroundColor: colors.surface, borderRadius: radius.card,
     padding: spacing.md, gap: spacing.sm,
-    elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
+    ...shadows.sheet,
   },
   requestContext: {
     color: colors.textSecondary, fontSize: fontSizes.xs, textAlign: 'center',
