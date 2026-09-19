@@ -3,6 +3,9 @@ export const darkColors = {
   surface: '#1B3A5C',
   surfaceAlt: '#142D48',
   cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
+  // Text/icon color ON solid accent fills (cta/success/error buttons).
+  // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
+  onCta: '#FFFFFF',
 
   textPrimary: '#F5F5F0',
   textSecondary: '#8A9BB0',
@@ -77,6 +80,9 @@ export const lightColors = {
   surface: '#EDE4D2',
   surfaceAlt: '#E3D9C4',
   cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
+  // Text/icon color ON solid accent fills (cta/success/error buttons).
+  // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
+  onCta: '#FFFFFF',
 
   textPrimary: '#1F1A15',
   textSecondary: '#6F665A',

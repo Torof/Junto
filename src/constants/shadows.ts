@@ -38,3 +38,17 @@ export const shadows = {
     default: { elevation: 16, shadowColor: '#1F1A15' },
   }),
 } as const;
+
+// Colored halo for the ONE glorified CTA a screen may carry (join, send,
+// contacter). Tokenised so the 22 ad-hoc glow recipes converge (canon
+// 2026-09-19); pass the accent (usually colors.cta).
+export const glow = (color: string) =>
+  Platform.select({
+    ios: {
+      shadowColor: color,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+    },
+    default: { elevation: 3, shadowColor: color },
+  });
