@@ -9,7 +9,7 @@ import * as Burnt from 'burnt';
 import { Image } from 'expo-image';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { RectButton } from 'react-native-gesture-handler';
-import { Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
+import { MapPin, Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -29,6 +29,13 @@ import { SportIcon } from '@/components/sport-icon';
 import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 import { useState, useMemo, useEffect, useCallback } from 'react';
+
+// Conversation-type accents — fixed semantic hues (same both themes, like the
+// sport-universe palette). Sortie = on-foot red family, Canal = the reliability
+// blue reused ON PURPOSE as "structure/community" (canon 2026-09-19).
+const TYPE_OUTING_COLOR = '#E11D48';
+const TYPE_CHANNEL_COLOR = '#2F6FED';
+
 
 dayjs.extend(relativeTime);
 
@@ -477,7 +484,7 @@ export default function MessagerieScreen() {
               if (item.type === 'activity') {
                 leading = (
                   <View style={[styles.leadingSquare, { backgroundColor: sportCategoryColor(rowSport?.category, colors.cta) + '22' }]}>
-                    {rowSport ? <SportIcon sportKey={rowSport.key} size={24} /> : <Text style={styles.squareEmoji}>📍</Text>}
+                    {rowSport ? <SportIcon sportKey={rowSport.key} size={24} /> : <MapPin size={22} color={colors.textSecondary} strokeWidth={2} />}
                   </View>
                 );
                 title = item.activity_title ?? t('messagerie.activityThread');
@@ -526,8 +533,8 @@ export default function MessagerieScreen() {
               // Type pill next to the name so DM / Sortie / Canal / Groupe read
               // at a glance (a DM carries no pill — its round avatar says it).
               const typeMeta =
-                item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: '#E11D48', bg: '#E11D4820' } :
-                item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Canal' }), text: '#2F6FED', bg: '#2F6FED20' } :
+                item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: TYPE_OUTING_COLOR, bg: TYPE_OUTING_COLOR + '20' } :
+                item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Canal' }), text: TYPE_CHANNEL_COLOR, bg: TYPE_CHANNEL_COLOR + '20' } :
                 item.type === 'group' ? { label: t('messagerie.typeGroup', { defaultValue: 'Groupe' }), text: colors.textSecondary, bg: colors.surfaceAlt } :
                 null;
 
@@ -823,12 +830,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tabText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '600' },
   tabTextActive: { color: colors.textPrimary, fontWeight: '700' },
   badge: {
-    minWidth: 16, height: 16, borderRadius: radius.sm,
+    minWidth: 16, height: 16, borderRadius: radius.full,
     backgroundColor: colors.cta,
     alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  badgeText: { color: colors.onCta, fontSize: 10, fontWeight: '700' },
   newGroupBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs },
 
   // Conversation row — flat list-item with leading unread bar
@@ -839,7 +846,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm + 2,
     marginHorizontal: spacing.sm,
     gap: spacing.sm + 2,
-    borderRadius: 16,
+    borderRadius: radius.card,
     // Opaque so the swipe-to-delete action underneath doesn't show through.
     backgroundColor: colors.background,
   },
@@ -850,7 +857,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: 72,
     marginLeft: spacing.sm,
     marginVertical: 2,
-    borderRadius: 16,
+    borderRadius: radius.card,
     backgroundColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
@@ -866,7 +873,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // activity/group squares all align on the same left rail.
   leadingBox: { width: 52, alignItems: 'center', justifyContent: 'center' },
   leadingSquare: {
-    width: 46, height: 46, borderRadius: 15,
+    width: 46, height: 46, borderRadius: radius.card - 4,
     alignItems: 'center', justifyContent: 'center',
   },
   groupSquare: { backgroundColor: colors.surfaceAlt },
@@ -921,11 +928,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   requestMessage: { color: colors.textSecondary, fontSize: fontSizes.xs, fontStyle: 'italic', marginTop: 2 },
   requestActions: { flexDirection: 'row', gap: spacing.xs + 2 },
   acceptBtn: {
-    width: 36, height: 36, borderRadius: radius.sm,
+    width: 36, height: 36, borderRadius: radius.full,
     backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center',
   },
   declineBtn: {
-    width: 36, height: 36, borderRadius: radius.sm,
+    width: 36, height: 36, borderRadius: radius.full,
     backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center',
   },
   btnDisabled: { opacity: 0.4 },

@@ -21,7 +21,7 @@ import { getContentUriAsync } from 'expo-file-system/legacy';
 import { useColors } from '@/hooks/use-theme';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useCreateGpxTrace } from '@/hooks/use-gpx-traces';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { messageService, type PrivateMessage } from '@/services/message-service';
 import { transportService } from '@/services/transport-service';
@@ -1468,7 +1468,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     paddingVertical: 12,
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
     backgroundColor: colors.success,
   },
   seatAcceptText: {
@@ -1481,10 +1481,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-    backgroundColor: 'transparent',
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
   },
   seatDeclineText: {
     color: colors.textSecondary,
@@ -1499,7 +1497,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: 6,
     paddingVertical: 3,
     paddingHorizontal: 8,
-    borderRadius: 999,
+    borderRadius: radius.full,
     backgroundColor: colors.line,
   },
   seatStatusText: {
@@ -1664,20 +1662,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   channelMemberTag: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
   input: {
     flex: 1, backgroundColor: colors.surface, color: colors.textPrimary,
-    borderRadius: 22, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,
+    borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,
     fontSize: fontSizes.sm + 1, maxHeight: 110,
   },
   sendButton: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 40, height: 40, borderRadius: radius.full,
     backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center',
-    shadowColor: colors.cta,
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    ...glow(colors.cta),
   },
   attachButton: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 44, height: 44, borderRadius: radius.full,
     backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
   },
   sendDisabled: { opacity: 0.4 },
@@ -1688,7 +1682,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     zIndex: 10,
   },
   tracePreviewClose: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 40, height: 40, borderRadius: radius.full,
     backgroundColor: colors.background,
     alignItems: 'center', justifyContent: 'center',
   },
