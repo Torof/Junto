@@ -1408,21 +1408,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'flex-start',
     gap: 7,
   },
-  heroPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 999,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  heroPillText: { color: '#1F1A15', fontSize: 12, fontWeight: '700' },
   // UA-drawer sport-chip grammar, solid base for map legibility.
   heroSportChip: {
     flexDirection: 'row',
@@ -1439,7 +1424,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  heroSportEmoji: { fontSize: 13 },
   heroSportChipText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
   mapMenuWrap: { position: 'absolute', top: spacing.sm, right: spacing.sm, alignItems: 'flex-end' },
   mapMenuBtn: {
@@ -1482,16 +1466,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 11,
   },
-  titleBlock: { marginBottom: spacing.md },
-  activityTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xxl,
-    fontFamily: fonts.title,
-    letterSpacing: -0.5,
-    lineHeight: 30,
-  },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, flexWrap: 'wrap' },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   // One fact per line — the hero absorbed date/places/sport, so the page
   // can afford the vertical air; icon + value read calmly.
   factsGrid: {
@@ -1555,108 +1529,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Unified presence pill — both states (à confirmer / confirmée) share the
   // same shape, slot and spacing on the Info tab so one literally replaces
   // the other when the user confirms.
-  presencePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radius.sm,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  presencePillReminder: { backgroundColor: colors.cta + '15' },
-  presencePillConfirmed: { backgroundColor: colors.success + '15' },
-  presenceReminderText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600' },
-  comingSoon: { color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic' },
-  transportSummary: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingTop: spacing.sm,
-    marginTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderMuted,
-  },
-  transportSummaryText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-  transportCities: { color: colors.textSecondary, fontSize: fontSizes.sm, flexShrink: 1 },
 
   // Info-tab cards — each visible section is its own brutalist outlined
   // box with air between. No shadows, no fills.
-  infoCard: {
-    backgroundColor: 'transparent',
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
   // Stats block — borderless. Drops infoCard's inner padding so the
   // chips line up with the bordered cards' OUTER edge.
-  statsBlock: {
-    marginBottom: spacing.md,
-  },
   // Hero — banner-style card. Color block on top carries the brand-
   // moment (sport-category color, decorative sport icon, oversized
   // inverted title). Footer below stays neutral with date + visibility.
-  heroCard: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-  },
-  heroBanner: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    position: 'relative',
-  },
   // Decorative sport icon at top-right of the banner. Big, low-key
   // so it adds character without competing with the title.
-  heroSportDecor: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.md,
-    fontSize: 56,
-    opacity: 0.35,
-  },
-  heroSportLabel: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.xs,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    opacity: 0.9,
-    marginBottom: spacing.xs,
-  },
-  heroTitleInverse: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.xxl,
-    fontFamily: fonts.title,
-    letterSpacing: -0.5,
-    lineHeight: 36,
-    paddingRight: 64, // leave room for the decorative icon
-  },
-  heroFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-  },
-  heroDateText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    flex: 1,
-  },
-  heroVisibility: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  heroVisibilityText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-  },
   // Status banner — full-width above the hero. Replaces the old
   // inactive/pending/accepted banners + presence pills.
   statusBannerTop: {
@@ -1674,7 +1556,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statusBannerPending: { borderColor: colors.warning, backgroundColor: colors.warning + '12' },
   statusBannerAccepted: { borderColor: colors.success, backgroundColor: colors.success + '12' },
   statusBannerConfirmed: { borderColor: colors.success, backgroundColor: colors.success + '12' },
-  statusBannerCheckIn: { borderColor: colors.cta, backgroundColor: colors.cta + '12' },
   statusBannerText: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
@@ -1692,7 +1573,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopColor: colors.borderMuted,
     gap: spacing.sm,
   },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.sm },
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.sm },
   // Visibility twin-pill — same height/radius as the status pill, quiet
   // surface fill so both info chips share one grammar.
@@ -1709,44 +1589,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   headerVisText: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontWeight: '600', maxWidth: 110 },
   headerStatusText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: 'bold' },
-  headerPills: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2,
-    marginBottom: spacing.sm + 2,
-  },
-  sportPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'transparent',
-    borderWidth: 1, borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: 5,
-  },
-  sportPillIcon: { fontSize: 14 },
-  sportPillText: {
-    color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  visibilityPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: colors.cta + '26',
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm, paddingVertical: 4,
-  },
-  visibilityPillText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600' },
-  titleLarge: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xxl,
-    fontFamily: fonts.title,
-    letterSpacing: -0.5,
-    lineHeight: 36,
-  },
-  sportIcon: { fontSize: 20 },
-  sport: { color: colors.textSecondary, fontSize: fontSizes.sm, textTransform: 'capitalize' },
-  visibilityBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 4, marginLeft: 'auto' },
-  visibilityText: { color: colors.textSecondary, fontSize: fontSizes.xs },
-  separator: { height: 1, backgroundColor: colors.borderMuted, marginVertical: spacing.md },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', flex: 1 },
   participantsModalRoot: { flex: 1, backgroundColor: colors.background },
   participantsModalHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1756,25 +1598,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   participantsModalTitle: {
     color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '700',
   },
-  inactiveBanner: { backgroundColor: colors.textSecondary + '20', borderRadius: radius.sm, padding: spacing.md, marginBottom: spacing.md },
-  inactiveText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  pendingBanner: { backgroundColor: colors.warning + '20', borderRadius: radius.sm, padding: spacing.md, marginBottom: spacing.md },
-  pendingText: { color: colors.warning, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  acceptedBanner: { backgroundColor: colors.success + '20', borderRadius: radius.sm, padding: spacing.md, marginBottom: spacing.md },
-  acceptedText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold', textAlign: 'center' },
-  infoGrid: {
-    backgroundColor: colors.surface, borderRadius: radius.sm, padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
-    borderWidth: 1, borderColor: colors.borderMuted,
-  },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  infoLabel: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  infoValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: spacing.sm, textTransform: 'uppercase' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong },
-  closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
   navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10 },
   navigateText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
   presenceBlock: {
@@ -1807,11 +1633,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.cta,
   },
   presenceCreatorText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-  presenceDone: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm,
-  },
-  presenceDoneText: { color: colors.success, fontSize: fontSizes.sm, fontWeight: 'bold' },
   joinButton: {
     backgroundColor: colors.cta,
     borderRadius: radius.lg,
@@ -1840,6 +1661,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderStrong,
   },
   tooltipItem: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  tooltipIcon: { fontSize: 18 },
-  tooltipIconDanger: { fontSize: 18, color: colors.error, fontWeight: 'bold' },
 });

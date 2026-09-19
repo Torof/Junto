@@ -423,7 +423,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
-  closeText: { color: colors.textSecondary, fontSize: 18 },
   sectionTitle: {
     color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700',
     letterSpacing: 1, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.lg,
@@ -460,8 +459,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
     minWidth: 120,
   },
-  saveLink: { color: colors.cta, fontSize: 18, fontWeight: 'bold' },
-  cancelLink: { color: colors.textSecondary, fontSize: 16 },
   notifContent: { marginBottom: spacing.sm, paddingLeft: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.line },
   themeContent: { paddingLeft: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.sm },
   prefRow: {

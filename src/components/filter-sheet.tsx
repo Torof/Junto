@@ -747,8 +747,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
 
-  sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.sm, marginTop: spacing.sm },
-  typeSection: { marginBottom: spacing.sm },
   typeRow: { flexDirection: 'row', gap: spacing.sm },
   typeChip: {
     flexDirection: 'row',
@@ -770,10 +768,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   typeCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  typeCheckboxMark: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
-  radiusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: spacing.sm, marginBottom: spacing.sm },
-  radiusValue: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   sliderBounds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4, marginBottom: spacing.md },
   sliderBoundText: { color: colors.textSecondary, fontSize: fontSizes.xs },
   optRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
@@ -785,7 +780,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.sm,
   },
-  placeSearchWrap: { marginBottom: spacing.sm, zIndex: 20 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

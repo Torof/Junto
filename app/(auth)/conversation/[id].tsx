@@ -1389,7 +1389,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // ensures the dock sits above the system nav bar.
   containerInner: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
   // FlatList wrapper takes remaining vertical space so the bottom
   // dock (reply preview + input) anchors at the bottom of the
@@ -1717,7 +1716,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   traceActionButtonPrimary: { backgroundColor: colors.cta },
   traceActionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  sendText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
   menuBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
   menuHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },

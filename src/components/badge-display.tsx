@@ -1496,10 +1496,6 @@ const createStyles = (colors: AppColors) =>
     section: {
       // Each section group (peer / awards / sports) is its own block.
     },
-    sectionGap: {
-      // Section rhythm comes from spacing alone — no divider line.
-      marginTop: 22,
-    },
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1579,10 +1575,6 @@ const createStyles = (colors: AppColors) =>
       paddingVertical: 6,
       paddingHorizontal: 11,
     },
-    sportEmoji: {
-      fontSize: 16,
-      lineHeight: 18,
-    },
     sportCountInline: {
       color: '#4B7CB8',
       fontSize: 13,
@@ -1629,11 +1621,6 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       gap: 7,
     },
-    sportVoteLabel: {
-      fontSize: fontSizes.sm,
-      fontWeight: '700',
-      letterSpacing: -0.02,
-    },
     sportSelfDeclare: {
       fontSize: fontSizes.sm,
       color: colors.textSecondary,
@@ -1679,23 +1666,6 @@ const createStyles = (colors: AppColors) =>
       color: colors.cta,
       fontSize: 13,
       fontWeight: '700',
-    },
-    sportCountCircle: {
-      minWidth: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 6,
-    },
-    sportCountText: {
-      // Same blue as the "joined" stat in the hero — informational, not
-      // call-to-action. CTA orange was reading as "tap me" pressure.
-      color: '#4B7CB8',
-      fontSize: 13,
-      fontWeight: '800',
-      letterSpacing: -0.02,
     },
 
     tappedDim: {
@@ -2007,272 +1977,31 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sportEmojiBig: {
-      fontSize: 24,
-      lineHeight: 28,
-    },
     sportName: {
       fontSize: 22,
       fontWeight: '800',
       letterSpacing: -0.5,
       color: colors.textPrimary,
     },
-    sportHeadlineRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      gap: 8,
-      marginBottom: 18,
-    },
-    sportHeadlineCount: {
-      fontSize: 42,
-      fontWeight: '800',
-      letterSpacing: -1.6,
-      lineHeight: 44,
-      color: colors.textPrimary,
-    },
-    sportHeadlineLabel: {
-      fontSize: 15,
-      fontWeight: '500',
-      color: colors.textSecondary,
-      paddingBottom: 6,
-    },
-    sportPeerCaption: {
-      marginBottom: 8,
-    },
-    peerLevelPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      borderRadius: 12,
-      borderWidth: 1,
-      flexWrap: 'wrap',
-    },
-    peerLevelTitle: {
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    peerLevelSub: {
-      fontSize: 12,
-      fontWeight: '500',
-      color: colors.textSecondary,
-    },
 
-    modalHeroIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      alignSelf: 'center',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1.5,
-      marginBottom: 6,
-    },
-    modalChip: {
-      alignSelf: 'center',
-      paddingHorizontal: 10,
-      paddingVertical: 3,
-      borderRadius: 999,
-      marginBottom: 4,
-    },
-    modalChipText: {
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 0.6,
-      textTransform: 'uppercase',
-    },
     // Vouched popup — leads with the testimony count. The big number is
     // the trust signal; the trait icon sits to its left so the eye reads
     // "icon + count + label" as one unit before the title.
-    trustHeroRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 14,
-      marginBottom: 8,
-    },
-    trustHeroIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1.5,
-    },
-    trustMetricBlock: {
-      alignItems: 'flex-start',
-    },
-    trustMetricNumber: {
-      fontSize: 32,
-      fontWeight: '800',
-      letterSpacing: -1,
-      lineHeight: 36,
-    },
-    trustMetricLabel: {
-      color: colors.textMuted,
-      fontSize: 11,
-      fontWeight: '600',
-      letterSpacing: 0.4,
-    },
     // Warning popup — severity banner replaces the hero+chip combo. One
     // strong colored bar reads as "this is the verdict" before anything
     // else.
-    warningBanner: {
-      alignSelf: 'center',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    warningBannerText: {
-      color: '#FFFFFF',
-      fontSize: 12.5,
-      fontWeight: '800',
-      letterSpacing: 1.4,
-      textTransform: 'uppercase',
-    },
     // Award popup — concrete behavior metric in tier color, replaces the
     // tier chip. The tier name itself moves to a quiet footer next to
     // the next-tier hint.
-    awardMetric: {
-      fontSize: 16,
-      fontWeight: '700',
-      textAlign: 'center',
-      marginTop: 4,
-      marginBottom: 4,
-    },
-    awardTierFooterRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
-      marginTop: 8,
-    },
-    awardTierFooterText: {
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
-    },
-    awardTierFooterSeparator: {
-      color: colors.textMuted,
-      fontSize: 11,
-    },
-    awardTierFooterMuted: {
-      color: colors.textMuted,
-      fontSize: 12,
-      fontStyle: 'italic',
-    },
     // Sport popup — emoji hero in a tinted circle. The sport popup carries
     // the strongest trust signal (concrete count + level + recency) so it
     // earns hero treatment.
-    sportHero: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      alignSelf: 'center',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surfaceAlt,
-      marginBottom: 6,
-    },
-    sportHeroEmoji: {
-      fontSize: 30,
-      lineHeight: 36,
-    },
-    modalTitle: {
-      color: colors.textPrimary,
-      fontSize: 17,
-      fontWeight: '800',
-      marginBottom: 2,
-      textAlign: 'center',
-    },
-    modalBody: {
-      color: colors.textSecondary,
-      fontSize: 13,
-      lineHeight: 19,
-      textAlign: 'center',
-      marginTop: 6,
-    },
-    modalFooter: {
-      color: colors.textMuted,
-      fontSize: 12,
-      fontStyle: 'italic',
-      marginTop: 8,
-      textAlign: 'center',
-    },
     // Facts block — bordered card grouping the objective data lines
     // (count, last activity, frequency). Visually separates them from
     // the peer-validation stamp that sits beneath.
-    factsBlock: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
-      paddingVertical: spacing.sm + 2,
-      paddingHorizontal: spacing.md,
-      marginTop: 10,
-      gap: 4,
-      alignItems: 'center',
-    },
-    factsLine: {
-      color: colors.textPrimary,
-      fontSize: 13,
-      fontWeight: '600',
-      textAlign: 'center',
-    },
-    modalLevelSignal: {
-      marginTop: 8,
-      fontSize: 12.5,
-      fontWeight: '700',
-      textAlign: 'center',
-      letterSpacing: -0.01,
-    },
     // Peer-validation stamp — passport-stamp aesthetic. Tinted bg + colored
     // border + uppercase verdict + count. Centered. Sits as a deliberate
     // "this level has been certified" element, not just another text line.
-    levelStamp: {
-      alignSelf: 'center',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      borderWidth: 1.5,
-      borderRadius: 8,
-      paddingVertical: 7,
-      paddingHorizontal: 14,
-      marginTop: 12,
-    },
-    levelStampText: {
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
-    },
-    modalLevelVotes: {
-      marginTop: 10,
-      paddingTop: 10,
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
-      borderStyle: 'dashed',
-    },
-    modalLevelVotesHeader: {
-      color: colors.textMuted,
-      fontSize: 9.5,
-      fontWeight: '600',
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
-      marginBottom: 8,
-    },
-    modalLevelVotesRow: {
-      flexDirection: 'row',
-      backgroundColor: colors.surfaceAlt,
-      borderRadius: 10,
-      overflow: 'hidden',
-    },
     levelVoteCell: {
       flex: 1,
       alignItems: 'center',
@@ -2292,19 +2021,6 @@ const createStyles = (colors: AppColors) =>
       fontSize: 10,
       fontWeight: '600',
       marginTop: 2,
-    },
-    modalDismiss: {
-      alignSelf: 'center',
-      marginTop: spacing.md,
-      backgroundColor: colors.cta + '1F',
-      borderRadius: 999,
-      paddingHorizontal: 28,
-      paddingVertical: 10,
-    },
-    modalDismissText: {
-      color: colors.cta,
-      fontSize: 13,
-      fontWeight: '700',
     },
 
     // Help button (top-right ?) + its modal — same visual family as the
