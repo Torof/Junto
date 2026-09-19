@@ -367,7 +367,7 @@ function FiltersTab({
               accessibilityState={{ checked: filters.showActivities }}
             >
               <View style={[styles.typeCheckbox, filters.showActivities && styles.typeCheckboxOn]}>
-                {filters.showActivities && <Text style={styles.typeCheckboxMark}>✓</Text>}
+                {filters.showActivities && <Check size={13} color={colors.onCta} strokeWidth={3} />}
               </View>
               <Text style={[styles.typeChipText, filters.showActivities && styles.typeChipTextActive]}>
                 {t('map.typeActivities', { defaultValue: 'Passionnés' })}
@@ -380,7 +380,7 @@ function FiltersTab({
               accessibilityState={{ checked: filters.showProOfferings }}
             >
               <View style={[styles.typeCheckbox, filters.showProOfferings && styles.typeCheckboxOn]}>
-                {filters.showProOfferings && <Text style={styles.typeCheckboxMark}>✓</Text>}
+                {filters.showProOfferings && <Check size={13} color={colors.onCta} strokeWidth={3} />}
               </View>
               <Text style={[styles.typeChipText, filters.showProOfferings && styles.typeChipTextActive]}>
                 {t('map.typePros', { defaultValue: 'Pros' })}
@@ -770,7 +770,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   typeCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  typeCheckboxMark: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+  typeCheckboxMark: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.md },
   radiusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: spacing.sm, marginBottom: spacing.sm },
   radiusValue: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },

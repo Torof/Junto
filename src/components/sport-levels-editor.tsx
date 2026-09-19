@@ -180,7 +180,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', letterSpacing: -0.02 },
+  title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.02 },
   list: { flexGrow: 0 },
   listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   groupLabel: {

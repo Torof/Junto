@@ -1276,7 +1276,7 @@ export function ActivityDetail({
             <MapLegend items={mapPins.map((p) => ({ color: p.color, label: p.label ?? '' })).filter((i) => i.label)} />
           </View>
           <Pressable style={[styles.closeMapButton, { top: insets.top + spacing.sm }]} onPress={() => setShowFullMap(false)} hitSlop={8}>
-            <Text style={styles.closeMapText}>✕</Text>
+            <XIcon size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
           <Pressable
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}

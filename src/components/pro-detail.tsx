@@ -913,7 +913,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView center={mapCenter} zoom={14} pins={mapPins} />
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
-            <Text style={styles.closeMapText}>✕</Text>
+            <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
           <Pressable
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}

@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check, ImagePlus, Trash2 } from 'lucide-react-native';
+import { X, Check, ImagePlus, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
@@ -615,7 +615,7 @@ export default function ProEditScreen() {
             onPress={() => setShowMapPicker(false)}
             hitSlop={8}
           >
-            <Text style={styles.fullMapCloseText}>✕</Text>
+            <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
           <View style={[styles.fullMapHint, { top: insets.top + spacing.sm + 4 + 44 }]} pointerEvents="none">
             <Text style={styles.fullMapHintText}>

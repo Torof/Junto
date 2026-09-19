@@ -1101,7 +1101,7 @@ export default function ConversationScreen() {
             maxLength={2000}
           />
           <Pressable style={[styles.sendButton, isSavingEdit && { opacity: 0.4 }]} onPress={handleSaveEdit} disabled={isSavingEdit}>
-            <Text style={styles.sendText}>✓</Text>
+            <Check size={20} color={colors.onCta} strokeWidth={2.8} />
           </Pressable>
           <Pressable onPress={() => { setIsEditMode(false); setEditingMessage(null); setEditContent(''); }}>
             <Text style={styles.cancelText}>✕</Text>

@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
+import { Check, X,
   Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
   ShieldAlert, ChevronDown, BadgeCheck, type LucideIcon,
@@ -269,7 +269,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
             {/* Close */}
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeText}>✕</Text>
+              <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
 
             {/* === COMPTE === */}
@@ -291,10 +291,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       autoFocus
                     />
                     <Pressable onPress={handleSaveName} disabled={isSavingName} style={isSavingName && { opacity: 0.4 }}>
-                      <Text style={styles.saveLink}>✓</Text>
+                      <Check size={18} color={colors.cta} strokeWidth={2.6} />
                     </Pressable>
                     <Pressable onPress={() => setEditingName(false)}>
-                      <Text style={styles.cancelLink}>✕</Text>
+                      <X size={18} color={colors.textSecondary} strokeWidth={2.4} />
                     </Pressable>
                   </View>
                 ) : (
@@ -437,7 +437,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm,
     marginBottom: spacing.md,
   },
-  premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: 'bold' },
+  premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: '700' },
   row: {
     paddingHorizontal: spacing.xs, paddingVertical: spacing.sm + 2,
     flexDirection: 'row',
@@ -450,8 +450,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   rowLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', flexShrink: 1 },
   rowLabelDanger: { color: colors.error },
   rowValue: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  rowValueEditable: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: 'bold' },
-  tierBadge: { color: colors.cta, fontWeight: 'bold', textTransform: 'uppercase', fontSize: fontSizes.xs },
+  rowValueEditable: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  tierBadge: { color: colors.cta, fontWeight: '700', textTransform: 'uppercase', fontSize: fontSizes.xs },
   editNameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   nameInput: {
     color: colors.textPrimary, fontSize: fontSizes.sm,

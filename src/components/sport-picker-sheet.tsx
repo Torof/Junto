@@ -108,7 +108,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetTitle: {
     color: colors.textPrimary,
     fontSize: fontSizes.lg,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   searchBar: {
     flexDirection: 'row',
