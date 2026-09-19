@@ -846,7 +846,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fullMapConfirmDisabled: { opacity: 0.4 },
   fullMapConfirmText: {
-    color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700',
+    color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700',
     textTransform: 'uppercase', letterSpacing: 0.6,
   },
   submit: {
@@ -858,7 +858,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   submitDisabled: { opacity: 0.4 },
   submitText: {
-    color: colors.textPrimary,
+    color: colors.onCta,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },

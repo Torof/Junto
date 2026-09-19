@@ -537,7 +537,7 @@ export function GroupCard({
               const isPendingFromMe = myPending?.driver_id === d.user_id;
               const isFull = d.free === 0;
               const score = reliabilityById.get(d.user_id) ?? null;
-              const ringColor = score !== null ? ringColorFor(score) : null;
+              const ringColor = score !== null ? ringColorFor(score, colors) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
               const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (

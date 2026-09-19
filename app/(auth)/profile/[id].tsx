@@ -369,7 +369,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
-  messageText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  messageText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   contactButton: {
     borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.cta,
     paddingVertical: spacing.md - 2, alignItems: 'center',
@@ -400,7 +400,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
-  modalSendText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  modalSendText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   requestCard: {
     position: 'absolute', left: spacing.lg, right: spacing.lg,
     backgroundColor: colors.surface, borderRadius: radius.lg,
@@ -415,11 +415,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1, backgroundColor: colors.success, borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
-  requestAcceptText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  requestAcceptText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   requestRefuse: {
     flex: 1, backgroundColor: colors.error, borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
-  requestRefuseText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  requestRefuseText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   requestDisabled: { opacity: 0.4 },
 });

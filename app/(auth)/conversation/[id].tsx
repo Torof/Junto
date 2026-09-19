@@ -1473,7 +1473,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.success,
   },
   seatAcceptText: {
-    color: colors.textPrimary,
+    color: colors.onCta,
     fontSize: fontSizes.xs + 1,
     fontWeight: '700',
   },

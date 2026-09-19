@@ -1481,7 +1481,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   navigateText: {
-    color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700',
+    color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700',
     textTransform: 'uppercase', letterSpacing: 0.6,
   },
 });

@@ -1738,7 +1738,7 @@ const createStyles = (colors: AppColors) =>
       width: 36,
       height: 4,
       borderRadius: 2,
-      backgroundColor: 'rgba(255,255,255,0.10)',
+      backgroundColor: colors.borderMuted,
     },
     modalContent: {
       paddingHorizontal: 22,

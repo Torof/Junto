@@ -8,6 +8,7 @@ import { Camera, Plus, HelpCircle } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { reliabilityColorForScore } from '@/utils/reliability-color';
 import { UserAvatar } from './user-avatar';
 
 export interface ProfileHeroStats {
@@ -36,10 +37,10 @@ const RING_SIZE = 80;
 // Trust-pillar tier color for a reliability percentage. Exported so the
 // Organisation tab's GroupCard can render the same tier ring around
 // driver avatars where the actual decision happens.
-export function ringColorFor(pct: number): string {
-  if (pct >= 75) return '#7EC8A3';
-  if (pct >= 40) return '#F26B2E';
-  return '#E5524E';
+export function ringColorFor(pct: number, colors: AppColors): string {
+  // Route through the shared reliability ramp (tokens + accent-safe) — the
+  // hardcoded #F26B2E era ignored the accent picker (canon 2026-09-19).
+  return reliabilityColorForScore(pct, colors);
 }
 
 function tierToPct(tier: string): number | null {
@@ -71,7 +72,7 @@ export function ProfileHero({
 
   const effectivePct = reliabilityPct ?? (reliabilityTier ? tierToPct(reliabilityTier) : null);
   const hasScore = effectivePct != null;
-  const color = hasScore ? ringColorFor(effectivePct) : colors.textMuted;
+  const color = hasScore ? ringColorFor(effectivePct, colors) : colors.textMuted;
 
   const r = (RING_SIZE - 8) / 2;
   const c = 2 * Math.PI * r;
@@ -168,9 +169,9 @@ export function ProfileHero({
           )}
 
           <View style={styles.statsRow}>
-            <StatCell value={stats?.completed_activities ?? 0} labelKey="profil.completed" accent="#7EC8A3" styles={styles} t={t} />
+            <StatCell value={stats?.completed_activities ?? 0} labelKey="profil.completed" accent={colors.success} styles={styles} t={t} />
             <View style={styles.statDivider} />
-            <StatCell value={stats?.created_activities ?? 0} labelKey="profil.created" accent="#F26B2E" styles={styles} t={t} />
+            <StatCell value={stats?.created_activities ?? 0} labelKey="profil.created" accent={colors.cta} styles={styles} t={t} />
             <View style={styles.statDivider} />
             <StatCell value={stats?.joined_activities ?? 0} labelKey="profil.joined" accent="#4B7CB8" styles={styles} t={t} />
           </View>
