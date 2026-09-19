@@ -92,3 +92,11 @@ du header-charte de theme.ts.
 
 Méthode : petits commits + OTA preview par écran, jamais de big-bang. Chaque écran :
 tsc + lint + vérif visuelle Scott avant le suivant.
+
+## Avancement
+- ✅ 2026-09-19 Phase 0 (c955485) : charte réécrite, radius.card, onCta, glow(), <Chip>/<AppButton>/<PressableScale>. Tag rollback : pre-unification-ui-2026-09-19.
+- ✅ Phase 1a (0c0fd81) : contrastes onCta, thème sombre (chips blanches, poignée badge), orange banni tué (ringColorFor→rampe fiabilité).
+- ✅ Phase 1b (1f158de) : glyphes ✓/✕→lucide, 'bold'/'900'→numérique. (Flèches ↑↓ filter-sheet reportées à sa passe.)
+- ✅ Phase 1c (c8f7c83) : 113 styles morts supprimés (−477 lignes).
+- ✅ Phase 2.1 (01ac2c5) : create/step1-4 + edit/[id] rebasés au canon — EN ATTENTE verdict Scott sur build.
+- ⏳ Suivants : profile/[id] (actions) → activity-detail → messagerie/conversation → filter-sheet/settings-drawer → discovery-view → pro-detail → badge-display → espace/agenda re-basage.
