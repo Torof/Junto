@@ -15,7 +15,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
@@ -527,10 +528,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  durationValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', textAlign: 'center', flex: 1 },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md },
+  durationValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', textAlign: 'center', flex: 1 },
+  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
-  nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   traceOptions: { flexDirection: 'column', gap: spacing.sm, marginBottom: spacing.md },
   traceButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,

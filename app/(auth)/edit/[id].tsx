@@ -6,8 +6,10 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
+import { Check, Plus, Minus } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { useSports } from '@/hooks/use-sports';
@@ -172,7 +174,7 @@ export default function EditActivityScreen() {
         disabled={hasParticipants}
       >
         <View style={[styles.openCheckbox, maxParticipants === null && styles.openCheckboxOn]}>
-          {maxParticipants === null && <Text style={styles.openCheckboxMark}>✓</Text>}
+          {maxParticipants === null && <Check size={15} color={colors.onCta} strokeWidth={3} />}
         </View>
         <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
       </Pressable>
@@ -183,7 +185,7 @@ export default function EditActivityScreen() {
             onPress={() => !hasParticipants && setMaxParticipants(Math.max(2, (maxParticipants ?? 4) - 1))}
             disabled={hasParticipants}
           >
-            <Text style={styles.counterText}>-</Text>
+            <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
           <Text style={styles.counterValue}>{maxParticipants}</Text>
           <Pressable
@@ -191,7 +193,7 @@ export default function EditActivityScreen() {
             onPress={() => !hasParticipants && setMaxParticipants(Math.min(50, (maxParticipants ?? 4) + 1))}
             disabled={hasParticipants}
           >
-            <Text style={styles.counterText}>+</Text>
+            <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
         </View>
       )}
@@ -253,11 +255,11 @@ export default function EditActivityScreen() {
             setDurationHours(Math.max(durationMinutes >= 15 ? 0 : 1, durationHours - 1))
           }
         >
-          <Text style={styles.counterText}>-</Text>
+          <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
         <Text style={styles.counterValue}>{durationHours}h{durationMinutes > 0 ? durationMinutes : ''}</Text>
         <Pressable style={styles.counterButton} onPress={() => setDurationHours(Math.min(24, durationHours + 1))}>
-          <Text style={styles.counterText}>+</Text>
+          <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
       </View>
 
@@ -277,13 +279,13 @@ export default function EditActivityScreen() {
         ))}
       </View>
 
-      <Pressable
-        style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+      <PressableScale
+        style={[styles.saveButton, glow(colors.cta), isSaving && styles.buttonDisabled]}
         onPress={handleSave}
         disabled={isSaving}
       >
         <Text style={styles.saveText}>{isSaving ? '...' : t('edit.save')}</Text>
-      </Pressable>
+      </PressableScale>
     </ScrollView>
   );
 }
@@ -293,7 +295,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
-  pageTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
+  pageTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', letterSpacing: -0.3, marginBottom: spacing.lg },
   label: { color: colors.textPrimary, fontSize: fontSizes.sm, marginBottom: spacing.sm, marginTop: spacing.md },
   input: {
     backgroundColor: colors.background, color: colors.textPrimary, borderRadius: radius.sm,
@@ -303,14 +305,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   chip: {
-    borderWidth: 1, borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2,
-    backgroundColor: 'transparent',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.xs + 3,
+    backgroundColor: colors.surface,
   },
-  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  chipActive: { backgroundColor: colors.cta },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  chipTextActive: { color: colors.onCta, fontWeight: '700' },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   openCheckbox: {
@@ -319,17 +320,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center',
   },
   openCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  openCheckboxMark: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
-  openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+    openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   counterButton: {
-    borderWidth: 1, borderColor: colors.borderStrong,
-    borderRadius: radius.sm,
-    width: 36, height: 36,
+    borderRadius: radius.full,
+    width: 38, height: 38,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
   },
-  counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', minWidth: 40, textAlign: 'center' },
+  counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700', minWidth: 40, textAlign: 'center' },
   durationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   dateButton: {
     backgroundColor: 'transparent',
@@ -341,7 +339,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   locked: { opacity: 0.4 },
   lockedHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs, fontStyle: 'italic' },
   rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
-  saveButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
+  saveButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
-  saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  saveText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { Check, Plus, Minus } from 'lucide-react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { useRouter } from 'expo-router';
@@ -7,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useSports } from '@/hooks/use-sports';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { SportDropdown } from '@/components/sport-dropdown';
@@ -97,7 +99,7 @@ export default function CreateStep1() {
         {levelScale.map((opt, idx) => {
           const active = lowIdx !== -1 && idx >= lowIdx && idx <= highIdx;
           return (
-            <Pressable
+            <PressableScale
               key={opt.label}
               style={[styles.chip, active && styles.chipActive]}
               onPress={() => handleLevelTap(opt.label, idx)}
@@ -110,7 +112,7 @@ export default function CreateStep1() {
                   {opt.description}
                 </Text>
               )}
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>
@@ -160,40 +162,40 @@ export default function CreateStep1() {
       )}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
-      <Pressable
+      <PressableScale
         style={styles.openToggle}
         onPress={() => updateForm({ max_participants: form.max_participants === null ? 4 : null })}
       >
         <View style={[styles.openCheckbox, form.max_participants === null && styles.openCheckboxOn]}>
-          {form.max_participants === null && <Text style={styles.openCheckboxMark}>✓</Text>}
+          {form.max_participants === null && <Check size={15} color={colors.onCta} strokeWidth={3} />}
         </View>
         <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
-      </Pressable>
+      </PressableScale>
       {form.max_participants !== null && (
         <View style={styles.counterRow}>
-          <Pressable
+          <PressableScale
             style={styles.counterButton}
             onPress={() => updateForm({ max_participants: Math.max(2, (form.max_participants ?? 4) - 1) })}
           >
-            <Text style={styles.counterText}>-</Text>
-          </Pressable>
+            <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
+          </PressableScale>
           <Text style={styles.counterValue}>{form.max_participants}</Text>
-          <Pressable
+          <PressableScale
             style={styles.counterButton}
             onPress={() => updateForm({ max_participants: Math.min(50, (form.max_participants ?? 4) + 1) })}
           >
-            <Text style={styles.counterText}>+</Text>
-          </Pressable>
+            <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
+          </PressableScale>
         </View>
       )}
 
-      <Pressable
-        style={[styles.nextButton, !isValid && styles.buttonDisabled]}
+      <PressableScale
+        style={[styles.nextButton, glow(colors.cta), !isValid && styles.buttonDisabled]}
         onPress={() => isValid && router.push('/(auth)/create/step2')}
         disabled={!isValid}
       >
         <Text style={styles.nextText}>{t('create.next')}</Text>
-      </Pressable>
+      </PressableScale>
     </KeyboardAwareScrollView>
     <KeyboardDoneBar />
     </View>
@@ -205,7 +207,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', letterSpacing: -0.3, marginBottom: spacing.lg },
   label: { color: colors.textPrimary, fontSize: fontSizes.sm, marginBottom: spacing.sm, marginTop: spacing.md },
   input: {
     backgroundColor: colors.background, color: colors.textPrimary, borderRadius: radius.sm,
@@ -215,40 +217,36 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   chip: {
-    borderWidth: 1, borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.xs + 3,
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
   },
-  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  chipActive: { backgroundColor: colors.cta },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  chipTextActive: { color: colors.onCta, fontWeight: '700' },
   chipHint: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 2 },
-  chipHintActive: { color: '#FFFFFF', opacity: 0.85 },
+  chipHintActive: { color: colors.onCta, opacity: 0.85 },
   rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
   metricRow: { flexDirection: 'row', gap: spacing.md },
   metricField: { flex: 1 },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   openCheckbox: {
-    width: 22, height: 22, borderRadius: radius.xs,
+    width: 22, height: 22, borderRadius: radius.sm,
     borderWidth: 1, borderColor: colors.borderStrong,
     backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center',
   },
   openCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  openCheckboxMark: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
   openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   counterButton: {
-    borderWidth: 1, borderColor: colors.borderStrong,
-    borderRadius: radius.sm,
-    width: 36, height: 36,
+    borderRadius: radius.full,
+    width: 38, height: 38,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
   },
-  counterText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
-  counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', minWidth: 40, textAlign: 'center' },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
+  counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700', minWidth: 40, textAlign: 'center' },
+  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
-  nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });

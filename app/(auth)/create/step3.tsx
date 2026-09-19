@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 
@@ -32,7 +33,7 @@ export default function CreateStep3() {
 
       <View style={styles.options}>
         {VISIBILITY_OPTIONS.map((option) => (
-          <Pressable
+          <PressableScale
             key={option.key}
             style={[
               styles.option,
@@ -48,12 +49,12 @@ export default function CreateStep3() {
             <Text style={styles.optionDesc}>
               {t(`create.visibility.${option.key}Desc`)}
             </Text>
-          </Pressable>
+          </PressableScale>
         ))}
       </View>
 
       {/* Presence verification toggle */}
-      <Pressable
+      <PressableScale
         style={[styles.toggleRow]}
         onPress={() => updateForm({ requires_presence: !(form.requires_presence ?? true) })}
       >
@@ -64,14 +65,14 @@ export default function CreateStep3() {
         <View style={[styles.toggleSwitch, (form.requires_presence ?? true) && styles.toggleSwitchOn]}>
           <View style={[styles.toggleKnob, (form.requires_presence ?? true) && styles.toggleKnobOn]} />
         </View>
-      </Pressable>
+      </PressableScale>
 
-      <Pressable
-        style={styles.nextButton}
+      <PressableScale
+        style={[styles.nextButton, glow(colors.cta)]}
         onPress={() => router.push('/(auth)/create/step4')}
       >
         <Text style={styles.nextText}>{t('create.next')}</Text>
-      </Pressable>
+      </PressableScale>
     </View>
   );
 }
@@ -79,37 +80,38 @@ export default function CreateStep3() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.md },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', letterSpacing: -0.3, marginBottom: spacing.lg },
   options: { gap: spacing.sm },
   option: {
-    backgroundColor: 'transparent',
-    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
     padding: spacing.md,
-    borderWidth: 1, borderColor: colors.borderMuted,
+    borderWidth: 1.5, borderColor: 'transparent',
+    ...shadows.card,
   },
-  optionActive: { borderColor: colors.cta, borderWidth: 2 },
+  optionActive: { borderColor: colors.cta, backgroundColor: colors.cta + '14' },
   optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
-  optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
+  optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   optionTitleActive: { color: colors.cta },
   optionDesc: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
-  nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
+  nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.xl,
-    backgroundColor: 'transparent',
-    borderRadius: radius.sm,
-    borderWidth: 1, borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
     padding: spacing.md,
+    ...shadows.card,
   },
-  toggleTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold', marginBottom: 2 },
+  toggleTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginBottom: 2 },
   toggleDesc: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16 },
   toggleSwitch: {
-    width: 44, height: 26, borderRadius: 13,
+    width: 44, height: 26, borderRadius: radius.full,
     backgroundColor: colors.borderMuted, padding: 3, justifyContent: 'center',
   },
   toggleSwitchOn: { backgroundColor: colors.cta },
   toggleKnob: {
-    width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary,
+    width: 20, height: 20, borderRadius: radius.full, backgroundColor: colors.textSecondary,
   },
-  toggleKnobOn: { backgroundColor: '#FFFFFF', alignSelf: 'flex-end' },
+  toggleKnobOn: { backgroundColor: colors.onCta, alignSelf: 'flex-end' },
 });

@@ -9,7 +9,8 @@ import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { UserPlus, ChevronRight } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { useCreateStore } from '@/store/create-store';
@@ -154,11 +155,11 @@ export default function CreateStep4() {
         />
         <RecapRow
           label={t('create.meetingPoint')}
-          value={form.meeting_name || '✓'}
+          value={form.meeting_name || t('create.openActivityValue', { defaultValue: 'Défini' })}
         />
         <RecapRow
           label={t('create.objectiveSet')}
-          value={form.location_objective ? (form.objective_name || '✓') : '-'}
+          value={form.location_objective ? (form.objective_name || t('create.openActivityValue', { defaultValue: 'Défini' })) : '–'}
         />
         {form.description ? (
           <View style={styles.descSection}>
@@ -169,7 +170,7 @@ export default function CreateStep4() {
       </View>
 
       {/* Invite partners (Brique 4e-2) — optional; sent on publish. */}
-      <Pressable style={styles.inviteField} onPress={() => setPickerOpen(true)}>
+      <PressableScale style={styles.inviteField} onPress={() => setPickerOpen(true)}>
         <UserPlus size={18} color={colors.textPrimary} strokeWidth={2.2} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.inviteFieldLabel}>{t('create.invitePartners', { defaultValue: 'Inviter des partenaires' })}</Text>
@@ -180,10 +181,10 @@ export default function CreateStep4() {
           </Text>
         </View>
         <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} />
-      </Pressable>
+      </PressableScale>
 
-      <Pressable
-        style={[styles.publishButton, isLoading && styles.buttonDisabled]}
+      <PressableScale
+        style={[styles.publishButton, glow(colors.cta), isLoading && styles.buttonDisabled]}
         onPress={handlePublish}
         disabled={isLoading}
       >
@@ -192,7 +193,7 @@ export default function CreateStep4() {
         ) : (
           <Text style={styles.publishText}>{t('create.publish')}</Text>
         )}
-      </Pressable>
+      </PressableScale>
     </ScrollView>
 
     <InvitePartnersSheet
@@ -220,12 +221,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   stepLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500', marginBottom: spacing.xs },
-  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.lg },
+  title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', letterSpacing: -0.3, marginBottom: spacing.lg },
   recap: {
-    backgroundColor: 'transparent',
-    borderRadius: radius.sm,
-    borderWidth: 1, borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
     padding: spacing.md, gap: spacing.sm,
+    ...shadows.card,
   },
   descSection: { marginTop: spacing.sm },
   recapLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },
@@ -233,17 +234,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   inviteField: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
     padding: spacing.md, marginTop: spacing.md,
-    borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
+    backgroundColor: colors.surface, borderRadius: radius.card,
+    ...shadows.card,
   },
   inviteFieldLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   inviteFieldSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
-  publishButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.xl },
+  publishButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
-  publishText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  publishText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });
 
 const createRecapStyles = (colors: AppColors) => StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  value: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: 'bold' },
+  value: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
 });
