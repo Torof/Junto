@@ -97,6 +97,13 @@ Méthode : maquette artifact → validation → RN.
 - ✅ 2026-09-17 : côté PRO shippé preview (commit b1948be) — Espace pro (hub, menu),
   Agenda (AvailabilityCalendar am/pm fait main, demandes accepter/refuser, à venir,
   résa manuelle), booking-service, i18n FR/EN, types régénérés.
-- ⏳ Côté CLIENT : bouton Réserver sur offering-detail → flux calendrier-lecture →
-  demande ; écran « Mes réservations » (statuts + annulation + chat) ; routing des
-  notifications booking_*.
+- ✅ 2026-09-20 : côté CLIENT shippé preview (commit 1347be5) — CTA Réserver sur
+  offering-detail → écran book/[offeringId] (calendrier pick, stepper, message,
+  paiement-sur-place affiché) ; « Mes réservations » (statuts, annulation, chat) +
+  entrée menu ; routage notifications booking_* (request→agenda pro,
+  accepted→conversation, declined/cancelled→bon écran selon data.by). Clés EN.
+  **La boucle booking P1 est COMPLÈTE de bout en bout.**
+- ⏳ v1.5/P2 (backlog, cf. CONCURRENCE.md table-stakes) : fiche participant
+  (poids/pointure) · lien de réservation partageable · synchro iCal · report météo
+  en un geste · question acompte sans paiement in-app · fiabilité client visible
+  sur la demande (idée validée nulle part encore).
