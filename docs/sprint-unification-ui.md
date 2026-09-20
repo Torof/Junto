@@ -103,4 +103,9 @@ tsc + lint + vérif visuelle Scott avant le suivant.
 - ✅ Phase 2.3 (27f8fa2) : activity-detail (join pilule+glow token, ghosts→pilules calmes, bloc présence carte canon).
 - ✅ Phase 2.4 (1d99202) : messagerie (palette type-pills nommée, 📍→MapPin, badges/boutons ronds) + conversation (radii full, glow token, seat-pills).
 - ✅ Phase 2.5 (6a0f758) : filter-sheet (xl corners, actifs géométrie-stable, chips canon, apply glorifié) + settings-drawer (cartes sans bordure + ombre, switches lisibles). Side-drawer conservé (structurel = décision Scott) ; flèches ↑↓ des pilules récap conservées (contenu).
-- ⏳ Suivants : 6. discovery-view (canon sans refonte structurelle) → 7. pro-detail → 8. badge-display → 9. espace/agenda/calendar re-basage tokens. Vérif visuelle Scott en continu sur les 5 premiers.
+- ✅ Phase 2.6 (3eab70c) : discovery-view — ombres/radii/backdrop tokens, pilules hybrides→teinte pure, méta dégraissée. Emojis vibes CONSERVÉS (choix produit Scott).
+- ✅ Phase 2.7 (721b181) : pro-detail — '900'→800, discipline 800→600/700, chips teinte pure, cercles full, →→chevrons.
+- ✅ Phase 2.8 (04d07b7) : badge-display passe LÉGÈRE (999/18→tokens, imports morts). Palette sur mesure conservée — re-basage complet = session dédiée si souhaitée.
+- ✅ Phase 2.9 (4a285f1) : espace/agenda/calendar re-basés tokens Phase 0 (radius.card, glow(), warning, overlay).
+- 🏁 **PASSE COMPLÈTE 2026-09-20** — OTA groupé 6-9 : update 95ef10fd. 4 générations → 1 canon. Rollback global : tag pre-unification-ui-2026-09-19 ; rollback fin : 1 commit par écran. EN ATTENTE du grand tour de Scott.
+- Reliquats assumés (hors passe) : side-drawer réglages (structurel, décision Scott) · flèches ↑↓ pilules récap tri (contenu) · emojis vibes (choix Scott) · palette badge-display (session dédiée) · adoption progressive de <Chip>/<AppButton> dans les nouveaux écrans.
