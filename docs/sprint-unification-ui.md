@@ -98,5 +98,9 @@ tsc + lint + vérif visuelle Scott avant le suivant.
 - ✅ Phase 1a (0c0fd81) : contrastes onCta, thème sombre (chips blanches, poignée badge), orange banni tué (ringColorFor→rampe fiabilité).
 - ✅ Phase 1b (1f158de) : glyphes ✓/✕→lucide, 'bold'/'900'→numérique. (Flèches ↑↓ filter-sheet reportées à sa passe.)
 - ✅ Phase 1c (c8f7c83) : 113 styles morts supprimés (−477 lignes).
-- ✅ Phase 2.1 (01ac2c5) : create/step1-4 + edit/[id] rebasés au canon — EN ATTENTE verdict Scott sur build.
-- ⏳ Suivants : profile/[id] (actions) → activity-detail → messagerie/conversation → filter-sheet/settings-drawer → discovery-view → pro-detail → badge-display → espace/agenda re-basage.
+- ✅ Phase 2.1 (01ac2c5) : create/step1-4 + edit/[id] rebasés au canon.
+- ✅ Phase 2.2 (cc221e2) : profile/[id] couche actions (titres 800, ombres tokens, PressableScale+glow).
+- ✅ Phase 2.3 (27f8fa2) : activity-detail (join pilule+glow token, ghosts→pilules calmes, bloc présence carte canon).
+- ✅ Phase 2.4 (1d99202) : messagerie (palette type-pills nommée, 📍→MapPin, badges/boutons ronds) + conversation (radii full, glow token, seat-pills).
+- ✅ Phase 2.5 (6a0f758) : filter-sheet (xl corners, actifs géométrie-stable, chips canon, apply glorifié) + settings-drawer (cartes sans bordure + ombre, switches lisibles). Side-drawer conservé (structurel = décision Scott) ; flèches ↑↓ des pilules récap conservées (contenu).
+- ⏳ Suivants : 6. discovery-view (canon sans refonte structurelle) → 7. pro-detail → 8. badge-display → 9. espace/agenda/calendar re-basage tokens. Vérif visuelle Scott en continu sur les 5 premiers.
