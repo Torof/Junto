@@ -10,7 +10,7 @@ import { Check, X,
 } from 'lucide-react-native';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
 import { proService } from '@/services/pro-service';
 import { supabase } from '@/services/supabase';
@@ -321,7 +321,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
             <View style={styles.sectionCard}>
               <Row icon={MapPin} label={t('drawer.myLocation')} right={
-                <Switch value={bgLocationGranted ?? false} onValueChange={handleToggleBgLocation} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+                <Switch value={bgLocationGranted ?? false} onValueChange={handleToggleBgLocation} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
               } />
               <Row icon={Bell} label={t('profil.notificationPrefs')} onPress={() => setShowNotifPrefs(!showNotifPrefs)} right={
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showNotifPrefs ? '180deg' : '0deg' }] }} />
@@ -331,13 +331,13 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   {NOTIFICATION_TYPES.map((type) => (
                     <View key={type} style={styles.prefRow}>
                       <Text style={styles.prefLabel}>{t(`profil.notifType.${type}`)}</Text>
-                      <Switch value={prefs[type] !== false} onValueChange={() => togglePref(type)} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+                      <Switch value={prefs[type] !== false} onValueChange={() => togglePref(type)} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
                     </View>
                   ))}
                 </View>
               )}
               <Row icon={Activity} label={t('drawer.crashReports')} right={
-                <Switch value={sentryConsent} onValueChange={handleToggleSentryConsent} trackColor={{ false: colors.surface, true: colors.cta }} thumbColor="#fff" />
+                <Switch value={sentryConsent} onValueChange={handleToggleSentryConsent} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
               } />
               <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
@@ -429,12 +429,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   // Outlined group card; rows sit inside with light inner dividers.
   sectionCard: {
-    borderWidth: 1.5,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.lg,
+    borderRadius: radius.card,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sm,
     marginBottom: spacing.md,
+    ...shadows.card,
   },
   premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: '700' },
   row: {

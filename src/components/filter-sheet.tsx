@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { Radar, Trash2, X, ChevronDown, ArrowUp, ArrowDown, Check, LocateFixed } from 'lucide-react-native';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
 import { CollapsibleSection } from './collapsible-section';
@@ -559,7 +559,7 @@ function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }:
           {SORT_OPTIONS.map((opt) => {
             const active = sortBy === opt;
             const Chevron = active && sortDir === 'desc' ? ArrowDown : ArrowUp;
-            const chevronColor = active ? '#FFFFFF' : (styles.chipText.color as string);
+            const chevronColor = active ? (styles.chipTextActive.color as string) : (styles.chipText.color as string);
             return (
               <Pressable
                 key={opt}
@@ -666,7 +666,7 @@ function AlertsTab({ onNewAlert, t, styles, colors }: AlertsTabProps) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
+    backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     padding: spacing.md, height: '96%',
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
@@ -759,11 +759,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.borderMuted,
     flex: 1,
   },
-  typeChipActive: { borderColor: colors.cta, borderWidth: 2 },
+  typeChipActive: { borderColor: colors.cta, backgroundColor: colors.cta + '14' },
   typeChipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   typeChipTextActive: { color: colors.textPrimary, fontWeight: '700' },
   typeCheckbox: {
-    width: 18, height: 18, borderRadius: 3,
+    width: 18, height: 18, borderRadius: radius.sm,
     borderWidth: 1.5, borderColor: colors.borderMuted,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -784,16 +784,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
-    backgroundColor: 'transparent',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: spacing.xs + 3,
+    backgroundColor: colors.surface,
   },
-  chipActive: { backgroundColor: colors.cta, borderColor: colors.cta },
-  chipText: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  chipActive: { backgroundColor: colors.cta },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  chipTextActive: { color: colors.onCta, fontWeight: '700' },
 
   dirChip: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   applyContainer: {
@@ -802,8 +800,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,
   },
-  applyButton: { backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 2, alignItems: 'center' },
-  applyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  applyButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', ...glow(colors.cta) },
+  applyText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 
   emptyText: {
     color: colors.textSecondary, fontSize: fontSizes.sm, fontStyle: 'italic',
