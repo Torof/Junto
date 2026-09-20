@@ -8,7 +8,7 @@ import 'dayjs/locale/fr';
 import { CalendarDays, BellRing, MessagesSquare, Mountain, Link2, ChevronRight } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { bookingService } from '@/services/booking-service';
 import { proService } from '@/services/pro-service';
@@ -125,19 +125,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4,
-    backgroundColor: colors.surface, borderRadius: 16, padding: spacing.md, marginBottom: spacing.sm + 2,
+    backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.sm + 2,
   },
   pressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
   ico: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: colors.cta + '18',
+    width: 36, height: 36, borderRadius: radius.lg, backgroundColor: colors.cta + '18',
     alignItems: 'center', justifyContent: 'center',
   },
-  rowTitle: { color: colors.textPrimary, fontSize: fontSizes.sm + 2, fontWeight: '800' },
+  rowTitle: { color: colors.textPrimary, fontSize: fontSizes.sm + 2, fontWeight: '700' },
   rowSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   badge: {
     minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.cta,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
   },
-  badgeText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  badgeText: { color: colors.onCta, fontSize: fontSizes.xs - 1, fontWeight: '700' },
   foot: { textAlign: 'center', color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.sm },
 });

@@ -10,7 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Plus, Phone, Send, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proOfferingService } from '@/services/pro-offering-service';
@@ -288,9 +288,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.lg, marginBottom: spacing.sm,
   },
-  reqCard: { backgroundColor: colors.surface, borderRadius: 16, padding: spacing.md, marginBottom: spacing.sm + 2 },
+  reqCard: { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.sm + 2 },
   rowTop: { flexDirection: 'row', gap: spacing.sm + 2, alignItems: 'center' },
-  reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
+  reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
   reqSize: { color: colors.textSecondary, fontWeight: '500', fontSize: fontSizes.sm },
   reqMeta: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, marginTop: 2 },
   reqMsg: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic', marginTop: 3 },
@@ -301,26 +301,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
   },
-  btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
+  btnPrimaryText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   btnBig: { marginTop: spacing.md, paddingVertical: spacing.sm + 4 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
   bkRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
-    backgroundColor: colors.surface, borderRadius: 14, padding: spacing.sm + 4, marginBottom: spacing.xs + 2,
+    backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.xs + 2,
   },
   bkPeriod: { backgroundColor: colors.cta + '22', borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4 },
-  bkPeriodText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '800' },
+  bkPeriodText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '700' },
   bkName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   bkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   fab: {
     position: 'absolute', right: spacing.md, bottom: spacing.lg,
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.md + 2,
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.38, shadowRadius: 12 }, android: { elevation: 5 } }),
+    ...glow(colors.cta),
   },
-  fabText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '800' },
+  fabText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-  backdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     padding: spacing.lg, paddingBottom: spacing.xl,
@@ -338,9 +338,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.cta },
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600' },
-  chipTextOn: { color: '#FFFFFF', fontWeight: '800' },
+  chipTextOn: { color: colors.onCta, fontWeight: '700' },
   input: {
-    backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3,
+    backgroundColor: colors.surface, borderRadius: radius.card - 4, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3,
     color: colors.textPrimary, fontSize: fontSizes.sm + 1, marginBottom: spacing.sm,
   },
   stepBtn: {
@@ -348,5 +348,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   stepBtnText: { color: colors.textSecondary, fontSize: fontSizes.lg, fontWeight: '600', marginTop: -2 },
-  stepVal: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', minWidth: 24, textAlign: 'center' },
+  stepVal: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', minWidth: 24, textAlign: 'center' },
 });

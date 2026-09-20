@@ -78,7 +78,7 @@ export function AvailabilityCalendar({
     let bg = 'transparent';
     if (isSelected) bg = colors.cta;
     else if (bookedCount > 0) bg = colors.cta + 'CC';
-    else if (pendingCount > 0) bg = '#D99A2B66';
+    else if (pendingCount > 0) bg = colors.warning + '66';
     else if (st.available) bg = colors.cta + '2E';
 
     const disabled = isPast || (mode === 'pick' && !st.available);
@@ -137,7 +137,7 @@ export function AvailabilityCalendar({
         {mode === 'edit' && (
           <>
             <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendBooked', { defaultValue: 'Réservé' })}</Text></View>
-            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#D99A2B66' }]} /><Text style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</Text></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.warning + '66' }]} /><Text style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</Text></View>
           </>
         )}
         <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.surfaceAlt }]} /><Text style={styles.legendText}>{t('booking.legendOff', { defaultValue: 'Indispo' })}</Text></View>
