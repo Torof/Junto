@@ -535,7 +535,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <View style={styles.catHeaderRow}>
                   <Text style={styles.sectionTitleStrong}>{t('pro.tab.catalog', { defaultValue: 'Catalogue' })}</Text>
                   <Pressable onPress={() => selectTab('catalog')} hitSlop={6}>
-                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} →</Text>
+                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</Text>
                   </Pressable>
                 </View>
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
@@ -550,7 +550,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                         onPress={() => openOffering(o)}
                       >
                         <View style={styles.catMiniTop}>
-                          <View style={[styles.catMiniChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+                          <View style={[styles.catMiniChip, { backgroundColor: accent + '1A' }]}>
                             <Text style={[styles.catMiniChipText, { color: accent }]} numberOfLines={1}>
                               {t(`sports.${o.sport_key}`, { defaultValue: o.sport_key })}
                             </Text>
@@ -597,7 +597,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                 <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
                 {reviews.length > 0 ? (
                   <Pressable onPress={() => selectTab('reviews')} hitSlop={6}>
-                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} →</Text>
+                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -848,7 +848,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           </View>
                         </View>
 
-                        <Text style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail →' })}</Text>
+                        <Text style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail ›' })}</Text>
                       </View>
                     </Pressable>
                   );
@@ -1031,7 +1031,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   headerThumb: { width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   headerThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.pinProBackground },
-  headerThumbInitial: { color: '#FFFFFF', fontSize: fontSizes.lg, fontWeight: '800' },
+  headerThumbInitial: { color: colors.onCta, fontSize: fontSizes.lg, fontWeight: '700' },
   headerInfo: { flex: 1, minWidth: 0 },
   headerName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm, paddingHorizontal: spacing.lg },
@@ -1039,7 +1039,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   actionBtnIcon: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: radius.full,
     borderWidth: 1.5,
     borderColor: colors.cta,
     alignItems: 'center',
@@ -1134,7 +1134,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ghostBtn: { flex: 1, borderWidth: 1, borderColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
   ghostBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   primaryBtn: { flex: 1, backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
-  primaryBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
+  primaryBtnText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
   aboutDesc: { gap: spacing.xs, marginBottom: spacing.sm },
   // Separate rows with a small gap between them. Corners square EXCEPT the
@@ -1167,7 +1167,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tabActive: { borderBottomColor: colors.cta },
   tabText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
-  tabTextActive: { color: colors.cta, fontWeight: '800' },
+  tabTextActive: { color: colors.cta, fontWeight: '700' },
   content: {
     paddingBottom: spacing.xl + 32,
   },
@@ -1232,7 +1232,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ownerAvatar: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: radius.full,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.borderMuted,
@@ -1243,9 +1243,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   ownerAvatarInitial: {
-    color: '#FFFFFF',
+    color: colors.onCta,
     fontSize: fontSizes.sm,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   proLabel: {
     color: colors.cta,
@@ -1313,7 +1313,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sectionTitleStrong: {
     color: colors.textPrimary,
     fontSize: fontSizes.lg,
-    fontWeight: '900',
+    fontWeight: '800',
+    letterSpacing: -0.2,
     marginBottom: spacing.sm,
   },
   descriptionBody: {
@@ -1394,7 +1395,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.95)',
   },
-  expSportPillText: { fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase' },
+  expSportPillText: { fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
   expRating: {
     position: 'absolute',
     top: spacing.sm,
@@ -1407,7 +1408,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
   },
-  expRatingText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  expRatingText: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '700' },
   expBody: { padding: spacing.md, gap: spacing.sm },
   expTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', lineHeight: 24 },
   expFacts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
@@ -1418,7 +1419,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   expLineTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
   expLineIcon: { marginTop: 2 },
   expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 18 },
-  expCta: { fontSize: fontSizes.sm, fontWeight: '800', marginTop: spacing.xs, alignSelf: 'flex-end' },
+  expCta: { fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.xs, alignSelf: 'flex-end' },
   // Aperçu catalogue carousel — text-forward mini cards (no photo).
   catHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   catSeeAll: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
@@ -1437,11 +1438,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     ...shadows.card,
   },
   catMiniTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.xs },
-  catMiniChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 1, minWidth: 0 },
-  catMiniChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  catMiniChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, flexShrink: 1, minWidth: 0 },
+  catMiniChipText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   catMiniRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800' },
-  catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', lineHeight: 20 },
+  catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
+  catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', lineHeight: 20 },
   mapContainer: {
     height: 180,
     borderRadius: radius.md,
@@ -1467,7 +1468,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   closeMapButton: {
     position: 'absolute', top: spacing.sm + 4, left: spacing.md,
-    width: 36, height: 36, borderRadius: 18,
+    width: 36, height: 36, borderRadius: radius.full,
     backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: colors.borderMuted,
