@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
-import {
+import { CalendarCheck, CalendarClock, CalendarX2,
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, AlarmClock, Hourglass, QrCode,
   Car, CarFront, CarTaxiFront, Mail, MailCheck, Users, BadgeCheck, Trophy,
@@ -55,6 +55,10 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   driver_left: { icon: Car, color: colors.warning },
   contact_request: { icon: Mail, color: colors.cta },
   contact_request_accepted: { icon: MailCheck, color: colors.success },
+  booking_request: { icon: CalendarClock, color: colors.cta },
+  booking_accepted: { icon: CalendarCheck, color: colors.success },
+  booking_declined: { icon: CalendarX2, color: colors.error },
+  booking_cancelled: { icon: CalendarX2, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -112,6 +116,15 @@ export function NotificationsView() {
       router.push('/(auth)/(tabs)/messagerie');
     } else if (notification.type === 'seat_request_accepted' && notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
+    } else if (notification.type === 'booking_request') {
+      router.push('/(auth)/pro/agenda');
+    } else if (notification.type === 'booking_accepted' && notification.data?.conversation_id) {
+      router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
+    } else if (notification.type === 'booking_declined' || notification.type === 'booking_accepted') {
+      router.push('/(auth)/my-bookings');
+    } else if (notification.type === 'booking_cancelled') {
+      // by=client → le PRO reçoit (agenda) ; by=pro → le CLIENT reçoit.
+      router.push(notification.data?.by === 'client' ? '/(auth)/pro/agenda' : '/(auth)/my-bookings');
     } else if (notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.type === 'pro_rejected') {

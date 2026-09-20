@@ -10,9 +10,10 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
 import { FavoriteButton } from './favorite-button';
-import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, shadows , glow} from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { PressableScale } from '@/components/pressable-scale';
 import { useAuth } from '@/hooks/use-auth';
 import type { ProOffering } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
@@ -310,6 +311,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         </View>
         {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
+        <PressableScale
+          style={[styles.bookBtn, glow(colors.cta)]}
+          onPress={() => router.push(`/(auth)/pro/book/${offering.id}`)}
+        >
+          <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
+        </PressableScale>
+
         {pro ? (
           <Pressable style={styles.hostCard} onPress={openPro}>
             {proThumbUrl ? (
@@ -431,6 +439,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
+  bookBtn: {
+    backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 5, alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  bookBtnText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',

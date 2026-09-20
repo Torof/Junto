@@ -379,7 +379,8 @@
     "discovery": "Discovery",
     "channels": "Channels",
     "mesActivites": "My outings",
-    "proSpace": "Pro space"
+    "proSpace": "Pro space",
+    "myBookings": "My bookings"
   },
   "errors": {
     "code": {
@@ -1601,5 +1602,41 @@
     "pickEmpty": "Your library is empty. Create a trace from the \"My GPX traces\" menu.",
     "shareTitle": "Share trace",
     "traceSent": "Trace sent"
+  },
+  "booking": {
+    "bookTitle": "Book",
+    "bookCta": "Book",
+    "myBookings": "My bookings",
+    "requestSent": "Request sent to the professional",
+    "pickSlotFirst": "Pick an available slot",
+    "noAvailability": "This professional hasn't opened availabilities yet. Contact them from their page.",
+    "slot": "Slot",
+    "partySize": "People",
+    "messageLabel": "Message (optional)",
+    "messagePlaceholder": "Level, questions, useful details…",
+    "submit": "Send request",
+    "payOnSite": "The professional confirms your booking — payment happens on site.",
+    "noSlotSelected": "No slot selected",
+    "offeringGone": "Offering unavailable.",
+    "openChat": "Chat",
+    "cancel": "Cancel",
+    "people": "ppl",
+    "cancelConfirmTitle": "Cancel this booking?",
+    "cancelConfirmBody": "The professional will be notified if it was confirmed.",
+    "cancelledToast": "Booking cancelled",
+    "emptyTitle": "No bookings",
+    "emptyBody": "Book a guided outing from a professional's page on the map.",
+    "am": "morning",
+    "pm": "afternoon",
+    "perGroup": "/group",
+    "perPerson": "/pers.",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Confirmed",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "cancelledPro": "Cancelled by the pro",
+      "expired": "Expired"
+    }
   }
 }
