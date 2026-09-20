@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { discoveryService, type DiscoveryCard, type DispoIntent, type TransportMode } from '@/services/discovery-service';
 import { conversationService } from '@/services/conversation-service';
@@ -121,7 +121,7 @@ export function DiscoveryView() {
     const c = sportCategoryColor(cat, colors.cta);
     const showLevel = level && level !== OPEN_LEVEL;
     return (
-      <View key={key} style={[styles.sportPill, { backgroundColor: c + '22', borderColor: c + '55' }]}>
+      <View key={key} style={[styles.sportPill, { backgroundColor: c + '1A' }]}>
         <SportIcon sportKey={key} size={13} color={c} />
         <Text style={[styles.sportPillText, { color: c }]}>
           {t(`sports.${key}`, { defaultValue: key })}{showLevel ? ` · ${level}` : ''}
@@ -174,7 +174,7 @@ export function DiscoveryView() {
             <View style={styles.nameRow}>
               <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
               {item.reliability_tier ? (
-                <View style={[styles.relChip, { backgroundColor: relColor + '22', borderColor: relColor + '55' }]}>
+                <View style={[styles.relChip, { backgroundColor: relColor + '1A' }]}>
                   <Text style={[styles.relChipText, { color: relColor }]}>{t(`reliability.tier.${item.reliability_tier}`)}</Text>
                 </View>
               ) : null}
@@ -493,25 +493,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   onbScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.lg },
   onb: { alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   halo: {
-    width: 108, height: 108, borderRadius: 54, backgroundColor: colors.cta + '18',
+    width: 108, height: 108, borderRadius: radius.full, backgroundColor: colors.cta + '18',
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 16 }, android: { elevation: 2 } }),
+    ...glow(colors.cta),
   },
   onbTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', textAlign: 'center', letterSpacing: -0.4, lineHeight: 30 },
   onbBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22, maxWidth: 300, marginBottom: spacing.xs },
   steps: { alignSelf: 'stretch', gap: spacing.sm + 2, marginTop: spacing.md },
   step: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
-    borderRadius: 16, padding: spacing.sm + 4, borderWidth: 1, borderColor: colors.borderMuted,
-    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10 }, android: { elevation: 1 } }),
+    borderRadius: radius.card, padding: spacing.sm + 4,
+    ...shadows.card,
   },
-  stepN: { width: 27, height: 27, borderRadius: 14, backgroundColor: colors.cta + '1A', alignItems: 'center', justifyContent: 'center' },
+  stepN: { width: 27, height: 27, borderRadius: radius.full, backgroundColor: colors.cta + '1A', alignItems: 'center', justifyContent: 'center' },
   stepNText: { color: colors.cta, fontWeight: '800', fontSize: fontSizes.sm },
   stepT: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   stepS: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', marginTop: 1 },
   ctaBig: {
-    backgroundColor: colors.cta, borderRadius: 16, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.34, shadowRadius: 14 }, android: { elevation: 4 } }),
+    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
+    ...glow(colors.cta),
   },
   ctaBigText: { color: '#FFFFFF', fontSize: fontSizes.md + 1, fontWeight: '800' },
 
@@ -521,14 +521,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   matchesHead: { paddingTop: spacing.sm, paddingBottom: spacing.md + spacing.xs, gap: spacing.sm + 2 },
   matchesTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   matchesLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: 2 },
-  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cta + '14', borderWidth: 1, borderColor: colors.cta + '55', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 6 },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cta + '14', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 6 },
   filterBtnOn: { backgroundColor: colors.cta + '22' },
   filterBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
-  filterBadge: { minWidth: 17, height: 17, borderRadius: 9, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  filterBadge: { minWidth: 17, height: 17, borderRadius: radius.full, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   filterBadgeText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800' },
   activeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs + 2 },
   fchip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.cta, borderRadius: radius.full, paddingLeft: spacing.sm + 2, paddingRight: spacing.sm, paddingVertical: 5 },
-  fchipText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '800' },
+  fchipText: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '700' },
   clearAll: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800', paddingHorizontal: 2 },
   // filter sheet
   filterSheet: { maxHeight: '82%' },
@@ -538,22 +538,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   filterGroup: { marginBottom: spacing.md },
   filterGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.sm },
   filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  fsChip: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 8 },
+  fsChip: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 8 },
   fsChipOn: { backgroundColor: colors.cta, borderColor: colors.cta },
   fsChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
   fsChipTextOn: { color: '#FFFFFF', fontWeight: '800' },
   filterFoot: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.line },
-  filterClearBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: 14, paddingVertical: spacing.sm + 4 },
+  filterClearBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 4 },
   filterClearBtnText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   filterApplyBtn: {
-    flex: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta, borderRadius: 14, paddingVertical: spacing.sm + 4,
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
+    flex: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4,
+    ...glow(colors.cta),
   },
-  filterApplyText: { color: '#FFFFFF', fontSize: fontSizes.sm + 1, fontWeight: '800' },
+  filterApplyText: { color: colors.onCta, fontSize: fontSizes.sm + 1, fontWeight: '700' },
 
   // --- Empty matches ---
   emptyMatches: { alignItems: 'center', paddingVertical: spacing.xl + spacing.md, gap: spacing.sm, paddingHorizontal: spacing.lg },
-  emptyIc: { width: 76, height: 76, borderRadius: 38, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  emptyIc: { width: 76, height: 76, borderRadius: radius.full, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
   emptyMatchesTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   emptyMatchesBody: { color: colors.textSecondary, fontSize: fontSizes.sm + 1, textAlign: 'center', lineHeight: 21, maxWidth: 260 },
   emptyMatchesEdit: { color: colors.cta, fontSize: fontSizes.sm + 1, fontWeight: '800', marginTop: spacing.xs },
@@ -561,27 +561,26 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // --- Match card ---
   list: { padding: spacing.md, paddingBottom: spacing.lg },
   card: {
-    backgroundColor: colors.background, borderRadius: 20, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
-    borderWidth: 1, borderColor: colors.borderMuted,
-    ...Platform.select({ ios: { shadowColor: '#16281E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 16 }, android: { elevation: 3 } }),
+    backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
+    ...shadows.card,
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minWidth: 0 },
   cardName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.3, flexShrink: 1 },
-  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1 },
+  relChip: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2 },
   relChipText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   cardSub: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   dateRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   headMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  metaText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '500' },
   metaDot: { color: colors.textMuted, fontSize: fontSizes.sm },
   metaZone: { color: colors.cta, fontWeight: '800' },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   pillBreak: { width: '100%', height: 0 },
   sportPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, borderWidth: 1 },
-  sportPillText: { fontSize: fontSizes.xs - 1, fontWeight: '800' },
+    flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 6, },
+  sportPillText: { fontSize: fontSizes.xs - 1, fontWeight: '600' },
 
   aboutCard: { gap: 3 },
   aboutText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
@@ -595,7 +594,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
   intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '800' },
   intentChipHl: { backgroundColor: colors.cta + '1F', borderColor: colors.cta },
   intentChipTextHl: { color: colors.cta },
@@ -609,7 +608,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   btnPrimary: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    ...Platform.select({ ios: { shadowColor: colors.cta, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10 }, android: { elevation: 3 } }),
+    ...glow(colors.cta),
   },
   btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.xs + 1, fontWeight: '800' },
   btnSent: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta + '22', borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md },
@@ -619,7 +618,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pressedPrimary: { transform: [{ scale: 0.97 }] },
   link: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   linkDanger: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '800' },
-  modalBackdrop: { flex: 1, backgroundColor: '#00000088', justifyContent: 'flex-end' },
+  modalBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xl,
