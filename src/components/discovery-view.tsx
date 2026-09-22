@@ -538,7 +538,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   filterGroup: { marginBottom: spacing.md },
   filterGroupLabel: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: spacing.sm },
   filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  fsChip: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 8 },
+  fsChip: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 8 },
   fsChipOn: { backgroundColor: colors.cta, borderColor: colors.cta },
   fsChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
   fsChipTextOn: { color: '#FFFFFF', fontWeight: '800' },
@@ -562,6 +562,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   list: { padding: spacing.md, paddingBottom: spacing.lg },
   card: {
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.md, gap: spacing.md,
+    borderWidth: 1.5, borderColor: colors.borderStrong,
     ...shadows.card,
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
