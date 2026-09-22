@@ -109,3 +109,4 @@ tsc + lint + vérif visuelle Scott avant le suivant.
 - ✅ Phase 2.9 (4a285f1) : espace/agenda/calendar re-basés tokens Phase 0 (radius.card, glow(), warning, overlay).
 - 🏁 **PASSE COMPLÈTE 2026-09-20** — OTA groupé 6-9 : update 95ef10fd. 4 générations → 1 canon. Rollback global : tag pre-unification-ui-2026-09-19 ; rollback fin : 1 commit par écran. EN ATTENTE du grand tour de Scott.
 - Reliquats assumés (hors passe) : side-drawer réglages (structurel, décision Scott) · flèches ↑↓ pilules récap tri (contenu) · emojis vibes (choix Scott) · palette badge-display (session dédiée) · adoption progressive de <Chip>/<AppButton> dans les nouveaux écrans.
+- ⚠️ EXCEPTION CANON validée par Scott (2026-09-23, retour visuel) : sur DÉCOUVERTE, cartes avec bordure marquée (1.5 borderStrong + ombre) et pilules vibes BORDÉES (cartes, Ta dispo, feuille filtre). Ne pas « re-canoniser » cet écran lors de futures passes.
