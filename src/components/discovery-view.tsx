@@ -595,7 +595,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   infoText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   transportIcons: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   intentWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
+  intentChip: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.full, paddingHorizontal: spacing.sm + 3, paddingVertical: 5 },
   intentChipText: { color: colors.textPrimary, fontSize: fontSizes.xs - 1, fontWeight: '800' },
   intentChipHl: { backgroundColor: colors.cta + '1F', borderColor: colors.cta },
   intentChipTextHl: { color: colors.cta },
