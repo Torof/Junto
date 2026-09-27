@@ -7,7 +7,6 @@ import '@/lib/presence-geofence-task';
 import '@/lib/presence-location-task';
 import '@/lib/notification-bg-task';
 import { initSentry, wrap } from '@/lib/sentry';
-initSentry();
 import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -26,6 +25,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { useColors } from '@/hooks/use-theme';
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {

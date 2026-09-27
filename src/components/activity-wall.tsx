@@ -57,23 +57,6 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
     staleTime: 15_000,
   });
 
-  // Current user's public profile drives the composer avatar so the
-  // input row reads as "you're posting as Marie".
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['currentUserProfile', currentUserId],
-    queryFn: async () => {
-      if (!currentUserId) return null;
-      const { data } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, avatar_url')
-        .eq('id', currentUserId)
-        .single();
-      return data as { id: string; display_name: string; avatar_url: string | null } | null;
-    },
-    enabled: !!currentUserId,
-    staleTime: 5 * 60_000,
-  });
-
   const confirmedUserIds = useMemo(
     () => new Set((participants ?? []).filter((p) => p.confirmed_present === true).map((p) => p.user_id)),
     [participants],
@@ -489,16 +472,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   messageContentMine: { color: '#FFFFFF' },
   onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
 
-  messageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.xs - 2,
-  },
-  authorLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-  },
   authorName: {
     color: colors.textMuted,
     fontSize: fontSizes.xs,

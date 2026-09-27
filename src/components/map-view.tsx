@@ -20,6 +20,8 @@ import { formatDifficultySignal } from '@/constants/sport-levels';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
+import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
+
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 if (!MAPBOX_TOKEN) {
@@ -28,8 +30,6 @@ if (!MAPBOX_TOKEN) {
 
 Mapbox.setAccessToken(MAPBOX_TOKEN);
 Mapbox.setTelemetryEnabled(false);
-
-import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
 const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
 const DEFAULT_ZOOM = 10;
 
@@ -791,8 +791,6 @@ export function JuntoMapView({
           const activity = activityMap.get(pinProps.id);
           if (!activity) return null;
           const isSelected = selectedActivity?.id === activity.id;
-          const viewCenter = (bounds[0] + bounds[2]) / 2;
-          const isOnRight = lng > viewCenter;
           return (
             <Mapbox.MarkerView
               key={`activity-${activity.id}`}

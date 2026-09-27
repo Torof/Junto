@@ -12,7 +12,6 @@ import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
-import { useSports } from '@/hooks/use-sports';
 import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -33,8 +32,6 @@ export default function EditActivityScreen() {
     queryFn: () => activityService.getById(id ?? ''),
     enabled: !!id,
   });
-
-  const { data: sports } = useSports();
 
   // Check if fields are locked (participants besides creator exist)
   const hasParticipants = (activity?.participant_count ?? 1) > 1;
@@ -294,7 +291,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   pageTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', letterSpacing: -0.3, marginBottom: spacing.lg },
   label: { color: colors.textPrimary, fontSize: fontSizes.sm, marginBottom: spacing.sm, marginTop: spacing.md },
   input: {

@@ -423,9 +423,6 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     wrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.md },
-    statsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    statsAvg: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700' },
-    statsCount: { color: colors.textSecondary, fontSize: fontSizes.sm },
     // Google-style rating summary: big average + stars + voters on the left,
     // per-star proportion bars on the right.
     summary: {

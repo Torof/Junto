@@ -367,10 +367,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loadingText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.lg,
-  },
   emptyText: {
     color: colors.textSecondary,
     fontSize: fontSizes.md,

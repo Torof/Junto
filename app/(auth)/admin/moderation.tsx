@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, FlatList, TextInput, Modal, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams , Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -13,7 +13,6 @@ import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
 import { proService, type PendingProApplication } from '@/services/pro-service';
 import { Check, X, BadgeCheck, Trash2 } from 'lucide-react-native';
-import { Redirect } from 'expo-router';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { adminService, type AdminUserInfo } from '@/services/admin-service';
 import { getFriendlyError } from '@/utils/friendly-error';

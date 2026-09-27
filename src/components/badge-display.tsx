@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
 import {
   Users, Mountain, Trophy,
   AlertTriangle, OctagonAlert,
@@ -440,7 +439,6 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
 
   const SPORTS_LIMIT = 6;
   const visibleSports = showAllSports ? sports : sports.slice(0, SPORTS_LIMIT);
-  const hiddenSportsCount = sports.length - visibleSports.length;
 
   return (
     <>
@@ -782,45 +780,6 @@ function SportRow({
           <Text style={styles.sportAddText}>{t('profil.manageSports', { defaultValue: 'Gérer' })}</Text>
         </Pressable>
       )}
-    </View>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Award row — bronze / silver / gold cup per category (joined / created),
-// derived from raw trophy counts. Single cup per category.
-// ---------------------------------------------------------------------------
-
-function AwardRow({
-  items,
-  styles,
-  onPress,
-  t,
-}: {
-  items: JuntoAward[];
-  styles: ReturnType<typeof createStyles>;
-  onPress: (item: JuntoAward) => void;
-  t: (k: string, opts?: Record<string, unknown>) => string;
-}) {
-  return (
-    <View style={styles.wrapRowChips}>
-      {items.map((it) => {
-        const tierColor = TIER_COLOR[it.tier];
-        const label = t(`badges.awardLabel.${it.id}.${it.tier}`, { defaultValue: it.id });
-        const Icon = it.Icon;
-        return (
-          <Pressable
-            key={it.id}
-            onPress={() => onPress(it)}
-            hitSlop={6}
-            style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
-          >
-            <Icon size={13} color={tierColor} strokeWidth={2.2} />
-            <Text style={styles.lineTraitText}>{label}</Text>
-            <Text style={[styles.lineCountText, { color: tierColor }]}>{it.count}</Text>
-          </Pressable>
-        );
-      })}
     </View>
   );
 }
@@ -1401,79 +1360,6 @@ function hashHue(seed: string): string {
   return `hsl(${Math.abs(h) % 360}, 35%, 55%)`;
 }
 
-// Lightweight relative-time formatter — avoids pulling in dayjs's
-// relativeTime plugin globally for one feature. Returns a localized
-// short string like "12 j", "3 sem", "5 mois", "2 ans".
-function formatRelativeFromNow(at: string, t: (k: string, opts?: Record<string, unknown>) => string): string {
-  const days = Math.max(0, dayjs().diff(dayjs(at), 'day'));
-  if (days < 1) return t('badges.relTime.today', { defaultValue: "aujourd'hui" });
-  if (days < 7) return t('badges.relTime.days', { count: days, defaultValue: `${days}j` });
-  if (days < 30) {
-    const weeks = Math.floor(days / 7);
-    return t('badges.relTime.weeks', { count: weeks, defaultValue: `${weeks} sem` });
-  }
-  if (days < 365) {
-    const months = Math.floor(days / 30);
-    return t('badges.relTime.months', { count: months, defaultValue: `${months} mois` });
-  }
-  const years = Math.floor(days / 365);
-  return t('badges.relTime.years', { count: years, defaultValue: `${years} an` });
-}
-
-// Average outings per month, computed from first completion to now.
-// Uses 1 month as the floor so a single-day burst doesn't read as
-// "30 outings/month".
-function computeFrequency(count: number, firstAt: string | null): number | null {
-  if (!firstAt || count <= 0) return null;
-  const months = Math.max(1, dayjs().diff(dayjs(firstAt), 'month'));
-  return count / months;
-}
-
-// Formats frequency as a whole-number phrase. Above ~0.75/mo, we round
-// to integer outings/month; below that we invert to "1 every X months".
-function formatFrequencyLabel(
-  count: number,
-  firstAt: string | null,
-  t: (k: string, opts?: Record<string, unknown>) => string,
-): string | null {
-  const freq = computeFrequency(count, firstAt);
-  if (freq == null) return null;
-  if (freq >= 0.75) {
-    const perMonth = Math.max(1, Math.round(freq));
-    return t('badges.frequencyPerMonth', {
-      count: perMonth,
-      defaultValue: `${perMonth} sortie/mois en moyenne`,
-    });
-  }
-  const monthsPer = Math.max(2, Math.round(1 / freq));
-  return t('badges.frequencyEveryMonths', {
-    count: monthsPer,
-    defaultValue: `1 sortie tous les ${monthsPer} mois`,
-  });
-}
-
-
-function LevelVoteCounter({
-  label,
-  count,
-  styles,
-  highlight,
-}: {
-  label: string;
-  count: number;
-  styles: ReturnType<typeof createStyles>;
-  highlight?: boolean;
-}) {
-  return (
-    <View style={styles.levelVoteCell}>
-      <Text style={[styles.levelVoteCount, highlight && styles.levelVoteCountHighlight]}>
-        {count}
-      </Text>
-      <Text style={styles.levelVoteLabel}>{label}</Text>
-    </View>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Tokens
 // ---------------------------------------------------------------------------
@@ -2002,26 +1888,6 @@ const createStyles = (colors: AppColors) =>
     // Peer-validation stamp — passport-stamp aesthetic. Tinted bg + colored
     // border + uppercase verdict + count. Centered. Sits as a deliberate
     // "this level has been certified" element, not just another text line.
-    levelVoteCell: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    levelVoteCount: {
-      color: colors.textPrimary,
-      fontSize: 16,
-      fontWeight: '800',
-      letterSpacing: -0.02,
-    },
-    levelVoteCountHighlight: {
-      color: '#7EC8A3',
-    },
-    levelVoteLabel: {
-      color: colors.textMuted,
-      fontSize: 10,
-      fontWeight: '600',
-      marginTop: 2,
-    },
 
     // Help button (top-right ?) + its modal — same visual family as the
     // reliability help modal in profile-hero.

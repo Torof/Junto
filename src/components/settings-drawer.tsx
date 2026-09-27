@@ -128,6 +128,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
       const { data } = await supabase
         .from('users')
         .select('display_name, email, tier, sports, avatar_url, reliability_score, is_admin, created_at, notification_preferences')
+        .eq('id', session.user.id)
         .single();
       return data as { display_name: string; email: string; tier: string; sports: string[]; avatar_url: string | null; reliability_score: number | null; is_admin: boolean; created_at: string; notification_preferences: NotificationPreferences } | null;
     },

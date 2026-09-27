@@ -405,15 +405,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
-  mapConfirm: {
-    position: 'absolute',
-    bottom: spacing.xl + 40,
-    left: spacing.md,
-    right: spacing.md,
-    backgroundColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-  },
-  mapConfirmText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
 });

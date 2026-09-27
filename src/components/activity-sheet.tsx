@@ -237,7 +237,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: 1,
   },
-  sportEmoji: { fontSize: 13 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
   kindRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   kindLine: { fontSize: fontSizes.xs, fontWeight: '700' },

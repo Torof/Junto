@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only : la validation runtime vit dans les fonctions SECURITY DEFINER
 const activityFormSchema = z.object({
   // Step 1
   sport_id: z.string().uuid(),

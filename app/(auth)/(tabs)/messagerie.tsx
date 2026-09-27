@@ -61,7 +61,6 @@ export default function MessagerieScreen() {
   const [segment, setSegment] = useState<Segment>('all');
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
-  const [hidingConversationId, setHidingConversationId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Sport reference (id → key/category) to render the activity square's
@@ -750,7 +749,6 @@ export default function MessagerieScreen() {
               <Text style={styles.sectionHeader}>{t('messagerie.sectionInvitations')}</Text>
             )}
             {(invitations ?? []).map((inv) => {
-              const sport = inv.sport_id ? sportMap.get(inv.sport_id) : undefined;
               return (
                 <Pressable
                   key={inv.activity_id}

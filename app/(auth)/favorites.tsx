@@ -119,5 +119,4 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   rowSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
   thumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surface },
   thumbFallback: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.borderMuted },
-  thumbEmoji: { fontSize: 20 },
 });

@@ -17,7 +17,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { useAuth } from '@/hooks/use-auth';
 import type { ProOffering } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
-import { proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
+import { proCommunityPhotoService } from '@/services/pro-photo-service';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { reviewService } from '@/services/review-service';
 import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';

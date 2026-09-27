@@ -561,11 +561,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     overflow: 'hidden',
     marginTop: spacing.xs,
   },
-  levelSportIcon: {
-    fontSize: 18,
-    lineHeight: 20,
-    paddingHorizontal: 10,
-  },
   levelDivider: {
     width: 1,
     backgroundColor: colors.borderMuted,

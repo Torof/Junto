@@ -3,7 +3,6 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal, UserX } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
@@ -38,7 +37,7 @@ export default function PublicProfileScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id, participation: participationId, activityTitle } = useLocalSearchParams<{ id: string; participation?: string; activityTitle?: string }>();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -364,18 +363,12 @@ export default function PublicProfileScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
-  center: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
     backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
   messageText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
-  contactButton: {
-    borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.cta,
-    paddingVertical: spacing.md - 2, alignItems: 'center',
-  },
-  contactButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 56, paddingRight: spacing.md },
   menuSheet: {
     backgroundColor: colors.surface, borderRadius: radius.card,

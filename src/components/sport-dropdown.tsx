@@ -36,7 +36,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
     return sortedSports.filter((s) =>
       t(`sports.${s.key}`, { defaultValue: s.key }).toLowerCase().includes(q),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [sortedSports, query, t]);
 
   const closeSheet = () => {

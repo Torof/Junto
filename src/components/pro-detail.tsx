@@ -5,14 +5,14 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, ChevronRight, Share2, MessageCircle, X, ImagePlus, LayoutGrid, Star, StarHalf, Camera, Calendar, Clock, Users, BarChart3, Route, Mountain } from 'lucide-react-native';
+import { Phone, Mail, Globe, Instagram, Facebook, MapPin, Pencil, Navigation, Plus, ExternalLink, Share2, MessageCircle, X, LayoutGrid, Star, StarHalf, Camera, Calendar, Clock, Users, BarChart3, Route, Mountain } from 'lucide-react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { UserAvatar } from './user-avatar';
 import { FavoriteButton } from './favorite-button';
-import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import type { ProProfile } from '@/services/pro-service';
@@ -302,7 +302,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
     queryFn: () => userService.getPublicProfile(pro.user_id),
   });
 
-  const hasContact = Boolean(pro.phone || pro.email || pro.website || pro.instagram || pro.facebook);
   const description = pro.description ?? '';
   const descriptionOverflowing = description.length > COLLAPSED_DESCRIPTION_CHARS;
   const mapCenter: [number, number] = [pro.primary_lng, pro.primary_lat];
@@ -970,32 +969,6 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   );
 }
 
-function ContactRow({
-  icon,
-  label,
-  onPress,
-  styles,
-  colors,
-  external,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onPress: () => void;
-  styles: ReturnType<typeof createStyles>;
-  colors: AppColors;
-  external?: boolean;
-}) {
-  return (
-    <Pressable style={styles.contactRow} onPress={onPress} hitSlop={4}>
-      <View style={styles.contactIcon}>{icon}</View>
-      <Text style={styles.contactLabel} numberOfLines={1}>{label}</Text>
-      {external
-        ? <ExternalLink size={15} color={colors.textSecondary} strokeWidth={2.2} />
-        : <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2.2} />}
-    </Pressable>
-  );
-}
-
 // Google-style round action button (icon + label) for the header row.
 function ActionButton({
   icon,
@@ -1029,9 +1002,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 2,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headerThumb: { width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
-  headerThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.pinProBackground },
-  headerThumbInitial: { color: colors.onCta, fontSize: fontSizes.lg, fontWeight: '700' },
   headerInfo: { flex: 1, minWidth: 0 },
   headerName: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm, paddingHorizontal: spacing.lg },
@@ -1047,13 +1017,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta + '12',
   },
   actionBtnLabel: { color: colors.textPrimary, fontSize: 11, fontWeight: '600' },
-  overviewRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
-  overviewRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   overviewBlock: { paddingTop: spacing.md, gap: spacing.sm },
-  overviewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  overviewLink: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-  photoStrip: { gap: spacing.sm, paddingRight: spacing.lg },
-  photoThumb: { width: 96, height: 96, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   reviewSummary: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewAvg: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
@@ -1131,8 +1095,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewModalBodyContent: { paddingBottom: spacing.xs },
   reviewModalBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 23 },
   overviewButtons: { flexDirection: 'row', gap: spacing.sm, paddingTop: spacing.xs },
-  ghostBtn: { flex: 1, borderWidth: 1, borderColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
-  ghostBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   primaryBtn: { flex: 1, backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center' },
   primaryBtnText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   aboutBlock: { paddingTop: spacing.lg, gap: spacing.xs },
@@ -1190,34 +1152,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  heroCard: {
-    backgroundColor: 'transparent',
-    padding: spacing.lg,
-    // No left stripe — the PRO label + the banner above already
-    // carry the brand identity; the stripe was visually redundant.
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-  },
   // Banner — full-width 3:1 magazine cover above the hero.
-  banner: {
-    width: '100%',
-    aspectRatio: 3,
-  },
   tabBarScroll: {
     flexGrow: 0,
     backgroundColor: colors.surfaceAlt,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
-  },
-  heroFullBleed: {
-    // No horizontal margin — full screen width. Side and bottom borders
-    // anchor it visually without a rounded card frame.
-    marginHorizontal: 0,
-  },
-  heroHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
   },
   heroActions: {
     flexDirection: 'row',
@@ -1254,13 +1194,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1.5,
     marginBottom: spacing.xs - 2,
   },
-  heroTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xxl,
-    fontFamily: fonts.title,
-    letterSpacing: -0.5,
-    lineHeight: 36,
-  },
   heroStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1285,30 +1218,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: spacing.sm,
     lineHeight: 22,
   },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderMuted,
-  },
-  locationText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    flex: 1,
-  },
   // First section title (e.g. "Avis") — kept uppercase, now bold + black.
-  sectionTitle: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: spacing.sm,
-  },
   // Subsequent section titles (e.g. "À propos") — bold + black, no caps.
   sectionTitleStrong: {
     color: colors.textPrimary,
@@ -1327,28 +1237,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '700',
     marginTop: spacing.xs,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm + 2,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm + 2,
-    marginTop: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceAlt,
-  },
-  contactIcon: {
-    width: 24,
-    alignItems: 'center',
-  },
-  contactLabel: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    flex: 1,
   },
   placeholderText: {
     color: colors.textMuted,
@@ -1384,7 +1272,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   expImageWrap: { width: '100%', aspectRatio: 3 / 2, backgroundColor: colors.surfaceAlt },
   expImage: { width: '100%', height: '100%' },
   expImageFallback: { alignItems: 'center', justifyContent: 'center' },
-  expFallbackEmoji: { fontSize: 56 },
   expSportPill: {
     position: 'absolute',
     top: spacing.sm,
@@ -1443,28 +1330,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   catMiniRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
   catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', lineHeight: 20 },
-  mapContainer: {
-    height: 180,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  mapTapOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-  },
-  mapNavHint: {
-    position: 'absolute', top: spacing.sm, right: spacing.sm,
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: colors.surface,
-    borderWidth: 1, borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm, paddingVertical: 4,
-  },
-  mapNavHintText: {
-    color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 0.6,
-  },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   closeMapButton: {
     position: 'absolute', top: spacing.sm + 4, left: spacing.md,
@@ -1473,7 +1338,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: colors.borderMuted,
   },
-  closeMapText: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
   navigateButton: {
     position: 'absolute', alignSelf: 'center',
     backgroundColor: colors.cta,

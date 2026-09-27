@@ -5,9 +5,17 @@ import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
-import { Users, MapPin, Clock, Check, ChevronDown, Car, UserRound, Bike, TrainFront, Footprints, HelpCircle, Plus, X, type LucideIcon, Backpack, Navigation } from 'lucide-react-native';
+import { Users, MapPin, Clock, Check, ChevronDown, Car, UserRound, Bike, TrainFront, Footprints, HelpCircle, Plus, X, Navigation } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { spacing, fontSizes, radius } from '@/constants/theme';
+import type { AppColors } from '@/constants/colors';
+import { transportService } from '@/services/transport-service';
+import { gearService } from '@/services/gear-service';
+import { participationService } from '@/services/participation-service';
+import { UserAvatar } from './user-avatar';
+import { ringColorFor } from './profile-hero';
+import { supabase } from '@/services/supabase';
+import { getFriendlyError } from '@/utils/friendly-error';
 
 // Open a departure point in the phone's maps app (Apple Maps on iOS, Google
 // Maps elsewhere) — a deep link, not an embedded map.
@@ -17,14 +25,6 @@ function openMaps(lat: number, lng: number, label?: string | null): void {
     : `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   Linking.openURL(url).catch(() => {});
 }
-import type { AppColors } from '@/constants/colors';
-import { transportService } from '@/services/transport-service';
-import { gearService } from '@/services/gear-service';
-import { participationService } from '@/services/participation-service';
-import { UserAvatar } from './user-avatar';
-import { ringColorFor } from './profile-hero';
-import { supabase } from '@/services/supabase';
-import { getFriendlyError } from '@/utils/friendly-error';
 
 interface Props {
   activityId: string;
@@ -82,15 +82,6 @@ export function GroupCard({
   // covered list); the bringer recaps stay closed by default since
   // they're info-shaped and only useful when the user is curious
   // about a specific person's contribution.
-  const [expandedBringers, setExpandedBringers] = useState<Set<string>>(new Set());
-  const toggleBringer = (userId: string) => {
-    setExpandedBringers((prev) => {
-      const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      return next;
-    });
-  };
 
   // Driver pills always render fully expanded (full name, departure city +
   // time on their own rows) — no collapse. The passenger thread stays
@@ -233,18 +224,6 @@ export function GroupCard({
     () => drivers.reduce((sum, d) => sum + d.free, 0),
     [drivers],
   );
-  const departureCities = useMemo(() => {
-    const seen = new Set<string>();
-    const ordered: string[] = [];
-    drivers.forEach((d) => {
-      const city = d.transport_from_name?.trim();
-      if (city && !seen.has(city) && d.free > 0) {
-        seen.add(city);
-        ordered.push(city);
-      }
-    });
-    return ordered;
-  }, [drivers]);
 
   // Bucket self-movers (bike / foot / transit / other) so each category
   // gets its own caption header. Empty buckets simply don't render.
@@ -1134,22 +1113,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // drivers are where the user takes action (reserving a seat).
   // Ride card (2026-07-09): lighter surface, softer radius, subtle lift —
   // the carpool reads as a journey card, not a grey pill.
-  driverPill: {
-    // Bleed past the tab's lg padding so the journey card breathes in
-    // width (Scott 2026-07-10) — headers above keep the normal margin.
-    marginHorizontal: -spacing.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.line,
-    borderRadius: 14,
-    padding: spacing.sm + 5,
-    gap: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
   // --- Redesigned carpool card: read it in one glance ---
   nc: {
     marginHorizontal: -spacing.sm,
@@ -1189,61 +1152,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   paxAvatar: { borderRadius: 14, borderWidth: 2, borderColor: colors.surface },
   paxAvatarOverlap: { marginLeft: -9 },
   paxLbl: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', flexShrink: 1 },
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, paddingLeft: 2 },
-  routeDot: { width: 7, height: 7, borderRadius: 4, borderWidth: 2, borderColor: colors.textSecondary },
-  routeDash: { width: 20, height: 0, borderTopWidth: 2, borderColor: colors.textSecondary, borderStyle: 'dashed', opacity: 0.55 },
-  routeText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '600', flexShrink: 1 },
-  routeSep: { color: colors.textMuted, marginHorizontal: 2 },
-  seatsRow: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
-  seatFilled: { borderRadius: 11, overflow: 'hidden' },
-  seatTaken: { width: 22, height: 22, borderRadius: 11, backgroundColor: colors.surfaceAlt },
-  seatEmpty: {
-    width: 22, height: 22, borderRadius: 11,
-    borderWidth: 1.8, borderStyle: 'dashed', borderColor: colors.borderMuted,
-  },
-  seatOverflow: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700' },
-  seatsLabel: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800', marginLeft: 4, flexShrink: 1 },
-  seatsLabelFull: { color: colors.textMuted },
-  pillBody: {
-    gap: 6,
-  },
-  pillHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm + 2,
-  },
   // Wraps the name + the inline collapsed meta. flex:1 lets it absorb
   // the row width; flexDirection inside is handled by driverNameRow so
   // name and meta items can wrap together.
-  driverIdentity: {
-    flex: 1,
-    minWidth: 0,
-  },
-  inlineMetaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  pillMetaRows: {
-    paddingLeft: 44, // align with content under avatar
-    gap: 2,
-  },
-  pillMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  pillFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    marginTop: 2,
-    paddingTop: spacing.xs + 2,
-  },
   // Tier ring around the driver avatar — borderColor set inline based on
   // reliability score; transparent here so the layout stays stable when
   // a driver has no score yet (new user, no ring shown).
@@ -1257,11 +1168,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // (icon + trait label). flexShrink on the name lets it ellipsize
   // first if space is tight; the chip stays visible since it's the
   // trust signal we're surfacing.
-  driverNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   driverName: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm,
@@ -1298,34 +1204,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Cities sub-line under the Voitures section header — "depuis :"
   // anchored on the left, cities cluster (icon + names) right-aligned.
   // Small icon-then-text pattern keeps the row scanable at a glance.
-  freeSeatsFromRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginTop: -2,
-    marginBottom: 2,
-  },
-  freeSeatsFromLabel: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-  },
-  freeSeatsFromCities: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  freeSeatsFromCitiesText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    textAlign: 'right',
-    flexShrink: 1,
-    minWidth: 0,
-  },
 
   // Transport sub-categories (Voitures / Vélo / À pied / Transports /
   // Autre). Each non-empty bucket gets its own caption header followed
@@ -1355,35 +1233,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Toggle row that fronts the passenger list — small caption +
   // count + chevron. Tappable, sits at the bottom of the driver pill
   // so the pill stays compact when collapsed.
-  passengersToggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 4,
-    paddingHorizontal: 2,
-  },
-  passengersToggleText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  passengersSeeAll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  passengersSeeAllText: {
-    color: colors.cta,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
-  bringerToggleText: {
-    color: colors.cta,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    marginRight: 4,
-  },
   // Passengers under each driver — nested inside the pill. The driver
   // pill's containing border already signals "these belong together",
   // so no extra thread/border is needed; just inset spacing.
@@ -1419,15 +1268,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '500',
   },
-  driverMetaText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-  },
-  seatsCount: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
   // Solid CTA — the one action on the card gets to pop.
   reserveBtn: {
     backgroundColor: colors.cta,
@@ -1444,12 +1284,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: fontSizes.xs + 1,
     fontWeight: '800',
-  },
-  fullText: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-    fontStyle: 'italic',
   },
   statusPillSet: {
     flexDirection: 'row',
@@ -1594,22 +1428,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Compact "+ Ajouter du matériel" chip pinned to the right edge of
   // the Inventaire commun header — replaces the older full-width CTA so
   // the inventory list keeps its vertical room.
-  addGearChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.cta + '66',
-    backgroundColor: colors.cta + '15',
-  },
-  addGearChipText: {
-    color: colors.cta,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
 
   // Matériel sub-sections (Inventaire / Qui apporte quoi). Gap-spaced
   // so each section reads as its own block under the same tab.
@@ -1630,124 +1448,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 5,
     paddingVertical: 4,
   },
-  collapsibleSpacer: {
-    flex: 1,
-  },
 
   // Per-bringer card-pill — mirrors the driver pill in the transport
   // tab so the gear tab reads with the same visual grammar. Each
   // bringer is a contained unit (surface bg, lineStrong border) with
   // a tappable header that toggles the items list nested inside.
-  bringerBlock: {
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.line,
-    borderRadius: 14,
-    padding: spacing.sm + 3,
-    gap: 6,
-  },
-  bringerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bringerName: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: -0.05,
-    flexShrink: 1,
-  },
-  bringerCount: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
   // Inventaire commun list — each item is its own thin-bordered pill
   // with name + total qty + a +/- stepper that lets the user adjust
   // their personal contribution to that item without leaving the
   // tab. Compact padding to fit many items, line border (not the
   // heavier lineStrong used on bringer pills) since this is info /
   // quick-edit, not the primary action surface.
-  inventoryList: {
-    gap: 8,
-  },
-  inventoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: radius.sm,
-  },
-  inventoryItemName: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-  },
   // Trailing pill cluster — one success-tinted pill per contributor on
   // a shared inventory row. Avatar + ×qty inline; pattern repeats per
   // bringer so a glance reveals who contributed how much.
-  partyPillRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flexShrink: 0,
-  },
-  partyPillSuccess: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.success + '1F',
-    borderRadius: 999,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  partyPillQtySuccess: {
-    color: colors.success,
-    fontSize: fontSizes.xs,
-    fontWeight: '800',
-  },
   // Bullet list — used for the per-bringer items list inside the
   // expanded "Qui apporte quoi" pills.
-  bulletList: {
-    gap: 2,
-  },
-  bringerItemsList: {
-    gap: 4,
-    paddingLeft: 30, // align under bringer's name (avatar 22 + gap 8)
-  },
 
-  bulletRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  bullet: {
-    fontSize: fontSizes.sm + 2,
-    fontWeight: '800',
-    lineHeight: 17,
-  },
-  bulletText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs + 1,
-    fontWeight: '500',
-    flex: 1,
-    minWidth: 0,
-  },
   // Right-aligned quantity caption — the one-glance metric for the
   // gear inventory. Matches Mine's gearListQty (success + sm + 700)
   // so "the group has this" reads with the same affirmative weight as
   // "I'm bringing this".
-  itemQty: {
-    color: colors.cta,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    marginLeft: 6,
-  },
 });

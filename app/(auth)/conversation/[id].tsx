@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, CornerUpLeft, MoreHorizontal, Send, Users, Share2 } from 'lucide-react-native';
+import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, MoreHorizontal, Send, Users, Share2 , MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
 import { SharedActivityCard } from '@/components/shared-activity-card';
 import { userService } from '@/services/user-service';
@@ -42,7 +42,6 @@ import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
 import { useSports } from '@/hooks/use-sports';
-import { MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff } from 'lucide-react-native';
 import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 
 export default function ConversationScreen() {

@@ -17,11 +17,13 @@ interface AppButtonProps {
   glorified?: boolean;   // primary only: colored glow for THE one CTA of a screen
   fullWidth?: boolean;   // primary only: opt-in (canon: content-width default)
   destructive?: boolean; // link only: error color
+  accessibilityLabel?: string; // icon variant: REQUIRED in practice (no visible label)
 }
 
 export function AppButton({
   variant = 'primary', label, icon, onPress, disabled = false,
   glorified = false, fullWidth = false, destructive = false,
+  accessibilityLabel,
 }: AppButtonProps) {
   const colors = useColors();
 
@@ -31,6 +33,8 @@ export function AppButton({
         onPress={onPress}
         disabled={disabled}
         hitSlop={6}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityState={{ disabled }}
         style={[styles.iconBtn, { backgroundColor: colors.surface }, disabled && styles.disabled]}
       >
         {icon}
@@ -41,7 +45,7 @@ export function AppButton({
   if (variant === 'link') {
     const c = destructive ? colors.error : colors.textSecondary;
     return (
-      <PressableScale onPress={onPress} disabled={disabled} hitSlop={6} style={[styles.link, disabled && styles.disabled]}>
+      <PressableScale onPress={onPress} disabled={disabled} hitSlop={6} accessibilityLabel={accessibilityLabel ?? label} accessibilityState={{ disabled }} style={[styles.link, disabled && styles.disabled]}>
         {icon}
         {label ? <Text style={[styles.linkText, { color: c }]}>{label}</Text> : null}
       </PressableScale>
@@ -52,6 +56,8 @@ export function AppButton({
     <PressableScale
       onPress={onPress}
       disabled={disabled}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled }}
       style={[
         styles.primary,
         { backgroundColor: colors.cta },

@@ -158,9 +158,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  label: {
-    fontSize: 10,
-  },
   value: {
     color: colors.textPrimary,
     fontSize: fontSizes.xs,
@@ -183,18 +180,5 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.cta,
     fontSize: fontSizes.xs,
     fontWeight: '700',
-  },
-  spacer: {
-    width: spacing.sm,
-  },
-  spotDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  spotText: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: 'bold',
   },
 });

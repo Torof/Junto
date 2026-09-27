@@ -15,8 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius, glow } from '@/constants/theme';
-import { PressableScale } from '@/components/pressable-scale';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';

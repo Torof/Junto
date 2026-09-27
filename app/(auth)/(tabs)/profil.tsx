@@ -3,7 +3,6 @@ import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
@@ -25,7 +24,7 @@ const pickAndUploadAvatar = () => import('@/utils/avatar-upload').then((m) => m.
 export default function ProfilScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const router = useRouter();
   const [uploading, setUploading] = useState(false);

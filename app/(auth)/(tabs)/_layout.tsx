@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
 import { conversationService } from '@/services/conversation-service';
@@ -248,23 +247,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    backgroundColor: colors.error,
-    borderRadius: 10,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs - 2,
-    fontWeight: 'bold',
   },
   dot: {
     position: 'absolute',

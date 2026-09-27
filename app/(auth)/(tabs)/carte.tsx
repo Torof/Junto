@@ -1,8 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect , useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Trophy } from 'lucide-react-native';
@@ -229,9 +228,12 @@ export default function CarteScreen() {
     if (introChecked.current) return;
     introChecked.current = true;
     (async () => {
+      const uid = (await supabase.auth.getUser()).data.user?.id;
+      if (!uid) return;
       const { data: userRow } = await supabase
         .from('users')
         .select('tutorial_seen_at')
+        .eq('id', uid)
         .single() as { data: { tutorial_seen_at: string | null } | null };
       if (!userRow?.tutorial_seen_at) setShowIntro(true);
     })();

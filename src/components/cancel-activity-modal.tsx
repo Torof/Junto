@@ -12,7 +12,7 @@ interface Props {
   onConfirm: (reason: string) => void;
 }
 
-const CATEGORIES: Array<{ key: string; icon: string }> = [
+const CATEGORIES: { key: string; icon: string }[] = [
   { key: 'weather', icon: '🌧️' },
   { key: 'personal', icon: '🤒' },
   { key: 'lowSignups', icon: '👥' },

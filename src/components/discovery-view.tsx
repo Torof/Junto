@@ -639,7 +639,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  inviteRowIcon: { fontSize: 22 },
   inviteRowTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   inviteRowMeta: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2, textTransform: 'capitalize' },
   modalCancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },

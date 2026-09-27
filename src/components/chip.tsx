@@ -47,7 +47,13 @@ export const Chip = memo(function Chip({
   );
   if (!onPress) return body;
   return (
-    <PressableScale onPress={onPress} disabled={disabled} hitSlop={4}>
+    <PressableScale
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={4}
+      accessibilityLabel={label}
+      accessibilityState={{ selected, disabled }}
+    >
       {body}
     </PressableScale>
   );

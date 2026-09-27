@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
-import { Check } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { participationService } from '@/services/participation-service';
@@ -194,21 +193,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sectionTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm },
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
-  organizerPill: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xs, paddingVertical: 1, marginTop: -6 },
-  presentBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  organizerPillText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: 'bold' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -217,7 +201,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.xs, gap: spacing.sm,
   },
   pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
-  pendingSports: { fontSize: 13 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   refuseBtn: { backgroundColor: colors.error, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

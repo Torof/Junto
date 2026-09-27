@@ -305,7 +305,6 @@ const createStyles = (colors: AppColors) =>
     topBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.md, paddingTop: spacing.sm },
     skipBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
     skipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-    page: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' },
     pageScroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.xl, justifyContent: 'center' },
 
     // Opening manifesto page.

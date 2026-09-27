@@ -9,6 +9,7 @@ export const OFFERING_LEVELS = [OPEN_LEVEL, ...LEVELS] as const;
 // Mirrors the create_pro_offering RPC contract. Runtime validation is
 // in the SECURITY DEFINER function; this schema exists for type
 // derivation and minimal client-side guardrails on the form.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only : la validation runtime vit dans create_pro_offering
 const proOfferingFormSchema = z.object({
   sport_id: z.string().uuid(),
   title: z.string().trim().min(3).max(100),

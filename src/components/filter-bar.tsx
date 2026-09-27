@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Animated, View, Text, Pressable, StyleSheet } from 'react-native';
 import { SlidersHorizontal, Users, BadgeCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { spacing, radius, fontSizes } from '@/constants/theme';
+import { radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore } from '@/store/map-store';
 import type { AppColors } from '@/constants/colors';

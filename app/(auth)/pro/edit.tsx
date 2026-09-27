@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -824,7 +823,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: colors.borderMuted,
   },
-  fullMapCloseText: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
   fullMapHint: {
     position: 'absolute', alignSelf: 'center',
     backgroundColor: colors.surface,

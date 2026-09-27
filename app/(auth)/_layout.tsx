@@ -20,12 +20,6 @@ export default function AuthLayout() {
   const colors = useColors();
   const { isSuspended } = useAuth();
 
-  // Second-layer guard: if the root AuthGate is mid-resolve when a back-
-  // button or transition lands here, intercept suspended users before any
-  // child screen renders. AUDIT_SECURITY_2 M6.
-  if (isSuspended) {
-    return <Redirect href="/(visitor)/suspended" />;
-  }
   const screenOptions = useMemo(() => ({
     headerStyle: { backgroundColor: colors.background },
     headerShadowVisible: false,
@@ -33,7 +27,7 @@ export default function AuthLayout() {
     contentStyle: { backgroundColor: colors.background },
   }), [colors]);
 
-  usePresenceGeofences(true);
+  usePresenceGeofences(!isSuspended);
   usePresenceOfflineFlusher();
 
   const [showBgLocationPrompt, setShowBgLocationPrompt] = useState(false);
@@ -45,6 +39,15 @@ export default function AuthLayout() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Second-layer guard: if the root AuthGate is mid-resolve when a back-
+  // button or transition lands here, intercept suspended users before any
+  // child screen renders. AUDIT_SECURITY_2 M6. AFTER the hooks: an early
+  // return above them crashes React when isSuspended flips mid-session
+  // (rules of hooks — audit 2026-09 M6).
+  if (isSuspended) {
+    return <Redirect href="/(visitor)/suspended" />;
+  }
 
   return (
     <>

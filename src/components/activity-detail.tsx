@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';

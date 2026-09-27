@@ -13,7 +13,7 @@ import { CalendarCheck, CalendarClock, CalendarX2,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService, type Notification } from '@/services/notification-service';
 import { PushDeniedBanner } from '@/components/push-denied-banner';
