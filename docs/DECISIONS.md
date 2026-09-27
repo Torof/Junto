@@ -387,4 +387,7 @@ Règles verrouillées :
 - **URLs d'images : ancrage hôte partout** (pattern 00408 généralisé aux 6 setters pro).
 - **Anti-spam par ligne réutilisable** : quand une UNIQUE contrainte fait du resubmit un UPDATE (bookings, seat_requests), le rate-limit doit compter les ÉVÉNEMENTS (compteur + cooldown gelés au trigger), pas les lignes.
 
-**En attente Scott (3 décisions produit, listées dans AUDIT_2026-09.md)** : cancels suspendus · contre-mesure blanchiment d'avis (M5) · notif booking_expired.
+**Les 3 décisions produit (déléguées à Claude par Scott le 2026-09-27, mig 00420)** :
+- **Cancels suspendus** : bloqués (doctrine auth+suspension partout) ; `admin_suspend_user` auto-annule les réservations futures du suspendu et notifie les contreparties en copy neutre — la suspension n'est jamais révélée à un tiers.
+- **Blanchiment d'avis (M5)** : l'historique admin_actions (approve/reject passés) est surfacé dans la file d'approbation pro — l'admin re-valide en connaissance de cause. Pas de blocage automatique : la ré-inscription reste légitime, c'est un signal, pas une peine.
+- **booking_expired** : notifié au client (logistique + actionnable, cohérent avec le decline notifié) au flip lazy côté pro ; silencieux quand c'est le client lui-même qui découvre sa liste.

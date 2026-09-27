@@ -204,6 +204,14 @@ export default function ModerationScreen() {
                 </View>
                 <Text style={styles.proLine}>Page : {item.display_name}</Text>
                 {item.real_name && <Text style={styles.proLine}>Responsable : {item.real_name}</Text>}
+                {item.prior_review_count > 0 && (
+                  <Text style={styles.proHistoryWarning}>
+                    ⚠️ Déjà passé en revue ×{item.prior_review_count} — dernier :{' '}
+                    {item.last_review_action === 'approve_pro' ? 'approuvé' : 'refusé'}
+                    {item.last_review_at ? ` le ${dayjs(item.last_review_at).format('DD/MM/YYYY')}` : ''}.
+                    {item.last_review_action === 'approve_pro' ? ' Désinscrit depuis — les avis/photos sont repartis avec (vérifier le passif avant de re-valider).' : ''}
+                  </Text>
+                )}
                 <Text style={styles.proLineMuted}>{item.primary_location_name}</Text>
                 {(item.email || item.phone || item.website) && (
                   <Text style={styles.proLineMuted} numberOfLines={1}>{[item.email, item.phone, item.website].filter(Boolean).join(' · ')}</Text>
@@ -433,6 +441,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: spacing.sm },
   proLine: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: 2 },
   proLineMuted: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
+  proHistoryWarning: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: '600', marginTop: 6 },
   approveButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.success, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   approveText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: 'bold' },
   actionButton: { flex: 1, backgroundColor: colors.error, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },

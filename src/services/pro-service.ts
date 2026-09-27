@@ -54,6 +54,11 @@ export interface PendingProApplication {
   website: string | null;
   primary_location_name: string;
   created_at: string;
+  // Historique admin (00420 — contre-mesure blanchiment d'avis) : anciens
+  // approve/reject sur ce user, visibles avant de re-valider.
+  prior_review_count: number;
+  last_review_action: 'approve_pro' | 'reject_pro' | null;
+  last_review_at: string | null;
 }
 
 // Lightweight shape returned by getNearby — just what the pin + tooltip

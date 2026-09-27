@@ -59,6 +59,7 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   booking_accepted: { icon: CalendarCheck, color: colors.success },
   booking_declined: { icon: CalendarX2, color: colors.error },
   booking_cancelled: { icon: CalendarX2, color: colors.warning },
+  booking_expired: { icon: CalendarClock, color: colors.textSecondary },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -120,7 +121,7 @@ export function NotificationsView() {
       router.push('/(auth)/pro/agenda');
     } else if (notification.type === 'booking_accepted' && notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
-    } else if (notification.type === 'booking_declined' || notification.type === 'booking_accepted') {
+    } else if (notification.type === 'booking_declined' || notification.type === 'booking_accepted' || notification.type === 'booking_expired') {
       router.push('/(auth)/my-bookings');
     } else if (notification.type === 'booking_cancelled') {
       // by=client → le PRO reçoit (agenda) ; by=pro → le CLIENT reçoit.

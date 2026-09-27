@@ -3631,8 +3631,11 @@ export type Database = {
           created_at: string
           display_name: string
           email: string
+          last_review_action: string
+          last_review_at: string
           phone: string
           primary_location_name: string
+          prior_review_count: number
           real_name: string
           user_id: string
           website: string
