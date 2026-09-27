@@ -122,6 +122,8 @@ WHERE suspended_at IS NULL;
 - Toutes les queries publiques passent par la vue
 - L'accès direct à la table `users` est réservé à `auth.uid() = id` et aux fonctions admin
 
+**Privilèges COLONNES sur `pro_profiles` (00418, audit H3)** — la RLS lignes ne suffisait pas : `real_name`, `reviewed_by`, `reviewed_at` étaient lisibles par tout authentifié sur les pros approuvés. Depuis 00418 : `REVOKE SELECT` table puis `GRANT SELECT (colonnes publiques)` à authenticated. Colonnes exclues : `reviewed_at`, `reviewed_by`, `primary_location` (révoquées) ; le propriétaire lit sa fiche complète via `get_my_pro_application()` et l'admin la file d'attente via `admin_get_pending_pro_applications()`. ⚠️ `real_name` + `rejection_reason` restent TEMPORAIREMENT grantées : le build production (« Brique 4a ») les sélectionne encore dans getById — re-jouer le REVOKE/GRANT sans ces 2 colonnes dès que production embarque le client ≥ dbcf2ba (SQL prêt en commentaire dans 00418).
+
 ### Limitation RLS : sous-requêtes cross-table dans les policies
 Les expressions de policy s'exécutent avec les droits de l'utilisateur qui fait la requête, et le RLS des tables référencées s'applique **récursivement**. Conséquence : une policy qui fait `NOT EXISTS (SELECT 1 FROM users WHERE id = <autre user> AND suspended_at IS NOT NULL)` ne voit aucune ligne (à cause de `users_select_own`) et retourne toujours TRUE — **no-op silencieux**. Découvert à l'audit de juin 2026 (mig 00256) ; affectait `activities_select_authenticated` et `pro_profiles_select`. Les checks own-row (`id = auth.uid()`) ne sont pas affectés.
 
@@ -247,14 +249,14 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - `now()` dans [starts_at - 15min, starts_at + duration + 3h]
 - Réutilise le token existant non-expiré OU en génère un nouveau (12 char)
 
-**`peer_validate_presence(p_voted_id, p_activity_id)`** (mig 00140) :
+**`peer_validate_presence(p_voted_id, p_activity_id)`** (mig 00140, modèle refondu 00327) :
 - Auth + non suspendu
-- `auth.uid() != p_voted_id`
+- `auth.uid() != p_voted_id` (self-vote bloqué)
 - Activity completed + requires_presence = TRUE
 - `now()` dans [end + 15min, end + 24h] — sinon erreur différenciée (`peer_review_window_not_open` / `peer_review_window_closed`)
 - Target est participant accepté avec `confirmed_present IS NULL` (sinon `peer_already_validated`)
-- **Si 2 participants acceptés ET voter = créateur** : direct flip (pas de seuil, pas de check self-presence)
-- **Sinon (3+ participants)** : voter doit être `confirmed_present = TRUE` (sinon `peer_voter_not_present`) ; INSERT vote ; flip si `vote_count >= 2`
+- **Témoignage peer UNIQUEMENT à 3+ participants acceptés** — à 2, seul QR/géo valide (un ami qui atteste pour un ami, trop facile à truquer ; le direct-flip créateur de 00140 est SUPPRIMÉ — vecteur single-attester)
+- Voter = participant accepté, **pas besoin d'être lui-même vérifié présent** (l'ancien gate deadlockait le groupe si personne n'utilisait QR/géo) ; INSERT vote ; flip si **≥ 2 votes d'AUTRES participants**. Résiduel assumé : collusion de groupe entière (faible incitation, signalable)
 
 **`give_reputation_badge(p_voted_id, p_activity_id, p_badge_key)`** (mig 00134, garde niveau 00293) :
 - Auth + non suspendu
@@ -282,6 +284,8 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 > **Modèle unifié (refonte messagerie 2026-08-04, migs 00350-00367).** Trois sources (wall/private/conversations) fusionnées en un seul store : `conversations` (étendue avec `type` dm/group/activity + `activity_id`/`name`/`icon`/`created_by`), `conversation_members` (appartenance + `last_read_at`/`hidden_at`), `messages` (store unique). L'appartenance à un fil activité ⇔ `participations.status='accepted'` (créateur inclus). RLS `messages` via `private.is_conversation_member` + `private.message_author_visible` (le blocage d'un pair masque tout le fil DM). Voir `docs/sprint-messaging.md` (spec + 23 chaînes validées) et `docs/DECISIONS.md` (2026-08-04, réversion du modèle 2-tables).
 
 **Helper `private.is_messaging_eligible(caller, target)`** — éligibilité invitation/ajout-groupe : connexion active (00072) **∪** partenaire récent durci (présence validée du caller + sortie commune vivante ≤180j + aucune conversation non-`active` entre la paire).
+
+**Ligne de décision (audit 2026-09)** : un DM actif LOGISTIQUE (`initiated_from` ∈ transport/booking/request_reply) compte comme « conversation active » pour cette éligibilité — assumé : la logistique partagée (covoit accepté, réservation confirmée) est un contexte réel suffisant pour inviter/ajouter en groupe. Si ce pont logistique→social devait fermer un jour, filtrer `initiated_from` ici.
 
 **`send_message(p_conversation_id, p_content, p_reply_to_message_id DEFAULT NULL)`** — cœur d'écriture unifié :
 - Auth + non suspendu
@@ -478,6 +482,8 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 **User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
 **Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` (REVOKE from public ET anon — mig 00259, cf. 00018 "REVOKE didn't stick")
+
+**Fiche Pro (privilèges colonnes 00418) :** `get_my_pro_application` (own — real_name/rejection_reason inclus) · `admin_get_pending_pro_applications` (admin only, file pending avec real_name/email/phone) · `set_pro_banner` DROPPÉE (code mort)
 
 **Cron-on-foreground :** `check_activity_transitions`
 
@@ -944,7 +950,7 @@ Notifs > 7 jours supprimées par cron. Empêche l'accumulation infinie.
 | Bucket | Type | Usage |
 |--------|------|-------|
 | `avatars` | Public | Path `/avatars/{user_id}/…`. Policies owner-scoped (dossier = `auth.uid()`). Contraintes serveur : `allowed_mime_types = {jpeg,png,webp}`, `file_size_limit = 5 MB` (mig 00287 — avant, aucune, la validation ne vivait que côté client) |
-| `pro-photos` | Public | Path `/{user_id}/…`. Photos pro (offres, galerie communautaire). Policies owner-scoped. Contraintes serveur : mêmes que `avatars` (mig 00241) |
+| `pro-photos` | Public | Path `/{user_id}/…`. Photos pro (offres, galerie communautaire). Policies owner-scoped. Contraintes serveur : mêmes que `avatars` (mig 00241). **Les 6 setters d'URL (add_pro_photo, add_pro_offering_photo, set_pro_photo_url, set_pro_offering_photo_url, set_pro_pin_image, add_pro_community_photo) sont ANCRÉS HÔTE + dossier du caller depuis 00418 (H4, pattern 00408 : `https://…/pro-photos/{uid}/%`) — fini les URLs arbitraires dans les pins de carte / photos d'offres ; community photo exige en plus une cible pro `approved` (anti-oracle de candidature). `set_pro_banner` : droppée (code mort, colonne partie en 00254)** |
 
 **Note (2026-07-07) :** le bucket privé `pro-documents` (SIRET/BPJEPS) décrit dans les versions précédentes **n'a jamais été créé**. Il n'existe aujourd'hui **aucun bucket privé**. Si des documents de vérification pro sont ajoutés un jour, ils DOIVENT aller dans un bucket **privé** (jamais `pro-photos`/`avatars` qui sont publics), servis par URLs signées, lecture admin uniquement.
 
@@ -1031,6 +1037,11 @@ Validation client :
 ### Invitations activité (mig 00357/00365)
 - **20 par appel** (`invite_cap`) · **30/jour** (`invite_daily_cap`) · message ≤ 500 car.
 
+### Réservations pro (migs 00416/00418)
+- Client : **5 pending** + **10 lignes / 24 h** (advisory lock `uid_booking`)
+- Par créneau (offre, jour, période) : **cooldown 1 h** entre soumissions + **5 soumissions à vie** (`submitted_count`/`last_submitted_at`, gelées au trigger — ferme le cycle annuler/recréer→push illimité, audit 2026-09 H1)
+- Réservation manuelle (pro) : **30 / 24 h**
+
 ### Création de conversation
 - 10 demandes pending par sender (rolling, pas par heure — les pending occupent le quota)
 
@@ -1065,8 +1076,10 @@ Validation client :
 | reputation_votes (voter) | Supprimer | CASCADE |
 | reputation_votes (voted) | Supprimer | CASCADE |
 | peer_validations | Supprimer | CASCADE |
-| reports (reporter) | Anonymiser | SET NULL |
+| reports (reporter) | Anonymiser | SET NULL (**implémenté 00418** — était documenté mais NOT NULL sans ON DELETE depuis 00037 : suppression de compte bloquée à vie pour tout reporter, RGPD) |
 | reports (reported) | Conserver | RESTRICT |
+| bookings (client/pro) | Supprimer, contreparties futures NOTIFIÉES avant (00419) | CASCADE |
+| pro_availabilities | Supprimer | CASCADE |
 | blocked_users | Supprimer | CASCADE |
 | seat_requests | Supprimer | CASCADE |
 | activity_alerts | Supprimer | CASCADE |
@@ -1244,11 +1257,11 @@ Connue : 2 confirmed friends peuvent valider un no-show en activité 3-personnes
 Architecture :
 1. Le client appelle l'Edge Function `delete-user`
 2. L'Edge Function vérifie `auth.uid()` du JWT
-3. **Avant deleteUser :** annule toutes les activités `published`/`in_progress` (status → cancelled) + notifie les participants
+3. **Avant deleteUser :** annule toutes les activités `published`/`in_progress` (status → cancelled) + notifie les participants ; transfère/ferme les canaux créés (00412) ; **notifie les contreparties des réservations futures pending/accepted (00419 M1 : pro supprimé → tous ses clients ; client supprimé → le pro pour le confirmé seulement)**
 4. `supabase.auth.admin.deleteUser(userId)` avec `service_role`
 5. CASCADE / SET NULL applique la stratégie
 
-Pourquoi l'étape 3 : sans annulation préalable, CASCADE supprimerait silencieusement les activités en cours.
+Pourquoi l'étape 3 : sans annulation préalable, CASCADE supprimerait silencieusement les activités en cours (et les réservations futures — bypass trivial du garde `unregister_as_pro`, d'où les notifs ; on ne bloque jamais la suppression, RGPD).
 
 ---
 
@@ -1277,12 +1290,12 @@ Toute question de sécurité se réfère à ce document. Mis à jour au fil du d
 **Chaînes d'autorisation** :
 - `private.assert_approved_pro(uid)` (interne, REVOKE all) : tier='pro' + pro_profiles existe + status='approved' + non suspendu.
 - `set_pro_availability` : auth → assert_approved_pro → period ∈ am/pm → date [aujourd'hui, +6 mois] → upsert/delete own.
-- `create_booking` : auth → non suspendu → offre d'un pro approuvé/non suspendu/tier pro → ≠ soi → gate démo (pp.is_demo OR demo_content_visible) → blocage bidirectionnel → date bornée → créneau présent dans pro_availabilities → party_size ≤ LEAST(max_participants,50) → strip HTML → advisory lock `uid_booking` + caps **5 pending / 10 par 24 h** (le slot survit au decline — anti-oracle 00350) → resubmit façon seat_requests (reset si declined/cancelled/expired, `junto.booking_already` sinon, backstop unique_violation) → notif `booking_request` (copy générique, message client jamais dans title/body).
+- `create_booking` : auth → non suspendu → offre d'un pro approuvé/non suspendu/tier pro → ≠ soi → gate démo (pp.is_demo OR demo_content_visible) → blocage bidirectionnel → date bornée → créneau présent dans pro_availabilities → party_size ≤ LEAST(max_participants,50) → strip HTML → advisory lock `uid_booking` + caps **5 pending / 10 par 24 h** (le slot survit au decline — anti-oracle 00350) → resubmit façon seat_requests (reset si declined/cancelled/expired, `junto.booking_already` sinon, backstop unique_violation) + **anti-spam 00418 (H1) : cooldown 1 h entre soumissions du même créneau + plafond 5 soumissions/ligne à vie (`junto.booking_cooldown` ; colonnes `submitted_count`/`last_submitted_at` gelées au trigger whitelist)** → notif `booking_request` (copy générique, message client jamais dans title/body).
 - `create_manual_booking` : auth → assert_approved_pro → offre à soi → date bornée (dispo NON requise — son agenda) → party_size borné → strip name/phone → advisory lock + cap 30/24 h → INSERT direct `accepted`, sans notif ni conversation.
-- `accept_booking` : auth → non suspendu → FOR UPDATE → status=pending ∧ client_id NOT NULL → caller=pro_id → date non passée → client non suspendu → re-check blocage → UPDATE guardé (bypass, ROW_COUNT) → **DM : réutilise/réactive toute ligne de la paire ou crée active `initiated_from='booking'`** (invariant 00072 respecté : demande = consentement client, accept = consentement pro — consentements FRAIS, contrairement à reply_to_request) → message seed dans `messages` (metadata.type='booking_accepted') → notif `booking_accepted`. 'booking' est LOGISTIQUE (hors listes sociales 00372).
+- `accept_booking` : auth → **assert_approved_pro (00418 : un pro révoqué garde cancel, perd accept)** → FOR UPDATE → status=pending ∧ client_id NOT NULL → caller=pro_id → date non passée → client non suspendu → re-check blocage → UPDATE guardé (bypass, ROW_COUNT) → **DM : réutilise/réactive toute ligne de la paire (FOR UPDATE + backstop unique_violation) ; la RÉACTIVATION RETAGUE `initiated_from='booking'` + purge request_sender_id/request_message/pending_activity_id + un-hide des membres (00418 H2 : une demande sociale pending/declined ne devient JAMAIS un contact via le booking — le double consentement frais ne couvre que l'ouverture du fil, pas la classification sociale)** → message seed dans `messages` (metadata.type='booking_accepted') → notif `booking_accepted`. 'booking' est LOGISTIQUE (hors listes sociales 00372).
 - `decline_booking` : auth → FOR UPDATE → pending ∧ caller=pro → flip declined → **notif `booking_declined` (DÉVIATION ASSUMÉE du decline silencieux : logistique, pas social — copy neutre, sprint-booking.md)**.
-- `cancel_booking` (client, pending|accepted→cancelled, notif pro seulement si accepted) · `cancel_booking_pro` (pro, →cancelled_pro, notif client si accepted).
-- `get_pro_availability(pro)` : authed non suspendu → cible approuvée/non suspendue/gate démo/non bloquée → jours futurs only. `get_pro_agenda(from,to)` : own, ≤12 mois, expire les pending passés (lazy). `get_my_bookings()` : own client, expire lazy, renvoie le DM actif de la paire s'il existe.
+- `cancel_booking` (client, pending|accepted→cancelled, notif pro seulement si accepted) · `cancel_booking_pro` (pro, →cancelled_pro, notif client si accepted). **Dates passées refusées (00419)** ; suspension du caller non bloquante — DÉCISION Scott en attente (audit 2026-09).
+- `get_pro_availability(pro)` : authed non suspendu → cible approuvée **+ tier='pro' (00419)**/non suspendue/gate démo/non bloquée → jours futurs only. `get_pro_agenda(from,to)` : own, ≤12 mois, expire les pending passés (lazy). `get_my_bookings()` : own client, expire lazy, renvoie le DM actif de la paire s'il existe.
 - Garde-fous : `delete_pro_offering` + `unregister_as_pro` → `junto.offering_has_bookings` si réservations futures pending/accepted (sinon CASCADE silencieux).
 
-**Codes** : junto.booking_date / booking_slot_unavailable / booking_party_size / booking_message / booking_already / booking_pending_cap / booking_daily_cap / booking_manual_name / offering_has_bookings (i18n à livrer avec l'UI). **Notifs** : booking_request / booking_accepted / booking_declined / booking_cancelled — defaults + backfill 00168 ; push par défaut (branche ELSE 00117).
+**Codes** : junto.booking_date / booking_slot_unavailable / booking_party_size / booking_message / booking_already / booking_pending_cap / booking_daily_cap / booking_cooldown / booking_manual_name / offering_has_bookings (i18n FR+EN livrée). **Notifs** : booking_request / booking_accepted / booking_declined / booking_cancelled — defaults + backfill 00168 ; push par défaut (branche ELSE 00117).

@@ -375,3 +375,16 @@ Règles verrouillées :
 **Conséquences à surveiller :** les avis pro/offering avaient été conçus non-conditionnés PARCE QUE « pas de booking » (DECISIONS 2026-07) — à réexaminer post-v1 (avis réservés aux clients ayant réservé ?). `delete_pro_offering`/`unregister_as_pro` doivent refuser tant que des réservations futures existent. Pas de paiement in-app même en v2 (responsabilité légale sur les activités, structure juridique — position Scott ferme).
 
 **Périmètre v1 (validé sur le principe, chaînes en validation) :** `pro_availabilities` (demi-journées am/pm) + `bookings` (pending/accepted/declined/cancelled/cancelled_pro/expired), tout via SECURITY DEFINER, DM activé seulement à l'acceptation (double consentement frais), pas de décompte de capacité (le pro juge), notifs in-app uniquement.
+
+---
+
+## 2026-09-27 — Audit complet septembre : correctifs phases 1-3 + doctrines dégagées
+
+**Décision :** les trouvailles de l'audit 2026-09 (docs/AUDIT_2026-09.md) sont corrigées en 4 phases validées par Scott (« tout en phase par phase ») : 00418 (5 HIGH), 00419 (MEDIUM + one-liners), Phase 3 client, Phase 4 docs. Doctrines actées au passage :
+- **Retag logistique à la réactivation** : toute RPC logistique (booking 00418, covoit 00419) qui réactive un DM non-actif de la paire le RETAGUE (`initiated_from` logistique + purge des champs de requête) — un refus social ne devient jamais un contact par la logistique (extension de l'invariant 00372).
+- **DM logistique actif ⇒ éligibilité groupes/invitations** (is_messaging_eligible) : assumé, documenté dans SECURITY.md — la logistique partagée est un contexte réel suffisant.
+- **Privilèges colonnes** entrent dans l'arsenal (pro_profiles 00418) : quand une table mêle colonnes publiques et sensibles ET doit rester lisible en direct, REVOKE table + GRANT colonnes, owner/admin via RPC. (⚠️ REVOKE final real_name/rejection_reason différé jusqu'à production ≥ dbcf2ba — compat build « Brique 4a ».)
+- **URLs d'images : ancrage hôte partout** (pattern 00408 généralisé aux 6 setters pro).
+- **Anti-spam par ligne réutilisable** : quand une UNIQUE contrainte fait du resubmit un UPDATE (bookings, seat_requests), le rate-limit doit compter les ÉVÉNEMENTS (compteur + cooldown gelés au trigger), pas les lignes.
+
+**En attente Scott (3 décisions produit, listées dans AUDIT_2026-09.md)** : cancels suspendus · contre-mesure blanchiment d'avis (M5) · notif booking_expired.
