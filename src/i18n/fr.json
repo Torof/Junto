@@ -379,7 +379,8 @@
     "discovery": "Découverte",
     "channels": "Canaux",
     "mesActivites": "Mes sorties",
-    "proSpace": "Espace pro"
+    "proSpace": "Espace pro",
+    "myBookings": "Mes réservations"
   },
   "errors": {
     "network": "Problème de connexion — vérifie ton internet.",
@@ -484,7 +485,8 @@
       "booking_pending_cap": "Tu as déjà 5 demandes en attente — attends une réponse.",
       "booking_daily_cap": "Limite de demandes atteinte pour aujourd'hui.",
       "booking_manual_name": "Nom ou téléphone du client invalide.",
-      "offering_has_bookings": "Impossible : des réservations à venir existent encore."
+      "offering_has_bookings": "Impossible : des réservations à venir existent encore.",
+      "booking_cooldown": "Demande déjà renvoyée il y a peu — réessaie dans une heure."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",
@@ -1601,5 +1603,45 @@
     "pickEmpty": "Ta bibliothèque est vide. Crée une trace depuis le menu « Mes traces GPX ».",
     "shareTitle": "Partager la trace",
     "traceSent": "Trace envoyée"
+  },
+  "booking": {
+    "bookTitle": "Réserver",
+    "bookCta": "Réserver",
+    "myBookings": "Mes réservations",
+    "requestSent": "Demande envoyée au professionnel",
+    "pickSlotFirst": "Choisis un créneau disponible",
+    "noAvailability": "Ce professionnel n’a pas encore ouvert de disponibilités. Contacte-le depuis sa page.",
+    "slot": "Créneau",
+    "partySize": "Personnes",
+    "messageLabel": "Message (optionnel)",
+    "messagePlaceholder": "Niveau, questions, détails utiles…",
+    "submit": "Envoyer la demande",
+    "payOnSite": "Le professionnel confirme ta réservation — le paiement se fait sur place.",
+    "noSlotSelected": "Aucun créneau choisi",
+    "offeringGone": "Offre indisponible.",
+    "openChat": "Discuter",
+    "cancel": "Annuler",
+    "people": "pers.",
+    "cancelConfirmTitle": "Annuler cette réservation ?",
+    "cancelConfirmBody": "Le professionnel sera prévenu si elle était confirmée.",
+    "cancelledToast": "Réservation annulée",
+    "emptyTitle": "Aucune réservation",
+    "emptyBody": "Réserve une sortie encadrée depuis la page d’un professionnel sur la carte.",
+    "am": "matin",
+    "pm": "après-midi",
+    "perGroup": "/groupe",
+    "perPerson": "/pers.",
+    "legendAvailable": "Dispo",
+    "legendBooked": "Réservé",
+    "legendPending": "Demande",
+    "legendOff": "Indispo",
+    "status": {
+      "pending": "En attente",
+      "accepted": "Confirmée",
+      "declined": "Refusée",
+      "cancelled": "Annulée",
+      "cancelledPro": "Annulée par le pro",
+      "expired": "Expirée"
+    }
   }
 }

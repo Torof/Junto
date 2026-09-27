@@ -453,6 +453,7 @@ export type Database = {
           created_at: string
           day: string
           id: string
+          last_submitted_at: string
           manual_name: string | null
           manual_phone: string | null
           message: string | null
@@ -461,6 +462,7 @@ export type Database = {
           period: string
           pro_id: string
           status: string
+          submitted_count: number
           updated_at: string
         }
         Insert: {
@@ -468,6 +470,7 @@ export type Database = {
           created_at?: string
           day: string
           id?: string
+          last_submitted_at?: string
           manual_name?: string | null
           manual_phone?: string | null
           message?: string | null
@@ -476,6 +479,7 @@ export type Database = {
           period: string
           pro_id: string
           status?: string
+          submitted_count?: number
           updated_at?: string
         }
         Update: {
@@ -483,6 +487,7 @@ export type Database = {
           created_at?: string
           day?: string
           id?: string
+          last_submitted_at?: string
           manual_name?: string | null
           manual_phone?: string | null
           message?: string | null
@@ -491,6 +496,7 @@ export type Database = {
           period?: string
           pro_id?: string
           status?: string
+          submitted_count?: number
           updated_at?: string
         }
         Relationships: [
@@ -2279,7 +2285,7 @@ export type Database = {
           created_at: string
           id: string
           reason: string
-          reporter_id: string
+          reporter_id: string | null
           resolved_at: string | null
           status: string
           target_id: string
@@ -2290,7 +2296,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason: string
-          reporter_id: string
+          reporter_id?: string | null
           resolved_at?: string | null
           status?: string
           target_id: string
@@ -2301,7 +2307,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason?: string
-          reporter_id?: string
+          reporter_id?: string | null
           resolved_at?: string | null
           status?: string
           target_id?: string
@@ -3618,6 +3624,20 @@ export type Database = {
             }
             Returns: string
           }
+      admin_get_pending_pro_applications: {
+        Args: never
+        Returns: {
+          company_name: string
+          created_at: string
+          display_name: string
+          email: string
+          phone: string
+          primary_location_name: string
+          real_name: string
+          user_id: string
+          website: string
+        }[]
+      }
       admin_pro_owner: {
         Args: { p_pro_id: string }
         Returns: {
@@ -4342,6 +4362,32 @@ export type Database = {
           starts_at: string
         }[]
       }
+      get_my_pro_application: {
+        Args: never
+        Returns: {
+          company_name: string
+          created_at: string
+          description: string
+          display_name: string
+          email: string
+          facebook: string
+          instagram: string
+          last_location_change_at: string
+          phone: string
+          pin_icon: string
+          pin_image_url: string
+          primary_lat: number
+          primary_lng: number
+          primary_location_name: string
+          real_name: string
+          rejection_reason: string
+          status: string
+          tagline: string
+          updated_at: string
+          user_id: string
+          website: string
+        }[]
+      }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
       get_pending_contact_requests: {
         Args: never
@@ -4833,7 +4879,6 @@ export type Database = {
         Args: { p_available: boolean; p_day: string; p_period: string }
         Returns: undefined
       }
-      set_pro_banner: { Args: { p_banner_url: string }; Returns: undefined }
       set_pro_offering_photo_url: {
         Args: { p_photo_id: string; p_photo_url: string }
         Returns: undefined

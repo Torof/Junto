@@ -481,7 +481,8 @@
       "booking_pending_cap": "You already have 5 pending requests — wait for an answer.",
       "booking_daily_cap": "Request limit reached for today.",
       "booking_manual_name": "Invalid client name or phone.",
-      "offering_has_bookings": "Not possible: upcoming bookings still exist."
+      "offering_has_bookings": "Not possible: upcoming bookings still exist.",
+      "booking_cooldown": "You just re-sent this request — try again in an hour."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",
@@ -1637,6 +1638,10 @@
       "cancelled": "Cancelled",
       "cancelledPro": "Cancelled by the pro",
       "expired": "Expired"
-    }
+    },
+    "legendAvailable": "Open",
+    "legendBooked": "Booked",
+    "legendPending": "Requested",
+    "legendOff": "Off"
   }
 }

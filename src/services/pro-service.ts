@@ -4,7 +4,9 @@ export interface ProProfile {
   user_id: string;
   display_name: string;
   company_name: string | null;
-  real_name: string | null;
+  // Présents uniquement sur SA propre fiche (via get_my_pro_application) —
+  // les privilèges colonnes (00418) les cachent sur les fiches d'autrui.
+  real_name?: string | null;
   tagline: string | null;
   description: string | null;
   website: string | null;
@@ -18,7 +20,7 @@ export interface ProProfile {
   pin_image_url: string | null;
   pin_icon: string | null;
   status: 'pending' | 'approved' | 'rejected';
-  rejection_reason: string | null;
+  rejection_reason?: string | null;
   last_location_change_at: string;
   created_at: string;
   updated_at: string;
@@ -81,7 +83,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, company_name, real_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, rejection_reason, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, company_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, last_location_change_at, created_at, updated_at',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -90,12 +92,12 @@ export const proService = {
   },
 
   // Fetch the current user's own pro profile (or null if they're not
-  // a pro yet). Same query as getById but explicit so callers don't
-  // pass auth.uid around.
+  // a pro yet). Own row goes through the RPC: it carries real_name and
+  // rejection_reason, which column privileges hide from direct selects.
   getMine: async (): Promise<ProProfile | null> => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return null;
-    return proService.getById(userId);
+    const { data, error } = await supabase.rpc('get_my_pro_application');
+    if (error) throw error;
+    return (data?.[0] ?? null) as ProProfile | null;
   },
 
   register: async (input: RegisterAsProInput): Promise<void> => {
@@ -147,13 +149,9 @@ export const proService = {
     if (error) throw error;
   },
 
-  // --- Admin review (RLS lets admins read non-approved rows) ---
+  // --- Admin review (real_name est réservé au RPC admin depuis 00418) ---
   getPendingApplications: async (): Promise<PendingProApplication[]> => {
-    const { data, error } = await supabase
-      .from('pro_profiles')
-      .select('user_id, display_name, company_name, real_name, email, phone, website, primary_location_name, created_at')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true });
+    const { data, error } = await supabase.rpc('admin_get_pending_pro_applications');
     if (error) throw error;
     return (data ?? []) as PendingProApplication[];
   },
