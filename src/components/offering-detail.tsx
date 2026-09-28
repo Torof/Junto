@@ -200,6 +200,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     else router.push(`/(auth)/pro/${pro.user_id}`);
   };
 
+  // Réserver : fermer d'abord le drawer qui héberge la fiche (sinon le
+  // pop-up reste au-dessus de l'écran de réservation — retour Scott 2026-09-28).
+  const goBook = (query = '') => {
+    onClose?.();
+    router.push(`/(auth)/pro/book/${offering.id}${query}`);
+  };
+
   const body = (
     <>
       {/* Header — measured so the drawer peek stops just below it. */}
@@ -334,7 +341,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                   <PressableScale
                     key={`${sl.day}|${sl.period}`}
                     style={styles.slotChip}
-                    onPress={() => router.push(`/(auth)/pro/book/${offering.id}?day=${sl.day}&period=${sl.period}`)}
+                    onPress={() => goBook(`?day=${sl.day}&period=${sl.period}`)}
                   >
                     <Text style={styles.slotChipDay}>{dayjs(sl.day).locale('fr').format('ddd D')}</Text>
                     <Text style={styles.slotChipPeriod}>
@@ -349,7 +356,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                 );
               })}
               {moreSlots > 0 && (
-                <PressableScale style={styles.slotChipMore} onPress={() => router.push(`/(auth)/pro/book/${offering.id}`)}>
+                <PressableScale style={styles.slotChipMore} onPress={() => goBook()}>
                   <Text style={styles.slotChipMoreText}>+ {moreSlots} ›</Text>
                 </PressableScale>
               )}
@@ -359,7 +366,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
         <PressableScale
           style={[styles.bookBtn, glow(colors.cta)]}
-          onPress={() => router.push(`/(auth)/pro/book/${offering.id}`)}
+          onPress={() => goBook()}
         >
           <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
         </PressableScale>
