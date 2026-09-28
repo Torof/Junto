@@ -30,7 +30,7 @@ export const darkColors = {
   // WARM: Mapbox geography tones are cool/desaturated, so a cool
   // stone (#DCD8D0, rejected on-device) blended into terrain while
   // warmth reads as a designed element.
-  pinFrame: '#E0D2B4',
+  pinFrame: '#1F1A15', // encre — silhouette UA par défaut (Scott 2026-09-28) ; jaune/vert de statut inchangés
   // Pro family pins (PP storefront + RA offerings) — the SAME blue as
   // the pro tier badge on profiles (= pinMeeting), Scott's call
   // 2026-06-11: one color, one meaning ("pro") across surfaces, so the
@@ -46,7 +46,7 @@ export const darkColors = {
   // at matching lightness, so RA ≠ UA registers without shouting and rhymes
   // with the blue PRO capsule. Deliberately more blue-chroma than the neutral
   // cool stone (#DCD8D0) rejected on-device for blending into Mapbox terrain.
-  pinProFrame: '#BFCFE0',
+  pinProFrame: '#3b82f6', // bleu pro plein (= capsule PRO, « une couleur = un sens »)
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
@@ -109,10 +109,10 @@ export const lightColors = {
 
   pinBackground: '#FFFFFF',
   pinBorder: '#1F1A15',
-  pinFrame: '#E0D2B4',
+  pinFrame: '#1F1A15', // encre — silhouette UA par défaut (Scott 2026-09-28) ; jaune/vert de statut inchangés
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
-  pinProFrame: '#BFCFE0',
+  pinProFrame: '#3b82f6', // bleu pro plein (= capsule PRO, « une couleur = un sens »)
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
