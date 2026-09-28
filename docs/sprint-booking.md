@@ -118,7 +118,19 @@ Méthode : maquette artifact → validation → RN.
   (pré-sélection) · Mes réservations (À venir/Passées + carte billet lieu+prix).
   NON inclus (question ignorée = non, réf. maquette) : fiabilité client sur la
   demande ; drag-paint des dispos (2ᵉ temps si besoin confirmé).
-- ⏳ v1.5/P2 (backlog, cf. CONCURRENCE.md table-stakes) : fiche participant
-  (poids/pointure) · lien de réservation partageable · synchro iCal · report météo
-  en un geste · question acompte sans paiement in-app · fiabilité client visible
-  sur la demande (idée validée nulle part encore).
+- 🧭 2026-09-28 : **observation du système pro + cadrage des chantiers** (artifacts
+  systeme-pro-observation + chantiers-pro-cadrage, arbitrés par Scott) :
+  RETENUS, dans l'ordre — **A** matériel nécessaire sur l'offre (fourni / à apporter,
+  2 jsonb sur pro_offerings, rappel dans le billet client) · **B** fiche participant
+  (champs par offre, remplie À L'ACCEPTATION, visible fiche jour) · **C** carnet
+  clients simple (dérivé des bookings, notes privées pro-only, 3 stats) ·
+  **E1+E3** pont web (page publique anon-safe curée + flux iCal token — revue
+  adverse avant mise en ligne) · **D** la voix du pro (posts, audience = favoris
+  00342 ± anciens clients, cap 2/sem) · **E2** booking web sans compte (APRÈS
+  décision (a)/(b) de Scott). PARKÉ : report météo en un geste. PAS BESOIN
+  (Scott) : au-delà — la barre qualité = « le guide de 55 ans gants aux mains ».
+  Décisions ouvertes listées dans l'artifact cadrage (seed chat matériel,
+  fiche bloquante ou souple, RGPD notes, audience voix, (a)/(b) web).
+- ⏳ v1.5/P2 restants hors chantiers ci-dessus : question acompte sans paiement
+  in-app (champ conditions — intégrable au chantier A/E1) · fiabilité client
+  visible sur la demande (toujours en attente de décision) · report météo (parké).
