@@ -204,7 +204,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   bg: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     ...shadows.sheet,
@@ -213,7 +213,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     paddingBottom: 6,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     borderTopWidth: 1,

@@ -90,7 +90,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
       >
         <Path
           d={`${contour} V ${TAB_H + OVERLAP} H 0 Z`}
-          fill={colors.surfaceAlt}
+          fill={colors.surface}
         />
         <Path d={contour} fill="none" stroke={colors.pinBorder} strokeWidth={1} />
       </Svg>
@@ -347,7 +347,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // No border on the background — the svg contour IS the line (a bg border
   // would run under the tab and reintroduce the stray pixels).
   sheetBackground: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },

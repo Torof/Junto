@@ -155,7 +155,7 @@ export function ProSheet({ userId, onClose, onOpenOffering }: Props) {
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
     bg: {
-      backgroundColor: colors.surfaceAlt,
+      backgroundColor: colors.surface,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
       // Depth over the map — heavy sheet dose so the top edge actually reads.
@@ -165,7 +165,7 @@ const createStyles = (colors: AppColors) =>
       alignItems: 'center',
       paddingTop: 10,
       paddingBottom: 6,
-      backgroundColor: colors.surfaceAlt,
+      backgroundColor: colors.surface,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
       // Very thin lip border along the drawer's top edge (Scott, trial —
