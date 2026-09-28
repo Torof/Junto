@@ -300,12 +300,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 82, marginTop: spacing.xs,
   },
   stepBtn: {
-    width: 36, height: 36, borderRadius: radius.full, backgroundColor: colors.surface,
+    width: 36, height: 36, borderRadius: radius.full, backgroundColor: colors.surfaceAlt,
     alignItems: 'center', justifyContent: 'center',
   },
   stepVal: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', minWidth: 26, textAlign: 'center' },
   input: {
-    backgroundColor: colors.surface, borderRadius: radius.card - 4,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3,
     color: colors.textPrimary, fontSize: fontSizes.sm + 1,
     minHeight: 72, textAlignVertical: 'top', marginTop: spacing.xs,

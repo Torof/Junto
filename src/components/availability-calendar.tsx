@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing } from '@/constants/theme';
+import { fontSizes, spacing, shadows } from '@/constants/theme';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import type { BookingPeriod } from '@/services/booking-service';
 
@@ -184,7 +184,7 @@ export function AvailabilityCalendar({
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: 18, padding: spacing.md },
+  card: { backgroundColor: colors.surface, borderRadius: 18, padding: spacing.md, ...shadows.card },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   monthLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', textTransform: 'capitalize' },
   dowRow: { flexDirection: 'row', marginBottom: 4 },
