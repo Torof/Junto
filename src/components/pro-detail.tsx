@@ -990,9 +990,9 @@ function ActionButton({
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceAlt },
+  container: { flex: 1, backgroundColor: colors.surface },
   scrollContent: { paddingBottom: spacing.xl },
-  tabBarSticky: { backgroundColor: colors.surfaceAlt },
+  tabBarSticky: { backgroundColor: colors.surface },
   sheetHeader: {
     paddingHorizontal: spacing.lg,
     paddingTop: 2,
@@ -1021,7 +1021,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   reviewSummary: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewAvg: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
   reviewCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  headerPhotos: { flexGrow: 0, backgroundColor: colors.surfaceAlt, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headerPhotos: { flexGrow: 0, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.line },
   photoRow: { gap: PHOTO_GAP, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, alignItems: 'flex-start' },
   photoStackCol: { gap: PHOTO_GAP },
   photoBig: { width: PHOTO_H, height: PHOTO_H, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, ...shadows.card },

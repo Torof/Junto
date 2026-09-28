@@ -457,7 +457,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceAlt },
+  container: { flex: 1, backgroundColor: colors.surface },
   scrollContent: { paddingBottom: spacing.xl + 32 },
   header: {
     paddingHorizontal: spacing.lg,

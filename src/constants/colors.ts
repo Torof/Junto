@@ -76,13 +76,17 @@ export const darkColors = {
 // Pins, semantic colors (success/error/warning) and CTA hue left as the
 // validated tokens; only the canvas, surfaces and neutral greys warm.
 export const lightColors = {
-  // Contraste « pop » (Scott 2026-09-28, option B validée sur maquette) :
-  // surfaces BLANCHES sur fond crème soutenu — l'écart de luminosité fait le
-  // relief (les ombres chaudes redeviennent visibles), le fond porte
-  // l'identité. Remplace le crème-sur-crème écrasé (#F5EEDF/#EDE4D2/#E3D9C4).
-  background: '#F0E7D0',
+  // Thème BLANC (Scott 2026-09-28, décision ferme après essai option B) :
+  // « très blanc, sur tout » — fond et surfaces blancs, le relief vient des
+  // ombres ; surfaceAlt = gris chaud très clair pour les insets, placeholders
+  // d'images, segmentés et cases fermées du calendrier. L'ère crème est finie
+  // (v1 #F5EEDF/#EDE4D2/#E3D9C4, option B transitoire #F0E7D0/#FFF/#E4D9BD).
+  // Casse attendue : les éléments qui comptaient sur le crème pour se
+  // détacher (boutons ronds fond `background` posés sur cartes, etc.) —
+  // réparations au fil de l'eau, décision Scott assumée.
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceAlt: '#E4D9BD',
+  surfaceAlt: '#F1EFEA',
   cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
