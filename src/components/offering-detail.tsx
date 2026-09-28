@@ -6,6 +6,8 @@ import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
@@ -18,6 +20,7 @@ import { useAuth } from '@/hooks/use-auth';
 import type { ProOffering } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
 import { proCommunityPhotoService } from '@/services/pro-photo-service';
+import { bookingService } from '@/services/booking-service';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { reviewService } from '@/services/review-service';
 import { pickAndUploadProOfferingPhotos, removeProOfferingPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
@@ -80,6 +83,16 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const { data: photos = [] } = useProOfferingPhotos(offering.id);
   // Community photos attached to THIS offering — everyone can contribute
   // (Scott 2026-07-10), same Google-Maps model as the pro profile page.
+  // Prochaines dispos du pro (maquette booking v2) — 3 puces + « +N ».
+  const { data: proSlots } = useQuery({
+    queryKey: ['pro-availability', offering.pro_id],
+    queryFn: () => bookingService.getProAvailability(offering.pro_id),
+  });
+  const nextSlots = (proSlots ?? [])
+    .filter((sl) => offering.max_participants == null || offering.max_participants - sl.taken > 0)
+    .slice(0, 3);
+  const moreSlots = Math.max(0, (proSlots ?? []).length - nextSlots.length);
+
   const { data: communityPhotos = [] } = useQuery({
     queryKey: ['offering-community-photos', offering.id],
     queryFn: () => proCommunityPhotoService.listByOffering(offering.id),
@@ -311,6 +324,39 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         </View>
         {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
+        {nextSlots.length > 0 && (
+          <>
+            <Text style={styles.slotsLabel}>{t('booking.nextAvail', { defaultValue: 'Prochaines disponibilités' })}</Text>
+            <View style={styles.slotsRow}>
+              {nextSlots.map((sl) => {
+                const free = offering.max_participants != null ? offering.max_participants - sl.taken : null;
+                return (
+                  <PressableScale
+                    key={`${sl.day}|${sl.period}`}
+                    style={styles.slotChip}
+                    onPress={() => router.push(`/(auth)/pro/book/${offering.id}?day=${sl.day}&period=${sl.period}`)}
+                  >
+                    <Text style={styles.slotChipDay}>{dayjs(sl.day).locale('fr').format('ddd D')}</Text>
+                    <Text style={styles.slotChipPeriod}>
+                      {sl.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
+                    </Text>
+                    {free != null && (
+                      <Text style={styles.slotChipFree}>
+                        {t('booking.chipFree', { defaultValue: 'reste {{count}} pl.', count: free })}
+                      </Text>
+                    )}
+                  </PressableScale>
+                );
+              })}
+              {moreSlots > 0 && (
+                <PressableScale style={styles.slotChipMore} onPress={() => router.push(`/(auth)/pro/book/${offering.id}`)}>
+                  <Text style={styles.slotChipMoreText}>+ {moreSlots} ›</Text>
+                </PressableScale>
+              )}
+            </View>
+          </>
+        )}
+
         <PressableScale
           style={[styles.bookBtn, glow(colors.cta)]}
           onPress={() => router.push(`/(auth)/pro/book/${offering.id}`)}
@@ -439,6 +485,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
+  slotsLabel: {
+    color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
+    textTransform: 'uppercase', letterSpacing: 0.6, marginTop: spacing.md, marginBottom: spacing.sm,
+  },
+  slotsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, alignItems: 'center' },
+  slotChip: {
+    backgroundColor: colors.cta + '14', borderRadius: radius.card - 4,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm, alignItems: 'center',
+  },
+  slotChipDay: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '800', textTransform: 'capitalize' },
+  slotChipPeriod: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600', opacity: 0.9 },
+  slotChipFree: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, fontWeight: '700', marginTop: 2 },
+  slotChipMore: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
+  slotChipMoreText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   bookBtn: {
     backgroundColor: colors.cta, borderRadius: radius.full,
     paddingVertical: spacing.sm + 5, alignItems: 'center',

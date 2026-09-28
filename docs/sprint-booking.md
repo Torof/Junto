@@ -103,6 +103,21 @@ Méthode : maquette artifact → validation → RN.
   entrée menu ; routage notifications booking_* (request→agenda pro,
   accepted→conversation, declined/cancelled→bon écran selon data.by). Clés EN.
   **La boucle booking P1 est COMPLÈTE de bout en bout.**
+- ✅ 2026-09-28 : **UX v2 shippée preview** (maquette validée par Scott — artifact
+  booking-ux-v2, 3 principes : consulter ≠ éditer · hub = tableau de bord · créneaux
+  avant calendrier ; + retours Scott : teinte univers-sport sur les créneaux réservés,
+  places prises/libres côté client). Mig 00421 (get_pro_availability+taken,
+  agenda/bookings enrichis sport+lieu+prix, set_pro_availability_bulk). RN :
+  AvailabilityCalendar modes view/edit/pick + couleurs sport + initiales client ·
+  Agenda lecture par défaut + fiche jour (clients, tél, fermer créneau, résa
+  pré-datée) + mode édition (bannière + raccourcis week-ends/mois/semaine-type/
+  tout-fermer) + confirmations refuse/annule · Espace pro dashboard (aujourd'hui
+  actionnable, 1ʳᵉ demande inline, tuiles badgées) · badge demandes sur l'entrée
+  Menu · flux client (liste créneaux + capacité + « Complet » grisé + calendrier
+  repliable + récap prix indicatif) · puces prochaines dispos sur l'offre
+  (pré-sélection) · Mes réservations (À venir/Passées + carte billet lieu+prix).
+  NON inclus (question ignorée = non, réf. maquette) : fiabilité client sur la
+  demande ; drag-paint des dispos (2ᵉ temps si besoin confirmé).
 - ⏳ v1.5/P2 (backlog, cf. CONCURRENCE.md table-stakes) : fiche participant
   (poids/pointure) · lien de réservation partageable · synchro iCal · report météo
   en un geste · question acompte sans paiement in-app · fiabilité client visible

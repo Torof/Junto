@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Send, Minus, Plus } from 'lucide-react-native';
+import { Send, Minus, Plus, CalendarDays, Lock } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
@@ -24,7 +24,9 @@ export default function BookOfferingScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { offeringId } = useLocalSearchParams<{ offeringId: string }>();
+  const { offeringId, day: presetDay, period: presetPeriod } = useLocalSearchParams<{
+    offeringId: string; day?: string; period?: string;
+  }>();
 
   const { data: offering, isLoading: offeringLoading } = useQuery({
     queryKey: ['offering', offeringId],
@@ -38,17 +40,36 @@ export default function BookOfferingScreen() {
     enabled: !!offering?.pro_id,
   });
 
-  const slotSet = useMemo(
-    () => new Set((slots ?? []).map((s) => `${s.day}|${s.period}`)),
-    [slots],
-  );
+  const maxParty = Math.min(offering?.max_participants ?? 50, 50);
 
-  const [selected, setSelected] = useState<{ day: string; period: BookingPeriod } | null>(null);
+  // Places restantes par créneau — INFORMATIF (la capacité ne bloque pas en
+  // DB, le pro reste juge) : « Complet » grise le créneau côté client.
+  const slotInfo = useMemo(() => {
+    const map = new Map<string, { taken: number; free: number | null }>();
+    for (const s of slots ?? []) {
+      const free = offering?.max_participants != null
+        ? Math.max(0, offering.max_participants - s.taken)
+        : null;
+      map.set(`${s.day}|${s.period}`, { taken: s.taken, free });
+    }
+    return map;
+  }, [slots, offering?.max_participants]);
+
+  const [selected, setSelected] = useState<{ day: string; period: BookingPeriod } | null>(() =>
+    presetDay && (presetPeriod === 'am' || presetPeriod === 'pm')
+      ? { day: presetDay, period: presetPeriod }
+      : null,
+  );
   const [partySize, setPartySize] = useState(2);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  const maxParty = Math.min(offering?.max_participants ?? 50, 50);
+  // Liste des prochains créneaux (maquette v2) : le calendrier passe en appui.
+  const nextSlots = useMemo(
+    () => [...(slots ?? [])].sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period)).slice(0, 6),
+    [slots],
+  );
 
   const submit = async () => {
     if (!offeringId || !selected) {
@@ -77,11 +98,25 @@ export default function BookOfferingScreen() {
     );
   }
 
-  const periodText = selected
-    ? `${dayjs(selected.day).locale('fr').format('ddd D MMM')} · ${selected.period === 'am'
-        ? t('booking.am', { defaultValue: 'matin' })
-        : t('booking.pm', { defaultValue: 'après-midi' })}`
-    : t('booking.noSlotSelected', { defaultValue: 'Aucun créneau choisi' });
+  const periodName = (p: BookingPeriod) =>
+    p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
+
+  const freeLabel = (day: string, period: BookingPeriod): { text: string; full: boolean } => {
+    const info = slotInfo.get(`${day}|${period}`);
+    if (!info || info.free == null) {
+      return info && info.taken > 0
+        ? { text: t('booking.slotTaken', { defaultValue: '{{count}} pers. déjà inscrites', count: info.taken }), full: false }
+        : { text: t('booking.slotFree', { defaultValue: 'Créneau libre' }), full: false };
+    }
+    if (info.free === 0) return { text: t('booking.slotFull', { defaultValue: 'Complet — {{max}}/{{max}}', max: offering.max_participants }), full: true };
+    if (info.taken === 0) return { text: t('booking.slotAllFree', { defaultValue: '{{count}} places libres', count: info.free }), full: false };
+    return { text: t('booking.slotPartial', { defaultValue: '{{taken}} prises · reste {{free}}', taken: info.taken, free: info.free }), full: false };
+  };
+
+  // Prix indicatif du récap.
+  const estimate = offering.price_eur != null
+    ? offering.price_unit === 'group' ? offering.price_eur : offering.price_eur * partySize
+    : null;
 
   return (
     <View style={styles.container}>
@@ -110,17 +145,53 @@ export default function BookOfferingScreen() {
           </View>
         ) : (
           <>
-            <AvailabilityCalendar
-              mode="pick"
-              slotState={(day, period) => ({ available: slotSet.has(`${day}|${period}`) })}
-              onPick={(day, period) => setSelected({ day, period })}
-              selected={selected}
-            />
-
-            <View style={styles.pickRow}>
-              <Text style={styles.fieldLabel}>{t('booking.slot', { defaultValue: 'Créneau' })}</Text>
-              <Text style={[styles.slotText, selected && styles.slotTextOn]}>{periodText}</Text>
+            <Text style={styles.sectionLabel}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</Text>
+            <View style={styles.slotCard}>
+              {nextSlots.map((s, i) => {
+                const isOn = selected?.day === s.day && selected?.period === s.period;
+                const { text, full } = freeLabel(s.day, s.period);
+                return (
+                  <PressableScale
+                    key={`${s.day}|${s.period}`}
+                    style={[styles.slotRow, i > 0 && styles.slotSep, full && styles.slotFull]}
+                    onPress={() => setSelected({ day: s.day, period: s.period })}
+                    disabled={full}
+                    accessibilityState={{ selected: isOn, disabled: full }}
+                  >
+                    <View style={[styles.radio, isOn && styles.radioOn]} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={styles.slotDay}>{dayjs(s.day).locale('fr').format('ddd D MMMM')}</Text>
+                      <Text style={[styles.slotCap, full && { color: colors.textMuted }]}>{text}</Text>
+                    </View>
+                    <View style={[styles.periodPill, full && styles.periodPillOff]}>
+                      <Text style={[styles.periodPillText, full && { color: colors.textMuted }]}>{periodName(s.period)}</Text>
+                    </View>
+                  </PressableScale>
+                );
+              })}
+              <PressableScale style={styles.calToggle} onPress={() => setShowCalendar((v) => !v)}>
+                <CalendarDays size={15} color={colors.cta} strokeWidth={2.2} />
+                <Text style={styles.calToggleText}>
+                  {showCalendar
+                    ? t('booking.hideCalendar', { defaultValue: 'Masquer le calendrier' })
+                    : t('booking.pickOnCalendar', { defaultValue: 'Choisir sur le calendrier' })}
+                </Text>
+              </PressableScale>
             </View>
+
+            {showCalendar && (
+              <View style={{ marginTop: spacing.sm }}>
+                <AvailabilityCalendar
+                  mode="pick"
+                  slotState={(day, period) => {
+                    const info = slotInfo.get(`${day}|${period}`);
+                    return { available: !!info && (info.free == null || info.free > 0) };
+                  }}
+                  onPick={(day, period) => setSelected({ day, period })}
+                  selected={selected}
+                />
+              </View>
+            )}
 
             <View style={styles.pickRow}>
               <Text style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</Text>
@@ -144,6 +215,37 @@ export default function BookOfferingScreen() {
               maxLength={500}
             />
 
+            <View style={styles.recap}>
+              <View style={styles.recapLine}>
+                <Text style={styles.recapKey}>{t('booking.recapOffering', { defaultValue: 'Sortie' })}</Text>
+                <Text style={styles.recapVal} numberOfLines={1}>{offering.title}</Text>
+              </View>
+              <View style={styles.recapLine}>
+                <Text style={styles.recapKey}>{t('booking.slot', { defaultValue: 'Créneau' })}</Text>
+                <Text style={styles.recapVal}>
+                  {selected
+                    ? `${dayjs(selected.day).locale('fr').format('ddd D MMM')} · ${periodName(selected.period)}`
+                    : t('booking.noSlotSelected', { defaultValue: 'Aucun créneau choisi' })}
+                </Text>
+              </View>
+              <View style={styles.recapLine}>
+                <Text style={styles.recapKey}>{t('booking.recapGroup', { defaultValue: 'Groupe' })}</Text>
+                <Text style={styles.recapVal}>{partySize} {t('booking.people', { defaultValue: 'pers.' })}</Text>
+              </View>
+              {estimate != null && (
+                <View style={styles.recapLine}>
+                  <Text style={styles.recapKey}>{t('booking.recapPrice', { defaultValue: 'Prix indicatif' })}</Text>
+                  <Text style={styles.recapVal}>{estimate} €</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.payNote}>
+              <Lock size={13} color={colors.textMuted} strokeWidth={2.2} />
+              <Text style={styles.finePrint}>
+                {t('booking.payOnSite', { defaultValue: 'Le professionnel confirme ta réservation — le paiement se fait sur place.' })}
+              </Text>
+            </View>
+
             <PressableScale
               style={[styles.submit, glow(colors.cta), (!selected || sending) && styles.disabled]}
               onPress={submit}
@@ -154,9 +256,6 @@ export default function BookOfferingScreen() {
                 {sending ? '…' : t('booking.submit', { defaultValue: 'Envoyer la demande' })}
               </Text>
             </PressableScale>
-            <Text style={styles.finePrint}>
-              {t('booking.payOnSite', { defaultValue: 'Le professionnel confirme ta réservation — le paiement se fait sur place.' })}
-            </Text>
           </>
         )}
       </ScrollView>
@@ -178,13 +277,28 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headSub: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, marginTop: 1 },
   emptyCard: { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.lg, ...shadows.card },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.sm + 1, lineHeight: 21, textAlign: 'center' },
+  sectionLabel: {
+    color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
+    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: spacing.sm,
+  },
+  slotCard: { backgroundColor: colors.surface, borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, ...shadows.card },
+  slotRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, paddingVertical: spacing.sm + 3 },
+  slotSep: { borderTopWidth: 1, borderTopColor: colors.textMuted + '1F' },
+  slotFull: { opacity: 0.55 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: colors.textMuted },
+  radioOn: { borderColor: colors.cta, backgroundColor: colors.cta },
+  slotDay: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700', textTransform: 'capitalize' },
+  slotCap: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
+  periodPill: { backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
+  periodPillOff: { backgroundColor: colors.textMuted + '22' },
+  periodPillText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
+  calToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.sm + 2 },
+  calToggleText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
   fieldLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 82, marginTop: spacing.xs,
   },
-  slotText: { color: colors.textSecondary, fontSize: fontSizes.sm, flex: 1 },
-  slotTextOn: { color: colors.textPrimary, fontWeight: '700' },
   stepBtn: {
     width: 36, height: 36, borderRadius: radius.full, backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center',
@@ -196,12 +310,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary, fontSize: fontSizes.sm + 1,
     minHeight: 72, textAlignVertical: 'top', marginTop: spacing.xs,
   },
+  recap: { backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4, padding: spacing.md, marginTop: spacing.md },
+  recapLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 3, gap: spacing.md },
+  recapKey: { color: colors.textSecondary, fontSize: fontSizes.sm - 1 },
+  recapVal: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700', flexShrink: 1 },
+  payNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: spacing.sm, paddingHorizontal: 2 },
   submit: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
     backgroundColor: colors.cta, borderRadius: radius.full,
-    paddingVertical: spacing.sm + 5, marginTop: spacing.lg,
+    paddingVertical: spacing.sm + 5, marginTop: spacing.md,
   },
   submitText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   disabled: { opacity: 0.45 },
-  finePrint: { color: colors.textMuted, fontSize: fontSizes.xs + 1, textAlign: 'center', marginTop: spacing.sm },
+  finePrint: { flex: 1, color: colors.textMuted, fontSize: fontSizes.xs + 1, lineHeight: 17 },
 });

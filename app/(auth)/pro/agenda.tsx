@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput, Platform } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput, Platform, Alert } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, Send, X } from 'lucide-react-native';
+import { Plus, Phone, Send, X, Pencil, Check, MessageCircle } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, glow } from '@/constants/theme';
@@ -17,22 +17,32 @@ import { proOfferingService } from '@/services/pro-offering-service';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { UserAvatar } from '@/components/user-avatar';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 
 type TFn = (key: string, options?: { defaultValue?: string }) => string;
 const periodLabel = (p: BookingPeriod, t: TFn) =>
   p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
 
+// Initials for the calendar half-day label ("Famille Perrin" → "FP").
+const initials = (name: string | null): string => {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => (p[0] ?? '').toUpperCase()).join('');
+};
+
 export default function ProAgendaScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
+  const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id ?? null;
   const queryClient = useQueryClient();
 
   const [monthStart, setMonthStart] = useState(() => dayjs().startOf('month').format('YYYY-MM-DD'));
-  // Agenda window: the visible month, elargie d'un mois de chaque côté pour que
+  // Agenda window: the visible month, élargie d'un mois de chaque côté pour que
   // les compteurs restent justes en navigation rapide.
   const from = dayjs(monthStart).subtract(1, 'month').format('YYYY-MM-DD');
   const to = dayjs(monthStart).add(2, 'month').format('YYYY-MM-DD');
@@ -50,19 +60,38 @@ export default function ProAgendaScreen() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pro-agenda'] });
 
+  // Consulter ≠ éditer (maquette 2026-09-28) : lecture par défaut, édition explicite.
+  const [editMode, setEditMode] = useState(false);
+  const [sheetDay, setSheetDay] = useState<string | null>(null);
+
   // Index (day|period) → slot state for the calendar.
   const slotIndex = useMemo(() => {
-    const map = new Map<string, { available: boolean; accepted: number; pending: number }>();
+    const map = new Map<string, {
+      available: boolean; accepted: number; pending: number;
+      label: string | null; sportCategory: string | null;
+    }>();
     for (const it of agenda ?? []) {
       const key = `${it.day}|${it.period}`;
-      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0 };
+      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, label: null, sportCategory: null };
       if (it.kind === 'availability') cur.available = true;
-      else if (it.status === 'accepted') cur.accepted += 1;
-      else if (it.status === 'pending') cur.pending += 1;
+      else if (it.status === 'accepted') {
+        cur.accepted += 1;
+        cur.label = cur.accepted > 1 ? `+${cur.accepted}` : initials(it.client_name);
+        cur.sportCategory = it.sport_category;
+      } else if (it.status === 'pending') {
+        cur.pending += 1;
+        if (cur.accepted === 0) {
+          cur.label = `${initials(it.client_name)}?`;
+          cur.sportCategory = it.sport_category;
+        }
+      }
       map.set(key, cur);
     }
     return map;
   }, [agenda]);
+
+  const slotState = (day: string, period: BookingPeriod) =>
+    slotIndex.get(`${day}|${period}`) ?? { available: false };
 
   const handleToggle = async (day: string, period: BookingPeriod, next: boolean) => {
     try {
@@ -71,6 +100,99 @@ export default function ProAgendaScreen() {
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
 
+  // ----- Raccourcis d'ouverture (mode édition) -----
+  const bulkOpen = async (slots: { day: string; period: BookingPeriod }[], successMsg: string) => {
+    // N'ouvre que les créneaux futurs, pas déjà ouverts, sans réservation.
+    const todo = slots.filter(({ day, period }) => {
+      if (day < dayjs().format('YYYY-MM-DD')) return false;
+      const st = slotIndex.get(`${day}|${period}`);
+      return !st?.available && !(st && (st.accepted > 0 || st.pending > 0));
+    });
+    if (todo.length === 0) {
+      Burnt.toast({ title: t('booking.bulkNothing', { defaultValue: 'Rien à ouvrir' }) });
+      return;
+    }
+    try {
+      await bookingService.setAvailabilityBulk(todo, true);
+      Burnt.toast({ title: successMsg, preset: 'done' });
+      await invalidate();
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  };
+
+  const monthDays = useMemo(() => {
+    const start = dayjs(monthStart);
+    return Array.from({ length: start.daysInMonth() }, (_, i) => start.date(i + 1));
+  }, [monthStart]);
+
+  const openWeekends = () => {
+    const slots = monthDays
+      .filter((d) => d.day() === 0 || d.day() === 6)
+      .flatMap((d) => (['am', 'pm'] as BookingPeriod[]).map((period) => ({ day: d.format('YYYY-MM-DD'), period })));
+    void bulkOpen(slots, t('booking.bulkWeekendsDone', { defaultValue: 'Week-ends ouverts' }));
+  };
+
+  const openWholeMonth = () => {
+    const slots = monthDays
+      .flatMap((d) => (['am', 'pm'] as BookingPeriod[]).map((period) => ({ day: d.format('YYYY-MM-DD'), period })));
+    void bulkOpen(slots, t('booking.bulkMonthDone', { defaultValue: 'Mois ouvert' }));
+  };
+
+  // « Copier la semaine passée » : reprend le motif hebdo (jour de semaine ×
+  // période) des 7 derniers jours — dispos ET jours travaillés (résas) — et
+  // l'applique aux 4 prochaines semaines.
+  const copyLastWeek = () => {
+    const pattern = new Set<string>(); // 'dow|period'
+    for (const it of agenda ?? []) {
+      const d = dayjs(it.day);
+      if (d.isBefore(dayjs().subtract(7, 'day'), 'day') || !d.isBefore(dayjs(), 'day')) continue;
+      if (it.kind === 'availability' || it.status === 'accepted') pattern.add(`${d.day()}|${it.period}`);
+    }
+    if (pattern.size === 0) {
+      Burnt.toast({ title: t('booking.bulkNoPattern', { defaultValue: 'Aucune dispo la semaine passée' }) });
+      return;
+    }
+    const slots: { day: string; period: BookingPeriod }[] = [];
+    for (let i = 0; i < 28; i++) {
+      const d = dayjs().add(i, 'day');
+      for (const period of ['am', 'pm'] as BookingPeriod[]) {
+        if (pattern.has(`${d.day()}|${period}`)) slots.push({ day: d.format('YYYY-MM-DD'), period });
+      }
+    }
+    void bulkOpen(slots, t('booking.bulkCopyDone', { defaultValue: 'Semaine type appliquée (4 semaines)' }));
+  };
+
+  const closeMonth = () => {
+    const slots = monthDays
+      .flatMap((d) => (['am', 'pm'] as BookingPeriod[]).map((period) => ({ day: d.format('YYYY-MM-DD'), period })))
+      .filter(({ day, period }) => {
+        if (day < dayjs().format('YYYY-MM-DD')) return false;
+        const st = slotIndex.get(`${day}|${period}`);
+        return !!st?.available && !(st.accepted > 0 || st.pending > 0);
+      });
+    if (slots.length === 0) {
+      Burnt.toast({ title: t('booking.bulkNothingClose', { defaultValue: 'Rien à fermer' }) });
+      return;
+    }
+    Alert.alert(
+      t('booking.closeMonthTitle', { defaultValue: 'Fermer le mois ?' }),
+      t('booking.closeMonthBody', { defaultValue: 'Tous les créneaux ouverts sans réservation seront fermés. Les réservations existantes ne bougent pas.' }),
+      [
+        { text: t('activity.no', { defaultValue: 'Non' }), style: 'cancel' },
+        {
+          text: t('activity.yes', { defaultValue: 'Oui' }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await bookingService.setAvailabilityBulk(slots, false);
+              await invalidate();
+            } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+          },
+        },
+      ],
+    );
+  };
+
+  // ----- Demandes / à venir -----
   const pendings = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending');
   const upcoming = (agenda ?? [])
     .filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day >= dayjs().format('YYYY-MM-DD'))
@@ -84,18 +206,44 @@ export default function ProAgendaScreen() {
       await invalidate();
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
-  const handleDecline = async (b: AgendaItem) => {
-    try {
-      await bookingService.decline(b.id);
-      await invalidate();
-    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  const handleDecline = (b: AgendaItem) => {
+    Alert.alert(
+      t('booking.declineConfirmTitle', { defaultValue: 'Refuser cette demande ?' }),
+      t('booking.declineConfirmBody', { defaultValue: 'Le client sera prévenu.' }),
+      [
+        { text: t('activity.no', { defaultValue: 'Non' }), style: 'cancel' },
+        {
+          text: t('activity.yes', { defaultValue: 'Oui' }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await bookingService.decline(b.id);
+              await invalidate();
+            } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+          },
+        },
+      ],
+    );
   };
-  const handleCancelPro = async (b: AgendaItem) => {
-    try {
-      await bookingService.cancelAsPro(b.id);
-      Burnt.toast({ title: t('booking.cancelledToast', { defaultValue: 'Réservation annulée' }) });
-      await invalidate();
-    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+  const handleCancelPro = (b: AgendaItem) => {
+    Alert.alert(
+      t('booking.cancelProConfirmTitle', { defaultValue: 'Annuler cette réservation ?' }),
+      t('booking.cancelProConfirmBody', { defaultValue: 'Le client sera prévenu. Cette action est définitive.' }),
+      [
+        { text: t('activity.no', { defaultValue: 'Non' }), style: 'cancel' },
+        {
+          text: t('activity.yes', { defaultValue: 'Oui' }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await bookingService.cancelAsPro(b.id);
+              Burnt.toast({ title: t('booking.cancelledToast', { defaultValue: 'Réservation annulée' }) });
+              await invalidate();
+            } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+          },
+        },
+      ],
+    );
   };
 
   // ----- Manual booking sheet -----
@@ -107,6 +255,13 @@ export default function ProAgendaScreen() {
   const [mSize, setMSize] = useState(2);
   const [mName, setMName] = useState('');
   const [mPhone, setMPhone] = useState('');
+
+  const openManualSheet = (presetDay?: string, presetPeriod?: BookingPeriod) => {
+    if (presetDay) setMDay(dayjs(presetDay).toDate());
+    if (presetPeriod) setMPeriod(presetPeriod);
+    setSheetDay(null);
+    setManualOpen(true);
+  };
 
   const submitManual = async () => {
     if (!mOffering || !mName.trim()) {
@@ -124,17 +279,70 @@ export default function ProAgendaScreen() {
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
 
+  // ----- Fiche jour (mode lecture) -----
+  const dayItems = (agenda ?? []).filter((a) => a.day === sheetDay);
+  const dayBookings = (period: BookingPeriod) =>
+    dayItems.filter((a) => a.kind === 'booking' && a.period === period && (a.status === 'accepted' || a.status === 'pending'));
+  const dayOpen = (period: BookingPeriod) =>
+    dayItems.some((a) => a.kind === 'availability' && a.period === period);
+  const sheetIsPast = !!sheetDay && sheetDay < dayjs().format('YYYY-MM-DD');
+
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: t('booking.agendaTitle', { defaultValue: 'Agenda' }) }} />
+      <Stack.Screen
+        options={{
+          title: t('booking.agendaTitle', { defaultValue: 'Agenda' }),
+          headerRight: () => (
+            <PressableScale onPress={() => setEditMode((v) => !v)} hitSlop={8} style={styles.editBtn}>
+              {editMode
+                ? <Check size={15} color={colors.onCta} strokeWidth={2.6} />
+                : <Pencil size={14} color={colors.cta} strokeWidth={2.4} />}
+              <Text style={[styles.editBtnText, editMode && { color: colors.onCta }]}>
+                {editMode
+                  ? t('booking.editDone', { defaultValue: 'Terminé' })
+                  : t('booking.editDispos', { defaultValue: 'Mes dispos' })}
+              </Text>
+            </PressableScale>
+          ),
+        }}
+      />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {editMode && (
+          <View style={styles.editBanner}>
+            <Pencil size={14} color={colors.onCta} strokeWidth={2.4} />
+            <Text style={styles.editBannerText}>
+              {t('booking.editBanner', { defaultValue: 'Mode dispos — tape une demi-journée pour ouvrir / fermer' })}
+            </Text>
+          </View>
+        )}
+
         <AvailabilityCalendar
-          mode="edit"
-          slotState={(day, period) => slotIndex.get(`${day}|${period}`) ?? { available: false }}
+          mode={editMode ? 'edit' : 'view'}
+          slotState={slotState}
           onToggle={handleToggle}
+          onDayPress={(day) => setSheetDay(day)}
           onMonthChange={setMonthStart}
+          selectedDay={sheetDay}
         />
-        <Text style={styles.hint}>{t('booking.toggleHint', { defaultValue: 'Tape une demi-journée pour basculer dispo / indispo.' })}</Text>
+
+        {editMode ? (
+          <View style={styles.quickRow}>
+            <PressableScale style={styles.quickChip} onPress={openWeekends}>
+              <Text style={styles.quickChipText}>{t('booking.bulkWeekends', { defaultValue: 'Ouvrir les week-ends' })}</Text>
+            </PressableScale>
+            <PressableScale style={styles.quickChip} onPress={openWholeMonth}>
+              <Text style={styles.quickChipText}>{t('booking.bulkMonth', { defaultValue: 'Ouvrir tout le mois' })}</Text>
+            </PressableScale>
+            <PressableScale style={styles.quickChip} onPress={copyLastWeek}>
+              <Text style={styles.quickChipText}>{t('booking.bulkCopy', { defaultValue: 'Copier la semaine passée' })}</Text>
+            </PressableScale>
+            <PressableScale style={styles.quickChip} onPress={closeMonth}>
+              <Text style={[styles.quickChipText, { color: colors.error }]}>{t('booking.bulkClose', { defaultValue: 'Tout fermer' })}</Text>
+            </PressableScale>
+          </View>
+        ) : (
+          <Text style={styles.hint}>{t('booking.viewHint', { defaultValue: 'Tape un jour pour voir qui vient et gérer ses créneaux.' })}</Text>
+        )}
 
         {isLoading ? <View style={styles.center}><LogoSpinner size={32} /></View> : (
           <>
@@ -145,19 +353,23 @@ export default function ProAgendaScreen() {
                 </Text>
                 {pendings.map((b) => (
                   <View key={b.id} style={styles.reqCard}>
-                    <View style={styles.rowTop}>
+                    <PressableScale
+                      style={styles.rowTop}
+                      onPress={() => b.client_id && router.push(`/(auth)/profile/${b.client_id}`)}
+                      disabled={!b.client_id}
+                    >
                       <UserAvatar name={b.client_name ?? '?'} avatarUrl={null} size={38} />
                       <View style={{ flex: 1, minWidth: 0 }}>
                         <Text style={styles.reqName}>
                           {b.client_name ?? '—'}
                           <Text style={styles.reqSize}>  · {b.party_size} pers.</Text>
                         </Text>
-                        <Text style={styles.reqMeta} numberOfLines={1}>
+                        <Text style={[styles.reqMeta, { color: sportCategoryColor(b.sport_category, colors.textPrimary) }]} numberOfLines={1}>
                           {b.offering_title} — {dayjs(b.day).locale('fr').format('ddd D MMM')}, {periodLabel(b.period, t)}
                         </Text>
                         {b.message ? <Text style={styles.reqMsg} numberOfLines={2}>« {b.message} »</Text> : null}
                       </View>
-                    </View>
+                    </PressableScale>
                     <View style={styles.reqActs}>
                       <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => handleDecline(b)}>
                         <Text style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</Text>
@@ -175,9 +387,11 @@ export default function ProAgendaScreen() {
             {upcoming.length === 0 ? (
               <Text style={styles.empty}>{t('booking.noUpcoming', { defaultValue: 'Aucune réservation confirmée à venir.' })}</Text>
             ) : upcoming.map((b) => (
-              <View key={b.id} style={styles.bkRow}>
-                <View style={styles.bkPeriod}>
-                  <Text style={styles.bkPeriodText}>{dayjs(b.day).locale('fr').format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}</Text>
+              <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setSheetDay(b.day)}>
+                <View style={[styles.bkPeriod, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) + '22' }]}>
+                  <Text style={[styles.bkPeriodText, { color: sportCategoryColor(b.sport_category, colors.cta) }]}>
+                    {dayjs(b.day).locale('fr').format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}
+                  </Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.bkName} numberOfLines={1}>
@@ -190,20 +404,94 @@ export default function ProAgendaScreen() {
                   </Text>
                 </View>
                 {b.is_manual && b.manual_phone ? <Phone size={15} color={colors.textMuted} strokeWidth={2.2} /> : null}
-                <Pressable onPress={() => handleCancelPro(b)} hitSlop={8}>
-                  <X size={16} color={colors.textMuted} strokeWidth={2.4} />
-                </Pressable>
-              </View>
+              </Pressable>
             ))}
             <View style={{ height: 90 }} />
           </>
         )}
       </ScrollView>
 
-      <Pressable style={({ pressed }) => [styles.fab, pressed && styles.pressed]} onPress={() => setManualOpen(true)}>
-        <Plus size={17} color="#FFFFFF" strokeWidth={2.6} />
-        <Text style={styles.fabText}>{t('booking.addManual', { defaultValue: 'Ajouter une résa' })}</Text>
-      </Pressable>
+      {!editMode && (
+        <Pressable style={({ pressed }) => [styles.fab, pressed && styles.pressed]} onPress={() => openManualSheet()}>
+          <Plus size={17} color={colors.onCta} strokeWidth={2.6} />
+          <Text style={styles.fabText}>{t('booking.addManual', { defaultValue: 'Ajouter une résa' })}</Text>
+        </Pressable>
+      )}
+
+      {/* Fiche jour — qui vient, état des créneaux, actions contextuelles */}
+      <Modal visible={!!sheetDay} transparent animationType="slide" onRequestClose={() => setSheetDay(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setSheetDay(null)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            <Text style={styles.sheetTitle}>
+              {sheetDay ? dayjs(sheetDay).locale('fr').format('dddd D MMMM') : ''}
+            </Text>
+
+            {(['am', 'pm'] as BookingPeriod[]).map((period) => {
+              const bks = dayBookings(period);
+              const open = dayOpen(period);
+              return (
+                <View key={period} style={styles.slotBlock}>
+                  <View style={styles.slotHead}>
+                    <Text style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</Text>
+                    {bks.length === 0 && (
+                      <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
+                        <Text style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
+                          {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
+                        </Text>
+                      </View>
+                    )}
+                    {!sheetIsPast && bks.length === 0 && (
+                      <PressableScale hitSlop={6} onPress={() => sheetDay && handleToggle(sheetDay, period, !open)}>
+                        <Text style={styles.slotToggle}>
+                          {open ? t('booking.closeSlot', { defaultValue: 'Fermer' }) : t('booking.openSlot', { defaultValue: 'Ouvrir' })}
+                        </Text>
+                      </PressableScale>
+                    )}
+                  </View>
+                  {bks.map((b) => (
+                    <View key={b.id} style={styles.sheetBk}>
+                      <View style={[styles.sportDot, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) }]} />
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={styles.sheetBkName} numberOfLines={1}>
+                          {b.client_name ?? '—'} · {b.party_size} pers.
+                          {b.status === 'pending' ? `  (${t('booking.status.pending', { defaultValue: 'En attente' }).toLowerCase()})` : ''}
+                        </Text>
+                        <Text style={styles.sheetBkSub} numberOfLines={1}>
+                          {b.offering_title}
+                          {b.is_manual
+                            ? ` · ${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
+                            : ` · ${t('booking.viaJunto', { defaultValue: 'via l’app' })}`}
+                        </Text>
+                      </View>
+                      {!b.is_manual && b.client_id ? (
+                        <PressableScale hitSlop={8} onPress={() => { setSheetDay(null); router.push(`/(auth)/profile/${b.client_id}`); }}>
+                          <MessageCircle size={17} color={colors.textSecondary} strokeWidth={2.2} />
+                        </PressableScale>
+                      ) : null}
+                      {b.status === 'accepted' && !sheetIsPast ? (
+                        <PressableScale hitSlop={8} onPress={() => handleCancelPro(b)}>
+                          <X size={17} color={colors.textMuted} strokeWidth={2.4} />
+                        </PressableScale>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              );
+            })}
+
+            {!sheetIsPast && (
+              <Pressable
+                style={({ pressed }) => [styles.btnPrimary, styles.btnBig, pressed && styles.pressed]}
+                onPress={() => sheetDay && openManualSheet(sheetDay, dayOpen('am') || dayBookings('am').length === 0 ? 'am' : 'pm')}
+              >
+                <Plus size={15} color={colors.onCta} strokeWidth={2.4} />
+                <Text style={styles.btnPrimaryText}>{t('booking.addManualHere', { defaultValue: 'Ajouter une résa ce jour' })}</Text>
+              </Pressable>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Résa manuelle — client hors app */}
       <Modal visible={manualOpen} transparent animationType="slide" onRequestClose={() => setManualOpen(false)}>
@@ -269,7 +557,7 @@ export default function ProAgendaScreen() {
             </View>
 
             <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, pressed && styles.pressed]} onPress={submitManual}>
-              <Send size={15} color="#FFFFFF" strokeWidth={2.4} />
+              <Send size={15} color={colors.onCta} strokeWidth={2.4} />
               <Text style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</Text>
             </Pressable>
           </Pressable>
@@ -284,6 +572,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   scroll: { padding: spacing.md },
   center: { paddingVertical: spacing.xl, alignItems: 'center' },
   hint: { color: colors.textMuted, fontSize: fontSizes.xs + 1, marginTop: spacing.xs + 2, marginHorizontal: 2 },
+  editBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.cta + '1A', borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: 6,
+  },
+  editBtnText: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  editBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: colors.cta, borderRadius: radius.card - 2,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm + 2, ...glow(colors.cta),
+  },
+  editBannerText: { flex: 1, color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginTop: spacing.sm + 2 },
+  quickChip: {
+    backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: 8,
+  },
+  quickChipText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   sectionLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.lg, marginBottom: spacing.sm,
@@ -292,7 +599,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   rowTop: { flexDirection: 'row', gap: spacing.sm + 2, alignItems: 'center' },
   reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
   reqSize: { color: colors.textSecondary, fontWeight: '500', fontSize: fontSizes.sm },
-  reqMeta: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, marginTop: 2 },
+  reqMeta: { fontSize: fontSizes.sm - 1, marginTop: 2, fontWeight: '600' },
   reqMsg: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic', marginTop: 3 },
   reqActs: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2, alignItems: 'center' },
   btnGhost: { paddingVertical: spacing.sm + 1, paddingHorizontal: spacing.md, borderRadius: radius.full },
@@ -308,8 +615,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.xs + 2,
   },
-  bkPeriod: { backgroundColor: colors.cta + '22', borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4 },
-  bkPeriodText: { color: colors.cta, fontSize: fontSizes.xs - 1, fontWeight: '700' },
+  bkPeriod: { borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4 },
+  bkPeriodText: { fontSize: fontSizes.xs - 1, fontWeight: '700' },
   bkName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   bkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   fab: {
@@ -325,7 +632,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     padding: spacing.lg, paddingBottom: spacing.xl,
   },
-  sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: spacing.sm },
+  grab: {
+    width: 38, height: 4, borderRadius: 2, backgroundColor: colors.textMuted,
+    opacity: 0.5, alignSelf: 'center', marginBottom: spacing.sm + 2,
+  },
+  sheetTitle: {
+    color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800',
+    marginBottom: spacing.sm, textTransform: 'capitalize',
+  },
+  slotBlock: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.textMuted + '22' },
+  slotHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  slotLabel: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.6, width: 74 },
+  statePill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
+  statePillText: { fontSize: fontSizes.xs, fontWeight: '800' },
+  slotToggle: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700', marginLeft: 'auto' },
+  sheetBk: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, paddingVertical: spacing.sm },
+  sportDot: { width: 10, height: 10, borderRadius: 5 },
+  sheetBkName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
+  sheetBkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   fieldLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs + 2,

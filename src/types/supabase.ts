@@ -4297,12 +4297,17 @@ export type Database = {
           created_at: string
           day: string
           id: string
+          location_name: string
           offering_id: string
           offering_title: string
           party_size: number
           period: string
+          price_eur: number
+          price_unit: string
           pro_id: string
           pro_name: string
+          sport_category: string
+          sport_key: string
           status: string
         }[]
       }
@@ -4421,6 +4426,8 @@ export type Database = {
           offering_title: string
           party_size: number
           period: string
+          sport_category: string
+          sport_key: string
           status: string
         }[]
       }
@@ -4429,6 +4436,7 @@ export type Database = {
         Returns: {
           day: string
           period: string
+          taken: number
         }[]
       }
       get_recent_partners: {
@@ -4880,6 +4888,10 @@ export type Database = {
       }
       set_pro_availability: {
         Args: { p_available: boolean; p_day: string; p_period: string }
+        Returns: undefined
+      }
+      set_pro_availability_bulk: {
+        Args: { p_available: boolean; p_days: string[]; p_periods: string[] }
         Returns: undefined
       }
       set_pro_offering_photo_url: {

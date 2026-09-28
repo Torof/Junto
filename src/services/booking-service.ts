@@ -6,6 +6,9 @@ export type BookingStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 
 export interface ProAvailabilitySlot {
   day: string; // 'YYYY-MM-DD'
   period: BookingPeriod;
+  // Places déjà ACCEPTÉES sur le créneau (toutes offres du pro) — affichage
+  // informatif ; la capacité ne bloque jamais côté DB (décision v1).
+  taken: number;
 }
 
 export interface AgendaItem {
@@ -22,6 +25,8 @@ export interface AgendaItem {
   manual_phone: string | null;
   message: string | null;
   is_manual: boolean | null;
+  sport_key: string | null;
+  sport_category: string | null;
 }
 
 export interface MyBooking {
@@ -36,12 +41,29 @@ export interface MyBooking {
   status: BookingStatus;
   conversation_id: string | null;
   created_at: string;
+  location_name: string | null;
+  price_eur: number | null;
+  price_unit: 'person' | 'group' | null;
+  sport_key: string | null;
+  sport_category: string | null;
 }
 
 export const bookingService = {
   setAvailability: async (day: string, period: BookingPeriod, available: boolean): Promise<void> => {
     const { error } = await supabase.rpc('set_pro_availability', {
       p_day: day, p_period: period, p_available: available,
+    });
+    if (error) throw error;
+  },
+
+  setAvailabilityBulk: async (
+    slots: { day: string; period: BookingPeriod }[], available: boolean,
+  ): Promise<void> => {
+    if (slots.length === 0) return;
+    const { error } = await supabase.rpc('set_pro_availability_bulk', {
+      p_days: slots.map((s) => s.day),
+      p_periods: slots.map((s) => s.period),
+      p_available: available,
     });
     if (error) throw error;
   },

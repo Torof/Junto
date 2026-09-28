@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
@@ -12,6 +13,7 @@ import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
 import { proService } from '@/services/pro-service';
+import { bookingService } from '@/services/booking-service';
 import { authService } from '@/services/auth-service';
 import { UserAvatar } from './user-avatar';
 import { SettingsDrawer } from './settings-drawer';
@@ -60,6 +62,17 @@ export function MenuSheet({ open, onClose }: Props) {
     queryFn: () => proService.getById(userId as string),
     enabled: !!userId,
   });
+
+  // Badge « Espace pro » : demandes de réservation en attente (même clé de
+  // cache que le dashboard pro → un seul fetch).
+  const agendaFrom = dayjs().format('YYYY-MM-DD');
+  const agendaTo = dayjs().add(1, 'month').format('YYYY-MM-DD');
+  const { data: proAgenda } = useQuery({
+    queryKey: ['pro-agenda', agendaFrom, agendaTo],
+    queryFn: () => bookingService.getAgenda(agendaFrom, agendaTo),
+    enabled: !!proProfile,
+  });
+  const pendingBookings = (proAgenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending').length;
 
   const go = (path: string) => {
     modalRef.current?.dismiss();
@@ -146,6 +159,7 @@ export function MenuSheet({ open, onClose }: Props) {
             <MenuItem
               icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
+              badge={pendingBookings > 0 ? String(pendingBookings) : null}
               onPress={() => go('/(auth)/pro/espace')}
               styles={styles}
               colors={colors}
