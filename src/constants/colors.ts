@@ -76,9 +76,13 @@ export const darkColors = {
 // Pins, semantic colors (success/error/warning) and CTA hue left as the
 // validated tokens; only the canvas, surfaces and neutral greys warm.
 export const lightColors = {
-  background: '#F5EEDF',
-  surface: '#EDE4D2',
-  surfaceAlt: '#E3D9C4',
+  // Contraste « pop » (Scott 2026-09-28, option B validée sur maquette) :
+  // surfaces BLANCHES sur fond crème soutenu — l'écart de luminosité fait le
+  // relief (les ombres chaudes redeviennent visibles), le fond porte
+  // l'identité. Remplace le crème-sur-crème écrasé (#F5EEDF/#EDE4D2/#E3D9C4).
+  background: '#F0E7D0',
+  surface: '#FFFFFF',
+  surfaceAlt: '#E4D9BD',
   cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
