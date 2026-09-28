@@ -184,7 +184,7 @@ export function AvailabilityCalendar({
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: 18, padding: spacing.md, ...shadows.card },
+  card: { backgroundColor: colors.surface, borderRadius: 18, padding: spacing.md, borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   monthLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800', textTransform: 'capitalize' },
   dowRow: { flexDirection: 'row', marginBottom: 4 },
@@ -194,7 +194,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cellWrap: { width: `${100 / 7}%` },
   cell: {
     height: 58, borderRadius: 9, backgroundColor: colors.surfaceAlt,
-    padding: 2, gap: 2, borderWidth: 1.5, borderColor: colors.background,
+    padding: 2, gap: 2, borderWidth: 1, borderColor: colors.lineStrong,
+    margin: 0.5,
   },
   cellPast: { opacity: 0.35 },
   cellToday: { borderColor: colors.cta },

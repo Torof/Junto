@@ -240,7 +240,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.md + 2, marginBottom: spacing.sm,
   },
-  card: { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, ...shadows.card },
+  card: { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card },
   emptyLine: { color: colors.textSecondary, fontSize: fontSizes.sm },
   todayLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, paddingVertical: 4 },
   todaySep: { borderTopWidth: 1, borderTopColor: colors.textMuted + '1A', marginTop: spacing.sm, paddingTop: spacing.sm + 4 },
@@ -250,6 +250,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   todaySub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   roundBtn: {
     width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surfaceAlt,
+    borderWidth: 1, borderColor: colors.lineStrong,
     alignItems: 'center', justifyContent: 'center',
   },
   reqHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
@@ -269,7 +270,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2 },
   tile: {
     width: '48%', flexGrow: 1, backgroundColor: colors.surface,
-    borderRadius: radius.card, padding: spacing.sm + 5, ...shadows.card,
+    borderRadius: radius.card, padding: spacing.sm + 5,
+    borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
   },
   tileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   ico: {
