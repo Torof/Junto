@@ -30,7 +30,7 @@ export const darkColors = {
   // WARM: Mapbox geography tones are cool/desaturated, so a cool
   // stone (#DCD8D0, rejected on-device) blended into terrain while
   // warmth reads as a designed element.
-  pinFrame: '#FFFFFF', // blanc — silhouette UA par défaut (Scott 2026-09-28, après rejets beige/encre/améthyste) : clair mais contrasté sur la carte verte, l'outline encre dessine la forme ; le bleu foncé reste au pro ; jaune/vert de statut inchangés
+  pinFrame: '#F6E05E', // jaune citron clair — silhouette UA par défaut (Scott 2026-09-28, essai n°4) : clair et pop ; volontairement CITRON pour rester distinguable de l'ambre orangé #FBBF24 du statut « bientôt » — à confirmer côte à côte sur device
   // Pro family pins (PP storefront + RA offerings) — the SAME blue as
   // the pro tier badge on profiles (= pinMeeting), Scott's call
   // 2026-06-11: one color, one meaning ("pro") across surfaces, so the
@@ -109,7 +109,7 @@ export const lightColors = {
 
   pinBackground: '#FFFFFF',
   pinBorder: '#1F1A15',
-  pinFrame: '#FFFFFF', // blanc — silhouette UA par défaut (Scott 2026-09-28, après rejets beige/encre/améthyste) : clair mais contrasté sur la carte verte, l'outline encre dessine la forme ; le bleu foncé reste au pro ; jaune/vert de statut inchangés
+  pinFrame: '#F6E05E', // jaune citron clair — silhouette UA par défaut (Scott 2026-09-28, essai n°4) : clair et pop ; volontairement CITRON pour rester distinguable de l'ambre orangé #FBBF24 du statut « bientôt » — à confirmer côte à côte sur device
   pinProBackground: '#3b82f6',
   pinProBorder: '#F5F5F0',
   pinProFrame: '#3b82f6', // bleu pro plein (= capsule PRO, « une couleur = un sens »)
