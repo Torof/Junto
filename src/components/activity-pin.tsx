@@ -49,7 +49,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
     timeStatus === 'in_progress'
       ? colors.success
       : timeStatus === 'soon'
-        ? '#FBBF24'
+        ? '#F97316' // orange franc (Scott 2026-09-28) — écart net avec la silhouette citron par défaut
         : colors.pinFrame;
 
   return (
