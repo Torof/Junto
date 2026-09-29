@@ -76,9 +76,6 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
       </View>
 
       <View style={styles.rightCol}>
-        <View style={styles.proBadge}>
-          <Text style={styles.proBadgeText}>PRO</Text>
-        </View>
         {offering.avg_rating != null && (offering.review_count ?? 0) > 0 ? (
           <View style={styles.ratingRow}>
             <Star size={11} color={colors.star} fill={colors.star} strokeWidth={0} />
@@ -86,6 +83,9 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
             <Text style={styles.ratingCount}>({offering.review_count})</Text>
           </View>
         ) : null}
+        <View style={styles.proBadge}>
+          <Text style={styles.proBadgeText}>PRO</Text>
+        </View>
       </View>
     </Pressable>
   );
