@@ -218,7 +218,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, paddingBottom: spacing.xl },
-  seg: {
+  seg: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.full,
     padding: 3, marginBottom: spacing.md, ...shadows.card,
   },
@@ -226,7 +226,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   segItemOn: { backgroundColor: colors.textPrimary },
   segText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   segTextOn: { color: colors.background },
-  card: {
+  card: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md,
     marginBottom: spacing.sm + 2, gap: spacing.sm, ...shadows.card,
   },

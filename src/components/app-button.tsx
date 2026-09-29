@@ -35,7 +35,7 @@ export function AppButton({
         hitSlop={6}
         accessibilityLabel={accessibilityLabel}
         accessibilityState={{ disabled }}
-        style={[styles.iconBtn, { backgroundColor: colors.surfaceAlt }, disabled && styles.disabled]}
+        style={[styles.iconBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.lineStrong }, disabled && styles.disabled]}
       >
         {icon}
       </PressableScale>
@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
   primaryText: { fontSize: fontSizes.sm + 1, fontWeight: '700' },
   link: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   linkText: { fontSize: fontSizes.sm, fontWeight: '600' },
-  iconBtn: { width: 40, height: 40, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: { width: 40, height: 40, borderRadius: radius.full, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.45 },
 });

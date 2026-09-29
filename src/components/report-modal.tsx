@@ -85,7 +85,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   title: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', marginBottom: spacing.xs },
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg },
-  input: {
+  input: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, color: colors.textPrimary, borderRadius: radius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: fontSizes.sm,
     minHeight: 100, textAlignVertical: 'top',

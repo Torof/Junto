@@ -136,7 +136,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: 'bold',
     letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm,
   },
-  row: {
+  row: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, marginBottom: spacing.xs, gap: spacing.sm,

@@ -160,7 +160,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  externalIconWrap: {
+  externalIconWrap: { borderWidth: 1, borderColor: colors.lineStrong,
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center', justifyContent: 'center',

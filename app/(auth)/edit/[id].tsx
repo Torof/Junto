@@ -300,7 +300,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  chip: {
+  chip: { borderWidth: 1, borderColor: colors.lineStrong,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.xs + 3,
     backgroundColor: colors.surfaceAlt,
@@ -317,7 +317,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   openCheckboxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
     openLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
-  counterButton: {
+  counterButton: { borderWidth: 1, borderColor: colors.lineStrong,
     borderRadius: radius.full,
     width: 38, height: 38,
     alignItems: 'center', justifyContent: 'center',

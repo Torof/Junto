@@ -194,7 +194,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.md },
   avatarItem: { alignItems: 'center' },
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
-  pendingRow: {
+  pendingRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,

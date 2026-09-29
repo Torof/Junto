@@ -464,7 +464,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   messageCardMine: {
     backgroundColor: colors.cta,
   },
-  messageCardOther: {
+  messageCardOther: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt,
   },
   avatarSlot: { width: 32, justifyContent: 'flex-end' },
@@ -511,7 +511,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  input: {
+  input: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1,
     backgroundColor: colors.surfaceAlt,
     color: colors.textPrimary,
@@ -585,7 +585,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: spacing.md,
   },
-  editInput: {
+  editInput: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt,
     color: colors.textPrimary,
     borderRadius: radius.md,

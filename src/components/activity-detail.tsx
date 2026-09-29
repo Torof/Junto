@@ -1577,7 +1577,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   headerStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.sm },
   // Visibility twin-pill — same height/radius as the status pill, quiet
   // surface fill so both info chips share one grammar.
-  headerVisPill: {
+  headerVisPill: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row',
     gap: 4,
     paddingHorizontal: spacing.sm - 2,
@@ -1621,7 +1621,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm, alignItems: 'center',
   },
   presenceButtonText: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '700' },
-  presenceSecondaryButton: {
+  presenceSecondaryButton: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1, backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
     paddingVertical: spacing.sm, alignItems: 'center',
   },
@@ -1641,7 +1641,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fullButton: { flexDirection: 'row', backgroundColor: colors.error + '14', borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: '700' },
-  leaveButton: { backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  leaveButton: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   joinButtonText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

@@ -692,7 +692,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   deleteButtonText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
-  fullMapCloseBtn: { ...shadows.card,
+  fullMapCloseBtn: { borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
     position: 'absolute',
     top: spacing.sm + 4,
     right: spacing.md,

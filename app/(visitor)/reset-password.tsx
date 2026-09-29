@@ -166,13 +166,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.md,
     textAlign: 'center', marginBottom: spacing.xl,
   },
-  input: {
+  input: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, color: colors.textPrimary,
     borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md,
     fontSize: fontSizes.md, marginBottom: spacing.md,
   },
   inputFlex: { flex: 1, marginBottom: 0 },
-  passwordRow: {
+  passwordRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingRight: spacing.sm, marginBottom: spacing.md,

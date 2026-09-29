@@ -451,7 +451,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.xs + 2,
     marginTop: spacing.md,
   },
-  myContribRow: {
+  myContribRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: spacing.lg,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
@@ -479,7 +479,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   removeBtnText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
 
-  fieldBox: {
+  fieldBox: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, marginBottom: spacing.md,
   },
@@ -494,7 +494,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Personnel / Partagé toggle — segmented control for free-form
   // items. Catalog matches show the active side as locked (faded
   // disabled state) since the server overrides client input.
-  typeToggleRow: {
+  typeToggleRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row',
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
@@ -531,7 +531,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.md,
     overflow: 'hidden',
   },
-  dropdownHeader: {
+  dropdownHeader: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,

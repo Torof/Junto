@@ -586,7 +586,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   editBannerText: { flex: 1, color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginTop: spacing.sm + 2 },
-  quickChip: {
+  quickChip: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 4, paddingVertical: 8,
   },
@@ -595,7 +595,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.lg, marginBottom: spacing.sm,
   },
-  reqCard: { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.sm + 2, ...shadows.card },
+  reqCard: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.sm + 2, ...shadows.card },
   rowTop: { flexDirection: 'row', gap: spacing.sm + 2, alignItems: 'center' },
   reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
   reqSize: { color: colors.textSecondary, fontWeight: '500', fontSize: fontSizes.sm },
@@ -611,7 +611,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   btnPrimaryText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   btnBig: { marginTop: spacing.md, paddingVertical: spacing.sm + 4 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
-  bkRow: {
+  bkRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.xs + 2,
     ...shadows.card,
@@ -657,18 +657,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
   rowWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  chip: {
+  chip: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 4, paddingVertical: 8, maxWidth: 220,
   },
   chipOn: { backgroundColor: colors.cta },
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600' },
   chipTextOn: { color: colors.onCta, fontWeight: '700' },
-  input: {
+  input: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3,
     color: colors.textPrimary, fontSize: fontSizes.sm + 1, marginBottom: spacing.sm,
   },
-  stepBtn: {
+  stepBtn: { borderWidth: 1, borderColor: colors.lineStrong,
     width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surfaceAlt,
     alignItems: 'center', justifyContent: 'center',
   },

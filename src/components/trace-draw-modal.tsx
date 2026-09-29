@@ -368,7 +368,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.cta,
     overflow: 'hidden',
   },
-  segment: {
+  segment: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: spacing.sm,

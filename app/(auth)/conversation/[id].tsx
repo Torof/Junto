@@ -1427,7 +1427,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm + 5,
   },
   bubbleOwn: { backgroundColor: colors.cta, alignSelf: 'flex-end' },
-  bubbleOther: { backgroundColor: colors.surfaceAlt, alignSelf: 'flex-start' },
+  bubbleOther: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surfaceAlt, alignSelf: 'flex-start' },
   onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
   activityLink: {
     flexDirection: 'row',
@@ -1475,7 +1475,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.xs + 1,
     fontWeight: '700',
   },
-  seatDeclineBtn: {
+  seatDeclineBtn: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1659,7 +1659,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   channelMemberRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs + 2 },
   channelMemberName: { flex: 1, minWidth: 0, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   channelMemberTag: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
-  input: {
+  input: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1, backgroundColor: colors.surfaceAlt, color: colors.textPrimary,
     borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,
     fontSize: fontSizes.sm + 1, maxHeight: 110,
@@ -1669,7 +1669,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center',
     ...glow(colors.cta),
   },
-  attachButton: {
+  attachButton: { borderWidth: 1, borderColor: colors.lineStrong,
     width: 44, height: 44, borderRadius: radius.full,
     backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center',
   },
@@ -1699,7 +1699,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background + 'F2',
   },
   traceActionRow: { flexDirection: 'row', gap: spacing.sm },
-  traceActionButton: {
+  traceActionButton: { borderWidth: 1, borderColor: colors.lineStrong,
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6,
@@ -1717,7 +1717,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   menuLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   menuText: { color: colors.textPrimary, fontSize: fontSizes.md },
   menuTextDanger: { color: colors.error, fontSize: fontSizes.md },
-  editBar: {
+  editBar: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'flex-end',
     padding: spacing.md, gap: spacing.xs,
     borderTopWidth: 1, borderTopColor: colors.cta,

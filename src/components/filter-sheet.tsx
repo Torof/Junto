@@ -780,7 +780,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.sm,
   },
-  chip: {
+  chip: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,

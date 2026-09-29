@@ -566,7 +566,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
   },
-  createTooltipRow: { ...shadows.card,
+  createTooltipRow: { borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,

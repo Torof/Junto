@@ -117,6 +117,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   rowText: { flex: 1, minWidth: 0 },
   rowTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   rowSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 1 },
-  thumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
+  thumb: { borderWidth: 1, borderColor: colors.lineStrong, width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
   thumbFallback: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.borderMuted },
 });
