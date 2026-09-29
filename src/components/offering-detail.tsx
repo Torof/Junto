@@ -39,8 +39,6 @@ interface Props {
   // the full page (and passes the pro's coordinate so the map can fly to it).
   // On the standalone page this is undefined → push.
   onOpenPro?: (userId: string, coordinate: [number, number]) => void;
-  // Drawer carte : « voir sur la carte » — ferme le sheet et centre sur le pin.
-  onSeeMap?: (coordinate: [number, number]) => void;
   // Owner-only edit entry — same discreet-pencil pattern as ProDetail. Each
   // host supplies the routing (the sheet dismisses itself before pushing).
   onEdit?: () => void;
@@ -61,7 +59,7 @@ function formatDuration(d: string | null): string | null {
 // (sport chip · rating · title · location · schedule) then bold-titled sections
 // — À propos (stats + description + host) → Photos (carousel) → Avis (carousel)
 // → Carte. Shared by the drawer (OfferingSheet) and the deep-link page.
-export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit, onSeeMap }: Props) {
+export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const router = useRouter();
@@ -247,14 +245,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
         <View style={styles.factRow}>
           <MapPin size={15} color={accent} strokeWidth={2.2} />
-          <Text style={styles.factText} numberOfLines={2}>
-            {offering.location_name}
-            {onSeeMap ? (
-              <Text style={styles.seeMapLink} onPress={() => onSeeMap([offering.lng, offering.lat])}>
-                {'  '}{t('proOffering.seeOnMap', { defaultValue: 'voir sur la carte ›' })}
-              </Text>
-            ) : null}
-          </Text>
+          <Text style={styles.factText} numberOfLines={2}>{offering.location_name}</Text>
         </View>
         {offering.schedule_text ? (
           <View style={styles.factRow}>
@@ -522,7 +513,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
   equipBlock: { marginTop: spacing.sm + 2, gap: 6 },
   equipBlockSection: { gap: 6 },
-  seeMapLink: { color: colors.cta, fontWeight: '700' },
   priceText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   scrollContentSticky: { paddingBottom: 110 },
   stickyBar: {

@@ -23,12 +23,11 @@ interface Props {
   // present()/dismiss() follow this value so the modal shell never unmounts.
   offering: ProOffering | null;
   onClose: () => void;
-  onSeeMap?: (coordinate: [number, number]) => void;
   // Tapping the host ("Proposé par") switches to the PP drawer (map cross-nav).
   onOpenPro?: (userId: string, coordinate: [number, number]) => void;
 }
 
-export function OfferingSheet({ offering, onClose, onOpenPro, onSeeMap }: Props) {
+export function OfferingSheet({ offering, onClose, onOpenPro }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -66,10 +65,6 @@ export function OfferingSheet({ offering, onClose, onOpenPro, onSeeMap }: Props)
     </View>
   ), [styles, onHandleLayout]);
   const handleClose = useCallback(() => modalRef.current?.dismiss(), []);
-  const handleSeeMap = useCallback((coordinate: [number, number]) => {
-    modalRef.current?.dismiss();
-    onSeeMap?.(coordinate);
-  }, [onSeeMap]);
   // Owner edit: the modal lives in the ROOT portal, so it would float over a
   // pushed page — dismiss first (same fix as the UA drawer's "Voir la sortie").
   const offeringId = offering?.id;
@@ -93,7 +88,7 @@ export function OfferingSheet({ offering, onClose, onOpenPro, onSeeMap }: Props)
       handleComponent={renderHandle}
     >
       {offering ? (
-        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} onOpenPro={onOpenPro} onEdit={handleEdit} onSeeMap={handleSeeMap} />
+        <OfferingDetail offering={offering} inSheet onClose={handleClose} onHeaderMeasured={onHeaderMeasured} onOpenPro={onOpenPro} onEdit={handleEdit} />
       ) : null}
     </BottomSheetModal>
   );

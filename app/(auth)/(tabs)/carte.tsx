@@ -518,7 +518,6 @@ export default function CarteScreen() {
           offering={selectedOffering}
           onClose={() => setSelectedOffering(null)}
           onOpenPro={(userId, coordinate) => { setSelectedOffering(null); setSelectedProId(userId); flyToPin(coordinate); }}
-          onSeeMap={(coordinate) => { setSelectedOffering(null); flyToPin(coordinate); }}
         />
 
         <FilterSheet
