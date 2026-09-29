@@ -372,7 +372,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   segmentFirst: { borderRightWidth: 1.5, borderRightColor: colors.cta },
   segmentActive: { backgroundColor: colors.cta },

@@ -465,7 +465,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.cta,
   },
   messageCardOther: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   avatarSlot: { width: 32, justifyContent: 'flex-end' },
   bubbleCol: { maxWidth: '78%' },
@@ -513,7 +513,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     color: colors.textPrimary,
     borderRadius: 22,
     paddingHorizontal: spacing.md + 2,
@@ -586,7 +586,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   editInput: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     color: colors.textPrimary,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,

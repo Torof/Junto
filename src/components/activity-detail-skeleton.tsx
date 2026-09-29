@@ -22,7 +22,7 @@ function Bone({ width, height, style }: { width: number | `${number}%`; height: 
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: 4, backgroundColor: colors.surface, opacity },
+        { width, height, borderRadius: 4, backgroundColor: colors.surfaceAlt, opacity },
         style,
       ]}
     />
@@ -108,7 +108,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.lg,
   },
   infoGrid: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: radius.lg,
     padding: spacing.md,
     marginBottom: spacing.lg,

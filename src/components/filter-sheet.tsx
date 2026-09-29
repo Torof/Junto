@@ -787,7 +787,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 4,
     paddingVertical: spacing.xs + 3,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   chipActive: { backgroundColor: colors.cta },
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },

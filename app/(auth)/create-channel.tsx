@@ -208,7 +208,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   photoAdd: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderStyle: 'dashed' },
   photoAddText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
   photoWrap: { gap: spacing.sm },
-  photoPreview: { width: '100%', aspectRatio: 3 / 2, borderRadius: radius.md, backgroundColor: colors.surface },
+  photoPreview: { width: '100%', aspectRatio: 3 / 2, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   photoActions: { flexDirection: 'row', gap: spacing.md },
   photoBtn: { paddingVertical: spacing.xs },
   photoBtnText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },

@@ -196,7 +196,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   subTitle: { color: colors.textSecondary, fontSize: fontSizes.xs, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.sm },
   pendingRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
     marginBottom: spacing.xs, gap: spacing.sm,
   },

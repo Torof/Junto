@@ -64,7 +64,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', marginBottom: spacing.sm },
   intro: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20, marginBottom: spacing.xl },
   item: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,

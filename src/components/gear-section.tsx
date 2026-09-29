@@ -322,7 +322,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                               }}
                               style={({ pressed }) => [
                                 styles.dropdownRow,
-                                pressed && { backgroundColor: colors.surface },
+                                pressed && { backgroundColor: colors.surfaceAlt },
                               ]}
                             >
                               <Text style={styles.dropdownRowText}>{item.name_key}</Text>
@@ -454,7 +454,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   myContribRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: spacing.lg,
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
@@ -480,7 +480,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   removeBtnText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
 
   fieldBox: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, marginBottom: spacing.md,
   },
   fieldBoxRow: {
@@ -496,7 +496,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // disabled state) since the server overrides client input.
   typeToggleRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     padding: 2,
     gap: 2,
@@ -535,7 +535,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   dropdownHeaderText: {
     flex: 1, color: colors.textPrimary,

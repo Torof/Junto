@@ -35,7 +35,7 @@ export function AppButton({
         hitSlop={6}
         accessibilityLabel={accessibilityLabel}
         accessibilityState={{ disabled }}
-        style={[styles.iconBtn, { backgroundColor: colors.surface }, disabled && styles.disabled]}
+        style={[styles.iconBtn, { backgroundColor: colors.surfaceAlt }, disabled && styles.disabled]}
       >
         {icon}
       </PressableScale>

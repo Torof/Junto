@@ -138,7 +138,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, marginBottom: spacing.xs, gap: spacing.sm,
   },
   name: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },

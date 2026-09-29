@@ -162,7 +162,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   externalIconWrap: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     alignItems: 'center', justifyContent: 'center',
   },
   externalLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },

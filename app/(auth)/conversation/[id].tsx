@@ -1427,7 +1427,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm + 5,
   },
   bubbleOwn: { backgroundColor: colors.cta, alignSelf: 'flex-end' },
-  bubbleOther: { backgroundColor: colors.surface, alignSelf: 'flex-start' },
+  bubbleOther: { backgroundColor: colors.surfaceAlt, alignSelf: 'flex-start' },
   onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
   activityLink: {
     flexDirection: 'row',
@@ -1481,7 +1481,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   seatDeclineText: {
     color: colors.textSecondary,
@@ -1660,7 +1660,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   channelMemberName: { flex: 1, minWidth: 0, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   channelMemberTag: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700' },
   input: {
-    flex: 1, backgroundColor: colors.surface, color: colors.textPrimary,
+    flex: 1, backgroundColor: colors.surfaceAlt, color: colors.textPrimary,
     borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2,
     fontSize: fontSizes.sm + 1, maxHeight: 110,
   },
@@ -1671,7 +1671,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   attachButton: {
     width: 44, height: 44, borderRadius: radius.full,
-    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center',
   },
   sendDisabled: { opacity: 0.4 },
   tracePreviewContainer: { flex: 1, backgroundColor: colors.background },
@@ -1703,7 +1703,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: radius.full,
     paddingVertical: spacing.md,
   },
@@ -1721,7 +1721,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'flex-end',
     padding: spacing.md, gap: spacing.xs,
     borderTopWidth: 1, borderTopColor: colors.cta,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   editInput: {
     flex: 1, backgroundColor: colors.background, color: colors.textPrimary,

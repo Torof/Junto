@@ -31,7 +31,7 @@ import { IntroCarousel } from '@/components/intro-carousel';
 import { useIntroStore } from '@/store/intro-store';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 
 const BUFFER = 0.5; // 50% buffer around viewport
@@ -566,7 +566,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
   },
-  createTooltipRow: {
+  createTooltipRow: { ...shadows.card,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,

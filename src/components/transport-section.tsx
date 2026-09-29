@@ -428,7 +428,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   typeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.surface, borderRadius: radius.full,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
   },
   typeChipActive: { backgroundColor: colors.cta },
@@ -436,7 +436,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   typeChipTextActive: { color: colors.textPrimary, fontWeight: 'bold' },
   seatsRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md,
   },
   seatsLabel: { color: colors.textPrimary, fontSize: fontSizes.sm },
   seatsPicker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -447,7 +447,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   seatsBtnText: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' },
   seatsValue: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold', minWidth: 24, textAlign: 'center' },
   fromRow: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, marginBottom: spacing.md,
   },
   fromLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, marginBottom: spacing.xs },

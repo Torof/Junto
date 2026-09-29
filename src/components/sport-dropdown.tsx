@@ -119,7 +119,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
 const createStyles = (colors: AppColors) => StyleSheet.create({
   trigger: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md,
   },
   triggerActive: { borderWidth: 1, borderColor: colors.cta },

@@ -167,14 +167,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textAlign: 'center', marginBottom: spacing.xl,
   },
   input: {
-    backgroundColor: colors.surface, color: colors.textPrimary,
+    backgroundColor: colors.surfaceAlt, color: colors.textPrimary,
     borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md,
     fontSize: fontSizes.md, marginBottom: spacing.md,
   },
   inputFlex: { flex: 1, marginBottom: 0 },
   passwordRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     paddingRight: spacing.sm, marginBottom: spacing.md,
   },
   eyeButton: { padding: spacing.xs, paddingHorizontal: spacing.sm },

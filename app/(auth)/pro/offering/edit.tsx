@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, Trash2, MapPin } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
 import { useSports } from '@/hooks/use-sports';
@@ -692,7 +692,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   deleteButtonText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
-  fullMapCloseBtn: {
+  fullMapCloseBtn: { ...shadows.card,
     position: 'absolute',
     top: spacing.sm + 4,
     right: spacing.md,

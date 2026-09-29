@@ -8,7 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
 import { proService, type PendingProApplication } from '@/services/pro-service';
@@ -404,7 +404,7 @@ export default function ModerationScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   tabs: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
-  tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: radius.md, backgroundColor: colors.surface },
+  tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   tabActive: { backgroundColor: colors.cta },
   tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   tabTextActive: { color: colors.textPrimary },
@@ -412,7 +412,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   loadingText: { color: colors.textSecondary, fontSize: fontSizes.lg },
   emptyText: { color: colors.textSecondary, fontSize: fontSizes.md },
   list: { padding: spacing.md },
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
+  card: { ...shadows.card, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   targetType: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: 'bold', textTransform: 'uppercase' },
   time: { color: colors.textSecondary, fontSize: fontSizes.xs },
@@ -434,9 +434,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   identityCard: { marginTop: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.md, gap: 2 },
   identityName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
   identityLine: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  noteInput: { backgroundColor: colors.surface, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: fontSizes.sm, minHeight: 60, textAlignVertical: 'top' },
+  noteInput: { backgroundColor: colors.surfaceAlt, color: colors.textPrimary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: fontSizes.sm, minHeight: 60, textAlignVertical: 'top' },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
-  dismissButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  dismissButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   dismissText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: spacing.sm },
   proLine: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: 2 },

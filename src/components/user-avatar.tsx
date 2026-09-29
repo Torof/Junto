@@ -91,10 +91,10 @@ export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = fals
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   image: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   fallback: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },

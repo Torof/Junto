@@ -386,7 +386,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.lg, opacity: 0.4 },
   modalTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.2, marginBottom: spacing.md },
   requestInput: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md,
     padding: spacing.md, color: colors.textPrimary, fontSize: fontSizes.sm,
     minHeight: 100, textAlignVertical: 'top', marginBottom: spacing.md,
   },

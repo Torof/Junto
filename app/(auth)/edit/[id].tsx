@@ -303,7 +303,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chip: {
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.xs + 3,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   chipActive: { backgroundColor: colors.cta },
   chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
@@ -321,7 +321,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     width: 38, height: 38,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
   counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700', minWidth: 40, textAlign: 'center' },
   durationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
