@@ -1580,7 +1580,9 @@
     "participantFormHelper": "What you need to know about each participant. The client fills it in after confirmation.",
     "customQuestionPlaceholder": "＋ Free question — e.g. “Can you swim 25 m?”",
     "equipProvidedLabel": "Provided",
-    "equipRequiredLabel": "Bring"
+    "equipRequiredLabel": "Bring",
+    "seeOnMap": "see on the map ›",
+    "yourGuide": "Your guide"
   },
   "common": {
     "done": "Done",
@@ -1730,7 +1732,8 @@
     "formTodo": "Fill in the group form",
     "formDone": "Group form ✓",
     "formMissing_one": "{{count}} form missing",
-    "formMissing_other": "{{count}} forms missing"
+    "formMissing_other": "{{count}} forms missing",
+    "paySite": "Payment on site"
   },
   "calendar": {
     "prevMonth": "Previous month",

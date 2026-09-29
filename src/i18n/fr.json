@@ -1580,7 +1580,9 @@
     "participantFormHelper": "Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.",
     "customQuestionPlaceholder": "＋ Question libre — ex. : « Sais-tu nager 25 m ? »",
     "equipProvidedLabel": "Fourni",
-    "equipRequiredLabel": "À apporter"
+    "equipRequiredLabel": "À apporter",
+    "seeOnMap": "voir sur la carte ›",
+    "yourGuide": "Votre encadrant"
   },
   "common": {
     "done": "Terminé",
@@ -1730,7 +1732,8 @@
     "formTodo": "Compléter la fiche du groupe",
     "formDone": "Fiche du groupe ✓",
     "formMissing_one": "{{count}} fiche manquante",
-    "formMissing_other": "{{count}} fiches manquantes"
+    "formMissing_other": "{{count}} fiches manquantes",
+    "paySite": "Paiement sur place"
   },
   "calendar": {
     "prevMonth": "Mois précédent",

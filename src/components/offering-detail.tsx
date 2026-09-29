@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { Image } from 'expo-image';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -9,8 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil, Backpack, Check as CheckIcon } from 'lucide-react-native';
-import { JuntoMapView } from './map-view';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Backpack, Check as CheckIcon } from 'lucide-react-native';
 import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows , glow} from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -30,7 +29,6 @@ import { ReviewSection } from './review-section';
 import { PhotoLightbox } from './photo-lightbox';
 
 const GALLERY_MAX = 25;
-const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 interface Props {
   offering: ProOffering;
@@ -41,6 +39,8 @@ interface Props {
   // the full page (and passes the pro's coordinate so the map can fly to it).
   // On the standalone page this is undefined → push.
   onOpenPro?: (userId: string, coordinate: [number, number]) => void;
+  // Drawer carte : « voir sur la carte » — ferme le sheet et centre sur le pin.
+  onSeeMap?: (coordinate: [number, number]) => void;
   // Owner-only edit entry — same discreet-pencil pattern as ProDetail. Each
   // host supplies the routing (the sheet dismisses itself before pushing).
   onEdit?: () => void;
@@ -61,7 +61,7 @@ function formatDuration(d: string | null): string | null {
 // (sport chip · rating · title · location · schedule) then bold-titled sections
 // — À propos (stats + description + host) → Photos (carousel) → Avis (carousel)
 // → Carte. Shared by the drawer (OfferingSheet) and the deep-link page.
-export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit }: Props) {
+export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit, onSeeMap }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const router = useRouter();
@@ -70,7 +70,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [showFullMap, setShowFullMap] = useState(false);
 
   const isOwner = session?.user?.id === offering.pro_id;
   const accent = sportCategoryColor(offering.sport_category, colors.cta);
@@ -173,7 +172,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
   // Static Mapbox thumbnail centered on the spot — a non-interactive image (no
   // gesture conflict inside the drawer scroll). Tap → fullscreen interactive map.
-  const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-l+${accent.replace('#', '')}(${offering.lng},${offering.lat})/${offering.lng},${offering.lat},13,0/640x320@2x?access_token=${MAPBOX_TOKEN}`;
 
   // Full 5-star row with half-star precision (same rendering as the PP header).
   const renderStars = (avg: number) => (
@@ -249,22 +247,19 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
         <View style={styles.factRow}>
           <MapPin size={15} color={accent} strokeWidth={2.2} />
-          <Text style={styles.factText} numberOfLines={2}>{offering.location_name}</Text>
+          <Text style={styles.factText} numberOfLines={2}>
+            {offering.location_name}
+            {onSeeMap ? (
+              <Text style={styles.seeMapLink} onPress={() => onSeeMap([offering.lng, offering.lat])}>
+                {'  '}{t('proOffering.seeOnMap', { defaultValue: 'voir sur la carte ›' })}
+              </Text>
+            ) : null}
+          </Text>
         </View>
         {offering.schedule_text ? (
           <View style={styles.factRow}>
             <Calendar size={15} color={accent} strokeWidth={2.2} />
             <Text style={styles.factText}>{offering.schedule_text}</Text>
-          </View>
-        ) : null}
-        {offering.price_eur != null ? (
-          <View style={styles.factRow}>
-            <Euro size={15} color={accent} strokeWidth={2.2} />
-            <Text style={styles.priceText}>
-              {offering.price_unit === 'group'
-                ? t('proOffering.priceFromGroup', { defaultValue: 'À partir de {{price}} € / groupe', price: Number(offering.price_eur) })
-                : t('proOffering.priceFromPerson', { defaultValue: 'À partir de {{price}} € / pers.', price: Number(offering.price_eur) })}
-            </Text>
           </View>
         ) : null}
       </View>
@@ -318,45 +313,14 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         );
       })()}
 
-      {/* À propos — stats + description + host */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
-        <View style={styles.statsRow}>
-          {stats.map((s) => (
-            <View key={s.id} style={styles.statItem}>
-              <s.icon size={16} color={accent} strokeWidth={2.4} />
-              <Text style={styles.statValue}>{s.value}</Text>
-            </View>
-          ))}
-        </View>
-        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
-
-        {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) && (
-          <View style={styles.equipBlock}>
-            {offering.equipment_provided?.length > 0 && (
-              <View style={styles.equipLine}>
-                <CheckIcon size={15} color={colors.cta} strokeWidth={2.6} style={styles.equipIcon} />
-                <Text style={styles.equipText}>
-                  <Text style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</Text>
-                  {' — '}{offering.equipment_provided.join(', ')}.
-                </Text>
-              </View>
-            )}
-            {offering.equipment_required?.length > 0 && (
-              <View style={styles.equipLine}>
-                <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} style={styles.equipIcon} />
-                <Text style={styles.equipText}>
-                  <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
-                  {' — '}{offering.equipment_required.join(', ')}.
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
+      {/* Prochains créneaux — la question n°1 d'un client : quand ? (maquette
+          v2 validée). Dans le drawer, le CTA Réserver vit ici — pas de barre
+          sticky en sheet : elle s'empilerait avec la tab bar visible dessous. */}
+      {(nextSlots.length > 0 || inSheet) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</Text>
         {nextSlots.length > 0 && (
           <>
-            <Text style={styles.slotsLabel}>{t('booking.nextAvail', { defaultValue: 'Prochaines disponibilités' })}</Text>
             <View style={styles.slotsRow}>
               {nextSlots.map((sl) => {
                 const free = offering.max_participants != null ? offering.max_participants - sl.taken : null;
@@ -387,14 +351,63 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           </>
         )}
 
-        <PressableScale
-          style={[styles.bookBtn, glow(colors.cta)]}
-          onPress={() => goBook()}
-        >
-          <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
-        </PressableScale>
+          {inSheet ? (
+            <PressableScale
+              style={[styles.bookBtn, glow(colors.cta)]}
+              onPress={() => goBook()}
+            >
+              <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
+            </PressableScale>
+          ) : null}
+        </View>
+      )}
 
-        {pro ? (
+      {/* À propos — stats + description */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
+        <View style={styles.statsRow}>
+          {stats.map((s) => (
+            <View key={s.id} style={styles.statItem}>
+              <s.icon size={16} color={accent} strokeWidth={2.4} />
+              <Text style={styles.statValue}>{s.value}</Text>
+            </View>
+          ))}
+        </View>
+        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
+
+      </View>
+
+      {/* Matériel — vraie section titrée (maquette v2). */}
+      {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</Text>
+          <View style={styles.equipBlockSection}>
+            {offering.equipment_provided?.length > 0 && (
+              <View style={styles.equipLine}>
+                <CheckIcon size={15} color={colors.cta} strokeWidth={2.6} style={styles.equipIcon} />
+                <Text style={styles.equipText}>
+                  <Text style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</Text>
+                  {' — '}{offering.equipment_provided.join(', ')}.
+                </Text>
+              </View>
+            )}
+            {offering.equipment_required?.length > 0 && (
+              <View style={styles.equipLine}>
+                <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} style={styles.equipIcon} />
+                <Text style={styles.equipText}>
+                  <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
+                  {' — '}{offering.equipment_required.join(', ')}.
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Votre encadrant — avant les avis (maquette v2). */}
+      {pro ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('proOffering.yourGuide', { defaultValue: 'Votre encadrant' })}</Text>
           <Pressable style={styles.hostCard} onPress={openPro}>
             {proThumbUrl ? (
               <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
@@ -404,15 +417,14 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               </View>
             )}
             <View style={styles.hostInfo}>
-              <Text style={styles.hostLabel}>{t('proOffering.byPro', { defaultValue: 'Proposé par' })}</Text>
               <Text style={styles.hostName} numberOfLines={1}>{pro.display_name}</Text>
             </View>
             <Pressable style={styles.contactBtn} onPress={openPro} hitSlop={6}>
               <Text style={styles.contactBtnText}>{t('proOffering.contact', { defaultValue: 'Contacter' })}</Text>
             </Pressable>
           </Pressable>
-        ) : null}
-      </View>
+        </View>
+      ) : null}
 
       {/* Avis — horizontal carousel (summary + composer live inside) */}
       <Text style={[styles.sectionTitle, styles.sectionTitleInset]}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</Text>
@@ -424,39 +436,6 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         horizontal
       />
 
-      {/* Carte — locator (no directions CTA: the meeting point is arranged
-          privately by the pro). Tap → fullscreen interactive map. */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('proOffering.map', { defaultValue: 'Carte' })}</Text>
-        <Pressable style={styles.mapCard} onPress={() => setShowFullMap(true)}>
-          <Image source={{ uri: mapUrl }} style={styles.mapImage} contentFit="cover" />
-          <View style={styles.mapExpandBadge}>
-            <Maximize2 size={15} color={colors.textPrimary} strokeWidth={2.4} />
-          </View>
-        </Pressable>
-      </View>
-
-      {/* Mounted only while open: a Mapbox map mounted hidden inside an RN
-          Modal never positions its MarkerViews — fresh mount = pin shows. */}
-      {showFullMap && (
-        <Modal visible animationType="slide" onRequestClose={() => setShowFullMap(false)}>
-          <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-            <JuntoMapView
-              center={[offering.lng, offering.lat]}
-              zoom={13}
-              pinsAsLayers
-              pins={[{ id: 'offering', coordinate: [offering.lng, offering.lat], color: accent, label: offering.location_name }]}
-            />
-            <Pressable
-              style={[styles.closeMapButton, { top: insets.top + spacing.sm }]}
-              onPress={() => setShowFullMap(false)}
-              hitSlop={8}
-            >
-              <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
-            </Pressable>
-          </SafeAreaView>
-        </Modal>
-      )}
     </>
   );
 
@@ -470,11 +449,27 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     );
   }
 
+  // Plein écran (page hors tabs) : barre réserver collée en bas, toujours
+  // visible (maquette v2 §8 — pas en sheet : la tab bar est dessous).
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scrollContent, styles.scrollContentSticky]} showsVerticalScrollIndicator={false}>
         {body}
       </ScrollView>
+      <View style={[styles.stickyBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
+        <View style={{ flex: 1 }}>
+          {offering.price_eur != null ? (
+            <Text style={styles.stickyPrice}>
+              {Number(offering.price_eur)} €
+              <Text style={styles.stickyUnit}>{offering.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers.' })}</Text>
+            </Text>
+          ) : null}
+          <Text style={styles.stickyNote}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</Text>
+        </View>
+        <PressableScale style={[styles.stickyCta, glow(colors.cta)]} onPress={() => goBook()}>
+          <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
+        </PressableScale>
+      </View>
     </View>
   );
 }
@@ -506,7 +501,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   factRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   factText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1 },
   // Same fact-line shape, bolder value — the price is the number people scan for.
-  priceText: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, fontWeight: '700' },
+
   section: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
   sectionTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '900', marginBottom: spacing.sm },
   sectionTitleInset: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
@@ -516,6 +511,22 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
   equipBlock: { marginTop: spacing.sm + 2, gap: 6 },
+  equipBlockSection: { gap: 6 },
+  seeMapLink: { color: colors.cta, fontWeight: '700' },
+  scrollContentSticky: { paddingBottom: 110 },
+  stickyBar: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.lineStrong,
+    paddingHorizontal: spacing.lg, paddingTop: spacing.sm + 2,
+  },
+  stickyPrice: { color: colors.textPrimary, fontSize: fontSizes.md + 1, fontWeight: '900' },
+  stickyUnit: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600' },
+  stickyNote: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 1 },
+  stickyCta: {
+    backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.xl,
+  },
   equipLine: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
   equipIcon: { marginTop: 2 },
   equipText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
@@ -556,7 +567,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   hostThumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta },
   hostThumbInitial: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
   hostInfo: { flex: 1, minWidth: 0 },
-  hostLabel: { color: colors.textMuted, fontSize: fontSizes.xs, textTransform: 'uppercase', letterSpacing: 0.8 },
+
   hostName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginTop: 1 },
   contactBtn: {
     backgroundColor: colors.cta,
@@ -565,21 +576,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   contactBtnText: { color: colors.background, fontSize: fontSizes.sm, fontWeight: '800' },
-  fullMapContainer: { flex: 1, backgroundColor: colors.background },
+
   // `top` set inline from insets — SafeAreaView pads its layout children, but
   // absolute positioning ignores that padding.
-  closeMapButton: {
-    position: 'absolute',
-    left: spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
+
   // Horizontal carousels bleed full width.
   bleed: { marginHorizontal: -spacing.lg },
   hCarousel: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
@@ -610,26 +610,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 4,
   },
   photoAddText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700' },
-  mapCard: {
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    backgroundColor: colors.surface,
-    ...shadows.card,
-  },
-  mapExpandBadge: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm,
-    width: 30,
-    height: 30,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  mapImage: { width: '100%', aspectRatio: 2 },
+
+
+
 });
