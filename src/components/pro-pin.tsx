@@ -8,8 +8,6 @@ import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 
 interface ProPinProps {
   displayName: string;
-  avgRating?: number | null;
-  reviewCount?: number | null;
   pinIcon?: string | null;
   // Optional custom logo — fills ONLY the inner disc (circle-cropped); the
   // pin silhouette, head and rim never change, so the map stays coherent
@@ -81,7 +79,7 @@ function glyphFor(key: string, white: string): ReactNode {
   }
 }
 
-export function ProPin({ displayName, pinIcon, pinImageUrl, avgRating, reviewCount }: ProPinProps) {
+export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -120,24 +118,12 @@ export function ProPin({ displayName, pinIcon, pinImageUrl, avgRating, reviewCou
           )}
         </View>
       )}
-      {avgRating != null && (reviewCount ?? 0) > 0 && (
-        <View style={styles.ratingBadge}>
-          <Text style={styles.ratingBadgeText}>★ {Number(avgRating).toFixed(1).replace(/\.0$/, '')}</Text>
-        </View>
-      )}
     </View>
   );
 }
 
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
-    ratingBadge: {
-      position: 'absolute', top: -3, right: -4,
-      backgroundColor: '#FBBF24', borderRadius: 999,
-      paddingHorizontal: 5, paddingVertical: 1.5,
-      borderWidth: 1.5, borderColor: '#FFFFFF',
-    },
-    ratingBadgeText: { color: '#3B2F00', fontSize: 9, fontWeight: '800', letterSpacing: 0.2 },
     wrapper: {
       width: PIN_WIDTH,
       height: PIN_HEIGHT,

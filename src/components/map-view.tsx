@@ -591,8 +591,11 @@ export function JuntoMapView({
               // Empty sections collapse.
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
+                // ★rating DIRECTLY under the title (Scott 2026-09-29), gold
+                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
+                ['get', 'rtext'], RATING_GOLD,
                 '\n', {},
-                // line 2: 📅 when / schedule (RA may wrap; UA when stays short)
+                // then: 📅 when / schedule (RA may wrap; UA when stays short)
                 ['match', ['get', 'd2icon'], 'cal', ['image', 'cal'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'd2icon']], 0], ' ', ''], SEC,
                 ['get', 'd2'], SEC,
@@ -601,9 +604,6 @@ export function JuntoMapView({
                 ['match', ['get', 'lvlicon'], 'lvl', ['image', 'lvl'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'lvlicon']], 0], ' ', ''], SEC,
                 ['get', 'lvl'], SEC,
-                // rating line (RA / PP only) — gold, bold-read via halo
-                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], SEC,
-                ['get', 'rtext'], RATING_GOLD,
               ],
             ],
             textColor: ['get', 'color'],
@@ -829,7 +829,7 @@ export function JuntoMapView({
             >
               <View style={highlightStyle}>
                 <Pressable onPress={() => onProPress?.(pro)} hitSlop={14}>
-                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} avgRating={pro.avg_rating} reviewCount={pro.review_count} />
+                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} />
                 </Pressable>
               </View>
             </Mapbox.MarkerView>
