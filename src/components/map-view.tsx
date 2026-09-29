@@ -52,8 +52,11 @@ const ratingStr = (
   if (!count || avg == null) return '';
   const n = Number(avg);
   const a = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, '');
-  return `${a}★(${count})`;
+  return `★ ${a} (${count})`;
 };
+
+// Or profond, lisible sur les fonds Mapbox clairs (halo blanc dessous).
+const RATING_GOLD = { 'text-color': '#D99500' };
 
 // Secondary-line text style (smaller, regular, neutral black) — shared by
 // every text section of the detail line.
@@ -575,8 +578,13 @@ export function JuntoMapView({
           style={{
             textField: [
               'step', ['zoom'],
-              // Below DETAIL: just the title, in the pin's colour.
-              ['format', ['get', 'name'], { 'text-color': ['get', 'color'] }],
+              // Below DETAIL: title + ★rating (gold) — the trust signal shows
+              // as soon as names do (Scott 2026-09-29).
+              ['format',
+                ['get', 'name'], { 'text-color': ['get', 'color'] },
+                ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
+                ['get', 'rtext'], RATING_GOLD,
+              ],
               LABEL_DETAIL_ZOOM,
               // At DETAIL: title (colour) / ★rating on its own line / details
               // line = [📅 when][📊 level] or [📅 schedule] or [tagline].
@@ -593,9 +601,9 @@ export function JuntoMapView({
                 ['match', ['get', 'lvlicon'], 'lvl', ['image', 'lvl'], ''], IMG,
                 ['case', ['>', ['length', ['get', 'lvlicon']], 0], ' ', ''], SEC,
                 ['get', 'lvl'], SEC,
-                // rating on the LAST line (RA / PP only)
+                // rating line (RA / PP only) — gold, bold-read via halo
                 ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], SEC,
-                ['get', 'rtext'], SEC,
+                ['get', 'rtext'], RATING_GOLD,
               ],
             ],
             textColor: ['get', 'color'],
@@ -821,7 +829,7 @@ export function JuntoMapView({
             >
               <View style={highlightStyle}>
                 <Pressable onPress={() => onProPress?.(pro)} hitSlop={14}>
-                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} />
+                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} avgRating={pro.avg_rating} reviewCount={pro.review_count} />
                 </Pressable>
               </View>
             </Mapbox.MarkerView>

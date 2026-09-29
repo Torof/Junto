@@ -106,11 +106,25 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
         )}
       </View>
+      {/* Note ★ — l'honneur sur le pin (Scott 2026-09-29) : badge or
+          toujours visible, tous zooms, comme le cadenas des sorties privées. */}
+      {offering.avg_rating != null && (offering.review_count ?? 0) > 0 && (
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingBadgeText}>★ {Number(offering.avg_rating).toFixed(1).replace(/\.0$/, '')}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const createStyles = (_colors: AppColors) => StyleSheet.create({
+    ratingBadge: {
+      position: 'absolute', top: -3, right: -4,
+      backgroundColor: '#FBBF24', borderRadius: 999,
+      paddingHorizontal: 5, paddingVertical: 1.5,
+      borderWidth: 1.5, borderColor: '#FFFFFF',
+    },
+    ratingBadgeText: { color: '#3B2F00', fontSize: 9, fontWeight: '800', letterSpacing: 0.2 },
   wrapper: {
     width: PIN_WIDTH,
     height: PIN_HEIGHT,
