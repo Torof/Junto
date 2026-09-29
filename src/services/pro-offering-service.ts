@@ -82,7 +82,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields',
       )
       .eq('id', id)
       .maybeSingle();
@@ -95,7 +95,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields',
       )
       .eq('pro_id', proId)
       .order('created_at', { ascending: false });
@@ -114,7 +114,7 @@ export const proOfferingService = {
     let query = supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields',
       );
 
     if (bounds) {
