@@ -9,7 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Backpack, Check as CheckIcon } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Backpack, Check as CheckIcon, Euro } from 'lucide-react-native';
 import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows , glow} from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -260,6 +260,16 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           <View style={styles.factRow}>
             <Calendar size={15} color={accent} strokeWidth={2.2} />
             <Text style={styles.factText}>{offering.schedule_text}</Text>
+          </View>
+        ) : null}
+        {offering.price_eur != null ? (
+          <View style={styles.factRow}>
+            <Euro size={15} color={accent} strokeWidth={2.2} />
+            <Text style={styles.priceText}>
+              {offering.price_unit === 'group'
+                ? t('proOffering.priceFromGroup', { defaultValue: 'À partir de {{price}} € / groupe', price: Number(offering.price_eur) })
+                : t('proOffering.priceFromPerson', { defaultValue: 'À partir de {{price}} € / pers.', price: Number(offering.price_eur) })}
+            </Text>
           </View>
         ) : null}
       </View>
@@ -513,6 +523,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   equipBlock: { marginTop: spacing.sm + 2, gap: 6 },
   equipBlockSection: { gap: 6 },
   seeMapLink: { color: colors.cta, fontWeight: '700' },
+  priceText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   scrollContentSticky: { paddingBottom: 110 },
   stickyBar: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
