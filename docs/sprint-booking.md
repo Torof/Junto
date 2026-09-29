@@ -131,6 +131,21 @@ Méthode : maquette artifact → validation → RN.
   (Scott) : au-delà — la barre qualité = « le guide de 55 ans gants aux mains ».
   Décisions ouvertes listées dans l'artifact cadrage (seed chat matériel,
   fiche bloquante ou souple, RGPD notes, audience voix, (a)/(b) web).
+- ✅ 2026-09-29 : **chantiers A + B CONSTRUITS et shippés preview** (maquette v3
+  validée « je pars dans le même sens que toi » — langage page réelle, zéro pilule
+  d'affichage ; fiche APRÈS confirmation ; pas de répétition dans le chat seed).
+  Mig 00422 : equipment_provided/required + participant_fields sur pro_offerings,
+  participant_info sur bookings, RPC set_offering_details (ownership + validation
+  listes ≤15×60c / std ⊆ catalogue / custom ≤3×80c) + set_booking_participant_info
+  (client de LA résa ou pro si manuelle, accepted only, date future, validation
+  stricte contre les champs demandés) ; vue coords + get_pro_agenda + get_my_bookings
+  enrichies. AUCUN DROP des RPC d'offres (compat production). RN : formulaire offre
+  (tags matériel ×2 + check-rows fiche + questions libres), fiche offre (section
+  Matériel en lignes texte), billet client (ligne 🎒 + bouton « Compléter la fiche
+  du groupe » → écran booking-form/[id]), fiche jour pro (lignes numérotées par
+  participant + « n fiches manquantes » orange). i18n FR+EN. TODO v1.1 : rappel
+  « fiche incomplète » la veille (cron) — non construit, badge + notif d'acceptation
+  suffisent pour l'instant.
 - ⏳ v1.5/P2 restants hors chantiers ci-dessus : question acompte sans paiement
   in-app (champ conditions — intégrable au chantier A/E1) · fiabilité client
   visible sur la demande (toujours en attente de décision) · report météo (parké).

@@ -458,6 +458,7 @@ export type Database = {
           manual_phone: string | null
           message: string | null
           offering_id: string
+          participant_info: Json | null
           party_size: number
           period: string
           pro_id: string
@@ -475,6 +476,7 @@ export type Database = {
           manual_phone?: string | null
           message?: string | null
           offering_id: string
+          participant_info?: Json | null
           party_size: number
           period: string
           pro_id: string
@@ -492,6 +494,7 @@ export type Database = {
           manual_phone?: string | null
           message?: string | null
           offering_id?: string
+          participant_info?: Json | null
           party_size?: number
           period?: string
           pro_id?: string
@@ -1966,6 +1969,8 @@ export type Database = {
           distance_km: number | null
           duration: string | null
           elevation_gain_m: number | null
+          equipment_provided: Json
+          equipment_required: Json
           id: string
           is_demo: boolean
           level: string
@@ -1973,6 +1978,7 @@ export type Database = {
           location_name: string
           max_participants: number | null
           min_participants: number | null
+          participant_fields: Json
           price_eur: number | null
           price_unit: string | null
           pro_id: string
@@ -1987,6 +1993,8 @@ export type Database = {
           distance_km?: number | null
           duration?: string | null
           elevation_gain_m?: number | null
+          equipment_provided?: Json
+          equipment_required?: Json
           id?: string
           is_demo?: boolean
           level: string
@@ -1994,6 +2002,7 @@ export type Database = {
           location_name: string
           max_participants?: number | null
           min_participants?: number | null
+          participant_fields?: Json
           price_eur?: number | null
           price_unit?: string | null
           pro_id: string
@@ -2008,6 +2017,8 @@ export type Database = {
           distance_km?: number | null
           duration?: string | null
           elevation_gain_m?: number | null
+          equipment_provided?: Json
+          equipment_required?: Json
           id?: string
           is_demo?: boolean
           level?: string
@@ -2015,6 +2026,7 @@ export type Database = {
           location_name?: string
           max_participants?: number | null
           min_participants?: number | null
+          participant_fields?: Json
           price_eur?: number | null
           price_unit?: string | null
           pro_id?: string
@@ -3257,6 +3269,8 @@ export type Database = {
           distance_km: number | null
           duration: string | null
           elevation_gain_m: number | null
+          equipment_provided: Json | null
+          equipment_required: Json | null
           id: string | null
           image_url: string | null
           lat: number | null
@@ -3265,6 +3279,7 @@ export type Database = {
           location_name: string | null
           max_participants: number | null
           min_participants: number | null
+          participant_fields: Json | null
           price_eur: number | null
           price_unit: string | null
           pro_id: string | null
@@ -4296,10 +4311,13 @@ export type Database = {
           conversation_id: string
           created_at: string
           day: string
+          equipment_required: Json
           id: string
           location_name: string
           offering_id: string
           offering_title: string
+          participant_fields: Json
+          participant_info: Json
           party_size: number
           period: string
           price_eur: number
@@ -4424,6 +4442,8 @@ export type Database = {
           message: string
           offering_id: string
           offering_title: string
+          participant_fields: Json
+          participant_info: Json
           party_size: number
           period: string
           sport_category: string
@@ -4866,12 +4886,26 @@ export type Database = {
         Args: { p_activity_id: string; p_items: Json }
         Returns: undefined
       }
+      set_booking_participant_info: {
+        Args: { p_booking_id: string; p_info: Json }
+        Returns: undefined
+      }
       set_channel_photo: {
         Args: { p_conversation_id: string; p_photo_url: string }
         Returns: undefined
       }
       set_conversation_hidden: {
         Args: { p_conversation_id: string; p_hidden: boolean }
+        Returns: undefined
+      }
+      set_offering_details: {
+        Args: {
+          p_equipment_provided: string[]
+          p_equipment_required: string[]
+          p_offering_id: string
+          p_participant_custom: string[]
+          p_participant_std: string[]
+        }
         Returns: undefined
       }
       set_participation_transport: {

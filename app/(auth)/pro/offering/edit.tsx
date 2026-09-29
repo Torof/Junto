@@ -79,6 +79,14 @@ export default function ProOfferingEditScreen() {
   const [priceEur, setPriceEur] = useState<string>('');
   const [priceUnit, setPriceUnit] = useState<'person' | 'group'>('person');
   const [saving, setSaving] = useState(false);
+  // Chantiers A+B (00422) : matériel + fiche participant demandée.
+  const [equipProvided, setEquipProvided] = useState<string[]>([]);
+  const [equipRequired, setEquipRequired] = useState<string[]>([]);
+  const [equipProvidedDraft, setEquipProvidedDraft] = useState('');
+  const [equipRequiredDraft, setEquipRequiredDraft] = useState('');
+  const [pStd, setPStd] = useState<string[]>([]);
+  const [pCustom, setPCustom] = useState<string[]>([]);
+  const [pCustomDraft, setPCustomDraft] = useState('');
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
@@ -110,6 +118,10 @@ export default function ProOfferingEditScreen() {
     setElevationGainM(existing.elevation_gain_m?.toString() ?? '');
     setPriceEur(existing.price_eur?.toString() ?? '');
     setPriceUnit(existing.price_unit ?? 'person');
+    setEquipProvided(existing.equipment_provided ?? []);
+    setEquipRequired(existing.equipment_required ?? []);
+    setPStd(existing.participant_fields?.std ?? []);
+    setPCustom(existing.participant_fields?.custom ?? []);
   }, [existing]);
 
   const selectedSportKey = sports?.find((s) => s.id === sportId)?.key ?? '';
@@ -245,11 +257,13 @@ export default function ProOfferingEditScreen() {
 
       if (isEdit && offeringId) {
         await proOfferingService.update({ ...payload, offering_id: offeringId });
+        await proOfferingService.setDetails(offeringId, equipProvided, equipRequired, pStd, pCustom);
         await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         router.back();
       } else {
         const newId = await proOfferingService.create(payload);
+        await proOfferingService.setDetails(newId, equipProvided, equipRequired, pStd, pCustom);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         // Land on the detail page so the freshly-created offering is
         // visible AND the user is one tap from the Photos tab where
@@ -527,6 +541,109 @@ export default function ProOfferingEditScreen() {
           </Text>
         </Field>
 
+
+        <Text style={styles.section}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</Text>
+
+        <Field label={t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' })} styles={styles}>
+          <View style={styles.tagsWrap}>
+            {equipProvided.map((it, i) => (
+              <Pressable key={`${it}${i}`} style={styles.tag} onPress={() => setEquipProvided(equipProvided.filter((_, j) => j !== i))}>
+                <Text style={styles.tagText}>{it}</Text>
+                <Text style={styles.tagX}>✕</Text>
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            style={styles.input}
+            value={equipProvidedDraft}
+            onChangeText={setEquipProvidedDraft}
+            placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
+            placeholderTextColor={colors.textMuted}
+            maxLength={60}
+            onSubmitEditing={() => {
+              const v = equipProvidedDraft.trim();
+              if (v && equipProvided.length < 15) { setEquipProvided([...equipProvided, v]); setEquipProvidedDraft(''); }
+            }}
+            blurOnSubmit={false}
+            returnKeyType="done"
+          />
+        </Field>
+
+        <Field label={t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' })} styles={styles}>
+          <View style={styles.tagsWrap}>
+            {equipRequired.map((it, i) => (
+              <Pressable key={`${it}${i}`} style={styles.tag} onPress={() => setEquipRequired(equipRequired.filter((_, j) => j !== i))}>
+                <Text style={styles.tagText}>{it}</Text>
+                <Text style={styles.tagX}>✕</Text>
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            style={styles.input}
+            value={equipRequiredDraft}
+            onChangeText={setEquipRequiredDraft}
+            placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
+            placeholderTextColor={colors.textMuted}
+            maxLength={60}
+            onSubmitEditing={() => {
+              const v = equipRequiredDraft.trim();
+              if (v && equipRequired.length < 15) { setEquipRequired([...equipRequired, v]); setEquipRequiredDraft(''); }
+            }}
+            blurOnSubmit={false}
+            returnKeyType="done"
+          />
+          <Text style={styles.helper}>{t('proOffering.equipHelper', { defaultValue: 'Affiché sur l’offre et rappelé au client sur sa réservation.' })}</Text>
+        </Field>
+
+        <Text style={styles.section}>{t('proOffering.sectionParticipantForm', { defaultValue: 'Fiche participant' })}</Text>
+        <Text style={styles.helper}>
+          {t('proOffering.participantFormHelper', { defaultValue: 'Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.' })}
+        </Text>
+        {([['shoe_size', t('booking.fShoe', { defaultValue: 'Pointure' })],
+           ['height', t('booking.fHeight', { defaultValue: 'Taille' })],
+           ['weight', t('booking.fWeight', { defaultValue: 'Poids' })],
+           ['age', t('booking.fAge', { defaultValue: 'Âge' })],
+           ['level', t('booking.fLevel', { defaultValue: 'Niveau' })]] as const).map(([code, label]) => {
+          const on = pStd.includes(code);
+          return (
+            <Pressable
+              key={code}
+              style={styles.checkRow}
+              onPress={() => setPStd(on ? pStd.filter((c) => c !== code) : [...pStd, code])}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+            >
+              <View style={[styles.checkBox, on && styles.checkBoxOn]}>
+                {on ? <Text style={styles.checkMark}>✓</Text> : null}
+              </View>
+              <Text style={styles.checkLabel}>{label}</Text>
+            </Pressable>
+          );
+        })}
+        {pCustom.map((q, i) => (
+          <Pressable key={`${q}${i}`} style={styles.checkRow} onPress={() => setPCustom(pCustom.filter((_, j) => j !== i))}>
+            <View style={[styles.checkBox, styles.checkBoxOn]}><Text style={styles.checkMark}>✓</Text></View>
+            <Text style={styles.checkLabel} numberOfLines={1}>{q}</Text>
+            <Text style={styles.tagX}>✕</Text>
+          </Pressable>
+        ))}
+        {pCustom.length < 3 ? (
+          <TextInput
+            style={[styles.input, { marginTop: spacing.xs }]}
+            value={pCustomDraft}
+            onChangeText={setPCustomDraft}
+            placeholder={t('proOffering.customQuestionPlaceholder', { defaultValue: '＋ Question libre — ex. : « Sais-tu nager 25 m ? »' })}
+            placeholderTextColor={colors.textMuted}
+            maxLength={80}
+            onSubmitEditing={() => {
+              const v = pCustomDraft.trim();
+              if (v) { setPCustom([...pCustom, v]); setPCustomDraft(''); }
+            }}
+            blurOnSubmit={false}
+            returnKeyType="done"
+          />
+        ) : null}
+
         <Pressable
           style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}
           onPress={handleSubmit}
@@ -620,6 +737,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   helper: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.xs },
+  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.xs },
+  tag: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.lineStrong,
+    borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 6,
+  },
+  tagText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600', maxWidth: 240 },
+  tagX: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800' },
+  checkRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
+    paddingVertical: spacing.sm + 1, borderBottomWidth: 1, borderBottomColor: colors.line,
+  },
+  checkBox: {
+    width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: colors.textMuted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkBoxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
+  checkMark: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '800' },
+  checkLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '600' },
   field: { marginBottom: spacing.md },
   fieldLabel: {
     color: colors.textSecondary,

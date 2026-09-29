@@ -7,7 +7,7 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
-import { CalendarX2, MessageCircle, X, MapPin, Banknote } from 'lucide-react-native';
+import { CalendarX2, MessageCircle, X, MapPin, Banknote, Backpack, ClipboardList } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -85,6 +85,12 @@ export default function MyBookingsScreen() {
     );
   };
 
+  // Fiche participant : l'offre demande des champs ? complète ?
+  const needsForm = (b: MyBooking) =>
+    ((b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0)) > 0;
+  const formComplete = (b: MyBooking) =>
+    (b.participant_info?.length ?? 0) >= b.party_size;
+
   const renderItem = ({ item }: { item: MyBooking }) => {
     const c = statusColor(item.status);
     const sc = sportCategoryColor(item.sport_category, colors.cta);
@@ -115,6 +121,28 @@ export default function MyBookingsScreen() {
           </View>
         </View>
 
+        {showTicket && (item.equipment_required?.length ?? 0) > 0 && (
+          <View style={styles.equipRow}>
+            <Backpack size={13} color={colors.textSecondary} strokeWidth={2.2} style={{ marginTop: 2 }} />
+            <Text style={styles.equipText}>
+              <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
+              {' — '}{item.equipment_required!.join(', ')}.
+            </Text>
+          </View>
+        )}
+        {showTicket && needsForm(item) && (
+          <PressableScale
+            style={[styles.formBtn, formComplete(item) && styles.formBtnDone]}
+            onPress={() => router.push(`/(auth)/booking-form/${item.id}`)}
+          >
+            <ClipboardList size={14} color={formComplete(item) ? colors.cta : colors.onCta} strokeWidth={2.4} />
+            <Text style={[styles.formBtnText, formComplete(item) && { color: colors.cta }]}>
+              {formComplete(item)
+                ? t('booking.formDone', { defaultValue: 'Fiche du groupe ✓' })
+                : t('booking.formTodo', { defaultValue: 'Compléter la fiche du groupe' })}
+            </Text>
+          </PressableScale>
+        )}
         {showTicket && (item.location_name || price != null) && (
           <View style={styles.ticketRow}>
             {item.location_name ? (
@@ -238,6 +266,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sub: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, marginTop: 2 },
   statusPill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   statusText: { fontSize: fontSizes.xs, fontWeight: '700' },
+  equipRow: {
+    flexDirection: 'row', gap: 6, alignItems: 'flex-start',
+    borderTopWidth: 1, borderTopColor: colors.textMuted + '1F', paddingTop: spacing.sm,
+  },
+  equipText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm - 1, lineHeight: 19 },
+  equipLabel: { color: colors.textPrimary, fontWeight: '700' },
+  formBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 1,
+  },
+  formBtnDone: { backgroundColor: colors.cta + '14', borderWidth: 1, borderColor: colors.cta + '55' },
+  formBtnText: { color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   ticketRow: {
     flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md,
     borderTopWidth: 1, borderTopColor: colors.textMuted + '1F', paddingTop: spacing.sm,

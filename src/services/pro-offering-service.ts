@@ -25,6 +25,10 @@ export interface ProOffering {
   pro_name: string;
   created_at: string;
   updated_at: string;
+  // Chantiers A+B (00422)
+  equipment_provided: string[];
+  equipment_required: string[];
+  participant_fields: { std: string[]; custom: string[] };
   // Review aggregate — present only on getNearby (map labels / hero).
   avg_rating?: number | null;
   review_count?: number;
@@ -53,6 +57,25 @@ export interface UpdateProOfferingInput extends CreateProOfferingInput {
 }
 
 export const proOfferingService = {
+  // Chantiers A+B : matériel (fourni / à apporter) + champs de fiche
+  // participant demandés — RPC dédiée, appelée après create/update.
+  setDetails: async (
+    offeringId: string,
+    equipmentProvided: string[],
+    equipmentRequired: string[],
+    participantStd: string[],
+    participantCustom: string[],
+  ): Promise<void> => {
+    const { error } = await supabase.rpc('set_offering_details', {
+      p_offering_id: offeringId,
+      p_equipment_provided: equipmentProvided,
+      p_equipment_required: equipmentRequired,
+      p_participant_std: participantStd,
+      p_participant_custom: participantCustom,
+    });
+    if (error) throw error;
+  },
+
   // Single offering by id. Pulls from the view so we get sport metadata
   // and pro_name in one round-trip.
   getById: async (id: string): Promise<ProOffering | null> => {

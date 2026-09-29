@@ -1570,7 +1570,17 @@
     "tab": {
       "pictures": "Photos",
       "reviews": "Avis"
-    }
+    },
+    "sectionEquipment": "Matériel",
+    "equipProvided": "Fourni par toi",
+    "equipRequired": "À apporter par le client",
+    "equipAddPlaceholder": "Ex. : baudrier — valide pour ajouter",
+    "equipHelper": "Affiché sur l’offre et rappelé au client sur sa réservation.",
+    "sectionParticipantForm": "Fiche participant",
+    "participantFormHelper": "Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.",
+    "customQuestionPlaceholder": "＋ Question libre — ex. : « Sais-tu nager 25 m ? »",
+    "equipProvidedLabel": "Fourni",
+    "equipRequiredLabel": "À apporter"
   },
   "common": {
     "done": "Terminé",
@@ -1702,7 +1712,25 @@
     "sentAgo": "Envoyée {{ago}}",
     "tabUpcoming": "À venir",
     "tabPast": "Passées",
-    "emptyPastTitle": "Aucune réservation passée"
+    "emptyPastTitle": "Aucune réservation passée",
+    "fShoe": "Pointure",
+    "fHeight": "Taille (cm)",
+    "fWeight": "Poids (kg)",
+    "fAge": "Âge",
+    "fLevel": "Niveau",
+    "formTitle": "Fiche du groupe",
+    "formIntro": "{{pro}} a besoin de quelques infos pour préparer le matériel de ton groupe ({{count}} pers.).",
+    "thePro": "Le professionnel",
+    "participantYou": "Participant 1 · toi",
+    "participantN": "Participant {{n}}",
+    "answerPlaceholder": "Ta réponse…",
+    "formSubmit": "Envoyer la fiche",
+    "formSent": "Fiche envoyée au professionnel",
+    "formPrivacy": "Ces infos ne sont visibles que du professionnel, pour cette sortie.",
+    "formTodo": "Compléter la fiche du groupe",
+    "formDone": "Fiche du groupe ✓",
+    "formMissing_one": "{{count}} fiche manquante",
+    "formMissing_other": "{{count}} fiches manquantes"
   },
   "calendar": {
     "prevMonth": "Mois précédent",

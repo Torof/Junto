@@ -1,6 +1,11 @@
 import { supabase } from './supabase';
+import type { Json } from '@/types/supabase';
 
 export type BookingPeriod = 'am' | 'pm';
+
+// Fiche participant (00422) : champs demandés par l'offre + réponses.
+export interface ParticipantFields { std: string[]; custom: string[] }
+export type ParticipantEntry = Record<string, string> & { custom?: Record<string, string> };
 export type BookingStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'cancelled_pro' | 'expired';
 
 export interface ProAvailabilitySlot {
@@ -27,6 +32,8 @@ export interface AgendaItem {
   is_manual: boolean | null;
   sport_key: string | null;
   sport_category: string | null;
+  participant_fields: ParticipantFields | null;
+  participant_info: ParticipantEntry[] | null;
 }
 
 export interface MyBooking {
@@ -46,12 +53,23 @@ export interface MyBooking {
   price_unit: 'person' | 'group' | null;
   sport_key: string | null;
   sport_category: string | null;
+  equipment_required: string[] | null;
+  participant_fields: ParticipantFields | null;
+  participant_info: ParticipantEntry[] | null;
 }
 
 export const bookingService = {
   setAvailability: async (day: string, period: BookingPeriod, available: boolean): Promise<void> => {
     const { error } = await supabase.rpc('set_pro_availability', {
       p_day: day, p_period: period, p_available: available,
+    });
+    if (error) throw error;
+  },
+
+  setParticipantInfo: async (bookingId: string, info: ParticipantEntry[]): Promise<void> => {
+    const { error } = await supabase.rpc('set_booking_participant_info', {
+      p_booking_id: bookingId,
+      p_info: info as unknown as Json,
     });
     if (error) throw error;
   },

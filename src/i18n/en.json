@@ -1570,7 +1570,17 @@
     "tab": {
       "pictures": "Photos",
       "reviews": "Reviews"
-    }
+    },
+    "sectionEquipment": "Gear",
+    "equipProvided": "Provided by you",
+    "equipRequired": "Client brings",
+    "equipAddPlaceholder": "E.g. harness — submit to add",
+    "equipHelper": "Shown on the offering and reminded on the client's booking.",
+    "sectionParticipantForm": "Participant form",
+    "participantFormHelper": "What you need to know about each participant. The client fills it in after confirmation.",
+    "customQuestionPlaceholder": "＋ Free question — e.g. “Can you swim 25 m?”",
+    "equipProvidedLabel": "Provided",
+    "equipRequiredLabel": "Bring"
   },
   "common": {
     "done": "Done",
@@ -1702,7 +1712,25 @@
     "sentAgo": "Sent {{ago}}",
     "tabUpcoming": "Upcoming",
     "tabPast": "Past",
-    "emptyPastTitle": "No past bookings"
+    "emptyPastTitle": "No past bookings",
+    "fShoe": "Shoe size",
+    "fHeight": "Height (cm)",
+    "fWeight": "Weight (kg)",
+    "fAge": "Age",
+    "fLevel": "Level",
+    "formTitle": "Group form",
+    "formIntro": "{{pro}} needs a few details to prepare the gear for your group ({{count}} ppl).",
+    "thePro": "The professional",
+    "participantYou": "Participant 1 · you",
+    "participantN": "Participant {{n}}",
+    "answerPlaceholder": "Your answer…",
+    "formSubmit": "Send the form",
+    "formSent": "Form sent to the professional",
+    "formPrivacy": "Only this professional can see these details, for this outing.",
+    "formTodo": "Fill in the group form",
+    "formDone": "Group form ✓",
+    "formMissing_one": "{{count}} form missing",
+    "formMissing_other": "{{count}} forms missing"
   },
   "calendar": {
     "prevMonth": "Previous month",

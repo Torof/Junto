@@ -9,7 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Maximize2, Euro, Pencil, Backpack, Check as CheckIcon } from 'lucide-react-native';
 import { JuntoMapView } from './map-view';
 import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows , glow} from '@/constants/theme';
@@ -331,6 +331,29 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
         </View>
         {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
 
+        {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) && (
+          <View style={styles.equipBlock}>
+            {offering.equipment_provided?.length > 0 && (
+              <View style={styles.equipLine}>
+                <CheckIcon size={15} color={colors.cta} strokeWidth={2.6} style={styles.equipIcon} />
+                <Text style={styles.equipText}>
+                  <Text style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</Text>
+                  {' — '}{offering.equipment_provided.join(', ')}.
+                </Text>
+              </View>
+            )}
+            {offering.equipment_required?.length > 0 && (
+              <View style={styles.equipLine}>
+                <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} style={styles.equipIcon} />
+                <Text style={styles.equipText}>
+                  <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
+                  {' — '}{offering.equipment_required.join(', ')}.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {nextSlots.length > 0 && (
           <>
             <Text style={styles.slotsLabel}>{t('booking.nextAvail', { defaultValue: 'Prochaines disponibilités' })}</Text>
@@ -492,6 +515,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
+  equipBlock: { marginTop: spacing.sm + 2, gap: 6 },
+  equipLine: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  equipIcon: { marginTop: 2 },
+  equipText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
+  equipLabel: { color: colors.textPrimary, fontWeight: '700' },
   slotsLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.6, marginTop: spacing.md, marginBottom: spacing.sm,

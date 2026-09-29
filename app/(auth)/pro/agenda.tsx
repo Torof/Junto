@@ -26,6 +26,19 @@ const periodLabel = (p: BookingPeriod, t: TFn) =>
   p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
 
 // Initials for the calendar half-day label ("Famille Perrin" → "FP").
+// Fiche participant (00422) : "P. 43 · 178 cm · 72 kg" par entrée.
+const formatEntry = (e: Record<string, unknown>): string => {
+  const parts: string[] = [];
+  if (typeof e.shoe_size === 'string' && e.shoe_size) parts.push(`P. ${e.shoe_size}`);
+  if (typeof e.height === 'string' && e.height) parts.push(`${e.height} cm`);
+  if (typeof e.weight === 'string' && e.weight) parts.push(`${e.weight} kg`);
+  if (typeof e.age === 'string' && e.age) parts.push(`${e.age} ans`);
+  if (typeof e.level === 'string' && e.level) parts.push(String(e.level));
+  const custom = e.custom as Record<string, string> | undefined;
+  if (custom) for (const [q, a] of Object.entries(custom)) if (a) parts.push(`${q} : ${a}`);
+  return parts.join(' · ') || '—';
+};
+
 const initials = (name: string | null): string => {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/).slice(0, 2);
@@ -463,6 +476,24 @@ export default function ProAgendaScreen() {
                             ? ` · ${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
                             : ` · ${t('booking.viaJunto', { defaultValue: 'via l’app' })}`}
                         </Text>
+                        {b.status === 'accepted'
+                          && ((b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0)) > 0 ? (
+                          <View style={styles.pInfoBlock}>
+                            {(b.participant_info ?? []).map((e, i) => (
+                              <Text key={i} style={styles.pInfoLine} numberOfLines={2}>
+                                <Text style={styles.pInfoNum}>{i + 1}  </Text>{formatEntry(e)}
+                              </Text>
+                            ))}
+                            {(b.participant_info?.length ?? 0) < (b.party_size ?? 0) ? (
+                              <Text style={[styles.pInfoLine, { color: colors.warning }]}>
+                                {t('booking.formMissing', {
+                                  defaultValue: '{{count}} fiche(s) manquante(s)',
+                                  count: (b.party_size ?? 0) - (b.participant_info?.length ?? 0),
+                                })}
+                              </Text>
+                            ) : null}
+                          </View>
+                        ) : null}
                       </View>
                       {!b.is_manual && b.client_id ? (
                         <PressableScale hitSlop={8} onPress={() => { setSheetDay(null); router.push(`/(auth)/profile/${b.client_id}`); }}>
@@ -651,6 +682,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sportDot: { width: 10, height: 10, borderRadius: 5 },
   sheetBkName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
   sheetBkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
+  pInfoBlock: { marginTop: 4, gap: 2 },
+  pInfoLine: { color: colors.textSecondary, fontSize: fontSizes.xs + 1 },
+  pInfoNum: { color: colors.textMuted, fontWeight: '800' },
   fieldLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs + 2,
