@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Calendar } from 'lucide-react-native';
+import { MapPin, Calendar, Star } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -75,8 +75,17 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         </View>
       </View>
 
-      <View style={styles.proBadge}>
-        <Text style={styles.proBadgeText}>PRO</Text>
+      <View style={styles.rightCol}>
+        <View style={styles.proBadge}>
+          <Text style={styles.proBadgeText}>PRO</Text>
+        </View>
+        {offering.avg_rating != null && (offering.review_count ?? 0) > 0 ? (
+          <View style={styles.ratingRow}>
+            <Star size={11} color={colors.star} fill={colors.star} strokeWidth={0} />
+            <Text style={styles.ratingText}>{Number(offering.avg_rating).toFixed(1)}</Text>
+            <Text style={styles.ratingCount}>({offering.review_count})</Text>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -139,6 +148,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
   // One unified pro badge — always the pro-blue (one colour = one meaning
   // "pro" across pins + cards), a circle rather than a per-sport pill.
+  rightCol: { alignItems: 'center', gap: 4 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  ratingText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
+  ratingCount: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '600' },
   proBadge: {
     width: 34,
     height: 34,
