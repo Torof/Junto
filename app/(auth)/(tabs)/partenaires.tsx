@@ -32,7 +32,7 @@ export default function PartenairesScreen() {
         <Pressable style={[styles.segment, sub === 'channels' && styles.segmentActive]} onPress={() => setSub('channels')}>
           <Hash size={16} color={sub === 'channels' ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.2} />
           <Text style={[styles.segmentText, sub === 'channels' && styles.segmentTextActive]}>
-            {t('partenaires.channels', { defaultValue: 'Canaux' })}
+            {t('partenaires.channels', { defaultValue: 'Discussions' })}
           </Text>
         </Pressable>
       </View>

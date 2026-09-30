@@ -92,13 +92,13 @@ export default function CreateChannelScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle}>{t('channels.createTitle', { defaultValue: 'Nouveau canal' })}</Text>
+        <Text style={styles.headerTitle}>{t('channels.createTitle', { defaultValue: 'Nouvelle discussion' })}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom du canal' })}</Text>
+        <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom de la discussion' })}</Text>
         <TextInput
           style={styles.input}
           value={name}
@@ -166,7 +166,7 @@ export default function CreateChannelScreen() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Pressable style={[styles.cta, !ready && styles.ctaDisabled]} disabled={!ready || saving} onPress={() => submit(false)}>
-          <Text style={styles.ctaText}>{saving ? t('channels.creating', { defaultValue: 'Création…' }) : t('channels.createCta', { defaultValue: 'Créer le canal' })}</Text>
+          <Text style={styles.ctaText}>{saving ? t('channels.creating', { defaultValue: 'Création…' }) : t('channels.createCta', { defaultValue: 'Créer la discussion' })}</Text>
         </Pressable>
       </View>
 
@@ -174,8 +174,8 @@ export default function CreateChannelScreen() {
       <Modal visible={!!dupId} transparent animationType="fade" onRequestClose={() => setDupId(null)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setDupId(null)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>{t('channels.dupTitle', { defaultValue: 'Un canal existe déjà' })}</Text>
-            <Text style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Un canal couvre déjà cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</Text>
+            <Text style={styles.modalTitle}>{t('channels.dupTitle', { defaultValue: 'Une discussion existe déjà' })}</Text>
+            <Text style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Une discussion couvre déjà cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</Text>
             <Pressable style={styles.modalPrimary} onPress={joinExisting}>
               <Text style={styles.modalPrimaryText}>{t('channels.dupJoin', { defaultValue: 'Rejoindre l’existant' })}</Text>
             </Pressable>

@@ -45,7 +45,7 @@ const SEGMENTS: { key: Segment; label: string; dflt: string }[] = [
   { key: 'all', label: 'messagerie.segAll', dflt: 'Tout' },
   { key: 'direct', label: 'messagerie.segDirect', dflt: 'Directs' },
   { key: 'activity', label: 'messagerie.segActivity', dflt: 'Sorties' },
-  { key: 'channel', label: 'messagerie.segChannel', dflt: 'Canaux' },
+  { key: 'channel', label: 'messagerie.segChannel', dflt: 'Discussions' },
 ];
 
 export default function MessagerieScreen() {
@@ -501,7 +501,7 @@ export default function MessagerieScreen() {
                 onPress = () => router.push(`/(auth)/conversation/${item.id}`);
                 onLongPress = () => handleHideConversation(item.id, title);
               } else if (item.type === 'channel') {
-                title = item.name ?? t('messagerie.channel', { defaultValue: 'Canal' });
+                title = item.name ?? t('messagerie.channel', { defaultValue: 'Discussion' });
                 // Mirror the channel card: its photo when set, else a square
                 // tinted in the sport's universe colour (Hash if no sport).
                 leading = item.photo_url ? (
@@ -533,7 +533,7 @@ export default function MessagerieScreen() {
               // at a glance (a DM carries no pill — its round avatar says it).
               const typeMeta =
                 item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: TYPE_OUTING_COLOR, bg: TYPE_OUTING_COLOR + '20' } :
-                item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Canal' }), text: TYPE_CHANNEL_COLOR, bg: TYPE_CHANNEL_COLOR + '20' } :
+                item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Discussion' }), text: TYPE_CHANNEL_COLOR, bg: TYPE_CHANNEL_COLOR + '20' } :
                 item.type === 'group' ? { label: t('messagerie.typeGroup', { defaultValue: 'Groupe' }), text: colors.textSecondary, bg: colors.surfaceAlt } :
                 null;
 
@@ -547,13 +547,13 @@ export default function MessagerieScreen() {
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
                       <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</Text>
+                      {time && <Text style={styles.time}>{time}</Text>}
                       {typeMeta && (
                         <View style={[styles.typePill, { backgroundColor: typeMeta.bg }]}>
                           <Text style={[styles.typePillText, { color: typeMeta.text }]}>{typeMeta.label}</Text>
                         </View>
                       )}
                       {isUnread && <View style={styles.unreadDot} />}
-                      {time && <Text style={styles.time}>{time}</Text>}
                     </View>
                     {rowSport && (
                       <View style={styles.sportLabelRow}>

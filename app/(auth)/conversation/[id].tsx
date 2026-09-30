@@ -178,7 +178,7 @@ export default function ConversationScreen() {
       await channelService.rename(id!, n);
       setChannelRename('');
       await invalidateChannel();
-      Burnt.toast({ title: t('channels.renamed', { defaultValue: 'Canal renommé' }), preset: 'done' });
+      Burnt.toast({ title: t('channels.renamed', { defaultValue: 'Discussion renommé' }), preset: 'done' });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
   const handleCloseChannel = async () => {
@@ -186,7 +186,7 @@ export default function ConversationScreen() {
       await channelService.close(id!);
       setShowChannelManage(false);
       await invalidateChannel();
-      Burnt.toast({ title: t('channels.closedDone', { defaultValue: 'Canal fermé' }) });
+      Burnt.toast({ title: t('channels.closedDone', { defaultValue: 'Discussion fermé' }) });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
   const handleChangeChannelPhoto = async () => {
@@ -817,7 +817,7 @@ export default function ConversationScreen() {
         ) : isChannel && channelClosed ? (
           <View style={styles.channelClosedBar}>
             <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Canal fermé — lecture seule' })}</Text>
+            <Text style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Discussion fermé — lecture seule' })}</Text>
           </View>
         ) : (
           <View style={styles.inputRow}>
@@ -930,7 +930,7 @@ export default function ConversationScreen() {
                     style={styles.channelRenameInput}
                     value={channelRename}
                     onChangeText={setChannelRename}
-                    placeholder={t('channels.renamePlaceholder', { defaultValue: 'Renommer le canal…' })}
+                    placeholder={t('channels.renamePlaceholder', { defaultValue: 'Renommer la discussion…' })}
                     placeholderTextColor={colors.textSecondary}
                     maxLength={60}
                   />
@@ -956,7 +956,7 @@ export default function ConversationScreen() {
                   )}
                   <Pressable style={styles.channelRowBtn} onPress={handleCloseChannel}>
                     <Lock size={18} color={colors.error} strokeWidth={2.2} />
-                    <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer le canal' })}</Text>
+                    <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer la discussion' })}</Text>
                   </Pressable>
 
                   {(channelMembers ?? []).length > 0 && (
@@ -984,7 +984,7 @@ export default function ConversationScreen() {
               {channelIsMember && !channelIsCreator && (
                 <Pressable style={styles.channelRowBtn} onPress={handleLeaveChannel}>
                   <LogOutIcon size={18} color={colors.error} strokeWidth={2.2} />
-                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.leave', { defaultValue: 'Quitter le canal' })}</Text>
+                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.leave', { defaultValue: 'Quitter la discussion' })}</Text>
                 </Pressable>
               )}
             </Pressable>

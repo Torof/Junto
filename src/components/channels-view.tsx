@@ -113,7 +113,7 @@ export function ChannelsView() {
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
-              placeholder={t('channels.searchPlaceholder', { defaultValue: 'Chercher un canal…' })}
+              placeholder={t('channels.searchPlaceholder', { defaultValue: 'Chercher une discussion…' })}
               placeholderTextColor={colors.textMuted}
               returnKeyType="search"
             />
@@ -167,7 +167,7 @@ export function ChannelsView() {
             </CollapsibleSection>
 
             <Pressable style={styles.sheetApply} onPress={() => setShowFilters(false)}>
-              <Text style={styles.sheetApplyText}>{t('channels.applyFilters', { defaultValue: 'Voir les canaux' })}</Text>
+              <Text style={styles.sheetApplyText}>{t('channels.applyFilters', { defaultValue: 'Voir les discussions' })}</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -183,14 +183,14 @@ export function ChannelsView() {
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
-            <Text style={styles.empty}>{t('channels.none', { defaultValue: 'Aucun canal ici pour l’instant. Crée le premier !' })}</Text>
+            <Text style={styles.empty}>{t('channels.none', { defaultValue: 'Aucune discussion ici pour l’instant. Crée le premier !' })}</Text>
           }
         />
       )}
 
       <Pressable style={styles.fab} onPress={() => router.push('/(auth)/create-channel')}>
         <Plus size={20} color="#FFFFFF" strokeWidth={2.6} />
-        <Text style={styles.fabText}>{t('channels.create', { defaultValue: 'Créer un canal' })}</Text>
+        <Text style={styles.fabText}>{t('channels.create', { defaultValue: 'Créer une discussion' })}</Text>
       </Pressable>
     </View>
   );

@@ -43,7 +43,16 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
       <View style={styles.statusBar} />
 
       <View style={styles.middleCol}>
-        <Text style={styles.title} numberOfLines={1}>{offering.title}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { flex: 1 }]} numberOfLines={1}>{offering.title}</Text>
+          {offering.avg_rating != null && (offering.review_count ?? 0) > 0 ? (
+            <View style={styles.ratingRow}>
+              <Star size={11} color={colors.star} fill={colors.star} strokeWidth={0} />
+              <Text style={styles.ratingText}>{Number(offering.avg_rating).toFixed(1)}</Text>
+              <Text style={styles.ratingCount}>({offering.review_count})</Text>
+            </View>
+          ) : null}
+        </View>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: accent }]}>
             <SportIcon sportKey={offering.sport_key} size={12} color={accent} />
@@ -75,17 +84,8 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         </View>
       </View>
 
-      <View style={styles.rightCol}>
-        {offering.avg_rating != null && (offering.review_count ?? 0) > 0 ? (
-          <View style={styles.ratingRow}>
-            <Star size={11} color={colors.star} fill={colors.star} strokeWidth={0} />
-            <Text style={styles.ratingText}>{Number(offering.avg_rating).toFixed(1)}</Text>
-            <Text style={styles.ratingCount}>({offering.review_count})</Text>
-          </View>
-        ) : null}
-        <View style={styles.proBadge}>
-          <Text style={styles.proBadgeText}>PRO</Text>
-        </View>
+      <View style={styles.proBadge}>
+        <Text style={styles.proBadgeText}>PRO</Text>
       </View>
     </Pressable>
   );
@@ -148,7 +148,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
   // One unified pro badge — always the pro-blue (one colour = one meaning
   // "pro" across pins + cards), a circle rather than a per-sport pill.
-  rightCol: { alignItems: 'center', gap: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   ratingText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
   ratingCount: { color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '600' },

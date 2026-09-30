@@ -115,7 +115,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   wrap: { width: '100%' },
   bar: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.background, borderRadius: radius.md,
+    backgroundColor: colors.background, borderRadius: radius.full,
     borderWidth: 1, borderColor: colors.borderStrong,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
   },

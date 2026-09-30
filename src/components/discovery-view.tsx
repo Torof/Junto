@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X, Radar, MessageCircle } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -264,22 +264,34 @@ export function DiscoveryView() {
 
   // No active dispo → warm onboarding.
   if (!active) {
-    const steps: { t: string; s: string }[] = [
-      { t: t('discovery.onbStep1', { defaultValue: 'Ta dispo' }), s: t('discovery.onbStep1s', { defaultValue: 'Sport, zone, dates, transport' }) },
-      { t: t('discovery.onbStep2', { defaultValue: 'Tu deviens visible' }), s: t('discovery.onbStep2s', { defaultValue: 'Et tu vois qui correspond' }) },
-      { t: t('discovery.onbStep3', { defaultValue: 'Vous vous contactez' }), s: t('discovery.onbStep3s', { defaultValue: 'Puis une vraie sortie sur la carte' }) },
+    const steps: { icon: React.ReactNode; t: string; s: string }[] = [
+      {
+        icon: <SlidersHorizontal size={19} color={colors.cta} strokeWidth={2.3} />,
+        t: t('discovery.onbStep1', { defaultValue: 'Compose ta dispo' }),
+        s: t('discovery.onbStep1s', { defaultValue: 'Tes sports, ta zone, tes dates' }),
+      },
+      {
+        icon: <Radar size={19} color={colors.cta} strokeWidth={2.3} />,
+        t: t('discovery.onbStep2', { defaultValue: 'Vous vous trouvez' }),
+        s: t('discovery.onbStep2s', { defaultValue: 'Tu vois qui cherche la même chose — et eux te voient' }),
+      },
+      {
+        icon: <MessageCircle size={19} color={colors.cta} strokeWidth={2.3} />,
+        t: t('discovery.onbStep3', { defaultValue: 'Vous vous contactez' }),
+        s: t('discovery.onbStep3s', { defaultValue: 'Et la sortie naît sur la carte' }),
+      },
     ];
     return (
       <View style={styles.onbWrap}>
         <ScrollView contentContainerStyle={styles.onbScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.onb}>
-          <View style={styles.halo}><Handshake size={46} color={colors.cta} strokeWidth={2} /></View>
+          <View style={styles.haloOuter}><View style={styles.halo}><Handshake size={42} color={colors.cta} strokeWidth={2} /></View></View>
           <Text style={styles.onbTitle}>{t('discovery.onbTitle', { defaultValue: 'Trouve des partenaires autour de toi' })}</Text>
           <Text style={styles.onbBody}>{t('discovery.onbBody', { defaultValue: 'Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.' })}</Text>
           <View style={styles.steps}>
             {steps.map((st, i) => (
               <View key={i} style={styles.step}>
-                <View style={styles.stepN}><Text style={styles.stepNText}>{i + 1}</Text></View>
+                <View style={styles.stepN}>{st.icon}</View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.stepT}>{st.t}</Text>
                   <Text style={styles.stepS}>{st.s}</Text>
@@ -311,8 +323,8 @@ export function DiscoveryView() {
         return (
           <View style={styles.myDispoWrap}>
             <CollapsibleSection
-              title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
-              summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label}`}
+              title={t('discovery.myDispoTitleLive', { defaultValue: 'Ta dispo · en ligne' })}
+              summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label} · ${formatPeriod(mine.window_start, mine.window_end)}`}
               bordered={false}
               chevronBoxed
             >
@@ -492,21 +504,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   onbWrap: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   onbScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.lg },
   onb: { alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  halo: {
-    width: 108, height: 108, borderRadius: radius.full, backgroundColor: colors.cta + '18',
+  haloOuter: {
+    width: 124, height: 124, borderRadius: radius.full, backgroundColor: colors.cta + '0C',
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
+  },
+  halo: {
+    width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.cta + '16',
+    alignItems: 'center', justifyContent: 'center',
     ...glow(colors.cta),
   },
   onbTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', textAlign: 'center', letterSpacing: -0.4, lineHeight: 30 },
   onbBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22, maxWidth: 300, marginBottom: spacing.xs },
   steps: { alignSelf: 'stretch', gap: spacing.sm + 2, marginTop: spacing.md },
   step: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
-    borderRadius: radius.card, padding: spacing.sm + 4,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4, backgroundColor: colors.surface,
+    borderRadius: radius.card, padding: spacing.md,
+    borderWidth: 1, borderColor: colors.lineStrong,
     ...shadows.card,
   },
-  stepN: { width: 27, height: 27, borderRadius: radius.full, backgroundColor: colors.cta + '1A', alignItems: 'center', justifyContent: 'center' },
-  stepNText: { color: colors.cta, fontWeight: '800', fontSize: fontSizes.sm },
+  stepN: { width: 38, height: 38, borderRadius: radius.full, backgroundColor: colors.cta + '14', alignItems: 'center', justifyContent: 'center' },
   stepT: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   stepS: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', marginTop: 1 },
   ctaBig: {
@@ -516,7 +532,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ctaBigText: { color: '#FFFFFF', fontSize: fontSizes.md + 1, fontWeight: '800' },
 
   // --- Ta dispo panel ---
-  myDispoWrap: { paddingHorizontal: spacing.md, backgroundColor: colors.cta + '14', borderBottomWidth: 1, borderBottomColor: colors.cta + '3D' },
+  myDispoWrap: {
+    marginHorizontal: spacing.md, marginTop: spacing.sm + 2, marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md, backgroundColor: colors.cta + '0D',
+    borderRadius: radius.card, borderWidth: 1.5, borderColor: colors.cta + '55',
+    ...shadows.card,
+  },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
   matchesHead: { paddingTop: spacing.sm, paddingBottom: spacing.md + spacing.xs, gap: spacing.sm + 2 },
   matchesTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
