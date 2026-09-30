@@ -534,8 +534,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // --- Ta dispo panel ---
   myDispoWrap: {
     marginHorizontal: spacing.md, marginTop: spacing.sm + 2, marginBottom: spacing.xs,
-    paddingHorizontal: spacing.md, backgroundColor: colors.cta + '0D',
-    borderRadius: radius.card, borderWidth: 1.5, borderColor: colors.cta + '55',
+    paddingHorizontal: spacing.md, backgroundColor: colors.surface,
+    borderRadius: radius.card, borderWidth: 1.5, borderColor: colors.borderStrong,
     ...shadows.card,
   },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },

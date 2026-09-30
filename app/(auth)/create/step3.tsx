@@ -89,7 +89,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1.5, borderColor: 'transparent',
     ...shadows.card,
   },
-  optionActive: { borderColor: colors.cta, backgroundColor: colors.cta + '14' },
+  optionActive: { borderColor: colors.cta, borderWidth: 2 },
   optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   optionTitleActive: { color: colors.cta },
