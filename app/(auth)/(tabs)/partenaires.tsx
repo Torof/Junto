@@ -20,8 +20,9 @@ export default function PartenairesScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [sub, setSub] = useState<Sub>(tab === 'channels' ? 'channels' : 'discovery');
 
-  return (
-    <View style={styles.container}>
+  // Le sélecteur défile AVEC le contenu (Scott 2026-09-30 : l'écran est
+  // petit, les cartes des partenaires méritent la place — rien de sticky).
+  const segments = (
       <View style={styles.segments}>
         <Pressable style={[styles.segment, sub === 'discovery' && styles.segmentActive]} onPress={() => setSub('discovery')}>
           <Compass size={16} color={sub === 'discovery' ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.2} />
@@ -36,8 +37,12 @@ export default function PartenairesScreen() {
           </Text>
         </Pressable>
       </View>
+  );
+
+  return (
+    <View style={styles.container}>
       <View style={styles.body}>
-        {sub === 'discovery' ? <DiscoveryView /> : <ChannelsView />}
+        {sub === 'discovery' ? <DiscoveryView headerComponent={segments} /> : <ChannelsView headerComponent={segments} />}
       </View>
     </View>
   );

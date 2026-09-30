@@ -17,7 +17,9 @@ import { sportCategoryColor, mixHex } from '@/utils/sport-category-color';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 
-export function ChannelsView() {
+interface ChannelsViewProps { headerComponent?: React.ReactNode }
+
+export function ChannelsView({ headerComponent }: ChannelsViewProps) {
   const colors = useColors();
   const resolvedTheme = useResolvedTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -103,8 +105,9 @@ export function ChannelsView() {
     );
   };
 
-  return (
-    <View style={styles.container}>
+  const listHeader = (
+    <View>
+      {headerComponent}
       <View style={styles.filters}>
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
@@ -124,7 +127,11 @@ export function ChannelsView() {
           </Pressable>
         </View>
       </View>
+    </View>
+  );
 
+  return (
+    <View style={styles.container}>
       {/* Filter sheet — mirrors the map filter (Localisation / Rayon / Sport). */}
       <Modal visible={showFilters} transparent animationType="slide" onRequestClose={() => setShowFilters(false)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setShowFilters(false)}>
@@ -174,7 +181,10 @@ export function ChannelsView() {
       </Modal>
 
       {isLoading ? (
-        <View style={styles.center}><LogoSpinner size={40} /></View>
+        <View>
+          {listHeader}
+          <View style={styles.center}><LogoSpinner size={40} /></View>
+        </View>
       ) : (
         <FlatList
           data={channels ?? []}
@@ -182,6 +192,7 @@ export function ChannelsView() {
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={
             <Text style={styles.empty}>{t('channels.none', { defaultValue: 'Aucune discussion ici pour l’instant. Crée le premier !' })}</Text>
           }

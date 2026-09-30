@@ -52,7 +52,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export function DiscoveryView() {
+interface DiscoveryViewProps { headerComponent?: React.ReactNode }
+
+export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
@@ -284,6 +286,7 @@ export function DiscoveryView() {
     return (
       <View style={styles.onbWrap}>
         <ScrollView contentContainerStyle={styles.onbScroll} showsVerticalScrollIndicator={false}>
+        {headerComponent}
         <View style={styles.onb}>
           <View style={styles.haloOuter}><View style={styles.halo}><Handshake size={42} color={colors.cta} strokeWidth={2} /></View></View>
           <Text style={styles.onbTitle}>{t('discovery.onbTitle', { defaultValue: 'Trouve des partenaires autour de toi' })}</Text>
@@ -308,6 +311,57 @@ export function DiscoveryView() {
     );
   }
 
+  // « Ta dispo » défile avec la liste (Scott 2026-09-30) — plus rien de sticky.
+  const myDispoNode = mine ? (() => {
+    const placeText = `${mine.base_label} · ${radiusText(mine.radius_km)}`;
+    return (
+      <View style={styles.myDispoWrap}>
+        <CollapsibleSection
+          title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
+          badge={(
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveBadgeText}>{t('discovery.live', { defaultValue: 'En ligne' })}</Text>
+            </View>
+          )}
+          summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label} · ${formatPeriod(mine.window_start, mine.window_end)}`}
+          stacked
+          bordered={false}
+          chevronBoxed
+        >
+          <View style={styles.infoRows}>
+            <Row label={t('discovery.row.sports', { defaultValue: 'Sports' })}>
+              <View style={styles.pillWrap}>{mine.sport_keys.map((k) => sportPill(k, mine.levels?.[k]))}</View>
+            </Row>
+            <Row label={t('discovery.row.place', { defaultValue: 'Lieu' })}>
+              <View style={styles.radiusValue}>
+                <Text style={styles.infoText}>{placeText}</Text>
+                <Pressable onPress={() => openZone({ lng: String(mine.base_lng), lat: String(mine.base_lat), radius: mine.radius_km ? String(mine.radius_km) : '', label: mine.base_label })} hitSlop={6}>
+                  <Text style={styles.zoneLink}>{t('discovery.seeMyZone', { defaultValue: 'Voir mon rayon' })}</Text>
+                </Pressable>
+              </View>
+            </Row>
+            <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
+              <Text style={styles.infoText}>{formatPeriod(mine.window_start, mine.window_end)}</Text>
+            </Row>
+            <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
+              {transportIcons(mine.transport_modes)}
+            </Row>
+            {mine.intent && mine.intent.length > 0 && (
+              <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })} stack>
+                {intentChips(mine.intent)}
+              </Row>
+            )}
+          </View>
+          <View style={styles.myDispoActions}>
+            <Pressable onPress={() => router.push('/(auth)/discovery-compose')}><Text style={styles.link}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text></Pressable>
+            <Pressable onPress={handleDeactivate}><Text style={[styles.link, styles.linkDanger]}>{t('discovery.deactivate', { defaultValue: 'Désactiver' })}</Text></Pressable>
+          </View>
+        </CollapsibleSection>
+      </View>
+    );
+  })() : null;
+
   const allCards = cards ?? [];
   const filteredCards = filterVibes.size === 0
     ? allCards
@@ -316,58 +370,6 @@ export function DiscoveryView() {
 
   return (
     <View style={styles.container}>
-      {/* My active dispo — collapsible so it stays reviewable without eating
-          the list's space (Scott, 2026-08-09). */}
-      {mine && (() => {
-        const placeText = `${mine.base_label} · ${radiusText(mine.radius_km)}`;
-        return (
-          <View style={styles.myDispoWrap}>
-            <CollapsibleSection
-              title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
-              badge={(
-                <View style={styles.liveBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveBadgeText}>{t('discovery.live', { defaultValue: 'En ligne' })}</Text>
-                </View>
-              )}
-              summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label} · ${formatPeriod(mine.window_start, mine.window_end)}`}
-              stacked
-              bordered={false}
-              chevronBoxed
-            >
-              <View style={styles.infoRows}>
-                <Row label={t('discovery.row.sports', { defaultValue: 'Sports' })}>
-                  <View style={styles.pillWrap}>{mine.sport_keys.map((k) => sportPill(k, mine.levels?.[k]))}</View>
-                </Row>
-                <Row label={t('discovery.row.place', { defaultValue: 'Lieu' })}>
-                  <View style={styles.radiusValue}>
-                    <Text style={styles.infoText}>{placeText}</Text>
-                    <Pressable onPress={() => openZone({ lng: String(mine.base_lng), lat: String(mine.base_lat), radius: mine.radius_km ? String(mine.radius_km) : '', label: mine.base_label })} hitSlop={6}>
-                      <Text style={styles.zoneLink}>{t('discovery.seeMyZone', { defaultValue: 'Voir mon rayon' })}</Text>
-                    </Pressable>
-                  </View>
-                </Row>
-                <Row label={t('discovery.row.when', { defaultValue: 'Quand' })}>
-                  <Text style={styles.infoText}>{formatPeriod(mine.window_start, mine.window_end)}</Text>
-                </Row>
-                <Row label={t('discovery.row.transport', { defaultValue: 'Trajet' })}>
-                  {transportIcons(mine.transport_modes)}
-                </Row>
-                {mine.intent && mine.intent.length > 0 && (
-                  <Row label={t('discovery.row.intent', { defaultValue: 'Cherche' })} stack>
-                    {intentChips(mine.intent)}
-                  </Row>
-                )}
-              </View>
-              <View style={styles.myDispoActions}>
-                <Pressable onPress={() => router.push('/(auth)/discovery-compose')}><Text style={styles.link}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text></Pressable>
-                <Pressable onPress={handleDeactivate}><Text style={[styles.link, styles.linkDanger]}>{t('discovery.deactivate', { defaultValue: 'Désactiver' })}</Text></Pressable>
-              </View>
-            </CollapsibleSection>
-          </View>
-        );
-      })()}
-
       {isLoading ? (
         <View style={styles.center}><LogoSpinner size={40} /></View>
       ) : (
@@ -377,6 +379,9 @@ export function DiscoveryView() {
           renderItem={renderCard}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
+            <View>
+            {headerComponent}
+            {myDispoNode}
             <View style={styles.matchesHead}>
               <View style={styles.matchesTop}>
                 <Text style={styles.matchesLabel}>
@@ -405,6 +410,7 @@ export function DiscoveryView() {
                   </Pressable>
                 </View>
               )}
+            </View>
             </View>
           }
           ListEmptyComponent={
