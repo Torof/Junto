@@ -944,7 +944,9 @@
     "agoDays_other": "{{count}} days ago",
     "noPresenceRequired": "This outing didn't require presence validation — only traits and level are up for review.",
     "noPeerPresenceFewParticipants": "You were {{count}}: peer presence testimony needs at least 3 participants. With two, presence is validated via QR or geolocation only.",
-    "ownPresencePending": "Your own presence isn't confirmed yet: you'll be able to vouch for others once yours is validated."
+    "ownPresencePending": "Your own presence isn't confirmed yet — your testimony for others counts all the same.",
+    "presenceCountOf": "{{count}}/2",
+    "presenceNeedsTwo": "Two testimonies are needed to validate someone's presence."
   },
   "messagerie": {
     "empty": "No conversations",
@@ -1436,7 +1438,27 @@
     "scanTitle": "Scan the QR",
     "scanSubtitle": "Point the camera at the organizer's QR",
     "cameraPermission": "Allow camera access to scan",
-    "grantCamera": "Allow"
+    "grantCamera": "Allow",
+    "inMinutes_one": "in {{count}} minute",
+    "inMinutes_other": "in {{count}} minutes",
+    "inHours_one": "in {{count}} hour",
+    "inHours_other": "in {{count}} hours",
+    "agoMinutes_one": "{{count}} minute ago",
+    "agoMinutes_other": "{{count}} minutes ago",
+    "agoHours_one": "{{count}} hour ago",
+    "agoHours_other": "{{count}} hours ago",
+    "agoDays_one": "{{count}} day ago",
+    "agoDays_other": "{{count}} days ago",
+    "opensAt": "Presence check-in opens at {{time}} ({{countdown}}), 15 min before the start. On site, geolocation validates you automatically; otherwise scan the organiser's QR, until {{qrClose}}.",
+    "geoClosedQrOnly": "Geolocation check-in closed {{ago}} (15 min after the start). Getting closer no longer helps: scan the organiser's QR, until {{time}}.",
+    "markedAbsent": "You are counted absent from this outing since {{date}} at {{time}} ({{ago}}). The check-in window closes 24 h after the end.",
+    "backstopHintDated": "Your presence isn't validated. Two co-participants can still vouch for you — until {{date}} at {{time}}. Their vote counts even if their own presence isn't confirmed.",
+    "duoNoPathLeft": "The check-in window closed {{ago}}. With two people there's no cross-testimony: your presence simply isn't counted — no absence, no penalty.",
+    "locationOffExplain": "Location is off: Junto can't detect that you're on site. Turn it on in settings, or scan the organiser's QR.",
+    "openSettings": "Open settings",
+    "creatorAutoNote": "You don't check yourself in: your presence is confirmed automatically as soon as a participant validates theirs.",
+    "qrExpiresAt": "This code expires at {{time}}. Reopen this window to generate a new one.",
+    "qrExpired": "This code has expired. Close and reopen this window to generate a new one."
   },
   "invite": {
     "invalid": "This invite link is not valid"

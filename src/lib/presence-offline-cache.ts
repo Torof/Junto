@@ -213,9 +213,32 @@ export async function flushOfflineGeoQueue(): Promise<void> {
           });
           // Terminal server-side rejection — drop THIS event only: another
           // episode for the same activity (captured inside the window) may
-          // still succeed. Slot stays at "détectée" since we can't claim a
-          // confirmation that didn't happen.
+          // still succeed.
           await dropEvent(event);
+          // If that was the LAST event for this activity, the presence is
+          // definitively lost. Leaving the slot on "détectée — en attente de
+          // réseau" (plus a +20 min "open the app" reminder) made the app lie:
+          // the user kept waiting for a flip that could never come. Cancel the
+          // misleading pair and say it plainly, with what's still possible.
+          const stillQueued = await withQueueLock(async () => {
+            const doc = await readQueueDoc();
+            return doc.items.some((e) => e.activity_id === event.activity_id);
+          });
+          if (!stillQueued) {
+            await Notifications.cancelScheduledNotificationAsync(`presence-${event.activity_id}`).catch(() => {});
+            await Notifications.cancelScheduledNotificationAsync(`presence-${event.activity_id}-pending`).catch(() => {});
+            await Notifications.dismissNotificationAsync(`presence-${event.activity_id}`).catch(() => {});
+            Notifications.scheduleNotificationAsync({
+              identifier: `presence-${event.activity_id}-failed`,
+              content: {
+                title: 'Présence non enregistrée',
+                body: "Ta présence détectée sur place n'a pas pu être enregistrée (fenêtre fermée). Ouvre la sortie : deux co-participants peuvent encore en témoigner.",
+                data: { activity_id: event.activity_id, type: 'presence_replay_failed' },
+                sound: true,
+              },
+              trigger: null,
+            }).catch(() => {});
+          }
         } else {
           trace('presence.offline', 'replay failed (non-terminal), keeping in queue', {
             reason: error.message,

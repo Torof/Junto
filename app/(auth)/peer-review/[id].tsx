@@ -318,6 +318,11 @@ export default function PeerReviewScreen() {
           <Text style={styles.noteText}>{presenceNote}</Text>
         </View>
       )}
+      {peerPresenceEnabled && windowState === 'open' && (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>{t('peerReview.presenceNeedsTwo')}</Text>
+        </View>
+      )}
       {ownPresencePending && (
         <View style={styles.noteBox}>
           <Text style={styles.noteText}>{t('peerReview.ownPresencePending')}</Text>
@@ -374,8 +379,12 @@ export default function PeerReviewScreen() {
                       ? t('peerReview.presenceVoted')
                       : t('peerReview.presenceVoteCta', { name: p.display_name })}
                   </Text>
+                  {/* The threshold is 2 testimonies (mig 00327) — showing a bare
+                      ×N never said how many were needed. */}
                   {p.peer_validation_count > 0 && (
-                    <Text style={styles.presenceCount}>×{p.peer_validation_count}</Text>
+                    <Text style={styles.presenceCount}>
+                      {t('peerReview.presenceCountOf', { count: p.peer_validation_count })}
+                    </Text>
                   )}
                 </Pressable>
               )}

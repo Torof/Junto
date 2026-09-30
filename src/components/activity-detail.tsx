@@ -348,9 +348,59 @@ export function ActivityDetail({
   // auto-validation silently never runs with no explanation.
   const endMs = startsAtMs + durationMs;
   const inPeerReviewWindow = nowMs >= endMs + 15 * 60 * 1000 && nowMs <= endMs + 24 * 60 * 60 * 1000;
-  const hasPeers = (activity.participant_count ?? 0) >= 2; // solo activities can't be peer-validated (mig 00229) — no banner
+  // Peer testimony needs 3 accepted participants (mig 00327) — at 2 it would be
+  // circular, and there is NO penalty either (00291 wipes back to NULL). The
+  // banner used to say >= 2 and promised a backstop that the server refuses.
+  const acceptedCount = activity.participant_count ?? 0;
+  const hasPeers = acceptedCount >= 3;
+  const isDuo = acceptedCount === 2;
   const notValidated = participation?.status === 'accepted' && participation?.confirmed_present == null;
-  const showPeerBackstop = requiresPresence && notValidated && hasPeers && !canCheckIn && inPeerReviewWindow;
+  // Decoupled from !canCheckIn: at end+1h the QR is still open, so the old
+  // condition hid the peer-review entry exactly when the overdue notification
+  // was telling people to use it.
+  const showPeerBackstop = requiresPresence && notValidated && hasPeers && inPeerReviewWindow;
+
+  // --- Explicit presence states (audit 2026-09-30) -------------------------
+  // Every moment where nothing is possible must SAY so, with dates.
+  const geoOpenMs = startsAtMs - 15 * 60 * 1000;
+  const qrCloseMs = endMs + 3 * 60 * 60 * 1000;
+  const absentAtMs = endMs + 24 * 60 * 60 * 1000;
+  const isPresenceSubject = requiresPresence && !isCreator && participation?.status === 'accepted';
+  // (1) Before the window opens — the T-2h notification lands here.
+  const presenceNotYetOpen = isPresenceSubject && !alreadyConfirmed && nowMs < geoOpenMs;
+  // (2) QR-only phase: geo closed at T+15, QR alive until end+3h.
+  const geoClosedQrOpen = isPresenceSubject && !alreadyConfirmed && canScanQr && !isInGeoWindow;
+  // (3) Final state: counted absent by the finaliser at end+24h.
+  const markedAbsent = requiresPresence && participation?.confirmed_present === false;
+  // (4) Duo with nothing left: no peer path, no penalty — say it plainly.
+  const duoNoPathLeft = isPresenceSubject && !alreadyConfirmed && isDuo && nowMs > qrCloseMs;
+  const fmtTime = (ms: number) => dayjs(ms).format('HH:mm');
+  const fmtDate = (ms: number) => dayjs(ms).format('DD/MM');
+  const relFuture = (ms: number) => {
+    const mins = Math.max(1, Math.ceil((ms - nowMs) / 60000));
+    return mins >= 60
+      ? t('presence.inHours', { count: Math.round(mins / 60) })
+      : t('presence.inMinutes', { count: mins });
+  };
+  const relPast = (ms: number) => {
+    const mins = Math.max(1, Math.round((nowMs - ms) / 60000));
+    if (mins < 60) return t('presence.agoMinutes', { count: mins });
+    if (mins < 48 * 60) return t('presence.agoHours', { count: Math.round(mins / 60) });
+    return t('presence.agoDays', { count: Math.round(mins / 1440) });
+  };
+
+  // Foreground location permission — when it's denied the passive distance
+  // checker silently returns, so the widget used to freeze on "be at the spot"
+  // with no distance, even standing there.
+  const [fgLocationDenied, setFgLocationDenied] = useState(false);
+  useEffect(() => {
+    if (!isPresenceSubject || alreadyConfirmed) return;
+    let cancelled = false;
+    Location.getForegroundPermissionsAsync()
+      .then((p) => { if (!cancelled) setFgLocationDenied(p.status !== 'granted'); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isPresenceSubject, alreadyConfirmed, isInGeoWindow]);
 
   const [bgLocationDenied, setBgLocationDenied] = useState(false);
   useEffect(() => {
@@ -926,10 +976,58 @@ export function ActivityDetail({
                 still be saved by peer testimony. Prod audit 2026-06-11:
                 without this the backstop is invisible at the moment of
                 need. */}
+            {/* Marked absent (end+24h) — was completely invisible: the only
+                trace was a notification 23h earlier that said the opposite. */}
+            {markedAbsent && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.error }]}>
+                  {t('presence.markedAbsent', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs), ago: relPast(absentAtMs) })}
+                </Text>
+              </View>
+            )}
+            {/* Before the window opens — the T-2h notification used to land on
+                a page with no mention of presence at all. */}
+            {presenceNotYetOpen && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                  {t('presence.opensAt', {
+                    time: fmtTime(geoOpenMs),
+                    countdown: relFuture(geoOpenMs),
+                    qrClose: fmtTime(qrCloseMs),
+                  })}
+                </Text>
+              </View>
+            )}
+            {/* Duo past the QR window: no peer path exists and no penalty
+                either — the old UI said nothing at all. */}
+            {duoNoPathLeft && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                  {t('presence.duoNoPathLeft', { ago: relPast(qrCloseMs) })}
+                </Text>
+              </View>
+            )}
+            {/* Foreground location denied — explain and offer Settings instead
+                of freezing on "be at the spot" with no distance. */}
+            {fgLocationDenied && (isInGeoWindow || presenceNotYetOpen) && (
+              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
+                  {t('presence.locationOffExplain')}
+                </Text>
+                <Pressable
+                  style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
+                  onPress={() => { Linking.openSettings().catch(() => {}); }}
+                >
+                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                    {t('presence.openSettings')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
             {showPeerBackstop && (
               <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
                 <Text style={[styles.statusBannerText, { textAlign: 'left' }]}>
-                  {t('presence.backstopHint')}
+                  {t('presence.backstopHintDated', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs) })}
                 </Text>
                 <Pressable
                   style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
@@ -961,7 +1059,14 @@ export function ActivityDetail({
                   </Text>
                 </View>
                 <Text style={styles.presenceSubtitle}>
-                  {isAtActivity
+                  {/* QR-only phase: telling someone to get closer is useless
+                      once the geo window has shut — only the scan still acts. */}
+                  {geoClosedQrOpen
+                    ? t('presence.geoClosedQrOnly', {
+                        ago: relPast(startsAtMs + 15 * 60 * 1000),
+                        time: fmtTime(qrCloseMs),
+                      })
+                    : isAtActivity
                     ? t('presence.atActivitySubtitle')
                     : distanceToActivityM != null
                       ? t('presence.distanceAway', {
@@ -993,9 +1098,20 @@ export function ActivityDetail({
               </View>
             )}
             {isCreator && isQrAvailable && (
-              <PressableScale style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
-                <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
-              </PressableScale>
+              <>
+                <PressableScale style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
+                  <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
+                </PressableScale>
+                {/* The creator has no self-validation path by design (mig 00292):
+                    their presence comes from the first participant who confirms.
+                    Nothing said so, so a diligent creator hunted for a button
+                    that doesn't exist. */}
+                {requiresPresence && (
+                  <Text style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
+                    {t('presence.creatorAutoNote')}
+                  </Text>
+                )}
+              </>
             )}
 
             <Text style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>

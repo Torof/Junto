@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, Alert } from 'react-native';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import { View, Text, Modal, Pressable, StyleSheet, Alert, AppState } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -22,24 +23,63 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  // The token lives 30 min server-side (create_presence_token). With a single
+  // fetch on open, a creator who left this sheet up showed a DEAD QR while
+  // believing it worked — latecomers got "invalid or expired" and the creator
+  // saw nothing wrong. Track the deadline, show it, and refetch when it lapses
+  // or when the app comes back to the foreground.
+  const [mintedAt, setMintedAt] = useState<number | null>(null);
+  const [expired, setExpired] = useState(false);
+
+  const fetchToken = useCallback(async () => {
+    setLoading(true);
+    try {
+      const tok = await reliabilityService.createPresenceToken(activityId);
+      setToken(tok);
+      setMintedAt(Date.now());
+      setExpired(false);
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  }, [activityId, onClose, t]);
+
   useEffect(() => {
     if (!visible) {
       setToken(null);
+      setMintedAt(null);
+      setExpired(false);
       return;
     }
-    (async () => {
-      setLoading(true);
-      try {
-        const tok = await reliabilityService.createPresenceToken(activityId);
-        setToken(tok);
-      } catch (err) {
-        Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-        onClose();
-      } finally {
-        setLoading(false);
+    void fetchToken();
+  }, [visible, fetchToken]);
+
+  // The server may hand back an existing token with less than 30 min left, so
+  // treat 25 min as the refresh point and re-mint rather than trusting the age.
+  useEffect(() => {
+    if (!visible || mintedAt == null) return;
+    const id = setInterval(() => {
+      if (Date.now() - mintedAt > 25 * 60 * 1000) {
+        // Renew silently — the creator is holding the phone up, not reading
+        // warnings. `expired` only shows if the refetch hasn't landed yet.
+        setExpired(true);
+        void fetchToken();
       }
-    })();
-  }, [visible, activityId]);
+    }, 30 * 1000);
+    return () => clearInterval(id);
+  }, [visible, mintedAt, fetchToken]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active' && mintedAt != null && Date.now() - mintedAt > 25 * 60 * 1000) {
+        void fetchToken();
+      }
+    });
+    return () => sub.remove();
+  }, [visible, mintedAt, fetchToken]);
 
   return (
     <Modal visible={visible} animationType="fade" transparent>
@@ -59,7 +99,13 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
               </View>
             )}
           </View>
-          <Text style={styles.hint}>{t('presence.qrHint')}</Text>
+          <Text style={styles.hint}>
+            {expired
+              ? t('presence.qrExpired')
+              : mintedAt != null
+                ? t('presence.qrExpiresAt', { time: dayjs(mintedAt + 30 * 60 * 1000).format('HH:mm') })
+                : t('presence.qrHint')}
+          </Text>
         </View>
       </View>
     </Modal>

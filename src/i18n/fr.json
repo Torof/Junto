@@ -944,7 +944,9 @@
     "agoDays_other": "il y a {{count}} jours",
     "noPresenceRequired": "Cette sortie ne demandait pas de validation de présence — seuls les traits et le niveau sont à évaluer.",
     "noPeerPresenceFewParticipants": "Vous étiez {{count}} : le témoignage de présence par les pairs demande au moins 3 participants. À deux, la présence se valide par QR ou géolocalisation uniquement.",
-    "ownPresencePending": "Ta propre présence n'est pas encore confirmée : tu pourras témoigner de la présence des autres une fois la tienne validée."
+    "ownPresencePending": "Ta présence à toi n'est pas encore confirmée — ton témoignage pour les autres compte quand même.",
+    "presenceCountOf": "{{count}}/2",
+    "presenceNeedsTwo": "Il faut 2 témoignages pour valider la présence de quelqu'un."
   },
   "messagerie": {
     "empty": "Aucune conversation",
@@ -1436,7 +1438,27 @@
     "scanTitle": "Scanner le QR",
     "scanSubtitle": "Pointe la caméra vers le QR de l'organisateur",
     "cameraPermission": "Autorise l'accès à la caméra pour scanner",
-    "grantCamera": "Autoriser"
+    "grantCamera": "Autoriser",
+    "inMinutes_one": "dans {{count}} minute",
+    "inMinutes_other": "dans {{count}} minutes",
+    "inHours_one": "dans {{count}} heure",
+    "inHours_other": "dans {{count}} heures",
+    "agoMinutes_one": "il y a {{count}} minute",
+    "agoMinutes_other": "il y a {{count}} minutes",
+    "agoHours_one": "il y a {{count}} heure",
+    "agoHours_other": "il y a {{count}} heures",
+    "agoDays_one": "il y a {{count}} jour",
+    "agoDays_other": "il y a {{count}} jours",
+    "opensAt": "Validation de présence : elle ouvre à {{time}} ({{countdown}}), soit 15 min avant le départ. Sur place, la géolocalisation te valide automatiquement ; sinon tu scannes le QR de l'organisateur, jusqu'à {{qrClose}}.",
+    "geoClosedQrOnly": "La validation par géolocalisation s'est fermée {{ago}} (15 min après le départ). Te rapprocher ne suffit plus : scanne le QR de l'organisateur, jusqu'à {{time}}.",
+    "markedAbsent": "Tu es compté absent de cette sortie depuis le {{date}} à {{time}} ({{ago}}). La fenêtre de validation se ferme 24 h après la fin.",
+    "backstopHintDated": "Ta présence n'est pas validée. Deux co-participants peuvent encore en témoigner — jusqu'au {{date}} à {{time}}. Leur vote compte même si leur propre présence n'est pas confirmée.",
+    "duoNoPathLeft": "La fenêtre de validation s'est fermée {{ago}}. À deux, il n'y a pas de témoignage croisé possible : ta présence n'est simplement pas comptée — aucune absence, aucune pénalité.",
+    "locationOffExplain": "La localisation est désactivée : Junto ne peut pas détecter ta présence sur place. Active-la dans les réglages, ou scanne le QR de l'organisateur.",
+    "openSettings": "Ouvrir les réglages",
+    "creatorAutoNote": "Ta présence à toi n'est pas à valider : elle est confirmée automatiquement dès qu'un participant valide la sienne.",
+    "qrExpiresAt": "Ce code expire à {{time}}. Rouvre cette fenêtre pour en générer un nouveau.",
+    "qrExpired": "Ce code a expiré. Ferme et rouvre cette fenêtre pour en générer un nouveau."
   },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"
