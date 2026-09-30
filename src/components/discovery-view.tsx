@@ -1,6 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { View, Text, Pressable, FlatList, ScrollView, StyleSheet, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useMemo, useState, useCallback, type ReactNode } from 'react';
+import { View, Text, Pressable, FlatList, ScrollView, StyleSheet, Modal, LayoutAnimation, Platform, UIManager, RefreshControl } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -60,7 +60,6 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [inviteTargetId, setInviteTargetId] = useState<string | null>(null);
   const [filterVibes, setFilterVibes] = useState<Set<DispoIntent>>(new Set());
   const [filterOpen, setFilterOpen] = useState(false);
@@ -91,6 +90,14 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
     enabled: active,
   });
 
+  // M1 audit : la liste se rafraîchit au focus (respecte le staleTime global)
+  // + pull-to-refresh — sinon « Envoyée » ne devient jamais « Discuter ».
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.invalidateQueries({ queryKey: ['discovery-cards'] });
+    }, [queryClient]),
+  );
+
   const handleDeactivate = async () => {
     try {
       await discoveryService.deactivate();
@@ -99,23 +106,38 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
   };
 
+  // H2 audit : le cache ['discovery-cards'] est la source de vérité — au
+  // succès on le patche (contact_state='pending'), l'état survit au
+  // démontage du sous-onglet. M2 : verrou d'envoi anti double-tap.
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const markPending = (userId: string) => {
+    queryClient.setQueryData<DiscoveryCard[] | undefined>(['discovery-cards'], (old) =>
+      old?.map((c) => (c.user_id === userId ? { ...c, contact_state: 'pending' as const } : c)),
+    );
+  };
+
   const handleContact = async (userId: string) => {
+    if (sendingTo) return;
+    setSendingTo(userId);
     try {
       await conversationService.sendContactRequest(userId, t('discovery.contactMessage', { defaultValue: 'Salut ! On matche sur Découverte — ça te dit une sortie ?' }), 'discovery');
-      setContacted((prev) => new Set(prev).add(userId));
+      markPending(userId);
       Burnt.toast({ title: t('discovery.contactSent', { defaultValue: 'Demande envoyée' }), preset: 'done' });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setSendingTo(null); }
   };
 
   const handleInvite = async (activityId: string) => {
     const target = inviteTargetId;
-    if (!target) return;
+    if (!target || sendingTo) return;
+    setSendingTo(target);
     try {
       await discoveryService.sendDiscoveryInvite(target, activityId);
-      setContacted((prev) => new Set(prev).add(target));
+      markPending(target);
       setInviteTargetId(null);
       Burnt.toast({ title: t('discovery.inviteSent', { defaultValue: 'Invitation envoyée' }), preset: 'done' });
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setSendingTo(null); }
   };
 
   const sportPill = (key: string, level?: string) => {
@@ -162,7 +184,6 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
   const openZone = (params: Record<string, string>) =>
     router.push({ pathname: '/(auth)/discovery-zone', params });
   const renderCard = ({ item }: { item: DiscoveryCard }) => {
-    const done = contacted.has(item.user_id);
     const relColor = reliabilityColorForTier(item.reliability_tier, colors);
     return (
       <View style={styles.card}>
@@ -246,7 +267,7 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
           </Pressable>
           {/* Inviter : seulement quand aucune relation n'existe — connectés,
               on s'invite depuis la conversation ; en attente, on attend. */}
-          {item.contact_state === 'none' && !done ? (
+          {item.contact_state === 'none' ? (
             <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed]} onPress={() => setInviteTargetId(item.user_id)} hitSlop={6}>
               <UserPlus size={13} color={colors.textSecondary} strokeWidth={2.2} />
               <Text style={styles.actLinkText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
@@ -258,12 +279,17 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
               <Send size={13} color="#FFFFFF" strokeWidth={2.4} />
               <Text style={styles.btnPrimaryText}>{t('discovery.chat', { defaultValue: 'Discuter' })}</Text>
             </Pressable>
-          ) : item.contact_state === 'pending' || done ? (
+          ) : item.contact_state === 'pending' ? (
             <View style={styles.btnSent}>
               <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Envoyée' })}</Text>
             </View>
           ) : (
-            <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary]} onPress={() => handleContact(item.user_id)}>
+            <Pressable
+              style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary, sendingTo === item.user_id && styles.btnFaded]}
+              onPress={() => handleContact(item.user_id)}
+              disabled={sendingTo === item.user_id}
+              accessibilityRole="button"
+            >
               <Send size={13} color="#FFFFFF" strokeWidth={2.4} />
               <Text style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</Text>
             </Pressable>
@@ -387,6 +413,13 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
           keyExtractor={(i) => i.user_id}
           renderItem={renderCard}
           contentContainerStyle={styles.list}
+          refreshControl={(
+            <RefreshControl
+              refreshing={false}
+              onRefresh={() => { void queryClient.refetchQueries({ queryKey: ['discovery-cards'] }); void queryClient.refetchQueries({ queryKey: ['my-dispo'] }); }}
+              tintColor={colors.cta}
+            />
+          )}
           ListHeaderComponent={
             <View>
             {headerComponent}
@@ -460,7 +493,7 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
               </Text>
             ) : (
               (invitable ?? []).map((a) => (
-                <Pressable key={a.id} style={styles.inviteRow} onPress={() => handleInvite(a.id)}>
+                <Pressable key={a.id} style={[styles.inviteRow, sendingTo ? styles.btnFaded : null]} onPress={() => handleInvite(a.id)} disabled={!!sendingTo} accessibilityRole="button">
                   <SportIcon sportKey={a.sport_key} size={20} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.inviteRowTitle} numberOfLines={1}>{a.title}</Text>

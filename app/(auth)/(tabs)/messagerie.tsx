@@ -59,6 +59,16 @@ export default function MessagerieScreen() {
     tab === 'requests' ? 'requests' : tab === 'notifications' ? 'notifications' : 'messages',
   );
   const [segment, setSegment] = useState<Segment>('all');
+
+  // H1 audit découverte : le param ?tab= n'était lu qu'au premier montage —
+  // un tap de notif alors que l'écran est déjà monté (cas par défaut : la
+  // vue Notifications VIT dans cet écran) ne changeait jamais d'onglet.
+  useEffect(() => {
+    if (tab === 'requests' || tab === 'notifications' || tab === 'messages') {
+      setActiveTab(tab as Tab);
+      router.setParams({ tab: undefined });
+    }
+  }, [tab, router]);
   const [loadingRequestId, setLoadingRequestId] = useState<string | null>(null);
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
