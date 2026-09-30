@@ -225,29 +225,37 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 ### Présence
 
-**`confirm_presence_via_geo(p_activity_id, p_lng, p_lat, p_captured_at DEFAULT NULL)`** (mig 00149) :
+**`confirm_presence_via_geo(p_activity_id, p_lng, p_lat, p_captured_at DEFAULT NULL, p_skip_push DEFAULT TRUE)`** (mig 00429) :
 - Auth + non suspendu
-- Si `p_captured_at` fourni (replay offline) : `now() <= starts_at + duration + 3h`
+- Activité non supprimée (`deleted_at`), status ∈ (`published`, `in_progress`, `completed`)
+- ⚠️ **INVARIANT 00292 — le créateur ne s'auto-atteste JAMAIS** : `auth.uid() = creator_id` → **no-op silencieux** (RETURN, pas une erreur). Sa présence vient UNIQUEMENT de la Règle A ci-dessous ou du témoignage des pairs. **Ne jamais retirer ce garde** : c'est le vecteur single-attester supprimé en 00108/00140/00292.
+- `requires_presence = TRUE` (sinon `junto.presence_unavailable` — le finaliseur sort tôt pour ces sorties, confirmer y gonflerait le score sans risque de baisse, 00429)
+- `is_demo = false` — garde ABSOLUE, admin en mode démo compris (00429)
+- Si `p_captured_at` fourni (replay offline) : refusé s'il est dans le futur (> `now() + 2min`, 00419) ; **arrivée du replay ≤ end + 24h** (00429 — était end+3h, ce qui jetait des preuves valides de sorties hors réseau)
 - Window anchor (live = `now()`, replay = `p_captured_at`) dans [starts_at - 15min, starts_at + 15min]
 - User est participant accepté avec `confirmed_present IS NULL`
-- Distance ≤ 150m vers start OR meeting OR end OR `trace_geojson` (LineString)
+- Distance ≤ 150m vers meeting OR end OR `trace_geojson` (LineString). ⚠️ **`location_start` n'existe plus** (fusionnée dans `location_meeting` en 00306) — la référencer casse la fonction à l'EXÉCUTION (un corps plpgsql n'est pas résolu au CREATE). C'est la régression 00419, réparée en 00428.
 - Flip `confirmed_present = TRUE` (single-shot)
-- `recalculate_reliability_score`
-- `notify_presence_confirmed`
+- `recalculate_reliability_score` + `notify_presence_confirmed`
+- ⚠️ **RÈGLE A (00292) — auto-validation du créateur** : un non-créateur qui confirme PROUVE que la sortie a eu lieu → flip du créateur (`confirmed_present IS NULL` only, `GET DIAGNOSTICS`) + recalcul + notif. **Ne jamais retirer** : le créateur est volontairement exclu de TOUTES les relances (Règle B), donc sans la Règle A il finit marqué absent de sa propre sortie à end+24h. Présente aussi dans `confirm_presence_via_token`.
 
-**`confirm_presence_via_token(p_token)`** (mig 00147) :
+**`confirm_presence_via_token(p_token, p_skip_push DEFAULT TRUE)`** (mig 00429) :
 - Auth + non suspendu
 - Token existe et `expires_at > now()`
+- Activité non supprimée, status ∈ (`published`, `in_progress`, `completed`)
+- **Invariant 00292** : scanner = créateur → no-op silencieux (même règle que la géo)
+- `requires_presence = TRUE` + `is_demo = false` (gardes absolues, 00429)
 - `now()` dans [starts_at - 15min, starts_at + duration + 3h]
 - User est participant accepté avec `confirmed_present IS NULL`
 - Flip `confirmed_present = TRUE`
-- Si scanner != créateur → flip aussi le créateur (auto-validation par scan participant)
+- **Règle A** : scanner != créateur → flip aussi le créateur (auto-validation par scan participant)
 
-**`create_presence_token(p_activity_id)`** (mig 00147) :
+**`create_presence_token(p_activity_id)`** (mig 00429) :
 - Auth + non suspendu
 - `auth.uid() = creator_id`
+- Activité non supprimée + status vivant + `requires_presence = TRUE` + `is_demo = false` (00429)
 - `now()` dans [starts_at - 15min, starts_at + duration + 3h]
-- Réutilise le token existant non-expiré OU en génère un nouveau (12 char)
+- Réutilise le token existant non-expiré OU en génère un nouveau (12 char), **durée de vie 30 min**. Le client (`presence-qr-modal`) affiche l'échéance et re-frappe au-delà de 25 min — sans ça un créateur affichait un QR mort en croyant qu'il marchait.
 
 **`peer_validate_presence(p_voted_id, p_activity_id)`** (mig 00140, modèle refondu 00327) :
 - Auth + non suspendu
@@ -831,26 +839,32 @@ Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remov
 | Validation géo (live + replay) | T-15min → T+15min | `confirm_presence_via_geo` |
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |
-| Replay offline (deadline arrivée) | end + 3h | `confirm_presence_via_geo(.., p_captured_at)` |
+| Replay offline (deadline arrivée) | **end + 24h** (00429, était end+3h) | `confirm_presence_via_geo(.., p_captured_at)` |
 | Peer review | end + 15min → end + 24h | `peer_validate_presence`, `give_reputation_badge` |
 
 ### Distance check (mig 00149)
 
-`confirm_presence_via_geo` calcule `min(d_start, d_meeting, d_end, d_trace)` où `d_trace` est la distance au polyline `trace_geojson` quand il existe (PostGIS `ST_Distance(ST_GeomFromGeoJSON(trace_geojson::text)::geography, user_point)`). Seuil 150m.
+`confirm_presence_via_geo` calcule `min(d_meeting, d_end, d_trace)` (⚠️ **pas** `d_start` : `location_start` a été supprimée en 00306) où `d_trace` est la distance au polyline `trace_geojson` quand il existe (PostGIS `ST_Distance(ST_GeomFromGeoJSON(trace_geojson::text)::geography, user_point)`). Seuil 150m.
 
 ### Replay offline
 
 Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent au meetup :
 - Le client (TaskManager geofence task + foreground watcher) cache `{activity_id, lng, lat, captured_at}` quand l'RPC échoue sur transport
 - Le flusher draine sur retour réseau / app foreground
-- `p_captured_at` doit être dans la fenêtre de validation ; arrivée du replay ≤ end + 3h
+- `p_captured_at` doit être dans la fenêtre de validation (et jamais dans le futur, 00419) ; **arrivée du replay ≤ end + 24h** (00429) — la borne à 3h jetait des preuves valides de sorties hors réseau (alpinisme, ski de rando). L'anti-fraude est l'heure de CAPTURE + la distance + le single-shot, pas l'heure d'arrivée. Un rejet définitif annule désormais les notifications « en attente de réseau » et le dit à l'utilisateur.
 - Trust : envelope non-signée, accepté-participant + bornes (window/distance/single-shot) + check social (badges réputation `level_overestimated`, `unreliable_field`)
 
 ### Peer review
 
-- Threshold : 1 vote pour 2-participant, 2 votes pour 3+
-- Voter doit être `confirmed_present = TRUE` (sauf cas créateur en 2-participant qui a un direct flip)
-- Notif `peer_review_closing` envoyée à T+22h aux non-voteurs
+> ⚠️ Cette section décrivait jusqu'au 2026-09-30 un modèle **supprimé en 00327** (1 vote à 2 participants + direct-flip créateur). C'est cette dérive qui a permis la régression 00419. Le modèle réel :
+
+- **Seuil de participants : 3 minimum** (`count(accepted) >= 3`). En dessous, `junto.peer_review_unavailable` — à 2 le témoignage serait circulaire, la présence passe donc **uniquement** par QR ou géo, et il n'y a **aucune pénalité** (00291 remet à NULL au lieu de FALSE).
+- **Seuil de votes : 2 témoignages** flippent la cible à `confirmed_present = TRUE`.
+- **Le témoin n'a PAS besoin d'être lui-même confirmé présent** (gate retiré en 00327 — il créait un deadlock où personne ne pouvait sauver personne). Le code `junto.peer_voter_not_present` n'est donc **plus jamais levé** (clé i18n et mapping client conservés mais morts).
+- **Aucun privilège créateur** : le direct-flip a été retiré (00108/00140, puis pour le cas 2 en 00327). La présence du créateur vient de la Règle A (géo/QR) ou de 2 témoignages comme tout le monde.
+- Fenêtre : [end + 15min, end + 24h] — identique pour `peer_validate_presence`, `give_reputation_badge`, `notify_rate_participants` et la borne client.
+- `peer_validate_presence` distingue « déjà validé » (`junto.peer_already_validated`) de « fenêtre fermée, compté absent » (`junto.peer_review_window_closed` quand `confirmed_present = FALSE`, 00429).
+- Notif `peer_review_closing` à end+22h aux participants ayant encore quelqu'un à valider. Son gate est `confirmed_present IS DISTINCT FROM FALSE` (00429) : il était `= TRUE`, donc sur une sortie où personne n'avait pu valider, **personne** n'était relancé.
 
 ### Notifications
 
@@ -860,10 +874,11 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 | T-10min | `presence_pre_warning_10min` | Participants non confirmés |
 | T-10min | `qr_create_reminder` | Créateur (QR live dès T-15min) |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés |
-| Validation | `presence_confirmed` | User validé (push gated par skip_push, défaut TRUE) |
+| Validation | `presence_confirmed` | User validé (push gated par `skip_push` ; le DEFAULT de `notify_presence_confirmed` est **FALSE** — ce sont les RPC géo/QR qui passent TRUE, et `peer_validate_presence` l'appelle en 2 args donc le push part) |
 | End+15min | `rate_participants` | Participants (in-app uniquement) — émis par les balayages via `notify_rate_participants` (00427) une fois la fenêtre de vote OUVERTE (fin+15 min ≤ now ≤ fin+24 h, dédup par user+activité, ≥2 acceptés) ; plus jamais au flip `completed` (le tap immédiat garantissait « trop tôt ») |
 | End+1h | `presence_validate_overdue` | Participants non confirmés |
-| End+22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter |
+| End+22h | `peer_review_closing` | Participants avec ≥1 peer non-confirmé restant à valider (gate `confirmed_present IS DISTINCT FROM FALSE`, 00429) |
+| End+22h | `presence_validate_final` | Les non-confirmés eux-mêmes (émis par `notify_peer_review_closing`, branche b) — demande **2** co-participants, pas « un participant présent » (00429) |
 | Détection geofence (BG) | "Présence détectée" → "Présence confirmée" (local notif) | Participant |
 
 Les types `presence_pre_warning`, `presence_pre_warning_10min`, `presence_validate_warning`, `presence_validate_overdue`, `presence_confirmed` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.

@@ -41,10 +41,12 @@ Seuil 150m. Le check polyline ferme le faux-négatif des longues approches (alpi
 | T-10min | `presence_pre_warning_10min` | Participants non confirmés | Oui |
 | T-10min | `qr_create_reminder` | Créateur (QR button live dès T-15min) | Oui |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés | Oui |
-| Validation succès | `presence_confirmed` | User validé | Conditionnel (skip_push=TRUE par défaut) |
+| Validation succès | `presence_confirmed` | User validé | Conditionnel — le DEFAULT de `notify_presence_confirmed` est **FALSE** ; ce sont les RPC géo/QR qui passent `skip_push = TRUE` (le replay offline poste sa propre notif locale). `peer_validate_presence` appelle en 2 args → le push part. |
 | End+15min | `rate_participants` | Participants | Non (in-app) — émis au premier balayage une fois la fenêtre de vote ouverte (00427) |
-| End + 1h | `presence_validate_overdue` | Participants non confirmés | Oui |
-| End + 22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter | Oui |
+| End + 1h | `presence_validate_overdue` | Participants non confirmés (≥3 acceptés, créateur exclu) — la copy ne prétend plus « tu es enregistré comme absent » (faux à ce moment : le marquage est à end+24h) et nomme le QR, encore valable 2h (00429) | Oui |
+| End + 22h | `peer_review_closing` | Participants avec ≥1 peer non-confirmé restant à valider (≥3 acceptés ; gate `confirmed_present IS DISTINCT FROM FALSE` depuis 00429) | Oui |
+| End + 22h | `presence_validate_final` | Les non-confirmés eux-mêmes (branche b de `notify_peer_review_closing`) — demande **2** co-participants | Oui |
+| Rejet définitif d'un replay | « Présence non enregistrée » (notif locale) | Participant concerné (00429) | Local |
 
 Tous les types `presence_*` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.
 
@@ -93,18 +95,18 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 ### 5. Offline replay (`presence-offline-cache`)
 - Queue AsyncStorage : enqueue chaque échec transport / no-session des paths #3, #4
 - Drain au foreground / NetInfo reconnect (`use-presence-offline-flusher`)
-- Replay envoie le `captured_at` original ; serveur accepte jusqu'à T+duration+3h
+- Replay envoie le `captured_at` original ; serveur accepte une arrivée jusqu'à **end+24h** (00429 — était end+3h, ce qui jetait les preuves valides des sorties hors réseau). Le `captured_at` lui-même doit rester dans [T-15min, T+15min] et n'est jamais accepté dans le futur (00419). Un rejet définitif annule les notifications « en attente de réseau » et le dit à l'utilisateur (00429).
 
 ### 6. QR scan (`confirm_presence_via_token`)
 - Le créateur affiche son QR depuis activity-detail (bouton + auto-show, visibles T-15min..T+duration+3h — alignés serveur)
 - Le participant scan via caméra → token validé + fenêtre serveur (T-15..T+duration+3h)
 - Pas de check distance (la possession physique du QR suffit)
-- Auto-flip du créateur à `confirmed_present = TRUE` si pas encore validé (couvre le cas 2-participants)
+- **Règle A** — auto-flip du créateur à `confirmed_present = TRUE` s'il ne l'est pas encore. Le créateur ne s'auto-atteste JAMAIS (invariant 00292, no-op s'il scanne son propre QR) : c'est son SEUL chemin, avec le témoignage des pairs. ⚠️ Ne jamais retirer — il est volontairement exclu de toutes les relances.
 
 ### 7. Peer testimony (`peer_validate_presence`)
-- Pas un path GPS, mais une 3ème voie : 2 votes de participants `confirmed_present = TRUE` flip un peer non-confirmé à TRUE
+- Pas un path GPS, mais une 3ème voie : **2 témoignages** flippent un peer non-confirmé à TRUE. Le témoin **n'a pas besoin d'être lui-même confirmé présent** (gate retiré en 00327). Minimum **3 participants acceptés** (en dessous : `junto.peer_review_unavailable`).
 - Émission post-event : tous les acceptés reçoivent `rate_participants` au premier balayage APRÈS fin+15 min (ouverture réelle de la fenêtre de vote, 00427 — plus au flip `completed`) ; à T+22h les voters avec ≥1 peer non-confirmé restant à voter reçoivent `peer_review_closing`
-- Side effect : si scanner ≠ créateur, le créateur est lui-même auto-validé (preuve qu'il était là)
+- Side effect : si scanner ≠ créateur, le créateur est lui-même auto-validé (preuve qu'il était là) — Règle A, présente côté QR ET côté géo (restaurée en 00428 après avoir été perdue par 00419).
 
 ## Replay offline
 
@@ -137,19 +139,21 @@ Trade-off connu : envelope non signée, un participant accepté pourrait fabriqu
 
 Si la validation auto a échoué (utilisateur sans téléphone, batterie morte, GPS bloqué indoor) :
 
-- Fenêtre : T+15min → T+24h après end
-- Threshold :
-  - **2 participants au total** : 1 vote suffit (le créateur peut directement valider l'autre — aucun pool de pairs alternatif n'existe)
-  - **3+ participants** : 2 votes requis (le créateur n'a aucun privilège, il est juste un voter parmi d'autres)
-- Voter must be `confirmed_present = TRUE` lui-même (sauf cas créateur en 2-participant)
+- Fenêtre : end+15min → end+24h
+- **Minimum 3 participants acceptés.** En dessous → `junto.peer_review_unavailable`. À 2, le témoignage serait circulaire : la présence passe uniquement par QR ou géo, et **il n'y a aucune pénalité** (00291 remet à NULL au lieu de FALSE, la sortie n'est simplement pas comptée).
+- **2 témoignages** requis pour flipper une présence. Le créateur n'a aucun privilège.
+- Le témoin **n'a PAS besoin d'être `confirmed_present = TRUE`** (gate retiré en 00327 : il créait un deadlock où, sur une sortie où personne n'avait pu valider, personne ne pouvait sauver personne).
+
+> ⚠️ Ce bloc décrivait jusqu'au 2026-09-30 le modèle **pré-00327** (1 vote à 2 + direct-flip créateur + témoin devant être présent). Ce modèle a été supprimé comme vecteur single-attester. La dérive doc/code est ce qui a permis la régression 00419.
 
 Erreurs différenciées (mig 00139) :
 - `peer_review_window_not_open` (avant T+15min)
-- `peer_review_window_closed` (après T+24h)
-- `peer_voter_not_present`
+- `peer_review_window_closed` (après end+24h, **ou** quand la cible est déjà comptée absente — 00429 distingue ce cas de « déjà validé »)
+- `peer_review_unavailable` (moins de 3 participants acceptés, ou sortie supprimée)
 - `peer_already_validated`
+- ~~`peer_voter_not_present`~~ — **plus jamais levé depuis 00327** (clé i18n et mapping client conservés mais morts)
 
-Notif `peer_review_closing` envoyée à T+22h aux non-voteurs (relance pour les retardataires).
+Notif `peer_review_closing` envoyée à end+22h aux participants ayant encore quelqu'un à valider (gate `confirmed_present IS DISTINCT FROM FALSE` depuis 00429 : il était `= TRUE`, donc personne n'était relancé sur une sortie sans aucun confirmé). La branche (b) émet `presence_validate_final` aux non-confirmés eux-mêmes.
 
 ## Auto-validation cascade — résumé
 
@@ -159,7 +163,7 @@ L'utilisateur n'a généralement aucune action à effectuer :
 3. Si GPS HS / indoor → fallback QR (créateur affiche)
 4. Si tout a échoué → peer review post-activité
 
-L'unique cas où la présence ne peut pas être validée du tout : utilisateur sans téléphone ET seul participant confirmé OU activité 2-participants où le créateur ne valide pas non plus. Edge case absolu — peer review ne peut rien sans au moins un peer confirmé.
+Cas où la présence ne peut pas être validée du tout : utilisateur sans téléphone sur une sortie à 3+ dont personne ne témoigne, **ou toute sortie à 2 où ni le QR ni la géo n'ont fonctionné** (pas de témoignage possible sous 3 participants). Dans ce dernier cas il n'y a aucune pénalité, et le client le dit explicitement (`presence.duoNoPathLeft`).
 
 ## Reliability score
 

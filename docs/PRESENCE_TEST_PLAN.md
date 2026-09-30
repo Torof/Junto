@@ -58,7 +58,14 @@ Last reviewed: 2026-05-03 (post mig 00167 + 00168).
 **Expected:**
 - B's `confirm_presence_via_token` succeeds.
 - B's `confirmed_present = TRUE`.
-- A's `confirmed_present = TRUE` too (creator auto-flip per mig 00163).
+- A's `confirmed_present = TRUE` too (creator auto-flip — **Rule A, migs 00291/00292**, restored in 00428 after 00419 dropped it).
+
+> ⚠️ NON-REGRESSION TEST — add to every run touching `confirm_presence_via_geo`:
+> after a NON-creator confirms via geo, the creator's `confirmed_present` must
+> become TRUE. 00419 removed Rule A from the geo path (it survived only on the
+> QR path) and no test covered it, so organisers were being marked absent from
+> their own outings for three days. Also assert the creator calling the geo RPC
+> on their own activity is a silent no-op (invariant 00292).
 - Both get `presence_confirmed` notif (skip_push default true → in-app only, no push).
 - Both reliability scores recomputed.
 
