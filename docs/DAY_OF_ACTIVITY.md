@@ -42,7 +42,7 @@ Seuil 150m. Le check polyline ferme le faux-négatif des longues approches (alpi
 | T-10min | `qr_create_reminder` | Créateur (QR button live dès T-15min) | Oui |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés | Oui |
 | Validation succès | `presence_confirmed` | User validé | Conditionnel (skip_push=TRUE par défaut) |
-| End | `rate_participants` | Participants | Non (in-app) |
+| End+15min | `rate_participants` | Participants | Non (in-app) — émis au premier balayage une fois la fenêtre de vote ouverte (00427) |
 | End + 1h | `presence_validate_overdue` | Participants non confirmés | Oui |
 | End + 22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter | Oui |
 
@@ -103,7 +103,7 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 
 ### 7. Peer testimony (`peer_validate_presence`)
 - Pas un path GPS, mais une 3ème voie : 2 votes de participants `confirmed_present = TRUE` flip un peer non-confirmé à TRUE
-- Émission post-event : tous les confirmed reçoivent `rate_participants` ; à T+22h les voters avec ≥1 peer non-confirmé restant à voter reçoivent `peer_review_closing`
+- Émission post-event : tous les acceptés reçoivent `rate_participants` au premier balayage APRÈS fin+15 min (ouverture réelle de la fenêtre de vote, 00427 — plus au flip `completed`) ; à T+22h les voters avec ≥1 peer non-confirmé restant à voter reçoivent `peer_review_closing`
 - Side effect : si scanner ≠ créateur, le créateur est lui-même auto-validé (preuve qu'il était là)
 
 ## Replay offline

@@ -929,7 +929,22 @@
     },
     "selfLevel": "{{name}} se dit de niveau {{level}}",
     "bannerClosed": "La fenêtre d'évaluation est fermée (24 h après la fin). Tu ne peux plus voter.",
-    "bannerNotOpen": "L'évaluation ouvrira 15 min après la fin de la sortie."
+    "bannerNotOpen": "L'évaluation ouvrira 15 min après la fin de la sortie.",
+    "bannerNotOpenAt": "L'évaluation ouvre à {{time}} ({{countdown}}) — 15 min après la fin de la sortie.",
+    "bannerClosedAt": "La fenêtre d'évaluation s'est fermée le {{date}} à {{time}}, {{ago}}. Elle dure 24 h après la fin de la sortie.",
+    "inMinutes_one": "dans {{count}} minute",
+    "inMinutes_other": "dans {{count}} minutes",
+    "inHours_one": "dans {{count}} heure",
+    "inHours_other": "dans {{count}} heures",
+    "agoMinutes_one": "il y a {{count}} minute",
+    "agoMinutes_other": "il y a {{count}} minutes",
+    "agoHours_one": "il y a {{count}} heure",
+    "agoHours_other": "il y a {{count}} heures",
+    "agoDays_one": "il y a {{count}} jour",
+    "agoDays_other": "il y a {{count}} jours",
+    "noPresenceRequired": "Cette sortie ne demandait pas de validation de présence — seuls les traits et le niveau sont à évaluer.",
+    "noPeerPresenceFewParticipants": "Vous étiez {{count}} : le témoignage de présence par les pairs demande au moins 3 participants. À deux, la présence se valide par QR ou géolocalisation uniquement.",
+    "ownPresencePending": "Ta propre présence n'est pas encore confirmée : tu pourras témoigner de la présence des autres une fois la tienne validée."
   },
   "messagerie": {
     "empty": "Aucune conversation",

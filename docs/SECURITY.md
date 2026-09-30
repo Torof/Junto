@@ -861,7 +861,7 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 | T-10min | `qr_create_reminder` | Créateur (QR live dès T-15min) |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés |
 | Validation | `presence_confirmed` | User validé (push gated par skip_push, défaut TRUE) |
-| End | `rate_participants` | Participants (in-app uniquement) |
+| End+15min | `rate_participants` | Participants (in-app uniquement) — émis par les balayages via `notify_rate_participants` (00427) une fois la fenêtre de vote OUVERTE (fin+15 min ≤ now ≤ fin+24 h, dédup par user+activité, ≥2 acceptés) ; plus jamais au flip `completed` (le tap immédiat garantissait « trop tôt ») |
 | End+1h | `presence_validate_overdue` | Participants non confirmés |
 | End+22h | `peer_review_closing` | Voters avec ≥1 peer non-confirmé restant à voter |
 | Détection geofence (BG) | "Présence détectée" → "Présence confirmée" (local notif) | Participant |

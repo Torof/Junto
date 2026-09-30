@@ -15,6 +15,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
+import { participationService } from '@/services/participation-service';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -89,6 +90,20 @@ export default function PeerReviewScreen() {
   const { data: state, isLoading } = useQuery({
     queryKey: ['peer-review-state', id],
     queryFn: () => badgeService.getPeerReviewState(id ?? ''),
+    enabled: !!id,
+  });
+
+  // Own presence status (D): the server refuses presence testimony from a
+  // voter who isn't confirmed present himself — say it BEFORE the tap, not
+  // as a post-tap error. The state RPC excludes self, so read the shared
+  // participants list instead.
+  const { data: me } = useQuery({
+    queryKey: ['currentUser-auth'],
+    queryFn: async () => (await supabase.auth.getUser()).data.user,
+  });
+  const { data: participants } = useQuery({
+    queryKey: ['participants', id],
+    queryFn: () => participationService.getForActivity(id ?? ''),
     enabled: !!id,
   });
 
@@ -205,6 +220,18 @@ export default function PeerReviewScreen() {
       : nowRef.isAfter(expiresAt) ? 'closed'
       : 'open';
   const canVote = windowState === 'open';
+  // Dated banner material (Scott 2026-09-30 — the refusals must say WHY and
+  // WHEN, not just "too early"/"closed").
+  const minutesToOpen = opensAt ? Math.max(1, Math.ceil(opensAt.diff(nowRef, 'minute', true))) : 0;
+  const countdownLabel = minutesToOpen >= 60
+    ? t('peerReview.inHours', { count: Math.round(minutesToOpen / 60) })
+    : t('peerReview.inMinutes', { count: minutesToOpen });
+  const closedAgoMin = expiresAt ? Math.max(1, Math.round(nowRef.diff(expiresAt, 'minute', true))) : 0;
+  const agoLabel = closedAgoMin < 60
+    ? t('peerReview.agoMinutes', { count: closedAgoMin })
+    : closedAgoMin < 48 * 60
+      ? t('peerReview.agoHours', { count: Math.round(closedAgoMin / 60) })
+      : t('peerReview.agoDays', { count: Math.round(closedAgoMin / 1440) });
   const hoursLeft = expiresAt ? Math.max(0, Math.round(expiresAt.diff(dayjs(), 'minute') / 60)) : 0;
   const urgencyLabel = hoursLeft > 0
     ? t('peerReview.windowLeft', { hours: hoursLeft, defaultValue: `${hoursLeft}h left` })
@@ -250,6 +277,17 @@ export default function PeerReviewScreen() {
   // validate and peer_validate_presence rejects it (Scott 2026-07-13, a
   // requires_presence=false activity was still showing the button).
   const peerPresenceEnabled = state.length >= 2 && activity.requires_presence === true;
+  // When the presence pill is absent, SAY WHY instead of hiding it silently
+  // (Scott 2026-09-30): no presence required, or fewer than 3 participants
+  // (testimony would be circular — QR/geo only at 2).
+  const presenceNote = activity.requires_presence !== true
+    ? t('peerReview.noPresenceRequired')
+    : state.length < 2
+      ? t('peerReview.noPeerPresenceFewParticipants', { count: state.length + 1 })
+      : null;
+  const myRow = participants?.find((p) => p.user_id === me?.id);
+  const ownPresencePending =
+    peerPresenceEnabled && windowState === 'open' && myRow != null && myRow.confirmed_present !== true;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -262,9 +300,27 @@ export default function PeerReviewScreen() {
         <View style={[styles.banner, windowState === 'closed' ? styles.bannerClosed : styles.bannerInfo]}>
           <Text style={styles.bannerText}>
             {windowState === 'closed'
-              ? t('peerReview.bannerClosed', { defaultValue: "La fenêtre d'évaluation est fermée (24 h après la fin). Tu ne peux plus voter." })
-              : t('peerReview.bannerNotOpen', { defaultValue: "L'évaluation ouvrira 15 min après la fin de la sortie." })}
+              ? t('peerReview.bannerClosedAt', {
+                  date: expiresAt?.format('DD/MM'),
+                  time: expiresAt?.format('HH:mm'),
+                  ago: agoLabel,
+                })
+              : t('peerReview.bannerNotOpenAt', {
+                  time: opensAt?.format('HH:mm'),
+                  countdown: countdownLabel,
+                })}
           </Text>
+        </View>
+      )}
+
+      {presenceNote != null && (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>{presenceNote}</Text>
+        </View>
+      )}
+      {ownPresencePending && (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>{t('peerReview.ownPresencePending')}</Text>
         </View>
       )}
 
@@ -480,6 +536,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bannerClosed: { backgroundColor: colors.error + '14', borderColor: colors.error + '40' },
   bannerInfo: { backgroundColor: colors.warning + '14', borderColor: colors.warning + '40' },
   bannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20, fontWeight: '600' },
+  noteBox: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  noteText: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 19 },
   sectionLabel: {
     color: colors.textMuted,
     fontSize: 10.5,
