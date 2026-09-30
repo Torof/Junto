@@ -57,7 +57,7 @@ export interface DiscoveryCard {
   about: string | null;
   // Relation existante avec cette personne (00425) — 'pending' couvre AUSSI
   // un refus (anti-oracle) ; conversation_id présent seulement si active.
-  contact_state: 'none' | 'pending' | 'connected';
+  contact_state: 'none' | 'pending' | 'pending_received' | 'connected';
   conversation_id: string | null;
 }
 

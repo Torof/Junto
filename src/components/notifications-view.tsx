@@ -55,6 +55,7 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   driver_left: { icon: Car, color: colors.warning },
   contact_request: { icon: Mail, color: colors.cta },
   contact_request_accepted: { icon: MailCheck, color: colors.success },
+  invite_activity_gone: { icon: CalendarX2, color: colors.warning },
   booking_request: { icon: CalendarClock, color: colors.cta },
   booking_accepted: { icon: CalendarCheck, color: colors.success },
   booking_declined: { icon: CalendarX2, color: colors.error },

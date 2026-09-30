@@ -391,3 +391,18 @@ Règles verrouillées :
 - **Cancels suspendus** : bloqués (doctrine auth+suspension partout) ; `admin_suspend_user` auto-annule les réservations futures du suspendu et notifie les contreparties en copy neutre — la suspension n'est jamais révélée à un tiers.
 - **Blanchiment d'avis (M5)** : l'historique admin_actions (approve/reject passés) est surfacé dans la file d'approbation pro — l'admin re-valide en connaissance de cause. Pas de blocage automatique : la ré-inscription reste légitime, c'est un signal, pas une peine.
 - **booking_expired** : notifié au client (logistique + actionnable, cohérent avec le decline notifié) au flip lazy côté pro ; silencieux quand c'est le client lui-même qui découvre sa liste.
+
+---
+
+## 2026-09-30 — Audit adverse n°2 Contacter/Inviter : le refus n'est plus perpétuel + état directionnel (arbitrages délégués, mig 00426)
+
+**Contexte :** deuxième audit adverse du flux Découverte Contacter/Inviter (3 auditeurs indépendants : client, chaîne DB, scénarios croisés). Invariants structurels tous confirmés sains (gate 00072, anti-oracle du refus, distance-only, caps). Scott : « On répare tout, même l'arbitrage. À trancher, je te laisse trancher. »
+
+**Décisions (arbitrages délégués) :**
+- **Le refus n'est plus perpétuel.** Avant : une paire declined était verrouillée à vie dans les deux sens (« Envoyée » éternel côté sender, y compris chez le destinataire). Maintenant : le sweeper SUPPRIME les demandes mortes (declined ou pending expirée) à `created_at + 30 j` — même échéance qu'une pending ignorée, donc le refus silencieux reste inobservable — et la paire redevient contactable. Avant l'échéance, le **non-expéditeur** (refuseur, ou destinataire d'une demande expirée) peut rouvrir immédiatement avec sa propre demande : il ne fait que révéler son propre choix, zéro fuite.
+- **État directionnel** (`get_discovery_cards.contact_state` + `get_conversation_state_with`) : `pending` = MA demande en cours (pending et declined confondus — anti-oracle inchangé) ; `pending_received` = demande VIVANTE reçue (déjà dans mes Demandes, zéro information nouvelle) → bouton « Répondre » au lieu du faux « Envoyée » ; declined/expirée vue par le destinataire = `none`.
+- **Invitation morte acceptée** : le fil se connecte quand même (consommer le lien reste le bon choix), mais l'accepteur reçoit `invite_activity_gone` au lieu d'un silence.
+
+**Correctifs sécurité de la même migration :** rideau démo côté ÉCRITURE (garde `is_demo` absolue sur la cible — 3e rappel de l'invariant « le rideau gate chaque surface ») ; parité du cap-10 (pending/declined bornés pareil — l'oracle par sonde REST à J+30 est fermé) ; `FOR UPDATE` sur accept/decline (un refus ne peut plus être ressuscité par une course) ; `p_source` whitelisté ; envois en `ON CONFLICT DO NOTHING`.
+
+**Alternatives considérées :** *refus définitif documenté* (rejetée : verrouillait aussi le refuseur qui change d'avis — produit de rencontre de partenaires, pas de liste noire) ; *flip pending→declined conservé + TTL séparé* (rejetée : deux échéances = fenêtre observable ; la suppression à l'échéance unique est plus simple ET plus étanche).

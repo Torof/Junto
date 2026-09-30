@@ -115,6 +115,9 @@ export default function PublicProfileScreen() {
   // 'pending' merges pending_request + declined server-side (00351) — the
   // sender must never be able to tell them apart.
   const requestAlreadySent = conversationState?.status === 'pending';
+  // 00426 — directional state: THEY sent ME a live request (my Demandes list
+  // already shows it — the button routes there instead of a false "sent").
+  const requestReceived = conversationState?.status === 'pending_received';
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -246,6 +249,10 @@ export default function PublicProfileScreen() {
           {existingConversationId ? (
             <PressableScale style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
               <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
+            </PressableScale>
+          ) : requestReceived ? (
+            <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
+              <Text style={styles.messageText}>{t('publicProfile.respondToRequest')}</Text>
             </PressableScale>
           ) : requestAlreadySent ? (
             <View style={[styles.messageButton, { opacity: 0.4 }]}>

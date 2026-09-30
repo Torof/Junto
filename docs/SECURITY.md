@@ -295,9 +295,19 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Rate limit sous advisory lock : par conversation **15 (DM) / 30 (activité) / 30 (groupe)** par minute (`junto.dm_rate_limit`/`junto.wall_rate_limit`) + plafond global **60/min/sender** (`junto.send_rate_limit`)
 - `send_wall_message`/`send_private_message` = **wrappers** de compatibilité au-dessus de `send_message` (00358)
 
-**`accept_contact_request` / `decline_contact_request`** (portées 00355) :
-- Auth + non suspendu ; user est destinataire (pas le sender) ; conversation de type `dm`
+**`send_contact_request(p_target, p_message, p_source)`** (base 00350, durcie 00426) :
+- Auth + non suspendu + ≠ soi ; `p_source` **whitelisté** `profile|discovery` (les valeurs internes `invite`/`request_reply`/`booking` ne sont pas maquillables)
+- Cible existante, non suspendue et **`is_demo = false`** (garde ABSOLUE, admin en mode démo compris — rideau démo côté écriture)
+- Blocage bidirectionnel ; advisory lock sender AVANT l'examen de la paire
+- Paire existante : `active` → retourne l'id ; demande **morte** (`declined`, ou `pending` au-delà de 30 j) → seul le **non-expéditeur** peut rouvrir (DELETE + nouvelle demande) ; tout le reste → générique (anti-oracle)
+- Caps 10 pending / 5 par 24 h — **parité** : `pending_request` ET `declined` comptent sur la même fenêtre `created_at + 30 j` (le cap n'est pas une sonde à refus, indépendamment du sweeper lazy)
+- Message trim ∈ [1,500] + strip HTML ; INSERT `ON CONFLICT (user_1,user_2) DO NOTHING` → NULL = course croisée perdue → générique (plus de 23505 brut)
+
+**`accept_contact_request` / `decline_contact_request`** (portées 00355, durcies 00426) :
+- Auth + non suspendu ; user est destinataire (pas le sender) ; conversation de type `dm` ; ligne prise **`FOR UPDATE`** (un decline ne peut plus être ressuscité en `active` par un accept concurrent ; plus de double message d'amorce)
+- Accept refuse une demande **expirée** (`request_expires_at < now()`) ; UPDATE conditionnel `status='pending_request'` + `ROW_COUNT` (ceinture)
 - Decline **status-blind** (silencieux : `pending_request` et `declined` indistinguables pour le sender) ; accept re-vérifie le blocage
+- Invitation Découverte dont la sortie est morte au moment de l'accept : le fil se connecte quand même (voulu), et l'accepteur reçoit une notif `invite_activity_gone` (« Cette sortie n'est plus disponible ») au lieu d'un silence total (00426)
 
 **`reply_to_request(p_conversation_id, p_content)`** (00355) — le destinataire d'une demande rejoindre/covoit/invitation ouvre le DM (`initiated_from='request_reply'`, status → `active`). Amende l'invariant 00072 : « pas de DM `active` sans le consentement des DEUX parties ». Ne réactive **jamais** un DM contact `pending`/`declined` (`Operation not permitted`, 00363).
 
@@ -368,14 +378,16 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - `get_dispo_zone` — match requis (cf. invariant A).
 - `get_invitable_activities_for_dispo` / `send_discovery_invite` — **réciprocité + gate démo** (mig 00409) : l'appelant doit détenir une dispo active qui matche la cible (prédicat `get_discovery_cards`) et la dispo cible est démo-gatée → pas d'oracle de disponibilité pour un non-match, pas d'interaction avec une dispo démo.
 - `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte. `accept_contact_request` re-vérifie la suspension de l'**expéditeur** au moment de l'acceptation (mig 00411).
+- **Audit n°2 (mig 00426)** : garde `is_demo` ABSOLUE sur la cible dans `send_contact_request`, `send_discovery_invite` et les boucles de `invite_users_to_activity`/`send_activity_invitations` ; parité du cap-10 (pending et declined bornés à created+30 j) ; envois en `ON CONFLICT DO NOTHING` ; `contact_state` **directionnel** dans `get_discovery_cards`/`get_conversation_state_with` (`pending` = MA demande, pending OU declined confondus — anti-oracle ; `pending_received` = demande VIVANTE reçue, déjà visible dans mes Demandes ; declined/expirée vue par le destinataire = `none`, cohérent avec son droit de réouverture).
 - `activate_dispo` / `deactivate_dispo` — flip `is_active` via `bypass_lock`.
 
 **Codes d'erreur (SAFE)** : `junto.dispo_{sports,levels,radius,transport,window,place,about,intent}`, `discovery_no_match`, `contact_request_pending_cap`/`daily_cap`.
 
 ### Présence — auto-expire
 
-**`expire_stale_contact_requests()`** (mig 00142) — interne :
-- Flip `pending_request` → `declined` quand `request_expires_at < NOW()`
+**`expire_stale_contact_requests()`** (mig 00142, refonte 00426) — interne :
+- **SUPPRIME** les demandes mortes : `type='dm' AND status IN (pending_request, declined) AND created_at < now() − 30 j` (cascades propres : membres/messages en `ON DELETE CASCADE`, une DM non-active n'a jamais de messages)
+- Un refus et une pending ignorée meurent à la MÊME échéance (`request_expires_at` = created+30 j par construction) → le refus silencieux reste inobservable, et **la paire redevient contactable** ensuite (arbitrage 2026-09-30 : le refus n'est plus perpétuel)
 - Hooké dans `check_activity_transitions` (foreground app)
 
 **Trigger `on_activity_finished_expire_seat_requests`** (mig 00142) :

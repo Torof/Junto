@@ -283,6 +283,11 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
             <View style={styles.btnSent}>
               <Text style={styles.btnSentText}>{t('discovery.contactedShort', { defaultValue: 'Envoyée' })}</Text>
             </View>
+          ) : item.contact_state === 'pending_received' ? (
+            <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
+              <MessageCircle size={13} color="#FFFFFF" strokeWidth={2.4} />
+              <Text style={styles.btnPrimaryText}>{t('discovery.respond', { defaultValue: 'Répondre' })}</Text>
+            </Pressable>
           ) : (
             <Pressable
               style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary, sendingTo === item.user_id && styles.btnFaded]}
