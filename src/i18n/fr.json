@@ -321,7 +321,8 @@
     "zoneTitle": "Zone de dispo",
     "zoneUnavailable": "Zone indisponible.",
     "zoneRadius": "Dispo dans un rayon de {{km}} km",
-    "zoneAny": "Dispo peu importe la distance"
+    "zoneAny": "Dispo peu importe la distance",
+    "chat": "Discuter"
   },
   "channels": {
     "searchPlaceholder": "Lieu, sport, mot-clé…",

@@ -55,6 +55,10 @@ export interface DiscoveryCard {
   distance_km: number;
   sorties_count: number;
   about: string | null;
+  // Relation existante avec cette personne (00425) — 'pending' couvre AUSSI
+  // un refus (anti-oracle) ; conversation_id présent seulement si active.
+  contact_state: 'none' | 'pending' | 'connected';
+  conversation_id: string | null;
 }
 
 export interface DispoZone {

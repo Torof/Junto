@@ -321,7 +321,8 @@
     "zoneTitle": "Availability zone",
     "zoneUnavailable": "Zone unavailable.",
     "zoneRadius": "Available within {{km}} km",
-    "zoneAny": "Available whatever the distance"
+    "zoneAny": "Available whatever the distance",
+    "chat": "Chat"
   },
   "channels": {
     "searchPlaceholder": "Place, sport, keyword…",

@@ -4229,6 +4229,8 @@ export type Database = {
         Returns: {
           about: string
           avatar_url: string
+          contact_state: string
+          conversation_id: string
           display_name: string
           distance_km: number
           intent: string[]
