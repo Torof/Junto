@@ -17,22 +17,35 @@ interface Props {
   // Render the chevron inside a round tinted button (default false), matching
   // the Discovery partner cards' details toggle.
   chevronBoxed?: boolean;
+  // Small element rendered right after the title (e.g. an "En ligne" pill).
+  badge?: ReactNode;
+  // Stacked layout: the summary renders on its own line UNDER the title
+  // instead of inline on the right (Ta dispo panel, Scott 2026-09-30).
+  stacked?: boolean;
   children: ReactNode;
 }
 
 // A filter section: tappable header with a chevron that expands/collapses the
 // body. Collapsed by default; the header shows a summary of the current choice.
-export function CollapsibleSection({ title, summary, defaultExpanded = false, bordered = true, chevronBoxed = false, children }: Props) {
+export function CollapsibleSection({ title, summary, defaultExpanded = false, bordered = true, chevronBoxed = false, badge, stacked = false, children }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <View style={[styles.section, !bordered && { borderBottomWidth: 0 }]}>
-      <Pressable style={styles.header} onPress={() => setExpanded((e) => !e)}>
-        <Text style={styles.title}>{title}</Text>
+      <Pressable style={[styles.header, stacked && styles.headerStacked]} onPress={() => setExpanded((e) => !e)}>
+        <View style={stacked ? styles.stackedCol : styles.titleRow}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{title}</Text>
+            {badge}
+          </View>
+          {stacked && !expanded && !!summary && (
+            <Text style={styles.summaryStacked} numberOfLines={1}>{summary}</Text>
+          )}
+        </View>
         <View style={styles.right}>
-          {!expanded && !!summary && <Text style={styles.summary} numberOfLines={1}>{summary}</Text>}
+          {!stacked && !expanded && !!summary && <Text style={styles.summary} numberOfLines={1}>{summary}</Text>}
           <View style={[chevronBoxed && styles.chevBtn, { transform: [{ rotate: expanded ? '180deg' : '0deg' }] }]}>
             <ChevronDown size={18} color={chevronBoxed ? colors.cta : colors.textSecondary} strokeWidth={chevronBoxed ? 2.6 : 2.4} />
           </View>
@@ -50,6 +63,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md,
   },
   title: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  stackedCol: { flex: 1, minWidth: 0, gap: 3 },
+  headerStacked: { alignItems: 'flex-start' },
+  summaryStacked: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, fontWeight: '600' },
   right: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1, minWidth: 0 },
   summary: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '600', flexShrink: 1 },
   body: { paddingBottom: spacing.md },

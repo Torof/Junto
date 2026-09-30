@@ -323,8 +323,15 @@ export function DiscoveryView() {
         return (
           <View style={styles.myDispoWrap}>
             <CollapsibleSection
-              title={t('discovery.myDispoTitleLive', { defaultValue: 'Ta dispo · en ligne' })}
+              title={t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' })}
+              badge={(
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>{t('discovery.live', { defaultValue: 'En ligne' })}</Text>
+                </View>
+              )}
               summary={`${t('discovery.row.sportsCount', { count: mine.sport_keys.length, defaultValue: '{{count}} sports' })} · ${mine.base_label} · ${formatPeriod(mine.window_start, mine.window_end)}`}
+              stacked
               bordered={false}
               chevronBoxed
             >
@@ -538,6 +545,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.card, borderWidth: 1.5, borderColor: colors.borderStrong,
     ...shadows.card,
   },
+  liveBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 1, paddingVertical: 3,
+  },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.onCta },
+  liveBadgeText: { color: colors.onCta, fontSize: fontSizes.xs - 1, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
   myDispoActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md, paddingBottom: spacing.xs },
   matchesHead: { paddingTop: spacing.sm, paddingBottom: spacing.md + spacing.xs, gap: spacing.sm + 2 },
   matchesTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
