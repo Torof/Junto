@@ -208,11 +208,11 @@ L'ordre d'affichage suit le composant `badge-display` :
 ## Utilisation côté créateur
 
 Lors de la gestion des demandes de participation, le créateur voit :
-- Le `reliability_tier` (label, pas le %)
+- Le `reliability_tier` **en mots** (« Fiabilité : Correcte »), à côté de l'anneau coloré — ajouté en 00435 : l'anneau seul était un arc de 36 px sans légende ni clé nulle part sur l'écran, donc illisible à l'endroit précis où se prend la décision
 - Les badges progression actuels
 - Les badges réputation visibles (au-dessus du seuil)
 
-Cela permet une décision éclairée avant d'accepter ou refuser, sans révéler le score brut (qui reste privé au demandeur).
+⚠️ **Le score brut n'est PAS privé** (cette ligne affirmait le contraire jusqu'au 2026-10-01). La liste des demandes n'expose effectivement que le palier, mais `get_user_public_stats` renvoie `reliability_score` en clair pour **n'importe quel** utilisateur, et l'écran de profil l'affiche en pourcentage. C'est un choix délibéré, assumé dans l'en-tête de la migration 00130 — ce qui était faux, c'est l'invariant écrit ici.
 
 ---
 

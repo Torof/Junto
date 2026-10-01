@@ -13,7 +13,7 @@ import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
-import { ringColorFor } from './profile-hero';
+import { reliabilityColorForTier } from '@/utils/reliability-color';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 
@@ -145,25 +145,29 @@ export function GroupCard({
     () => transports.map((p) => p.user_id).sort().join(','),
     [transports],
   );
-  const { data: reliabilityScores = [] } = useQuery({
-    queryKey: ['public-profile-scores', transportUserIdsKey],
+  // Audit 2026-10-01: this selected `reliability_score`, which public_profiles
+  // deliberately forces to NULL (00347 — only the tier is published). So the
+  // driver ring has been colourless ever since, at the spot the code itself
+  // calls "where the actual decision happens". Read the TIER, which is real.
+  const { data: reliabilityTiers = [] } = useQuery({
+    queryKey: ['public-profile-tiers', transportUserIdsKey],
     queryFn: async () => {
       const ids = transports.map((p) => p.user_id);
       if (ids.length === 0) return [];
       const { data } = await supabase
         .from('public_profiles')
-        .select('id, reliability_score')
+        .select('id, reliability_tier')
         .in('id', ids);
-      return (data ?? []) as { id: string; reliability_score: number | null }[];
+      return (data ?? []) as { id: string; reliability_tier: string | null }[];
     },
     enabled: isParticipant && transports.length > 0,
     staleTime: 60_000,
   });
   const reliabilityById = useMemo(() => {
-    const map = new Map<string, number | null>();
-    reliabilityScores.forEach((p) => map.set(p.id, p.reliability_score));
+    const map = new Map<string, string | null>();
+    reliabilityTiers.forEach((p) => map.set(p.id, p.reliability_tier));
     return map;
-  }, [reliabilityScores]);
+  }, [reliabilityTiers]);
 
   // Drivers offering rides — INCLUDES the current user when they're
   // a driver (rendered with a "Toi" marker). Sort by departure time
@@ -515,8 +519,8 @@ export function GroupCard({
               const isMyDriver = myAcceptedSeat?.driver_id === d.user_id;
               const isPendingFromMe = myPending?.driver_id === d.user_id;
               const isFull = d.free === 0;
-              const score = reliabilityById.get(d.user_id) ?? null;
-              const ringColor = score !== null ? ringColorFor(score, colors) : null;
+              const tier = reliabilityById.get(d.user_id) ?? null;
+              const ringColor = tier != null ? reliabilityColorForTier(tier, colors) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
               const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (

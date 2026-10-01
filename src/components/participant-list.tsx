@@ -9,6 +9,7 @@ import { useColors } from '@/hooks/use-theme';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
 import { ReliabilityRing } from './reliability-ring';
+import { reliabilityColorForTier } from '@/utils/reliability-color';
 import { haptic } from '@/lib/haptics';
 import { getFriendlyError } from '@/utils/friendly-error';
 import type { AppColors } from '@/constants/colors';
@@ -132,7 +133,18 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
               <ReliabilityRing tier={p.reliability_tier ?? null} size={36} strokeWidth={3} showLabel={false}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={36} />
               </ReliabilityRing>
-              <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
+              {/* The ring alone was unreadable here — a 36px coloured arc with
+                  showLabel={false} and no key anywhere on the screen, at the
+                  exact spot where the organiser accepts or refuses. Name the
+                  tier in words (audit 2026-10-01). */}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
+                {p.reliability_tier != null && (
+                  <Text style={[styles.pendingTier, { color: reliabilityColorForTier(p.reliability_tier, colors) }]} numberOfLines={1}>
+                    {t('reliability.label')} : {t(`reliability.tier.${p.reliability_tier}`)}
+                  </Text>
+                )}
+              </View>
               <View style={styles.actions}>
                 <Pressable
                   style={[styles.acceptBtn, loadingId === p.participation_id && styles.disabled]}
@@ -200,7 +212,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
     marginBottom: spacing.xs, gap: spacing.sm,
   },
-  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
+  pendingName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  pendingTier: { fontSize: fontSizes.xs, fontWeight: '700', marginTop: 1 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   acceptBtn: { backgroundColor: colors.success, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   refuseBtn: { backgroundColor: colors.error, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
