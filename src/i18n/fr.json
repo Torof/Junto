@@ -488,7 +488,9 @@
       "booking_daily_cap": "Limite de demandes atteinte pour aujourd'hui.",
       "booking_manual_name": "Nom ou téléphone du client invalide.",
       "offering_has_bookings": "Impossible : des réservations à venir existent encore.",
-      "booking_cooldown": "Demande déjà renvoyée il y a peu — réessaie dans une heure."
+      "booking_cooldown": "Demande déjà renvoyée il y a peu — réessaie dans une heure.",
+      "activity_ended_no_remove": "Cette sortie est terminée — tu ne peux plus en retirer de participant.",
+      "participant_present_no_remove": "La présence de ce participant est déjà validée : elle ne peut plus être effacée. Tu ne peux donc plus le retirer de la sortie."
     },
     "createActivity": "Impossible de créer l'activité. Vérifie les infos et réessaie.",
     "updateActivity": "Impossible de modifier l'activité. Réessaie.",

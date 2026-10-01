@@ -26,6 +26,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { supabase } from '@/services/supabase';
 import { activityService, type NearbyActivity } from '@/services/activity-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { parsePgIntervalMs } from '@/utils/parse-pg-interval';
 import { participationService, type Participation } from '@/services/participation-service';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { FavoriteButton } from '@/components/favorite-button';
@@ -296,18 +297,8 @@ export function ActivityDetail({
     });
   }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, activity.visibility, activity.id, t, handleShare, colors, styles]);
 
-  // Parse PG interval duration (e.g. "02:00:00" or "2 hours") into milliseconds
-  const parseDurationMs = (d: string): number => {
-    if (d.includes(':')) {
-      const [h, m, s] = d.split(':').map(Number);
-      return ((h ?? 0) * 3600 + (m ?? 0) * 60 + (s ?? 0)) * 1000;
-    }
-    const match = d.match(/(\d+)\s*hour/);
-    return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
-  };
-
   const formatDuration = (d: string): string => {
-    const ms = parseDurationMs(d);
+    const ms = parsePgIntervalMs(d);
     const totalMinutes = Math.round(ms / 60000);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -317,7 +308,7 @@ export function ActivityDetail({
   };
 
   const startsAtMs = new Date(activity.starts_at).getTime();
-  const durationMs = parseDurationMs(activity.duration);
+  const durationMs = parsePgIntervalMs(activity.duration);
   const nowMs = Date.now();
   const requiresPresence = activity.requires_presence !== false;
   // Server-aligned windows (migration 00292, unchanged by 00306):

@@ -484,7 +484,9 @@
       "booking_daily_cap": "Request limit reached for today.",
       "booking_manual_name": "Invalid client name or phone.",
       "offering_has_bookings": "Not possible: upcoming bookings still exist.",
-      "booking_cooldown": "You just re-sent this request — try again in an hour."
+      "booking_cooldown": "You just re-sent this request — try again in an hour.",
+      "activity_ended_no_remove": "This outing is over — you can no longer remove participants from it.",
+      "participant_present_no_remove": "This participant's presence is already validated and can't be erased, so they can no longer be removed from the outing."
     },
     "network": "Connection issue — check your internet.",
     "rateLimit": "Slow down, try again in a few moments.",

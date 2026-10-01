@@ -16,6 +16,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
+import { parsePgIntervalMs } from '@/utils/parse-pg-interval';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
 import { UserAvatar } from '@/components/user-avatar';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -39,17 +40,6 @@ const NEGATIVE_TRAIT_ICON: Record<string, LucideIcon> = {
   aggressive: Frown,
   reckless: Zap,
 };
-
-// Peer review window — server gates anyway, this is the client-side
-// urgency cue for the header. Activity end + 24h.
-function parseDurationMs(d: string): number {
-  if (d.includes(':')) {
-    const [h, m, s] = d.split(':').map(Number);
-    return ((h ?? 0) * 3600 + (m ?? 0) * 60 + (s ?? 0)) * 1000;
-  }
-  const match = d.match(/(\d+)\s*hour/);
-  return match ? parseInt(match[1]!, 10) * 3600 * 1000 : 2 * 3600 * 1000;
-}
 
 export default function PeerReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -93,10 +83,11 @@ export default function PeerReviewScreen() {
     enabled: !!id,
   });
 
-  // Own presence status (D): the server refuses presence testimony from a
-  // voter who isn't confirmed present himself — say it BEFORE the tap, not
-  // as a post-tap error. The state RPC excludes self, so read the shared
-  // participants list instead.
+  // Own presence status. NOTE: the server does NOT require the voter to be
+  // confirmed present — that gate was removed in mig 00327 because it
+  // deadlocked outings where nobody had managed to validate. We surface our own
+  // pending presence only to reassure (the vote counts anyway), never to block.
+  // The state RPC excludes self, so read the shared participants list instead.
   const { data: me } = useQuery({
     queryKey: ['currentUser-auth'],
     queryFn: async () => (await supabase.auth.getUser()).data.user,
@@ -207,7 +198,7 @@ export default function PeerReviewScreen() {
 
   // Window expires at activity end + 24h. Computed before useLayoutEffect
   // so we can pass the urgency string to the navigation header.
-  const endsAt = activity ? dayjs(activity.starts_at).add(parseDurationMs(activity.duration), 'millisecond') : null;
+  const endsAt = activity ? dayjs(activity.starts_at).add(parsePgIntervalMs(activity.duration), 'millisecond') : null;
   const expiresAt = endsAt ? endsAt.add(24, 'hour') : null;
   // Vote window mirrors the server (give_reputation_badge / peer_validate):
   // opens 15 min after the end, closes 24 h after. Old notifications land here
