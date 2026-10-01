@@ -133,7 +133,8 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
 
   const slotId = `presence-${activityId}`;
 
-  // Regions are registered from T-2h so the OS can catch the outside→inside
+  // Regions are registered from T-24h (mig 00431) so the OS can catch the
+  // outside→inside
   // transition, but the server only accepts anchors in T-15min..T+15min —
   // an Enter outside that window can never geo-validate anything (live RPC
   // and replay alike).

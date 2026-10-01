@@ -835,7 +835,7 @@ Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remov
 
 | Phase | Fenêtre | Path |
 |-------|---------|------|
-| Enregistrement geofence OS | T-2h → T+15min | `get_my_active_presence_activities` |
+| Enregistrement geofence OS (ARMEMENT, pas validité) | **T-24h → T+15min** (mig 00431, était T-2h) | `get_my_active_presence_activities` (triée par `starts_at`, le client plafonne à 20 zones — limite iOS) |
 | Validation géo (live + replay) | T-15min → T+15min | `confirm_presence_via_geo` |
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |

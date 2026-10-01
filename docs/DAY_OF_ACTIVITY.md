@@ -15,14 +15,19 @@ Aucun utilisateur ne devrait être enregistré comme absent simplement parce qu'
 
 | Phase | Fenêtre | Mécanisme |
 |-------|---------|-----------|
-| Enregistrement geofence (OS) | T-2h → T+15min | `Location.startGeofencingAsync` |
+| Enregistrement geofence (OS) | **T-24h → T+15min** (mig 00431, était T-2h) | `Location.startGeofencingAsync` |
 | Validation géo serveur | T-15min → T+15min | `confirm_presence_via_geo` |
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |
 | Replay offline (deadline arrivée) | end + 3h | `confirm_presence_via_geo(.., p_captured_at)` |
 | Peer review | end + 15min → end + 24h | `peer_validate_presence` |
 
-L'asymétrie est intentionnelle : la fenêtre d'enregistrement OS commence à T-2h pour donner au système le temps de détecter une transition "outside → inside". Si on enregistrait à T-15min seulement et que l'utilisateur était déjà sur place, aucun event Enter ne se déclencherait jamais.
+L'asymétrie est intentionnelle, et elle a été **élargie à 24 h en 00431**. Deux raisons distinctes :
+
+1. Donner au système le temps de détecter une transition « outside → inside ». Si on enregistrait à T-15min seulement et que l'utilisateur était déjà sur place, aucun event Enter ne se déclencherait jamais.
+2. **Surtout** : les zones ne sont transmises à l'OS que quand l'app passe au premier plan. À T-2h, il fallait donc ouvrir Junto dans un créneau de 2 h 15 pour que la détection app-fermée existe — rouler 1 h 30 jusqu'au départ sans ouvrir l'app suffisait à l'annuler entièrement. À 24 h, n'importe quelle ouverture la veille arme le système.
+
+⚠️ **C'est une fenêtre d'ARMEMENT, jamais de validité.** Une présence reste valide uniquement dans T±15min, borné indépendamment par la tâche de geofencing (qui diffère une notification si l'entrée se déclenche trop tôt) et par `confirm_presence_via_geo`. Les trois autres consommateurs de `get_my_active_presence_activities` (vérification à l'ouverture, veilleur au premier plan, service Android) filtrent eux aussi T±15min — ne jamais déduire « candidat ⇒ fenêtre ouverte ».
 
 ## Distance check
 

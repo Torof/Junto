@@ -158,7 +158,8 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
   const now = Date.now();
   for (const region of regions) {
     // Skip regions whose server window isn't open — the RPC would be a
-    // guaranteed junto.presence_window_closed (candidates exist from T-2h).
+    // guaranteed junto.presence_window_closed (candidates exist from T-24h
+    // since mig 00431 — arming window, NOT the validity window).
     const startsAtMs = Number(String(region.identifier ?? '').split(':')[3]);
     if (Number.isFinite(startsAtMs) && (now < startsAtMs - WINDOW_BEFORE_MS || now > startsAtMs + WINDOW_AFTER_MS)) {
       continue;
