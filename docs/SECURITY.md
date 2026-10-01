@@ -255,7 +255,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - `auth.uid() = creator_id`
 - Activité non supprimée + status vivant + `requires_presence = TRUE` + `is_demo = false` (00429)
 - `now()` dans [starts_at - 15min, starts_at + duration + 3h]
-- Réutilise le token existant non-expiré OU en génère un nouveau (12 char), **durée de vie 30 min**. Le client (`presence-qr-modal`) affiche l'échéance et re-frappe au-delà de 25 min — sans ça un créateur affichait un QR mort en croyant qu'il marchait.
+- Réutilise le token existant **seulement s'il lui reste > 5 min** (mig 00436) OU en génère un nouveau (12 char), **durée de vie 30 min**. Avant 00436 la condition était « non expiré », donc un renouvellement rendait le token mourant et le client affichait une échéance fausse sur un QR qui allait mourir. Le client (`presence-qr-modal`) affiche l'échéance et re-frappe au-delà de 25 min — sans ça un créateur affichait un QR mort en croyant qu'il marchait.
 
 **`peer_validate_presence(p_voted_id, p_activity_id)`** (mig 00140, modèle refondu 00327) :
 - Auth + non suspendu

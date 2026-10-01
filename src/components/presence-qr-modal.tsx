@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { View, Text, Modal, Pressable, StyleSheet, Alert, AppState } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import dayjs from 'dayjs';
@@ -29,14 +29,26 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
   // saw nothing wrong. Track the deadline, show it, and refetch when it lapses
   // or when the app comes back to the foreground.
   const [mintedAt, setMintedAt] = useState<number | null>(null);
+  const tokenRef = useRef<string | null>(null);
   const [expired, setExpired] = useState(false);
 
   const fetchToken = useCallback(async () => {
     setLoading(true);
     try {
       const tok = await reliabilityService.createPresenceToken(activityId);
+      // Only restart the local clock when the token ACTUALLY changed. The server
+      // reuses a still-valid token, so resetting unconditionally made us claim
+      // "valid for another 30 min" about a code that was about to die — the QR
+      // went dead on screen while the sheet asserted it was fine (worse than the
+      // original silent failure, since now we assert). Paired with mig 00436,
+      // which stops handing back a token with under 5 minutes left.
+      // Compared through a ref, not inside a setState updater: React may run an
+      // updater twice, and it must stay free of side effects.
+      if (tokenRef.current !== tok) {
+        tokenRef.current = tok;
+        setMintedAt(Date.now());
+      }
       setToken(tok);
-      setMintedAt(Date.now());
       setExpired(false);
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -49,6 +61,7 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
   useEffect(() => {
     if (!visible) {
       setToken(null);
+      tokenRef.current = null;
       setMintedAt(null);
       setExpired(false);
       return;

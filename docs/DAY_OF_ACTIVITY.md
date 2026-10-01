@@ -100,7 +100,7 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 ### 5. Offline replay (`presence-offline-cache`)
 - Queue AsyncStorage : enqueue chaque échec transport / no-session des paths #3, #4
 - Drain au foreground / NetInfo reconnect (`use-presence-offline-flusher`)
-- Replay envoie le `captured_at` original ; serveur accepte une arrivée jusqu'à **end+24h** (00429 — était end+3h, ce qui jetait les preuves valides des sorties hors réseau). Le `captured_at` lui-même doit rester dans [T-15min, T+15min] et n'est jamais accepté dans le futur (00419). Un rejet définitif annule les notifications « en attente de réseau » et le dit à l'utilisateur (00429).
+- Replay envoie le `captured_at` original ; cache client purgé à 72 h depuis la capture (soupape, mig 00436 — était 30 h, ce qui rendait le CLIENT limitant sur les sorties de plus de ~6 h) ; serveur accepte une arrivée jusqu'à **end+24h** (00429 — était end+3h, ce qui jetait les preuves valides des sorties hors réseau). Le `captured_at` lui-même doit rester dans [T-15min, T+15min] et n'est jamais accepté dans le futur (00419). Un rejet définitif annule les notifications « en attente de réseau » et le dit à l'utilisateur (00429).
 
 ### 6. QR scan (`confirm_presence_via_token`)
 - Le créateur affiche son QR depuis activity-detail (bouton + auto-show, visibles T-15min..T+duration+3h — alignés serveur)

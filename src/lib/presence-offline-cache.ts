@@ -6,10 +6,16 @@ import { trace } from '@/lib/sentry';
 
 const STORAGE_KEY = '@junto/presence-offline-queue';
 
-// Replay arrival is accepted until starts_at + duration + 24h server-side
-// (mig 00429, was +3h). Anything older than this cache window is dead weight
-// that can never succeed — purge it at flush time.
-const MAX_EVENT_AGE_MS = 30 * 60 * 60 * 1000;
+// Safety valve, NOT the real deadline. The server is the authority: it accepts a
+// replay arriving until starts_at + duration + 24h (mig 00429, was +3h), so the
+// true limit measured from capture is roughly `duration + 24h`. This window was
+// 30h and its comment claimed it "covered the new bound" — only true for outings
+// under ~6h. On a 10h alpine day the server would still accept at ~34h while the
+// phone had already deleted the event at 30h, making the CLIENT the limiting
+// factor on exactly the long outings the widening was meant to serve. 72h covers
+// outings up to ~48h; beyond that the server refuses anyway and a terminal
+// rejection drops the event immediately, so a generous window costs nothing.
+const MAX_EVENT_AGE_MS = 72 * 60 * 60 * 1000;
 // Two events for the same activity captured within this span are the same
 // in-zone episode — keep only the first. Distinct episodes (leave + come
 // back later) are kept separately so an early, pre-window Enter can never
