@@ -1176,7 +1176,11 @@
       "streets": "Maps",
       "opentopomap": "OSM"
     },
-    "legal": "Legal"
+    "legal": "Legal",
+    "notifPresenceHint": "This reminder triggers automatic on-site presence detection. Turning it off disables automatic validation.",
+    "notifPresenceOffTitle": "Disable automatic validation?",
+    "notifPresenceOffBody": "This reminder isn't just a notification: it's what triggers automatic presence detection while the app is closed. Turn it off and you'll be left with the organiser's QR code and your co-participants' testimony.",
+    "notifPresenceOffConfirm": "Turn off anyway"
   },
   "legal": {
     "terms": "Terms of Service",
@@ -1460,7 +1464,9 @@
     "openSettings": "Open settings",
     "creatorAutoNote": "You don't check yourself in: your presence is confirmed automatically as soon as a participant validates theirs.",
     "qrExpiresAt": "This code expires at {{time}}. Reopen this window to generate a new one.",
-    "qrExpired": "This code has expired. Close and reopen this window to generate a new one."
+    "qrExpired": "This code has expired. Close and reopen this window to generate a new one.",
+    "autoArmedYes": "✓ Automatic validation is on: with your phone on you, your presence will be recorded without you doing anything.",
+    "autoArmedNo": "Automatic validation is unavailable: background location isn't allowed. Turn it on now, or you'll have to scan the organiser's QR on site."
   },
   "invite": {
     "invalid": "This invite link is not valid"

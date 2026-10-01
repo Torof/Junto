@@ -395,13 +395,18 @@ export function ActivityDetail({
 
   const [bgLocationDenied, setBgLocationDenied] = useState(false);
   useEffect(() => {
-    if (!requiresPresence || !isAccepted || alreadyConfirmed || !isInQrWindow) return;
+    // Also runs BEFORE the window opens (presenceNotYetOpen): T-2h is the one
+    // moment in the whole cycle where a missing background permission is still
+    // repairable, and until now the only warning was gated on the QR window —
+    // so it could not structurally appear before T-15min.
+    if (!requiresPresence || !isAccepted || alreadyConfirmed) return;
+    if (!isInQrWindow && !presenceNotYetOpen) return;
     let cancelled = false;
     Location.getBackgroundPermissionsAsync()
       .then((p) => { if (!cancelled) setBgLocationDenied(p.status !== 'granted'); })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [requiresPresence, isAccepted, alreadyConfirmed, isInQrWindow]);
+  }, [requiresPresence, isAccepted, alreadyConfirmed, isInQrWindow, presenceNotYetOpen]);
   const showBgLocationHint = canScanQr && bgLocationDenied;
 
   // Passive geo detection: periodically check if the user is at the activity location.
@@ -979,7 +984,7 @@ export function ActivityDetail({
             {/* Before the window opens — the T-2h notification used to land on
                 a page with no mention of presence at all. */}
             {presenceNotYetOpen && (
-              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', backgroundColor: colors.surface }]}>
                 <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
                   {t('presence.opensAt', {
                     time: fmtTime(geoOpenMs),
@@ -987,6 +992,22 @@ export function ActivityDetail({
                     qrClose: fmtTime(qrCloseMs),
                   })}
                 </Text>
+                {/* Don't claim "geolocation validates you automatically" when it
+                    can't: that needs the always-on location permission. This is
+                    the last moment it's still fixable before the outing. */}
+                <Text style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, color: bgLocationDenied ? colors.warning : colors.success }]}>
+                  {bgLocationDenied ? t('presence.autoArmedNo') : t('presence.autoArmedYes')}
+                </Text>
+                {bgLocationDenied && (
+                  <Pressable
+                    style={{ alignSelf: 'flex-start', marginTop: spacing.sm, backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
+                    onPress={() => { Linking.openSettings().catch(() => {}); }}
+                  >
+                    <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                      {t('presence.openSettings')}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             )}
             {/* Duo past the QR window: no peer path exists and no penalty
@@ -1087,6 +1108,14 @@ export function ActivityDetail({
                   )}
                 </View>
               </View>
+            )}
+            {/* The creator's own note must appear from T-2h, not only once the QR
+                opens: he gets no presence banner at all (they're gated on
+                !isCreator) so the page said nothing about presence for him. */}
+            {isCreator && requiresPresence && !isQrAvailable && nowMs < startsAtMs && (
+              <Text style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
+                {t('presence.creatorAutoNote')}
+              </Text>
             )}
             {isCreator && isQrAvailable && (
               <>

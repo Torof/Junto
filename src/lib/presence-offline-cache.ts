@@ -6,9 +6,9 @@ import { trace } from '@/lib/sentry';
 
 const STORAGE_KEY = '@junto/presence-offline-queue';
 
-// Replay is only ever valid until starts_at + duration + 3h server-side
-// (max duration 24h → worst case ~27h after capture). Anything older is
-// dead weight that can never succeed — purge it at flush time.
+// Replay arrival is accepted until starts_at + duration + 24h server-side
+// (mig 00429, was +3h). Anything older than this cache window is dead weight
+// that can never succeed — purge it at flush time.
 const MAX_EVENT_AGE_MS = 30 * 60 * 60 * 1000;
 // Two events for the same activity captured within this span are the same
 // in-zone episode — keep only the first. Distinct episodes (leave + come
@@ -147,6 +147,26 @@ function dropEvent(event: CachedGeoEvent): Promise<void> {
 
 let flushing = false;
 
+/**
+ * Human-readable body for a terminal replay rejection. The cached event has no
+ * activity end time, so we never quote a deadline here — the activity screen
+ * owns the dated banners.
+ */
+function terminalRejectionBody(message: string | null | undefined): string {
+  const m = message ?? '';
+  const cause = m.includes('presence_too_far')
+    ? 'la position mesurée était trop loin du lieu de rendez-vous'
+    : m.includes('presence_unavailable')
+      ? "cette sortie n'est plus disponible"
+      : m.includes('presence_window_closed') || m.includes('presence_token_window_closed')
+        ? 'la fenêtre de validation était fermée'
+        : null;
+  const head = cause
+    ? `Ta présence détectée sur place n'a pas pu être enregistrée : ${cause}.`
+    : "Ta présence détectée sur place n'a pas pu être enregistrée.";
+  return `${head} Ouvre la sortie pour voir ce qu'il te reste : le QR de l'organisateur, ou le témoignage de tes co-participants.`;
+}
+
 export async function flushOfflineGeoQueue(): Promise<void> {
   if (flushing) return;
   const net = await NetInfo.fetch();
@@ -232,7 +252,16 @@ export async function flushOfflineGeoQueue(): Promise<void> {
               identifier: `presence-${event.activity_id}-failed`,
               content: {
                 title: 'Présence non enregistrée',
-                body: "Ta présence détectée sur place n'a pas pu être enregistrée (fenêtre fermée). Ouvre la sortie : deux co-participants peuvent encore en témoigner.",
+                // Audit 2026-10-01: this used to assert "(fenêtre fermée)" for
+                // EVERY terminal rejection — isTerminalPresenceRejection matches
+                // any junto.presence_* plus 'Operation not permitted', so it
+                // invented a cause for too-far, cancelled-activity and
+                // no-longer-a-participant. It also pointed only at peer
+                // testimony while omitting the QR, which is typically still open
+                // for hours at that moment. State the real cause, and name both
+                // remaining paths without promising a deadline we can't compute
+                // here (the cached event carries no end time).
+                body: terminalRejectionBody(error.message),
                 data: { activity_id: event.activity_id, type: 'presence_replay_failed' },
                 sound: true,
               },

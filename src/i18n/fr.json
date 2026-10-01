@@ -1176,7 +1176,11 @@
       "streets": "Maps",
       "opentopomap": "OSM"
     },
-    "legal": "Juridique"
+    "legal": "Juridique",
+    "notifPresenceHint": "Ce rappel déclenche la détection automatique de ta présence sur place. Le couper désactive la validation automatique.",
+    "notifPresenceOffTitle": "Désactiver la validation automatique ?",
+    "notifPresenceOffBody": "Ce rappel n'est pas qu'une notification : c'est lui qui déclenche la détection automatique de ta présence quand l'app est fermée. En le coupant, il te restera le QR de l'organisateur et le témoignage de tes co-participants.",
+    "notifPresenceOffConfirm": "Couper quand même"
   },
   "legal": {
     "terms": "Conditions d'utilisation",
@@ -1460,7 +1464,9 @@
     "openSettings": "Ouvrir les réglages",
     "creatorAutoNote": "Ta présence à toi n'est pas à valider : elle est confirmée automatiquement dès qu'un participant valide la sienne.",
     "qrExpiresAt": "Ce code expire à {{time}}. Rouvre cette fenêtre pour en générer un nouveau.",
-    "qrExpired": "Ce code a expiré. Ferme et rouvre cette fenêtre pour en générer un nouveau."
+    "qrExpired": "Ce code a expiré. Ferme et rouvre cette fenêtre pour en générer un nouveau.",
+    "autoArmedYes": "✓ Validation automatique active : si tu as ton téléphone sur toi, ta présence sera enregistrée sans rien faire.",
+    "autoArmedNo": "La validation automatique est indisponible : la localisation en arrière-plan n'est pas autorisée. Active-la maintenant, ou tu devras scanner le QR de l'organisateur sur place."
   },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"

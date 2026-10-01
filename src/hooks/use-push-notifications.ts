@@ -5,7 +5,6 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { useRouter, useRootNavigationState } from 'expo-router';
 import { supabase } from '@/services/supabase';
-import { pushTokenService } from '@/services/push-token-service';
 import { getOrCreateDeviceId } from '@/utils/device-id';
 import { colors } from '@/constants/theme';
 
@@ -80,11 +79,12 @@ export function usePushNotifications(enabled: boolean) {
           p_device_id: deviceId,
         } as unknown as never);
       } else if (result.kind === 'denied') {
-        // OS-level permission denied (either freshly refused or the
-        // user revoked it since last launch). If we registered a
-        // token in a previous session, it's now useless — revoke it
-        // server-side so send-push stops targeting this device.
-        await pushTokenService.revokeForCurrentDevice();
+        // Audit 2026-10-01: we used to revoke the token here. Display
+        // permission and data delivery are different things — a data-only push
+        // is what wakes the headless task that starts on-site presence
+        // detection, and it doesn't need POST_NOTIFICATIONS. Revoking threw
+        // away the arming channel because we'd lost the ability to *show*
+        // anything. The token stays; the user simply sees nothing.
       }
       // 'skip': not a real device or no projectId — nothing to revoke.
     })();

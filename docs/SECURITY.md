@@ -864,7 +864,9 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 - **Aucun privilège créateur** : le direct-flip a été retiré (00108/00140, puis pour le cas 2 en 00327). La présence du créateur vient de la Règle A (géo/QR) ou de 2 témoignages comme tout le monde.
 - Fenêtre : [end + 15min, end + 24h] — identique pour `peer_validate_presence`, `give_reputation_badge`, `notify_rate_participants` et la borne client.
 - `peer_validate_presence` distingue « déjà validé » (`junto.peer_already_validated`) de « fenêtre fermée, compté absent » (`junto.peer_review_window_closed` quand `confirmed_present = FALSE`, 00429).
-- Notif `peer_review_closing` à end+22h aux participants ayant encore quelqu'un à valider. Son gate est `confirmed_present IS DISTINCT FROM FALSE` (00429) : il était `= TRUE`, donc sur une sortie où personne n'avait pu valider, **personne** n'était relancé.
+- Notif `peer_review_closing` à end+22h aux participants ayant encore quelqu'un à valider. Son gate est `confirmed_present IS DISTINCT FROM FALSE` (00429) : il était `= TRUE`, donc sur une sortie où personne n'avait pu valider, **personne** n'était relancé. **Seuil 3+ participants (00432)** : sous 3, ses DEUX branches invitaient à une action que le serveur refuse (et la branche `presence_validate_final` menaçait d'une absence qui n'arrive jamais à 2).
+- **Règle A sur le chemin du témoignage (00432)** : deux témoignages valident aussi le créateur, exactement comme sur géo et QR. ⚠️ Ne jamais retirer — sans elle le créateur restait `NULL`, n'était relancé par rien (il est exclu des relances PRÉCISÉMENT parce que la Règle A existe) et se faisait marquer absent de sa propre sortie à fin+24h.
+- **`close_due_presence_windows` saute les sorties dont le créateur est suspendu (00432)** : les 4 boucles de notification l'excluaient déjà, donc sans cette garde les participants ne recevaient aucun signal, n'avaient aucun QR possible, et prenaient quand même une absence + pénalité.
 
 ### Notifications
 

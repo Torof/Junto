@@ -42,10 +42,10 @@ Seuil 150m. Le check polyline ferme le faux-négatif des longues approches (alpi
 
 | Moment | Type | Audience | Push ? |
 |--------|------|----------|--------|
-| T-2h | `presence_pre_warning` | Participants non confirmés | Oui |
-| T-10min | `presence_pre_warning_10min` | Participants non confirmés | Oui |
+| T-2h | `presence_pre_warning` | Participants non confirmés, **créateur exclu** (00432 — il n'a aucun chemin d'auto-validation, invariant 00292) | Oui |
+| T-10min | `presence_pre_warning_10min` | Participants non confirmés, **créateur exclu** (00432). ⚠️ Ce push **data** réveille la tâche headless qui démarre la détection sur place : le couper dans les préférences désactive la validation automatique app fermée (le client le dit maintenant explicitement) | Oui |
 | T-10min | `qr_create_reminder` | Créateur (QR button live dès T-15min) | Oui |
-| T+duration/2 | `presence_validate_warning` | Participants non confirmés | Oui |
+| T+duration/2 | `presence_validate_warning` | Participants non confirmés, créateur exclu — **dès 2 participants** (00432, était 3+), avec une copy QR-seule à 2 | Oui |
 | Validation succès | `presence_confirmed` | User validé | Conditionnel — le DEFAULT de `notify_presence_confirmed` est **FALSE** ; ce sont les RPC géo/QR qui passent `skip_push = TRUE` (le replay offline poste sa propre notif locale). `peer_validate_presence` appelle en 2 args → le push part. |
 | End+15min | `rate_participants` | Participants | Non (in-app) — émis au premier balayage une fois la fenêtre de vote ouverte (00427) |
 | End + 1h | `presence_validate_overdue` | Participants non confirmés (≥3 acceptés, créateur exclu) — la copy ne prétend plus « tu es enregistré comme absent » (faux à ce moment : le marquage est à end+24h) et nomme le QR, encore valable 2h (00429) | Oui |

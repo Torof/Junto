@@ -54,6 +54,16 @@ const NOTIFICATION_TYPES = [
   'review_reply',
 ] as const;
 
+// These two reminders are not just reminders: the T-10min data push is what
+// wakes the headless task that starts on-site detection when the app is closed,
+// and the T-2h one is the only prompt to open the app (which is what arms the OS
+// geofences). The preference is filtered BEFORE the row is inserted
+// (create_notification, mig 00117), so switching either off kills the push and
+// therefore the machinery. Audit 2026-10-01: the label read like a mere ping, so
+// users were disabling automatic presence validation without knowing. We keep
+// the freedom and fix the label — plus a confirmation naming the consequence.
+const PRESENCE_DRIVING_TYPES = new Set(['presence_pre_warning', 'presence_pre_warning_10min']);
+
 type NotificationPreferences = Record<string, boolean>;
 
 interface SettingsDrawerProps {
@@ -147,6 +157,23 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const prefs = user?.notification_preferences ?? {};
 
   const togglePref = async (type: string) => {
+    // Turning OFF a presence-driving reminder silently disables automatic
+    // presence validation — say so before it happens, once.
+    const turningOff = prefs[type] !== false;
+    if (turningOff && PRESENCE_DRIVING_TYPES.has(type)) {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          t('drawer.notifPresenceOffTitle'),
+          t('drawer.notifPresenceOffBody'),
+          [
+            { text: t('common.cancel'), style: 'cancel', onPress: () => resolve(false) },
+            { text: t('drawer.notifPresenceOffConfirm'), style: 'destructive', onPress: () => resolve(true) },
+          ],
+          { cancelable: true, onDismiss: () => resolve(false) },
+        );
+      });
+      if (!confirmed) return;
+    }
     // Serialize writes — each toggle writes the whole prefs object, so two
     // overlapping writes could land out of order and drop a change.
     if (savingPrefRef.current) return;
@@ -331,7 +358,12 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 <View style={styles.notifContent}>
                   {NOTIFICATION_TYPES.map((type) => (
                     <View key={type} style={styles.prefRow}>
-                      <Text style={styles.prefLabel}>{t(`profil.notifType.${type}`)}</Text>
+                      <View style={{ flex: 1, marginRight: spacing.md }}>
+                        <Text style={[styles.prefLabel, { marginRight: 0 }]}>{t(`profil.notifType.${type}`)}</Text>
+                        {PRESENCE_DRIVING_TYPES.has(type) && (
+                          <Text style={styles.prefHint}>{t('drawer.notifPresenceHint')}</Text>
+                        )}
+                      </View>
                       <Switch value={prefs[type] !== false} onValueChange={() => togglePref(type)} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
                     </View>
                   ))}
@@ -466,6 +498,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.xs, paddingVertical: spacing.xs + 2,
   },
   prefLabel: { color: colors.textPrimary, fontSize: fontSizes.sm, flex: 1, marginRight: spacing.md },
+  prefHint: { color: colors.textMuted, fontSize: fontSizes.xs, lineHeight: 16, marginTop: 2 },
   logoutButton: {
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md,
   },
