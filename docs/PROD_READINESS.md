@@ -55,20 +55,20 @@ Aucune procédure documentée (notification CNIL 72h, canal de contact, accès a
 
 ### Play Console (paperasse — Scott, avec les inventaires fournis par l'audit A)
 - [ ] Data Safety form (inventaire complet des données dans le rapport A : location précise, photos, messages, email, DOB, user id — fournisseurs : Supabase EU, Mapbox, Google, Expo/FCM, Sentry DE)
-- [ ] Déclaration ACCESS_BACKGROUND_LOCATION + **vidéo démo** (30-60s : disclosure in-app → prompt → géofence auto-validation)
+- [x] Déclaration ACCESS_BACKGROUND_LOCATION + **vidéo démo** — ✅ **FAIT et ACCEPTÉ par Google** (~août 2026, confirmé par Scott le 2026-10-01). Ce n'est donc PAS un blocage de lancement.
 - [ ] Content rating questionnaire + déclaration 18+
 - [ ] Compte de test pour l'équipe review (pré-onboardé) + instructions presence flow
 - [ ] Vérifier la déclaration FGS `location` dans le manifest du premier build prod (expo-location la pose normalement — contrôler l'APK/AAB)
 
 ### Privacy policy — compléments ✅ FAITS sur le web (2026-06-11) — ⚠️ découverte : les pages légales IN-APP sont des copies indépendantes déjà en dérive (contact support@junto.app vs contact@getjunto.app) → décision à prendre : synchroniser les copies ou faire pointer l'app vers getjunto.app/legal (textes existent et sont substantiels, contrairement au claim de l'audit E)
 - [ ] Rétention Sentry + mention suppression
-- [ ] Fenêtre géofencing background explicite (T-15min → fin+3h, arrêt auto, app fermée)
+- [ ] Fenêtre géofencing background explicite. ⚠️ **Chiffres à jour (2026-10-01), l'ancienne formulation était périmée** : les zones sont ARMÉES de T-24h à T+15min (mig 00431) ; une présence n'est VALIDE que dans T±15min ; le QR couvre T-15min → fin+3h ; le rejeu hors-ligne est accepté jusqu'à fin+24h (mig 00429). Ne pas écrire l'ancienne fenêtre dans la politique de confidentialité.
 - [ ] Messages wall anonymisés survivent à la suppression ; reports conservés (modération)
 - [ ] Sous-traitants US (Mapbox, Google, Expo, Vercel) + SCCs/DPF — vérifier les DPAs signés
 - [ ] Note "pas de cookies de suivi" (vérifié : aucun analytics)
 
 ### Release engineering
-- [ ] `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY` est **vide** (.env) et absent des env EAS — générer + restreindre (package + SHA1) + env EAS production. ⚠️ Vérifier si la recherche de lieux marche actuellement !
+- [x] ~~`EXPO_PUBLIC_GOOGLE_PLACES_API_KEY`~~ — **ITEM OBSOLÈTE** (vérifié 2026-10-01) : la clé est bien vide, mais **aucun code ne la référence plus** (0 occurrence dans `src/` et `app/`). La recherche de lieux passe désormais par Photon (`src/services/geocode-service.ts`), sans clé Google. Rien à générer.
 - [ ] Keystore backup : `eas credentials` → download → chiffrer → stockage hors repo (procédure à documenter)
 - [x] `versionCode` supprimé d'app.config. Détail original : `versionCode: 4` dans app.config : ignoré avec appVersionSource remote — supprimer la ligne (warning de build)
 - [x] `.env` renommé. Détail original : renommer `.env` `AUTH_TOKEN_SENTRY` → `SENTRY_AUTH_TOKEN` (cosmétique local ; l'EAS secret est déjà bien nommé)
