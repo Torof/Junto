@@ -15,7 +15,6 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { activityService } from '@/services/activity-service';
-import { participationService } from '@/services/participation-service';
 import { parsePgIntervalMs } from '@/utils/parse-pg-interval';
 import { badgeService, POSITIVE_BADGES, NEGATIVE_BADGES, LEVEL_VOTE_KEYS, type PeerReviewParticipant } from '@/services/badge-service';
 import { UserAvatar } from '@/components/user-avatar';
@@ -80,21 +79,6 @@ export default function PeerReviewScreen() {
   const { data: state, isLoading } = useQuery({
     queryKey: ['peer-review-state', id],
     queryFn: () => badgeService.getPeerReviewState(id ?? ''),
-    enabled: !!id,
-  });
-
-  // Own presence status. NOTE: the server does NOT require the voter to be
-  // confirmed present — that gate was removed in mig 00327 because it
-  // deadlocked outings where nobody had managed to validate. We surface our own
-  // pending presence only to reassure (the vote counts anyway), never to block.
-  // The state RPC excludes self, so read the shared participants list instead.
-  const { data: me } = useQuery({
-    queryKey: ['currentUser-auth'],
-    queryFn: async () => (await supabase.auth.getUser()).data.user,
-  });
-  const { data: participants } = useQuery({
-    queryKey: ['participants', id],
-    queryFn: () => participationService.getForActivity(id ?? ''),
     enabled: !!id,
   });
 
@@ -267,18 +251,15 @@ export default function PeerReviewScreen() {
   // the activity to actually require presence — otherwise there's nothing to
   // validate and peer_validate_presence rejects it (Scott 2026-07-13, a
   // requires_presence=false activity was still showing the button).
-  const peerPresenceEnabled = state.length >= 2 && activity.requires_presence === true;
+  // Presence testimony by peers is DISABLED (mig 00434, product decision
+  // 2026-10-01): it detected nothing, its rescue never fired in practice, and
+  // it carried a fraud vector. Character voting below is untouched. Flipped to
+  // a constant rather than deleted so re-enabling is one line — but read the
+  // 00434 header first: do NOT re-enable without fixing the creator-vote hole.
+  const peerPresenceEnabled = false as boolean;
   // When the presence pill is absent, SAY WHY instead of hiding it silently
   // (Scott 2026-09-30): no presence required, or fewer than 3 participants
   // (testimony would be circular — QR/geo only at 2).
-  const presenceNote = activity.requires_presence !== true
-    ? t('peerReview.noPresenceRequired')
-    : state.length < 2
-      ? t('peerReview.noPeerPresenceFewParticipants', { count: state.length + 1 })
-      : null;
-  const myRow = participants?.find((p) => p.user_id === me?.id);
-  const ownPresencePending =
-    peerPresenceEnabled && windowState === 'open' && myRow != null && myRow.confirmed_present !== true;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -304,21 +285,6 @@ export default function PeerReviewScreen() {
         </View>
       )}
 
-      {presenceNote != null && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>{presenceNote}</Text>
-        </View>
-      )}
-      {peerPresenceEnabled && windowState === 'open' && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>{t('peerReview.presenceNeedsTwo')}</Text>
-        </View>
-      )}
-      {ownPresencePending && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>{t('peerReview.ownPresencePending')}</Text>
-        </View>
-      )}
 
       <View style={styles.list}>
         {state.map((p) => {

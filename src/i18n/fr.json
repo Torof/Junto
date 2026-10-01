@@ -1466,7 +1466,8 @@
     "qrExpiresAt": "Ce code expire à {{time}}. Rouvre cette fenêtre pour en générer un nouveau.",
     "qrExpired": "Ce code a expiré. Ferme et rouvre cette fenêtre pour en générer un nouveau.",
     "autoArmedYes": "✓ Validation automatique active : si tu as ton téléphone sur toi, ta présence sera enregistrée sans rien faire.",
-    "autoArmedNo": "La validation automatique est indisponible : la localisation en arrière-plan n'est pas autorisée. Active-la maintenant, ou tu devras scanner le QR de l'organisateur sur place."
+    "autoArmedNo": "La validation automatique est indisponible : la localisation en arrière-plan n'est pas autorisée. Active-la maintenant, ou tu devras scanner le QR de l'organisateur sur place.",
+    "noRecourseLeft": "Ta présence n'a pas été validée et la fenêtre de validation est fermée. Elle sera comptée comme une absence le {{date}} à {{time}}. Pour les prochaines sorties : garde la localisation active, ou scanne le QR de l'organisateur sur place."
   },
   "invite": {
     "invalid": "Ce lien d'invitation n'est pas valide"

@@ -1466,7 +1466,8 @@
     "qrExpiresAt": "This code expires at {{time}}. Reopen this window to generate a new one.",
     "qrExpired": "This code has expired. Close and reopen this window to generate a new one.",
     "autoArmedYes": "✓ Automatic validation is on: with your phone on you, your presence will be recorded without you doing anything.",
-    "autoArmedNo": "Automatic validation is unavailable: background location isn't allowed. Turn it on now, or you'll have to scan the organiser's QR on site."
+    "autoArmedNo": "Automatic validation is unavailable: background location isn't allowed. Turn it on now, or you'll have to scan the organiser's QR on site.",
+    "noRecourseLeft": "Your presence wasn't validated and the check-in window is closed. It will count as an absence on {{date}} at {{time}}. For next time: keep location on, or scan the organiser's QR on site."
   },
   "invite": {
     "invalid": "This invite link is not valid"

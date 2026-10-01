@@ -338,18 +338,9 @@ export function ActivityDetail({
   // the backstop exists; (2) if background location is denied,
   // auto-validation silently never runs with no explanation.
   const endMs = startsAtMs + durationMs;
-  const inPeerReviewWindow = nowMs >= endMs + 15 * 60 * 1000 && nowMs <= endMs + 24 * 60 * 60 * 1000;
-  // Peer testimony needs 3 accepted participants (mig 00327) — at 2 it would be
-  // circular, and there is NO penalty either (00291 wipes back to NULL). The
-  // banner used to say >= 2 and promised a backstop that the server refuses.
   const acceptedCount = activity.participant_count ?? 0;
-  const hasPeers = acceptedCount >= 3;
   const isDuo = acceptedCount === 2;
   const notValidated = participation?.status === 'accepted' && participation?.confirmed_present == null;
-  // Decoupled from !canCheckIn: at end+1h the QR is still open, so the old
-  // condition hid the peer-review entry exactly when the overdue notification
-  // was telling people to use it.
-  const showPeerBackstop = requiresPresence && notValidated && hasPeers && inPeerReviewWindow;
 
   // --- Explicit presence states (audit 2026-09-30) -------------------------
   // Every moment where nothing is possible must SAY so, with dates.
@@ -365,6 +356,12 @@ export function ActivityDetail({
   const markedAbsent = requiresPresence && participation?.confirmed_present === false;
   // (4) Duo with nothing left: no peer path, no penalty — say it plainly.
   const duoNoPathLeft = isPresenceSubject && !alreadyConfirmed && isDuo && nowMs > qrCloseMs;
+  // (5) 3+, QR window closed, still unvalidated. Peer presence testimony is
+  // DISABLED (mig 00434), so this used to offer a recourse that no longer
+  // exists. Rather than silently dropping the promise, say what is true:
+  // nothing more can be done, and here is when it will count as an absence.
+  const showNoRecourseLeft = requiresPresence && isPresenceSubject && notValidated
+    && !isDuo && nowMs > qrCloseMs && nowMs < absentAtMs;
   const fmtTime = (ms: number) => dayjs(ms).format('HH:mm');
   const fmtDate = (ms: number) => dayjs(ms).format('DD/MM');
   const relFuture = (ms: number) => {
@@ -1036,19 +1033,11 @@ export function ActivityDetail({
                 </Pressable>
               </View>
             )}
-            {showPeerBackstop && (
-              <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left' }]}>
-                  {t('presence.backstopHintDated', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs) })}
+            {showNoRecourseLeft && (
+              <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
+                  {t('presence.noRecourseLeft', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs) })}
                 </Text>
-                <Pressable
-                  style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
-                  onPress={() => router.push(`/(auth)/peer-review/${activity.id}`)}
-                >
-                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
-                    {t('presence.openPeerReview')}
-                  </Text>
-                </Pressable>
               </View>
             )}
             {/* Presence widget — moved back to the Info tab so the
