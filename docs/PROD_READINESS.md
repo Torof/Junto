@@ -51,29 +51,29 @@ Aucune procédure documentée (notification CNIL 72h, canal de contact, accès a
 - [x] **Polling redondant avec le realtime** (DM/wall → fallback 60s) : DM 10s (`conversation/[id].tsx`), wall 15s, alors que les subscriptions realtime couvrent déjà. Supprimer les refetchInterval (garder un fallback long si on veut, 60s+).
 - [x] Pagination (caps) : reviews 100, messages/wall latest-200 ; cursor pagination plus tard si besoin. Détail original : reviews (aucune limite), wall (aucune limite), conversations — `.limit()` + cursor là où les listes peuvent grossir.
 - [x] Error boundary racine (reset + report Sentry). Détail original : zéro dans l'app — en ajouter autour des écrans à risque (detail, conversation, map).
-- [ ] Requêtes géo : les filtres lng/lat sur la vue ne profitent pas du GIST. Acceptable au launch (échelle 05), à optimiser avec une RPC `ST_MakeEnvelope` quand le volume montera.
+- [x] Requêtes géo / index GIST — **report assumé, pas une tâche en attente** (vérifié 2026-10-01) : l'item dit lui-même « acceptable au launch (échelle 05) ». Déclencheur de reprise : quand le volume d'activités monte. Rien à faire avant.
 
-### Play Console (paperasse — Scott, avec les inventaires fournis par l'audit A)
+### Play Console (paperasse — comptes externes, non vérifiables depuis le dépôt)
 - [ ] Data Safety form (inventaire complet des données dans le rapport A : location précise, photos, messages, email, DOB, user id — fournisseurs : Supabase EU, Mapbox, Google, Expo/FCM, Sentry DE)
 - [x] Déclaration ACCESS_BACKGROUND_LOCATION + **vidéo démo** — ✅ **FAIT et ACCEPTÉ par Google** (~août 2026, confirmé par Scott le 2026-10-01). Ce n'est donc PAS un blocage de lancement.
 - [ ] Content rating questionnaire + déclaration 18+
 - [ ] Compte de test pour l'équipe review (pré-onboardé) + instructions presence flow
 - [ ] Vérifier la déclaration FGS `location` dans le manifest du premier build prod (expo-location la pose normalement — contrôler l'APK/AAB)
 
-### Privacy policy — compléments ✅ FAITS sur le web (2026-06-11) — ⚠️ découverte : les pages légales IN-APP sont des copies indépendantes déjà en dérive (contact support@junto.app vs contact@getjunto.app) → décision à prendre : synchroniser les copies ou faire pointer l'app vers getjunto.app/legal (textes existent et sont substantiels, contrairement au claim de l'audit E)
+### Privacy policy — compléments ⚠️ PARTIELLEMENT faits sur le web (vérifié 2026-10-01 : l'en-tête annonçait « ✅ FAITS », c'était inexact — détail case par case ci-dessous) — ⚠️ découverte : les pages légales IN-APP sont des copies indépendantes déjà en dérive (contact support@junto.app vs contact@getjunto.app) → décision à prendre : synchroniser les copies ou faire pointer l'app vers getjunto.app/legal (textes existent et sont substantiels, contrairement au claim de l'audit E)
 - [ ] Rétention Sentry + mention suppression
-- [ ] Fenêtre géofencing background explicite. ⚠️ **Chiffres à jour (2026-10-01), l'ancienne formulation était périmée** : les zones sont ARMÉES de T-24h à T+15min (mig 00431) ; une présence n'est VALIDE que dans T±15min ; le QR couvre T-15min → fin+3h ; le rejeu hors-ligne est accepté jusqu'à fin+24h (mig 00429). Ne pas écrire l'ancienne fenêtre dans la politique de confidentialité.
-- [ ] Messages wall anonymisés survivent à la suppression ; reports conservés (modération)
+- [ ] Fenêtre géofencing background explicite — la localisation en arrière-plan EST mentionnée dans la politique (vérifié 2026-10-01), mais la fenêtre chiffrée reste à y écrire. ⚠️ **Chiffres à jour (2026-10-01), l'ancienne formulation était périmée** : les zones sont ARMÉES de T-24h à T+15min (mig 00431) ; une présence n'est VALIDE que dans T±15min ; le QR couvre T-15min → fin+3h ; le rejeu hors-ligne est accepté jusqu'à fin+24h (mig 00429). Ne pas écrire l'ancienne fenêtre dans la politique de confidentialité.
+- [x] Messages wall anonymisés survivent à la suppression ; reports conservés — **implémentation vérifiée** (vérifié 2026-10-01) : `delete_own_account` anonymise via FK ON DELETE SET NULL (mig 00419) et conserve les reports ; « anonymis… » est bien mentionné dans la politique web.
 - [ ] Sous-traitants US (Mapbox, Google, Expo, Vercel) + SCCs/DPF — vérifier les DPAs signés
-- [ ] Note "pas de cookies de suivi" (vérifié : aucun analytics)
+- [ ] Note « pas de cookies de suivi » — **réellement à faire** (vérifié 2026-10-01) : aucune occurrence de cookie/traceur/analytics dans `web/app/legal/privacy/page.tsx`. Le fait est vrai (aucun analytics dans `package.json`), il n'est juste pas écrit.
 
 ### Release engineering
 - [x] ~~`EXPO_PUBLIC_GOOGLE_PLACES_API_KEY`~~ — **ITEM OBSOLÈTE** (vérifié 2026-10-01) : la clé est bien vide, mais **aucun code ne la référence plus** (0 occurrence dans `src/` et `app/`). La recherche de lieux passe désormais par Photon (`src/services/geocode-service.ts`), sans clé Google. Rien à générer.
 - [ ] Keystore backup : `eas credentials` → download → chiffrer → stockage hors repo (procédure à documenter)
 - [x] `versionCode` supprimé d'app.config. Détail original : `versionCode: 4` dans app.config : ignoré avec appVersionSource remote — supprimer la ligne (warning de build)
 - [x] `.env` renommé. Détail original : renommer `.env` `AUTH_TOKEN_SENTRY` → `SENTRY_AUTH_TOKEN` (cosmétique local ; l'EAS secret est déjà bien nommé)
-- [ ] Feature graphic 1024×500 (manquant ; screenshots ✅, listing draft ✅ docs/play-store-listing.md)
-- [ ] App Links : APRÈS le premier build Play, ajouter le fingerprint **Play App Signing** (Play Console → App integrity) à assetlinks.json (garder celui d'EAS pour les builds preview)
+- [ ] Feature graphic 1024×500 — **confirmé manquant** (vérifié 2026-10-01, aucun fichier dans `assets/`). Screenshots ✅, listing draft ✅ `docs/play-store-listing.md`.
+- [x] App Links — **fait** (vérifié 2026-10-01) : `web/public/.well-known/assetlinks.json` porte **2 empreintes** pour `app.getjunto` (Play App Signing + EAS, comme prévu).
 - [ ] `NEXT_PUBLIC_APK_DOWNLOAD_URL` (Vercel) → URL Play Store après publication
 - [ ] SMTP custom (Resend/Mailgun + DNS OVH) — décision en attente ; bloquant pour la délivrabilité des emails auth à l'échelle
 - [ ] Plan Supabase : vérifier backups/PITR + rétention logs au dashboard (Pro recommandé avant production)
