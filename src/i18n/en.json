@@ -671,10 +671,10 @@
     "cta": "Settings"
   },
   "bgLocation": {
-    "title": "Your presence, validated on its own",
-    "body": "Allow location access at all times: Junto will automatically validate your presence when you arrive at an outing. Nothing to do on site.",
-    "enable": "Enable",
-    "skip": "Not now",
+    "title": "Check in without doing anything",
+    "body": "You've just joined an outing where your presence will be recorded on site. Allow location all the time and Junto handles it for you — nothing to pull out of your pocket on the day.\n\nExactly what Junto does with it: it only looks at your position in the 24 hours before an outing you've joined, and only to record that you arrived. The rest of the time, nothing. Your phone does the watching, not us, and it stops by itself after the outing.\n\nIf you'd rather not, you can always scan the organiser's QR code on site.",
+    "enable": "Allow",
+    "skip": "Later",
     "foregroundFirst": "Junto needs basic location access first."
   },
   "activityUpdated": {

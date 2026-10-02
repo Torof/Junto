@@ -38,6 +38,18 @@ L'asymétrie est intentionnelle, et elle a été **élargie à 24 h en 00431**. 
 
 Seuil 150m. Le check polyline ferme le faux-négatif des longues approches (alpinisme, ski de rando) où l'utilisateur peut être au km 5 d'une approche de 10 km, sur la trace mais loin des trois points.
 
+## Demande de la permission « localisation en permanence »
+
+Posée **une seule fois**, au **premier « Rejoindre » d'une sortie qui demande une validation de présence** (mig/OTA 2026-10-02). Jamais à l'inscription, et jamais sur une demande d'adhésion soumise à approbation.
+
+Pourquoi là et pas avant :
+- `Location.requestBackgroundPermissionsAsync` affiche la **vraie** boîte de dialogue système, et l'OS finit par ne plus l'afficher du tout après des refus (`canAskAgain`). C'est une ressource qui s'épuise : la dépenser à l'inscription pouvait rendre impossible la demande au bon moment.
+- À l'inscription la permission est **inerte** : `get_my_active_presence_activities` ne surveille que des sorties déjà rejointes, donc il n'y a aucune zone à armer tant que l'utilisateur n'a rejoint personne.
+
+Comportement : la demande ne **bloque jamais** le « Rejoindre » (on rejoint, puis on propose). Un « Plus tard » n'est plus définitif — cooldown de 30 jours au lieu d'un marqueur à vie, et les utilisateurs portant l'ancien marqueur `'1'` récupèrent une chance. Le texte dit explicitement ce que Junto fait de la position (24 h avant une sortie rejointe, uniquement pour constater l'arrivée, surveillance par l'OS, arrêt automatique) et rappelle que le QR reste disponible pour qui refuse.
+
+⚠️ Une app **ne peut pas** rendre une permission accordée : il n'existe aucune API de révocation dans le SDK Expo (vérifié 2026-10-02). Android 13+ a bien une méthode native (`revokeSelfPermissionsOnKill`) mais elle n'est pas exposée par Expo, ne prend effet qu'à la mort du processus, et n'a pas d'équivalent iOS. Le seul recours offert à l'utilisateur est le raccourci « Ouvrir les réglages ».
+
 ## Notifications
 
 | Moment | Type | Audience | Push ? |

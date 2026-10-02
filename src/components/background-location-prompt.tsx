@@ -10,17 +10,34 @@ import type { AppColors } from '@/constants/colors';
 
 const ASKED_KEY = 'junto.presence.bgAsked';
 
+// Asking is a FINITE resource: Location.requestBackgroundPermissionsAsync shows
+// the real system dialog, and the OS eventually stops showing it (hence the
+// canAskAgain check below). So we no longer burn it at signup — where the
+// permission is inert anyway, since detection only watches outings you have
+// already joined. It is asked at the first join of an outing that needs
+// presence (audit 2026-10-01, Scott).
+//
+// And a single "later" no longer loses the user for life: we wait out a cooldown
+// instead of marking them asked forever.
+const ASK_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+
 export async function shouldAskForBackgroundLocation(): Promise<boolean> {
   try {
     const asked = await SecureStore.getItemAsync(ASKED_KEY);
-    if (asked) return false;
+    if (asked) {
+      const ts = Number(asked);
+      // Legacy value was the literal '1' (ask-once-for-life). Treat it as a
+      // cooldown that has already elapsed, so existing users get one more
+      // chance — at the right moment this time.
+      if (Number.isFinite(ts) && ts > 1 && Date.now() - ts < ASK_COOLDOWN_MS) return false;
+    }
   } catch { /* fall through */ }
   const bg = await Location.getBackgroundPermissionsAsync();
   return bg.status !== 'granted' && bg.canAskAgain !== false;
 }
 
 async function markAsked() {
-  try { await SecureStore.setItemAsync(ASKED_KEY, '1'); } catch { /* best effort */ }
+  try { await SecureStore.setItemAsync(ASKED_KEY, String(Date.now())); } catch { /* best effort */ }
 }
 
 interface Props {

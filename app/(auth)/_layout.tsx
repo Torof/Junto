@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
-import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from '@/components/background-location-prompt';
 
 // Deep links (share links, notification taps on a cold start) land directly
 // on activity/[id] & co — without an anchor the stack has NOTHING beneath
@@ -30,15 +29,13 @@ export default function AuthLayout() {
   usePresenceGeofences(!isSuspended);
   usePresenceOfflineFlusher();
 
-  const [showBgLocationPrompt, setShowBgLocationPrompt] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const should = await shouldAskForBackgroundLocation();
-      if (!cancelled && should) setShowBgLocationPrompt(true);
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  // The background-location ask used to fire HERE, at the first authenticated
+  // mount — i.e. straight after signup, before the user had seen a single
+  // outing. Two reasons that was wrong (audit 2026-10-01): the system dialog is
+  // a finite resource (the OS stops showing it after refusals), and at that
+  // point the permission is inert anyway, since detection only watches outings
+  // the user has already joined. It now fires on the first join of an outing
+  // that needs presence — see activity-detail's handleJoin.
 
   // Second-layer guard: if the root AuthGate is mid-resolve when a back-
   // button or transition lands here, intercept suspended users before any
@@ -79,7 +76,6 @@ export default function AuthLayout() {
         <Stack.Screen name="legal/privacy" options={{ title: '' }} />
         <Stack.Screen name="peer-review/[id]" options={{ title: '' }} />
       </Stack>
-      <BackgroundLocationPrompt visible={showBgLocationPrompt} onClose={() => setShowBgLocationPrompt(false)} />
     </>
   );
 }

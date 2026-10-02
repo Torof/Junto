@@ -16,6 +16,7 @@ import { Globe, Hand, Lock, MoreHorizontal, List, Pencil, Share2, Trash2, MapPin
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
+import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from './background-location-prompt';
 import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
@@ -390,6 +391,7 @@ export function ActivityDetail({
     return () => { cancelled = true; };
   }, [isPresenceSubject, alreadyConfirmed, isInGeoWindow]);
 
+  const [showBgPrompt, setShowBgPrompt] = useState(false);
   const [bgLocationDenied, setBgLocationDenied] = useState(false);
   useEffect(() => {
     // Also runs BEFORE the window opens (presenceNotYetOpen): T-2h is the one
@@ -575,6 +577,15 @@ export function ActivityDetail({
       await queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
       const isApproval = activity.visibility === 'approval' || activity.visibility === 'private_link_approval';
       Burnt.toast({ title: t(isApproval ? 'toast.requestSent' : 'toast.joinedActivity'), preset: 'done' });
+      // Ask for background location HERE and nowhere else (audit 2026-10-01):
+      // the first time someone actually joins an outing whose presence will be
+      // checked. That is both the first moment the permission can do anything
+      // and the only moment the request makes sense to the user. Never for an
+      // approval request — they may never be accepted. And never blocking: the
+      // join has already gone through before we ask.
+      if (!isApproval && requiresPresence && await shouldAskForBackgroundLocation()) {
+        setShowBgPrompt(true);
+      }
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'joinActivity'));
     } finally {
@@ -1418,6 +1429,7 @@ export function ActivityDetail({
       </Modal>
 
       <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
+      <BackgroundLocationPrompt visible={showBgPrompt} onClose={() => setShowBgPrompt(false)} />
       <PresenceScannerModal visible={showScanner} onClose={() => setShowScanner(false)} />
       <LeaveActivityModal
         visible={showLeaveModal}

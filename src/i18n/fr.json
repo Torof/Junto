@@ -671,10 +671,10 @@
     "cta": "Réglages"
   },
   "bgLocation": {
-    "title": "Ta présence, validée toute seule",
-    "body": "Autorise la localisation en permanence : Junto validera automatiquement ta présence quand tu arrives à une sortie. Rien à faire sur place.",
-    "enable": "Activer",
-    "skip": "Pas maintenant",
+    "title": "Valider ta présence sans rien faire",
+    "body": "Tu viens de rejoindre une sortie où ta présence sera constatée sur place. Si tu autorises la localisation en permanence, Junto s'en occupe tout seul : rien à sortir de ta poche le jour J.\n\nCe que Junto en fait, exactement : il ne regarde ta position que dans les 24 h qui précèdent une sortie que tu as rejointe, et seulement pour constater que tu es arrivé. Le reste du temps, rien. C'est le téléphone qui surveille, pas nous, et ça s'arrête tout seul après la sortie.\n\nSi tu préfères ne pas la donner, tu pourras toujours scanner le QR code de l'organisateur sur place.",
+    "enable": "Autoriser",
+    "skip": "Plus tard",
     "foregroundFirst": "Junto a besoin d'un accès basique à la localisation d'abord."
   },
   "activityUpdated": {
