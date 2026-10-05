@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Handshake, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X, Radar, MessageCircle } from 'lucide-react-native';
+import { Car, Bike, Footprints, Bus, Zap, User, UserPlus, Send, Telescope, MapPin, Calendar, LocateFixed, SlidersHorizontal, X, Radar, MessageCircle } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -328,7 +328,6 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
         <ScrollView contentContainerStyle={styles.onbScroll} showsVerticalScrollIndicator={false}>
         {headerComponent}
         <View style={styles.onb}>
-          <View style={styles.haloOuter}><View style={styles.halo}><Handshake size={42} color={colors.cta} strokeWidth={2} /></View></View>
           <Text style={styles.onbTitle}>{t('discovery.onbTitle', { defaultValue: 'Trouve des partenaires autour de toi' })}</Text>
           <Text style={styles.onbBody}>{t('discovery.onbBody', { defaultValue: 'Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.' })}</Text>
           <View style={styles.steps}>
@@ -564,15 +563,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   onbWrap: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   onbScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.lg },
   onb: { alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  haloOuter: {
-    width: 124, height: 124, borderRadius: radius.full, backgroundColor: colors.cta + '0C',
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
-  },
-  halo: {
-    width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.cta + '16',
-    alignItems: 'center', justifyContent: 'center',
-    ...glow(colors.cta),
-  },
   onbTitle: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800', textAlign: 'center', letterSpacing: -0.4, lineHeight: 30 },
   onbBody: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22, maxWidth: 300, marginBottom: spacing.xs },
   steps: { alignSelf: 'stretch', gap: spacing.sm + 2, marginTop: spacing.md },
