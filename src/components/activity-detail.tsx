@@ -53,6 +53,7 @@ import { transportService } from '@/services/transport-service';
 import { distanceMeters, distanceToPolylineMeters } from '@/utils/geo';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { SportIcon } from '@/components/sport-icon';
+import { ChatBackdrop } from '@/components/chat-backdrop';
 
 export type ActivityTab = 'info' | 'transport' | 'gear' | 'chat';
 
@@ -1396,6 +1397,7 @@ export function ActivityDetail({
             chatDockPadding,
           ]}
         >
+          <ChatBackdrop sportCategory={activity.sport_category} />
           <ActivityWall
             activityId={activity.id}
             isActive={['published', 'in_progress'].includes(activity.status)}

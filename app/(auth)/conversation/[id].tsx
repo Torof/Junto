@@ -41,6 +41,7 @@ import type { GpxTrace } from '@/services/gpx-trace-service';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
 import { channelService } from '@/services/channel-service';
+import { ChatBackdrop } from '@/components/chat-backdrop';
 import { useSports } from '@/hooks/use-sports';
 import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 
@@ -706,6 +707,7 @@ export default function ConversationScreen() {
     // No KeyboardAvoidingView — the dock's bottom padding animates with
     // the exact IME inset via useKeyboardDockPadding (reanimated).
     <View style={styles.container}>
+      {isChannel && <ChatBackdrop photoUrl={channelInfo?.photo_url} sportKey={channelInfo?.sport_key} />}
       <Animated.View style={[styles.containerInner, dockPadding]}>
       {isLoading ? (
         <View style={styles.center}>
