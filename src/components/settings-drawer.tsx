@@ -21,6 +21,7 @@ import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { AccentPicker } from '@/components/accent-picker';
+import { PressableScale } from '@/components/pressable-scale';
 
 const NOTIFICATION_TYPES = [
   'join_request',
@@ -275,15 +276,17 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     const body = (
       <View style={[styles.row, last && styles.rowLast]}>
         <View style={styles.rowLeft}>
-          <Icon size={18} color={danger ? colors.error : colors.textSecondary} strokeWidth={2} />
+          <View style={[styles.rowIconSquare, danger && styles.rowIconSquareDanger]}>
+            <Icon size={16} color={danger ? colors.error : colors.textSecondary} strokeWidth={2} />
+          </View>
           <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]} numberOfLines={1}>{label}</Text>
         </View>
         {right ?? (value !== undefined
           ? <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
-          : onPress ? <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2} /> : null)}
+          : onPress ? <ChevronRight size={16} color={colors.textMuted} strokeWidth={2} /> : null)}
       </View>
     );
-    return onPress ? <Pressable onPress={onPress}>{body}</Pressable> : body;
+    return onPress ? <PressableScale onPress={onPress}>{body}</PressableScale> : body;
   };
 
   const tierKey: 'pro' | 'premium' | 'free' = user?.tier === 'pro' ? 'pro' : user?.tier === 'premium' ? 'premium' : 'free';
@@ -306,7 +309,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Row icon={Mail} label={t('drawer.email')} value={user?.email ?? ''} />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
-                  <AtSign size={18} color={colors.textSecondary} strokeWidth={2} />
+                  <View style={styles.rowIconSquare}>
+                    <AtSign size={16} color={colors.textSecondary} strokeWidth={2} />
+                  </View>
                   <Text style={styles.rowLabel}>{t('drawer.pseudo')}</Text>
                 </View>
                 {editingName ? (
@@ -460,14 +465,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700',
     letterSpacing: 1, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.lg,
   },
-  // Outlined group card; rows sit inside with light inner dividers.
+  // Group card — same recipe as the profile hero card: surface + hairline +
+  // soft shadow. Shadow alone vanished on the white theme (surface and
+  // background are both white), leaving a ghost pill (Scott 2026-10-05).
   sectionCard: {
     borderRadius: radius.card,
     backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.line,
     paddingHorizontal: spacing.sm,
     marginBottom: spacing.md,
     ...shadows.card,
   },
+  rowIconSquare: {
+    width: 30, height: 30, borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  rowIconSquareDanger: { backgroundColor: colors.error + '1A' },
   premiumLabel: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: '700' },
   row: {
     paddingHorizontal: spacing.xs, paddingVertical: spacing.sm + 2,
