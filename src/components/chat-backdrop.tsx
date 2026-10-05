@@ -9,10 +9,12 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 // personalised messenger wallpaper; a channel or activity thread without a
 // photo gets a flat tint of its sport universe; DMs and groups pass nothing
 // and stay plain. Sits as the first child of the screen container, under the
-// list; the bubbles are untouched, so the veil has to stay strong enough for
-// the grey `surfaceAlt` bubbles to read on top.
-export const CHAT_BACKDROP_BLUR = 40;
-export const CHAT_BACKDROP_VEIL = 0.88;
+// list; the bubbles are untouched (opaque), so the veil only has to keep the
+// text that sits directly on the backdrop (names, timestamps) legible. First
+// cut was 0.88 and every photo came out grey — saturated yellows and blues
+// included (Scott 2026-10-05). 0.5 lets the photo carry its colours.
+export const CHAT_BACKDROP_BLUR = 30;
+export const CHAT_BACKDROP_VEIL = 0.5;
 const TINT_ALPHA = '0F';
 
 interface Props {
