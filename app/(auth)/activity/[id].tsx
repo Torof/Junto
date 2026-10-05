@@ -5,13 +5,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityDetailSkeleton } from '@/components/activity-detail-skeleton';
 import { activityService } from '@/services/activity-service';
 import { participationService } from '@/services/participation-service';
-import { ActivityDetail } from '@/components/activity-detail';
+import { ActivityDetail, type ActivityTab } from '@/components/activity-detail';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function AuthActivityScreen() {
-  const { id, invite } = useLocalSearchParams<{ id: string; invite?: string }>();
+  const { id, invite, tab } = useLocalSearchParams<{ id: string; invite?: string; tab?: string }>();
+  const initialTab: ActivityTab | undefined =
+    tab === 'chat' || tab === 'transport' || tab === 'gear' || tab === 'info' ? tab : undefined;
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
 
@@ -90,6 +92,7 @@ export default function AuthActivityScreen() {
       participation={participation ?? null}
       isCreator={user?.id === activity.creator_id}
       isAuthenticated={isAuthenticated}
+      initialTab={initialTab}
     />
   );
 }

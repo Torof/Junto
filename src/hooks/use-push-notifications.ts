@@ -123,6 +123,12 @@ export function usePushNotifications(enabled: boolean) {
         router.push('/(auth)/(tabs)/messagerie?tab=requests');
       } else if (data?.type === 'contact_request_accepted') {
         router.push('/(auth)/(tabs)/messagerie');
+      } else if (data?.type === 'new_message' && data.activity_id) {
+        // Activity-thread message (mig 00437 adds activity_id to the payload).
+        // The generic conversation_id branch below opens the DM/group screen,
+        // which cannot render an activity thread — the wall lives in the
+        // activity's chat tab.
+        router.push(`/(auth)/activity/${data.activity_id}?tab=chat`);
       } else if (data?.conversation_id) {
         router.push(`/(auth)/conversation/${data.conversation_id}`);
       } else if (data?.offering_id) {

@@ -497,7 +497,7 @@ export default function MessagerieScreen() {
                   </View>
                 );
                 title = item.activity_title ?? t('messagerie.activityThread');
-                onPress = () => router.push(`/(auth)/activity/${item.activity_id}`);
+                onPress = () => router.push(`/(auth)/activity/${item.activity_id}?tab=chat`);
                 onLongPress = () => handleHideConversation(item.id, title);
               } else if (item.type === 'group') {
                 title = item.name ?? t('messagerie.group');

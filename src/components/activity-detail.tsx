@@ -54,12 +54,20 @@ import { distanceMeters, distanceToPolylineMeters } from '@/utils/geo';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { SportIcon } from '@/components/sport-icon';
 
+export type ActivityTab = 'info' | 'transport' | 'gear' | 'chat';
+
 interface ActivityDetailProps {
   activity: NearbyActivity;
   participation: Participation | null;
   isCreator: boolean;
   isAuthenticated: boolean;
   onJoinRedirect?: () => void;
+  // Deep-link target. The messagerie row for an activity thread and the push
+  // for a new wall message both need to land on the CHAT tab, not on info —
+  // until 2026-10-05 every entry point opened 'info' (Scott: « de toute
+  // évidence »). Non-members never see tabs, so 'info' still renders for them
+  // whatever this says (see the showTabs guards below).
+  initialTab?: ActivityTab;
 }
 
 // Per-session memory of activities whose creator QR has already been
@@ -75,6 +83,7 @@ export function ActivityDetail({
   isCreator,
   isAuthenticated,
   onJoinRedirect,
+  initialTab,
 }: ActivityDetailProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -705,7 +714,7 @@ export function ActivityDetail({
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'info' | 'transport' | 'gear' | 'chat'>('info');
+  const [activeTab, setActiveTab] = useState<ActivityTab>(initialTab ?? 'info');
   const [showMapMenu, setShowMapMenu] = useState(false);
   const [showTracePicker, setShowTracePicker] = useState(false);
   const transportSectionRef = useRef<TransportSectionHandle>(null);
