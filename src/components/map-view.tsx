@@ -379,7 +379,7 @@ export function JuntoMapView({
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { name, color, kind, rtext, d2, d2icon, lvl, lvlicon },
+        properties: { id: p.id, name, color, kind, rtext, d2, d2icon, lvl, lvlicon },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
@@ -571,7 +571,27 @@ export function JuntoMapView({
       {/* On-map labels — colored text + white halo, native collision +
           zoom-stepping (names at NAME zoom, +detail at DETAIL zoom). Rides
           the declustered points; sits under the MarkerView pins. */}
-      <Mapbox.ShapeSource id="pin-labels" shape={labelShape}>
+      <Mapbox.ShapeSource
+        id="pin-labels"
+        shape={labelShape}
+        // The labels are native symbols, not React views: the pin's Pressable
+        // never covers them, so tapping a title did nothing (Scott 2026-10-05).
+        // Route a label hit to the same handler as its pin.
+        onPress={(e) => {
+          const props = e.features[0]?.properties as { kind?: string; id?: string } | undefined;
+          if (!props?.id) return;
+          if (props.kind === 'activity') {
+            const activity = activityMap.get(props.id);
+            if (activity) onActivityPress?.(activity);
+          } else if (props.kind === 'pro') {
+            const pro = proMap.get(props.id);
+            if (pro) onProPress?.(pro);
+          } else if (props.kind === 'offering') {
+            const offering = offeringMap.get(props.id);
+            if (offering) onProOfferingPress?.(offering);
+          }
+        }}
+      >
         <Mapbox.SymbolLayer
           id="pin-labels-layer"
           minZoomLevel={LABEL_NAME_ZOOM}
