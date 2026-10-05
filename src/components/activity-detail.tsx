@@ -143,10 +143,20 @@ export function ActivityDetail({
   // - activity_gear stays on postgres_changes — its RLS already lets
   //   any accepted activity member see all rows for the activity.
   //
-  // - wall_messages keeps its own subscription inside activity-wall.tsx.
+  // - the wall's 'wall' broadcast rides the SAME topic, so it is bound here
+  //   too. This screen is the single owner of `activity:<id>`: supabase
+  //   .channel() dedupes by topic, and a second subscriber (ActivityWall
+  //   used to have its own) gets the already-joined channel — binding
+  //   postgres_changes on it throws "cannot add callbacks after
+  //   subscribe()", and its cleanup tears down the shared channel.
+  //   Surfaced when the chat tab became a deep-link target (child effects
+  //   run before the parent's).
   useEffect(() => {
     const channel = supabase
       .channel(`activity:${activity.id}`, { config: { private: true } })
+      .on('broadcast', { event: 'wall' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['wall', activity.id] });
+      })
       .on(
         'broadcast',
         { event: 'change' },

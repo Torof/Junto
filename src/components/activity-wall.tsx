@@ -16,7 +16,6 @@ import { participationService } from '@/services/participation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useMessageStore } from '@/store/message-store';
 import { UserAvatar } from './user-avatar';
-import { supabase } from '@/services/supabase';
 import { haptic } from '@/lib/haptics';
 
 interface ActivityWallProps {
@@ -87,23 +86,8 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
     }
   }, [messages, activityId, markWallRead, queryClient]);
 
-  // Supabase Realtime subscription
-  useEffect(() => {
-    // Unified store (00359/00360): wall liveness arrives as a curated
-    // broadcast 'wall' event on the membership-gated activity topic —
-    // postgres_changes on wall_messages is retired. Edits/deletes ride the
-    // 15s poll (no broadcast on UPDATE; rare + non-urgent).
-    const channel = supabase
-      .channel(`activity:${activityId}`, { config: { private: true } })
-      .on('broadcast', { event: 'wall' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['wall', activityId] });
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [activityId, queryClient]);
+  // Realtime: the 'wall' broadcast is bound by ActivityDetail on the shared
+  // `activity:<id>` channel (single owner) and invalidates ['wall', id].
 
   const handleSend = async () => {
     haptic.light();
