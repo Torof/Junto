@@ -81,6 +81,8 @@
     "join": "Rejoindre",
     "description": "Description",
     "navigate": "Y aller",
+    "meetingOnMap": "Voir sur la carte",
+    "meetingMapLink": "Carte ›",
     "fullscreen": "Plein écran",
     "tab": {
       "info": "Infos",
@@ -1534,7 +1536,8 @@
     "setObjective": "Objectif (optionnel)",
     "objectiveSet": "Objectif",
     "objectiveName": "Nom de l'objectif (ex: Puy Aillaud)",
-    "meetingName": "Lieu du rendez-vous... (ex: parking de Briançon)",
+    "meetingName": "Précision du rendez-vous (parking, pont, boulangerie…)",
+    "meetingLocality": "Rendez-vous à {{place}}",
     "tapObjective": "Touche la carte pour l'objectif",
     "sectionLocations": "Lieux",
     "sectionTiming": "Quand",

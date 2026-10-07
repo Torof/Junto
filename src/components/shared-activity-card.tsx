@@ -78,7 +78,7 @@ export function SharedActivityCard({ activityId, onPress, fallbackTitle }: Share
     activity.level_max,
   );
   const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
-  const place = activity.objective_name ?? activity.meeting_name ?? null;
+  const place = activity.objective_name ?? activity.meeting_locality ?? activity.meeting_name ?? null;
 
   // Prefer the objective (summit/spot); fall back to the meeting point, then
   // the anchored coord the map row exposes.

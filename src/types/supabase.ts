@@ -34,6 +34,7 @@ export type Database = {
           location_objective: unknown
           max_participants: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_name: string | null
           requires_presence: boolean
           route: unknown
@@ -64,6 +65,7 @@ export type Database = {
           location_objective?: unknown
           max_participants?: number | null
           meeting_name?: string | null
+          meeting_locality?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
@@ -94,6 +96,7 @@ export type Database = {
           location_objective?: unknown
           max_participants?: number | null
           meeting_name?: string | null
+          meeting_locality?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
@@ -2838,6 +2841,7 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3030,6 +3034,7 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3092,6 +3097,7 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3154,6 +3160,7 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3756,6 +3763,7 @@ export type Database = {
           p_meeting_lat: number
           p_meeting_lng: number
           p_meeting_name?: string
+          p_meeting_locality?: string
           p_objective_lat?: number
           p_objective_lng?: number
           p_objective_name?: string
@@ -4112,6 +4120,7 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
+          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null

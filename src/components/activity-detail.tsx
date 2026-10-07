@@ -1211,16 +1211,28 @@ export function ActivityDetail({
             {/* === LE PARCOURS === precise rendez-vous / objective are
                 members-only; the description is visible to everyone. The map
                 is now the hero, so no second map here. */}
-            {showTabs && (activity.meeting_name || activity.objective_name) && (
+            {showTabs && (activity.meeting_lat != null || activity.objective_name) && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secDivider} />
                 <Text style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
-                {showTabs && activity.meeting_name && (
-                  <View style={styles.locRow}>
+                {/* Always shown once there is a pin (00441): « Puy-Chalvin ·
+                    parking de la ferme », locality first, the creator's free
+                    text as precision. Tap → full-screen map, where « Y aller »
+                    already lives. */}
+                {showTabs && activity.meeting_lat != null && (
+                  <Pressable
+                    style={styles.locRow}
+                    onPress={() => setShowFullMap(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('activity.meetingOnMap')}
+                  >
                     <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
                     <Text style={styles.locLabelInline}>{t('meta.meetingPoint')} :</Text>
-                    <Text style={styles.locValue}>{activity.meeting_name}</Text>
-                  </View>
+                    <Text style={styles.locValue}>
+                      {[activity.meeting_locality, activity.meeting_name].filter(Boolean).join(' · ') || t('activity.meetingOnMap')}
+                    </Text>
+                    <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>
+                  </Pressable>
                 )}
                 {showTabs && activity.objective_name && (
                   <View style={styles.locRow}>
@@ -1656,6 +1668,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
   locLabelInline: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 19 },
+  locMapLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', lineHeight: 19 },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',

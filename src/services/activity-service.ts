@@ -29,6 +29,7 @@ export interface NearbyActivity {
   objective_lat: number | null;
   objective_name: string | null;
   meeting_name: string | null;
+  meeting_locality: string | null;
   distance_km: number | null;
   elevation_gain_m: number | null;
   creator_name: string;
@@ -47,7 +48,7 @@ export const activityService = {
     let query = supabase
       .from('activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .in('status', ['published', 'in_progress'])
       .is('deleted_at', null);
@@ -69,7 +70,7 @@ export const activityService = {
     const { data, error } = await supabase
       .from('my_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .order('starts_at', { ascending: false });
     if (error) throw error;
@@ -80,7 +81,7 @@ export const activityService = {
     const { data, error } = await supabase
       .from('my_joined_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .order('starts_at', { ascending: false });
     if (error) throw error;
@@ -91,7 +92,7 @@ export const activityService = {
     const { data, error } = await supabase
       .from('my_pending_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .order('starts_at', { ascending: false });
     if (error) throw error;
@@ -122,6 +123,7 @@ export const activityService = {
       p_distance_km: form.distance_km ?? undefined,
       p_elevation_gain_m: form.elevation_gain_m ?? undefined,
       p_meeting_name: form.meeting_name || undefined,
+      p_meeting_locality: form.meeting_locality ?? undefined,
       p_trace_geojson: form.trace_geojson ?? undefined,
     });
     if (error) throw error;
@@ -150,7 +152,7 @@ export const activityService = {
     const { data, error } = await supabase
       .from('activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .eq('id', id)
       .maybeSingle();
@@ -160,7 +162,7 @@ export const activityService = {
     const { data: myData } = await supabase
       .from('my_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .eq('id', id)
       .maybeSingle();
@@ -170,7 +172,7 @@ export const activityService = {
     const { data: joinedData } = await supabase
       .from('my_joined_activities' as 'activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
       .eq('id', id)
       .maybeSingle();
@@ -195,6 +197,8 @@ export const activityService = {
     max_participants?: number | null;
     meeting_lng?: number;
     meeting_lat?: number;
+    // Only read by the server alongside a pin move (00441).
+    meeting_locality?: string | null;
     starts_at?: string;
     duration?: string;
     visibility?: string;
@@ -208,6 +212,7 @@ export const activityService = {
       p_max_participants: fields.max_participants ?? null,
       p_meeting_lng: fields.meeting_lng ?? null,
       p_meeting_lat: fields.meeting_lat ?? null,
+      p_meeting_locality: fields.meeting_locality ?? null,
       p_starts_at: fields.starts_at ?? null,
       p_duration: fields.duration ?? null,
       p_visibility: fields.visibility ?? null,

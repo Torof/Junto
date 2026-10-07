@@ -30,6 +30,7 @@ const activityFormSchema = z.object({
     .optional(),
   objective_name: z.string().max(100).optional(),
   meeting_name: z.string().max(100).optional(),
+  meeting_locality: z.string().max(80).nullable().optional(),
   trace_geojson: z
     .object({
       type: z.literal('LineString'),

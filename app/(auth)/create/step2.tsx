@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
@@ -20,6 +20,7 @@ import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { geocodeService } from '@/services/geocode-service';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { TracePickerModal } from '@/components/trace-picker-modal';
@@ -78,10 +79,25 @@ export default function CreateStep2() {
     updateForm({ trace_geojson: null });
   };
 
+  // Locality lookup for the meeting pin (mig 00441): fire-and-forget, the
+  // previous request is cancelled when the pin moves, and a failure simply
+  // leaves the field null — the creation flow never waits on Photon.
+  const localityAbort = useRef<AbortController | null>(null);
+  const lookupLocality = (lng: number, lat: number) => {
+    localityAbort.current?.abort();
+    const ctrl = new AbortController();
+    localityAbort.current = ctrl;
+    geocodeService.reverseLocality(lat, lng, ctrl.signal)
+      .then((locality) => { if (!ctrl.signal.aborted) updateForm({ meeting_locality: locality }); })
+      .catch(() => {});
+  };
+  useEffect(() => () => localityAbort.current?.abort(), []);
+
   const handleMapPress = (lng: number, lat: number) => {
     if (placingPin === 'meeting') {
-      updateForm({ location_meeting: { lng, lat } });
+      updateForm({ location_meeting: { lng, lat }, meeting_locality: null });
       setPlacingPin(null);
+      lookupLocality(lng, lat);
     } else if (placingPin === 'end') {
       updateForm({ location_end: { lng, lat } });
       setPlacingPin(null);
@@ -156,7 +172,8 @@ export default function CreateStep2() {
             colors={colors}
             onPress={() => {
               if (form.location_meeting) {
-                updateForm({ location_meeting: null });
+                localityAbort.current?.abort();
+                updateForm({ location_meeting: null, meeting_locality: null });
                 if (placingPin === 'meeting') setPlacingPin(null);
               } else {
                 setPlacingPin('meeting');
@@ -181,6 +198,9 @@ export default function CreateStep2() {
             }}
           />
         </View>
+        {form.location_meeting && form.meeting_locality && (
+          <Text style={styles.localityHint}>{t('create.meetingLocality', { place: form.meeting_locality })}</Text>
+        )}
         {(placingPin === 'meeting' || form.location_meeting || (form.meeting_name?.length ?? 0) > 0) && (
           <TextInput
             style={styles.objectiveNameInput}
@@ -489,6 +509,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   objectiveText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500' },
+  localityHint: {
+    color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600',
+    marginBottom: spacing.xs, paddingHorizontal: 2,
+  },
   objectiveNameInput: {
     backgroundColor: colors.background, color: colors.textPrimary,
     borderRadius: radius.sm,

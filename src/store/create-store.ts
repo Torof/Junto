@@ -15,6 +15,9 @@ interface CreateFormState {
   location_objective: { lng: number; lat: number } | null;
   objective_name: string;
   meeting_name: string;
+  // Village / commune of the meeting pin, reverse-geocoded when it is placed
+  // (mig 00441). Never typed by the user; null when Photon had nothing.
+  meeting_locality: string | null;
   trace_geojson: GeoJsonLineString | null;
   starts_at: Date | null;
   duration_hours: number;
@@ -50,6 +53,7 @@ const DEFAULT_FORM: CreateFormState = {
   location_objective: null,
   objective_name: '',
   meeting_name: '',
+  meeting_locality: null,
   trace_geojson: null,
   starts_at: null,
   duration_hours: 2,

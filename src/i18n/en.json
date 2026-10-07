@@ -81,6 +81,8 @@
     "join": "Join",
     "description": "Description",
     "navigate": "Navigate",
+    "meetingOnMap": "See on the map",
+    "meetingMapLink": "Map ›",
     "fullscreen": "Fullscreen",
     "tab": {
       "info": "Info",
@@ -1534,7 +1536,8 @@
     "setObjective": "Objective (optional)",
     "objectiveSet": "Objective",
     "objectiveName": "Objective name (e.g. Summit)",
-    "meetingName": "Meeting point name... (e.g. Briançon parking)",
+    "meetingName": "Meeting point details (car park, bridge, bakery…)",
+    "meetingLocality": "Meeting in {{place}}",
     "tapObjective": "Tap the map for the objective",
     "sectionLocations": "Locations",
     "sectionTiming": "When",

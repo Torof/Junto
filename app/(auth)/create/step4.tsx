@@ -155,7 +155,7 @@ export default function CreateStep4() {
         />
         <RecapRow
           label={t('create.meetingPoint')}
-          value={form.meeting_name || t('create.openActivityValue', { defaultValue: 'Défini' })}
+          value={[form.meeting_locality, form.meeting_name].filter(Boolean).join(' · ') || t('create.openActivityValue', { defaultValue: 'Défini' })}
         />
         <RecapRow
           label={t('create.objectiveSet')}
