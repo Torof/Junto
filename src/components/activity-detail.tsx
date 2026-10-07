@@ -54,6 +54,7 @@ import { distanceMeters, distanceToPolylineMeters } from '@/utils/geo';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { SportIcon } from '@/components/sport-icon';
 import { ChatBackdrop } from '@/components/chat-backdrop';
+import { formatMeetingLabel, MEETING_LABEL_INLINE_MAX } from '@/utils/meeting-label';
 
 export type ActivityTab = 'info' | 'transport' | 'gear' | 'chat';
 
@@ -1219,28 +1220,40 @@ export function ActivityDetail({
                     parking de la ferme », locality first, the creator's free
                     text as precision. Tap → full-screen map, where « Y aller »
                     already lives. */}
-                {showTabs && activity.meeting_lat != null && (
-                  <Pressable
-                    style={styles.locRow}
-                    onPress={() => setShowFullMap(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('activity.meetingOnMap')}
-                  >
-                    <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <Text style={styles.locLabelInline}>{t('meta.meetingPoint')} :</Text>
-                    <Text style={styles.locValue}>
-                      {[activity.meeting_locality, activity.meeting_name].filter(Boolean).join(' · ') || t('activity.meetingOnMap')}
-                    </Text>
-                    <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>
-                  </Pressable>
-                )}
-                {showTabs && activity.objective_name && (
-                  <View style={styles.locRow}>
-                    <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                    <Text style={styles.locLabelInline}>{t('meta.objective')} :</Text>
-                    <Text style={styles.locValue}>{activity.objective_name}</Text>
-                  </View>
-                )}
+                {showTabs && activity.meeting_lat != null && (() => {
+                  const label = formatMeetingLabel(activity.meeting_locality, activity.meeting_name) ?? t('activity.meetingOnMap');
+                  // A long value wraps mid-row beside its label; give it its
+                  // own line instead (Scott 2026-10-07).
+                  const stacked = label.length > MEETING_LABEL_INLINE_MAX;
+                  return (
+                    <Pressable
+                      style={[styles.locRow, stacked && styles.locRowStacked]}
+                      onPress={() => setShowFullMap(true)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('activity.meetingOnMap')}
+                    >
+                      <View style={styles.locHead}>
+                        <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
+                        <Text style={styles.locLabelInline}>{t('meta.meetingPoint')} :</Text>
+                        {stacked && <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>}
+                      </View>
+                      <Text style={[styles.locValue, stacked && styles.locValueStacked]}>{label}</Text>
+                      {!stacked && <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>}
+                    </Pressable>
+                  );
+                })()}
+                {showTabs && activity.objective_name && (() => {
+                  const stacked = activity.objective_name.length > MEETING_LABEL_INLINE_MAX;
+                  return (
+                    <View style={[styles.locRow, stacked && styles.locRowStacked]}>
+                      <View style={styles.locHead}>
+                        <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
+                        <Text style={styles.locLabelInline}>{t('meta.objective')} :</Text>
+                      </View>
+                      <Text style={[styles.locValue, stacked && styles.locValueStacked]}>{activity.objective_name}</Text>
+                    </View>
+                  );
+                })()}
               </View>
             )}
 
@@ -1666,7 +1679,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // the content the structure it needs against the imposing map hero.
   secDivider: { height: 1, backgroundColor: colors.line, marginBottom: spacing.md },
   locRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm, alignItems: 'flex-start' },
+  locRowStacked: { flexDirection: 'column', gap: 4 },
+  locHead: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   locValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
+  locValueStacked: { flex: 0, alignSelf: 'stretch', textAlign: 'left', paddingLeft: 24 },
   locLabelInline: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 19 },
   locMapLink: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '700', lineHeight: 19 },
   tabBar: {

@@ -21,6 +21,7 @@ import { activityService } from '@/services/activity-service';
 import { invitationService } from '@/services/invitation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
+import { formatMeetingLabel } from '@/utils/meeting-label';
 
 export default function CreateStep4() {
   const colors = useColors();
@@ -155,7 +156,7 @@ export default function CreateStep4() {
         />
         <RecapRow
           label={t('create.meetingPoint')}
-          value={[form.meeting_locality, form.meeting_name].filter(Boolean).join(' · ') || t('create.openActivityValue', { defaultValue: 'Défini' })}
+          value={formatMeetingLabel(form.meeting_locality, form.meeting_name) ?? t('create.openActivityValue', { defaultValue: 'Défini' })}
         />
         <RecapRow
           label={t('create.objectiveSet')}
