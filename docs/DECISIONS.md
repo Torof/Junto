@@ -443,3 +443,18 @@ Règles verrouillées :
 - Le seed a été produit par un générateur qui simule les formules de la base (fiabilité, points de niveau, seuils « partenaires » et awards) : le premier jet à la main donnait des profils uniformes (tout le monde « Polyvalent or »). Ne plus retoucher ce seed sans simuler.
 
 **Périmètre :** 8 partenaires pairs (#2–#9), Air & Water (#1, bureau pro) inchangé. 18 sorties historiques ajoutées (26 au total), 4 participations trop généreuses de 00393 retirées pour varier les sports distincts, votes de traits ≥ 5 pour les 8, `level_right` sur le sport principal. Aucun changement client : tout passe par les RPC existantes du profil.
+
+## 2026-10-07 — Lieu de rendez-vous : une commune automatique à côté du texte libre (mig 00441)
+
+**Contexte :** en préparant le site (tableau des départs), la colonne « Départ » n'avait rien de fiable à afficher : le point de rendez-vous est un pin exact posé sur la carte, mais son **nom** est un champ libre facultatif — souvent vide, parfois « parking de la ferme », illisible pour quelqu'un qui ne connaît pas la vallée. Scott : « est-ce qu'on veut créer un point géocodé avec un nom, reverse geocoding ? »
+
+**Décision :** on garde les deux niveaux et on en ajoute un troisième, automatique.
+- Le **pin** reste la vérité (un col, un parking de piste n'ont pas d'adresse ; un sélecteur d'adresse serait moins juste en montagne).
+- Le **texte libre** reste, et devient explicitement la *précision* (« parking, pont, boulangerie… ») — la précision humaine n'est remplaçable par aucun géocodeur.
+- Nouvelle colonne `activities.meeting_locality` : le **village / hameau / commune** du pin, obtenu par géocodage inverse côté client (Photon, déjà utilisé pour les départs de covoiturage) au moment où le pin est posé. Zéro étape pour le créateur ; jamais bloquant (échec → NULL).
+- Affichage « Commune · précision » dans la fiche (ligne désormais toujours présente dès qu'il y a un pin, et **tapable** → carte plein écran où « Y aller » existe déjà) ; commune seule dans les cartes de liste et sur le site.
+- Confiance et exposition identiques à `meeting_name` ; gelé après création sauf dans l'UPDATE qui déplace le pin (donc jamais une fois qu'un participant a rejoint). Rattrapage à la main pour les sorties démo ; les réelles retombent sur le texte libre.
+
+**Rappel de méthode (payé une fois de plus) :** la vue `activities_with_coords` avait une redéfinition en 00333 (rideau démo) que le premier `grep | tail -3` avait masquée — reconstruire depuis 00315 aurait **supprimé le rideau démo de la carte**. Lister TOUTES les redéfinitions, triées, avant de choisir la base.
+
+**Hors périmètre, à faire ensuite :** la même commune sur les offres pro ; la commune dans les étiquettes de la carte ; passer à Mapbox Geocoding ou auto-héberger Photon si le volume dépasse le fair-use.

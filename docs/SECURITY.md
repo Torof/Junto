@@ -164,7 +164,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 
 ### Activités
 
-**`create_activity`** (mig 00102 + 00144, rate limits 00262/00267, dernier corps 00306) :
+**`create_activity`** (mig 00102 + 00144, rate limits 00262/00267, corps 00316, `p_meeting_locality` 00441 — dernier corps 00441) :
 - Auth + non suspendu
 - `char_length(title) >= 3`
 - `NOW() < starts_at <= NOW() + 6 mois` (`junto.date_in_past` / `junto.date_too_far`)
@@ -177,8 +177,9 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Set `junto.bypass_lock = true` avant INSERT (pour la trigger whitelist)
 - Auto-INSERT participation creator → `accepted`
 - Si visibility public/approval → `check_alerts_for_activity`
+- `p_meeting_locality` (00441) : texte client (village/commune du pin, géocodage inverse côté app), trimé, tronqué à 80, NULL si vide — même niveau de confiance que `meeting_name`, aucune vérification serveur de cohérence géographique (donnée d'affichage, pas d'autorisation)
 
-**`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309/00310) :
+**`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309/00310, corps 00316, `p_meeting_locality` 00441 — dernier corps 00441) :
 - Auth + non suspendu
 - `SELECT ... FOR UPDATE` sur l'activité ; introuvable → generic
 - `auth.uid() = creator_id` (generic)
@@ -190,6 +191,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Gate premium sur le PASSAGE vers `private_link` / `private_link_approval` (`junto.premium_required`) — la visibilité déjà stockée est grandfatherée (resend no-op passe)
 - Champs privilégiés non exposés ; colonnes verrouillées-participants forcées à OLD par la trigger whitelist (silencieux), diff `v_changes` recalculé post-UPDATE → pas de notif fantôme
 - Notif `activity_updated` aux participants acceptés seulement si vrai changement
+- `p_meeting_locality` (00441) : appliqué **uniquement** si `p_meeting_lng/lat` sont fournis dans le même appel ; sinon ignoré. La trigger `handle_activity_update` force `meeting_locality` à OLD dès que `location_meeting` ne change pas — et `location_meeting` est déjà gelé dès qu'un participant a rejoint
 
 **`join_activity`** (mig 00102) :
 - Auth + non suspendu
@@ -693,10 +695,11 @@ NEW.updated_at := NOW();
 
 **Pourquoi whitelist** : chaque nouvelle colonne est automatiquement protégée (forcée à OLD). Le défaut sûr est "protégé".
 
-### Table `activities`
-- `creator_id`, `status`, `invite_token`, `created_at` — toujours OLD (whitelist inconditionnelle)
-- `location_*`, `starts_at`, `level`, `max_participants`, `visibility` — verrouillées quand des participants existent
-- `title`, `description`, `sport_id`, `duration`, `requires_presence` — modifiables si créateur
+### Table `activities` (trigger `handle_activity_update`, corps 00333 + 00441 — relu contre le code le 2026-10-07)
+- `creator_id`, `status`, `invite_token`, `created_at`, `deleted_at`, `cancelled_reason`, `distance_km`, `elevation_gain_m`, `meeting_name`, `trace_geojson`, `route`, `is_demo` — toujours OLD (whitelist inconditionnelle ; les fonctions dédiées passent par `bypass_lock`)
+- `location_meeting`, `location_end`, `location_objective`, `objective_name`, `starts_at`, `level`, `level_max`, `max_participants`, `visibility`, `requires_presence` — verrouillées dès qu'un participant accepté autre que le créateur existe
+- `meeting_locality` (00441) — forcé à OLD sauf dans l'UPDATE qui change `location_meeting` (donc jamais après un premier participant)
+- `title`, `description`, `sport_id`, `duration` — modifiables si créateur (via `update_activity`)
 
 ### Table `participations`
 
