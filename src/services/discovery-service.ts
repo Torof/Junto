@@ -59,6 +59,9 @@ export interface DiscoveryCard {
   // un refus (anti-oracle) ; conversation_id présent seulement si active.
   contact_state: 'none' | 'pending' | 'pending_received' | 'connected';
   conversation_id: string | null;
+  // 00442 — demo partner (visible only behind the admin curtain): the server
+  // refuses contact/invite on it, so the card shows a label instead.
+  is_demo: boolean;
 }
 
 export interface DispoZone {

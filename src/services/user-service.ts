@@ -7,6 +7,9 @@ export interface PublicProfile {
   sports: string[];
   levels_per_sport: Record<string, string> | null;
   created_at: string;
+  // 00442 — demo partner behind the admin curtain: contact requests are
+  // refused server-side, the profile shows a label instead of the button.
+  is_demo: boolean;
 }
 
 export interface UserStats {
@@ -23,7 +26,7 @@ export const userService = {
   getPublicProfile: async (userId: string): Promise<PublicProfile | null> => {
     const { data, error } = await supabase
       .from('public_profiles')
-      .select('id, display_name, avatar_url, sports, levels_per_sport, created_at')
+      .select('id, display_name, avatar_url, sports, levels_per_sport, created_at, is_demo')
       .eq('id', userId)
       .single();
     if (error) return null;

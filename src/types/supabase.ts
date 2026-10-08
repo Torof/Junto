@@ -3448,6 +3448,7 @@ export type Database = {
           levels_per_sport: Json | null
           reliability_score: number | null
           reliability_tier: string | null
+          is_demo: boolean | null
           sports: Json | null
         }
         Insert: {

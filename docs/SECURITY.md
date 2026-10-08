@@ -115,11 +115,17 @@ RLS opère sur les **lignes**, pas les colonnes. Pour la table `users` qui conti
 **Solution : vue `public_profiles`**
 ```sql
 CREATE VIEW public_profiles AS
-SELECT id, display_name, avatar_url, bio, sports, levels_per_sport, created_at
+SELECT id, display_name, avatar_url, bio, sports, levels_per_sport, created_at,
+       NULL::double precision AS reliability_score,   -- 00347 : seul le palier est publié
+       reliability_tier(reliability_score) AS reliability_tier,
+       is_demo                                         -- 00442 : flag seul, voir ci-dessous
 FROM users
-WHERE suspended_at IS NULL;
+WHERE suspended_at IS NULL
+  AND (is_demo = false OR demo_content_visible());    -- rideau démo (00347)
+REVOKE SELECT ON public_profiles FROM anon;
 ```
 - Toutes les queries publiques passent par la vue
+- **`is_demo` exposé (00442)** — avec `get_discovery_cards.is_demo`. Le rideau démo refuse ABSOLUMENT toute écriture vers une cible démo (00426), mais la lecture ne disait pas *qui* était démo : l'admin en mode démo tapait « Contacter » et recevait une erreur générique. Le client remplace désormais le bouton par « Profil de démonstration ». Le flag ne fuit rien : un profil démo n'est lisible que derrière le rideau, donc par qui sait déjà qu'il regarde la démo. **Règle** : toute surface qui propose une action d'écriture vers un utilisateur doit lire `is_demo` et ne pas proposer l'action.
 - L'accès direct à la table `users` est réservé à `auth.uid() = id` et aux fonctions admin
 
 **Privilèges COLONNES sur `pro_profiles` (00418, audit H3)** — la RLS lignes ne suffisait pas : `real_name`, `reviewed_by`, `reviewed_at` étaient lisibles par tout authentifié sur les pros approuvés. Depuis 00418 : `REVOKE SELECT` table puis `GRANT SELECT (colonnes publiques)` à authenticated. Colonnes exclues : `reviewed_at`, `reviewed_by`, `primary_location` (révoquées) ; le propriétaire lit sa fiche complète via `get_my_pro_application()` et l'admin la file d'attente via `admin_get_pending_pro_applications()`. ⚠️ `real_name` + `rejection_reason` restent TEMPORAIREMENT grantées : le build production (« Brique 4a ») les sélectionne encore dans getById — re-jouer le REVOKE/GRANT sans ces 2 colonnes dès que production embarque le client ≥ dbcf2ba (SQL prêt en commentaire dans 00418).
@@ -384,7 +390,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 
 **Fonctions** (SECURITY DEFINER + `search_path`, REVOKE anon, GRANT authenticated) :
 - `upsert_dispo` — auth + non suspendu ; validation sports actifs, `levels` (objet JSONB, clés ⊆ sports, valeurs ≤ 20 car — mig 00405), vibes (vocab fermé ≤10), about (HTML-strip ≤250 mots/1600 car), rayon, transport, fenêtre (≤4 sem, ≥ -1 jour), lieu.
-- `get_discovery_cards` / `get_discovery_count` — auth + **non suspendu** (count depuis mig 00407) ; gate démo + `blocked_users` bidirectionnel ; count floore 1-2 → « quelques ».
+- `get_discovery_cards` / `get_discovery_count` — auth + **non suspendu** (count depuis mig 00407) ; gate démo + `blocked_users` bidirectionnel ; count floore 1-2 → « quelques ». Renvoie `is_demo` (00442) pour que la carte masque Inviter/Contacter sur un profil démo (l'écriture est refusée côté serveur de toute façon).
 - `get_dispo_zone` — match requis (cf. invariant A).
 - `get_invitable_activities_for_dispo` / `send_discovery_invite` — **réciprocité + gate démo** (mig 00409) : l'appelant doit détenir une dispo active qui matche la cible (prédicat `get_discovery_cards`) et la dispo cible est démo-gatée → pas d'oracle de disponibilité pour un non-match, pas d'interaction avec une dispo démo.
 - `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte. `accept_contact_request` re-vérifie la suspension de l'**expéditeur** au moment de l'acceptation (mig 00411).

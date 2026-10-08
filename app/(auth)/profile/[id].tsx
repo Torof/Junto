@@ -258,6 +258,10 @@ export default function PublicProfileScreen() {
             <View style={[styles.messageButton, { opacity: 0.4 }]}>
               <Text style={styles.messageText}>{t('publicProfile.requestPending')}</Text>
             </View>
+          ) : profile.is_demo ? (
+            <View style={[styles.messageButton, { opacity: 0.4 }]}>
+              <Text style={styles.messageText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</Text>
+            </View>
           ) : (
             <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => {
               setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));

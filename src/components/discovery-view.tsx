@@ -267,14 +267,18 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
           </Pressable>
           {/* Inviter : seulement quand aucune relation n'existe — connectés,
               on s'invite depuis la conversation ; en attente, on attend. */}
-          {item.contact_state === 'none' ? (
+          {item.contact_state === 'none' && !item.is_demo ? (
             <Pressable style={({ pressed }) => [styles.actLink, pressed && styles.pressed]} onPress={() => setInviteTargetId(item.user_id)} hitSlop={6}>
               <UserPlus size={13} color={colors.textSecondary} strokeWidth={2.2} />
               <Text style={styles.actLinkText}>{t('discovery.invite', { defaultValue: 'Inviter' })}</Text>
             </Pressable>
           ) : null}
           <View style={{ flex: 1 }} />
-          {item.contact_state === 'connected' && item.conversation_id ? (
+          {item.is_demo ? (
+            <View style={styles.btnSent}>
+              <Text style={styles.btnSentText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</Text>
+            </View>
+          ) : item.contact_state === 'connected' && item.conversation_id ? (
             <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressedPrimary]} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)}>
               <Send size={13} color="#FFFFFF" strokeWidth={2.4} />
               <Text style={styles.btnPrimaryText}>{t('discovery.chat', { defaultValue: 'Discuter' })}</Text>
