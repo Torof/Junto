@@ -13,8 +13,7 @@ import { transportService } from '@/services/transport-service';
 import { gearService } from '@/services/gear-service';
 import { participationService } from '@/services/participation-service';
 import { UserAvatar } from './user-avatar';
-import { reliabilityColorForTier } from '@/utils/reliability-color';
-import { supabase } from '@/services/supabase';
+import { ReliabilityRing } from '@/components/reliability-ring';
 import { getFriendlyError } from '@/utils/friendly-error';
 
 // Open a departure point in the phone's maps app (Apple Maps on iOS, Google
@@ -137,37 +136,14 @@ export function GroupCard({
     staleTime: 15_000,
   });
 
-  // Reliability scores keyed by user_id, used for the trust ring around
-  // each driver's avatar. Reads from public_profiles (00173 added the
-  // column) so we don't need a per-driver RPC. Stale cache fine since
-  // scores update slowly.
-  const transportUserIdsKey = useMemo(
-    () => transports.map((p) => p.user_id).sort().join(','),
-    [transports],
-  );
-  // Audit 2026-10-01: this selected `reliability_score`, which public_profiles
-  // deliberately forces to NULL (00347 — only the tier is published). So the
-  // driver ring has been colourless ever since, at the spot the code itself
-  // calls "where the actual decision happens". Read the TIER, which is real.
-  const { data: reliabilityTiers = [] } = useQuery({
-    queryKey: ['public-profile-tiers', transportUserIdsKey],
-    queryFn: async () => {
-      const ids = transports.map((p) => p.user_id);
-      if (ids.length === 0) return [];
-      const { data } = await supabase
-        .from('public_profiles')
-        .select('id, reliability_tier')
-        .in('id', ids);
-      return (data ?? []) as { id: string; reliability_tier: string | null }[];
-    },
-    enabled: isParticipant && transports.length > 0,
-    staleTime: 60_000,
-  });
+  // Reliability tier per user, read from the participants list (the RPC
+  // already carries it) — the separate public_profiles lookup that fed a
+  // hand-drawn 2px border is gone; the ring is the app's ReliabilityRing.
   const reliabilityById = useMemo(() => {
     const map = new Map<string, string | null>();
-    reliabilityTiers.forEach((p) => map.set(p.id, p.reliability_tier));
+    participants.forEach((p) => map.set(p.user_id, p.reliability_tier ?? null));
     return map;
-  }, [reliabilityTiers]);
+  }, [participants]);
 
   // Drivers offering rides — INCLUDES the current user when they're
   // a driver (rendered with a "Toi" marker). Sort by departure time
@@ -520,7 +496,6 @@ export function GroupCard({
               const isPendingFromMe = myPending?.driver_id === d.user_id;
               const isFull = d.free === 0;
               const tier = reliabilityById.get(d.user_id) ?? null;
-              const ringColor = tier != null ? reliabilityColorForTier(tier, colors) : null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
               const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
               return (
@@ -530,16 +505,17 @@ export function GroupCard({
                   {/* Top row — driver + colour-coded seats badge. */}
                   <View style={styles.ncTop}>
                     <Pressable
-                      style={[styles.avatarRing, ringColor && { borderColor: ringColor }]}
                       onPress={(e) => { e.stopPropagation(); router.push(`/(auth)/profile/${d.user_id}`); }}
                       hitSlop={4}
                     >
-                      <UserAvatar
-                        name={d.display_name}
-                        avatarUrl={d.avatar_url}
-                        size={40}
-                        confirmedPresent={d.confirmed_present === true}
-                      />
+                      <ReliabilityRing tier={tier} size={36} strokeWidth={3} showLabel={false}>
+                        <UserAvatar
+                          name={d.display_name}
+                          avatarUrl={d.avatar_url}
+                          size={36}
+                          confirmedPresent={d.confirmed_present === true}
+                        />
+                      </ReliabilityRing>
                     </Pressable>
                     <View style={styles.ncNameWrap}>
                       <Text style={styles.driverName} numberOfLines={1}>{d.display_name}</Text>
@@ -1159,15 +1135,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // Wraps the name + the inline collapsed meta. flex:1 lets it absorb
   // the row width; flexDirection inside is handled by driverNameRow so
   // name and meta items can wrap together.
-  // Tier ring around the driver avatar — borderColor set inline based on
-  // reliability score; transparent here so the layout stays stable when
-  // a driver has no score yet (new user, no ring shown).
-  avatarRing: {
-    padding: 2,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
   // Wraps the driver's display name + their inline peer-vouch chip
   // (icon + trait label). flexShrink on the name lets it ellipsize
   // first if space is tight; the chip stays visible since it's the
