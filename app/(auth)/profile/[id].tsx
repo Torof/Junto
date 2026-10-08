@@ -1,4 +1,6 @@
 import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, TextInput } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { MoreHorizontal, UserX } from 'lucide-react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +51,9 @@ export default function PublicProfileScreen() {
   const [requestHandled, setRequestHandled] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const queryClient = useQueryClient();
+  // Same IME handling as the report modal: the sheet rides the keyboard
+  // inset (reanimated) — never a KeyboardAvoidingView (house rule, 2026-06).
+  const imePadding = useKeyboardDockPadding(0);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser-id'],
@@ -306,6 +311,7 @@ export default function PublicProfileScreen() {
     {/* Contact request modal */}
     <Modal visible={showRequestModal} animationType="slide" transparent>
       <Pressable style={styles.modalBackdrop} onPress={() => setShowRequestModal(false)}>
+        <Animated.View style={imePadding}>
         <Pressable style={styles.modalSheet} onPress={() => {}}>
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{t('publicProfile.requestModalTitle')}</Text>
@@ -341,6 +347,7 @@ export default function PublicProfileScreen() {
             <Text style={styles.modalSendText}>{t('publicProfile.sendRequest')}</Text>
           </PressableScale>
         </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
 
