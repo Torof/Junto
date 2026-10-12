@@ -15,7 +15,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import * as Burnt from 'burnt';
 import { Check, Trash2, MapPin } from 'lucide-react-native';
+import { trace } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
@@ -101,14 +103,17 @@ export default function ProOfferingEditScreen() {
     setLocationLat(existing.lat);
     setLocationName(existing.location_name);
     if (existing.duration) {
-      // existing.duration is a Postgres interval serialized as e.g.
-      // "02:30:00" or "1 day". For v1 we only support hh:mm so a
-      // naive parser is enough; fancier interval support can come
-      // when we surface "multi-day" offerings.
-      const match = existing.duration.match(/^(\d+):(\d+):(\d+)/);
-      if (match) {
-        setDurationHours(match[1] ?? '');
-        setDurationMinutes(match[2] ?? '');
+      // Postgres serializes the interval as "02:30:00", "1 day", or
+      // "1 day 02:00:00" (≥ 24 h, e.g. seeded in SQL). The old hh:mm-only
+      // regex left the fields blank on the day form and the next save
+      // silently wrote NULL. Fold days into hours.
+      const days = existing.duration.match(/(\d+)\s+days?/);
+      const hms = existing.duration.match(/(\d+):(\d+):(\d+)/);
+      const hours = (days ? parseInt(days[1] ?? '0', 10) * 24 : 0) + (hms ? parseInt(hms[1] ?? '0', 10) : 0);
+      const minutes = hms ? parseInt(hms[2] ?? '0', 10) : 0;
+      if (hours > 0 || minutes > 0) {
+        setDurationHours(hours > 0 ? String(hours) : '');
+        setDurationMinutes(minutes > 0 ? String(minutes) : '');
       }
     }
     setMinParticipants(existing.min_participants?.toString() ?? '');
@@ -154,7 +159,10 @@ export default function ProOfferingEditScreen() {
             try {
               await proOfferingService.remove(offeringId);
               await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
-              router.back();
+              // back() landed on the deleted offering's page (« introuvable »,
+              // second back needed). Unwind to the pro page instead.
+              if (pro?.user_id) router.dismissTo(`/(auth)/pro/${pro.user_id}`);
+              else router.back();
             } catch (err) {
               Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
             }
@@ -171,10 +179,25 @@ export default function ProOfferingEditScreen() {
     return `${h} hours ${m} minutes`;
   };
 
+  // Tag inputs commit on the keyboard's "done" — Android often shows "→"
+  // instead, and a tap elsewhere lost the draft. Commit on blur AND at submit.
+  const commitProvided = () => {
+    const v = equipProvidedDraft.trim();
+    if (v && equipProvided.length < 15) { setEquipProvided([...equipProvided, v]); setEquipProvidedDraft(''); }
+  };
+  const commitRequired = () => {
+    const v = equipRequiredDraft.trim();
+    if (v && equipRequired.length < 15) { setEquipRequired([...equipRequired, v]); setEquipRequiredDraft(''); }
+  };
+  const commitCustom = () => {
+    const v = pCustomDraft.trim();
+    if (v && pCustom.length < 3) { setPCustom([...pCustom, v]); setPCustomDraft(''); }
+  };
+
   const canSubmit =
     sportId.length > 0 &&
     title.trim().length >= 3 &&
-    description.length > 0 &&
+    description.trim().length > 0 &&
     level.length > 0 &&
     locationLng !== null &&
     locationLat !== null &&
@@ -188,7 +211,7 @@ export default function ProOfferingEditScreen() {
       const missing: string[] = [];
       if (!sportId) missing.push(t('proOffering.sport'));
       if (title.trim().length < 3) missing.push(t('proOffering.title'));
-      if (description.length === 0) missing.push(t('proOffering.description'));
+      if (description.trim().length === 0) missing.push(t('proOffering.description'));
       if (level.length === 0) missing.push(t('proOffering.level'));
       if (locationLng === null || locationLat === null) {
         missing.push(t('proOffering.locationField', { defaultValue: 'Lieu sur la carte' }));
@@ -233,13 +256,25 @@ export default function ProOfferingEditScreen() {
       Alert.alert(t('auth.error'), t('proOffering.invalidPrice', { defaultValue: 'Le prix doit être compris entre 0 et 99 999 €.' }));
       return;
     }
+    if ((parseInt(durationMinutes, 10) || 0) > 59) {
+      Alert.alert(t('auth.error'), t('proOffering.invalidDuration', { defaultValue: 'Les minutes vont de 0 à 59.' }));
+      return;
+    }
+
+    // Flush the tag drafts the pro typed without validating.
+    const finalProvided = equipProvidedDraft.trim() && equipProvided.length < 15
+      ? [...equipProvided, equipProvidedDraft.trim()] : equipProvided;
+    const finalRequired = equipRequiredDraft.trim() && equipRequired.length < 15
+      ? [...equipRequired, equipRequiredDraft.trim()] : equipRequired;
+    const finalCustom = pCustomDraft.trim() && pCustom.length < 3
+      ? [...pCustom, pCustomDraft.trim()] : pCustom;
 
     setSaving(true);
     try {
       const payload = {
         sport_id: sportId,
         title: title.trim(),
-        description: description,
+        description: description.trim(),
         level,
         location_lng: locationLng,
         location_lat: locationLat,
@@ -255,15 +290,30 @@ export default function ProOfferingEditScreen() {
         price_unit: parsedPrice !== null ? priceUnit : null,
       };
 
+      // Two RPCs (offer, then equipment/participant form). If the second
+      // fails the offer already exists: never leave the pro on the form with
+      // an error — a second « Créer » duplicated the offer. Land on the offer
+      // and say what did not save.
+      const saveDetails = async (id: string) => {
+        try {
+          await proOfferingService.setDetails(id, finalProvided, finalRequired, pStd, finalCustom);
+        } catch (err) {
+          Burnt.toast({
+            title: t('proOffering.detailsNotSaved', { defaultValue: 'Offre enregistrée, mais pas le matériel / la fiche — réessaie depuis Modifier.' }),
+            preset: 'error',
+          });
+          trace('pro', 'set_offering_details failed after save', { id, err: String(err) });
+        }
+      };
       if (isEdit && offeringId) {
         await proOfferingService.update({ ...payload, offering_id: offeringId });
-        await proOfferingService.setDetails(offeringId, equipProvided, equipRequired, pStd, pCustom);
+        await saveDetails(offeringId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         router.back();
       } else {
         const newId = await proOfferingService.create(payload);
-        await proOfferingService.setDetails(newId, equipProvided, equipRequired, pStd, pCustom);
+        await saveDetails(newId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         // Land on the detail page so the freshly-created offering is
         // visible AND the user is one tap from the Photos tab where
@@ -285,9 +335,10 @@ export default function ProOfferingEditScreen() {
       </SafeAreaView>
     );
   }
-  if (!pro) {
-    // Loaded but the user has no pro profile — they shouldn't be on
-    // this screen. Bounce to the map; the create button on the pro
+  if (!pro || pro.status !== 'approved') {
+    // Loaded but the user has no APPROVED pro profile — they shouldn't be
+    // on this screen (create_pro_offering requires tier='pro', which only
+    // approve_pro grants). Bounce to the map; the create button on the pro
     // page is the canonical entry point.
     return <Redirect href="/(auth)/(tabs)/carte" />;
   }
@@ -560,10 +611,8 @@ export default function ProOfferingEditScreen() {
             placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
             placeholderTextColor={colors.textMuted}
             maxLength={60}
-            onSubmitEditing={() => {
-              const v = equipProvidedDraft.trim();
-              if (v && equipProvided.length < 15) { setEquipProvided([...equipProvided, v]); setEquipProvidedDraft(''); }
-            }}
+            onSubmitEditing={commitProvided}
+            onBlur={commitProvided}
             blurOnSubmit={false}
             returnKeyType="done"
           />
@@ -585,10 +634,8 @@ export default function ProOfferingEditScreen() {
             placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
             placeholderTextColor={colors.textMuted}
             maxLength={60}
-            onSubmitEditing={() => {
-              const v = equipRequiredDraft.trim();
-              if (v && equipRequired.length < 15) { setEquipRequired([...equipRequired, v]); setEquipRequiredDraft(''); }
-            }}
+            onSubmitEditing={commitRequired}
+            onBlur={commitRequired}
             blurOnSubmit={false}
             returnKeyType="done"
           />
@@ -635,10 +682,8 @@ export default function ProOfferingEditScreen() {
             placeholder={t('proOffering.customQuestionPlaceholder', { defaultValue: '＋ Question libre — ex. : « Sais-tu nager 25 m ? »' })}
             placeholderTextColor={colors.textMuted}
             maxLength={80}
-            onSubmitEditing={() => {
-              const v = pCustomDraft.trim();
-              if (v) { setPCustom([...pCustom, v]); setPCustomDraft(''); }
-            }}
+            onSubmitEditing={commitCustom}
+            onBlur={commitCustom}
             blurOnSubmit={false}
             returnKeyType="done"
           />
