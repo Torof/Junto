@@ -38,6 +38,7 @@
 | Work on push notifications routing / collapse | `docs/SECURITY.md` → "Push notifications" |
 | Set up Supabase config | `docs/SECURITY.md` → "Configuration Supabase" |
 | Work on admin / moderation powers | `docs/ADMIN.md` (admin role charter — powers, hard boundaries, roadmap) + `docs/SECURITY.md` → "Fonctions privilégiées admin" |
+| Work on the pro side (profile, offerings, agenda, bookings) | `docs/PRO_HARDENING.md` (living checklist, lots 0-3 + open decisions) + `docs/sprint-booking.md` + `docs/SECURITY.md` → "Pro — vitrine" + "Réservations pro" |
 | Make an architectural decision | `docs/DECISIONS.md` — check if already decided, log new ones |
 | Doubt how we work | `docs/WORKING_MODE.md` |
 
@@ -134,3 +135,8 @@ All operations via SECURITY DEFINER functions only:
 - `user_badge_progression` (INSERT, UPDATE, DELETE) — auto-managed via trigger
 - `pro_reviews` (INSERT, UPDATE, DELETE)
 - `offering_reviews` (INSERT, UPDATE, DELETE)
+- `pro_profiles` (INSERT, UPDATE, DELETE) — `register_as_pro`/`update_pro_profile`/`unregister_as_pro` + admin approve/reject
+- `pro_offerings` (INSERT, UPDATE, DELETE) — `create/update/delete_pro_offering`, `set_offering_details`
+- `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` (INSERT, UPDATE, DELETE)
+- `pro_availabilities` (INSERT, UPDATE, DELETE) — `set_pro_availability(_bulk)`
+- `bookings` (INSERT, UPDATE, DELETE) — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs

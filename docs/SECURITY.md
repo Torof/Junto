@@ -133,6 +133,8 @@ REVOKE SELECT ON public_profiles FROM anon;
 ### Limitation RLS : sous-requêtes cross-table dans les policies
 Les expressions de policy s'exécutent avec les droits de l'utilisateur qui fait la requête, et le RLS des tables référencées s'applique **récursivement**. Conséquence : une policy qui fait `NOT EXISTS (SELECT 1 FROM users WHERE id = <autre user> AND suspended_at IS NOT NULL)` ne voit aucune ligne (à cause de `users_select_own`) et retourne toujours TRUE — **no-op silencieux**. Découvert à l'audit de juin 2026 (mig 00256) ; affectait `activities_select_authenticated` et `pro_profiles_select`. Les checks own-row (`id = auth.uid()`) ne sont pas affectés.
 
+⚠️ **Réintroduit deux fois sur `pro_profiles_select`** (00277 puis 00334, chacune recopiant le corps précédent) → un pro approuvé puis suspendu restait visible (pin, fiche, favoris) pendant ~110 migrations. Re-corrigé en **00443**. Leçon : quand une policy est recréée (`DROP POLICY` + `CREATE POLICY`), relire son `USING` ligne à ligne contre cette règle — le copier-coller du corps précédent propage le bug.
+
 **Règle : jamais de sous-requête directe sur `users` (ou toute table à RLS restrictif) dans une policy.** Utiliser le prédicat dédié :
 ```sql
 USING ( NOT private.user_is_suspended(<user_id>) )
@@ -468,11 +470,43 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - Bayesian score avec PRIOR = 3
 - Stocke dans `users.reliability_score` (privilégiée, jamais write client)
 
+### Pro — vitrine (profil, offres, galeries) — migs 00240-00285, 00418, 00422, 00443
+
+Rattrapage 2026-10-12 (audit DB) : ces chaînes n'existaient que dans les commentaires de migration. Version live indiquée entre parenthèses — c'est **celle-là** qu'on reconstruit.
+
+**Candidature & profil**
+- `register_as_pro(13 p)` (00277) : auth → non suspendu → pas de profil existant → display_name / company_name / real_name / lng-lat / location_name obligatoires, bornes et longueurs → strip HTML (name, tagline, description, company, real) → INSERT `status='pending'` (tier inchangé — c'est `approve_pro` qui pose `tier='pro'`).
+- `update_pro_profile(13 p)` (00443, base 00278) : auth → non suspendu → propre ligne FOR UPDATE → **si approved : `company_name`/`real_name` renvoyés différents → `junto.pro_identity_locked`** (l'admin a validé sur ces deux champs ; les renvoyer inchangés est permis) → si lng/lat : triple complet + bornes + cooldown **30 j** (erreur générique — à passer en `junto.<code>`, audit B12) → longueurs → bypass UPDATE (NULL = conserver ; **un champ ne peut pas être vidé** — défaut produit, lot 1).
+- `unregister_as_pro()` (00443, base 00416) : auth → non suspendu → profil existe → aucune réservation future pending/accepted (`junto.offering_has_bookings`) → DELETE `pro_availabilities` → DELETE profil (CASCADE offres → photos/avis/bookings) → bypass `tier='free'`.
+- `resubmit_pro_application()` (00277) : auth → non suspendu → `status='rejected'` → bypass → `pending`. **Sans rate limit** (audit B9, mineur).
+- `set_pro_pin_image(url)` (00418) : auth → non suspendu → **approved** → URL `private.pro_photo_url_ok(url, uid)` (hôte projet + dossier de l'appelant) → UPDATE. `set_pro_pin_icon(icon)` (00281) : idem, valeur ∈ mountain/water/air/cycling.
+- `get_my_pro_application()` (00418) : auth (RETURN sinon) → own row incl. `real_name`/`rejection_reason` (colonnes révoquées de la table, 00418).
+- Admin : `approve_pro(uid)` (00419) : auth → admin non suspendu → cible pending → bypass → `tier='pro'` → notif → `log_admin_action`. `reject_pro(uid, reason)` (00329) : idem, reason ≤500. `admin_get_pending_pro_applications()` (00420) : pending + historique. `admin_pro_owner(uid)` (00329) : identité + email du propriétaire, loggé.
+
+**Offres**
+- `create_pro_offering(15 p)` (00285) : auth → non suspendu → `tier='pro'` → profil existe → titre 3-100, description ≤2000, level ∈ liste, lieu 1-100 + lng/lat bornés, max 1-50, schedule ≤100, distance/D+ ≥0, **prix ⇔ unité appariés**, min 1-50 ≤ max → advisory lock → **cap 12 offres** (`junto.offering_cap`) → INSERT (trigger `pro_offerings_require_approved` : `status='approved'` sinon générique).
+- `update_pro_offering(16 p)` (00285) : auth → non suspendu → tier pro → profil → **ownership** → mêmes validations → bypass UPDATE.
+- `delete_pro_offering(id)` (00416) : auth → non suspendu → ownership → aucune réservation future vivante (`junto.offering_has_bookings`) → DELETE (CASCADE photos, avis, réservations passées).
+- `set_offering_details` (00422) : voir section booking.
+
+**Galeries** (toutes : URL ancrée `private.pro_photo_url_ok`, 00418)
+- `add_pro_photo(url)` (00418) : auth → non suspendu → tier pro → profil → URL → lock → **cap 25** (`junto.photo_cap`) → INSERT. `remove_pro_photo(id)` / `reorder_pro_photos(ids[])` (00252) : ownership ; reorder = tableau exactement égal au count, tous owned, shift +1000 contre l'UNIQUE(pro, order_index). `set_pro_photo_url(id, url)` (00418) : ownership + URL → bypass.
+- `add_pro_offering_photo(offering, url)` (00418) / `remove_` / `reorder_` (00252) / `set_pro_offering_photo_url` (00418) : idem via JOIN ownership de l'offre.
+- `add_pro_community_photo(pro, url, review?, offering?)` (00443, base 00418) : auth → non suspendu → cible **approuvée ET non démo** → URL ancrée au dossier du **contributeur** → avis lié = le sien sur ce pro → offre liée appartient au pro → lock → **cap 5 / contributeur / pro** (`junto.photo_limit`) → INSERT. `remove_pro_community_photo(id)` (00283) : contributeur OU pro propriétaire.
+
+**Internes** (REVOKE anon + authenticated) : `private.assert_approved_pro(uid)` (tier pro ∧ profil approved ∧ non suspendu), `private.pro_photo_url_ok(url, uid)` (IMMUTABLE — **hôte du projet codé en dur**, audit B16), triggers `pro_offerings_require_approved`, `pro_reviews_require_approved` (INSERT, pro_reviews seulement), `pro_*_whitelist_columns`, `pro_*_touch_updated_at`, `strip_html_reviews`.
+
+**Gate `approved` — défense en profondeur incomplète (audit B8)** : seul le trigger INSERT des offres le vérifie ; la policy `pro_offerings_select`, la vue `pro_offerings_with_coords` et les RPC d'édition s'appuient sur `tier='pro'`. Non exploitable tant qu'`approved` est terminal ; à fermer avant tout chemin admin « révoquer un pro ».
+
+**Colonnes privilégiées (triggers whitelist, forcées à OLD hors bypass)** : `pro_profiles` (00419) `user_id, created_at, last_location_change_at, status, company_name, real_name, rejection_reason, reviewed_at, reviewed_by, is_demo` · `pro_offerings` (00334) `id, pro_id, created_at, is_demo` · `pro_profile_photos` / `pro_offering_photos` (00252) `id, parent_id, photo_url, created_at` · `pro_community_photos` (00314) toutes · `pro_reviews` / `offering_reviews` (00258) `id, cible, reviewer_id, pro_reply, pro_reply_at, created_at` · `pro_availabilities` (00416) toutes · `bookings` (00418) identité + créneau + `submitted_count`/`last_submitted_at`.
+
+**Privilèges colonnes `pro_profiles` (00418)** : `REVOKE SELECT` table puis `GRANT SELECT (colonnes publiques)` à authenticated ; exclues `reviewed_at`, `reviewed_by`, `primary_location`. ⚠️ `real_name` + `rejection_reason` **encore grantées** (compat build production « Brique 4a ») — rejouer sans elles dès que production ≥ dbcf2ba (SQL en commentaire 00418). Décision Scott en attente (audit B4).
+
 ### Avis Pro (mig 00258 — modèle Google Maps, non gated par décision 2026-06-10)
 
 **`create_pro_review(p_pro_id, p_rating, p_body)`** / **`create_offering_review(p_offering_id, p_rating, p_body)`** :
 1. `auth.uid()` non NULL + caller non suspendu
-2. Cible existe (pro_profile / offering) ; pro cible non suspendu
+2. Cible existe (pro_profile / offering) **et non démo** (`is_demo = false`, 00443 — un compte démo ne reçoit jamais d'écriture réelle, invariant 00426 ; même erreur générique qu'une cible inexistante) ; pro cible non suspendu
 3. Pas de self-review (caller ≠ pro de la cible)
 4. Rating 1-5 ; body strippé HTML + trim, vide → NULL, ≤ 1000
 5. Advisory lock `(user || '_reviews')` → unicité (reviewer, cible) + rate limit **10 créations / 24h combinées** sur les deux tables, atomiques
@@ -571,6 +605,12 @@ AS $$ ... $$;
 | `wall_messages` / `private_messages` | INSERT, UPDATE, DELETE | **Legacy** (refonte 2026-08-04) — lecture retirée ; 3 écrivains restants (invite card, `request_seat`, `accept_seat_request`) mirrorés → `messages` via `mirror_private_message` (00361). À dropper post-fenêtre OTA | wrappers/écrivains legacy uniquement |
 | `participations` | INSERT, UPDATE, DELETE | Bypass concurrent join, status, removal rules | `join_activity`, `accept_*`, `refuse_*`, `remove_participant`, `leave_activity`, `set_participation_transport`, `confirm_presence_via_*`, `peer_validate_presence` |
 | `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check ; **SELECT révoqué** — lecture curée uniquement (00352) | `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `reply_to_request`, `create_group`, `rename_group`, `leave_group`, `create_activity_conversation` (trigger), `send_message` (`last_message_at`) |
+| `pro_profiles` | INSERT, UPDATE, DELETE | Statut d'approbation, identité vérifiée (gelée après approved, 00443), cooldown enseigne 30 j, strip HTML | `register_as_pro`, `update_pro_profile`, `unregister_as_pro`, `resubmit_pro_application`, `set_pro_pin_image`, `set_pro_pin_icon`, `approve_pro`/`reject_pro` (admin) |
+| `pro_offerings` | INSERT, UPDATE, DELETE | Gate approved (trigger INSERT), ownership, cap 12, validations prix/places/durée, réservations futures | `create_pro_offering`, `update_pro_offering`, `delete_pro_offering`, `set_offering_details` |
+| `pro_profile_photos` / `pro_offering_photos` | INSERT, UPDATE, DELETE | Ownership, URL ancrée hôte+dossier (00418), cap 25/galerie, réordonnancement atomique | `add/remove/reorder_pro_photos`, `set_pro_photo_url` (×2 familles) |
+| `pro_community_photos` | INSERT, UPDATE, DELETE | Cible approuvée non démo (00443), URL ancrée au contributeur, avis lié = le sien, cap 5/user/pro | `add_pro_community_photo`, `remove_pro_community_photo` (contributeur ou pro) |
+| `pro_availabilities` | INSERT, UPDATE, DELETE | assert_approved_pro, bornes de dates | `set_pro_availability`, `set_pro_availability_bulk`, `unregister_as_pro` (purge) |
+| `bookings` | INSERT, UPDATE, DELETE | Machine à états, caps, cooldown, double consentement, ownership NULL-safe | `create_booking`, `create_manual_booking`, `accept/decline/cancel/cancel_pro_booking`, `set_booking_participant_info`, flips lazy `expired` (`get_pro_agenda`/`get_my_bookings`), `admin_suspend_user` |
 | `pro_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, pro), rate limit, self-review, reply ownership | `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review` |
 | `offering_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, offering), rate limit, self-review, reply ownership | `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` |
 | `peer_validations` | INSERT, UPDATE, DELETE | Bypass voter-presence + threshold logic | `peer_validate_presence` |
@@ -658,7 +698,7 @@ INSERT INTO activities (
 ## Colonnes privilégiées — jamais modifiables directement par le client
 
 ### Table `users`
-- `is_admin`, `tier`, `is_pro_verified`, `pro_verified_at`, `suspended_at`
+- `is_admin`, `tier`, `suspended_at` (`is_pro_verified`/`pro_verified_at` sont des colonnes **mortes** : le statut pro vit dans `pro_profiles.status` + `users.tier`, posés par `approve_pro`/`unregister_as_pro` — toujours gelées au trigger, jamais lues)
 - `phone_verified`, `phone_verified_at` (Supabase Auth flow)
 - `accepted_tos_at`, `accepted_privacy_at` (one-shot via `accept_tos`)
 - `date_of_birth` (one-shot via `set_date_of_birth`)
@@ -835,6 +875,41 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 
 #### `activity_gear` (nouveau)
 Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear`). Lecture par participants/créateur.
+
+#### `pro_profiles` (policy live 00443)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| authenticated : `NOT private.user_is_suspended(user_id)` ∧ gate démo ∧ (`status='approved'` ∨ own row ∨ admin non suspendu). **Privilèges colonnes (00418)** : `reviewed_at`/`reviewed_by`/`primary_location` révoquées ; `real_name`/`rejection_reason` encore grantées (temporaire). Anon : rien | 🔧 `register_as_pro` | 🔧 `update_pro_profile`, setters pin, admin approve/reject + whitelist (00419) | 🔧 `unregister_as_pro` (CASCADE users) |
+
+#### `pro_offerings` (policy live 00347)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| authenticated : pro non suspendu ∧ gate démo (pas de filtre `approved` — proxy `tier`, audit B8). Vue `pro_offerings_with_coords` (00422) GRANT anon + authenticated (site web) | 🔧 `create_pro_offering` + trigger `require_approved` | 🔧 `update_pro_offering`, `set_offering_details` + whitelist | 🔧 `delete_pro_offering` |
+
+#### `pro_profile_photos` / `pro_offering_photos` (policies live 00347)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| authenticated : parent non suspendu ∧ gate démo (via parent) | 🔧 `add_pro_(offering_)photo` | 🔧 `reorder_*`, `set_*_photo_url` + whitelist | 🔧 `remove_*` |
+
+#### `pro_community_photos` (policy live 00443)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| **authenticated seulement** (anon révoqué 00443) : pro non suspendu ∧ gate démo | 🔧 `add_pro_community_photo` | ❌ (whitelist toutes colonnes) | 🔧 `remove_pro_community_photo` (contributeur ou pro) |
+
+#### `pro_reviews` / `offering_reviews` (policies live 00347)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| authenticated : reviewer non suspendu ∧ pro non suspendu ∧ gate démo. Vues `*_with_profiles`, `*_review_stats` (anon révoqué 00287) | 🔧 `create_*_review` (+ trigger `require_approved` sur pro_reviews) | 🔧 `update_*_review`, `reply_to_*_review` + whitelist | 🔧 `delete_*_review`, `admin_remove_content` |
+
+#### `pro_availabilities` (00416)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| Own rows ; les autres via `get_pro_availability` (RPC gatée) | 🔧 `set_pro_availability(_bulk)` | ❌ (whitelist toutes colonnes) | 🔧 `set_pro_availability(_bulk)`, `unregister_as_pro` |
+
+#### `bookings` (00416-00418)
+| SELECT | INSERT | UPDATE | DELETE |
+|--------|--------|--------|--------|
+| Parties (client ou pro) ; anon révoqué 00417 (`manual_phone`) | 🔧 `create_booking`, `create_manual_booking` | 🔧 accept/decline/cancel/cancel_pro, `set_booking_participant_info`, flips lazy + whitelist (identité/créneau/compteurs gelés) | ❌ (CASCADE offre / users) |
 
 ---
 
@@ -1321,7 +1396,7 @@ Le bypass est nécessaire car `is_admin` est dans la whitelist du trigger user.
 
 Toute question de sécurité se réfère à ce document. Mis à jour au fil du développement (la dernière refonte est postérieure à la mig 00149).
 
-## Réservations pro (booking) — migs 00416-00417
+## Réservations pro (booking) — migs 00416-00422, 00443
 
 **Tables** : `pro_availabilities` (pro_id, day, period am/pm — présence = dispo ; UNIQUE(pro,day,period)) · `bookings` (offering_id CASCADE, pro_id/client_id CASCADE, client Junto XOR manuel (manual_name/phone, pro-only), day, period, party_size 1-50, message ≤500 strippé, status pending/accepted/declined/cancelled/cancelled_pro/expired, UNIQUE(offering,client,day,period)). ENABLE+FORCE RLS ; SELECT own (dispos) / parties (bookings) ; **zéro write policy** ; triggers whitelist (bookings : identité+créneau figés, status via RPC sous bypass) ; REVOKE SELECT anon (00417 — manual_phone).
 
@@ -1332,10 +1407,11 @@ Toute question de sécurité se réfère à ce document. Mis à jour au fil du d
 - `create_manual_booking` : auth → assert_approved_pro → offre à soi → date bornée (dispo NON requise — son agenda) → party_size borné → strip name/phone → advisory lock + cap 30/24 h → INSERT direct `accepted`, sans notif ni conversation.
 - `accept_booking` : auth → **assert_approved_pro (00418 : un pro révoqué garde cancel, perd accept)** → FOR UPDATE → status=pending ∧ client_id NOT NULL → caller=pro_id → date non passée → client non suspendu → re-check blocage → UPDATE guardé (bypass, ROW_COUNT) → **DM : réutilise/réactive toute ligne de la paire (FOR UPDATE + backstop unique_violation) ; la RÉACTIVATION RETAGUE `initiated_from='booking'` + purge request_sender_id/request_message/pending_activity_id + un-hide des membres (00418 H2 : une demande sociale pending/declined ne devient JAMAIS un contact via le booking — le double consentement frais ne couvre que l'ouverture du fil, pas la classification sociale)** → message seed dans `messages` (metadata.type='booking_accepted') → notif `booking_accepted`. 'booking' est LOGISTIQUE (hors listes sociales 00372).
 - `decline_booking` : auth → FOR UPDATE → pending ∧ caller=pro → flip declined → **notif `booking_declined` (DÉVIATION ASSUMÉE du decline silencieux : logistique, pas social — copy neutre, sprint-booking.md)**.
-- `cancel_booking` (client, pending|accepted→cancelled, notif pro seulement si accepted) · `cancel_booking_pro` (pro, →cancelled_pro, notif client si accepted). **Dates passées refusées (00419) ; suspension bloquante (00420)** — inutile de s'annuler soi-même : `admin_suspend_user` auto-annule les réservations futures du suspendu (2 sens) + notifie les contreparties en copy NEUTRE (la suspension n'est jamais révélée à un tiers).
+- `cancel_booking` (client, pending|accepted→cancelled, notif pro seulement si accepted) · `cancel_booking_pro` (pro, →cancelled_pro, notif client si accepted). **Ownership NULL-safe (00443) : `client_id IS DISTINCT FROM uid`** — avec `!=`, une réservation MANUELLE (`client_id` NULL) rendait le test NULL et n'importe quel compte connaissant l'id pouvait l'annuler ; une manuelle n'a pas de client côté app → refus générique. Règle : tout test d'ownership sur une colonne nullable utilise `IS DISTINCT FROM`. **Dates passées refusées (00419) ; suspension bloquante (00420)** — inutile de s'annuler soi-même : `admin_suspend_user` auto-annule les réservations futures du suspendu (2 sens) + notifie les contreparties en copy NEUTRE (la suspension n'est jamais révélée à un tiers).
 - Expiration lazy : `get_pro_agenda` flippe les pending passés ET **notifie le client (`booking_expired`, 00420)** ; le flip dans `get_my_bookings` reste silencieux (le client a la liste sous les yeux). `admin_get_pending_pro_applications` renvoie l'historique approve/reject (00420, contre-mesure blanchiment M5).
 - `get_pro_availability(pro)` : authed non suspendu → cible approuvée **+ tier='pro' (00419)**/non suspendue/gate démo/non bloquée → jours futurs only. **+ `taken` (00421)** : somme des groupes acceptés du pro par créneau — agrégat anonyme, purement INFORMATIF (la capacité ne bloque jamais, le pro juge). `get_pro_agenda(from,to)` : own, ≤12 mois, expire les pending passés (lazy) ; + sport_key/category (00421, code couleur). `get_my_bookings()` : own client, expire lazy, renvoie le DM actif de la paire s'il existe ; + lieu/prix/sport de l'offre (00421, carte billet).
 - `set_pro_availability_bulk(days[], periods[], available)` (00421) : auth → assert_approved_pro → tableaux parallèles 1..200 → periods ∈ am/pm → dates ∈ [aujourd'hui, +6 mois] → upsert ON CONFLICT DO NOTHING / delete own. Fermer ne touche jamais les réservations (même sémantique que l'unitaire). REVOKE anon.
-- Garde-fous : `delete_pro_offering` + `unregister_as_pro` → `junto.offering_has_bookings` si réservations futures pending/accepted (sinon CASCADE silencieux).
+- Garde-fous : `delete_pro_offering` + `unregister_as_pro` → `junto.offering_has_bookings` si réservations futures pending/accepted (sinon CASCADE silencieux). `unregister_as_pro` purge aussi `pro_availabilities` (00443 — FK vers `users`, pas `pro_profiles` : sans ça les créneaux ouverts survivaient et redevenaient réservables à une ré-inscription). **Ouvert (décision Scott)** : le CASCADE efface aussi les réservations PASSÉES des clients et tous les avis — soft-delete de l'offre/du profil plutôt que DELETE ?
+- `set_offering_details(offering, provided[], required[], std_fields[], custom_fields[])` (00422) : auth → non suspendu → tier pro → profil → ownership → listes ≤15×60 car. strippées, std ⊆ catalogue (5), custom ≤3×80 → bypass UPDATE. `set_booking_participant_info(booking, info jsonb)` (00422) : auth → non suspendu → FOR UPDATE → client de LA résa (ou le pro si manuelle, NULL-safe) → status accepted → date future → validation stricte contre `participant_fields` de l'offre → bypass UPDATE.
 
-**Codes** : junto.booking_date / booking_slot_unavailable / booking_party_size / booking_message / booking_already / booking_pending_cap / booking_daily_cap / booking_cooldown / booking_manual_name / offering_has_bookings (i18n FR+EN livrée). **Notifs** : booking_request / booking_accepted / booking_declined / booking_cancelled — defaults + backfill 00168 ; push par défaut (branche ELSE 00117).
+**Codes** : junto.booking_date / booking_slot_unavailable / booking_party_size / booking_message / booking_already / booking_pending_cap / booking_daily_cap / booking_cooldown / booking_manual_name / offering_has_bookings (i18n FR+EN livrée). **Notifs** : booking_request / booking_accepted / booking_declined / booking_cancelled / booking_expired (00420) — defaults + backfill 00168 ; push par défaut (branche ELSE 00117).
