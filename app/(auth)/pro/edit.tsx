@@ -20,7 +20,7 @@ import { X, Check, ImagePlus, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
-import { proService } from '@/services/pro-service';
+import { proService, type ClearableProField } from '@/services/pro-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -167,22 +167,24 @@ export default function ProEditScreen() {
   };
 
   // Location-change rate limit is enforced at the DB level; surface it
-  // to the user before submit so they don't get a generic "not
-  // permitted" toast.
+  // to the user before submit so they don't get a "not permitted" toast.
+  // Only an APPROVED (public) pin is locked (00444): a pending or rejected
+  // pro can still correct a misplaced pin before anyone sees it.
+  const isApproved = existing?.status === 'approved';
   const lastChange = existing?.last_location_change_at;
   const locationLocked = useMemo(() => {
-    if (!lastChange) return false;
+    if (!isApproved || !lastChange) return false;
     const elapsed = Date.now() - new Date(lastChange).getTime();
     return elapsed < 30 * 24 * 60 * 60 * 1000;
-  }, [lastChange]);
+  }, [isApproved, lastChange]);
   const locationChanged =
     existing != null &&
     (pinLng !== existing.primary_lng || pinLat !== existing.primary_lat || locationName.trim() !== existing.primary_location_name);
 
-  // Verification fields (company + real name) are required to register AND to
-  // re-submit a rejected application (so the pro can fix what got them rejected).
-  // An approved pro editing their live page doesn't re-enter them.
-  const showVerification = !isUpdate || existing?.status === 'rejected';
+  // Verification fields (company + real name) are editable until approval —
+  // a pending or rejected pro can fix a typo. Once approved they are frozen
+  // server-side (00443, junto.pro_identity_locked) and no longer shown.
+  const showVerification = !isUpdate || !isApproved;
   const verificationOk = !showVerification || (companyName.trim().length >= 2 && realName.trim().length >= 2);
   const canSubmit =
     displayName.trim().length >= 1 &&
@@ -213,8 +215,10 @@ export default function ProEditScreen() {
         primary_location_name: locationName.trim(),
       };
       if (isUpdate) {
-        const base = {
-          display_name: payload.display_name,
+        // A field the pro blanked out must be named to the RPC — a NULL
+        // param means "unchanged" there (00444).
+        const clear: ClearableProField[] = [];
+        const optional: Record<ClearableProField, string | null> = {
           tagline: payload.tagline,
           description: payload.description,
           website: payload.website,
@@ -222,7 +226,15 @@ export default function ProEditScreen() {
           phone: payload.phone,
           instagram: payload.instagram,
           facebook: payload.facebook,
-          // Only a rejected pro re-enters the verification fields.
+        };
+        (Object.keys(optional) as ClearableProField[]).forEach((k) => {
+          if (optional[k] === null && existing?.[k]) clear.push(k);
+        });
+        const base = {
+          display_name: payload.display_name,
+          ...optional,
+          clear,
+          // Verification fields travel only while they are still editable.
           ...(showVerification ? { company_name: payload.company_name, real_name: payload.real_name } : {}),
         };
         // Only send location when it actually changed — otherwise the
@@ -241,6 +253,12 @@ export default function ProEditScreen() {
       }
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      // The public page, the sheet and the map pins read other keys — without
+      // these the pro came back to a stale page after saving.
+      if (existing?.user_id) {
+        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing.user_id] });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['pros'] });
       Burnt.toast({
         title: isUpdate
           ? t('pro.saved', { defaultValue: 'Page pro enregistrée' })
@@ -320,9 +338,10 @@ export default function ProEditScreen() {
         )}
 
 
-        {/* Pin image — square photo that replaces the initial inside the
-            pro pin on the map. Update-mode only, same as banner. */}
-        {isUpdate && (
+        {/* Pin icon / logo — persisted at tap through approved-only setters,
+            so the whole section waits for approval (a pending pro tapping
+            it only got a generic error). */}
+        {isApproved && (
           <View style={styles.bannerSection}>
             <Text style={styles.section}>{t('pro.pinIconSection', { defaultValue: 'Icône du pin' })}</Text>
             <Text style={styles.helper}>

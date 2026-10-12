@@ -42,7 +42,12 @@ export interface RegisterAsProInput {
   facebook?: string | null;
 }
 
-export type UpdateProProfileInput = Partial<RegisterAsProInput>;
+// Optional fields the pro may blank out. The RPC keeps a NULL param as
+// "unchanged", so a cleared field must be named explicitly (00444).
+export type ClearableProField =
+  | 'tagline' | 'description' | 'website' | 'email' | 'phone' | 'instagram' | 'facebook';
+
+export type UpdateProProfileInput = Partial<RegisterAsProInput> & { clear?: ClearableProField[] };
 
 export interface PendingProApplication {
   user_id: string;
@@ -139,6 +144,7 @@ export const proService = {
       p_primary_lng: input.primary_lng ?? undefined,
       p_primary_lat: input.primary_lat ?? undefined,
       p_primary_location_name: input.primary_location_name ?? undefined,
+      p_clear: input.clear && input.clear.length > 0 ? input.clear : undefined,
     });
     if (error) throw error;
   },
@@ -193,9 +199,13 @@ export const proService = {
     neLng: number;
     neLat: number;
   }): Promise<NearbyPro[]> => {
+    // `status` is selected only to drop the caller's OWN pending/rejected
+    // row (the RLS shows it to them) — nobody else can see it, so the pin
+    // must not pretend to be live.
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, tagline, description');
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, tagline, description, status')
+      .eq('status', 'approved');
 
     if (bounds) {
       query = query
