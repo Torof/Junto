@@ -105,8 +105,30 @@ export function usePushNotifications(enabled: boolean) {
         conversation_id?: string;
         pro_id?: string;
         offering_id?: string;
+        booking_id?: string;
+        by?: string;
         type?: string;
       };
+      // Booking pushes (00416-00420) — mirrors notifications-view. Without
+      // these a booking_request fell into the offering_id branch and opened
+      // the OFFER instead of the agenda; booking_cancelled opened nothing.
+      if (data?.type === 'booking_request') {
+        router.push('/(auth)/pro/agenda');
+        return;
+      }
+      if (data?.type === 'booking_accepted') {
+        router.push(data.conversation_id ? `/(auth)/conversation/${data.conversation_id}` : '/(auth)/my-bookings');
+        return;
+      }
+      if (data?.type === 'booking_declined' || data?.type === 'booking_expired') {
+        router.push('/(auth)/my-bookings');
+        return;
+      }
+      if (data?.type === 'booking_cancelled') {
+        // by=client → the PRO is notified (agenda) ; by=pro → the CLIENT is.
+        router.push(data.by === 'client' ? '/(auth)/pro/agenda' : '/(auth)/my-bookings');
+        return;
+      }
       // Peer-review pushes land on the review screen (mirrors the in-app
       // notification router) — not the activity detail.
       if ((data?.type === 'rate_participants' || data?.type === 'peer_review_closing') && data.activity_id) {
