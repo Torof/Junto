@@ -33,48 +33,50 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 
 ---
 
-## Lot 1 — Bugs client du parcours (à faire, un commit par point)
+## Lot 1 — Bugs client du parcours ✅ livré 2026-10-12 (mig 00444 + OTA preview)
 
 ### État pending / rejected
-- [ ] `menu-sheet.tsx` : « Espace pro » seulement si `status='approved'` (aujourd'hui dès qu'une ligne existe).
-- [ ] `pro/espace.tsx` : gérer `isError` de `get_pro_agenda` (assert_approved_pro) ; sous-titre distinct pending / rejected ; tuiles désactivées hors approved.
-- [ ] `pro/edit.tsx` : section « Icône du pin » et logo masquées hors approved (les setters exigent approved → erreur générique au tap).
-- [ ] `settings-drawer.tsx` : la ligne « En attente » ouvre le formulaire (aujourd'hui dead-end ; seul rejected y mène).
-- [ ] `pro/offering/edit.tsx` : garde sur `status`, pas sur l'existence du profil.
-- [ ] `pro-detail.tsx` : bannière « page pas encore publique » pour le propriétaire pending ; `use-nearby-pros` ne montre pas son propre pin pending.
-- [ ] `pro/edit.tsx` : `company_name`/`real_name` en lecture seule une fois approuvé (B3) + mapping `junto.pro_identity_locked`.
+- [x] `menu-sheet.tsx` : « Espace pro » seulement si `status='approved'`.
+- [x] `pro/espace.tsx` : agenda désactivé hors approved ; état unique pending / rejected (titre, texte, bouton « Modifier / Corriger ma demande ») à la place du dashboard.
+- [x] `pro/edit.tsx` : section « Icône du pin » et logo réservées à approved.
+- [x] `settings-drawer.tsx` : la ligne « En attente » ouvre le formulaire.
+- [x] `pro/offering/edit.tsx` : garde sur `status='approved'`.
+- [x] Pin pending jamais affiché : `proService.getNearby` filtre `status='approved'` (la RLS montre sa propre ligne). Bannière « page pas encore publique » sur `pro-detail` → inutile, l'Espace pro porte l'état.
+- [x] `pro/edit.tsx` : identité éditable jusqu'à approbation (pending **et** rejected), masquée ensuite (gel serveur 00443).
 
 ### Notifications
-- [ ] `use-push-notifications.ts` : branches `booking_request` → agenda (jour), `booking_declined`/`booking_expired`/`booking_cancelled` (selon `data.by`) → Mes réservations ou agenda. Aujourd'hui demande → page de l'offre, annulation → rien.
-- [ ] `notifications-view.tsx` : `booking_request` ouvre le jour / la demande.
+- [x] `use-push-notifications.ts` : branches `booking_request` / `booking_accepted` / `booking_declined` / `booking_expired` / `booking_cancelled` (selon `data.by`), miroir de la vue in-app.
+- [ ] `notifications-view.tsx` : `booking_request` ouvre le **jour** / la demande → avec le chantier calendrier (lot 2).
 
 ### Formulaires et données
-- [ ] Champs pro **vidables** : `pro-service.update` envoie `undefined` pour vide + RPC `COALESCE` → impossible de retirer un téléphone / Facebook. Évolution RPC (sentinelle ou `p_clear[]`) + client.
-- [ ] Verrou carte 30 j posé **à l'inscription** : ne pas démarrer le compteur avant la 1ʳᵉ modification post-approbation (un refusé doit pouvoir corriger).
-- [ ] `offering/edit.tsx` : création non atomique (`create` puis `setDetails`) → doublon au second « Créer ». Un seul RPC ou rollback.
-- [ ] Tags matériel / question libre : ajout uniquement sur `onSubmitEditing` → brouillon perdu au blur. Bouton « + » + flush au submit.
-- [ ] Minutes de durée non bornées 0-59 ; description requise non trimée ; parse `duration` échoue sur « 1 day 02:00:00 » (écrase à NULL).
-- [ ] **KeyboardAvoidingView** dans `pro/edit.tsx` et `offering/edit.tsx` → `useKeyboardDockPadding` ; sheet « Ajouter une réservation » (agenda) sans gestion clavier.
-- [ ] `booking-form` : fiche participant envoyée vide = « ✓ Fiche du groupe » trompeur ; texte « Offre indisponible » pour un booking introuvable.
+- [x] Champs pro **vidables** : `update_pro_profile(... p_clear TEXT[])` (00444, liste blanche 7 colonnes) ; le client nomme les champs vidés.
+- [x] Verrou carte 30 j : seulement une fois **approuvé** (00444) ; `junto.pro_location_cooldown` à la place du générique ; le client suit.
+- [x] `offering/edit.tsx` : si `set_offering_details` échoue après create/update, on atterrit quand même sur l'offre avec un toast explicite (plus de doublon au second « Créer »).
+- [x] Tags matériel / question libre : commit au blur + flush au submit (le « + » visible = lot 2 avec le formulaire en deux temps).
+- [x] Minutes 0-59 validées ; description trimée ; parse `duration` gère « N day(s) HH:MM:SS ».
+- [x] Sheet « Ajouter une réservation » (agenda) : `useKeyboardDockPadding` + `Animated.View`.
+- [~] **KeyboardAvoidingView** dans `pro/edit.tsx` et `offering/edit.tsx` : **conservé**. Règle maison exacte (mémoire 2026-06-10) : KAV banni des chat docks et bottom sheets ; `behavior` iOS padding / Android undefined est le pattern accepté pour les **formulaires ScrollView** (UX_UI.md:275). Pas de bug remonté sur ces deux écrans.
+- [x] `booking-form` / `my-bookings` : le ✓ compte les fiches réellement remplies ; « Réservation introuvable » pour un booking absent.
 
 ### Cache / rafraîchissement
-- [ ] `pro/edit.tsx` submit : invalider `['pro-profile', userId]` et `['pros']` (page publique périmée après édition).
-- [ ] Clé `['offering', id]` dans `book/` ≠ `['pro-offering', id]` ailleurs.
-- [ ] Pull-to-refresh sur Espace pro, Agenda, Mes réservations, booking-form (aucun refresh ni realtime aujourd'hui).
-- [ ] `accept()` renvoie `conversation_id` : invalider `['conversations']`, proposer « Ouvrir la discussion ».
-- [ ] Suppression d'offre : `router.back()` retombe sur une page « introuvable ».
+- [x] `pro/edit.tsx` submit : invalide `['pro-profile', userId]` + `['pros']`.
+- [x] `book/` : clé `['pro-offering', id]` alignée ; invalide `['pro-availability', pro_id]` après envoi.
+- [x] Pull-to-refresh sur Espace pro, Agenda, Mes réservations.
+- [ ] `accept()` renvoie `conversation_id` : proposer « Ouvrir la discussion » → lot 2 (fiche demande).
+- [x] Suppression d'offre : `router.dismissTo(page pro)` au lieu de retomber sur « introuvable ».
 
 ### Flux de réservation
-- [ ] `book/` : stepper borné aux places **restantes** du créneau choisi ; pré-créneau `?day=&period=` revalidé contre `slots`.
-- [ ] `offering-detail` : « Réserver » caché au **propriétaire** (sheet + barre sticky) ; section créneaux vide → dire l'absence de dispos ; `min_participants` affiché mais jamais utilisé (décision).
-- [ ] Agenda : « Copier la semaine passée » et listes Demandes / À venir dérivées de la fenêtre chargée (faux négatifs en naviguant loin).
+- [x] `book/` : stepper borné aux places **restantes** du créneau choisi ; pré-créneau revalidé à l'arrivée des dispos (toast + désélection).
+- [x] `offering-detail` : « Réserver » et créneaux cachés au **propriétaire** ; 0 créneau → « Pas encore de créneau ouvert — reviens bientôt » sans bouton.
+- [ ] `min_participants` affiché mais jamais utilisé → décision Scott.
+- [ ] Agenda : « Copier la semaine passée » et listes dérivées de la fenêtre chargée → avec le chantier calendrier (lot 2).
 
 ### Photos
-- [ ] `pro-detail.tsx` : tuile « Ajouter des photos » du carrousel appelle l'ajout **communautaire** même pour le propriétaire.
-- [ ] Flag busy sur les pickers (double tap = deux pickers) ; échec au 3ᵉ fichier non expliqué ; HEIC iOS à vérifier ; ancien logo jamais purgé du storage.
+- [x] `pro-detail.tsx` : tuile « Ajouter des photos » → galerie pour le propriétaire, communautaire pour les autres.
+- [ ] Flag busy sur les pickers ; échec partiel non expliqué ; HEIC iOS ; ancien logo non purgé → lot 2 (photos).
 
 ### Conventions
-- [ ] Namespace `pro.*` **entier** + ~30 clés `booking.*` + `drawer.becomePro`/`myProPage`, `common.share`/`close`, `calendar.mon…sun`, `proOffering.*` absents de fr.json (textes FR enfermés dans les `defaultValue`).
+- [x] fr.json + en.json : namespace `pro.*` complet, clés `booking.*` du hub/agenda/manuel, `drawer.becomePro`/`myProPage`, `common.share/close/delete/save`, `calendar.mon…sun`, `proOffering.*` (validations). Les `defaultValue` restent dans le code comme filet.
 - [ ] Couleurs/rayons/tailles hors tokens (liste dans l'audit : `espace`, `offering/edit`, `offering-detail`, `pro-offering-card`, `pro-detail`, `availability-calendar`, pins) ; submits pro en `radius.sm` vs booking en `radius.full`.
 - [ ] Dead code : `showFullMap` + Modal carte dans `pro-detail`, `equipBlock`, schéma `pro-offering-form` non utilisé ; `Tile` défini dans le render de `espace`.
 - [ ] Écrans pro non déclarés dans `app/(auth)/_layout.tsx` (titre de route visible une frame).
