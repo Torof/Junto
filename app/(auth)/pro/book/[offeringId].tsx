@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -29,7 +29,8 @@ export default function BookOfferingScreen() {
   }>();
 
   const { data: offering, isLoading: offeringLoading } = useQuery({
-    queryKey: ['offering', offeringId],
+    // Same key as the detail page / sheet — one fetch, invalidated together.
+    queryKey: ['pro-offering', offeringId],
     queryFn: () => proOfferingService.getById(offeringId ?? ''),
     enabled: !!offeringId,
   });
@@ -39,8 +40,6 @@ export default function BookOfferingScreen() {
     queryFn: () => bookingService.getProAvailability(offering?.pro_id ?? ''),
     enabled: !!offering?.pro_id,
   });
-
-  const maxParty = Math.min(offering?.max_participants ?? 50, 50);
 
   // Places restantes par créneau — INFORMATIF (la capacité ne bloque pas en
   // DB, le pro reste juge) : « Complet » grise le créneau côté client.
@@ -65,6 +64,27 @@ export default function BookOfferingScreen() {
   const [sending, setSending] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
+  // The stepper stops at the places LEFT on the chosen slot, not only at the
+  // offer's maximum — the screen said « reste 2 » and let you ask for 6.
+  const selectedFree = selected ? slotInfo.get(`${selected.day}|${selected.period}`)?.free ?? null : null;
+  const maxParty = Math.min(offering?.max_participants ?? 50, selectedFree ?? 50, 50);
+  useEffect(() => {
+    if (partySize > maxParty) setPartySize(Math.max(1, maxParty));
+  }, [maxParty, partySize]);
+
+  // A slot pre-selected from the offer's chips (?day=&period=) is checked
+  // once the availabilities arrive: closed or full since → unselect and say so.
+  const presetChecked = useRef(false);
+  useEffect(() => {
+    if (presetChecked.current || !slots || !selected) return;
+    presetChecked.current = true;
+    const info = slotInfo.get(`${selected.day}|${selected.period}`);
+    if (!info || (info.free != null && info.free <= 0)) {
+      setSelected(null);
+      Burnt.toast({ title: t('booking.presetSlotGone', { defaultValue: 'Ce créneau n’est plus disponible — choisis-en un autre.' }) });
+    }
+  }, [slots, selected, slotInfo, t]);
+
   // Liste des prochains créneaux (maquette v2) : le calendrier passe en appui.
   const nextSlots = useMemo(
     () => [...(slots ?? [])].sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period)).slice(0, 6),
@@ -80,6 +100,7 @@ export default function BookOfferingScreen() {
     try {
       await bookingService.createBooking(offeringId, selected.day, selected.period, partySize, message.trim() || undefined);
       await queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-availability', offering?.pro_id] });
       Burnt.toast({ title: t('booking.requestSent', { defaultValue: 'Demande envoyée au professionnel' }), preset: 'done' });
       router.replace('/(auth)/my-bookings');
     } catch (e) {

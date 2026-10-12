@@ -466,7 +466,10 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
               <LayoutGrid size={16} color={colors.cta} strokeWidth={2.4} />
               <Text style={styles.photoActionText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
             </Pressable>
-            <Pressable onPress={handleCommunityAdd} style={[styles.photoSmall, styles.photoActionTile]}>
+            {/* The owner feeds the GALLERY (cap 25); everyone else contributes
+                a community photo (cap 5). Same tile, two destinations — the
+                owner used to land in the community path. */}
+            <Pressable onPress={isOwner ? handleGalleryAdd : handleCommunityAdd} style={[styles.photoSmall, styles.photoActionTile]}>
               <View style={styles.addPhotoIconRow}>
                 <Camera size={16} color={colors.cta} strokeWidth={2.4} />
                 <Plus size={12} color={colors.cta} strokeWidth={3} />

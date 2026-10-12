@@ -317,9 +317,16 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       {/* Prochains créneaux — la question n°1 d'un client : quand ? (maquette
           v2 validée). Dans le drawer, le CTA Réserver vit ici — pas de barre
           sticky en sheet : elle s'empilerait avec la tab bar visible dessous. */}
-      {(nextSlots.length > 0 || inSheet) && (
+      {(nextSlots.length > 0 || inSheet) && !isOwner && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</Text>
+        {nextSlots.length === 0 && (
+          // Say it here rather than one screen later ("n'a pas encore ouvert
+          // de disponibilités" used to be the only place the client learnt it).
+          <Text style={{ color: colors.textSecondary, fontSize: fontSizes.sm }}>
+            {t('booking.noSlotsYet', { defaultValue: 'Pas encore de créneau ouvert — reviens bientôt.' })}
+          </Text>
+        )}
         {nextSlots.length > 0 && (
           <>
             <View style={styles.slotsRow}>
@@ -352,7 +359,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           </>
         )}
 
-          {inSheet ? (
+          {inSheet && nextSlots.length > 0 ? (
             <PressableScale
               style={[styles.bookBtn, glow(colors.cta)]}
               onPress={() => goBook()}
@@ -452,6 +459,17 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
   // Plein écran (page hors tabs) : barre réserver collée en bas, toujours
   // visible (maquette v2 §8 — pas en sheet : la tab bar est dessous).
+  // Le propriétaire ne réserve pas sa propre sortie (create_booking refuse
+  // ≠ soi) : pas de barre pour lui.
+  if (isOwner) {
+    return (
+      <View style={styles.container}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {body}
+        </ScrollView>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scrollContent, styles.scrollContentSticky]} showsVerticalScrollIndicator={false}>

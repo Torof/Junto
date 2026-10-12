@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput, Platform, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput, Platform, Alert, RefreshControl } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -53,6 +55,8 @@ export default function ProAgendaScreen() {
   const { session } = useAuth();
   const userId = session?.user?.id ?? null;
   const queryClient = useQueryClient();
+  // Manual-booking sheet rides the IME inset (never a KeyboardAvoidingView).
+  const imePadding = useKeyboardDockPadding(0);
 
   const [monthStart, setMonthStart] = useState(() => dayjs().startOf('month').format('YYYY-MM-DD'));
   // Agenda window: the visible month, élargie d'un mois de chaque côté pour que
@@ -60,7 +64,7 @@ export default function ProAgendaScreen() {
   const from = dayjs(monthStart).subtract(1, 'month').format('YYYY-MM-DD');
   const to = dayjs(monthStart).add(2, 'month').format('YYYY-MM-DD');
 
-  const { data: agenda, isLoading } = useQuery({
+  const { data: agenda, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['pro-agenda', from, to],
     queryFn: () => bookingService.getAgenda(from, to),
   });
@@ -319,7 +323,11 @@ export default function ProAgendaScreen() {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching && !isLoading} onRefresh={() => refetch()} tintColor={colors.cta} colors={[colors.cta]} />}
+      >
         {editMode && (
           <View style={styles.editBanner}>
             <Pencil size={14} color={colors.onCta} strokeWidth={2.4} />
@@ -527,6 +535,9 @@ export default function ProAgendaScreen() {
       {/* Résa manuelle — client hors app */}
       <Modal visible={manualOpen} transparent animationType="slide" onRequestClose={() => setManualOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setManualOpen(false)}>
+          {/* The sheet rides the IME inset (same pattern as the report modal) —
+              the keyboard used to cover Nom / Téléphone / Ajouter. */}
+          <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.sheetTitle}>{t('booking.manualTitle', { defaultValue: 'Ajouter une réservation' })}</Text>
 
@@ -592,6 +603,7 @@ export default function ProAgendaScreen() {
               <Text style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</Text>
             </Pressable>
           </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
     </View>

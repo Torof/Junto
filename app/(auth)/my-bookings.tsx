@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Alert, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Alert, Pressable, RefreshControl } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +35,9 @@ export default function MyBookingsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: bookings, isLoading } = useQuery({
+  // No realtime on bookings: pull-to-refresh is how the client sees
+  // « Confirmée » without leaving the screen.
+  const { data: bookings, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['my-bookings'],
     queryFn: () => bookingService.getMyBookings(),
   });
@@ -88,8 +90,10 @@ export default function MyBookingsScreen() {
   // Fiche participant : l'offre demande des champs ? complète ?
   const needsForm = (b: MyBooking) =>
     ((b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0)) > 0;
+  // An entry sent empty ({}) is not a filled form — the ✓ used to light up
+  // as soon as the array had party_size slots, even with nothing typed.
   const formComplete = (b: MyBooking) =>
-    (b.participant_info?.length ?? 0) >= b.party_size;
+    (b.participant_info ?? []).filter((e) => Object.keys(e).length > 0).length >= b.party_size;
 
   const renderItem = ({ item }: { item: MyBooking }) => {
     const c = statusColor(item.status);
@@ -201,6 +205,7 @@ export default function MyBookingsScreen() {
           keyExtractor={(b) => b.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={isRefetching && !isLoading} onRefresh={() => refetch()} tintColor={colors.cta} colors={[colors.cta]} />}
           ListHeaderComponent={
             <View style={styles.seg}>
               {(['upcoming', 'past'] as const).map((k) => (

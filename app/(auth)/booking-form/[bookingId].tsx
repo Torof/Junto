@@ -94,7 +94,7 @@ export default function BookingFormScreen() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: t('booking.formTitle', { defaultValue: 'Fiche du groupe' }) }} />
-        {isLoading ? <LogoSpinner size={36} /> : <Text style={styles.intro}>{t('booking.offeringGone', { defaultValue: 'Offre indisponible.' })}</Text>}
+        {isLoading ? <LogoSpinner size={36} /> : <Text style={styles.intro}>{t('booking.bookingGone', { defaultValue: 'Réservation introuvable.' })}</Text>}
       </View>
     );
   }
