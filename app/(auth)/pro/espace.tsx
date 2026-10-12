@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Linking } from 'react-native';
+import { useMemo, useState, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Linking, RefreshControl } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -33,15 +33,35 @@ export default function ProSpaceScreen() {
     enabled: !!userId,
   });
 
+  // The agenda RPC asserts an APPROVED pro — a pending one got a silent
+  // error and a dashboard pretending « Aucune sortie aujourd'hui ».
+  const isApproved = proProfile?.status === 'approved';
+
   // Fenêtre courte pour le dashboard (aujourd'hui + compteurs 7 j + demandes du mois).
   const from = dayjs().format('YYYY-MM-DD');
   const to = dayjs().add(1, 'month').format('YYYY-MM-DD');
-  const { data: agenda } = useQuery({
+  const { data: agenda, refetch: refetchAgenda } = useQuery({
     queryKey: ['pro-agenda', from, to],
     queryFn: () => bookingService.getAgenda(from, to),
+    enabled: isApproved,
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pro-agenda'] });
+
+  // Pull-to-refresh — there is no realtime on bookings, so this is how a
+  // pro sees a request that arrived while the screen was open.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchAgenda(),
+        queryClient.invalidateQueries({ queryKey: ['pro-profile', userId] }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchAgenda, queryClient, userId]);
 
   const todayIso = dayjs().format('YYYY-MM-DD');
   const todayBookings = (agenda ?? [])
@@ -85,21 +105,45 @@ export default function ProSpaceScreen() {
     );
   };
 
-  const Tile = ({ icon, title, sub, badge, onPress }: {
-    icon: React.ReactNode; title: string; sub: string; badge?: number; onPress: () => void;
-  }) => (
-    <PressableScale style={styles.tile} onPress={onPress} accessibilityLabel={title}>
-      <View style={styles.tileTop}>
-        <View style={styles.ico}>{icon}</View>
-        {badge ? <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View> : null}
-      </View>
-      <Text style={styles.tileTitle}>{title}</Text>
-      <Text style={styles.tileSub} numberOfLines={1}>{sub}</Text>
-    </PressableScale>
-  );
+  // Not approved yet (or refused): no dashboard — the RPCs behind the tiles
+  // all refuse. One honest state, with the way to the application.
+  if (proProfile && !isApproved) {
+    const rejected = proProfile.status === 'rejected';
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
+        <Stack.Screen options={{ title: t('booking.proSpace', { defaultValue: 'Espace pro' }) }} />
+        <View style={styles.card}>
+          <Text style={styles.headName}>
+            {rejected
+              ? t('pro.statusRejectedTitle', { defaultValue: 'Demande refusée' })
+              : t('pro.statusPendingTitle', { defaultValue: 'Demande en cours de validation' })}
+          </Text>
+          <Text style={[styles.emptyLine, { marginTop: spacing.xs }]}>
+            {rejected
+              ? (proProfile.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' }))
+              : t('pro.pendingBody', { defaultValue: 'Notre équipe vérifie ta demande. Tu reçois une notification dès qu’elle est validée, et ton espace s’ouvre ici.' })}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.btnPrimary, { marginTop: spacing.md }, pressed && styles.pressed]}
+            onPress={() => router.push('/(auth)/pro/edit')}
+          >
+            <Text style={styles.btnPrimaryText}>
+              {rejected
+                ? t('pro.fixApplication', { defaultValue: 'Corriger ma demande' })
+                : t('pro.editApplication', { defaultValue: 'Modifier ma demande' })}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scroll}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.cta} colors={[colors.cta]} />}
+    >
       <Stack.Screen options={{ title: t('booking.proSpace', { defaultValue: 'Espace pro' }) }} />
 
       <View style={styles.head}>
@@ -107,9 +151,7 @@ export default function ProSpaceScreen() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.headName} numberOfLines={1}>{proProfile?.company_name ?? '…'}</Text>
           <Text style={styles.headSub} numberOfLines={1}>
-            {proProfile?.status === 'approved'
-              ? t('booking.pagePublic', { defaultValue: 'Page publique active' })
-              : t('booking.pagePending', { defaultValue: 'En attente de validation' })}
+            {t('booking.pagePublic', { defaultValue: 'Page publique active' })}
           </Text>
         </View>
       </View>
@@ -196,6 +238,7 @@ export default function ProSpaceScreen() {
       <Text style={styles.eyebrow}>{t('booking.manage', { defaultValue: 'Gérer' })}</Text>
       <View style={styles.tiles}>
         <Tile
+          styles={styles}
           icon={<CalendarDays size={18} color={colors.cta} strokeWidth={2.2} />}
           title={t('booking.agendaTitle', { defaultValue: 'Agenda' })}
           sub={t('booking.hubAgendaSub7', {
@@ -206,18 +249,21 @@ export default function ProSpaceScreen() {
           onPress={() => router.push('/(auth)/pro/agenda')}
         />
         <Tile
+          styles={styles}
           icon={<Mountain size={18} color={colors.cta} strokeWidth={2.2} />}
           title={t('booking.hubOfferings', { defaultValue: 'Mes offres' })}
           sub={t('booking.hubOfferingsSub', { defaultValue: 'Catalogue de sorties' })}
           onPress={() => router.push(`/(auth)/pro/${userId}`)}
         />
         <Tile
+          styles={styles}
           icon={<MessagesSquare size={18} color={colors.cta} strokeWidth={2.2} />}
           title={t('booking.hubMessages', { defaultValue: 'Messages' })}
           sub={t('booking.hubMessagesSub', { defaultValue: 'Conversations clients' })}
           onPress={() => router.push('/(auth)/(tabs)/messagerie')}
         />
         <Tile
+          styles={styles}
           icon={<Eye size={18} color={colors.cta} strokeWidth={2.2} />}
           title={t('booking.hubPage', { defaultValue: 'Ma page publique' })}
           sub={t('booking.hubPageSub', { defaultValue: 'Voir comme un client' })}
@@ -227,6 +273,24 @@ export default function ProSpaceScreen() {
 
       <Text style={styles.foot}>{t('booking.hubSoon', { defaultValue: 'Bientôt : historique clients & statistiques' })}</Text>
     </ScrollView>
+  );
+}
+
+// Module-level so the tiles keep their identity across renders (defined
+// inside the screen, every render remounted the four PressableScale).
+function Tile({ icon, title, sub, badge, onPress, styles }: {
+  icon: React.ReactNode; title: string; sub: string; badge?: number; onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <PressableScale style={styles.tile} onPress={onPress} accessibilityLabel={title}>
+      <View style={styles.tileTop}>
+        <View style={styles.ico}>{icon}</View>
+        {badge ? <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View> : null}
+      </View>
+      <Text style={styles.tileTitle}>{title}</Text>
+      <Text style={styles.tileSub} numberOfLines={1}>{sub}</Text>
+    </PressableScale>
   );
 }
 

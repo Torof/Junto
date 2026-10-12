@@ -67,10 +67,14 @@ export function MenuSheet({ open, onClose }: Props) {
   // cache que le dashboard pro → un seul fetch).
   const agendaFrom = dayjs().format('YYYY-MM-DD');
   const agendaTo = dayjs().add(1, 'month').format('YYYY-MM-DD');
+  // The RLS shows a pro their own row at any status, but the agenda RPC and
+  // the whole Espace pro are approved-only — a pending pro saw the entry and
+  // an empty dashboard that silently failed (audit 2026-10-08).
+  const isApprovedPro = proProfile?.status === 'approved';
   const { data: proAgenda } = useQuery({
     queryKey: ['pro-agenda', agendaFrom, agendaTo],
     queryFn: () => bookingService.getAgenda(agendaFrom, agendaTo),
-    enabled: !!proProfile,
+    enabled: isApprovedPro,
   });
   const pendingBookings = (proAgenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending').length;
 
@@ -155,7 +159,7 @@ export function MenuSheet({ open, onClose }: Props) {
             styles={styles}
             colors={colors}
           />
-          {proProfile ? (
+          {isApprovedPro ? (
             <MenuItem
               icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}

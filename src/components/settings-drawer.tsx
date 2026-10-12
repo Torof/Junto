@@ -340,7 +340,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               <Row icon={Star} label={t('drawer.subscription')} right={<Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>} />
               {user?.tier !== 'pro' && (
                 proStatus === 'pending' ? (
-                  <Row icon={BadgeCheck} label={t('pro.statusPending', { defaultValue: 'Demande pro en attente' })} value={t('pro.statusPendingShort', { defaultValue: 'En attente' })} />
+                  <Row icon={BadgeCheck} label={t('pro.statusPending', { defaultValue: 'Demande pro en attente' })} value={t('pro.statusPendingShort', { defaultValue: 'En attente' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
                 ) : proStatus === 'rejected' ? (
                   <Row icon={BadgeCheck} label={t('pro.statusRejected', { defaultValue: 'Demande pro refusée — corriger' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
                 ) : (
