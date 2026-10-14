@@ -386,7 +386,7 @@ export default function ProAgendaScreen() {
                           <Text style={styles.reqSize}>  · {b.party_size} pers.</Text>
                         </Text>
                         <Text style={[styles.reqMeta, { color: sportCategoryColor(b.sport_category, colors.textPrimary) }]} numberOfLines={1}>
-                          {b.offering_title} — {dayjs(b.day).locale('fr').format('ddd D MMM')}, {periodLabel(b.period, t)}
+                          {b.offering_title} — {dayjs(b.day).format('ddd D MMM')}, {periodLabel(b.period, t)}
                         </Text>
                         {b.message ? <Text style={styles.reqMsg} numberOfLines={2}>« {b.message} »</Text> : null}
                       </View>
@@ -411,7 +411,7 @@ export default function ProAgendaScreen() {
               <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setSheetDay(b.day)}>
                 <View style={[styles.bkPeriod, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) + '22' }]}>
                   <Text style={[styles.bkPeriodText, { color: sportCategoryColor(b.sport_category, colors.cta) }]}>
-                    {dayjs(b.day).locale('fr').format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}
+                    {dayjs(b.day).format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}
                   </Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -445,7 +445,7 @@ export default function ProAgendaScreen() {
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.grab} />
             <Text style={styles.sheetTitle}>
-              {sheetDay ? dayjs(sheetDay).locale('fr').format('dddd D MMMM') : ''}
+              {sheetDay ? dayjs(sheetDay).format('dddd D MMMM') : ''}
             </Text>
 
             {(['am', 'pm'] as BookingPeriod[]).map((period) => {
@@ -553,7 +553,7 @@ export default function ProAgendaScreen() {
             <Text style={styles.fieldLabel}>{t('booking.manualWhen', { defaultValue: 'Date & créneau' })}</Text>
             <View style={styles.rowWrap}>
               <Pressable style={styles.chip} onPress={() => setMShowPicker(true)}>
-                <Text style={styles.chipText}>{dayjs(mDay).locale('fr').format('ddd D MMM')}</Text>
+                <Text style={styles.chipText}>{dayjs(mDay).format('ddd D MMM')}</Text>
               </Pressable>
               {(['am', 'pm'] as BookingPeriod[]).map((p) => (
                 <Pressable key={p} style={[styles.chip, mPeriod === p && styles.chipOn]} onPress={() => setMPeriod(p)}>

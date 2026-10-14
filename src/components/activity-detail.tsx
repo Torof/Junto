@@ -896,7 +896,7 @@ export function ActivityDetail({
                   <View style={styles.heroMetaPill}>
                     <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
                     <Text style={styles.heroMetaText} numberOfLines={1}>
-                      {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM [à] H[h]mm')}
+                      {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
                     </Text>
                   </View>
                   <View style={styles.heroMetaPill}>

@@ -6,8 +6,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
   Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
-  ShieldAlert, ChevronDown, BadgeCheck, type LucideIcon,
+  ShieldAlert, ChevronDown, BadgeCheck, Globe, type LucideIcon,
 } from 'lucide-react-native';
+import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference, type LanguagePreference } from '@/i18n';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -78,6 +79,12 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const requestReplay = useIntroStore((s) => s.requestReplay);
   const queryClient = useQueryClient();
   const [showNotifPrefs, setShowNotifPrefs] = useState(false);
+  const [showLanguage, setShowLanguage] = useState(false);
+  const [languagePref, setLanguagePref] = useState<LanguagePreference>(getLanguagePreference());
+  const handlePickLanguage = async (pref: LanguagePreference) => {
+    setLanguagePref(pref);
+    await setLanguagePreference(pref);
+  };
   const [showTheme, setShowTheme] = useState(false);
   const [showAccent, setShowAccent] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
@@ -388,6 +395,23 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       return (
                         <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
                           <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+              <Row icon={Globe} label={t('drawer.language', { defaultValue: 'Langue' })} onPress={() => setShowLanguage(!showLanguage)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showLanguage ? '180deg' : '0deg' }] }} />
+              } />
+              {showLanguage && (
+                <View style={styles.themeContent}>
+                  <View style={styles.segmentedPill}>
+                    {(['auto', ...SUPPORTED_LANGUAGES] as LanguagePreference[]).map((opt) => {
+                      const active = languagePref === opt;
+                      return (
+                        <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => handlePickLanguage(opt)}>
+                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.languageOption.${opt}`)}</Text>
                         </Pressable>
                       );
                     })}

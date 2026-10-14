@@ -131,7 +131,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             <View style={styles.infoRow}>
               <Calendar size={15} color={accent} strokeWidth={2.2} />
               <Text style={styles.infoText}>
-                {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM [à] H[h]mm')}
+                {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
               </Text>
             </View>
 

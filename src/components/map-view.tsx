@@ -351,7 +351,7 @@ export function JuntoMapView({
         // UA: title (universe colour) · 📅 when · 📊 level signal.
         const a = activityMap.get(p.id);
         if (!a) return [];
-        const d = dayjs(a.starts_at).locale('fr');
+        const d = dayjs(a.starts_at);
         name = a.title;
         d2 = `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
         d2icon = 'cal';

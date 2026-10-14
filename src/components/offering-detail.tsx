@@ -338,7 +338,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                     style={styles.slotChip}
                     onPress={() => goBook(`?day=${sl.day}&period=${sl.period}`)}
                   >
-                    <Text style={styles.slotChipDay}>{dayjs(sl.day).locale('fr').format('ddd D')}</Text>
+                    <Text style={styles.slotChipDay}>{dayjs(sl.day).format('ddd D')}</Text>
                     <Text style={styles.slotChipPeriod}>
                       {sl.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
                     </Text>

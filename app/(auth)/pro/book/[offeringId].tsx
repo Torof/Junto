@@ -181,7 +181,7 @@ export default function BookOfferingScreen() {
                   >
                     <View style={[styles.radio, isOn && styles.radioOn]} />
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.slotDay}>{dayjs(s.day).locale('fr').format('ddd D MMMM')}</Text>
+                      <Text style={styles.slotDay}>{dayjs(s.day).format('ddd D MMMM')}</Text>
                       <Text style={[styles.slotCap, full && { color: colors.textMuted }]}>{text}</Text>
                     </View>
                     <View style={[styles.periodPill, full && styles.periodPillOff]}>
@@ -245,7 +245,7 @@ export default function BookOfferingScreen() {
                 <Text style={styles.recapKey}>{t('booking.slot', { defaultValue: 'Créneau' })}</Text>
                 <Text style={styles.recapVal}>
                   {selected
-                    ? `${dayjs(selected.day).locale('fr').format('ddd D MMM')} · ${periodName(selected.period)}`
+                    ? `${dayjs(selected.day).format('ddd D MMM')} · ${periodName(selected.period)}`
                     : t('booking.noSlotSelected', { defaultValue: 'Aucun créneau choisi' })}
                 </Text>
               </View>

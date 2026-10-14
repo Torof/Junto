@@ -108,7 +108,7 @@ export default function MyBookingsScreen() {
         <View style={styles.topRow}>
           <View style={[styles.bigDate, { backgroundColor: sc + '1A' }]}>
             <Text style={[styles.bigDateDay, { color: sc }]}>{dayjs(item.day).format('D')}</Text>
-            <Text style={[styles.bigDateMonth, { color: sc }]}>{dayjs(item.day).locale('fr').format('MMM')}</Text>
+            <Text style={[styles.bigDateMonth, { color: sc }]}>{dayjs(item.day).format('MMM')}</Text>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.title} numberOfLines={1}>{item.offering_title}</Text>
@@ -176,7 +176,7 @@ export default function MyBookingsScreen() {
             ) : null}
             {item.status === 'pending' ? (
               <Text style={styles.pendingHint}>
-                {t('booking.sentAgo', { defaultValue: 'Envoyée {{ago}}', ago: dayjs(item.created_at).locale('fr').fromNow() })}
+                {t('booking.sentAgo', { defaultValue: 'Envoyée {{ago}}', ago: dayjs(item.created_at).fromNow() })}
               </Text>
             ) : null}
             <View style={{ flex: 1 }} />

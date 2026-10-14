@@ -104,7 +104,7 @@ export default function AdminLookupScreen() {
         <View style={styles.card}>
           <Text style={styles.cardName}>{userResult.display_name}{userResult.is_admin ? ' · admin' : ''}</Text>
           <View style={styles.line}><Mail size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText} selectable>{userResult.email}</Text></View>
-          <View style={styles.line}><Clock size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText}>{t('admin.tier', { defaultValue: 'Tier' })}: {userResult.tier} · {t('admin.since', { defaultValue: 'inscrit le' })} {dayjs(userResult.created_at).locale('fr').format('D MMM YYYY')}</Text></View>
+          <View style={styles.line}><Clock size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText}>{t('admin.tier', { defaultValue: 'Tier' })}: {userResult.tier} · {t('admin.since', { defaultValue: 'inscrit le' })} {dayjs(userResult.created_at).format('D MMM YYYY')}</Text></View>
           <View style={[styles.statusPill, { backgroundColor: (userResult.suspended_at ? colors.error : colors.success) + '18' }]}>
             <Text style={[styles.statusText, { color: userResult.suspended_at ? colors.error : colors.success }]}>
               {userResult.suspended_at ? t('admin.suspended', { defaultValue: 'Suspendu' }) : t('admin.active', { defaultValue: 'Actif' })}

@@ -132,7 +132,7 @@ export function AvailabilityCalendar({
         <Pressable onPress={() => goMonth(-1)} hitSlop={10} accessibilityLabel={t('calendar.prevMonth', { defaultValue: 'Mois précédent' })}>
           <ChevronLeft size={20} color={colors.textSecondary} strokeWidth={2.2} />
         </Pressable>
-        <Text style={styles.monthLabel}>{month.locale('fr').format('MMMM YYYY')}</Text>
+        <Text style={styles.monthLabel}>{month.format('MMMM YYYY')}</Text>
         <Pressable onPress={() => goMonth(1)} hitSlop={10} accessibilityLabel={t('calendar.nextMonth', { defaultValue: 'Mois suivant' })}>
           <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2.2} />
         </Pressable>

@@ -46,7 +46,7 @@ const VIBE_FILTER_GROUPS: { key: string; items: DispoIntent[] }[] = [
   { key: 'profil', items: ['adapted', 'training', 'experienced', 'competition'] },
 ];
 const formatPeriod = (start: string, end: string) =>
-  `${dayjs(start).locale('fr').format('D MMM')} – ${dayjs(end).locale('fr').format('D MMM')}`;
+  `${dayjs(start).format('D MMM')} – ${dayjs(end).format('D MMM')}`;
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -505,7 +505,7 @@ export function DiscoveryView({ headerComponent }: DiscoveryViewProps) {
                   <SportIcon sportKey={a.sport_key} size={20} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.inviteRowTitle} numberOfLines={1}>{a.title}</Text>
-                    <Text style={styles.inviteRowMeta}>{dayjs(a.starts_at).locale('fr').format('ddd D MMM · H[h]mm')}</Text>
+                    <Text style={styles.inviteRowMeta}>{dayjs(a.starts_at).format('ddd D MMM · H[h]mm')}</Text>
                   </View>
                 </Pressable>
               ))

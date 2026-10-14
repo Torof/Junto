@@ -157,7 +157,7 @@ export default function ProSpaceScreen() {
       </View>
 
       <Text style={styles.eyebrow}>
-        {t('booking.today', { defaultValue: 'Aujourd’hui' })} · {dayjs().locale('fr').format('ddd D MMM')}
+        {t('booking.today', { defaultValue: 'Aujourd’hui' })} · {dayjs().format('ddd D MMM')}
       </Text>
       <View style={styles.card}>
         {todayBookings.length === 0 ? (
@@ -211,7 +211,7 @@ export default function ProSpaceScreen() {
                   {firstPending.client_name ?? '—'} · {firstPending.party_size} pers.
                 </Text>
                 <Text style={[styles.reqMeta, { color: sportCategoryColor(firstPending.sport_category, colors.textSecondary) }]} numberOfLines={1}>
-                  {firstPending.offering_title} — {dayjs(firstPending.day).locale('fr').format('ddd D MMM')}, {firstPending.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
+                  {firstPending.offering_title} — {dayjs(firstPending.day).format('ddd D MMM')}, {firstPending.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
                 </Text>
               </View>
             </PressableScale>

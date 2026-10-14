@@ -118,7 +118,7 @@ export default function GpxTracesScreen() {
                 <View style={styles.rowInfo}>
                   <Text style={styles.rowName} numberOfLines={1}>{trace.name}</Text>
                   <Text style={styles.rowMeta}>
-                    {Number(trace.distance_km).toFixed(1)} km · {dayjs(trace.created_at).locale('fr').format('D MMM YYYY')}
+                    {Number(trace.distance_km).toFixed(1)} km · {dayjs(trace.created_at).format('D MMM YYYY')}
                   </Text>
                 </View>
               </Pressable>

@@ -67,7 +67,7 @@ function ReviewMiniCard({
           <Text style={styles.reviewMiniName} numberOfLines={1}>{review.reviewer_name ?? '?'}</Text>
           <View style={styles.reviewMiniMeta}>
             <StarRating rating={review.rating} size={12} />
-            <Text style={styles.reviewMiniDate}>{dayjs(review.created_at).locale('fr').format('D MMM YYYY')}</Text>
+            <Text style={styles.reviewMiniDate}>{dayjs(review.created_at).format('D MMM YYYY')}</Text>
           </View>
         </View>
       </View>
@@ -582,7 +582,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           {o.max_participants ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Users size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</Text>
                             </View>
                           ) : null}
                         </View>
@@ -766,7 +766,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
             ) : (
               <>
                 <Text style={styles.catalogIntro}>
-                  {t('pro.catalogIntro', { defaultValue: `Les sorties proposées par ${pro.display_name}` })}
+                  {t('pro.catalogIntro', { defaultValue: 'Les sorties proposées par {{name}}', name: pro.display_name })}
                 </Text>
                 {offerings.map((o) => {
                   const accent = sportCategoryColor(o.sport_category, colors.cta);
@@ -817,7 +817,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                           {o.max_participants ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Users size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: `max ${o.max_participants}`, count: o.max_participants })}</Text>
+                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</Text>
                             </View>
                           ) : null}
                           {o.distance_km != null ? (
@@ -896,7 +896,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
                     <Text style={styles.reviewModalName} numberOfLines={1}>{openReview.reviewer_name ?? '?'}</Text>
                     <View style={styles.reviewMiniMeta}>
                       <StarRating rating={openReview.rating} size={14} />
-                      <Text style={styles.reviewMiniDate}>{dayjs(openReview.created_at).locale('fr').format('D MMM YYYY')}</Text>
+                      <Text style={styles.reviewMiniDate}>{dayjs(openReview.created_at).format('D MMM YYYY')}</Text>
                     </View>
                   </View>
                   <Pressable onPress={() => setOpenReview(null)} hitSlop={8} style={styles.reviewModalClose}>
