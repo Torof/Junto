@@ -1,5 +1,58 @@
 {
+  "format": {
+    "dateTimeAt": "ddd D MMM [à] H[h]mm"
+  },
+  "contactShare": {
+    "title": "Mon contact",
+    "intro": "Montre ce QR code à un partenaire, ou envoie ton lien — il pourra t'ajouter en un geste.",
+    "shareLink": "Partager le lien",
+    "shareMessage": "Ajoute-moi sur Junto — {{link}}",
+    "scanContact": "Scanner un contact",
+    "scanHint": "Vise le QR code de ton partenaire",
+    "cameraDeniedTitle": "Caméra refusée",
+    "cameraDeniedBody": "Autorise la caméra pour scanner un contact.",
+    "footnote": "Une demande de contact reste toujours à accepter — tu gardes la main."
+  },
+  "contacts": {
+    "title": "Contacts",
+    "myContacts": "Mes contacts",
+    "recentPartners": "Partenaires récents",
+    "empty": "Aucun contact pour l’instant. Envoie une demande depuis un profil, ou partage ton QR — une fois acceptée, vous êtes connectés.",
+    "remove": "Retirer",
+    "removeTitle": "Retirer ce contact ?",
+    "removeBody": "{{name}} ne sera plus dans tes contacts, des deux côtés, et votre conversation sera supprimée. Vous pourrez vous reconnecter plus tard.",
+    "inviteTitle": "Inviter des partenaires",
+    "inviteSub": "Tes contacts + partenaires récents",
+    "inviteEmpty": "Ajoute des contacts, ou fais des sorties pour retrouver tes partenaires ici.",
+    "inviteMessagePlaceholder": "Un mot (optionnel)…",
+    "inviteCta_one": "Inviter ({{count}})",
+    "inviteCta_other": "Inviter ({{count}})",
+    "selectCta_one": "Ajouter ({{count}})",
+    "selectCta_other": "Ajouter ({{count}})",
+    "inviting": "Envoi…",
+    "invitationsSent": "Invitations envoyées"
+  },
+  "favorites": {
+    "title": "Favoris",
+    "activities": "Sorties",
+    "offerings": "Prestations",
+    "pros": "Pros",
+    "empty": "Aucun favori pour l’instant. Touche le cœur sur une sortie, une prestation ou un pro pour l’enregistrer ici."
+  },
+  "photoGallery": {
+    "empty": "Aucune photo pour le moment.",
+    "openPhoto": "Ouvrir la photo {{n}}"
+  },
+  "photoManager": {
+    "add": "Ajouter",
+    "count": "{{n}} / {{max}} photos",
+    "emptyCta": "Tape pour ajouter tes premières photos.",
+    "helper": "La première photo sert d'image principale.",
+    "removeTitle": "Supprimer la photo ?",
+    "removeBody": "Cette action est définitive."
+  },
   "tabs": {
+    "menu": "Menu",
     "carte": "Carte",
     "partenaires": "Partenaires",
     "mesActivites": "Mes sorties",
@@ -69,6 +122,15 @@
     "confirmAdult": "Je certifie avoir 18 ans ou plus"
   },
   "activity": {
+    "by": "par",
+    "descSeeMore": "Voir plus",
+    "descSeeLess": "Voir moins",
+    "factsSection": "En bref",
+    "routeSection": "Le parcours",
+    "participantsSection": "Participants",
+    "mapMenu": "Options de la carte",
+    "placesShort": "{{n}} places",
+    "shareToConversation": "Ou partager dans une conversation",
     "shareCta": "Partager l'activité",
     "openMenu": "Ouvrir le menu",
     "full": "Complet",
@@ -208,6 +270,7 @@
     }
   },
   "discovery": {
+    "live": "En ligne",
     "title": "Découverte",
     "myDispoTitle": "Ta dispo",
     "details": "Détails",
@@ -381,6 +444,13 @@
     "channels": "Discussions"
   },
   "menu": {
+    "seeProfile": "Voir mon profil",
+    "contacts": "Contacts",
+    "favorites": "Favoris",
+    "alerts": "Alertes",
+    "gpxTraces": "Traces GPX",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter",
     "discovery": "Découverte",
     "channels": "Discussions",
     "mesActivites": "Mes sorties",
@@ -544,6 +614,8 @@
     }
   },
   "gear": {
+    "addShort": "Ajouter",
+    "missingReported": "Manque signalé",
     "saved": "Matériel enregistré",
     "customPlaceholder": "Autre matériel...",
     "itemSheetMyContribution": "Ma contribution",
@@ -569,6 +641,7 @@
     "pendingRequests_other": "{{count}} demandes en attente"
   },
   "meta": {
+    "carpool": "Covoit",
     "level": "Niveau",
     "duration": "Durée",
     "places": "Places",
@@ -633,6 +706,31 @@
     }
   },
   "group": {
+    "createTitle": "Nouveau groupe",
+    "namePlaceholder": "Nom du groupe",
+    "pickHint": "Choisis au moins 2 partenaires (contacts + partenaires récents).",
+    "createCta_one": "Créer le groupe ({{count}})",
+    "createCta_other": "Créer le groupe ({{count}})",
+    "creating": "Création…",
+    "membersSection": "Membres",
+    "memberCount_one": "{{count}} membre",
+    "memberCount_other": "{{count}} membres",
+    "addMembers": "Ajouter",
+    "membersAdded": "Membres ajoutés",
+    "renamed": "Groupe mis à jour",
+    "leave": "Quitter",
+    "leaveConfirmTitle": "Quitter le groupe ?",
+    "leaveConfirmMsg": "Tu ne verras plus les messages de ce groupe.",
+    "departLabel": "départ",
+    "noPassengers": "Aucun passager",
+    "freeSeatsShort_one": "{{count}} libre",
+    "freeSeatsShort_other": "{{count}} libres",
+    "aboardCount_one": "{{count}} à bord",
+    "aboardCount_other": "{{count}} à bord",
+    "iBringIt": "Je l'apporte",
+    "noGearYet": "Personne n'a encore listé de matériel",
+    "reportMissing": "Signaler un manque",
+    "reportMissingCta": "Signaler",
     "seeAllPassengers": "Voir tous…",
     "seeItems": "Voir…",
     "seeLess": "Voir moins",
@@ -664,6 +762,9 @@
       "other": "Autre"
     },
     "gearSection": {
+      "groupBag": "Le sac du groupe",
+      "ownBag": "Chacun son sac",
+      "missing": "Manquant",
       "inventory": "Inventaire commun",
       "recap": "Inventaire individuel"
     },
@@ -755,12 +856,27 @@
     "selected": "sports"
   },
   "map": {
+    "myPosition": "Ma position",
+    "backToMyPosition": "Revenir à ma position",
+    "locationLabel": "Localisation",
+    "dateLabel": "Période",
+    "showLabel": "Afficher",
+    "showNone": "Rien",
+    "clearFilter": "Effacer le filtre",
+    "full": "Complet",
+    "spotsLeft": "{{n}} places restantes",
+    "carpoolSeats": "{{n}} places en covoit",
+    "carpoolFrom": "dép.",
+    "participantsOpen": "participants · ouverte à tous",
+    "peerOuting": "Sortie entre passionnés",
+    "seeActivity": "Voir la sortie",
     "seeMore": "Voir plus…",
     "seeList": "Voir la liste",
     "createActivityCta": "Créer une activité",
     "activitiesAtPoint_one": "{{count}} activité à ce point",
     "activitiesAtPoint_other": "{{count}} activités à ce point",
     "date": {
+      "all": "Toutes",
       "today": "Aujourd'hui",
       "week": "Cette semaine",
       "pickRange": "Période"
@@ -810,6 +926,7 @@
     "north": "Nord"
   },
   "profil": {
+    "editName": "Modifier le nom",
     "logout": "Se déconnecter",
     "save": "Enregistrer",
     "nameTooShort": "Le nom doit faire au moins 2 caractères",
@@ -897,6 +1014,8 @@
     "requestFor": "Accepter ou refuser la demande pour « {{title}} »"
   },
   "myActivities": {
+    "all": "Toutes",
+    "organizer": "Organisateur",
     "created": "Créées",
     "joined": "Rejointes",
     "pending": "En attente",
@@ -956,6 +1075,13 @@
     "presenceNeedsTwo": "Il faut 2 témoignages pour valider la présence de quelqu'un."
   },
   "messagerie": {
+    "blockUser": "Bloquer le passionné",
+    "hideConversation": "Supprimer la conversation",
+    "createOutingFromChat": "Créer une sortie",
+    "shareOutingTitle": "Partager une sortie",
+    "shareOutingEmpty": "Aucune sortie à venir à partager.",
+    "shareOutingEmptySport": "Aucune sortie de ce sport à partager.",
+    "outingShared": "Sortie partagée",
     "empty": "Aucune conversation",
     "unavailableTitle": "Conversation indisponible",
     "unavailableBody": "Cette conversation n'existe plus ou n'est plus accessible.",
@@ -1034,6 +1160,7 @@
     "traceSaved": "Trace enregistrée"
   },
   "publicProfile": {
+    "openMenu": "Ouvrir le menu",
     "sendMessage": "Envoyer un message",
     "requestContact": "Demander le contact",
     "requestSent": "Demande de contact envoyée",
@@ -1075,6 +1202,21 @@
     "emailSubject": "Contestation de suspension de compte"
   },
   "admin": {
+    "hub": "Administration",
+    "reports": "Signalements",
+    "reportsSub": "Modérer les contenus signalés",
+    "proRequests": "Demandes pro",
+    "proRequestsSub": "Vérifier et valider les pages pro",
+    "prosTab": "Pros",
+    "noPendingPros": "Aucune demande en attente",
+    "proApprove": "Valider",
+    "proApproveTitle": "Valider cette page pro ?",
+    "proApproved": "Page pro validée",
+    "proReject": "Refuser",
+    "proRejectTitle": "Refuser la demande",
+    "proRejectReason": "Motif (optionnel, envoyé au demandeur)",
+    "proRejectReasonPlaceholder": "Ex : structure non vérifiable, infos incomplètes…",
+    "proRejected": "Demande refusée",
     "demoMode": "Mode démo",
     "demoModeSub": "Affiche des sorties de démonstration sur ta carte — visibles par toi seul.",
     "pending": "En attente",
@@ -1148,6 +1290,12 @@
     "removeReply": "Supprimer la réponse"
   },
   "drawer": {
+    "language": "Langue",
+    "languageOption": {
+      "auto": "Automatique",
+      "fr": "Français",
+      "en": "English"
+    },
     "becomePro": "Devenir pro",
     "myProPage": "Ma page pro",
     "account": "Compte",
@@ -1515,6 +1663,10 @@
     "avatarUpdated": "Photo de profil mise à jour !"
   },
   "create": {
+    "invitePartners": "Inviter des partenaires",
+    "inviteOptional": "Optionnel · tes contacts + partenaires récents",
+    "inviteCount_one": "{{count}} sélectionné·e",
+    "inviteCount_other": "{{count}} sélectionné·es",
     "step": "Étape {{current}}/{{total}}",
     "step1Title": "Quel sport ?",
     "step3Title": "Visibilité",
@@ -1658,6 +1810,13 @@
     "confirm": "Confirmer"
   },
   "gpx": {
+    "modeFreehand": "Main levée",
+    "modePoints": "Points",
+    "offTrail": "{{n}} hors sentier",
+    "snapChip": "Sentier",
+    "snapLabel": "Coller au sentier",
+    "snapping": "snap…",
+    "snappingWait": "Sentier…",
     "title": "Mes traces GPX",
     "subtitle": "Dessine tes itinéraires et réutilise-les sur tes sorties.",
     "empty": "Aucune trace pour le moment. Crée ta première trace !",
@@ -1685,6 +1844,9 @@
     "traceSent": "Trace envoyée"
   },
   "pro": {
+    "catalogIntro": "Les sorties proposées par {{name}}",
+    "maxParticipants_one": "max {{count}}",
+    "maxParticipants_other": "max {{count}}",
     "label": "Page professionnelle",
     "registerTitle": "Devenir pro",
     "registerSubtitle": "Crée la page publique de ton activité, club ou structure.",

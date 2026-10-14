@@ -458,3 +458,14 @@ Règles verrouillées :
 **Rappel de méthode (payé une fois de plus) :** la vue `activities_with_coords` avait une redéfinition en 00333 (rideau démo) que le premier `grep | tail -3` avait masquée — reconstruire depuis 00315 aurait **supprimé le rideau démo de la carte**. Lister TOUTES les redéfinitions, triées, avant de choisir la base.
 
 **Hors périmètre, à faire ensuite :** la même commune sur les offres pro ; la commune dans les étiquettes de la carte ; passer à Mapbox Geocoding ou auto-héberger Photon si le volume dépasse le fair-use.
+
+## 2026-10-14 — Multilingue : la fondation avant les langues (mig 00445)
+
+**Contexte :** Scott veut pouvoir ajouter l'anglais, l'italien, l'espagnol et potentiellement l'allemand (voisins, nombreux dans les Hautes-Alpes). Audit du 2026-10-14 : i18next câblé sur la langue de l'appareil (FR sinon EN), FR/EN à parité (1678 clés) mais EN jamais relu, 135 clés appelées sans entrée (texte FR enfermé dans les `defaultValue`), 19 appels dayjs figés en `fr`, et surtout **41 types de notifications rédigés en français dans les fonctions SQL** sans que la base connaisse la langue de qui que ce soit.
+
+**Décision :** une fondation d'abord, invisible pour les francophones, puis les langues.
+- **Préférence locale, langue effective en base.** La préférence (`auto` | langue) vit sur le téléphone (AsyncStorage) ; l'app écrit la langue **effective** dans `users.language` (00445, CHECK fr/en/it/es/de, défaut `fr`, colonne own-row non privilégiée comme `notification_preferences`). Le serveur n'a besoin que du résultat.
+- **Sélecteur dans Paramètres › Préférences** (« Automatique » par défaut), même segmenté que le thème.
+- **Dates pilotées par la langue** : locale dayjs globale suivant i18n, plus aucun `.locale('fr')` dans les écrans ; les formats à la française passent par une clé (`format.dateTimeAt`).
+- **Dette apurée** : les 135 clés manquantes entrent dans fr.json / en.json (1822 clés chacune) ; les `defaultValue` restent en filet.
+- **Suite (non construite)** : (1) le serveur cesse d'écrire des phrases et envoie type + données, texte composé par l'app pour l'in-app et par `send-push` pour le téléphone dans `users.language`, à partir des mêmes fichiers de traduction, FR en secours ; (2) relecture de l'anglais ; (3) IT puis DE puis ES — traduction par modèle + relecture native (Scott en trouvera) ; (4) site et fiches store. Pages légales : le français fait foi, traduction informative.

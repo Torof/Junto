@@ -1,5 +1,58 @@
 {
+  "format": {
+    "dateTimeAt": "ddd D MMM [at] H:mm"
+  },
+  "contactShare": {
+    "title": "My contact",
+    "intro": "Show this QR code to a partner, or send your link — they can add you in one tap.",
+    "shareLink": "Share link",
+    "shareMessage": "Add me on Junto — {{link}}",
+    "scanContact": "Scan a contact",
+    "scanHint": "Aim at your partner's QR code",
+    "cameraDeniedTitle": "Camera refused",
+    "cameraDeniedBody": "Allow the camera to scan a contact.",
+    "footnote": "A contact request always has to be accepted — you stay in control."
+  },
+  "contacts": {
+    "title": "Contacts",
+    "myContacts": "My contacts",
+    "recentPartners": "Recent partners",
+    "empty": "No contacts yet. Send a request from a profile, or share your QR — once accepted, you are connected.",
+    "remove": "Remove",
+    "removeTitle": "Remove this contact?",
+    "removeBody": "{{name}} will no longer be in your contacts, on both sides, and your conversation will be deleted. You can reconnect later.",
+    "inviteTitle": "Invite partners",
+    "inviteSub": "Your contacts + recent partners",
+    "inviteEmpty": "Add contacts, or go on outings to find your partners here.",
+    "inviteMessagePlaceholder": "A word (optional)…",
+    "inviteCta_one": "Invite ({{count}})",
+    "inviteCta_other": "Invite ({{count}})",
+    "selectCta_one": "Add ({{count}})",
+    "selectCta_other": "Add ({{count}})",
+    "inviting": "Sending…",
+    "invitationsSent": "Invitations sent"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "activities": "Outings",
+    "offerings": "Offers",
+    "pros": "Pros",
+    "empty": "No favorites yet. Tap the heart on an outing, an offer or a pro to save it here."
+  },
+  "photoGallery": {
+    "empty": "No photos yet.",
+    "openPhoto": "Open photo {{n}}"
+  },
+  "photoManager": {
+    "add": "Add",
+    "count": "{{n}} / {{max}} photos",
+    "emptyCta": "Tap to add your first photos.",
+    "helper": "The first photo is the main image.",
+    "removeTitle": "Delete this photo?",
+    "removeBody": "This cannot be undone."
+  },
   "tabs": {
+    "menu": "Menu",
     "carte": "Map",
     "partenaires": "Partners",
     "mesActivites": "My outings",
@@ -69,6 +122,15 @@
     "confirmAdult": "I confirm I am 18 or older"
   },
   "activity": {
+    "by": "by",
+    "descSeeMore": "See more",
+    "descSeeLess": "See less",
+    "factsSection": "At a glance",
+    "routeSection": "The route",
+    "participantsSection": "Participants",
+    "mapMenu": "Map options",
+    "placesShort": "{{n}} spots",
+    "shareToConversation": "Or share in a conversation",
     "shareCta": "Share activity",
     "openMenu": "Open menu",
     "full": "Full",
@@ -208,6 +270,7 @@
     }
   },
   "discovery": {
+    "live": "Online",
     "title": "Discovery",
     "myDispoTitle": "Your availability",
     "details": "Details",
@@ -381,6 +444,13 @@
     "channels": "Discussions"
   },
   "menu": {
+    "seeProfile": "See my profile",
+    "contacts": "Contacts",
+    "favorites": "Favorites",
+    "alerts": "Alerts",
+    "gpxTraces": "GPX traces",
+    "settings": "Settings",
+    "signOut": "Sign out",
     "discovery": "Discovery",
     "channels": "Discussions",
     "mesActivites": "My outings",
@@ -544,6 +614,8 @@
     }
   },
   "gear": {
+    "addShort": "Add",
+    "missingReported": "Missing item reported",
     "saved": "Gear saved",
     "customPlaceholder": "Other gear...",
     "itemSheetMyContribution": "My contribution",
@@ -569,6 +641,7 @@
     "pendingRequests_other": "{{count}} pending requests"
   },
   "meta": {
+    "carpool": "Carpool",
     "level": "Level",
     "duration": "Duration",
     "places": "Places",
@@ -633,6 +706,31 @@
     }
   },
   "group": {
+    "createTitle": "New group",
+    "namePlaceholder": "Group name",
+    "pickHint": "Pick at least 2 partners (contacts + recent partners).",
+    "createCta_one": "Create the group ({{count}})",
+    "createCta_other": "Create the group ({{count}})",
+    "creating": "Creating…",
+    "membersSection": "Members",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "addMembers": "Add",
+    "membersAdded": "Members added",
+    "renamed": "Group updated",
+    "leave": "Leave",
+    "leaveConfirmTitle": "Leave the group?",
+    "leaveConfirmMsg": "You will no longer see this group's messages.",
+    "departLabel": "departure",
+    "noPassengers": "No passengers",
+    "freeSeatsShort_one": "{{count}} free",
+    "freeSeatsShort_other": "{{count}} free",
+    "aboardCount_one": "{{count}} aboard",
+    "aboardCount_other": "{{count}} aboard",
+    "iBringIt": "I'll bring it",
+    "noGearYet": "Nobody has listed gear yet",
+    "reportMissing": "Report a missing item",
+    "reportMissingCta": "Report",
     "seeAllPassengers": "See all…",
     "seeItems": "View…",
     "seeLess": "See less",
@@ -664,7 +762,10 @@
       "other": "Other"
     },
     "gearSection": {
-      "inventory": "Common inventory",
+      "groupBag": "The group bag",
+      "ownBag": "Everyone's own bag",
+      "missing": "Missing",
+      "inventory":"Common inventory",
       "recap": "Personal inventory"
     },
     "addGear": "Add gear",
@@ -755,13 +856,28 @@
     "selected": "sports"
   },
   "map": {
+    "myPosition": "My position",
+    "backToMyPosition": "Back to my position",
+    "locationLabel": "Location",
+    "dateLabel": "Period",
+    "showLabel": "Show",
+    "showNone": "Nothing",
+    "clearFilter": "Clear filter",
+    "full": "Full",
+    "spotsLeft": "{{n}} spots left",
+    "carpoolSeats": "{{n}} carpool seats",
+    "carpoolFrom": "from",
+    "participantsOpen": "participants · open to all",
+    "peerOuting": "Outing between enthusiasts",
+    "seeActivity": "See the outing",
     "seeMore": "See more…",
     "seeList": "See list",
     "createActivityCta": "Create activity",
     "activitiesAtPoint_one": "{{count}} activity at this spot",
     "activitiesAtPoint_other": "{{count}} activities at this spot",
     "date": {
-      "today": "Today",
+      "all": "All",
+      "today":"Today",
       "week": "This week",
       "pickRange": "Date range"
     },
@@ -810,6 +926,7 @@
     "north": "North"
   },
   "profil": {
+    "editName": "Edit name",
     "logout": "Log out",
     "save": "Save",
     "nameTooShort": "Name must be at least 2 characters",
@@ -897,6 +1014,8 @@
     "requestFor": "Accept or refuse request for \"{{title}}\""
   },
   "myActivities": {
+    "all": "All",
+    "organizer": "Organizer",
     "created": "Created",
     "joined": "Joined",
     "pending": "Pending",
@@ -956,6 +1075,13 @@
     "presenceNeedsTwo": "Two testimonies are needed to validate someone's presence."
   },
   "messagerie": {
+    "blockUser": "Block this member",
+    "hideConversation": "Delete conversation",
+    "createOutingFromChat": "Create an outing",
+    "shareOutingTitle": "Share an outing",
+    "shareOutingEmpty": "No upcoming outing to share.",
+    "shareOutingEmptySport": "No upcoming outing of this sport to share.",
+    "outingShared": "Outing shared",
     "empty": "No conversations",
     "unavailableTitle": "Conversation unavailable",
     "unavailableBody": "This conversation no longer exists or is no longer available.",
@@ -1034,6 +1160,7 @@
     "traceSaved": "Trace saved"
   },
   "publicProfile": {
+    "openMenu": "Open menu",
     "sendMessage": "Send message",
     "requestContact": "Request contact",
     "requestSent": "Contact request sent",
@@ -1075,6 +1202,21 @@
     "emailSubject": "Account suspension appeal"
   },
   "admin": {
+    "hub": "Administration",
+    "reports": "Reports",
+    "reportsSub": "Moderate reported content",
+    "proRequests": "Pro applications",
+    "proRequestsSub": "Review and approve pro pages",
+    "prosTab": "Pros",
+    "noPendingPros": "No pending application",
+    "proApprove": "Approve",
+    "proApproveTitle": "Approve this pro page?",
+    "proApproved": "Pro page approved",
+    "proReject": "Decline",
+    "proRejectTitle": "Decline the application",
+    "proRejectReason": "Reason (optional, sent to the applicant)",
+    "proRejectReasonPlaceholder": "E.g. business cannot be verified, incomplete details…",
+    "proRejected": "Application declined",
     "demoMode": "Demo mode",
     "demoModeSub": "Show demo outings on your map — visible to you only.",
     "pending": "Pending",
@@ -1148,6 +1290,12 @@
     "removeReply": "Remove reply"
   },
   "drawer": {
+    "language": "Language",
+    "languageOption": {
+      "auto": "Automatic",
+      "fr": "Français",
+      "en": "English"
+    },
     "becomePro": "Become a pro",
     "myProPage": "My pro page",
     "account": "Account",
@@ -1515,6 +1663,10 @@
     "avatarUpdated": "Profile photo updated!"
   },
   "create": {
+    "invitePartners": "Invite partners",
+    "inviteOptional": "Optional · your contacts + recent partners",
+    "inviteCount_one": "{{count}} selected",
+    "inviteCount_other": "{{count}} selected",
     "step": "Step {{current}}/{{total}}",
     "step1Title": "What sport?",
     "step3Title": "Visibility",
@@ -1658,6 +1810,13 @@
     "confirm": "Confirm"
   },
   "gpx": {
+    "modeFreehand": "Freehand",
+    "modePoints": "Points",
+    "offTrail": "{{n}} off trail",
+    "snapChip": "Trail",
+    "snapLabel": "Snap to trail",
+    "snapping": "snap…",
+    "snappingWait": "Trail…",
     "title": "My GPX traces",
     "subtitle": "Draw your routes and reuse them on your outings.",
     "empty": "No traces yet. Create your first one!",
@@ -1685,6 +1844,9 @@
     "traceSent": "Trace sent"
   },
   "pro": {
+    "catalogIntro": "Outings offered by {{name}}",
+    "maxParticipants_one": "max {{count}}",
+    "maxParticipants_other": "max {{count}}",
     "label": "Professional page",
     "registerTitle": "Become a pro",
     "registerSubtitle": "Create the public page of your business, club or organisation.",
