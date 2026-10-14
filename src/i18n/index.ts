@@ -4,9 +4,15 @@ import { getLocales } from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import 'dayjs/locale/it';
+import 'dayjs/locale/es';
+import 'dayjs/locale/de';
 
 import fr from './fr.json';
 import en from './en.json';
+import it from './it.json';
+import es from './es.json';
+import de from './de.json';
 
 // Multilingual foundation (Scott 2026-10-14). The app language is resolved
 // from a local PREFERENCE: 'auto' (the phone's language, narrowed to what we
@@ -15,7 +21,9 @@ import en from './en.json';
 // useLanguageSync so the server can one day compose notifications in the
 // reader's language. Adding a language = a JSON file + its dayjs locale +
 // one entry in SUPPORTED_LANGUAGES (+ the DB CHECK in 00445).
-export const SUPPORTED_LANGUAGES = ['fr', 'en'] as const;
+// it/es/de added 2026-10-14 (model translation, native proofread pending —
+// neighbours who visit the Hautes-Alpes).
+export const SUPPORTED_LANGUAGES = ['fr', 'en', 'it', 'es', 'de'] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export type LanguagePreference = 'auto' | AppLanguage;
 
@@ -53,6 +61,9 @@ i18n.use(initReactI18next).init({
   resources: {
     fr: { translation: fr },
     en: { translation: en },
+    it: { translation: it },
+    es: { translation: es },
+    de: { translation: de },
   },
   lng: initial,
   fallbackLng: FALLBACK,

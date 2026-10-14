@@ -1294,7 +1294,10 @@
     "languageOption": {
       "auto": "Automatic",
       "fr": "Français",
-      "en": "English"
+      "en": "English",
+      "it": "Italiano",
+      "es": "Español",
+      "de": "Deutsch"
     },
     "becomePro": "Become a pro",
     "myProPage": "My pro page",

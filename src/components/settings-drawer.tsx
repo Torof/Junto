@@ -406,7 +406,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               } />
               {showLanguage && (
                 <View style={styles.themeContent}>
-                  <View style={styles.segmentedPill}>
+                  <View style={[styles.segmentedPill, styles.segmentedWrap]}>
                     {(['auto', ...SUPPORTED_LANGUAGES] as LanguagePreference[]).map((opt) => {
                       const active = languagePref === opt;
                       return (
@@ -553,6 +553,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: 4,
     borderRadius: radius.xs,
   },
+  // Six language options do not fit one row on a 390px phone — let them wrap.
+  segmentedWrap: { flexWrap: 'wrap', gap: 2 },
   segmentActive: { backgroundColor: colors.cta },
   segmentText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600' },
   segmentTextActive: { color: '#FFFFFF', fontWeight: '700' },
