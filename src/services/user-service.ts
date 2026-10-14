@@ -75,6 +75,15 @@ export const userService = {
     return data;
   },
 
+  // Effective app language → users.language (00445). Own-row column, not
+  // privileged (same status as notification_preferences).
+  setLanguage: async (language: string): Promise<void> => {
+    const uid = (await supabase.auth.getUser()).data.user?.id;
+    if (!uid) return;
+    const { error } = await supabase.from('users').update({ language }).eq('id', uid);
+    if (error) throw error;
+  },
+
   // The ONLY writer of levels_per_sport (locked server-side). First declaration
   // is free; a change is peer-gated (up requires net ≥ 3) and resets the votes.
   // See set_sport_level (mig 00295).

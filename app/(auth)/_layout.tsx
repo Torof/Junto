@@ -4,6 +4,7 @@ import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
+import { useLanguageSync } from '@/hooks/use-language-sync';
 
 // Deep links (share links, notification taps on a cold start) land directly
 // on activity/[id] & co — without an anchor the stack has NOTHING beneath
@@ -28,6 +29,7 @@ export default function AuthLayout() {
 
   usePresenceGeofences(!isSuspended);
   usePresenceOfflineFlusher();
+  useLanguageSync();
 
   // The background-location ask used to fire HERE, at the first authenticated
   // mount — i.e. straight after signup, before the user had seen a single

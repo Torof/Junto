@@ -2678,6 +2678,7 @@ export type Database = {
           is_pro_verified: boolean
           levels_per_sport: Json | null
           notification_preferences: Json
+          language: string
           pro_verified_at: string | null
           push_token: string | null
           reliability_score: number | null
@@ -2702,6 +2703,7 @@ export type Database = {
           is_pro_verified?: boolean
           levels_per_sport?: Json | null
           notification_preferences?: Json
+          language?: string
           pro_verified_at?: string | null
           push_token?: string | null
           reliability_score?: number | null
@@ -2726,6 +2728,7 @@ export type Database = {
           is_pro_verified?: boolean
           levels_per_sport?: Json | null
           notification_preferences?: Json
+          language?: string
           pro_verified_at?: string | null
           push_token?: string | null
           reliability_score?: number | null

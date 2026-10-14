@@ -709,7 +709,7 @@ INSERT INTO activities (
 - `push_token` (legacy column, remplacé par `push_tokens` table — UPDATE quand même bloqué)
 
 **Colonnes user modifiables par le client :**
-`display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`
+`display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language` (00445 — langue effective de l'app, CHECK fr/en/it/es/de, écrite par `useLanguageSync` ; base de la future composition des notifications dans la langue du destinataire)
 (`levels_per_sport` était modifiable directement jusqu'à mig 00295 ; désormais peer-gated via `set_sport_level`.)
 
 **Enforcement : trigger `handle_user_update`** — approche **whitelist** :
