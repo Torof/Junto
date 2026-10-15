@@ -39,11 +39,11 @@ const NOTIFICATION_TYPES = [
   'presence_pre_warning_10min',
   'presence_validate_warning',
   'presence_validate_overdue',
-  'presence_validate_final',
+  // presence_validate_final / peer_review_closing: emitters disabled in 00434
+  // (peer presence testimony off) — no point offering a switch for them.
   'presence_confirmed',
   'badge_unlocked',
   'qr_create_reminder',
-  'peer_review_closing',
   'seat_request',
   'seat_request_accepted',
   'seat_request_declined',

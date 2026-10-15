@@ -1,4 +1,70 @@
 {
+  "notif": {
+    "join_request": { "title": "{{name}} quiere unirse a tu salida", "body": "«{{title}}»" },
+    "request_accepted": { "title": "¡Estás dentro!", "body": "«{{title}}»" },
+    "request_refused": { "title": "Solicitud rechazada", "body": "«{{title}}»" },
+    "participant_joined": { "title": "Nuevo participante", "body": "{{name}} se ha unido a «{{title}}»" },
+    "participant_left": { "title": "{{name}} ha dejado «{{title}}»", "body": "{{reason}}" },
+    "participant_left_late": { "title": "{{name}} ha dejado «{{title}}»", "body": "Baja tardía: penalización de fiabilidad aplicada, puedes retirarla desde la salida." },
+    "participant_removed": { "title": "Ya no formas parte de la salida", "body": "«{{title}}»" },
+    "activity_cancelled": {
+      "title": "Salida cancelada", "body": "«{{title}}»: {{reason}}",
+      "no_reason": { "title": "Salida cancelada", "body": "«{{title}}»" },
+      "creator_gone": { "title": "Salida cancelada", "body": "«{{title}}»: el organizador ha dejado Junto" }
+    },
+    "activity_updated": { "title": "Salida modificada", "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro." },
+    "alert_match": { "title": "Nueva salida para tu alerta", "body": "«{{title}}»" },
+    "contact_request": {
+      "title": "{{name}} quiere contactarte", "body": "",
+      "invite": { "title": "{{name}} te invita a una salida", "body": "«{{title}}»" }
+    },
+    "contact_request_accepted": { "title": "{{name}} ha aceptado tu solicitud de contacto", "body": "" },
+    "activity_invitation": { "title": "{{name}} te invita a una salida", "body": "«{{title}}»" },
+    "invitation_accepted": { "title": "{{name}} ha aceptado tu invitación", "body": "«{{title}}»" },
+    "invite_activity_gone": { "title": "Esta salida ya no está disponible", "body": "«{{title}}»" },
+    "group_added": { "title": "{{name}} te ha añadido al grupo", "body": "{{group}}" },
+    "seat_request": {
+      "title": "Solicitud de coche compartido", "body": "{{name}} pide una plaza para «{{title}}»",
+      "pickup": { "title": "Solicitud de coche compartido", "body": "{{name}} pide una plaza para «{{title}}» desde {{pickup}}" }
+    },
+    "seat_request_accepted": { "title": "¡Plaza confirmada!", "body": "{{name}} ha aceptado tu solicitud para «{{title}}»" },
+    "seat_request_declined": { "title": "Sin plaza", "body": "{{name}} ha rechazado tu solicitud para «{{title}}»" },
+    "seat_request_expired": { "title": "Sin respuesta", "body": "Tu solicitud de coche compartido para «{{title}}» ha caducado sin respuesta del conductor." },
+    "driver_left": { "title": "Plaza cancelada", "body": "{{name}} ha dejado «{{title}}»: busca otra plaza" },
+    "booking_request": { "title": "Nueva solicitud de reserva", "body_one": "{{name}} · «{{title}}» · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · «{{title}}» · {{date}}, {{period}} · {{count}} pers." },
+    "booking_accepted": { "title": "¡Reserva confirmada!", "body": "{{name}} ha confirmado «{{title}}» el {{date}}, {{period}}. Pago in situ." },
+    "booking_declined": { "title": "Franja no disponible", "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja." },
+    "booking_cancelled": {
+      "title": "Salida cancelada", "body": "«{{title}}» del {{date}} ha sido cancelada.",
+      "by_client": { "title": "Reserva cancelada", "body": "{{name}} ha cancelado «{{title}}» del {{date}}." },
+      "by_pro": { "title": "Salida cancelada", "body": "{{name}} ha cancelado «{{title}}» del {{date}}. Contacta para reprogramar." },
+      "pro_gone": { "title": "Salida cancelada", "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en Junto." },
+      "client_gone": { "title": "Reserva cancelada", "body": "La reserva de «{{title}}» del {{date}} ha sido cancelada." }
+    },
+    "booking_expired": { "title": "Solicitud caducada", "body": "Tu solicitud para «{{title}}» del {{date}}, {{period}} ha caducado sin respuesta. Puedes pedir otra franja." },
+    "presence_pre_warning": { "title": "{{title}}", "body": "Empieza en 2 h: prepárate para validar tu presencia in situ" },
+    "presence_pre_warning_10min": { "title": "{{title}}", "body": "Empieza en 10 min: recuerda validar tu presencia in situ" },
+    "presence_validate_warning": { "title": "Valida tu presencia", "body": "Escanea el QR del organizador: válido hasta 3 h después del final de «{{title}}»." },
+    "presence_validate_overdue": {
+      "title": "Presencia sin validar", "body": "Escanea el QR del organizador antes de 3 h tras el final de «{{title}}», o contará como ausencia.",
+      "duo": { "title": "Presencia sin validar", "body": "Escanea el QR del organizador antes de 3 h tras el final de «{{title}}», o la salida no contará." }
+    },
+    "presence_confirmed": { "title": "Presencia confirmada", "body": "Tu presencia está validada para «{{title}}»" },
+    "qr_create_reminder": { "title": "{{title}}", "body": "Genera el QR de presencia para tus participantes" },
+    "rate_participants": { "title": "Valora a tus compañeros", "body": "«{{title}}»: cuéntanos cómo ha ido." },
+    "review_received": { "title": "Nueva reseña", "body": "{{name}} ha dejado una reseña ({{rating}}★) sobre {{label}}" },
+    "review_reply": { "title": "Respuesta a tu reseña", "body": "{{name}} ha respondido a tu reseña sobre {{label}}" },
+    "badge_unlocked": { "title": "¡Nueva insignia!", "body": "Ahora eres {{label}}" },
+    "pro_approved": { "title": "Página pro validada", "body": "Tu página pro está en línea. Ya puedes publicar tus salidas." },
+    "pro_rejected": {
+      "title": "Solicitud pro rechazada", "body": "Tu solicitud de página pro no ha sido validada. Corrige tus datos y envíala de nuevo.",
+      "reason": { "title": "Solicitud pro rechazada", "body": "{{reason}}" }
+    },
+    "new_message": {
+      "title": "{{name}} · {{context}}", "body": "{{preview}}",
+      "dm": { "title": "{{name}}", "body": "{{preview}}" }
+    }
+  },
   "format": {
     "dateTimeAt": "ddd D MMM [a las] H:mm"
   },

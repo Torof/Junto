@@ -19,6 +19,7 @@ import { notificationService, type Notification } from '@/services/notification-
 import { PushDeniedBanner } from '@/components/push-denied-banner';
 import * as Burnt from 'burnt';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { renderNotification } from '@/utils/notification-text';
 
 dayjs.extend(relativeTime);
 
@@ -180,9 +181,13 @@ export function NotificationsView() {
           renderItem={({ item }) => {
             const meta = notificationIcons[item.type] ?? defaultIcon;
             const IconComp = meta.icon;
+            // Reader's language when the row carries params (lot 0, 2026-10);
+            // the stored French text is the fallback for unmigrated types.
+            const rendered = renderNotification(item.type, item.data);
+            const title = rendered?.title ?? item.title;
             const body = item.type === 'activity_updated' && item.data?.changes
-              ? renderActivityUpdatedBody(item.body, item.data.changes as Record<string, boolean>, t)
-              : item.body;
+              ? renderActivityUpdatedBody(rendered?.body ?? item.body, item.data.changes as Record<string, boolean>, t)
+              : (rendered?.body ?? item.body);
             const isUnread = !item.read_at;
             return (
               <Pressable style={[styles.row, isUnread && styles.rowUnread]} onPress={() => handlePress(item)}>
@@ -191,7 +196,7 @@ export function NotificationsView() {
                 </View>
                 <View style={styles.rowContent}>
                   <View style={styles.rowHeader}>
-                    <Text style={[styles.rowTitle, isUnread && styles.rowTitleUnread]} numberOfLines={1}>{item.title}</Text>
+                    <Text style={[styles.rowTitle, isUnread && styles.rowTitleUnread]} numberOfLines={1}>{title}</Text>
                     <Text style={styles.rowTime}>{dayjs(item.created_at).locale(i18n.language).fromNow(true)}</Text>
                     {isUnread && <View style={styles.unreadDot} />}
                   </View>

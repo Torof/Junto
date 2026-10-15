@@ -1,12 +1,20 @@
 // Edge function: send push notification via Expo Push API
 // Called by DB trigger on notifications INSERT (and direct calls from server-side functions).
-// Deployment: supabase functions deploy send-push --no-verify-jwt
+// Deployment: npm run push:templates && supabase functions deploy send-push --no-verify-jwt
 //
 // Auth: a shared secret (`PUSH_WEBHOOK_SECRET`) must be passed in the
 // `x-junto-push-secret` header. The DB trigger reads the same secret
 // from a Postgres setting. Without this header the request is rejected.
+//
+// Language (lot 0, 2026-10-15): when the payload's `data` carries `type` and
+// `params` (+ optional `variant`), the title/body are COMPOSED per recipient
+// from templates.json (generated from the app's src/i18n/*.json — one source of
+// truth) in that user's `users.language`. Otherwise, or when a template or a
+// placeholder is missing, the French title/body sent by the DB are used as is.
+// Same semantics as the app's src/utils/notification-text.ts.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import templates from './templates.json' with { type: 'json' };
 
 interface Payload {
   user_id?: string;          // single-recipient (legacy callers)
@@ -23,6 +31,11 @@ interface ExpoTicket {
   message?: string;
   details?: { error?: string };
 }
+
+type Tpl = string | { [k: string]: Tpl };
+interface LangBundle { notif: Record<string, Tpl>; period: { am: string; pm: string } }
+const BUNDLES = (templates as { languages: Record<string, LangBundle> }).languages;
+const DEFAULT_LANG = 'fr';
 
 const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
 
@@ -49,6 +62,76 @@ const DEAD_TOKEN_ERRORS = new Set([
   'MismatchSenderId',
   'InvalidCredentials',
 ]);
+
+// ---------- Composition in the recipient's language ----------
+const PLACEHOLDER = /\{\{\s*([a-zA-Z_]+)\s*\}\}/g;
+
+function lookup(bundle: LangBundle, path: string): string | null {
+  let cur: Tpl | undefined = bundle.notif as unknown as Tpl;
+  for (const part of path.split('.')) {
+    if (cur === undefined || typeof cur === 'string') return null;
+    cur = cur[part];
+  }
+  return typeof cur === 'string' ? cur : null;
+}
+
+function hasAll(template: string, vars: Record<string, string>): boolean {
+  for (const m of template.matchAll(PLACEHOLDER)) {
+    if (m[1] && !(m[1] in vars)) return false;
+  }
+  return true;
+}
+
+function fill(template: string, vars: Record<string, string>): string {
+  return template.replace(PLACEHOLDER, (_, name: string) => vars[name] ?? '');
+}
+
+function formatDay(iso: string, lang: string): string {
+  const d = new Date(`${iso}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return iso;
+  try {
+    return new Intl.DateTimeFormat(lang, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d);
+  } catch {
+    return iso;
+  }
+}
+
+function compose(
+  lang: string,
+  data: Record<string, unknown> | undefined,
+): { title: string; body: string } | null {
+  const type = typeof data?.type === 'string' ? data.type : null;
+  const params = data?.params;
+  if (!type || !params || typeof params !== 'object') return null;
+  const bundle = BUNDLES[lang] ?? BUNDLES[DEFAULT_LANG];
+  if (!bundle) return null;
+
+  const variant = typeof data?.variant === 'string' ? data.variant : null;
+  const key = variant && lookup(bundle, `${type}.${variant}.title`) !== null ? `${type}.${variant}` : type;
+  const title = lookup(bundle, `${key}.title`);
+  if (title === null) return null;
+
+  const vars: Record<string, string> = { reason: '' };
+  for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
+    if (v === null || v === undefined) continue;
+    vars[k] = String(v);
+  }
+  if (vars.date) vars.date = formatDay(vars.date, lang);
+  if (vars.period === 'am' || vars.period === 'pm') vars.period = bundle.period[vars.period];
+
+  let body = lookup(bundle, `${key}.body`);
+  if (body === null) {
+    const n = Number(vars.count ?? '2');
+    const one = n === 1 || (lang === 'fr' && n === 0);
+    body = lookup(bundle, `${key}.${one ? 'body_one' : 'body_other'}`) ?? lookup(bundle, `${key}.body_other`);
+  }
+  if (body === null) return null;
+  if (!hasAll(title, vars) || !hasAll(body, vars)) return null;
+  return {
+    title: fill(title, vars).trim(),
+    body: fill(body, vars).replace(/\s+[—:]\s*$/, '').trim(),
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -84,10 +167,11 @@ Deno.serve(async (req) => {
   // users.push_token only if push_tokens has no rows yet (first-run / unmigrated).
   const { data: tokenRows, error } = await supabase
     .from('push_tokens')
-    .select('token')
+    .select('token, user_id')
     .in('user_id', targets);
 
-  let tokens = (tokenRows ?? []).map((r) => r.token).filter(Boolean);
+  let tokens: { token: string; user_id: string }[] = (tokenRows ?? [])
+    .filter((r): r is { token: string; user_id: string } => typeof r.token === 'string' && r.token.length > 0);
 
   // Legacy fallback only makes sense for the single-recipient shape.
   if (tokens.length === 0 && !error && targets.length === 1) {
@@ -96,19 +180,42 @@ Deno.serve(async (req) => {
       .select('push_token')
       .eq('id', targets[0])
       .single();
-    if (legacy?.push_token) tokens = [legacy.push_token];
+    if (legacy?.push_token) tokens = [{ token: legacy.push_token, user_id: targets[0]! }];
   }
 
   if (tokens.length === 0) {
     return new Response('No token', { status: 204 });
   }
 
+  // Recipient languages (users.language, 00445) — only needed when the
+  // payload is composable; one query for the whole batch.
+  const langByUser = new Map<string, string>();
+  if (data && typeof data.type === 'string' && data.params) {
+    const { data: langRows } = await supabase
+      .from('users')
+      .select('id, language')
+      .in('id', targets);
+    for (const r of langRows ?? []) {
+      if (typeof r.id === 'string' && typeof r.language === 'string') langByUser.set(r.id, r.language);
+    }
+  }
+  const textCache = new Map<string, { title: string; body: string }>();
+  const textFor = (uid: string): { title: string; body: string } => {
+    const lang = langByUser.get(uid) ?? DEFAULT_LANG;
+    const cached = textCache.get(lang);
+    if (cached) return cached;
+    const composed = compose(lang, data) ?? { title, body };
+    textCache.set(lang, composed);
+    return composed;
+  };
+
   // Expo Push API accepts an array of messages in a single request (up to 100).
-  const messages = tokens.map((to) => {
+  const messages = tokens.map(({ token, user_id: uid }) => {
+    const text = textFor(uid);
     const msg: Record<string, unknown> = {
-      to,
-      title,
-      body,
+      to: token,
+      title: text.title,
+      body: text.body,
       data: data ?? {},
       sound: 'default',
       priority: 'high',
@@ -119,6 +226,7 @@ Deno.serve(async (req) => {
     }
     return msg;
   });
+  const flatTokens = tokens.map((t) => t.token);
 
   // Expo accepts up to 100 messages per request — chunk the batch (a 20-user
   // group with multiple devices each can exceed 100 tokens).
@@ -148,18 +256,17 @@ Deno.serve(async (req) => {
 
   // Best-effort token cleanup. Tickets align with the flat token order only
   // when every chunk succeeded and parsed — skip cleanup otherwise.
-  if (!anyFailed && allTickets.length === tokens.length) {
+  if (!anyFailed && allTickets.length === flatTokens.length) {
     try {
-      const tickets: ExpoTicket[] = allTickets;
       const deadTokens: string[] = [];
-      tickets.forEach((ticket, i) => {
+      allTickets.forEach((ticket, i) => {
         if (
           ticket?.status === 'error' &&
           ticket.details?.error &&
           DEAD_TOKEN_ERRORS.has(ticket.details.error) &&
-          tokens[i]
+          flatTokens[i]
         ) {
-          deadTokens.push(tokens[i]!);
+          deadTokens.push(flatTokens[i]!);
         }
       });
       if (deadTokens.length > 0) {
@@ -175,9 +282,6 @@ Deno.serve(async (req) => {
         }
       }
     } catch {
-      // Same — don't dump the raw Expo parse error. The shape of the
-      // response is documented; if it changes we'll catch it via tests,
-      // not via log spelunking.
       console.warn('[send-push] expo response parse failed');
     }
   }

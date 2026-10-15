@@ -1,4 +1,70 @@
 {
+  "notif": {
+    "join_request": { "title": "{{name}} vuole unirsi alla tua uscita", "body": "« {{title}} »" },
+    "request_accepted": { "title": "Sei dentro!", "body": "« {{title}} »" },
+    "request_refused": { "title": "Richiesta rifiutata", "body": "« {{title}} »" },
+    "participant_joined": { "title": "Nuovo partecipante", "body": "{{name}} si è unito a « {{title}} »" },
+    "participant_left": { "title": "{{name}} ha lasciato « {{title}} »", "body": "{{reason}}" },
+    "participant_left_late": { "title": "{{name}} ha lasciato « {{title}} »", "body": "Ritiro tardivo — penalità di affidabilità applicata, puoi toglierla dall'uscita." },
+    "participant_removed": { "title": "Non fai più parte dell'uscita", "body": "« {{title}} »" },
+    "activity_cancelled": {
+      "title": "Uscita annullata", "body": "« {{title}} » — {{reason}}",
+      "no_reason": { "title": "Uscita annullata", "body": "« {{title}} »" },
+      "creator_gone": { "title": "Uscita annullata", "body": "« {{title}} » — l'organizzatore ha lasciato Junto" }
+    },
+    "activity_updated": { "title": "Uscita modificata", "body": "« {{title}} » è cambiata — controlla orario e ritrovo." },
+    "alert_match": { "title": "Nuova uscita per il tuo avviso", "body": "« {{title}} »" },
+    "contact_request": {
+      "title": "{{name}} vuole contattarti", "body": "",
+      "invite": { "title": "{{name}} ti invita a un'uscita", "body": "« {{title}} »" }
+    },
+    "contact_request_accepted": { "title": "{{name}} ha accettato la tua richiesta di contatto", "body": "" },
+    "activity_invitation": { "title": "{{name}} ti invita a un'uscita", "body": "« {{title}} »" },
+    "invitation_accepted": { "title": "{{name}} ha accettato il tuo invito", "body": "« {{title}} »" },
+    "invite_activity_gone": { "title": "Questa uscita non è più disponibile", "body": "« {{title}} »" },
+    "group_added": { "title": "{{name}} ti ha aggiunto al gruppo", "body": "{{group}}" },
+    "seat_request": {
+      "title": "Richiesta di passaggio", "body": "{{name}} chiede un posto per « {{title}} »",
+      "pickup": { "title": "Richiesta di passaggio", "body": "{{name}} chiede un posto per « {{title}} » da {{pickup}}" }
+    },
+    "seat_request_accepted": { "title": "Posto confermato!", "body": "{{name}} ha accettato la tua richiesta per « {{title}} »" },
+    "seat_request_declined": { "title": "Nessun posto", "body": "{{name}} ha rifiutato la tua richiesta per « {{title}} »" },
+    "seat_request_expired": { "title": "Nessuna risposta", "body": "La tua richiesta di passaggio per « {{title}} » è scaduta senza risposta dal conducente." },
+    "driver_left": { "title": "Posto annullato", "body": "{{name}} ha lasciato « {{title}} » — trova un altro posto" },
+    "booking_request": { "title": "Nuova richiesta di prenotazione", "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers." },
+    "booking_accepted": { "title": "Prenotazione confermata!", "body": "{{name}} ha confermato « {{title}} » il {{date}}, {{period}}. Pagamento sul posto." },
+    "booking_declined": { "title": "Slot non disponibile", "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot." },
+    "booking_cancelled": {
+      "title": "Uscita annullata", "body": "« {{title}} » del {{date}} è stata annullata.",
+      "by_client": { "title": "Prenotazione annullata", "body": "{{name}} ha annullato « {{title}} » del {{date}}." },
+      "by_pro": { "title": "Uscita annullata", "body": "{{name}} ha annullato « {{title}} » del {{date}}. Contattalo per riprogrammare." },
+      "pro_gone": { "title": "Uscita annullata", "body": "« {{title}} » del {{date}} è annullata — il professionista non è più su Junto." },
+      "client_gone": { "title": "Prenotazione annullata", "body": "La prenotazione di « {{title}} » del {{date}} è stata annullata." }
+    },
+    "booking_expired": { "title": "Richiesta scaduta", "body": "La tua richiesta per « {{title}} » del {{date}}, {{period}} è scaduta senza risposta. Puoi chiedere un altro slot." },
+    "presence_pre_warning": { "title": "{{title}}", "body": "Inizia tra 2 h — preparati a convalidare la presenza sul posto" },
+    "presence_pre_warning_10min": { "title": "{{title}}", "body": "Inizia tra 10 min — ricordati di convalidare la presenza sul posto" },
+    "presence_validate_warning": { "title": "Convalida la tua presenza", "body": "Scansiona il QR dell'organizzatore — valido fino a 3 h dopo la fine di « {{title}} »." },
+    "presence_validate_overdue": {
+      "title": "Presenza non convalidata", "body": "Scansiona il QR dell'organizzatore entro 3 h dalla fine di « {{title}} », altrimenti conterà come assenza.",
+      "duo": { "title": "Presenza non convalidata", "body": "Scansiona il QR dell'organizzatore entro 3 h dalla fine di « {{title}} », altrimenti l'uscita non verrà contata." }
+    },
+    "presence_confirmed": { "title": "Presenza confermata", "body": "La tua presenza è convalidata per « {{title}} »" },
+    "qr_create_reminder": { "title": "{{title}}", "body": "Genera il QR di presenza per i tuoi partecipanti" },
+    "rate_participants": { "title": "Valuta i tuoi compagni", "body": "« {{title}} » — raccontaci com'è andata." },
+    "review_received": { "title": "Nuova recensione", "body": "{{name}} ha lasciato una recensione ({{rating}}★) su {{label}}" },
+    "review_reply": { "title": "Risposta alla tua recensione", "body": "{{name}} ha risposto alla tua recensione su {{label}}" },
+    "badge_unlocked": { "title": "Nuovo badge!", "body": "Ora sei {{label}}" },
+    "pro_approved": { "title": "Pagina pro approvata", "body": "La tua pagina pro è online. Ora puoi pubblicare le tue uscite." },
+    "pro_rejected": {
+      "title": "Richiesta pro rifiutata", "body": "La tua richiesta di pagina pro non è stata approvata. Correggi i dati e invia di nuovo.",
+      "reason": { "title": "Richiesta pro rifiutata", "body": "{{reason}}" }
+    },
+    "new_message": {
+      "title": "{{name}} · {{context}}", "body": "{{preview}}",
+      "dm": { "title": "{{name}}", "body": "{{preview}}" }
+    }
+  },
   "format": {
     "dateTimeAt": "ddd D MMM [alle] H:mm"
   },

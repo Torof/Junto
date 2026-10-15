@@ -1,4 +1,70 @@
 {
+  "notif": {
+    "join_request": { "title": "{{name}} veut rejoindre ta sortie", "body": "« {{title}} »" },
+    "request_accepted": { "title": "Tu es dans la sortie !", "body": "« {{title}} »" },
+    "request_refused": { "title": "Demande refusée", "body": "« {{title}} »" },
+    "participant_joined": { "title": "Nouveau participant", "body": "{{name}} a rejoint « {{title}} »" },
+    "participant_left": { "title": "{{name}} a quitté « {{title}} »", "body": "{{reason}}" },
+    "participant_left_late": { "title": "{{name}} a quitté « {{title}} »", "body": "Départ tardif — pénalité de fiabilité appliquée, tu peux la lever depuis la sortie." },
+    "participant_removed": { "title": "Tu ne fais plus partie de la sortie", "body": "« {{title}} »" },
+    "activity_cancelled": {
+      "title": "Sortie annulée", "body": "« {{title}} » — {{reason}}",
+      "no_reason": { "title": "Sortie annulée", "body": "« {{title}} »" },
+      "creator_gone": { "title": "Sortie annulée", "body": "« {{title}} » — l’organisateur a quitté Junto" }
+    },
+    "activity_updated": { "title": "Sortie modifiée", "body": "« {{title}} » a changé — vérifie l’heure et le rendez-vous." },
+    "alert_match": { "title": "Nouvelle sortie pour ton alerte", "body": "« {{title}} »" },
+    "contact_request": {
+      "title": "{{name}} souhaite te contacter", "body": "",
+      "invite": { "title": "{{name}} t’invite à une sortie", "body": "« {{title}} »" }
+    },
+    "contact_request_accepted": { "title": "{{name}} a accepté ta demande de contact", "body": "" },
+    "activity_invitation": { "title": "{{name}} t’invite à une sortie", "body": "« {{title}} »" },
+    "invitation_accepted": { "title": "{{name}} a accepté ton invitation", "body": "« {{title}} »" },
+    "invite_activity_gone": { "title": "Cette sortie n’est plus disponible", "body": "« {{title}} »" },
+    "group_added": { "title": "{{name}} t’ajoute au groupe", "body": "{{group}}" },
+    "seat_request": {
+      "title": "Demande de covoiturage", "body": "{{name}} demande une place pour « {{title}} »",
+      "pickup": { "title": "Demande de covoiturage", "body": "{{name}} demande une place pour « {{title}} » depuis {{pickup}}" }
+    },
+    "seat_request_accepted": { "title": "Place confirmée !", "body": "{{name}} a accepté ta demande pour « {{title}} »" },
+    "seat_request_declined": { "title": "Pas de place", "body": "{{name}} a refusé ta demande pour « {{title}} »" },
+    "seat_request_expired": { "title": "Demande sans réponse", "body": "Ta demande de covoiturage pour « {{title}} » a expiré sans réponse du conducteur." },
+    "driver_left": { "title": "Place annulée", "body": "{{name}} a quitté « {{title}} » — trouve une autre place" },
+    "booking_request": { "title": "Nouvelle demande de réservation", "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers." },
+    "booking_accepted": { "title": "Réservation confirmée !", "body": "{{name}} a confirmé « {{title}} » le {{date}}, {{period}}. Paiement sur place." },
+    "booking_declined": { "title": "Créneau indisponible", "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau." },
+    "booking_cancelled": {
+      "title": "Sortie annulée", "body": "« {{title}} » du {{date}} a été annulée.",
+      "by_client": { "title": "Réservation annulée", "body": "{{name}} a annulé « {{title}} » du {{date}}." },
+      "by_pro": { "title": "Sortie annulée", "body": "{{name}} a annulé « {{title}} » du {{date}}. Contacte-le pour reprogrammer." },
+      "pro_gone": { "title": "Sortie annulée", "body": "« {{title}} » du {{date}} est annulée — le professionnel n’est plus sur Junto." },
+      "client_gone": { "title": "Réservation annulée", "body": "La réservation de « {{title}} » du {{date}} a été annulée." }
+    },
+    "booking_expired": { "title": "Demande expirée", "body": "Ta demande pour « {{title}} » du {{date}}, {{period}} a expiré sans réponse. Tu peux demander un autre créneau." },
+    "presence_pre_warning": { "title": "{{title}}", "body": "Démarre dans 2 h — prépare-toi à valider ta présence sur place" },
+    "presence_pre_warning_10min": { "title": "{{title}}", "body": "Démarre dans 10 min — pense à valider ta présence sur place" },
+    "presence_validate_warning": { "title": "Valide ta présence", "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} »." },
+    "presence_validate_overdue": {
+      "title": "Présence non validée", "body": "Scanne le QR de l’organisateur avant 3 h après la fin de « {{title}} », sinon ce sera une absence.",
+      "duo": { "title": "Présence non validée", "body": "Scanne le QR de l’organisateur avant 3 h après la fin de « {{title}} », sinon la sortie ne sera pas comptée." }
+    },
+    "presence_confirmed": { "title": "Présence confirmée", "body": "Ta présence est validée pour « {{title}} »" },
+    "qr_create_reminder": { "title": "{{title}}", "body": "Génère le QR de présence pour tes participants" },
+    "rate_participants": { "title": "Évalue tes co-participants", "body": "« {{title}} » — dis-nous comment ça s’est passé." },
+    "review_received": { "title": "Nouvel avis", "body": "{{name}} a laissé un avis ({{rating}}★) sur {{label}}" },
+    "review_reply": { "title": "Réponse à ton avis", "body": "{{name}} a répondu à ton avis sur {{label}}" },
+    "badge_unlocked": { "title": "Nouveau badge !", "body": "Tu es maintenant {{label}}" },
+    "pro_approved": { "title": "Page pro validée", "body": "Ta page pro est en ligne. Tu peux maintenant publier tes sorties." },
+    "pro_rejected": {
+      "title": "Demande pro refusée", "body": "Ta demande de page pro n’a pas été validée. Corrige tes informations et renvoie-la.",
+      "reason": { "title": "Demande pro refusée", "body": "{{reason}}" }
+    },
+    "new_message": {
+      "title": "{{name}} · {{context}}", "body": "{{preview}}",
+      "dm": { "title": "{{name}}", "body": "{{preview}}" }
+    }
+  },
   "format": {
     "dateTimeAt": "ddd D MMM [à] H[h]mm"
   },

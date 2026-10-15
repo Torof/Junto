@@ -1,4 +1,70 @@
 {
+  "notif": {
+    "join_request": { "title": "{{name}} möchte bei deiner Tour mitmachen", "body": "„{{title}}“" },
+    "request_accepted": { "title": "Du bist dabei!", "body": "„{{title}}“" },
+    "request_refused": { "title": "Anfrage abgelehnt", "body": "„{{title}}“" },
+    "participant_joined": { "title": "Neue Teilnahme", "body": "{{name}} ist bei „{{title}}“ dabei" },
+    "participant_left": { "title": "{{name}} hat „{{title}}“ verlassen", "body": "{{reason}}" },
+    "participant_left_late": { "title": "{{name}} hat „{{title}}“ verlassen", "body": "Späte Absage — Zuverlässigkeitsstrafe vergeben, du kannst sie in der Tour aufheben." },
+    "participant_removed": { "title": "Du bist nicht mehr bei dieser Tour", "body": "„{{title}}“" },
+    "activity_cancelled": {
+      "title": "Tour abgesagt", "body": "„{{title}}“ — {{reason}}",
+      "no_reason": { "title": "Tour abgesagt", "body": "„{{title}}“" },
+      "creator_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ — die Organisation hat Junto verlassen" }
+    },
+    "activity_updated": { "title": "Tour geändert", "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt." },
+    "alert_match": { "title": "Neue Tour für deinen Alarm", "body": "„{{title}}“" },
+    "contact_request": {
+      "title": "{{name}} möchte dich kontaktieren", "body": "",
+      "invite": { "title": "{{name}} lädt dich zu einer Tour ein", "body": "„{{title}}“" }
+    },
+    "contact_request_accepted": { "title": "{{name}} hat deine Kontaktanfrage angenommen", "body": "" },
+    "activity_invitation": { "title": "{{name}} lädt dich zu einer Tour ein", "body": "„{{title}}“" },
+    "invitation_accepted": { "title": "{{name}} hat deine Einladung angenommen", "body": "„{{title}}“" },
+    "invite_activity_gone": { "title": "Diese Tour ist nicht mehr verfügbar", "body": "„{{title}}“" },
+    "group_added": { "title": "{{name}} hat dich zur Gruppe hinzugefügt", "body": "{{group}}" },
+    "seat_request": {
+      "title": "Mitfahranfrage", "body": "{{name}} fragt nach einem Platz für „{{title}}“",
+      "pickup": { "title": "Mitfahranfrage", "body": "{{name}} fragt nach einem Platz für „{{title}}“ ab {{pickup}}" }
+    },
+    "seat_request_accepted": { "title": "Platz bestätigt!", "body": "{{name}} hat deine Anfrage für „{{title}}“ angenommen" },
+    "seat_request_declined": { "title": "Kein Platz", "body": "{{name}} hat deine Anfrage für „{{title}}“ abgelehnt" },
+    "seat_request_expired": { "title": "Keine Antwort", "body": "Deine Mitfahranfrage für „{{title}}“ ist ohne Antwort abgelaufen." },
+    "driver_left": { "title": "Platz entfällt", "body": "{{name}} hat „{{title}}“ verlassen — such dir einen anderen Platz" },
+    "booking_request": { "title": "Neue Buchungsanfrage", "body_one": "{{name}} · „{{title}}“ · {{date}}, {{period}} · 1 Pers.", "body_other": "{{name}} · „{{title}}“ · {{date}}, {{period}} · {{count}} Pers." },
+    "booking_accepted": { "title": "Buchung bestätigt!", "body": "{{name}} hat „{{title}}“ am {{date}}, {{period}} bestätigt. Bezahlung vor Ort." },
+    "booking_declined": { "title": "Termin nicht verfügbar", "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin." },
+    "booking_cancelled": {
+      "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} wurde abgesagt.",
+      "by_client": { "title": "Buchung storniert", "body": "{{name}} hat „{{title}}“ am {{date}} storniert." },
+      "by_pro": { "title": "Tour abgesagt", "body": "{{name}} hat „{{title}}“ am {{date}} abgesagt. Melde dich für einen neuen Termin." },
+      "pro_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf Junto." },
+      "client_gone": { "title": "Buchung storniert", "body": "Die Buchung für „{{title}}“ am {{date}} wurde storniert." }
+    },
+    "booking_expired": { "title": "Anfrage abgelaufen", "body": "Deine Anfrage für „{{title}}“ am {{date}}, {{period}} ist ohne Antwort abgelaufen. Du kannst einen anderen Termin anfragen." },
+    "presence_pre_warning": { "title": "{{title}}", "body": "Start in 2 h — bereite dich darauf vor, deine Anwesenheit vor Ort zu bestätigen" },
+    "presence_pre_warning_10min": { "title": "{{title}}", "body": "Start in 10 min — denk daran, deine Anwesenheit vor Ort zu bestätigen" },
+    "presence_validate_warning": { "title": "Bestätige deine Anwesenheit", "body": "Scanne den QR-Code der Organisation — gültig bis 3 h nach Ende von „{{title}}“." },
+    "presence_validate_overdue": {
+      "title": "Anwesenheit nicht bestätigt", "body": "Scanne den QR-Code der Organisation bis 3 h nach Ende von „{{title}}“, sonst zählt es als Abwesenheit.",
+      "duo": { "title": "Anwesenheit nicht bestätigt", "body": "Scanne den QR-Code der Organisation bis 3 h nach Ende von „{{title}}“, sonst zählt die Tour nicht." }
+    },
+    "presence_confirmed": { "title": "Anwesenheit bestätigt", "body": "Deine Anwesenheit bei „{{title}}“ ist bestätigt" },
+    "qr_create_reminder": { "title": "{{title}}", "body": "Erzeuge den Anwesenheits-QR für deine Teilnehmenden" },
+    "rate_participants": { "title": "Bewerte deine Mitstreiter", "body": "„{{title}}“ — erzähl uns, wie es war." },
+    "review_received": { "title": "Neue Bewertung", "body": "{{name}} hat eine Bewertung ({{rating}}★) zu {{label}} hinterlassen" },
+    "review_reply": { "title": "Antwort auf deine Bewertung", "body": "{{name}} hat auf deine Bewertung zu {{label}} geantwortet" },
+    "badge_unlocked": { "title": "Neues Abzeichen!", "body": "Du bist jetzt {{label}}" },
+    "pro_approved": { "title": "Pro-Seite freigegeben", "body": "Deine Pro-Seite ist online. Du kannst jetzt deine Touren veröffentlichen." },
+    "pro_rejected": {
+      "title": "Pro-Antrag abgelehnt", "body": "Dein Antrag auf eine Pro-Seite wurde nicht freigegeben. Korrigiere deine Angaben und sende ihn erneut.",
+      "reason": { "title": "Pro-Antrag abgelehnt", "body": "{{reason}}" }
+    },
+    "new_message": {
+      "title": "{{name}} · {{context}}", "body": "{{preview}}",
+      "dm": { "title": "{{name}}", "body": "{{preview}}" }
+    }
+  },
   "format": {
     "dateTimeAt": "ddd D. MMM [um] H:mm"
   },

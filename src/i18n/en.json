@@ -1,4 +1,70 @@
 {
+  "notif": {
+    "join_request": { "title": "{{name}} wants to join your outing", "body": "“{{title}}”" },
+    "request_accepted": { "title": "You're in!", "body": "“{{title}}”" },
+    "request_refused": { "title": "Request declined", "body": "“{{title}}”" },
+    "participant_joined": { "title": "New participant", "body": "{{name}} joined “{{title}}”" },
+    "participant_left": { "title": "{{name}} left “{{title}}”", "body": "{{reason}}" },
+    "participant_left_late": { "title": "{{name}} left “{{title}}”", "body": "Late withdrawal — reliability penalty applied, you can lift it from the outing." },
+    "participant_removed": { "title": "You are no longer in this outing", "body": "“{{title}}”" },
+    "activity_cancelled": {
+      "title": "Outing cancelled", "body": "“{{title}}” — {{reason}}",
+      "no_reason": { "title": "Outing cancelled", "body": "“{{title}}”" },
+      "creator_gone": { "title": "Outing cancelled", "body": "“{{title}}” — the organiser left Junto" }
+    },
+    "activity_updated": { "title": "Outing updated", "body": "“{{title}}” changed — check the time and meeting point." },
+    "alert_match": { "title": "New outing for your alert", "body": "“{{title}}”" },
+    "contact_request": {
+      "title": "{{name}} wants to get in touch", "body": "",
+      "invite": { "title": "{{name}} invites you to an outing", "body": "“{{title}}”" }
+    },
+    "contact_request_accepted": { "title": "{{name}} accepted your contact request", "body": "" },
+    "activity_invitation": { "title": "{{name}} invites you to an outing", "body": "“{{title}}”" },
+    "invitation_accepted": { "title": "{{name}} accepted your invitation", "body": "“{{title}}”" },
+    "invite_activity_gone": { "title": "This outing is no longer available", "body": "“{{title}}”" },
+    "group_added": { "title": "{{name}} added you to a group", "body": "{{group}}" },
+    "seat_request": {
+      "title": "Carpool request", "body": "{{name}} asks for a seat for “{{title}}”",
+      "pickup": { "title": "Carpool request", "body": "{{name}} asks for a seat for “{{title}}” from {{pickup}}" }
+    },
+    "seat_request_accepted": { "title": "Seat confirmed!", "body": "{{name}} accepted your request for “{{title}}”" },
+    "seat_request_declined": { "title": "No seat", "body": "{{name}} declined your request for “{{title}}”" },
+    "seat_request_expired": { "title": "No answer", "body": "Your carpool request for “{{title}}” expired without an answer from the driver." },
+    "driver_left": { "title": "Seat cancelled", "body": "{{name}} left “{{title}}” — find another seat" },
+    "booking_request": { "title": "New booking request", "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 person", "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} people" },
+    "booking_accepted": { "title": "Booking confirmed!", "body": "{{name}} confirmed “{{title}}” on {{date}}, {{period}}. Pay on site." },
+    "booking_declined": { "title": "Slot unavailable", "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot." },
+    "booking_cancelled": {
+      "title": "Outing cancelled", "body": "“{{title}}” on {{date}} was cancelled.",
+      "by_client": { "title": "Booking cancelled", "body": "{{name}} cancelled “{{title}}” on {{date}}." },
+      "by_pro": { "title": "Outing cancelled", "body": "{{name}} cancelled “{{title}}” on {{date}}. Get in touch to reschedule." },
+      "pro_gone": { "title": "Outing cancelled", "body": "“{{title}}” on {{date}} is cancelled — the professional is no longer on Junto." },
+      "client_gone": { "title": "Booking cancelled", "body": "The booking for “{{title}}” on {{date}} was cancelled." }
+    },
+    "booking_expired": { "title": "Request expired", "body": "Your request for “{{title}}” on {{date}}, {{period}} expired without an answer. You can ask for another slot." },
+    "presence_pre_warning": { "title": "{{title}}", "body": "Starts in 2 h — get ready to validate your presence on site" },
+    "presence_pre_warning_10min": { "title": "{{title}}", "body": "Starts in 10 min — remember to validate your presence on site" },
+    "presence_validate_warning": { "title": "Validate your presence", "body": "Scan the organiser's QR — valid until 3 h after the end of “{{title}}”." },
+    "presence_validate_overdue": {
+      "title": "Presence not validated", "body": "Scan the organiser's QR before 3 h after the end of “{{title}}”, or it counts as an absence.",
+      "duo": { "title": "Presence not validated", "body": "Scan the organiser's QR before 3 h after the end of “{{title}}”, or the outing will not count." }
+    },
+    "presence_confirmed": { "title": "Presence confirmed", "body": "Your presence is validated for “{{title}}”" },
+    "qr_create_reminder": { "title": "{{title}}", "body": "Generate the presence QR for your participants" },
+    "rate_participants": { "title": "Rate your co-participants", "body": "“{{title}}” — tell us how it went." },
+    "review_received": { "title": "New review", "body": "{{name}} left a review ({{rating}}★) on {{label}}" },
+    "review_reply": { "title": "Reply to your review", "body": "{{name}} replied to your review on {{label}}" },
+    "badge_unlocked": { "title": "New badge!", "body": "You are now {{label}}" },
+    "pro_approved": { "title": "Pro page approved", "body": "Your pro page is live. You can now publish your outings." },
+    "pro_rejected": {
+      "title": "Pro application declined", "body": "Your pro page application was not approved. Fix your details and send it again.",
+      "reason": { "title": "Pro application declined", "body": "{{reason}}" }
+    },
+    "new_message": {
+      "title": "{{name}} · {{context}}", "body": "{{preview}}",
+      "dm": { "title": "{{name}}", "body": "{{preview}}" }
+    }
+  },
   "format": {
     "dateTimeAt": "ddd D MMM [at] H:mm"
   },

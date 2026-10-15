@@ -7,7 +7,10 @@ export interface Notification {
   title: string;
   body: string;
   data: { activity_id?: string; conversation_id?: string; pro_id?: string; offering_id?: string; review_id?: string; by?: 'client' | 'pro';
-  changes?: Record<string, boolean> } | null;
+  changes?: Record<string, boolean>;
+  // Lot 0 (2026-10): variables of the sentence + optional template variant —
+  // the app recomposes the text in the reader's language from `notif.<type>`.
+  params?: Record<string, string | number | null>; variant?: string } | null;
   read_at: string | null;
   created_at: string;
 }
