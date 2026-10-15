@@ -83,16 +83,16 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 
 ---
 
-## Lot 2 — Ergonomie pro (maquette → validation → RN)
+## Lot 2 — Ergonomie pro ✅ livré 2026-10-15 (maquette validée le jour même, 5 commits f74f3c7→i18n, OTA preview)
 
-- [ ] **Devenir pro** : sortir de Paramètres → Compte (à côté de « Supprimer mon compte ») ; une ligne dans le menu principal, au même emplacement que le futur « Espace pro ».
-- [ ] **Inscription** : 13 champs, 5 obligatoires ; « Nom » vs « Nom de la structure » à expliquer (« Nom affiché sur ta page » / « Raison sociale, non publique ») ; lieu en **un geste** (recherche Photon + libellé auto) au lieu de carte plein écran + ville retapée.
-- [ ] **Après envoi** : un seul état « En attente » honnête (bannière, « Modifier ma demande », « on te prévient par notification ») ; Espace pro réservé aux approuvés.
-- [ ] **Page pro, édition** : deux logiques de sauvegarde (pin au tap, reste au submit) → unifier ou badge « enregistré » ; « Icône du pin / univers » → « Ton pin sur la carte » ; raccourci « Gérer mes photos » ; bouton Enregistrer sticky ou dans le header ; état vide Aperçu « Ajoute ta première sortie ».
-- [ ] **Créer une offre** : « Mes offres » ouvre l'onglet Catalogue (ou « + Nouvelle sortie » dans le hub) ; formulaire en **deux temps** (essentiel : sport, titre, 2 lignes, lieu, prix / détails repliés) ; défauts : « Tous niveaux » pré-coché, carte centrée sur l'adresse du pro, nom du lieu pré-rempli ; durée en chips (½ journée, journée, 2h, 3h) cohérentes avec am/pm ; bandeau « Ajoute des photos » tant que la galerie est vide.
-- [ ] **Agenda** : demi-journées ≈ 48×26 px → cibles ≥ 44 pt (cellules plus hautes ou vue semaine en édition), libellé matin/après-midi dans la case, jour complet d'un tap ; toggle **optimiste** ; légende « teinte = sport » → « Réservé » ; « Mes dispos » plus visible ; résa manuelle : FAB désactivé sans offre (« Crée d'abord une offre »), chip date avec icône calendrier.
-- [ ] **Espace pro** : avatar avec le logo (`pin_image_url`) ; retirer « Bientôt : historique clients & statistiques » ; deux tuiles vers la même page → distinguer ; « n fiches manquantes » → action (ouvrir la conversation).
-- [ ] **Vocabulaire unique** : « Demander un créneau » (client), « Demandes » (pro), « Confirmée » partout ; bannir « univers », « teinte = sport », « via l'app / manuel » → « hors app ».
+- [x] **Devenir pro** dans le Menu, à la place qu'occupe ensuite « Espace pro » (statut pending/rejected au même endroit) ; retiré de Paramètres › Compte.
+- [x] **Inscription** : quatre champs (« Nom affiché sur ta page », « Raison sociale · non publique », « Ton nom et prénom · non public », « Où te trouver ») ; lieu en un geste (PlaceSearchBar Photon → ville + pin, mini-carte pour ajuster) ; Contact et Slogan/description repliés, optionnels ; CTA sticky « Envoyer ma demande » + note.
+- [x] **Après envoi** : fait au lot 1 (Espace pro réservé aux approuvés, état unique).
+- [x] **Page pro, édition** : une seule logique de sauvegarde (pin + logo appliqués avec Enregistrer, upload du logo au choix) ; « Ton pin sur la carte » ; Adresse / Contact repliés avec résumé ; ligne « Photos de la page » → onglet Photos ; CTA sticky ; note identité vérifiée. **Reste** : état vide Aperçu « Ajoute ta première sortie ».
+- [x] **Créer une sortie** : « + Nouvelle sortie » dans le hub ; « Mes sorties » ouvre l'onglet Catalogue (`?tab=catalog`) ; formulaire en deux temps (essentiel / détails repliés avec valeur courante) ; défauts « Tous niveaux », lieu = adresse du pro ; durée en chips ; « + » sur les tags. **Reste** : bandeau « Ajoute des photos » tant que la galerie est vide.
+- [x] **Agenda** : cellules 108 pt, demi-journées ≥ 42 pt libellées matin / a-midi ; segmenté Consulter / Modifier mes dispos ; toggle optimiste ; légende « Réservé » ; raccourcis derrière un bouton (feuille) ; « + Résa » en en-tête à la place du bouton flottant. **Reste** : FAB désactivé sans offre, icône calendrier sur le chip date, listes dérivées de la fenêtre chargée.
+- [x] **Espace pro** : logo du pin, « Bientôt » retiré, quatre tuiles distinctes. **Reste** : « n fiches manquantes » → action.
+- [~] **Vocabulaire unique** : « Réservé », « matin / a-midi », « Modifier mes dispos » posés ; « Demander un créneau » côté client = lot 3.
 
 ---
 
