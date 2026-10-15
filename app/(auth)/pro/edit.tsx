@@ -16,19 +16,32 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { X, Check, ImagePlus, Trash2 } from 'lucide-react-native';
+import { X, Check, ImagePlus, Trash2, ChevronDown, ChevronUp, ChevronRight, Plus, MapPin } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, glow } from '@/constants/theme';
 import { proService, type ClearableProField } from '@/services/pro-service';
 import { getFriendlyError } from '@/utils/friendly-error';
-import { pickAndUploadProPinImage, removeProPinImage } from '@/utils/pro-pin-image-upload';
+import { pickAndUploadProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { PlaceSearchBar } from '@/components/place-search-bar';
+import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { ProPin } from '@/components/pro-pin';
 import { PRO_PIN_ICONS } from '@/constants/pro-pin-icons';
 
+// Register-or-update screen for the pro page (lot 2 pro, mockup validated
+// 2026-10-15):
+//   - becoming a pro asks FOUR things (name shown, legal name, identity,
+//     place) — contact and about are folded away, optional;
+//   - the place is one gesture: a place search fills the town and drops the
+//     pin, the mini-map stays to adjust by hand;
+//   - once approved, the page edit has ONE save logic: pin icon and logo are
+//     applied with « Enregistrer » like every other field (the logo file is
+//     uploaded at pick time, the profile change waits);
+//   - the primary action is a sticky bar, never lost at the bottom of a
+//     13-field scroll.
 export default function ProEditScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -44,6 +57,7 @@ export default function ProEditScreen() {
   });
 
   const isUpdate = !!existing;
+  const isApproved = existing?.status === 'approved';
 
   const [displayName, setDisplayName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -64,12 +78,14 @@ export default function ProEditScreen() {
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
   const [pinIcon, setPinIcon] = useState<string | null>(null);
-  const [pinIconBusy, setPinIconBusy] = useState(false);
   const [pinImageUrl, setPinImageUrl] = useState<string | null>(null);
   const [pinImageBusy, setPinImageBusy] = useState(false);
+  // Folded sections.
+  const [showContact, setShowContact] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showLocation, setShowLocation] = useState(false);
 
-  // Once the existing profile loads, hydrate the form. Falling through
-  // to defaults if the user is new (no profile yet).
+  // Once the existing profile loads, hydrate the form.
   useEffect(() => {
     if (!existing) return;
     setDisplayName(existing.display_name);
@@ -87,63 +103,28 @@ export default function ProEditScreen() {
     setPinLat(existing.primary_lat);
     setPinIcon(existing.pin_icon);
     setPinImageUrl(existing.pin_image_url);
+    // An approved pro sees slogan/description open (that is the page), a
+    // pending/rejected one sees the application as they sent it.
+    setShowAbout(existing.status === 'approved' || !!existing.tagline || !!existing.description);
+    setShowContact(!!(existing.website || existing.email || existing.phone || existing.instagram || existing.facebook) && existing.status !== 'approved');
+    setShowLocation(existing.status !== 'approved');
   }, [existing]);
 
-
-  // Tap an icon to set it; tap the selected one again to clear (back to the
-  // initial fallback). Persisted immediately via the approved-only setter.
-  const handlePickIcon = async (key: string) => {
-    if (pinIconBusy) return;
-    const prev = pinIcon;
+  // Pin icon / logo: local state only — applied with « Enregistrer ».
+  const handlePickIcon = (key: string) => {
     const next = pinIcon === key ? null : key;
     setPinIcon(next);
-    setPinIconBusy(true);
-    try {
-      // The custom logo takes display priority over the glyph, so picking a
-      // universe must clear it — the row is "choose what fills the disc".
-      if (pinImageUrl) {
-        await removeProPinImage();
-        setPinImageUrl(null);
-      }
-      await proService.setPinIcon(next);
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
-      await queryClient.invalidateQueries({ queryKey: ['pros'] });
-    } catch (err) {
-      setPinIcon(prev);
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setPinIconBusy(false);
-    }
+    // The custom logo takes display priority over the glyph, so picking a
+    // universe clears it — the row is "choose what fills the disc".
+    if (next && pinImageUrl) setPinImageUrl(null);
   };
 
   const handlePickPinImage = async () => {
     if (pinImageBusy) return;
     setPinImageBusy(true);
     try {
-      const newUrl = await pickAndUploadProPinImage();
-      if (newUrl) {
-        setPinImageUrl(newUrl);
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-        await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
-        await queryClient.invalidateQueries({ queryKey: ['pros'] });
-      }
-    } catch (err) {
-      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
-    } finally {
-      setPinImageBusy(false);
-    }
-  };
-
-  const handleRemovePinImage = async () => {
-    if (pinImageBusy) return;
-    setPinImageBusy(true);
-    try {
-      await removeProPinImage();
-      setPinImageUrl(null);
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
-      await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing?.user_id] });
-      await queryClient.invalidateQueries({ queryKey: ['pros'] });
+      const newUrl = await pickAndUploadProPinImage(false);
+      if (newUrl) setPinImageUrl(newUrl);
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
     } finally {
@@ -167,10 +148,7 @@ export default function ProEditScreen() {
   };
 
   // Location-change rate limit is enforced at the DB level; surface it
-  // to the user before submit so they don't get a "not permitted" toast.
-  // Only an APPROVED (public) pin is locked (00444): a pending or rejected
-  // pro can still correct a misplaced pin before anyone sees it.
-  const isApproved = existing?.status === 'approved';
+  // before submit. Only an APPROVED (public) pin is locked (00444).
   const lastChange = existing?.last_location_change_at;
   const locationLocked = useMemo(() => {
     if (!isApproved || !lastChange) return false;
@@ -181,11 +159,13 @@ export default function ProEditScreen() {
     existing != null &&
     (pinLng !== existing.primary_lng || pinLat !== existing.primary_lat || locationName.trim() !== existing.primary_location_name);
 
-  // Verification fields (company + real name) are editable until approval —
-  // a pending or rejected pro can fix a typo. Once approved they are frozen
-  // server-side (00443, junto.pro_identity_locked) and no longer shown.
+  // Verification fields are editable until approval; frozen server-side
+  // after (00443, junto.pro_identity_locked) and no longer shown.
   const showVerification = !isUpdate || !isApproved;
   const verificationOk = !showVerification || (companyName.trim().length >= 2 && realName.trim().length >= 2);
+  const pinChanged = isApproved && existing
+    ? pinIcon !== existing.pin_icon || pinImageUrl !== existing.pin_image_url
+    : false;
   const canSubmit =
     displayName.trim().length >= 1 &&
     verificationOk &&
@@ -215,8 +195,7 @@ export default function ProEditScreen() {
         primary_location_name: locationName.trim(),
       };
       if (isUpdate) {
-        // A field the pro blanked out must be named to the RPC — a NULL
-        // param means "unchanged" there (00444).
+        // A field the pro blanked out must be named to the RPC (00444).
         const clear: ClearableProField[] = [];
         const optional: Record<ClearableProField, string | null> = {
           tagline: payload.tagline,
@@ -234,15 +213,17 @@ export default function ProEditScreen() {
           display_name: payload.display_name,
           ...optional,
           clear,
-          // Verification fields travel only while they are still editable.
           ...(showVerification ? { company_name: payload.company_name, real_name: payload.real_name } : {}),
         };
-        // Only send location when it actually changed — otherwise the
-        // RPC's "primary_lng/lat must come together" guard rejects.
         if (!locationChanged) {
           await proService.update(base);
         } else {
           await proService.update({ ...base, primary_lng: pinLng, primary_lat: pinLat, primary_location_name: locationName.trim() });
+        }
+        // Pin icon / logo travel with the same save (approved-only setters).
+        if (pinChanged && existing) {
+          if (pinImageUrl !== existing.pin_image_url) await proService.setPinImage(pinImageUrl);
+          if (pinIcon !== existing.pin_icon) await proService.setPinIcon(pinIcon);
         }
         // A rejected pro editing their page re-submits for review.
         if (existing?.status === 'rejected') {
@@ -253,8 +234,6 @@ export default function ProEditScreen() {
       }
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      // The public page, the sheet and the map pins read other keys — without
-      // these the pro came back to a stale page after saving.
       if (existing?.user_id) {
         await queryClient.invalidateQueries({ queryKey: ['pro-profile', existing.user_id] });
       }
@@ -310,17 +289,133 @@ export default function ProEditScreen() {
     return <View style={styles.center}><LogoSpinner size={48} /></View>;
   }
 
+  const contactSummary = [phone.trim(), website.trim(), email.trim(), instagram.trim(), facebook.trim()].filter(Boolean).length;
+
+  const renderFoldRow = (label: string, open: boolean, onToggle: () => void, summary?: string, optional = false) => (
+    <Pressable style={styles.foldRow} onPress={onToggle} accessibilityRole="button">
+      {!open && !isUpdate ? <Plus size={18} color={colors.textPrimary} strokeWidth={2.2} /> : null}
+      <Text style={styles.foldLabel}>{label}</Text>
+      {summary ? <Text style={styles.foldSummary} numberOfLines={1}>{summary}</Text> : null}
+      {optional && !open ? <Text style={styles.foldOptional}>{t('pro.optional', { defaultValue: 'optionnel' })}</Text> : null}
+      {open ? <ChevronUp size={18} color={colors.textMuted} strokeWidth={2.2} /> : <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />}
+    </Pressable>
+  );
+
+  const locationBlock = (
+    <View style={styles.locationBlock}>
+      {!locationLocked && (
+        <PlaceSearchBar
+          bias={pinLng !== null && pinLat !== null ? { lat: pinLat, lng: pinLng } : null}
+          onSelect={(place) => {
+            setPinLng(place.lng);
+            setPinLat(place.lat);
+            setLocationName([place.label, place.sublabel.split(', ')[0]].filter((x): x is string => !!x).join(', ').slice(0, 200));
+          }}
+        />
+      )}
+      <Pressable
+        style={[styles.mapPreview, locationLocked && styles.mapContainerLocked]}
+        onPress={openMapPicker}
+        disabled={locationLocked}
+      >
+        <JuntoMapView
+          center={pinLng !== null && pinLat !== null ? [pinLng, pinLat] : center}
+          zoom={12}
+          pins={
+            pinLng !== null && pinLat !== null
+              ? [{ id: 'pro', coordinate: [pinLng, pinLat], color: colors.cta }]
+              : []
+          }
+          compassEnabled={false}
+        />
+        <View style={styles.mapPreviewOverlay} pointerEvents="box-only" />
+        {!locationLocked && (
+          <View style={styles.mapPreviewHint} pointerEvents="none">
+            <Text style={styles.mapPreviewHintText}>
+              {pinLng !== null
+                ? t('pro.locationAdjust', { defaultValue: 'Ajuste au doigt si besoin' })
+                : t('pro.locationPickOnMap', { defaultValue: 'Choisir sur la carte' })}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+      <View style={styles.placeRow}>
+        <MapPin size={16} color={pinLng !== null ? colors.cta : colors.textMuted} strokeWidth={2.4} />
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          value={locationName}
+          onChangeText={setLocationName}
+          placeholder={t('pro.fieldLocationNamePlaceholder', { defaultValue: 'Briançon, Hautes-Alpes' })}
+          placeholderTextColor={colors.textSecondary}
+          maxLength={200}
+          editable={!locationLocked}
+        />
+        {pinLng !== null ? <Check size={18} color={colors.cta} strokeWidth={2.6} /> : null}
+      </View>
+      <Text style={styles.helper}>
+        {locationLocked
+          ? t('pro.locationLocked', { defaultValue: 'Tu pourras déplacer ton emplacement après 30 jours.' })
+          : t('pro.locationHelperSearch', { defaultValue: 'Cherche ta ville ou ton adresse : la carte se place toute seule.' })}
+      </Text>
+    </View>
+  );
+
+  const contactBlock = (
+    <View style={styles.foldBody}>
+      <Field label={t('pro.fieldPhone', { defaultValue: 'Téléphone' })} styles={styles}>
+        <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+33 6 ..." placeholderTextColor={colors.textSecondary} keyboardType="phone-pad" maxLength={30} />
+      </Field>
+      <Field label={t('pro.fieldWebsite', { defaultValue: 'Site web' })} styles={styles}>
+        <TextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="url" maxLength={200} />
+      </Field>
+      <Field label={t('pro.fieldEmail', { defaultValue: 'Email' })} styles={styles}>
+        <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="contact@..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="email-address" maxLength={200} />
+      </Field>
+      <Field label={t('pro.fieldInstagram', { defaultValue: 'Instagram' })} styles={styles}>
+        <TextInput style={styles.input} value={instagram} onChangeText={setInstagram} placeholder="@junto.alpine" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={100} />
+      </Field>
+      <Field label={t('pro.fieldFacebook', { defaultValue: 'Facebook' })} styles={styles}>
+        <TextInput style={styles.input} value={facebook} onChangeText={setFacebook} placeholder="page-ou-url" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={200} />
+      </Field>
+    </View>
+  );
+
+  const aboutBlock = (
+    <View style={isApproved ? undefined : styles.foldBody}>
+      <Field label={t('pro.fieldTagline', { defaultValue: 'Slogan' })} styles={styles}>
+        <TextInput style={styles.input} value={tagline} onChangeText={setTagline} placeholder={t('pro.fieldTaglinePlaceholder', { defaultValue: 'Une phrase courte qui te décrit' })} placeholderTextColor={colors.textSecondary} maxLength={120} />
+      </Field>
+      <Field label={t('pro.fieldDescription', { defaultValue: 'Description' })} styles={styles}>
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder={t('pro.fieldDescriptionPlaceholder', { defaultValue: 'Présente ce que tu proposes en détail.' })}
+          placeholderTextColor={colors.textSecondary}
+          maxLength={2000}
+          multiline
+          numberOfLines={5}
+          textAlignVertical="top"
+        />
+      </Field>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>
-          {isUpdate ? t('pro.editTitle', { defaultValue: 'Modifier ta page pro' }) : t('pro.registerTitle', { defaultValue: 'Devenir pro' })}
+          {isApproved
+            ? t('pro.pageTitle', { defaultValue: 'Ma page pro' })
+            : isUpdate
+              ? t('pro.applicationTitle', { defaultValue: 'Ma demande pro' })
+              : t('pro.registerTitle', { defaultValue: 'Devenir pro' })}
         </Text>
-        <Text style={styles.subtitle}>
-          {t('pro.registerSubtitle', {
-            defaultValue: 'Crée la page publique de ton activité, club ou structure.',
-          })}
-        </Text>
+        {!isApproved && (
+          <Text style={styles.subtitle}>
+            {t('pro.registerSubtitleShort', { defaultValue: 'Quatre infos suffisent. Le reste se complète plus tard, depuis ta page.' })}
+          </Text>
+        )}
 
         {existing?.status === 'pending' && (
           <View style={[styles.statusBanner, styles.statusPending]}>
@@ -337,70 +432,47 @@ export default function ProEditScreen() {
           </View>
         )}
 
-
-        {/* Pin icon / logo — persisted at tap through approved-only setters,
-            so the whole section waits for approval (a pending pro tapping
-            it only got a generic error). */}
+        {/* Ton pin sur la carte — approved only (the setters refuse before). */}
         {isApproved && (
-          <View style={styles.bannerSection}>
-            <Text style={styles.section}>{t('pro.pinIconSection', { defaultValue: 'Icône du pin' })}</Text>
-            <Text style={styles.helper}>
-              {t('pro.pinIconHelper', { defaultValue: "Choisis ton univers — il s'affiche dans ton pin sur la carte." })}
-            </Text>
+          <View style={styles.pinCard}>
+            <Text style={styles.fieldLabel}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</Text>
             <View style={styles.pinIconRow}>
               <View style={styles.pinPreviewWrap}>
                 <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} pinImageUrl={pinImageUrl} />
               </View>
-              <View style={styles.pinIconGrid}>
-                {PRO_PIN_ICONS.map((opt) => {
-                  const selected = pinIcon === opt.key;
-                  return (
-                    <Pressable
-                      key={opt.key}
-                      style={[styles.pinIconChip, selected && styles.pinIconChipSelected]}
-                      onPress={() => handlePickIcon(opt.key)}
-                      disabled={pinIconBusy}
-                      accessibilityLabel={opt.label}
-                    >
-                      <ProPin displayName="" pinIcon={opt.key} />
-                      <Text style={[styles.pinIconLabel, selected && styles.pinIconLabelSelected]}>
-                        {opt.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-            <Text style={styles.helper}>
-              {t('pro.pinLogoHelper', { defaultValue: 'Ou importe ton propre logo — il remplace l\'icône dans le rond du pin.' })}
-            </Text>
-            <View style={styles.pinImageRow}>
-              <Pressable style={styles.pinImagePickBtn} onPress={handlePickPinImage} disabled={pinImageBusy}>
-                <ImagePlus size={16} color={colors.textPrimary} strokeWidth={2.2} />
-                <Text style={styles.pinImagePickText}>
-                  {pinImageBusy
-                    ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' })
-                    : pinImageUrl
-                      ? t('pro.pinLogoReplace', { defaultValue: 'Changer le logo' })
-                      : t('pro.pinLogoAdd', { defaultValue: 'Importer un logo' })}
+              <View style={{ flex: 1, gap: spacing.sm }}>
+                <Text style={styles.helper}>
+                  {pinImageUrl
+                    ? t('pro.pinLogoSet', { defaultValue: 'Logo importé. Ou choisis une icône :' })
+                    : t('pro.pinPickHint', { defaultValue: 'Choisis une icône, ou importe ton logo :' })}
                 </Text>
-              </Pressable>
-              {pinImageUrl && (
-                <Pressable
-                  style={styles.pinImageRemoveBtn}
-                  onPress={handleRemovePinImage}
-                  disabled={pinImageBusy}
-                  hitSlop={6}
-                  accessibilityLabel={t('pro.pinLogoRemove', { defaultValue: 'Supprimer le logo' })}
-                >
-                  <Trash2 size={14} color={colors.error} strokeWidth={2.4} />
-                </Pressable>
-              )}
+                <View style={styles.pinIconGrid}>
+                  {PRO_PIN_ICONS.map((opt) => {
+                    const selected = pinIcon === opt.key && !pinImageUrl;
+                    return (
+                      <Pressable
+                        key={opt.key}
+                        style={[styles.pinIconChip, selected && styles.pinIconChipSelected]}
+                        onPress={() => handlePickIcon(opt.key)}
+                        accessibilityLabel={opt.label}
+                      >
+                        <ProPin displayName="" pinIcon={opt.key} />
+                      </Pressable>
+                    );
+                  })}
+                  <Pressable style={[styles.pinIconChip, styles.pinLogoChip, !!pinImageUrl && styles.pinIconChipSelected]} onPress={handlePickPinImage} disabled={pinImageBusy}>
+                    <ImagePlus size={16} color={colors.textPrimary} strokeWidth={2.2} />
+                    <Text style={styles.pinLogoChipText}>
+                      {pinImageBusy ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' }) : t('pro.pinLogoShort', { defaultValue: 'Logo…' })}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
             </View>
           </View>
         )}
 
-        <Field label={t('pro.fieldName', { defaultValue: 'Nom *' })} styles={styles}>
+        <Field label={t('pro.fieldDisplayName', { defaultValue: 'Nom affiché sur ta page' })} styles={styles}>
           <TextInput
             style={styles.input}
             value={displayName}
@@ -413,22 +485,22 @@ export default function ProEditScreen() {
 
         {showVerification && (
           <>
-            <Field label={t('pro.fieldCompany', { defaultValue: 'Nom de la structure *' })} styles={styles}>
+            <Field label={t('pro.fieldCompanyPrivate', { defaultValue: 'Raison sociale · non publique' })} styles={styles}>
               <TextInput
                 style={styles.input}
                 value={companyName}
                 onChangeText={setCompanyName}
-                placeholder={t('pro.fieldCompanyPlaceholder', { defaultValue: 'Raison sociale / nom de l’entreprise' })}
+                placeholder={t('pro.fieldCompanyPlaceholderShort', { defaultValue: 'SARL, EI, association…' })}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={120}
               />
             </Field>
-            <Field label={t('pro.fieldRealName', { defaultValue: 'Ton nom et prénom *' })} styles={styles}>
+            <Field label={t('pro.fieldRealNamePrivate', { defaultValue: 'Ton nom et prénom · non public' })} styles={styles}>
               <TextInput
                 style={styles.input}
                 value={realName}
                 onChangeText={setRealName}
-                placeholder={t('pro.fieldRealNamePlaceholder', { defaultValue: 'Pour la vérification — non public' })}
+                placeholder={t('pro.fieldRealNamePlaceholderShort', { defaultValue: 'Pour la vérification' })}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={120}
               />
@@ -436,161 +508,51 @@ export default function ProEditScreen() {
           </>
         )}
 
-        <Field label={t('pro.fieldTagline', { defaultValue: 'Slogan' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={tagline}
-            onChangeText={setTagline}
-            placeholder={t('pro.fieldTaglinePlaceholder', { defaultValue: 'Une phrase courte qui te décrit' })}
-            placeholderTextColor={colors.textSecondary}
-            maxLength={120}
-          />
-        </Field>
+        {/* Approved: slogan + description are the page, always open. */}
+        {isApproved ? aboutBlock : null}
 
-        <Field label={t('pro.fieldDescription', { defaultValue: 'Description' })} styles={styles}>
-          <TextInput
-            style={[styles.input, styles.textarea]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder={t('pro.fieldDescriptionPlaceholder', { defaultValue: 'Présente ce que tu proposes en détail.' })}
-            placeholderTextColor={colors.textSecondary}
-            maxLength={2000}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-          />
-        </Field>
-
-        <Text style={styles.section}>{t('pro.contactSection', { defaultValue: 'Contact' })}</Text>
-
-        <Field label={t('pro.fieldWebsite', { defaultValue: 'Site web' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={website}
-            onChangeText={setWebsite}
-            placeholder="https://..."
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            keyboardType="url"
-            maxLength={200}
-          />
-        </Field>
-
-        <Field label={t('pro.fieldEmail', { defaultValue: 'Email' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="contact@..."
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            maxLength={200}
-          />
-        </Field>
-
-        <Field label={t('pro.fieldPhone', { defaultValue: 'Téléphone' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+33 6 ..."
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="phone-pad"
-            maxLength={30}
-          />
-        </Field>
-
-        <Field label={t('pro.fieldInstagram', { defaultValue: 'Instagram' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={instagram}
-            onChangeText={setInstagram}
-            placeholder="@junto.alpine"
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            maxLength={100}
-          />
-        </Field>
-
-        <Field label={t('pro.fieldFacebook', { defaultValue: 'Facebook' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={facebook}
-            onChangeText={setFacebook}
-            placeholder="page-ou-url"
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            maxLength={200}
-          />
-        </Field>
-
-        <Text style={styles.section}>{t('pro.locationSection', { defaultValue: 'Localisation *' })}</Text>
-        <Text style={styles.helper}>
-          {locationLocked
-            ? t('pro.locationLocked', { defaultValue: 'Tu pourras déplacer ton emplacement après 30 jours.' })
-            : t('pro.locationHelper', { defaultValue: 'Tape sur la carte pour placer ton emplacement principal.' })}
-        </Text>
-
-        {/* Inline preview — taps open the full-screen picker. Read-only
-            mini-map here; the actual location is set in the modal. */}
-        <Pressable
-          style={[styles.mapPreview, locationLocked && styles.mapContainerLocked]}
-          onPress={openMapPicker}
-          disabled={locationLocked}
-        >
-          <JuntoMapView
-            center={pinLng !== null && pinLat !== null ? [pinLng, pinLat] : center}
-            zoom={12}
-            pins={
-              pinLng !== null && pinLat !== null
-                ? [{ id: 'pro', coordinate: [pinLng, pinLat], color: colors.cta }]
-                : []
-            }
-            compassEnabled={false}
-          />
-          <View style={styles.mapPreviewOverlay} pointerEvents="box-only" />
-          <View style={styles.mapPreviewHint} pointerEvents="none">
-            <Text style={styles.mapPreviewHintText}>
-              {pinLng !== null
-                ? t('pro.locationChangeOnMap', { defaultValue: 'Modifier sur la carte' })
-                : t('pro.locationPickOnMap', { defaultValue: 'Choisir sur la carte' })}
-            </Text>
+        {/* Place: open while applying; folded with its summary once approved. */}
+        {isApproved ? (
+          <>
+            {renderFoldRow(t('pro.addressRow', { defaultValue: 'Adresse' }), showLocation, () => setShowLocation((v) => !v), locationName)}
+            {showLocation ? locationBlock : null}
+          </>
+        ) : (
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>{t('pro.whereToFind', { defaultValue: 'Où te trouver' })}</Text>
+            {locationBlock}
           </View>
-        </Pressable>
-
-        <Field label={t('pro.fieldLocationName', { defaultValue: 'Adresse / ville *' })} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={locationName}
-            onChangeText={setLocationName}
-            placeholder={t('pro.fieldLocationNamePlaceholder', { defaultValue: 'Briançon, Hautes-Alpes' })}
-            placeholderTextColor={colors.textSecondary}
-            maxLength={200}
-          />
-        </Field>
-
-        {!isUpdate && (
-          <Text style={styles.verifyNote}>
-            {t('pro.verifyNote', { defaultValue: 'Ta demande est vérifiée par notre équipe avant la mise en ligne de ta page. Tu seras notifié·e dès qu’elle est validée.' })}
-          </Text>
         )}
 
-        <Pressable
-          style={[styles.submit, (!canSubmit) && styles.submitDisabled]}
-          onPress={handleSubmit}
-          disabled={!canSubmit}
-        >
-          <Text style={styles.submitText}>
-            {saving
-              ? '...'
-              : existing?.status === 'rejected'
-                ? t('pro.resubmit', { defaultValue: 'Renvoyer la demande' })
-                : isUpdate
-                  ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
-                  : t('pro.register', { defaultValue: 'Devenir pro' })}
+        {/* Folded, optional sections. */}
+        {renderFoldRow(
+          t('pro.contactRow', { defaultValue: 'Contact · site, téléphone, réseaux' }),
+          showContact,
+          () => setShowContact((v) => !v),
+          isApproved && contactSummary > 0 ? t('pro.contactCount', { defaultValue: '{{count}} renseigné', count: contactSummary }) : undefined,
+          !isApproved,
+        )}
+        {showContact ? contactBlock : null}
+
+        {!isApproved && (
+          <>
+            {renderFoldRow(t('pro.aboutRow', { defaultValue: 'Slogan et description' }), showAbout, () => setShowAbout((v) => !v), undefined, true)}
+            {showAbout ? aboutBlock : null}
+          </>
+        )}
+
+        {isApproved && existing && (
+          <Pressable style={styles.foldRow} onPress={() => router.push(`/(auth)/pro/${existing.user_id}?tab=pictures`)} accessibilityRole="button">
+            <Text style={styles.foldLabel}>{t('pro.photosRow', { defaultValue: 'Photos de la page' })}</Text>
+            <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
+          </Pressable>
+        )}
+
+        {isApproved && (
+          <Text style={styles.frozenNote}>
+            {t('pro.identityFrozen', { defaultValue: 'Raison sociale et identité vérifiées — pour les modifier, écris-nous.' })}
           </Text>
-        </Pressable>
+        )}
 
         {isUpdate && (
           <Pressable style={styles.deleteBtn} onPress={handleDelete} disabled={deleting || saving}>
@@ -604,9 +566,31 @@ export default function ProEditScreen() {
         )}
       </ScrollView>
 
-      {/* Full-screen map picker — replaces the tiny inline square that
-          was too cramped to position a pin precisely. Drop pin anywhere
-          on the map; "Confirmer" promotes the picker pin to the form. */}
+      {/* Sticky primary action. */}
+      <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
+        <PressableScale
+          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.cta)]}
+          onPress={handleSubmit}
+          disabled={!canSubmit}
+        >
+          <Text style={styles.ctaText}>
+            {saving
+              ? '…'
+              : existing?.status === 'rejected'
+                ? t('pro.resubmit', { defaultValue: 'Renvoyer la demande' })
+                : isUpdate
+                  ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
+                  : t('pro.sendApplication', { defaultValue: 'Envoyer ma demande' })}
+          </Text>
+        </PressableScale>
+        {!isUpdate && (
+          <Text style={styles.verifyNote}>
+            {t('pro.verifyNoteShort', { defaultValue: 'Vérifiée par notre équipe avant mise en ligne. On te prévient par notification.' })}
+          </Text>
+        )}
+      </View>
+
+      {/* Full-screen map picker — drop the pin anywhere; "Confirmer" promotes it. */}
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView
@@ -647,7 +631,7 @@ export default function ProEditScreen() {
             onPress={confirmMapPick}
             disabled={pickerPinLng === null}
           >
-            <Check size={16} color={colors.textPrimary} strokeWidth={2.6} />
+            <Check size={16} color={colors.onCta} strokeWidth={2.6} />
             <Text style={styles.fullMapConfirmText}>
               {t('pro.locationConfirm', { defaultValue: 'Confirmer' })}
             </Text>
@@ -677,7 +661,7 @@ function Field({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl * 4 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   title: {
     color: colors.textPrimary,
@@ -688,152 +672,81 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   subtitle: {
     color: colors.textSecondary,
     fontSize: fontSizes.sm,
+    lineHeight: 20,
     marginBottom: spacing.lg,
   },
   statusBanner: {
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    padding: spacing.sm + 2,
+    borderRadius: radius.card - 4,
+    padding: spacing.sm + 4,
     marginBottom: spacing.lg,
   },
-  statusPending: { backgroundColor: colors.cta + '14', borderColor: colors.cta },
-  statusRejected: { backgroundColor: colors.error + '14', borderColor: colors.error },
+  statusPending: { backgroundColor: colors.cta + '1F' },
+  statusRejected: { backgroundColor: colors.error + '1F' },
   statusBannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
-  verifyNote: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 17, textAlign: 'center', marginBottom: spacing.sm },
-  section: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  helper: {
-    color: colors.textMuted,
-    fontSize: fontSizes.xs,
-    marginBottom: spacing.sm,
-  },
-  bannerSection: { marginBottom: spacing.md },
-  pinIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginTop: spacing.xs,
-  },
-  pinIconGrid: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
+  verifyNote: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
+  helper: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16, marginTop: spacing.xs },
+  pinCard: { backgroundColor: colors.surfaceAlt, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.md },
+  pinIconRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
+  pinIconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   pinIconChip: {
-    width: 64,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.xs,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 2,
-    borderWidth: 1.5,
-    borderColor: colors.borderMuted,
+    width: 44, height: 44, borderRadius: radius.card - 4, backgroundColor: colors.surface,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent',
   },
-  pinIconChipSelected: {
-    borderColor: colors.cta,
-    backgroundColor: colors.cta + '20',
-  },
-  pinIconLabel: { fontSize: 11, color: colors.textSecondary, fontWeight: '600' },
-  pinIconLabelSelected: { color: colors.cta },
-  pinImageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  // Live preview of how the pro pin will look on the map with the
-  // currently-picked image.
-  pinPreviewWrap: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  pinImagePickBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  pinImagePickText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-  },
-  pinImageRemoveBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: radius.sm,
-  },
+  pinIconChipSelected: { borderColor: colors.cta },
+  pinLogoChip: { width: undefined, flexDirection: 'row', gap: 6, paddingHorizontal: spacing.sm + 2 },
+  pinLogoChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
+  pinPreviewWrap: { paddingVertical: spacing.xs, paddingHorizontal: spacing.xs },
   field: { marginBottom: spacing.md },
   fieldLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    marginBottom: spacing.xs - 2,
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm - 1,
+    fontWeight: '700',
+    marginBottom: spacing.xs + 2,
   },
   input: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
     color: colors.textPrimary,
     fontSize: fontSizes.md,
-    borderRadius: radius.sm,
+    borderRadius: radius.card - 4,
     borderWidth: 1,
-    borderColor: colors.borderMuted,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.sm,
+    borderColor: colors.lineStrong,
+    paddingHorizontal: spacing.sm + 6,
+    paddingVertical: spacing.sm + 4,
   },
-  textarea: {
-    minHeight: 110,
-  },
-  // Inline preview — clearly read-only; taps open the full-screen
-  // picker where the actual placement happens.
+  textarea: { minHeight: 110 },
+  locationBlock: { gap: spacing.sm },
   mapPreview: {
-    height: 180,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
+    height: 132,
+    borderRadius: radius.card,
     overflow: 'hidden',
-    marginBottom: spacing.md,
+    backgroundColor: colors.surfaceAlt,
   },
-  mapPreviewOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-  },
+  mapPreviewOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   mapPreviewHint: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    alignSelf: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    position: 'absolute', bottom: spacing.sm, left: spacing.sm,
+    backgroundColor: colors.surface, borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: 5,
   },
-  mapPreviewHintText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+  mapPreviewHintText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
+  mapContainerLocked: { opacity: 0.55 },
+  placeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  foldRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4,
+    minHeight: 54, borderTopWidth: 1, borderTopColor: colors.line,
   },
-  mapContainerLocked: {
-    opacity: 0.55,
+  foldLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '600' },
+  foldSummary: { color: colors.textSecondary, fontSize: fontSizes.sm, maxWidth: 150 },
+  foldOptional: { color: colors.textMuted, fontSize: fontSizes.xs },
+  foldBody: { paddingTop: spacing.sm },
+  frozenNote: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.md, lineHeight: 16 },
+  ctaBar: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    paddingHorizontal: spacing.md, paddingTop: spacing.sm,
+    backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.line,
   },
+  cta: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center' },
+  ctaDisabled: { opacity: 0.4 },
+  ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapCloseBtn: {
     position: 'absolute', top: spacing.sm + 4, left: spacing.md,
@@ -849,11 +762,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.md, paddingVertical: 6,
   },
-  fullMapHintText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-  },
+  fullMapHintText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
   fullMapConfirm: {
     position: 'absolute', alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -862,37 +771,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2,
   },
   fullMapConfirmDisabled: { opacity: 0.4 },
-  fullMapConfirmText: {
-    color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 0.6,
-  },
-  submit: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  submitDisabled: { opacity: 0.4 },
-  submitText: {
-    color: colors.onCta,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-  },
+  fullMapConfirmText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    marginTop: spacing.md,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: spacing.sm + 2, marginTop: spacing.lg,
   },
-  deleteBtnText: {
-    color: colors.error,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-  },
+  deleteBtnText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '700' },
 });
