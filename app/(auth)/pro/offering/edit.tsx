@@ -16,25 +16,38 @@ import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check, Trash2, MapPin } from 'lucide-react-native';
+import { Check, Trash2, MapPin, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
 import { trace } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, fonts, spacing, radius, shadows } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, shadows, glow } from '@/constants/theme';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
 import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { PlaceSearchBar } from '@/components/place-search-bar';
+import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { OFFERING_LEVELS } from '@/types/pro-offering-form';
+import { OPEN_LEVEL } from '@/constants/sport-levels';
 
 // Single-screen form, mode keyed off the optional ?id= query param.
 // New offering → empty form, calls create. Existing → pre-filled, calls
 // update. Mirrors the pro/edit "register-or-update" pattern but for
 // a per-row entity rather than the 1:1 pro_profiles row.
+//
+// Lot 2 pro (mockup validated 2026-10-15): two tempos on one screen —
+// « L'essentiel » (sport, titre, deux lignes, lieu pré-rempli avec l'adresse
+// du pro, durée en chips cohérentes avec matin / après-midi, prix) is enough
+// to publish; « Détails » are collapsed groups, each openable, never blocking.
+
+type DurationPreset = 'half' | 'day' | 'h2' | 'h3' | 'other';
+const PRESET_MINUTES: Record<Exclude<DurationPreset, 'other'>, number> = { half: 240, day: 480, h2: 120, h3: 180 };
+type DetailKey = 'level' | 'places' | 'gear' | 'form' | 'route';
+
 export default function ProOfferingEditScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -49,10 +62,9 @@ export default function ProOfferingEditScreen() {
 
   const { data: sports } = useSports();
 
-  // Guard: only pros can be here. If the user lost pro tier or never
-  // had a pro profile, bounce back. Server enforces this too — this is
-  // UX so a non-pro who lands on the URL doesn't sit on an infinite
-  // spinner.
+  // Guard: only approved pros can be here (create_pro_offering requires
+  // tier='pro', which only approve_pro grants). Server enforces this too —
+  // this is UX so a non-pro who lands on the URL doesn't sit on a spinner.
   const { data: pro, isLoading: isProLoading } = useQuery({
     queryKey: ['pro-profile-mine'],
     queryFn: () => proService.getMine(),
@@ -67,10 +79,11 @@ export default function ProOfferingEditScreen() {
   const [sportId, setSportId] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [level, setLevel] = useState<string>('');
+  const [level, setLevel] = useState<string>(isEdit ? '' : OPEN_LEVEL);
   const [locationLng, setLocationLng] = useState<number | null>(null);
   const [locationLat, setLocationLat] = useState<number | null>(null);
   const [locationName, setLocationName] = useState('');
+  const [durationPreset, setDurationPreset] = useState<DurationPreset | null>(null);
   const [durationHours, setDurationHours] = useState<string>('');
   const [durationMinutes, setDurationMinutes] = useState<string>('');
   const [minParticipants, setMinParticipants] = useState<string>('');
@@ -92,6 +105,10 @@ export default function ProOfferingEditScreen() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
+  const [openDetails, setOpenDetails] = useState<Record<DetailKey, boolean>>({
+    level: false, places: false, gear: false, form: false, route: false,
+  });
+  const toggleDetail = (k: DetailKey) => setOpenDetails((o) => ({ ...o, [k]: !o[k] }));
 
   useEffect(() => {
     if (!existing) return;
@@ -104,14 +121,16 @@ export default function ProOfferingEditScreen() {
     setLocationName(existing.location_name);
     if (existing.duration) {
       // Postgres serializes the interval as "02:30:00", "1 day", or
-      // "1 day 02:00:00" (≥ 24 h, e.g. seeded in SQL). The old hh:mm-only
-      // regex left the fields blank on the day form and the next save
-      // silently wrote NULL. Fold days into hours.
+      // "1 day 02:00:00" (≥ 24 h, e.g. seeded in SQL). Fold days into hours.
       const days = existing.duration.match(/(\d+)\s+days?/);
       const hms = existing.duration.match(/(\d+):(\d+):(\d+)/);
       const hours = (days ? parseInt(days[1] ?? '0', 10) * 24 : 0) + (hms ? parseInt(hms[1] ?? '0', 10) : 0);
       const minutes = hms ? parseInt(hms[2] ?? '0', 10) : 0;
-      if (hours > 0 || minutes > 0) {
+      const total = hours * 60 + minutes;
+      const preset = (Object.keys(PRESET_MINUTES) as Exclude<DurationPreset, 'other'>[]).find((k) => PRESET_MINUTES[k] === total);
+      if (preset) setDurationPreset(preset);
+      else if (total > 0) {
+        setDurationPreset('other');
         setDurationHours(hours > 0 ? String(hours) : '');
         setDurationMinutes(minutes > 0 ? String(minutes) : '');
       }
@@ -128,6 +147,15 @@ export default function ProOfferingEditScreen() {
     setPStd(existing.participant_fields?.std ?? []);
     setPCustom(existing.participant_fields?.custom ?? []);
   }, [existing]);
+
+  // New outing: the meeting place defaults to the pro's own address — most
+  // outings leave from the shop, and the pro can retype or drag otherwise.
+  useEffect(() => {
+    if (isEdit || !pro || locationLng !== null) return;
+    setLocationLng(pro.primary_lng);
+    setLocationLat(pro.primary_lat);
+    setLocationName((cur) => cur || pro.primary_location_name);
+  }, [isEdit, pro, locationLng]);
 
   const selectedSportKey = sports?.find((s) => s.id === sportId)?.key ?? '';
 
@@ -172,15 +200,22 @@ export default function ProOfferingEditScreen() {
     );
   };
 
+  const durationMinutesTotal = (): number => {
+    if (durationPreset && durationPreset !== 'other') return PRESET_MINUTES[durationPreset];
+    if (durationPreset === 'other') {
+      return (parseInt(durationHours, 10) || 0) * 60 + (parseInt(durationMinutes, 10) || 0);
+    }
+    return 0;
+  };
   const parseDurationString = (): string | null => {
-    const h = parseInt(durationHours, 10) || 0;
-    const m = parseInt(durationMinutes, 10) || 0;
-    if (h === 0 && m === 0) return null;
-    return `${h} hours ${m} minutes`;
+    const total = durationMinutesTotal();
+    if (total === 0) return null;
+    return `${Math.floor(total / 60)} hours ${total % 60} minutes`;
   };
 
-  // Tag inputs commit on the keyboard's "done" — Android often shows "→"
-  // instead, and a tap elsewhere lost the draft. Commit on blur AND at submit.
+  // Tag inputs commit on the keyboard's "done", on blur and on the « + »
+  // button — Android often shows "→" instead of "OK", and a tap elsewhere
+  // used to lose the draft.
   const commitProvided = () => {
     const v = equipProvidedDraft.trim();
     if (v && equipProvided.length < 15) { setEquipProvided([...equipProvided, v]); setEquipProvidedDraft(''); }
@@ -211,12 +246,11 @@ export default function ProOfferingEditScreen() {
       const missing: string[] = [];
       if (!sportId) missing.push(t('proOffering.sport'));
       if (title.trim().length < 3) missing.push(t('proOffering.title'));
-      if (description.trim().length === 0) missing.push(t('proOffering.description'));
+      if (description.trim().length === 0) missing.push(t('proOffering.descShort', { defaultValue: 'En deux lignes' }));
       if (level.length === 0) missing.push(t('proOffering.level'));
-      if (locationLng === null || locationLat === null) {
-        missing.push(t('proOffering.locationField', { defaultValue: 'Lieu sur la carte' }));
+      if (locationLng === null || locationLat === null || locationName.trim().length === 0) {
+        missing.push(t('proOffering.meetingPlace', { defaultValue: 'Lieu de rendez-vous' }));
       }
-      if (locationName.trim().length === 0) missing.push(t('proOffering.locationName'));
       Alert.alert(
         t('proOffering.incompleteTitle', { defaultValue: 'Informations manquantes' }),
         `${t('proOffering.incompleteBody', { defaultValue: 'À compléter avant de publier :' })}\n\n• ${missing.join('\n• ')}`,
@@ -256,7 +290,7 @@ export default function ProOfferingEditScreen() {
       Alert.alert(t('auth.error'), t('proOffering.invalidPrice', { defaultValue: 'Le prix doit être compris entre 0 et 99 999 €.' }));
       return;
     }
-    if ((parseInt(durationMinutes, 10) || 0) > 59) {
+    if (durationPreset === 'other' && (parseInt(durationMinutes, 10) || 0) > 59) {
       Alert.alert(t('auth.error'), t('proOffering.invalidDuration', { defaultValue: 'Les minutes vont de 0 à 59.' }));
       return;
     }
@@ -292,8 +326,8 @@ export default function ProOfferingEditScreen() {
 
       // Two RPCs (offer, then equipment/participant form). If the second
       // fails the offer already exists: never leave the pro on the form with
-      // an error — a second « Créer » duplicated the offer. Land on the offer
-      // and say what did not save.
+      // an error — a second « Publier » duplicated the offer. Land on the
+      // offer and say what did not save.
       const saveDetails = async (id: string) => {
         try {
           await proOfferingService.setDetails(id, finalProvided, finalRequired, pStd, finalCustom);
@@ -316,9 +350,7 @@ export default function ProOfferingEditScreen() {
         await saveDetails(newId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         // Land on the detail page so the freshly-created offering is
-        // visible AND the user is one tap from the Photos tab where
-        // they manage the gallery. (Edit-then-rewind-to-detail felt
-        // longer than necessary.)
+        // visible AND the user is one tap from the Photos tab.
         router.replace(`/(auth)/pro/offering/${newId}`);
       }
     } catch (err) {
@@ -336,10 +368,6 @@ export default function ProOfferingEditScreen() {
     );
   }
   if (!pro || pro.status !== 'approved') {
-    // Loaded but the user has no APPROVED pro profile — they shouldn't be
-    // on this screen (create_pro_offering requires tier='pro', which only
-    // approve_pro grants). Bounce to the map; the create button on the pro
-    // page is the canonical entry point.
     return <Redirect href="/(auth)/(tabs)/carte" />;
   }
 
@@ -351,6 +379,78 @@ export default function ProOfferingEditScreen() {
     );
   }
 
+  // Summaries shown on collapsed detail rows (the current value, readable).
+  const levelSummary = level || OPEN_LEVEL;
+  const placesSummary = minParticipants && maxParticipants
+    ? t('proOffering.placesRange', { defaultValue: '{{min}} à {{max}}', min: minParticipants, max: maxParticipants })
+    : maxParticipants
+      ? t('proOffering.placesUpTo', { defaultValue: 'jusqu’à {{count}}', count: Number(maxParticipants) })
+      : t('proOffering.placesAny', { defaultValue: 'Sans limite' });
+  const gearSummary = equipProvided.length + equipRequired.length > 0
+    ? `${equipProvided.length + equipRequired.length}`
+    : '—';
+  const formSummary = pStd.length + pCustom.length > 0 ? `${pStd.length + pCustom.length}` : '—';
+  const routeSummary = [distanceKm && `${distanceKm} km`, elevationGainM && `${elevationGainM} m D+`, scheduleText.trim()]
+    .filter(Boolean).join(' · ') || '—';
+
+  const DetailRow = ({ k, label, summary }: { k: DetailKey; label: string; summary: string }) => (
+    <Pressable style={styles.detailRow} onPress={() => toggleDetail(k)} accessibilityRole="button">
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailSummary} numberOfLines={1}>{summary}</Text>
+      {openDetails[k]
+        ? <ChevronUp size={18} color={colors.textMuted} strokeWidth={2.2} />
+        : <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />}
+    </Pressable>
+  );
+
+  const TagList = ({ items, onRemove, tint }: { items: string[]; onRemove: (i: number) => void; tint: boolean }) => (
+    <View style={styles.tagsWrap}>
+      {items.map((it, i) => (
+        <Pressable key={`${it}${i}`} style={[styles.tag, tint && styles.tagTint]} onPress={() => onRemove(i)}>
+          <Text style={styles.tagText}>{it}</Text>
+          <Text style={styles.tagX}>✕</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  // Plain render helper, NOT a component: a component defined in render is
+  // remounted at every keystroke and the TextInput loses focus.
+  const renderTagInput = ({ value, onChange, onCommit, placeholder, label, primary }: {
+    value: string; onChange: (v: string) => void; onCommit: () => void; placeholder: string; label: string; primary: boolean;
+  }) => (
+    <View style={styles.tagInputRow}>
+      <TextInput
+        style={[styles.input, { flex: 1 }]}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        maxLength={80}
+        onSubmitEditing={onCommit}
+        onBlur={onCommit}
+        blurOnSubmit={false}
+        returnKeyType="done"
+        accessibilityLabel={label}
+      />
+      <Pressable
+        style={[styles.addBtn, primary && styles.addBtnPrimary]}
+        onPress={onCommit}
+        accessibilityLabel={t('proOffering.addTag', { defaultValue: 'Ajouter' })}
+      >
+        <Plus size={18} color={primary ? colors.onCta : colors.textPrimary} strokeWidth={2.8} />
+      </Pressable>
+    </View>
+  );
+
+  const durationChips: { key: DurationPreset; label: string }[] = [
+    { key: 'half', label: t('proOffering.durHalf', { defaultValue: 'Demi-journée' }) },
+    { key: 'day', label: t('proOffering.durDay', { defaultValue: 'Journée' }) },
+    { key: 'h2', label: t('proOffering.dur2h', { defaultValue: '2 h' }) },
+    { key: 'h3', label: t('proOffering.dur3h', { defaultValue: '3 h' }) },
+    { key: 'other', label: t('proOffering.durOther', { defaultValue: 'Autre…' }) },
+  ];
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -361,12 +461,15 @@ export default function ProOfferingEditScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>
-          {isEdit ? t('proOffering.editTitle') : t('proOffering.createTitle')}
+          {isEdit
+            ? t('proOffering.editOutingTitle', { defaultValue: 'Modifier la sortie' })
+            : t('proOffering.newOutingTitle', { defaultValue: 'Nouvelle sortie' })}
         </Text>
-        <Text style={styles.subtitle}>{t('proOffering.subtitle')}</Text>
+        <Text style={styles.subtitle}>
+          {t('proOffering.essentialsHint', { defaultValue: 'L’essentiel suffit pour publier. Les détails sont optionnels.' })}
+        </Text>
 
-        <Text style={styles.section}>{t('proOffering.sectionBasics')}</Text>
-
+        {/* ---------- L'essentiel ---------- */}
         <Field label={t('proOffering.sport')} styles={styles}>
           <SportDropdown
             selected={selectedSportKey}
@@ -389,179 +492,84 @@ export default function ProOfferingEditScreen() {
           />
         </Field>
 
-        <Field label={t('proOffering.description')} styles={styles}>
+        <Field label={t('proOffering.descShort', { defaultValue: 'En deux lignes' })} styles={styles}>
           <TextInput
             style={[styles.input, styles.textarea]}
             value={description}
             onChangeText={setDescription}
-            placeholder={t('proOffering.descriptionPlaceholder')}
+            placeholder={t('proOffering.descShortPlaceholder', { defaultValue: 'Ce qu’on fait, pour qui, ce qui est fourni.' })}
             placeholderTextColor={colors.textMuted}
             multiline
             maxLength={2000}
           />
         </Field>
 
-        <Field label={t('proOffering.level')} styles={styles}>
-          <View style={styles.levelRow}>
-            {OFFERING_LEVELS.map((lvl) => (
-              <Pressable
-                key={lvl}
-                style={[styles.levelChip, level === lvl && styles.levelChipActive]}
-                onPress={() => setLevel(lvl)}
-              >
-                <Text style={[styles.levelChipText, level === lvl && styles.levelChipTextActive]}>
-                  {lvl}
-                </Text>
-              </Pressable>
-            ))}
+        <Field label={t('proOffering.meetingPlace', { defaultValue: 'Lieu de rendez-vous' })} styles={styles}>
+          <PlaceSearchBar
+            bias={pro ? { lat: pro.primary_lat, lng: pro.primary_lng } : null}
+            onSelect={(place) => {
+              setLocationLng(place.lng);
+              setLocationLat(place.lat);
+              setLocationName([place.label, place.sublabel.split(', ')[0]].filter((x): x is string => !!x).join(', ').slice(0, 100));
+            }}
+          />
+          <View style={styles.placeRow}>
+            <MapPin size={16} color={locationLng !== null ? colors.cta : colors.textMuted} strokeWidth={2.4} />
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              value={locationName}
+              onChangeText={setLocationName}
+              placeholder={t('proOffering.locationNamePlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              maxLength={100}
+            />
+            <Pressable style={styles.adjustBtn} onPress={openMapPicker} hitSlop={6}>
+              <Text style={styles.adjustBtnText}>{t('proOffering.adjustOnMap', { defaultValue: 'Carte' })}</Text>
+            </Pressable>
           </View>
+          <Text style={styles.helper}>
+            {isEdit
+              ? t('proOffering.meetingPlaceHintEdit', { defaultValue: 'Tape un lieu pour changer, ou ajuste sur la carte.' })
+              : t('proOffering.meetingPlaceHint', { defaultValue: 'Ton adresse, par défaut. Tape pour changer, ou ajuste sur la carte.' })}
+          </Text>
         </Field>
 
-        <Text style={styles.section}>{t('proOffering.sectionLocation')}</Text>
-
-        <Field label={t('proOffering.locationName')} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={locationName}
-            onChangeText={setLocationName}
-            placeholder={t('proOffering.locationNamePlaceholder')}
-            placeholderTextColor={colors.textMuted}
-            maxLength={100}
-          />
-        </Field>
-
-        <Field label={t('proOffering.locationField', { defaultValue: 'Lieu sur la carte' })} styles={styles}>
-          <Pressable
-            style={[
-              styles.locationButton,
-              locationLng !== null && locationLat !== null
-                ? styles.locationButtonSet
-                : styles.locationButtonRequired,
-            ]}
-            onPress={openMapPicker}
-          >
-            <View style={styles.locationButtonRow}>
-              <MapPin
-                size={18}
-                color={locationLng !== null && locationLat !== null ? colors.success : colors.cta}
-                strokeWidth={2.3}
+        <Field label={t('proOffering.duration', { defaultValue: 'Durée' })} styles={styles}>
+          <View style={styles.chipRow}>
+            {durationChips.map((c) => {
+              const on = durationPreset === c.key;
+              return (
+                <Pressable key={c.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setDurationPreset(on ? null : c.key)}>
+                  <Text style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {durationPreset === 'other' && (
+            <View style={[styles.row2, { marginTop: spacing.sm }]}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={durationHours}
+                onChangeText={setDurationHours}
+                placeholder={t('proOffering.durationHours')}
+                placeholderTextColor={colors.textMuted}
+                keyboardType="number-pad"
+                maxLength={2}
               />
-              <Text
-                style={[
-                  styles.locationButtonText,
-                  (locationLng === null || locationLat === null) && styles.locationButtonTextRequired,
-                ]}
-              >
-                {locationLng !== null && locationLat !== null
-                  ? t('proOffering.locationPickAgain')
-                  : t('proOffering.locationPick')}
-              </Text>
-              {locationLng !== null && locationLat !== null && (
-                <Check size={18} color={colors.success} strokeWidth={2.6} style={styles.locationCheck} />
-              )}
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={durationMinutes}
+                onChangeText={setDurationMinutes}
+                placeholder={t('proOffering.durationMinutes')}
+                placeholderTextColor={colors.textMuted}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
             </View>
-            {locationLng !== null && locationLat !== null ? (
-              <Text style={styles.locationCoords}>
-                {locationLat.toFixed(4)}, {locationLng.toFixed(4)}
-              </Text>
-            ) : (
-              <Text style={styles.locationHint}>
-                {t('proOffering.locationRequired', { defaultValue: 'Obligatoire — touche pour placer le point' })}
-              </Text>
-            )}
-          </Pressable>
+          )}
         </Field>
 
-        <Text style={styles.section}>{t('proOffering.sectionDetails')}</Text>
-
-        <Field label={t('proOffering.schedule')} styles={styles}>
-          <TextInput
-            style={styles.input}
-            value={scheduleText}
-            onChangeText={setScheduleText}
-            placeholder={t('proOffering.schedulePlaceholder')}
-            placeholderTextColor={colors.textMuted}
-            maxLength={100}
-          />
-          <Text style={styles.helper}>{t('proOffering.scheduleHelper')}</Text>
-        </Field>
-
-        <View style={styles.row2}>
-          <Field label={t('proOffering.durationHours')} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={durationHours}
-              onChangeText={setDurationHours}
-              placeholder="2"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="number-pad"
-              maxLength={2}
-            />
-          </Field>
-          <Field label={t('proOffering.durationMinutes')} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={durationMinutes}
-              onChangeText={setDurationMinutes}
-              placeholder="30"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="number-pad"
-              maxLength={2}
-            />
-          </Field>
-        </View>
-
-        <View style={styles.row2}>
-          <Field label={t('proOffering.minParticipants', { defaultValue: 'Participants min' })} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={minParticipants}
-              onChangeText={setMinParticipants}
-              placeholder="4"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="number-pad"
-              maxLength={2}
-            />
-          </Field>
-          <Field label={t('proOffering.maxParticipants')} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={maxParticipants}
-              onChangeText={setMaxParticipants}
-              placeholder={t('proOffering.maxParticipantsPlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="number-pad"
-              maxLength={2}
-            />
-          </Field>
-        </View>
-
-        <View style={styles.row2}>
-          <Field label={t('proOffering.distance')} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={distanceKm}
-              onChangeText={setDistanceKm}
-              placeholder="10"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              maxLength={6}
-            />
-          </Field>
-          <Field label={t('proOffering.elevation')} styles={styles}>
-            <TextInput
-              style={styles.input}
-              value={elevationGainM}
-              onChangeText={setElevationGainM}
-              placeholder="500"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="number-pad"
-              maxLength={5}
-            />
-          </Field>
-        </View>
-
-        <Field label={t('proOffering.price', { defaultValue: 'Prix indicatif (€)' })} styles={styles}>
+        <Field label={`${t('proOffering.price', { defaultValue: 'Prix indicatif (€)' })} ${t('proOffering.optionalMark', { defaultValue: '· optionnel' })}`} styles={styles}>
           <View style={styles.priceRow}>
             <TextInput
               style={[styles.input, styles.priceInput]}
@@ -575,11 +583,11 @@ export default function ProOfferingEditScreen() {
             {(['person', 'group'] as const).map((unit) => (
               <Pressable
                 key={unit}
-                style={[styles.levelChip, priceEur !== '' && priceUnit === unit && styles.levelChipActive]}
+                style={[styles.chip, priceEur !== '' && priceUnit === unit && styles.chipOn]}
                 onPress={() => setPriceUnit(unit)}
                 disabled={priceEur === ''}
               >
-                <Text style={[styles.levelChipText, priceEur !== '' && priceUnit === unit && styles.levelChipTextActive]}>
+                <Text style={[styles.chipText, priceEur !== '' && priceUnit === unit && styles.chipTextOn]}>
                   {unit === 'person'
                     ? t('proOffering.pricePerPerson', { defaultValue: 'par pers.' })
                     : t('proOffering.pricePerGroup', { defaultValue: 'par groupe' })}
@@ -587,117 +595,109 @@ export default function ProOfferingEditScreen() {
               </Pressable>
             ))}
           </View>
-          <Text style={styles.helper}>
-            {t('proOffering.priceHelper', { defaultValue: 'Affiché "À partir de X €". Laisse vide pour ne rien afficher.' })}
-          </Text>
         </Field>
 
+        {/* ---------- Détails (repliés) ---------- */}
+        <Text style={styles.section}>{t('proOffering.detailsTitle', { defaultValue: 'Détails' })}</Text>
+        <Text style={styles.helper}>{t('proOffering.detailsHint', { defaultValue: 'Tout est optionnel · ouvre ce qui te sert' })}</Text>
 
-        <Text style={styles.section}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</Text>
+        <DetailRow k="level" label={t('proOffering.level')} summary={levelSummary} />
+        {openDetails.level && (
+          <View style={styles.detailBody}>
+            <View style={styles.chipRow}>
+              {OFFERING_LEVELS.map((lvl) => (
+                <Pressable key={lvl} style={[styles.chip, level === lvl && styles.chipOn]} onPress={() => setLevel(lvl)}>
+                  <Text style={[styles.chipText, level === lvl && styles.chipTextOn]}>{lvl}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
 
-        <Field label={t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' })} styles={styles}>
-          <View style={styles.tagsWrap}>
-            {equipProvided.map((it, i) => (
-              <Pressable key={`${it}${i}`} style={styles.tag} onPress={() => setEquipProvided(equipProvided.filter((_, j) => j !== i))}>
-                <Text style={styles.tagText}>{it}</Text>
+        <DetailRow k="places" label={t('proOffering.secPlaces', { defaultValue: 'Places' })} summary={placesSummary} />
+        {openDetails.places && (
+          <View style={styles.detailBody}>
+            <View style={styles.row2}>
+              <Field label={t('proOffering.minParticipants', { defaultValue: 'Participants min' })} styles={styles}>
+                <TextInput style={styles.input} value={minParticipants} onChangeText={setMinParticipants} placeholder="4" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
+              </Field>
+              <Field label={t('proOffering.maxParticipants')} styles={styles}>
+                <TextInput style={styles.input} value={maxParticipants} onChangeText={setMaxParticipants} placeholder={t('proOffering.maxParticipantsPlaceholder')} placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
+              </Field>
+            </View>
+          </View>
+        )}
+
+        <DetailRow k="gear" label={t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })} summary={gearSummary} />
+        {openDetails.gear && (
+          <View style={styles.detailBody}>
+            <Text style={styles.fieldLabel}>{t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' })}</Text>
+            <TagList items={equipProvided} onRemove={(i) => setEquipProvided(equipProvided.filter((_, j) => j !== i))} tint />
+            {renderTagInput({ value: equipProvidedDraft, onChange: setEquipProvidedDraft, onCommit: commitProvided, placeholder: t('proOffering.equipAddPlaceholderShort', { defaultValue: 'Ex. : baudrier' }), label: t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' }), primary: true })}
+            <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>{t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' })}</Text>
+            <TagList items={equipRequired} onRemove={(i) => setEquipRequired(equipRequired.filter((_, j) => j !== i))} tint={false} />
+            {renderTagInput({ value: equipRequiredDraft, onChange: setEquipRequiredDraft, onCommit: commitRequired, placeholder: t('proOffering.equipAddPlaceholderReq', { defaultValue: 'Ex. : gants' }), label: t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' }), primary: false })}
+            <Text style={styles.helper}>{t('proOffering.equipHelper', { defaultValue: 'Affiché sur l’offre et rappelé au client sur sa réservation.' })}</Text>
+          </View>
+        )}
+
+        <DetailRow k="form" label={t('proOffering.sectionParticipantForm', { defaultValue: 'Fiche participant' })} summary={formSummary} />
+        {openDetails.form && (
+          <View style={styles.detailBody}>
+            <Text style={styles.helper}>
+              {t('proOffering.participantFormHelper', { defaultValue: 'Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.' })}
+            </Text>
+            {([['shoe_size', t('booking.fShoe', { defaultValue: 'Pointure' })],
+               ['height', t('booking.fHeight', { defaultValue: 'Taille' })],
+               ['weight', t('booking.fWeight', { defaultValue: 'Poids' })],
+               ['age', t('booking.fAge', { defaultValue: 'Âge' })],
+               ['level', t('booking.fLevel', { defaultValue: 'Niveau' })]] as const).map(([code, label]) => {
+              const on = pStd.includes(code);
+              return (
+                <Pressable
+                  key={code}
+                  style={styles.checkRow}
+                  onPress={() => setPStd(on ? pStd.filter((c) => c !== code) : [...pStd, code])}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: on }}
+                >
+                  <View style={[styles.checkBox, on && styles.checkBoxOn]}>
+                    {on ? <Text style={styles.checkMark}>✓</Text> : null}
+                  </View>
+                  <Text style={styles.checkLabel}>{label}</Text>
+                </Pressable>
+              );
+            })}
+            {pCustom.map((q, i) => (
+              <Pressable key={`${q}${i}`} style={styles.checkRow} onPress={() => setPCustom(pCustom.filter((_, j) => j !== i))}>
+                <View style={[styles.checkBox, styles.checkBoxOn]}><Text style={styles.checkMark}>✓</Text></View>
+                <Text style={styles.checkLabel} numberOfLines={1}>{q}</Text>
                 <Text style={styles.tagX}>✕</Text>
               </Pressable>
             ))}
+            {pCustom.length < 3 ? (
+              renderTagInput({ value: pCustomDraft, onChange: setPCustomDraft, onCommit: commitCustom, placeholder: t('proOffering.customQuestionPlaceholderShort', { defaultValue: 'Question libre — ex. : « Sais-tu nager 25 m ? »' }), label: t('proOffering.sectionParticipantForm', { defaultValue: 'Fiche participant' }), primary: false })
+            ) : null}
           </View>
-          <TextInput
-            style={styles.input}
-            value={equipProvidedDraft}
-            onChangeText={setEquipProvidedDraft}
-            placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
-            placeholderTextColor={colors.textMuted}
-            maxLength={60}
-            onSubmitEditing={commitProvided}
-            onBlur={commitProvided}
-            blurOnSubmit={false}
-            returnKeyType="done"
-          />
-        </Field>
+        )}
 
-        <Field label={t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' })} styles={styles}>
-          <View style={styles.tagsWrap}>
-            {equipRequired.map((it, i) => (
-              <Pressable key={`${it}${i}`} style={styles.tag} onPress={() => setEquipRequired(equipRequired.filter((_, j) => j !== i))}>
-                <Text style={styles.tagText}>{it}</Text>
-                <Text style={styles.tagX}>✕</Text>
-              </Pressable>
-            ))}
+        <DetailRow k="route" label={t('proOffering.secRoute', { defaultValue: 'Parcours et horaires' })} summary={routeSummary} />
+        {openDetails.route && (
+          <View style={styles.detailBody}>
+            <View style={styles.row2}>
+              <Field label={t('proOffering.distance')} styles={styles}>
+                <TextInput style={styles.input} value={distanceKm} onChangeText={setDistanceKm} placeholder="10" placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" maxLength={6} />
+              </Field>
+              <Field label={t('proOffering.elevation')} styles={styles}>
+                <TextInput style={styles.input} value={elevationGainM} onChangeText={setElevationGainM} placeholder="500" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={5} />
+              </Field>
+            </View>
+            <Field label={t('proOffering.schedule')} styles={styles}>
+              <TextInput style={styles.input} value={scheduleText} onChangeText={setScheduleText} placeholder={t('proOffering.schedulePlaceholder')} placeholderTextColor={colors.textMuted} maxLength={100} />
+              <Text style={styles.helper}>{t('proOffering.scheduleHelper')}</Text>
+            </Field>
           </View>
-          <TextInput
-            style={styles.input}
-            value={equipRequiredDraft}
-            onChangeText={setEquipRequiredDraft}
-            placeholder={t('proOffering.equipAddPlaceholder', { defaultValue: 'Ex. : baudrier — valide pour ajouter' })}
-            placeholderTextColor={colors.textMuted}
-            maxLength={60}
-            onSubmitEditing={commitRequired}
-            onBlur={commitRequired}
-            blurOnSubmit={false}
-            returnKeyType="done"
-          />
-          <Text style={styles.helper}>{t('proOffering.equipHelper', { defaultValue: 'Affiché sur l’offre et rappelé au client sur sa réservation.' })}</Text>
-        </Field>
-
-        <Text style={styles.section}>{t('proOffering.sectionParticipantForm', { defaultValue: 'Fiche participant' })}</Text>
-        <Text style={styles.helper}>
-          {t('proOffering.participantFormHelper', { defaultValue: 'Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.' })}
-        </Text>
-        {([['shoe_size', t('booking.fShoe', { defaultValue: 'Pointure' })],
-           ['height', t('booking.fHeight', { defaultValue: 'Taille' })],
-           ['weight', t('booking.fWeight', { defaultValue: 'Poids' })],
-           ['age', t('booking.fAge', { defaultValue: 'Âge' })],
-           ['level', t('booking.fLevel', { defaultValue: 'Niveau' })]] as const).map(([code, label]) => {
-          const on = pStd.includes(code);
-          return (
-            <Pressable
-              key={code}
-              style={styles.checkRow}
-              onPress={() => setPStd(on ? pStd.filter((c) => c !== code) : [...pStd, code])}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: on }}
-            >
-              <View style={[styles.checkBox, on && styles.checkBoxOn]}>
-                {on ? <Text style={styles.checkMark}>✓</Text> : null}
-              </View>
-              <Text style={styles.checkLabel}>{label}</Text>
-            </Pressable>
-          );
-        })}
-        {pCustom.map((q, i) => (
-          <Pressable key={`${q}${i}`} style={styles.checkRow} onPress={() => setPCustom(pCustom.filter((_, j) => j !== i))}>
-            <View style={[styles.checkBox, styles.checkBoxOn]}><Text style={styles.checkMark}>✓</Text></View>
-            <Text style={styles.checkLabel} numberOfLines={1}>{q}</Text>
-            <Text style={styles.tagX}>✕</Text>
-          </Pressable>
-        ))}
-        {pCustom.length < 3 ? (
-          <TextInput
-            style={[styles.input, { marginTop: spacing.xs }]}
-            value={pCustomDraft}
-            onChangeText={setPCustomDraft}
-            placeholder={t('proOffering.customQuestionPlaceholder', { defaultValue: '＋ Question libre — ex. : « Sais-tu nager 25 m ? »' })}
-            placeholderTextColor={colors.textMuted}
-            maxLength={80}
-            onSubmitEditing={commitCustom}
-            onBlur={commitCustom}
-            blurOnSubmit={false}
-            returnKeyType="done"
-          />
-        ) : null}
-
-        <Pressable
-          style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={saving}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? t('proOffering.saving') : isEdit ? t('proOffering.save') : t('proOffering.create')}
-          </Text>
-        </Pressable>
+        )}
 
         {isEdit && (
           <Pressable style={styles.deleteButton} onPress={handleDelete}>
@@ -706,6 +706,23 @@ export default function ProOfferingEditScreen() {
           </Pressable>
         )}
       </ScrollView>
+
+      {/* Sticky primary action — always one thumb away. */}
+      <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
+        <PressableScale
+          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.cta)]}
+          onPress={handleSubmit}
+          disabled={saving}
+        >
+          <Text style={styles.ctaText}>
+            {saving
+              ? t('proOffering.saving')
+              : isEdit
+                ? t('proOffering.save')
+                : t('proOffering.publish', { defaultValue: 'Publier la sortie' })}
+          </Text>
+        </PressableScale>
+      </View>
 
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
@@ -740,7 +757,7 @@ export default function ProOfferingEditScreen() {
             onPress={confirmMapPick}
             disabled={pickerPinLng === null}
           >
-            <Check size={16} color={colors.textPrimary} strokeWidth={2.6} />
+            <Check size={16} color={colors.onCta} strokeWidth={2.6} />
             <Text style={styles.fullMapConfirmText}>{t('proOffering.locationConfirm')}</Text>
           </Pressable>
         </SafeAreaView>
@@ -768,28 +785,71 @@ function Field({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl + 32 },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl * 3 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontFamily: fonts.title, marginBottom: spacing.xs },
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.lg },
   section: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+    fontWeight: '800',
+    marginTop: spacing.lg,
   },
   helper: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: spacing.xs },
-  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.xs },
+  field: { marginBottom: spacing.md, flex: 1 },
+  fieldLabel: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.sm - 1,
+    fontWeight: '700',
+    marginBottom: spacing.xs + 2,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: radius.card - 4,
+    paddingHorizontal: spacing.sm + 6,
+    paddingVertical: spacing.sm + 4,
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+  },
+  textarea: { minHeight: 72, textAlignVertical: 'top' },
+  row2: { flexDirection: 'row', gap: spacing.sm },
+  placeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
+  adjustBtn: { paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 2, borderRadius: radius.full, backgroundColor: colors.surfaceAlt },
+  adjustBtnText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chip: {
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm + 6,
+    borderRadius: radius.full, backgroundColor: colors.surfaceAlt,
+  },
+  chipOn: { backgroundColor: colors.cta },
+  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  chipTextOn: { color: colors.onCta, fontWeight: '700' },
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  priceInput: { width: 96 },
+  detailRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4,
+    minHeight: 56, borderBottomWidth: 1, borderBottomColor: colors.line,
+  },
+  detailLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '600' },
+  detailSummary: { color: colors.textSecondary, fontSize: fontSizes.sm, maxWidth: 160 },
+  detailBody: { paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
+  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginBottom: spacing.sm },
   tag: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.lineStrong,
-    borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 6,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.full, paddingHorizontal: spacing.sm + 4, paddingVertical: 7,
   },
+  tagTint: { backgroundColor: colors.cta + '1F' },
   tagText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600', maxWidth: 240 },
   tagX: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800' },
+  tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  addBtn: {
+    width: 44, height: 44, borderRadius: radius.card - 4, backgroundColor: colors.surfaceAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  addBtnPrimary: { backgroundColor: colors.cta },
   checkRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
     paddingVertical: spacing.sm + 1, borderBottomWidth: 1, borderBottomColor: colors.line,
@@ -801,77 +861,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   checkBoxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
   checkMark: { color: colors.onCta, fontSize: fontSizes.xs, fontWeight: '800' },
   checkLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '600' },
-  field: { marginBottom: spacing.md },
-  fieldLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-  },
-  textarea: { minHeight: 100, textAlignVertical: 'top' },
-  row2: { flexDirection: 'row', gap: spacing.sm },
-  levelRow: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' },
-  levelChip: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  levelChipActive: { borderColor: colors.cta, borderWidth: 2 },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  priceInput: {
-    flex: 1,
-  },
-  levelChipText: { color: colors.textPrimary, fontSize: fontSizes.sm },
-  levelChipTextActive: { color: colors.cta, fontWeight: '700' },
-  locationButton: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
-    marginBottom: spacing.md,
-  },
-  locationButtonRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  locationButtonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
-  locationButtonTextRequired: { color: colors.cta, fontWeight: '700' },
-  locationButtonRequired: { borderColor: colors.cta, borderWidth: 1.5, backgroundColor: colors.cta + '12' },
-  locationButtonSet: { borderColor: colors.success, backgroundColor: colors.success + '12' },
-  locationCheck: { marginLeft: 'auto' },
-  locationHint: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '600', marginTop: 4 },
-  locationCoords: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 4 },
-  saveButton: {
-    backgroundColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  saveButtonDisabled: { opacity: 0.5 },
-  saveButtonText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   deleteButtonText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '600' },
+  ctaBar: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    paddingHorizontal: spacing.md, paddingTop: spacing.sm,
+    backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.line,
+  },
+  cta: {
+    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center',
+  },
+  ctaDisabled: { opacity: 0.5 },
+  ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapCloseBtn: { borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
     position: 'absolute',
@@ -884,7 +892,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fullMapCloseText: { color: colors.textPrimary, fontSize: 20 },
+  fullMapCloseText: { color: colors.textPrimary, fontSize: fontSizes.lg + 2 },
   fullMapConfirm: {
     position: 'absolute',
     left: spacing.lg,
@@ -893,10 +901,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.sm,
+    paddingVertical: spacing.sm + 4,
+    borderRadius: radius.full,
     backgroundColor: colors.cta,
   },
   fullMapConfirmDisabled: { opacity: 0.5 },
-  fullMapConfirmText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+  fullMapConfirmText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });
