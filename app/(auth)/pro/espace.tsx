@@ -6,10 +6,12 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle } from 'lucide-react-native';
+import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { proOfferingService } from '@/services/pro-offering-service';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proService } from '@/services/pro-service';
@@ -47,6 +49,13 @@ export default function ProSpaceScreen() {
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pro-agenda'] });
+
+  // Catalogue size for the « Mes sorties » tile (same key as the pro page).
+  const { data: offerings } = useQuery({
+    queryKey: ['pro-offerings', userId],
+    queryFn: () => proOfferingService.getByProId(userId as string),
+    enabled: !!userId && isApproved,
+  });
 
   // Pull-to-refresh — there is no realtime on bookings, so this is how a
   // pro sees a request that arrived while the screen was open.
@@ -147,14 +156,26 @@ export default function ProSpaceScreen() {
       <Stack.Screen options={{ title: t('booking.proSpace', { defaultValue: 'Espace pro' }) }} />
 
       <View style={styles.head}>
-        <UserAvatar name={proProfile?.company_name ?? proProfile?.display_name ?? '?'} avatarUrl={null} size={48} />
+        {/* The pin's logo, not an initial (lot 2 pro). */}
+        {proProfile?.pin_image_url ? (
+          <Image source={{ uri: proProfile.pin_image_url }} style={styles.logo} contentFit="cover" cachePolicy="memory-disk" />
+        ) : (
+          <UserAvatar name={proProfile?.display_name ?? proProfile?.company_name ?? '?'} avatarUrl={null} size={48} />
+        )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.headName} numberOfLines={1}>{proProfile?.company_name ?? '…'}</Text>
+          <Text style={styles.headName} numberOfLines={1}>{proProfile?.display_name ?? proProfile?.company_name ?? '…'}</Text>
           <Text style={styles.headSub} numberOfLines={1}>
             {t('booking.pagePublic', { defaultValue: 'Page publique active' })}
           </Text>
         </View>
       </View>
+
+      {/* The hub's one primary action: publishing a new outing used to need
+          Mes offres → Catalogue → Nouvelle activité (3 taps, audit 2026-10-08). */}
+      <PressableScale style={[styles.newOutingBtn, glow(colors.cta)]} onPress={() => router.push('/(auth)/pro/offering/edit')}>
+        <Plus size={18} color={colors.onCta} strokeWidth={2.6} />
+        <Text style={styles.newOutingText}>{t('booking.newOuting', { defaultValue: 'Nouvelle sortie' })}</Text>
+      </PressableScale>
 
       <Text style={styles.eyebrow}>
         {t('booking.today', { defaultValue: 'Aujourd’hui' })} · {dayjs().format('ddd D MMM')}
@@ -251,9 +272,9 @@ export default function ProSpaceScreen() {
         <Tile
           styles={styles}
           icon={<Mountain size={18} color={colors.cta} strokeWidth={2.2} />}
-          title={t('booking.hubOfferings', { defaultValue: 'Mes offres' })}
-          sub={t('booking.hubOfferingsSub', { defaultValue: 'Catalogue de sorties' })}
-          onPress={() => router.push(`/(auth)/pro/${userId}`)}
+          title={t('booking.hubOutings', { defaultValue: 'Mes sorties' })}
+          sub={t('booking.hubOutingsCount', { defaultValue: '{{count}} au catalogue', count: offerings?.length ?? 0 })}
+          onPress={() => router.push(`/(auth)/pro/${userId}?tab=catalog`)}
         />
         <Tile
           styles={styles}
@@ -265,13 +286,11 @@ export default function ProSpaceScreen() {
         <Tile
           styles={styles}
           icon={<Eye size={18} color={colors.cta} strokeWidth={2.2} />}
-          title={t('booking.hubPage', { defaultValue: 'Ma page publique' })}
-          sub={t('booking.hubPageSub', { defaultValue: 'Voir comme un client' })}
+          title={t('booking.hubPageShort', { defaultValue: 'Ma page' })}
+          sub={t('booking.hubPageSubEdit', { defaultValue: 'Voir et modifier' })}
           onPress={() => router.push(`/(auth)/pro/${userId}`)}
         />
       </View>
-
-      <Text style={styles.foot}>{t('booking.hubSoon', { defaultValue: 'Bientôt : historique clients & statistiques' })}</Text>
     </ScrollView>
   );
 }
@@ -297,7 +316,13 @@ function Tile({ icon, title, sub, badge, onPress, styles }: {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: spacing.md, paddingBottom: spacing.xl },
-  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4, marginBottom: spacing.xs },
+  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4, marginBottom: spacing.sm + 4 },
+  logo: { width: 48, height: 48, borderRadius: radius.card - 2, backgroundColor: colors.surfaceAlt },
+  newOutingBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
+  },
+  newOutingText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   headName: { color: colors.textPrimary, fontSize: fontSizes.md + 1, fontWeight: '800' },
   headSub: { color: colors.cta, fontSize: fontSizes.xs + 1, marginTop: 1, fontWeight: '600' },
   eyebrow: {

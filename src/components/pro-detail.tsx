@@ -95,6 +95,8 @@ function ReviewMiniCard({
 interface Props {
   pro: ProProfile;
   isOwner: boolean;
+  // Tab to open on (Espace pro › « Mes sorties » lands on the catalog).
+  initialTab?: ProTab;
   onEdit?: () => void;
   // When hosted inside the pin drawer (gorhom sheet), the tab bodies must
   // use BottomSheetScrollView so the drag gesture coordinates with the sheet.
@@ -172,7 +174,7 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured, onOpenOffering }: Props) {
+export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured, onOpenOffering }: Props) {
   const openOffering = (o: ProOffering) => (onOpenOffering ? onOpenOffering(o) : router.push(`/(auth)/pro/offering/${o.id}`));
   // Selecting a tab expands the sheet to full height, then (once it settles at
   // the '100%' top snap, where scroll is reliably unlocked) scrolls the header +
@@ -196,7 +198,7 @@ export function ProDetail({ pro, isOwner, onEdit, inSheet = false, onClose, onEx
   const scrollRef = useRef<ComponentRef<typeof BottomSheetScrollView>>(null);
   const tabBarTopRef = useRef(0);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<ProTab>('info');
+  const [activeTab, setActiveTab] = useState<ProTab>(initialTab ?? 'info');
   const [showFullMap, setShowFullMap] = useState(false);
   // Fullscreen viewer for the header carousel (indexes into galleryPhotos).
   const [carouselViewerIndex, setCarouselViewerIndex] = useState<number | null>(null);

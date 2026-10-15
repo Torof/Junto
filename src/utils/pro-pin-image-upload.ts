@@ -10,7 +10,11 @@ import { proService } from '@/services/pro-service';
 const MAX_SIZE = 240;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export async function pickAndUploadProPinImage(): Promise<string | null> {
+// `apply` (default true) also writes the URL on the profile right away. The
+// edit screen passes false: the upload happens at pick time, the profile
+// change waits for « Enregistrer » with everything else (lot 2 pro, Scott
+// 2026-10-15 — one save logic, not two).
+export async function pickAndUploadProPinImage(apply = true): Promise<string | null> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsEditing: true,
@@ -58,7 +62,7 @@ export async function pickAndUploadProPinImage(): Promise<string | null> {
     .getPublicUrl(objectName);
 
   const pinUrl = `${publicUrl}?t=${Date.now()}`;
-  await proService.setPinImage(pinUrl);
+  if (apply) await proService.setPinImage(pinUrl);
 
   return pinUrl;
 }

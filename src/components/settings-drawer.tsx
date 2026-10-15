@@ -6,14 +6,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
   Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
-  ShieldAlert, ChevronDown, BadgeCheck, Globe, type LucideIcon,
+  ShieldAlert, ChevronDown, Globe, type LucideIcon,
 } from 'lucide-react-native';
 import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference, type LanguagePreference } from '@/i18n';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { authService } from '@/services/auth-service';
-import { proService } from '@/services/pro-service';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
@@ -152,15 +151,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     },
     retry: 2,
   });
-
-  // Pro application status (pending/rejected) so the "Devenir pro" row reflects
-  // an in-flight or rejected request instead of dropping the user into an error.
-  const { data: proProfile } = useQuery({
-    queryKey: ['pro-profile-mine'],
-    queryFn: () => proService.getMine(),
-    enabled: user?.tier !== 'pro',
-  });
-  const proStatus = proProfile?.status;
 
   const prefs = user?.notification_preferences ?? {};
 
@@ -345,15 +335,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 )}
               </View>
               <Row icon={Star} label={t('drawer.subscription')} right={<Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>} />
-              {user?.tier !== 'pro' && (
-                proStatus === 'pending' ? (
-                  <Row icon={BadgeCheck} label={t('pro.statusPending', { defaultValue: 'Demande pro en attente' })} value={t('pro.statusPendingShort', { defaultValue: 'En attente' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
-                ) : proStatus === 'rejected' ? (
-                  <Row icon={BadgeCheck} label={t('pro.statusRejected', { defaultValue: 'Demande pro refusée — corriger' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
-                ) : (
-                  <Row icon={BadgeCheck} label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })} onPress={() => { onClose(); router.push('/(auth)/pro/edit'); }} />
-                )
-              )}
+              {/* « Devenir pro » and the application status moved to the Menu
+                  sheet (lot 2 pro, 2026-10-15) — next to « Supprimer mon
+                  compte » was the wrong neighbourhood. */}
               <Row icon={Trash2} label={t('account.delete')} onPress={handleDeleteAccount} danger last />
             </View>
 

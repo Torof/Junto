@@ -159,6 +159,10 @@ export function MenuSheet({ open, onClose }: Props) {
             styles={styles}
             colors={colors}
           />
+          {/* The pro entry lives HERE at every stage (lot 2 pro, 2026-10-15):
+              « Devenir pro » for everyone, the application status while it is
+              reviewed, « Espace pro » once approved — same slot before/after,
+              no more « Devenir pro » buried in Paramètres › Compte. */}
           {isApprovedPro ? (
             <MenuItem
               icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
@@ -168,7 +172,33 @@ export function MenuSheet({ open, onClose }: Props) {
               styles={styles}
               colors={colors}
             />
-          ) : null}
+          ) : proProfile?.status === 'pending' ? (
+            <MenuItem
+              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              label={t('pro.statusPending', { defaultValue: 'Demande pro en attente' })}
+              sub={t('pro.statusPendingSub', { defaultValue: 'On te prévient dès qu’elle est validée' })}
+              onPress={() => go('/(auth)/pro/edit')}
+              styles={styles}
+              colors={colors}
+            />
+          ) : proProfile?.status === 'rejected' ? (
+            <MenuItem
+              icon={<Briefcase size={20} color={colors.error} strokeWidth={2.2} />}
+              label={t('pro.statusRejected', { defaultValue: 'Demande pro refusée — corriger' })}
+              onPress={() => go('/(auth)/pro/edit')}
+              styles={styles}
+              colors={colors}
+            />
+          ) : (
+            <MenuItem
+              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
+              sub={t('menu.becomeProSub', { defaultValue: 'Ta page, tes sorties, tes réservations' })}
+              onPress={() => go('/(auth)/pro/edit')}
+              styles={styles}
+              colors={colors}
+            />
+          )}
           <MenuItem
             icon={<Settings size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.settings', { defaultValue: 'Paramètres' })}
@@ -207,6 +237,7 @@ export function MenuSheet({ open, onClose }: Props) {
 function MenuItem({
   icon,
   label,
+  sub,
   badge,
   onPress,
   styles,
@@ -214,6 +245,7 @@ function MenuItem({
 }: {
   icon: React.ReactNode;
   label: string;
+  sub?: string;
   badge?: string | null;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
@@ -222,7 +254,10 @@ function MenuItem({
   return (
     <Pressable style={styles.item} onPress={onPress}>
       <View style={styles.itemIcon}>{icon}</View>
-      <Text style={styles.itemLabel}>{label}</Text>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.itemLabel}>{label}</Text>
+        {sub ? <Text style={styles.itemSub} numberOfLines={1}>{sub}</Text> : null}
+      </View>
       {badge ? (
         <View style={styles.itemBadge}>
           <Text style={styles.itemBadgeText}>{badge}</Text>
@@ -271,7 +306,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm + 2,
   },
   itemIcon: { width: 26, alignItems: 'center' },
-  itemLabel: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  itemLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
+  itemSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   itemBadge: {
     minWidth: 20,
     height: 20,

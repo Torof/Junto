@@ -13,7 +13,7 @@ import { ProDetail } from '@/components/pro-detail';
 import { PageTypeBadge } from '@/components/page-type-badge';
 
 export default function ProPageScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const colors = useColors();
@@ -58,6 +58,7 @@ export default function ProPageScreen() {
     <ProDetail
       pro={pro}
       isOwner={isOwner}
+      initialTab={tab === 'catalog' || tab === 'pictures' || tab === 'reviews' ? tab : undefined}
       onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
     />
   );
