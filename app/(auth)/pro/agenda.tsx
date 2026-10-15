@@ -355,7 +355,7 @@ export default function ProAgendaScreen() {
         {editMode && (
           <View style={styles.editBanner}>
             <Text style={styles.editBannerText}>
-              {t('booking.editBanner', { defaultValue: 'Tape une demi-journée pour l’ouvrir ou la fermer. Les réservations ne bougent pas.' })}
+              {t('booking.editHint', { defaultValue: 'Tape une demi-journée pour l’ouvrir ou la fermer. Les réservations ne bougent pas.' })}
             </Text>
             <PressableScale style={styles.shortcutsBtn} onPress={() => setShortcutsOpen(true)}>
               <Text style={styles.shortcutsBtnText}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</Text>
