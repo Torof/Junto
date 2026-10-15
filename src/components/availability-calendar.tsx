@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, shadows } from '@/constants/theme';
+import { fontSizes, spacing, shadows, radius } from '@/constants/theme';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import type { BookingPeriod } from '@/services/booking-service';
 
@@ -105,6 +105,13 @@ export function AvailabilityCalendar({
       else if (mode === 'pick') onPick?.(iso, period);
     };
 
+    // Each half-day is a ≥ 44 pt target and says what it is (lot 2 pro,
+    // 2026-10-15): the pro taps these gloves on, the old 48×26 cells
+    // mis-tapped morning for afternoon.
+    const periodWord = period === 'am'
+      ? t('booking.halfAm', { defaultValue: 'matin' })
+      : t('booking.halfPm', { defaultValue: 'a-midi' });
+    const labelColor = isSelected ? colors.onCta : bookedCount > 0 ? colors.onCta : sportColor;
     return (
       <Pressable
         key={period}
@@ -112,16 +119,20 @@ export function AvailabilityCalendar({
         onPress={onPress}
         style={[
           styles.half,
-          period === 'am' ? styles.halfTop : styles.halfBottom,
           { backgroundColor: bg },
           dashed && { borderWidth: 1.5, borderStyle: 'dashed', borderColor: sportColor + 'BB' },
         ]}
+        accessibilityLabel={`${periodWord} ${day.format('D MMMM')}`}
       >
         {st.label && mode !== 'pick' ? (
-          <Text style={[styles.slotLabel, { color: bookedCount > 0 ? '#FFFFFF' : sportColor }]} numberOfLines={1}>
+          <Text style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>
             {st.label}
           </Text>
-        ) : null}
+        ) : (
+          <Text style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
+            {periodWord}
+          </Text>
+        )}
       </Pressable>
     );
   };
@@ -173,7 +184,7 @@ export function AvailabilityCalendar({
         <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta + '2E' }]} /><Text style={styles.legendText}>{t('booking.legendAvailable', { defaultValue: 'Ouvert' })}</Text></View>
         {mode !== 'pick' && (
           <>
-            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendBookedSport', { defaultValue: 'Réservé — teinte = sport' })}</Text></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendBooked', { defaultValue: 'Réservé' })}</Text></View>
             <View style={styles.legendItem}><View style={[styles.legendDot, styles.legendDashed, { backgroundColor: colors.cta + '2E', borderColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</Text></View>
           </>
         )}
@@ -190,10 +201,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dowRow: { flexDirection: 'row', marginBottom: 4 },
   dow: { flex: 1, textAlign: 'center', color: colors.textMuted, fontSize: fontSizes.xs - 1, fontWeight: '700' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cellEmpty: { width: `${100 / 7}%`, height: 58 },
+  cellEmpty: { width: `${100 / 7}%`, height: 108 },
   cellWrap: { width: `${100 / 7}%` },
   cell: {
-    height: 58, borderRadius: 9, backgroundColor: colors.surfaceAlt,
+    height: 108, borderRadius: radius.lg, backgroundColor: colors.surfaceAlt,
     padding: 2, gap: 2, borderWidth: 1, borderColor: colors.lineStrong,
     margin: 0.5,
   },
@@ -201,13 +212,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cellToday: { borderColor: colors.cta },
   cellSelected: { borderColor: colors.textPrimary },
   dayNum: {
-    position: 'absolute', top: 2.5, left: 5, zIndex: 2,
-    color: colors.textPrimary, fontSize: 10, fontWeight: '700', opacity: 0.75,
+    height: 14, lineHeight: 14, textAlign: 'center',
+    color: colors.textPrimary, fontSize: fontSizes.xs - 2, fontWeight: '700', opacity: 0.8,
   },
-  half: { flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  halfTop: {},
-  halfBottom: {},
-  slotLabel: { fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
+  // 2 × 42 pt half-days + the day number — the whole half is the target.
+  half: { flex: 1, minHeight: 42, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  slotLabel: { fontSize: fontSizes.xs - 2, fontWeight: '800', letterSpacing: 0.3 },
+  slotWord: { fontSize: fontSizes.xs - 3, fontWeight: '700' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2, marginTop: spacing.sm + 2 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 12, height: 12, borderRadius: 4 },

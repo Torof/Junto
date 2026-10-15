@@ -9,10 +9,10 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, Send, X, Pencil, Check, MessageCircle } from 'lucide-react-native';
+import { Plus, Phone, Send, X, MessageCircle } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius, glow, shadows } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proOfferingService } from '@/services/pro-offering-service';
@@ -110,12 +110,29 @@ export default function ProAgendaScreen() {
   const slotState = (day: string, period: BookingPeriod) =>
     slotIndex.get(`${day}|${period}`) ?? { available: false };
 
+  // Optimistic: the half-day flips under the finger, the RPC follows; on error
+  // the previous window is restored (lot 2 pro, Scott 2026-10-15 — « le tap
+  // répond tout de suite, la synchro suit »).
   const handleToggle = async (day: string, period: BookingPeriod, next: boolean) => {
+    const key = ['pro-agenda', from, to] as const;
+    const previous = queryClient.getQueryData<AgendaItem[]>(key);
+    queryClient.setQueryData<AgendaItem[]>(key, (cur) => {
+      const list = cur ?? [];
+      if (next) {
+        const stub = { kind: 'availability', day, period, id: `tmp-${day}-${period}` } as unknown as AgendaItem;
+        return [...list, stub];
+      }
+      return list.filter((it) => !(it.kind === 'availability' && it.day === day && it.period === period));
+    });
     try {
       await bookingService.setAvailability(day, period, next);
       await invalidate();
-    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    } catch (e) {
+      if (previous) queryClient.setQueryData(key, previous);
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+    }
   };
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   // ----- Raccourcis d'ouverture (mode édition) -----
   const bulkOpen = async (slots: { day: string; period: BookingPeriod }[], successMsg: string) => {
@@ -309,16 +326,12 @@ export default function ProAgendaScreen() {
       <Stack.Screen
         options={{
           title: t('booking.agendaTitle', { defaultValue: 'Agenda' }),
+          // Manual booking lives in the header (was a floating button that sat
+          // on the calendar's last row and the legend — lot 2 pro).
           headerRight: () => (
-            <PressableScale onPress={() => setEditMode((v) => !v)} hitSlop={8} style={styles.editBtn}>
-              {editMode
-                ? <Check size={15} color={colors.onCta} strokeWidth={2.6} />
-                : <Pencil size={14} color={colors.cta} strokeWidth={2.4} />}
-              <Text style={[styles.editBtnText, editMode && { color: colors.onCta }]}>
-                {editMode
-                  ? t('booking.editDone', { defaultValue: 'Terminé' })
-                  : t('booking.editDispos', { defaultValue: 'Mes dispos' })}
-              </Text>
+            <PressableScale onPress={() => openManualSheet()} hitSlop={8} style={styles.headerBtn} accessibilityLabel={t('booking.addManual', { defaultValue: 'Ajouter une résa' })}>
+              <Plus size={14} color={colors.textPrimary} strokeWidth={2.6} />
+              <Text style={styles.headerBtnText}>{t('booking.addManualShort', { defaultValue: 'Résa' })}</Text>
             </PressableScale>
           ),
         }}
@@ -328,12 +341,25 @@ export default function ProAgendaScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefetching && !isLoading} onRefresh={() => refetch()} tintColor={colors.cta} colors={[colors.cta]} />}
       >
+        {/* Consulter ≠ modifier : a visible segmented control instead of a
+            header toggle nobody found (audit 2026-10-08). */}
+        <View style={styles.segmented}>
+          <Pressable style={[styles.segment, !editMode && styles.segmentOn]} onPress={() => setEditMode(false)}>
+            <Text style={[styles.segmentText, !editMode && styles.segmentTextOn]}>{t('booking.modeView', { defaultValue: 'Consulter' })}</Text>
+          </Pressable>
+          <Pressable style={[styles.segment, editMode && styles.segmentOn]} onPress={() => setEditMode(true)}>
+            <Text style={[styles.segmentText, editMode && styles.segmentTextOn]}>{t('booking.modeEdit', { defaultValue: 'Modifier mes dispos' })}</Text>
+          </Pressable>
+        </View>
+
         {editMode && (
           <View style={styles.editBanner}>
-            <Pencil size={14} color={colors.onCta} strokeWidth={2.4} />
             <Text style={styles.editBannerText}>
-              {t('booking.editBanner', { defaultValue: 'Mode dispos — tape une demi-journée pour ouvrir / fermer' })}
+              {t('booking.editBanner', { defaultValue: 'Tape une demi-journée pour l’ouvrir ou la fermer. Les réservations ne bougent pas.' })}
             </Text>
+            <PressableScale style={styles.shortcutsBtn} onPress={() => setShortcutsOpen(true)}>
+              <Text style={styles.shortcutsBtnText}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</Text>
+            </PressableScale>
           </View>
         )}
 
@@ -346,22 +372,7 @@ export default function ProAgendaScreen() {
           selectedDay={sheetDay}
         />
 
-        {editMode ? (
-          <View style={styles.quickRow}>
-            <PressableScale style={styles.quickChip} onPress={openWeekends}>
-              <Text style={styles.quickChipText}>{t('booking.bulkWeekends', { defaultValue: 'Ouvrir les week-ends' })}</Text>
-            </PressableScale>
-            <PressableScale style={styles.quickChip} onPress={openWholeMonth}>
-              <Text style={styles.quickChipText}>{t('booking.bulkMonth', { defaultValue: 'Ouvrir tout le mois' })}</Text>
-            </PressableScale>
-            <PressableScale style={styles.quickChip} onPress={copyLastWeek}>
-              <Text style={styles.quickChipText}>{t('booking.bulkCopy', { defaultValue: 'Copier la semaine passée' })}</Text>
-            </PressableScale>
-            <PressableScale style={styles.quickChip} onPress={closeMonth}>
-              <Text style={[styles.quickChipText, { color: colors.error }]}>{t('booking.bulkClose', { defaultValue: 'Tout fermer' })}</Text>
-            </PressableScale>
-          </View>
-        ) : (
+        {!editMode && (
           <Text style={styles.hint}>{t('booking.viewHint', { defaultValue: 'Tape un jour pour voir qui vient et gérer ses créneaux.' })}</Text>
         )}
 
@@ -427,17 +438,32 @@ export default function ProAgendaScreen() {
                 {b.is_manual && b.manual_phone ? <Phone size={15} color={colors.textMuted} strokeWidth={2.2} /> : null}
               </Pressable>
             ))}
-            <View style={{ height: 90 }} />
+            <View style={{ height: spacing.lg }} />
           </>
         )}
       </ScrollView>
 
-      {!editMode && (
-        <Pressable style={({ pressed }) => [styles.fab, pressed && styles.pressed]} onPress={() => openManualSheet()}>
-          <Plus size={17} color={colors.onCta} strokeWidth={2.6} />
-          <Text style={styles.fabText}>{t('booking.addManual', { defaultValue: 'Ajouter une résa' })}</Text>
+      {/* Raccourcis d'ouverture — derrière un bouton (lot 2 pro) : la rangée
+          de puces ne tenait plus avec des demi-journées de 44 pt. */}
+      <Modal visible={shortcutsOpen} transparent animationType="slide" onRequestClose={() => setShortcutsOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setShortcutsOpen(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            <Text style={styles.sheetTitle}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</Text>
+            <Text style={styles.hint}>{t('booking.shortcutsHint', { defaultValue: 'Sur le mois affiché. Les créneaux déjà réservés ne bougent pas.' })}</Text>
+            {([
+              [t('booking.bulkWeekends', { defaultValue: 'Ouvrir les week-ends' }), openWeekends, false],
+              [t('booking.bulkMonth', { defaultValue: 'Ouvrir tout le mois' }), openWholeMonth, false],
+              [t('booking.bulkCopy', { defaultValue: 'Copier la semaine passée' }), copyLastWeek, false],
+              [t('booking.bulkClose', { defaultValue: 'Tout fermer' }), closeMonth, true],
+            ] as const).map(([label, run, danger]) => (
+              <PressableScale key={label} style={styles.shortcutRow} onPress={() => { setShortcutsOpen(false); run(); }}>
+                <Text style={[styles.shortcutRowText, danger && { color: colors.error }]}>{label}</Text>
+              </PressableScale>
+            ))}
+          </Pressable>
         </Pressable>
-      )}
+      </Modal>
 
       {/* Fiche jour — qui vient, état des créneaux, actions contextuelles */}
       <Modal visible={!!sheetDay} transparent animationType="slide" onRequestClose={() => setSheetDay(null)}>
@@ -615,25 +641,31 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   scroll: { padding: spacing.md },
   center: { paddingVertical: spacing.xl, alignItems: 'center' },
   hint: { color: colors.textMuted, fontSize: fontSizes.xs + 1, marginTop: spacing.xs + 2, marginHorizontal: 2 },
-  editBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.cta + '1A', borderRadius: radius.full,
-    paddingHorizontal: spacing.sm + 4, paddingVertical: 6,
-  },
-  editBtnText: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
-  editBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: colors.cta, borderRadius: radius.card - 2,
-    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm + 2, ...glow(colors.cta),
-  },
-  editBannerText: { flex: 1, color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginTop: spacing.sm + 2 },
-  quickChip: { borderWidth: 1, borderColor: colors.lineStrong,
+  headerBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
-    paddingHorizontal: spacing.sm + 4, paddingVertical: 8,
+    paddingHorizontal: spacing.sm + 4, paddingVertical: 7,
   },
-  quickChipText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  headerBtnText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  segmented: {
+    flexDirection: 'row', backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
+    padding: 4, marginBottom: spacing.sm + 2,
+  },
+  segment: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radius.full, paddingVertical: spacing.sm + 2 },
+  segmentOn: { backgroundColor: colors.surface, ...shadows.card },
+  segmentText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+  segmentTextOn: { color: colors.textPrimary },
+  editBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.cta + '1F', borderRadius: radius.card - 4,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm + 4,
+    marginBottom: spacing.sm + 2,
+  },
+  editBannerText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '500', lineHeight: 18 },
+  shortcutsBtn: { backgroundColor: colors.surface, borderRadius: radius.full, paddingHorizontal: spacing.sm + 4, paddingVertical: 7 },
+  shortcutsBtnText: { color: colors.cta, fontSize: fontSizes.xs + 1, fontWeight: '700' },
+  shortcutRow: { paddingVertical: spacing.sm + 6, borderTopWidth: 1, borderTopColor: colors.line },
+  shortcutRowText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   sectionLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.lg, marginBottom: spacing.sm,
@@ -663,13 +695,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bkPeriodText: { fontSize: fontSizes.xs - 1, fontWeight: '700' },
   bkName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   bkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
-  fab: {
-    position: 'absolute', right: spacing.md, bottom: spacing.lg,
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.md + 2,
-    ...glow(colors.cta),
-  },
-  fabText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
