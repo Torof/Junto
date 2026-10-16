@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
+import { enrichTraceElevation } from '@/utils/trace-elevation';
 import { haptic } from '@/lib/haptics';
 import { Globe, Hand, Lock, MoreHorizontal, List, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -654,6 +655,15 @@ export function ActivityDetail({
     }
   };
 
+  // A trace may now change distance / D+ too (00452): refresh the cards as
+  // well as the detail.
+  const invalidateAfterTrace = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['activity', activity.id] }),
+      queryClient.invalidateQueries({ queryKey: ['activities'] }),
+    ]);
+  };
+
   const handlePickTrace = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
@@ -666,8 +676,9 @@ export function ActivityDetail({
       }
       const xml = await new File(file.uri).text();
       const geojson = parseGpxToGeoJson(xml);
-      await activityService.updateTrace(activity.id, geojson);
-      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      // Altitudes first (IGN, best effort) so the server can fill D+ (00452).
+      await activityService.updateTrace(activity.id, await enrichTraceElevation(geojson));
+      await invalidateAfterTrace();
       Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
     } catch (err) {
       if (err instanceof GpxParseError) {
@@ -705,8 +716,8 @@ export function ActivityDetail({
     // independent of the source library entry). Same apply path as import/draw.
     setShowTracePicker(false);
     try {
-      await activityService.updateTrace(activity.id, geojson);
-      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      await activityService.updateTrace(activity.id, await enrichTraceElevation(geojson));
+      await invalidateAfterTrace();
       Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -717,8 +728,8 @@ export function ActivityDetail({
     // Close only on success — if updateTrace fails (offline), keep the draw
     // modal open so the just-drawn trace isn't lost (audit 2026-07-13).
     try {
-      await activityService.updateTrace(activity.id, geojson);
-      await queryClient.invalidateQueries({ queryKey: ['activity', activity.id] });
+      await activityService.updateTrace(activity.id, await enrichTraceElevation(geojson));
+      await invalidateAfterTrace();
       setDrawTraceOpen(false);
       Burnt.toast({ title: t('activity.traceImported'), preset: 'done' });
     } catch (err) {

@@ -1773,6 +1773,7 @@
     "traceImport": "Importer une trace GPX",
     "traceLoading": "Chargement...",
     "traceSet": "Trace GPX · {{count}} points",
+    "traceStatsPending": "Calcul de la distance et du dénivelé…",
     "traceRemove": "Retirer",
     "traceTooLarge": "Fichier trop volumineux (max 5 Mo)",
     "traceParseError": "Impossible de lire la trace",

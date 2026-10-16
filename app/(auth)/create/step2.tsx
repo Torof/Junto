@@ -23,6 +23,8 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { geocodeService } from '@/services/geocode-service';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
+import { enrichTraceElevation } from '@/utils/trace-elevation';
+import { activityService, type GeoJsonLineString } from '@/services/activity-service';
 import { TracePickerModal } from '@/components/trace-picker-modal';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
 
@@ -46,6 +48,49 @@ export default function CreateStep2() {
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
+  // Distance / D+ the server reads off the trace (mig 00452) — shown under the
+  // trace row and used to PREFILL the step-1 fields that are still empty. A
+  // value the organiser typed is never overwritten.
+  const [traceStats, setTraceStats] = useState<{ distance_km: number | null; elevation_gain_m: number | null } | null>(null);
+  const [traceStatsPending, setTraceStatsPending] = useState(false);
+
+  const applyTrace = async (geojson: GeoJsonLineString) => {
+    updateForm({ trace_geojson: geojson });
+    setTraceStats(null);
+    setTraceStatsPending(true);
+    try {
+      // Drawn traces have no altitudes: fetch them (IGN) so D+ can be derived.
+      const enriched = await enrichTraceElevation(geojson);
+      if (enriched !== geojson) updateForm({ trace_geojson: enriched });
+      const stats = await activityService.computeTraceStats(enriched);
+      setTraceStats(stats);
+      const current = useCreateStore.getState().form;
+      const patch: { distance_km?: number; elevation_gain_m?: number } = {};
+      if (current.distance_km == null && stats.distance_km != null && stats.distance_km > 0) {
+        patch.distance_km = stats.distance_km;
+      }
+      if (current.elevation_gain_m == null && stats.elevation_gain_m != null && stats.elevation_gain_m > 0) {
+        patch.elevation_gain_m = stats.elevation_gain_m;
+      }
+      if (Object.keys(patch).length > 0) updateForm(patch);
+    } catch {
+      // Best effort — the trace itself is set; the figures stay editable by hand.
+    } finally {
+      setTraceStatsPending(false);
+    }
+  };
+
+  const traceStatsLabel = useMemo(() => {
+    if (!traceStats) return null;
+    const parts: string[] = [];
+    if (traceStats.distance_km != null && traceStats.distance_km > 0) {
+      parts.push(`${traceStats.distance_km.toLocaleString(i18n.language)} km`);
+    }
+    if (traceStats.elevation_gain_m != null && traceStats.elevation_gain_m > 0) {
+      parts.push(`D+ ${traceStats.elevation_gain_m.toLocaleString(i18n.language)} m`);
+    }
+    return parts.length > 0 ? parts.join(' · ') : null;
+  }, [traceStats, i18n.language]);
 
   const handlePickTrace = async () => {
     try {
@@ -63,7 +108,7 @@ export default function CreateStep2() {
       setIsLoadingTrace(true);
       const xml = await new File(file.uri).text();
       const geojson = parseGpxToGeoJson(xml);
-      updateForm({ trace_geojson: geojson });
+      void applyTrace(geojson);
     } catch (err) {
       if (err instanceof GpxParseError) {
         Alert.alert(t('create.traceParseError'), err.message);
@@ -77,6 +122,7 @@ export default function CreateStep2() {
 
   const handleClearTrace = () => {
     updateForm({ trace_geojson: null });
+    setTraceStats(null);
   };
 
   // Locality lookup for the meeting pin (mig 00441): fire-and-forget, the
@@ -257,9 +303,16 @@ export default function CreateStep2() {
         {form.trace_geojson ? (
           <View style={styles.traceSetRow}>
             <Route size={16} color={colors.cta} strokeWidth={2.2} />
-            <Text style={styles.traceSetText}>
-              {t('create.traceSet', { count: form.trace_geojson.coordinates.length })}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.traceSetText}>
+                {t('create.traceSet', { count: form.trace_geojson.coordinates.length })}
+              </Text>
+              {(traceStatsLabel || traceStatsPending) && (
+                <Text style={styles.traceStatsText}>
+                  {traceStatsLabel ?? t('create.traceStatsPending')}
+                </Text>
+              )}
+            </View>
             <Pressable onPress={handleClearTrace} hitSlop={8}>
               <Text style={styles.traceClearText}>{t('create.traceRemove')}</Text>
             </Pressable>
@@ -297,7 +350,7 @@ export default function CreateStep2() {
           visible={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onSelect={(geojson) => {
-            updateForm({ trace_geojson: geojson });
+            void applyTrace(geojson);
             setPickerOpen(false);
           }}
         />
@@ -307,7 +360,7 @@ export default function CreateStep2() {
           askName={false}
           onClose={() => setDrawOpen(false)}
           onSave={(_name, geojson) => {
-            updateForm({ trace_geojson: geojson });
+            void applyTrace(geojson);
             setDrawOpen(false);
           }}
         />
@@ -571,6 +624,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm + 2,
     marginBottom: spacing.md,
   },
-  traceSetText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', flex: 1 },
+  traceSetText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  traceStatsText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600', marginTop: 2 },
   traceClearText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '700' },
 });

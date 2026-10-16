@@ -227,4 +227,23 @@ export const activityService = {
     } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
+
+  // Distance / D+ the server derives from a trace (mig 00452) — used to
+  // prefill the creation form before the activity exists. D+ is null when the
+  // trace carries no altitudes.
+  computeTraceStats: async (
+    trace: GeoJsonLineString,
+  ): Promise<{ distance_km: number | null; elevation_gain_m: number | null }> => {
+    const { data, error } = await supabase.rpc('compute_trace_stats' as 'join_activity', {
+      p_geojson: trace,
+    } as unknown as { p_activity_id: string });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as
+      | { distance_km: number | string | null; elevation_gain_m: number | null }
+      | undefined;
+    return {
+      distance_km: row?.distance_km != null ? Number(row.distance_km) : null,
+      elevation_gain_m: row?.elevation_gain_m ?? null,
+    };
+  },
 };
