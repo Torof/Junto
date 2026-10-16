@@ -80,10 +80,8 @@
     "footnote": "Une demande de contact reste toujours à accepter — tu gardes la main."
   },
   "contacts": {
-    "title": "Contacts",
     "myContacts": "Mes contacts",
     "recentPartners": "Partenaires récents",
-    "empty": "Aucun contact pour l’instant. Envoie une demande depuis un profil, ou partage ton QR — une fois acceptée, vous êtes connectés.",
     "remove": "Retirer",
     "removeTitle": "Retirer ce contact ?",
     "removeBody": "{{name}} ne sera plus dans tes contacts, des deux côtés, et votre conversation sera supprimée. Vous pourrez vous reconnecter plus tard.",
@@ -512,7 +510,6 @@
   "menu": {
     "becomeProSub": "Ta page, tes sorties, tes réservations",
     "seeProfile": "Voir mon profil",
-    "contacts": "Contacts",
     "favorites": "Favoris",
     "alerts": "Alertes",
     "gpxTraces": "Traces GPX",
@@ -1149,7 +1146,8 @@
     "typeClient": "Client",
     "typePro": "Pro",
     "blockUser": "Bloquer le passionné",
-    "hideConversation": "Supprimer la conversation",
+    "hideConversation": "Masquer la conversation",
+    "removeContact": "Retirer de mes contacts",
     "createOutingFromChat": "Créer une sortie",
     "shareOutingTitle": "Partager une sortie",
     "shareOutingEmpty": "Aucune sortie à venir à partager.",

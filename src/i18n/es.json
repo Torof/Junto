@@ -80,10 +80,8 @@
     "footnote": "Una solicitud de contacto siempre hay que aceptarla — tú tienes el control."
   },
   "contacts": {
-    "title": "Contactos",
     "myContacts": "Mis contactos",
     "recentPartners": "Compañeros recientes",
-    "empty": "Todavía no tienes contactos. Envía una solicitud desde un perfil, o comparte tu QR — en cuanto la acepten, estaréis conectados.",
     "remove": "Quitar",
     "removeTitle": "¿Quitar este contacto?",
     "removeBody": "{{name}} dejará de estar en tus contactos, por ambas partes, y vuestra conversación se eliminará. Podréis volver a conectar más adelante.",
@@ -512,7 +510,6 @@
   "menu": {
     "becomeProSub": "Tu página, tus salidas, tus reservas",
     "seeProfile": "Ver mi perfil",
-    "contacts": "Contactos",
     "favorites": "Favoritos",
     "alerts": "Alertas",
     "gpxTraces": "Tracks GPX",
@@ -1149,7 +1146,8 @@
     "typeClient": "Cliente",
     "typePro": "Pro",
     "blockUser": "Bloquear al usuario",
-    "hideConversation": "Eliminar la conversación",
+    "hideConversation": "Ocultar la conversación",
+    "removeContact": "Quitar de mis contactos",
     "createOutingFromChat": "Crear una salida",
     "shareOutingTitle": "Compartir una salida",
     "shareOutingEmpty": "Ninguna salida próxima que compartir.",

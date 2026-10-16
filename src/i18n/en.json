@@ -80,10 +80,8 @@
     "footnote": "A contact request always has to be accepted — you stay in control."
   },
   "contacts": {
-    "title": "Contacts",
     "myContacts": "My contacts",
     "recentPartners": "Recent partners",
-    "empty": "No contacts yet. Send a request from a profile, or share your QR — once accepted, you are connected.",
     "remove": "Remove",
     "removeTitle": "Remove this contact?",
     "removeBody": "{{name}} will no longer be in your contacts, on both sides, and your conversation will be deleted. You can reconnect later.",
@@ -512,7 +510,6 @@
   "menu": {
     "becomeProSub": "Your page, your outings, your bookings",
     "seeProfile": "See my profile",
-    "contacts": "Contacts",
     "favorites": "Favorites",
     "alerts": "Alerts",
     "gpxTraces": "GPX traces",
@@ -1149,7 +1146,8 @@
     "typeClient": "Client",
     "typePro": "Pro",
     "blockUser": "Block this member",
-    "hideConversation": "Delete conversation",
+    "hideConversation": "Hide conversation",
+    "removeContact": "Remove from my contacts",
     "createOutingFromChat": "Create an outing",
     "shareOutingTitle": "Share an outing",
     "shareOutingEmpty": "No upcoming outing to share.",

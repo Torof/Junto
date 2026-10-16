@@ -6,6 +6,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { SharedActivityCard } from '@/components/shared-activity-card';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
+import { contactService } from '@/services/contact-service';
 import { haptic } from '@/lib/haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -110,16 +111,21 @@ export default function ConversationScreen() {
         p_conversation_id: id,
       });
       const row = (data ?? [])[0];
-      if (!row) return { exists: false, profile: null };
+      if (!row) return { exists: false, profile: null, initiatedFrom: null as string | null };
       const profile = row.display_name != null
         ? { id: row.other_id, display_name: row.display_name, avatar_url: row.avatar_url }
         : null;
-      return { exists: true, profile };
+      return { exists: true, profile, initiatedFrom: row.initiated_from ?? null };
     },
     enabled: !!id && !!currentUser,
     staleTime: 60_000,
   });
   const otherUser = convMeta?.profile ?? null;
+  // A contact is a SOCIAL connection (00372): carpool / booking / reply threads
+  // are DMs too but never contacts, so « Retirer de mes contacts » hides there.
+  const isSocialDm = convMeta?.initiatedFrom === 'profile'
+    || convMeta?.initiatedFrom === 'discovery'
+    || convMeta?.initiatedFrom === 'invite';
 
   // Group thread (Brique 4d) — only probed once convMeta resolves to "not a DM"
   // (get_conversation_peer returns nothing for group/activity conversations).
@@ -305,6 +311,35 @@ export default function ConversationScreen() {
               await queryClient.invalidateQueries({ queryKey: ['conversations'] });
               await queryClient.invalidateQueries({ queryKey: ['is-blocked', otherId] });
               Burnt.toast({ title: t('publicProfile.blocked') });
+              router.back();
+            } catch (err) {
+              Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // Ends the mutual connection (remove_connection, 00372): the DM goes for both
+  // sides, re-requestable later. Lived on the Contacts screen until 2026-10-16;
+  // that screen is gone, this menu is where one thinks of the person.
+  const handleRemoveContact = () => {
+    const otherId = otherUser?.id;
+    if (!otherId) return;
+    setShowHeaderMenu(false);
+    Alert.alert(
+      t('contacts.removeTitle'),
+      t('contacts.removeBody', { name: otherUser?.display_name ?? '' }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('contacts.remove'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await contactService.removeConnection(otherId);
+              await queryClient.invalidateQueries({ queryKey: ['conversations'] });
               router.back();
             } catch (err) {
               Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -1047,11 +1082,20 @@ export default function ConversationScreen() {
         <Pressable style={styles.menuBackdrop} onPress={() => setShowHeaderMenu(false)}>
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             <View style={styles.menuHandle} />
+            {/* Soft → hard: hide (me only) · remove contact (both sides, social
+                DM only) · block. */}
             <Pressable style={styles.menuItem} onPress={handleHideConversation}>
               <Text style={styles.menuTextDanger}>
-                {t('messagerie.hideConversation', { defaultValue: 'Supprimer la conversation' })}
+                {t('messagerie.hideConversation', { defaultValue: 'Masquer la conversation' })}
               </Text>
             </Pressable>
+            {!isGroup && isSocialDm && otherUser && (
+              <Pressable style={styles.menuItem} onPress={handleRemoveContact}>
+                <Text style={styles.menuTextDanger}>
+                  {t('messagerie.removeContact', { defaultValue: 'Retirer de mes contacts' })}
+                </Text>
+              </Pressable>
+            )}
             {isGroup ? (
               <Pressable style={styles.menuItem} onPress={handleLeaveGroup}>
                 <Text style={styles.menuTextDanger}>{t('group.leave', { defaultValue: 'Quitter le groupe' })}</Text>

@@ -80,10 +80,8 @@
     "footnote": "Eine Kontaktanfrage muss immer angenommen werden — du behältst die Kontrolle."
   },
   "contacts": {
-    "title": "Kontakte",
     "myContacts": "Meine Kontakte",
     "recentPartners": "Letzte Partner",
-    "empty": "Noch keine Kontakte. Schick eine Anfrage von einem Profil aus oder teile deinen QR-Code — sobald sie angenommen ist, seid ihr verbunden.",
     "remove": "Entfernen",
     "removeTitle": "Diesen Kontakt entfernen?",
     "removeBody": "{{name}} ist dann auf beiden Seiten nicht mehr in den Kontakten, und eure Unterhaltung wird gelöscht. Ihr könnt euch später wieder verbinden.",
@@ -512,7 +510,6 @@
   "menu": {
     "becomeProSub": "Deine Seite, deine Touren, deine Buchungen",
     "seeProfile": "Mein Profil ansehen",
-    "contacts": "Kontakte",
     "favorites": "Favoriten",
     "alerts": "Alarme",
     "gpxTraces": "GPX-Tracks",
@@ -1149,7 +1146,8 @@
     "typeClient": "Kunde",
     "typePro": "Pro",
     "blockUser": "Person blockieren",
-    "hideConversation": "Unterhaltung löschen",
+    "hideConversation": "Unterhaltung ausblenden",
+    "removeContact": "Aus meinen Kontakten entfernen",
     "createOutingFromChat": "Tour erstellen",
     "shareOutingTitle": "Tour teilen",
     "shareOutingEmpty": "Keine bevorstehende Tour zum Teilen.",
