@@ -69,15 +69,16 @@
     "dateTimeAt": "ddd D MMM [alle] H:mm"
   },
   "contactShare": {
-    "title": "Il mio contatto",
-    "intro": "Mostra questo QR code a un partner, o inviagli il tuo link — potrà aggiungerti in un gesto.",
+    "title": "Il mio QR Junto",
+    "intro": "Fai scansionare questo QR a un partner: siete subito connessi.",
     "shareLink": "Condividi il link",
     "shareMessage": "Aggiungimi su Junto — {{link}}",
-    "scanContact": "Scansiona un contatto",
-    "scanHint": "Inquadra il QR code del tuo partner",
+    "scanContact": "Scansiona un QR",
+    "scanHint": "Inquadra il QR del tuo partner",
     "cameraDeniedTitle": "Fotocamera negata",
-    "cameraDeniedBody": "Autorizza la fotocamera per scansionare un contatto.",
-    "footnote": "Una richiesta di contatto va sempre accettata — decidi tu."
+    "cameraDeniedBody": "Autorizza la fotocamera per scansionare un QR.",
+    "footnote": "Il QR cambia ogni 10 minuti. Un link inviato resta una richiesta da accettare.",
+    "connected": "Siete connessi"
   },
   "contacts": {
     "myContacts": "I miei contatti",

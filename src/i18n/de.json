@@ -69,15 +69,16 @@
     "dateTimeAt": "ddd D. MMM [um] H:mm"
   },
   "contactShare": {
-    "title": "Mein Kontakt",
-    "intro": "Zeig diesen QR-Code einem Partner oder schick deinen Link — er kann dich mit einem Tipp hinzufügen.",
+    "title": "Mein Junto-QR",
+    "intro": "Lass einen Partner diesen QR scannen: ihr seid sofort verbunden.",
     "shareLink": "Link teilen",
     "shareMessage": "Füg mich auf Junto hinzu — {{link}}",
-    "scanContact": "Kontakt scannen",
-    "scanHint": "Richte die Kamera auf den QR-Code deines Partners",
+    "scanContact": "QR scannen",
+    "scanHint": "Richte die Kamera auf den QR deines Partners",
     "cameraDeniedTitle": "Kamera verweigert",
-    "cameraDeniedBody": "Erlaube den Kamerazugriff, um einen Kontakt zu scannen.",
-    "footnote": "Eine Kontaktanfrage muss immer angenommen werden — du behältst die Kontrolle."
+    "cameraDeniedBody": "Erlaube die Kamera, um einen QR zu scannen.",
+    "footnote": "Der QR wechselt alle 10 Minuten. Ein geteilter Link bleibt eine Anfrage, die angenommen werden muss.",
+    "connected": "Ihr seid verbunden"
   },
   "contacts": {
     "myContacts": "Meine Kontakte",

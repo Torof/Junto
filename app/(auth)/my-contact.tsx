@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Share, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Burnt from 'burnt';
 import QRCode from 'react-native-qrcode-svg';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { X, Share2, ScanLine } from 'lucide-react-native';
@@ -11,11 +12,16 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
+import { contactService } from '@/services/contact-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
-// Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>.
-const CONTACT_LINK_RE = /(?:\/u\/|profile\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+// Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>,
+// optionally followed by ?t=<token> — the QR's short-lived token (mig 00456)
+// that turns a scan into an instant connection. A shared link never has one.
+const CONTACT_LINK_RE = /(?:\/u\/|profile\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\?t=([0-9a-f]{64}))?/i;
+// The server token lives 10 minutes; refresh well before.
+const TOKEN_REFRESH_MS = 4 * 60_000;
 
 export default function MyContactScreen() {
   const colors = useColors();
@@ -29,12 +35,26 @@ export default function MyContactScreen() {
   // onBarcodeScanned fires every frame — latch so one QR pushes exactly once.
   const handledRef = useRef(false);
 
+  const queryClient = useQueryClient();
   const { data: userId } = useQuery({
     queryKey: ['currentUser-id'],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
   });
+  // Rotating token for the QR only. Not cached across openings; refreshed
+  // while the screen is up. On failure the QR falls back to the bare link
+  // (profile → request), never blank.
+  const { data: qrToken } = useQuery({
+    queryKey: ['contact-qr-token'],
+    queryFn: () => contactService.createQrToken(),
+    enabled: !!userId,
+    gcTime: 0,
+    staleTime: TOKEN_REFRESH_MS,
+    refetchInterval: TOKEN_REFRESH_MS,
+    retry: false,
+  });
 
   const link = userId ? `https://${WEB_HOST}/u/${userId}` : '';
+  const qrValue = link && qrToken ? `${link}?t=${qrToken}` : link;
 
   const handleShare = async () => {
     if (!link) return;
@@ -60,10 +80,25 @@ export default function MyContactScreen() {
     const match = data.match(CONTACT_LINK_RE);
     if (!match) return;
     const scannedId = match[1];
+    const token = match[2];
     if (scannedId === userId) return; // your own code — no-op
     handledRef.current = true;
     setScanning(false);
-    router.push(`/(auth)/profile/${scannedId}`);
+    if (!token) {
+      router.push(`/(auth)/profile/${scannedId}`);
+      return;
+    }
+    // A live QR: connect on the spot. An expired or unknown token falls back
+    // to the profile, where the request flow still works.
+    void contactService.connectViaQrToken(token)
+      .then(async (conversationId) => {
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        Burnt.toast({ title: t('contactShare.connected', { defaultValue: 'Vous êtes connectés' }), preset: 'done' });
+        router.replace(`/(auth)/conversation/${conversationId}`);
+      })
+      .catch(() => {
+        router.push(`/(auth)/profile/${scannedId}`);
+      });
   };
 
   if (scanning) {
@@ -90,15 +125,15 @@ export default function MyContactScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon contact' })}</Text>
+        <Text style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon QR Junto' })}</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <Text style={styles.intro}>{t('contactShare.intro', { defaultValue: 'Montre ce QR code à un partenaire, ou envoie ton lien — il pourra t\'ajouter en un geste.' })}</Text>
+      <Text style={styles.intro}>{t('contactShare.intro', { defaultValue: 'Fais scanner ce QR par un partenaire : vous êtes connectés aussitôt.' })}</Text>
 
       <View style={styles.qrCard}>
         {userId ? (
-          <QRCode value={link} size={220} backgroundColor="#FFFFFF" color="#000000" />
+          <QRCode value={qrValue} size={220} backgroundColor="#FFFFFF" color="#000000" />
         ) : (
           <View style={styles.qrPlaceholder}><LogoSpinner /></View>
         )}
@@ -111,12 +146,12 @@ export default function MyContactScreen() {
 
       <Pressable style={styles.secondaryBtn} onPress={openScanner}>
         <ScanLine size={18} color={colors.textPrimary} strokeWidth={2.4} />
-        <Text style={styles.secondaryText}>{t('contactShare.scanContact', { defaultValue: 'Scanner un contact' })}</Text>
+        <Text style={styles.secondaryText}>{t('contactShare.scanContact', { defaultValue: 'Scanner un QR' })}</Text>
       </Pressable>
 
       <View style={{ flex: 1 }} />
       <Text style={[styles.footnote, { marginBottom: insets.bottom + spacing.md }]}>
-        {t('contactShare.footnote', { defaultValue: 'Une demande de contact reste toujours à accepter — tu gardes la main.' })}
+        {t('contactShare.footnote', { defaultValue: 'Le QR change toutes les 10 minutes. Un lien envoyé reste une demande à accepter.' })}
       </Text>
     </View>
   );
