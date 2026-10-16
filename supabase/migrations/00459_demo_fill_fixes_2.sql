@@ -1,8 +1,9 @@
 -- ============================================================================
--- 00459 — Dernier reliquat de 00457 sur a…01 (Croix d'Aquila) : le créateur de
--- cette sortie démo est le compte réel de l'admin (suffixe « 08 »), pas Hugo P.
--- (d…08). Les 2 messages « créateur » attribués à Hugo n'ont pas d'auteur
--- légitime → supprimés ; ses 2 objets passent à Thomas B., participant réel.
+-- 00459 — Dernier reliquat de 00457 sur a…01 (Croix d'Aquila) : la sortie est
+-- créée par Marie L. (d…02), pas par Hugo P. (d…08) — le « 08 » lu dans la
+-- liste des membres était le suffixe du compte réel de l'admin. Les 2 messages
+-- « créateur » attribués à Hugo → supprimés (Marie ouvre le fil en 00460) ;
+-- ses 2 objets passent à Thomas B., participant réel.
 -- ============================================================================
 DO $$
 BEGIN
