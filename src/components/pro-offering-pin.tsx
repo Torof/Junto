@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Rect, G, Text as SvgText, Defs, Filter, FeDropShadow } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, G, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -48,12 +48,19 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Defs>
-          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
-            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
+            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
           </Filter>
         </Defs>
         <G transform={`translate(${DROP_OFFSET} 0)`}>
-          <Path d={PIN_DROP_PATH} fill={blue} filter="url(#pinShadow)" />
+          <Path
+            d={PIN_DROP_PATH}
+            fill={PIN_SHADOW.color}
+            opacity={PIN_SHADOW.opacity}
+            transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
+            filter="url(#pinBlur)"
+          />
+          <Path d={PIN_DROP_PATH} fill={blue} />
           {PIN_STYLE === 'A' && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={PLATE_R} fill={colors.pinBackground} />}
         </G>
         {/* « PRO » capsule: blue on ivory in A, white on the blue body in B. */}

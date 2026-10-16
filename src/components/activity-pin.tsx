@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Defs, Filter, FeDropShadow } from 'react-native-svg';
+import Svg, { Path, Circle, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { Lock } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -61,11 +61,20 @@ export function ActivityPin({ activity }: ActivityPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Defs>
-          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
-            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          {/* Only FeGaussianBlur is implemented natively (react-native-svg 15):
+              the shadow is a blurred dark copy of the shape, offset downward. */}
+          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
+            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
           </Filter>
         </Defs>
-        <Path d={PIN_DROP_PATH} fill={bodyColor} filter="url(#pinShadow)" />
+        <Path
+          d={PIN_DROP_PATH}
+          fill={PIN_SHADOW.color}
+          opacity={PIN_SHADOW.opacity}
+          transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
+          filter="url(#pinBlur)"
+        />
+        <Path d={PIN_DROP_PATH} fill={bodyColor} />
         {PIN_STYLE === 'A' && (
           <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={PLATE_R} fill={colors.pinBackground} />
         )}

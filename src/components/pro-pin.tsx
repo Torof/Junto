@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import Svg, { Path, Circle, G, Defs, Filter, FeDropShadow, ClipPath } from 'react-native-svg';
+import Svg, { Path, Circle, G, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
@@ -91,18 +91,30 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <Defs>
-          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
-            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
+            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
           </Filter>
-          <ClipPath id="pinDisc"><Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} /></ClipPath>
         </Defs>
         {PIN_STYLE === 'A' ? (
-          <G filter="url(#pinShadow)">
+          <>
+            <G opacity={PIN_SHADOW.opacity} transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`} filter="url(#pinBlur)">
+              <Path d={NEEDLE_PATH} fill={PIN_SHADOW.color} />
+              <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={21} fill={PIN_SHADOW.color} />
+            </G>
             <Path d={NEEDLE_PATH} fill={colors.pinBorder} />
             <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={21} fill={colors.pinBackground} />
-          </G>
+          </>
         ) : (
-          <Path d={PIN_DROP_PATH} fill={colors.pinBackground} filter="url(#pinShadow)" />
+          <>
+            <Path
+              d={PIN_DROP_PATH}
+              fill={PIN_SHADOW.color}
+              opacity={PIN_SHADOW.opacity}
+              transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
+              filter="url(#pinBlur)"
+            />
+            <Path d={PIN_DROP_PATH} fill={colors.pinBackground} />
+          </>
         )}
         {discColor && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} fill={discColor} />}
         {glyph && (
