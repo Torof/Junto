@@ -199,6 +199,12 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - LineString valide 2..10000 points (`junto.trace_geojson_invalid`), sinon aucun accès aux données, pas de quota
 - Retourne `(distance_km, elevation_gain_m)` ; D+ NULL si < 90 % des points portent une altitude
 
+**`create_gpx_trace(p_name, p_geojson)`** (mig 00320, corps 00324, `elevation_gain_m` 00453 — dernier corps 00453) :
+- Auth + non suspendu
+- Nom 1..80 (`junto.trace_name_invalid`) ; LineString 2..10000 points (`junto.trace_geojson_invalid`)
+- Quota 50 traces / user (advisory lock `uid_gpx_trace`, `junto.trace_quota_reached`)
+- `distance_km` (PostGIS) et `elevation_gain_m` (`trace_elevation_gain_m`, NULL sans altitudes) calculés serveur ; `user_id` / timestamps hardcodés
+
 **Edge Function `trace-elevation`** (2026-10-16) — proxy du service altimétrique IGN (Géoplateforme, RGE ALTI, gratuit, sans clé) qui donne leurs altitudes aux traces dessinées :
 - POST uniquement ; JWT vérifié (`auth.getUser`) ; quota consommé **avant** toute lecture du corps (`consume_trace_elevation_quota`, 30 / heure glissante / user, suspension refusée là)
 - Corps borné à 512 Ko par longueur réelle, puis `coordinates` = 2..10000 `[lng,lat]` valides
@@ -1106,7 +1112,7 @@ Validation client :
 - Taille max 10MB avant parsing
 - LineString avec 2-10000 coordonnées (CHECK constraint)
 
-Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une trace sans altitudes (dessinée) les reçoit du service altimétrique IGN via l'Edge Function `trace-elevation` (France + DOM/COM seulement, best effort). Distance et D+ sont **dérivés côté serveur** (`trace_distance_km` / `trace_elevation_gain_m`, mig 00452) et ne préremplissent que les champs NULL.
+Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une trace sans altitudes (dessinée) les reçoit du service altimétrique IGN via l'Edge Function `trace-elevation` (France + DOM/COM seulement, best effort). Distance et D+ sont **dérivés côté serveur** (`trace_distance_km` / `trace_elevation_gain_m`, mig 00452 activités, 00453 bibliothèque `gpx_traces`) et ne préremplissent que les champs NULL.
 
 ---
 

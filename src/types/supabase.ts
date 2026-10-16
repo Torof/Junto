@@ -1234,6 +1234,7 @@ export type Database = {
         Row: {
           created_at: string
           distance_km: number
+          elevation_gain_m: number | null
           geojson: Json
           id: string
           name: string
@@ -1243,6 +1244,7 @@ export type Database = {
         Insert: {
           created_at?: string
           distance_km: number
+          elevation_gain_m?: number | null
           geojson: Json
           id?: string
           name: string
@@ -1252,6 +1254,7 @@ export type Database = {
         Update: {
           created_at?: string
           distance_km?: number
+          elevation_gain_m?: number | null
           geojson?: Json
           id?: string
           name?: string
