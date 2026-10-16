@@ -1769,6 +1769,7 @@
     "meetingLocality": "Meeting in {{place}}",
     "tapObjective": "Tap the map for the objective",
     "sectionLocations": "Locations",
+    "sectionRoute": "Route",
     "sectionTiming": "When",
     "traceImport": "Import a GPX trace",
     "traceLoading": "Loading...",

@@ -19,6 +19,9 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
 import { useCreateStore } from '@/store/create-store';
+import { useSports } from '@/hooks/use-sports';
+import { sportHasDistance, sportHasElevation } from '@/constants/sport-levels';
+import { formatTraceStats } from '@/utils/trace-stats';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { geocodeService } from '@/services/geocode-service';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -35,6 +38,12 @@ export default function CreateStep2() {
   const router = useRouter();
   const { form, updateForm } = useCreateStore();
   const { center } = useInitialLocation();
+  // Distance / D+ fields sit right under the trace that produces them, for the
+  // sports that use them (same gating as the cards).
+  const { data: sports } = useSports();
+  const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
+  const showDistance = sportHasDistance(selectedSportKey);
+  const showElevation = sportHasElevation(selectedSportKey);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   // Default to 'meeting' placement only if no meeting is prefilled — when the
@@ -49,8 +58,9 @@ export default function CreateStep2() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
   // Distance / D+ the server reads off the trace (mig 00452) — shown under the
-  // trace row and used to PREFILL the step-1 fields that are still empty. A
-  // value the organiser typed is never overwritten.
+  // trace row and written into the two fields just below it (Scott 2026-10-16:
+  // setting a trace FILLS the fields, typed or not; the organiser corrects
+  // after). A trace without altitudes leaves the D+ field as it is.
   const [traceStats, setTraceStats] = useState<{ distance_km: number | null; elevation_gain_m: number | null } | null>(null);
   const [traceStatsPending, setTraceStatsPending] = useState(false);
 
@@ -64,14 +74,9 @@ export default function CreateStep2() {
       if (enriched !== geojson) updateForm({ trace_geojson: enriched });
       const stats = await activityService.computeTraceStats(enriched);
       setTraceStats(stats);
-      const current = useCreateStore.getState().form;
       const patch: { distance_km?: number; elevation_gain_m?: number } = {};
-      if (current.distance_km == null && stats.distance_km != null && stats.distance_km > 0) {
-        patch.distance_km = stats.distance_km;
-      }
-      if (current.elevation_gain_m == null && stats.elevation_gain_m != null && stats.elevation_gain_m > 0) {
-        patch.elevation_gain_m = stats.elevation_gain_m;
-      }
+      if (stats.distance_km != null && stats.distance_km > 0) patch.distance_km = stats.distance_km;
+      if (stats.elevation_gain_m != null && stats.elevation_gain_m > 0) patch.elevation_gain_m = stats.elevation_gain_m;
       if (Object.keys(patch).length > 0) updateForm(patch);
     } catch {
       // Best effort — the trace itself is set; the figures stay editable by hand.
@@ -80,17 +85,10 @@ export default function CreateStep2() {
     }
   };
 
-  const traceStatsLabel = useMemo(() => {
-    if (!traceStats) return null;
-    const parts: string[] = [];
-    if (traceStats.distance_km != null && traceStats.distance_km > 0) {
-      parts.push(`${traceStats.distance_km.toLocaleString(i18n.language)} km`);
-    }
-    if (traceStats.elevation_gain_m != null && traceStats.elevation_gain_m > 0) {
-      parts.push(`D+ ${traceStats.elevation_gain_m.toLocaleString(i18n.language)} m`);
-    }
-    return parts.length > 0 ? parts.join(' · ') : null;
-  }, [traceStats, i18n.language]);
+  const traceStatsLabel = useMemo(
+    () => (traceStats ? formatTraceStats(traceStats.distance_km, traceStats.elevation_gain_m, i18n.language) : null),
+    [traceStats, i18n.language],
+  );
 
   const handlePickTrace = async () => {
     try {
@@ -300,6 +298,8 @@ export default function CreateStep2() {
             even without a pin on the map — keep the input always visible.
             The Trophy button above adds an optional pin location for it. */}
 
+        <Text style={styles.sectionLabel}>{t('create.sectionRoute')}</Text>
+
         {form.trace_geojson ? (
           <View style={styles.traceSetRow}>
             <Route size={16} color={colors.cta} strokeWidth={2.2} />
@@ -364,6 +364,47 @@ export default function CreateStep2() {
             setDrawOpen(false);
           }}
         />
+
+        {(showDistance || showElevation) && (
+          <View style={styles.metricRow}>
+            {showDistance && (
+              <View style={styles.metricField}>
+                <Text style={styles.metricLabel}>{t('create.distance')}</Text>
+                <TextInput
+                  style={styles.metricInput}
+                  placeholder="25"
+                  placeholderTextColor={colors.textSecondary}
+                  value={form.distance_km != null ? String(form.distance_km) : ''}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(',', '.').replace(/[^0-9.]/g, '');
+                    const num = cleaned === '' ? null : Number(cleaned);
+                    updateForm({ distance_km: num && !isNaN(num) && num > 0 ? num : null });
+                  }}
+                  keyboardType="decimal-pad"
+                  maxLength={6}
+                />
+              </View>
+            )}
+            {showElevation && (
+              <View style={styles.metricField}>
+                <Text style={styles.metricLabel}>{t('create.elevation')}</Text>
+                <TextInput
+                  style={styles.metricInput}
+                  placeholder="1400"
+                  placeholderTextColor={colors.textSecondary}
+                  value={form.elevation_gain_m != null ? String(form.elevation_gain_m) : ''}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9]/g, '');
+                    const num = cleaned === '' ? null : Number(cleaned);
+                    updateForm({ elevation_gain_m: num && !isNaN(num) && num > 0 ? num : null });
+                  }}
+                  keyboardType="number-pad"
+                  maxLength={5}
+                />
+              </View>
+            )}
+          </View>
+        )}
 
         <Text style={styles.sectionLabel}>{t('create.sectionTiming')}</Text>
 
@@ -572,6 +613,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted,
     paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm, fontSize: fontSizes.sm,
     marginBottom: spacing.md,
+  },
+  metricRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+  metricField: { flex: 1 },
+  metricLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '600', marginBottom: spacing.xs },
+  metricInput: {
+    backgroundColor: colors.background, color: colors.textPrimary,
+    borderRadius: radius.sm,
+    borderWidth: 1, borderColor: colors.borderMuted,
+    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm, fontSize: fontSizes.sm,
   },
   timingRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   timingItem: { flex: 1, marginBottom: 0 },

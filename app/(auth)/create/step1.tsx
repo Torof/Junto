@@ -13,7 +13,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import type { AppColors } from '@/constants/colors';
 import { useCreateStore } from '@/store/create-store';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { getLevelScale, sportHasDistance, sportHasElevation, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
+import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-levels';
 
 export default function CreateStep1() {
   const colors = useColors();
@@ -27,8 +27,6 @@ export default function CreateStep1() {
 
   const selectedSportKey = sports?.find((s) => s.id === form.sport_id)?.key ?? '';
   const levelScale = useMemo(() => getLevelScale(selectedSportKey), [selectedSportKey]);
-  const showDistance = sportHasDistance(selectedSportKey);
-  const showElevation = sportHasElevation(selectedSportKey);
   const isValid = form.sport_id && form.title.length >= 3 && form.level && (form.max_participants === null || form.max_participants >= 2);
 
   // Range picker — tap a level to set the low end, tap a second to span the
@@ -120,46 +118,8 @@ export default function CreateStep1() {
         {rangeLabel || t('create.levelRangeHint', { defaultValue: 'Touchez un niveau — ou deux pour définir une plage' })}
       </Text>
 
-      {(showDistance || showElevation) && (
-        <View style={styles.metricRow}>
-          {showDistance && (
-            <View style={styles.metricField}>
-              <Text style={styles.label}>{t('create.distance')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="25"
-                placeholderTextColor={colors.textSecondary}
-                value={form.distance_km != null ? String(form.distance_km) : ''}
-                onChangeText={(text) => {
-                  const cleaned = text.replace(',', '.').replace(/[^0-9.]/g, '');
-                  const num = cleaned === '' ? null : Number(cleaned);
-                  updateForm({ distance_km: num && !isNaN(num) && num > 0 ? num : null });
-                }}
-                keyboardType="decimal-pad"
-                maxLength={6}
-              />
-            </View>
-          )}
-          {showElevation && (
-            <View style={styles.metricField}>
-              <Text style={styles.label}>{t('create.elevation')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="1400"
-                placeholderTextColor={colors.textSecondary}
-                value={form.elevation_gain_m != null ? String(form.elevation_gain_m) : ''}
-                onChangeText={(text) => {
-                  const cleaned = text.replace(/[^0-9]/g, '');
-                  const num = cleaned === '' ? null : Number(cleaned);
-                  updateForm({ elevation_gain_m: num && !isNaN(num) && num > 0 ? num : null });
-                }}
-                keyboardType="number-pad"
-                maxLength={5}
-              />
-            </View>
-          )}
-        </View>
-      )}
+      {/* Distance / D+ live in step 2, under the trace that produces them
+          (Scott 2026-10-16). */}
 
       <Text style={styles.label}>{t('create.maxParticipants')}</Text>
       <PressableScale
@@ -228,8 +188,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   chipHint: { color: colors.textSecondary, fontSize: fontSizes.xs - 1, marginTop: 2 },
   chipHintActive: { color: colors.onCta, opacity: 0.85 },
   rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
-  metricRow: { flexDirection: 'row', gap: spacing.md },
-  metricField: { flex: 1 },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   openToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   openCheckbox: {

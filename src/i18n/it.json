@@ -1769,6 +1769,7 @@
     "meetingLocality": "Ritrovo a {{place}}",
     "tapObjective": "Tocca la mappa per la meta",
     "sectionLocations": "Luoghi",
+    "sectionRoute": "Itinerario",
     "sectionTiming": "Quando",
     "traceImport": "Importa una traccia GPX",
     "traceLoading": "Caricamento...",

@@ -1769,6 +1769,7 @@
     "meetingLocality": "Rendez-vous à {{place}}",
     "tapObjective": "Touche la carte pour l'objectif",
     "sectionLocations": "Lieux",
+    "sectionRoute": "Itinéraire",
     "sectionTiming": "Quand",
     "traceImport": "Importer une trace GPX",
     "traceLoading": "Chargement...",
