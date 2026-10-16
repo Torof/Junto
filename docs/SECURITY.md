@@ -205,6 +205,10 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Quota 50 traces / user (advisory lock `uid_gpx_trace`, `junto.trace_quota_reached`)
 - `distance_km` (PostGIS) et `elevation_gain_m` (`trace_elevation_gain_m`, NULL sans altitudes) calculés serveur ; `user_id` / timestamps hardcodés
 
+**QR = connexion immédiate (mig 00456, 2026-10-16)** — amendement de l'invariant 00072 dans l'esprit de `reply_to_request` : jamais de DM actif sans le consentement des deux ; ici l'émission du jeton (afficher son QR) = consentement du propriétaire, le scan = celui du scanneur. Le lien partagé par message ne porte jamais de jeton et garde le flux demande → acceptation.
+- **`create_contact_qr_token()`** : auth · non suspendu · non démo · 30 jetons / heure glissante (advisory lock, `junto.rate_limited`) · jeton aléatoire 256 bits, validité 10 min, table interne `contact_qr_tokens` (aucun grant)
+- **`connect_via_qr_token(p_token)`** : auth · non suspendu · 30 scans / heure glissante (table interne `contact_qr_scans`) · forme du jeton · jeton vivant sinon generic (inconnu = expiré) · propriétaire ≠ moi · propriétaire non suspendu et non démo · aucun blocage dans les deux sens · lock de paire · DM existant actif → rendu tel quel ; pending/declined → activé comme `accept_contact_request` (le message de demande devient le premier message) ; aucun → créé **actif**, `initiated_from = 'profile'` (origine sociale : `get_contacts` / `remove_connection` / état Découverte inchangés), `request_sender_id = NULL` (ne compte dans aucun plafond de demandes), lignes membres par `trg_dm_member_rows`. Pas de notification : le propriétaire est en face, la conversation apparaît dans ses Messages.
+
 **Edge Function `trace-elevation`** (2026-10-16) — proxy du service altimétrique IGN (Géoplateforme, RGE ALTI, gratuit, sans clé) qui donne leurs altitudes aux traces dessinées :
 - POST uniquement ; JWT vérifié (`auth.getUser`) ; quota consommé **avant** toute lecture du corps (`consume_trace_elevation_quota`, 150 / heure glissante / user depuis 00454, suspension refusée là)
 - Corps borné à 512 Ko par longueur réelle, puis `coordinates` = 1..10000 `[lng,lat]` valides (1 point = premier tap du dessin)
@@ -555,6 +559,8 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 ### Fonctions client-callable (GRANT EXECUTE TO authenticated)
 
 **Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés ; date validée si changée, gate premium au switch de visibilité, sentinelle 0 = ouvrir, 00308-00310), `update_activity_trace`, `compute_trace_stats` (00452), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
+
+**QR contact (00456) :** `create_contact_qr_token`, `connect_via_qr_token`
 
 **Quotas Edge Functions :** `consume_snap_trail_quota` (00346), `consume_trace_elevation_quota` (00452) — appelées par l'Edge Function **en tant que l'appelant** (JWT relayé), tables internes sans policy
 
@@ -1191,6 +1197,9 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 
 ### Join activity
 - 10 / heure / user
+
+### QR contact (mig 00456)
+- `create_contact_qr_token` : **30 / heure glissante / user** · `connect_via_qr_token` : **30 scans / heure glissante / user**
 
 ### Edge Functions trace (proxys de services tiers)
 - `snap-trail` (OpenRouteService) : **200 / heure glissante / user** (mig 00346)
