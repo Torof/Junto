@@ -18,11 +18,13 @@ import { useGpxTraces, useCreateGpxTrace, useRenameGpxTrace, useDeleteGpxTrace }
 import type { GpxTrace } from '@/services/gpx-trace-service';
 import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { enrichTraceElevation } from '@/utils/trace-elevation';
+import { formatTraceStats } from '@/utils/trace-stats';
 
 export default function GpxTracesScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const { data: traces, isLoading } = useGpxTraces();
@@ -36,9 +38,11 @@ export default function GpxTracesScreen() {
   const [shareOpen, setShareOpen] = useState(false);
   const shareTraceRef = useRef<GpxTrace | null>(null);
 
-  const handleSaveNew = (name: string, geojson: GpxTrace['geojson']) => {
+  const handleSaveNew = async (name: string, geojson: GpxTrace['geojson']) => {
+    // Altitudes first (IGN, best effort) so the server can derive D+ (00453).
+    const enriched = await enrichTraceElevation(geojson);
     createMutation.mutate(
-      { name, geojson },
+      { name, geojson: enriched },
       {
         onSuccess: () => setDrawOpen(false),
         onError: (e) => Alert.alert(getFriendlyError(e)),
@@ -118,7 +122,9 @@ export default function GpxTracesScreen() {
                 <View style={styles.rowInfo}>
                   <Text style={styles.rowName} numberOfLines={1}>{trace.name}</Text>
                   <Text style={styles.rowMeta}>
-                    {Number(trace.distance_km).toFixed(1)} km · {dayjs(trace.created_at).format('D MMM YYYY')}
+                    {formatTraceStats(trace.distance_km, trace.elevation_gain_m, i18n.language) ?? `${Number(trace.distance_km).toFixed(1)} km`}
+                    {' · '}
+                    {dayjs(trace.created_at).format('D MMM YYYY')}
                   </Text>
                 </View>
               </Pressable>
@@ -178,7 +184,9 @@ export default function GpxTracesScreen() {
           {preview ? (
             <View style={[styles.previewBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
               <Text style={styles.previewName} numberOfLines={1}>{preview.name}</Text>
-              <Text style={styles.previewMeta}>{Number(preview.distance_km).toFixed(1)} km</Text>
+              <Text style={styles.previewMeta}>
+                {formatTraceStats(preview.distance_km, preview.elevation_gain_m, i18n.language) ?? `${Number(preview.distance_km).toFixed(1)} km`}
+              </Text>
             </View>
           ) : null}
         </View>

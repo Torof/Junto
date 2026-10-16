@@ -8,6 +8,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { gpxTraceService, type GpxTrace } from '@/services/gpx-trace-service';
 import { LogoSpinner } from './logo-spinner';
+import { formatTraceStats } from '@/utils/trace-stats';
 
 interface Props {
   visible: boolean;
@@ -19,7 +20,7 @@ interface Props {
 // Pick a trace from MY in-app GPX library (table gpx_traces) to share into a
 // conversation. An "import a .gpx file" row falls back to the phone file picker.
 export function PickTraceSheet({ visible, onClose, onPick, onImportFile }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -53,9 +54,9 @@ export function PickTraceSheet({ visible, onClose, onPick, onImportFile }: Props
                   <View style={styles.square}><RouteIcon size={20} color={colors.cta} strokeWidth={2.2} /></View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-                    {item.distance_km != null && (
+                    {formatTraceStats(item.distance_km, item.elevation_gain_m, i18n.language) != null && (
                       <Text style={styles.sub} numberOfLines={1}>
-                        {t('messagerie.traceDistance', { defaultValue: '{{km}} km', km: Math.round(item.distance_km) })}
+                        {formatTraceStats(item.distance_km, item.elevation_gain_m, i18n.language)}
                       </Text>
                     )}
                   </View>

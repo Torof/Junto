@@ -9,6 +9,8 @@ export interface GpxTrace {
   name: string;
   geojson: GeoJsonLineString;
   distance_km: number;
+  // Derived server-side from the trace's altitudes (00453); null without them.
+  elevation_gain_m: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,7 +20,7 @@ export const gpxTraceService = {
   list: async (): Promise<GpxTrace[]> => {
     const { data, error } = await supabase
       .from('gpx_traces' as 'activities_with_coords')
-      .select('id, name, geojson, distance_km, created_at, updated_at')
+      .select('id, name, geojson, distance_km, elevation_gain_m, created_at, updated_at')
       .order('created_at', { ascending: false });
     if (error) throw error;
     return (data ?? []) as unknown as GpxTrace[];

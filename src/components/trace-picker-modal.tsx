@@ -8,6 +8,7 @@ import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { useGpxTraces } from '@/hooks/use-gpx-traces';
 import type { GeoJsonLineString } from '@/services/activity-service';
+import { formatTraceStats } from '@/utils/trace-stats';
 
 interface Props {
   visible: boolean;
@@ -21,7 +22,7 @@ interface Props {
 export function TracePickerModal({ visible, onClose, onSelect }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { data: traces, isLoading } = useGpxTraces();
   const list = traces ?? [];
@@ -50,7 +51,9 @@ export function TracePickerModal({ visible, onClose, onSelect }: Props) {
                 <RouteIcon size={20} color={colors.cta} strokeWidth={2.2} />
                 <View style={styles.info}>
                   <Text style={styles.name} numberOfLines={1}>{tr.name}</Text>
-                  <Text style={styles.meta}>{Number(tr.distance_km).toFixed(1)} km</Text>
+                  <Text style={styles.meta}>
+                    {formatTraceStats(tr.distance_km, tr.elevation_gain_m, i18n.language) ?? `${Number(tr.distance_km).toFixed(1)} km`}
+                  </Text>
                 </View>
               </Pressable>
             ))}
