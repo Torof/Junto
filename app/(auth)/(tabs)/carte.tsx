@@ -11,6 +11,7 @@ import { ProSheet } from '@/components/pro-sheet';
 import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
+import { MapToast } from '@/components/map-toast';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { CompassButton } from '@/components/compass-button';
 import type { PlaceResult } from '@/services/geocode-service';
@@ -446,6 +447,9 @@ export default function CarteScreen() {
 
 
         </>
+
+        {/* One-line notices drawn on the map (toggle feedback). */}
+        <MapToast />
 
         <ActivitiesBottomSheet
           ref={sheetRef}
