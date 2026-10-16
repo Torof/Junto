@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Users, Bookmark, CalendarDays } from 'lucide-react-native';
+import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -146,13 +146,6 @@ export function MenuSheet({ open, onClose }: Props) {
             icon={<Route size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.gpxTraces', { defaultValue: 'Traces GPX' })}
             onPress={() => go('/(auth)/gpx-traces')}
-            styles={styles}
-            colors={colors}
-          />
-          <MenuItem
-            icon={<Users size={20} color={colors.textPrimary} strokeWidth={2.2} />}
-            label={t('menu.contacts', { defaultValue: 'Contacts' })}
-            onPress={() => go('/(auth)/contacts')}
             styles={styles}
             colors={colors}
           />
