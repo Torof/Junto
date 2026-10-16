@@ -36,6 +36,9 @@ import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 
 const BUFFER = 0.5; // 50% buffer around viewport
+// Landing zoom after a place search — a valley-wide view (~20 km across), so
+// the outings around the place show, not the place itself (Scott 2026-10-16).
+const PLACE_ZOOM = 11;
 
 function addBuffer(bounds: MapBounds): QueryBounds {
   const lngSpan = bounds.neLng - bounds.swLng;
@@ -101,6 +104,7 @@ export default function CarteScreen() {
   const [searchPlace, setSearchPlace] = useState<PlaceResult | null>(null);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
+  const [flyZoom, setFlyZoom] = useState<number | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
   const suppressMapPressUntil = useRef(0);
   const selectionBoundsSpan = useRef<number | null>(null);
@@ -286,9 +290,13 @@ export default function CarteScreen() {
 
   // Fly to a pin and land it in the upper part of the map (clear of the drawer
   // sliding up), same framing as a pin tap. Used by the cross-drawer links.
-  const flyToPin = useCallback((coordinate: [number, number]) => {
+  // `zoom` overrides the map's default (never closer than 13 for a pin): a
+  // searched PLACE is an area, not a point, so it lands at PLACE_ZOOM to show
+  // the outings around it (Scott 2026-10-16: « le zoom est beaucoup trop fort »).
+  const flyToPin = useCallback((coordinate: [number, number], zoom?: number) => {
     setFlyTarget(coordinate);
     setFlyOffset({ y: -0.28 });
+    setFlyZoom(zoom);
     setFlyToKey((k) => k + 1);
   }, []);
 
@@ -322,7 +330,7 @@ export default function CarteScreen() {
                 then load via the bounds search. */}
             <View style={[styles.searchArea, { top: insets.top + spacing.xs }]}>
               <PlaceSearchBar
-                onSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat]); }}
+                onSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], PLACE_ZOOM); }}
                 bias={{ lng: (currentLocation ?? center)[0], lat: (currentLocation ?? center)[1] }}
               />
             </View>
@@ -401,7 +409,7 @@ export default function CarteScreen() {
                   </View>
                 </View>
               ) : undefined}
-              flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset } : null}
+              flyTo={flyToKey > 0 ? { coordinate: flyTarget ?? center, key: flyToKey, offsetRatio: flyOffset, zoom: flyZoom } : null}
               compassEnabled={false}
               onHeadingChange={setHeading}
               resetBearingKey={resetBearingKey}
@@ -536,7 +544,7 @@ export default function CarteScreen() {
         <FilterSheet
           visible={showFilters}
           onClose={() => setShowFilters(false)}
-          onPlaceSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat]); setShowFilters(false); }}
+          onPlaceSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], PLACE_ZOOM); setShowFilters(false); }}
           onResetLocation={() => { setSearchPlace(null); flyToPin(currentLocation ?? center); setShowFilters(false); }}
           locationLabel={searchPlace?.label ?? null}
         />
