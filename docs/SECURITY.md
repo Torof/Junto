@@ -372,7 +372,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Auth + non suspendu ; user est l'auteur ; membre + (fil activité) activité vivante re-vérifiée
 - `edit_message` ne touche que `content` + `edited_at` ; `delete_message` = soft delete (`deleted_at`)
 
-**Lectures curées** (00351, `conversations` non lisible en direct — 00352) : `get_my_conversations`, `get_conversation_state_with` (coalesce `declined`→`pending`), `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages` (LIMIT 200), `get_my_invitations`.
+**Lectures curées** (00351, `conversations` non lisible en direct — 00352) : `get_my_conversations`, `get_conversation_state_with` (coalesce `declined`→`pending`), `get_pending_contact_requests`, `get_conversation_peer` (+ `initiated_from` du DM depuis 00455 — pilote l'entrée « Retirer de mes contacts » du menu de conversation, sociale uniquement ; l'écran Contacts est retiré le 2026-10-16), `get_wall_messages` (LIMIT 200), `get_my_invitations`.
 
 ### Canaux (channels) — mig 00381-00406
 

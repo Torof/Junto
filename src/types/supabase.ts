@@ -4231,6 +4231,7 @@ export type Database = {
           avatar_url: string
           display_name: string
           other_id: string
+          initiated_from: string | null
         }[]
       }
       get_conversation_state_with: {
