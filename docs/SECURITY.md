@@ -206,8 +206,8 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - `distance_km` (PostGIS) et `elevation_gain_m` (`trace_elevation_gain_m`, NULL sans altitudes) calculés serveur ; `user_id` / timestamps hardcodés
 
 **Edge Function `trace-elevation`** (2026-10-16) — proxy du service altimétrique IGN (Géoplateforme, RGE ALTI, gratuit, sans clé) qui donne leurs altitudes aux traces dessinées :
-- POST uniquement ; JWT vérifié (`auth.getUser`) ; quota consommé **avant** toute lecture du corps (`consume_trace_elevation_quota`, 30 / heure glissante / user, suspension refusée là)
-- Corps borné à 512 Ko par longueur réelle, puis `coordinates` = 2..10000 `[lng,lat]` valides
+- POST uniquement ; JWT vérifié (`auth.getUser`) ; quota consommé **avant** toute lecture du corps (`consume_trace_elevation_quota`, 150 / heure glissante / user depuis 00454, suspension refusée là)
+- Corps borné à 512 Ko par longueur réelle, puis `coordinates` = 1..10000 `[lng,lat]` valides (1 point = premier tap du dessin)
 - IGN appelé en POST par paquets de 5000 points (≤ 2 appels) ; sentinelle `-99999` → null ; > 10 % hors couverture (France + DOM/COM) → `{ok:false, reason:'no_coverage'}`
 - Le client fusionne les altitudes en 3e coordonnée ; le D+ est ensuite dérivé **côté serveur** (`trace_elevation_gain_m`) comme pour un GPX importé — l'altitude client n'est jamais un chiffre de confiance, juste une donnée d'affichage
 
@@ -1194,7 +1194,7 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 
 ### Edge Functions trace (proxys de services tiers)
 - `snap-trail` (OpenRouteService) : **200 / heure glissante / user** (mig 00346)
-- `trace-elevation` (IGN altimétrie) : **30 / heure glissante / user** (mig 00452) — une trace est enrichie une fois quand elle est posée
+- `trace-elevation` (IGN altimétrie) : **150 / heure glissante / user** (mig 00452 à 30, relevé 00454) — la modale de dessin enrichit chaque segment posé (appel groupé, debounce), soit ~1 appel par tap ; une trace importée est enrichie une fois
 
 ### Recherche géo
 - Rayon max 100km (PostGIS check)

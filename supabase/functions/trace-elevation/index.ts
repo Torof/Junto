@@ -12,7 +12,9 @@
 // is validated + size-capped before it leaves us.
 //
 // Contract:
-//   POST { coordinates: [[lng,lat], ...] }   (2..MAX points, in order)
+//   POST { coordinates: [[lng,lat], ...] }   (1..MAX points, in order — the
+//                                             draw modal enriches segment by
+//                                             segment, the first one is a dot)
 //   200  { ok: true,  z: number[] }          one altitude (m, integer) per point
 //   200  { ok: false, reason: 'no_coverage' }  > 10 % of the points outside
 //                                              IGN coverage (France + DOM/COM)
@@ -95,7 +97,7 @@ Deno.serve(async (req) => {
   if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
 
   // 2) Per-user quota FIRST — before any body is buffered or parsed
-  // (30 traces / rolling hour, mig 00452; suspended users refused there too).
+  // (150 calls / rolling hour, mig 00454; suspended users refused there too).
   const { error: rlErr } = await userClient.rpc('consume_trace_elevation_quota');
   if (rlErr) return json({ ok: false, reason: 'rate_limited' }, 429);
 
@@ -113,8 +115,8 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
-  if (!Array.isArray(coords) || coords.length < 2 || coords.length > MAX_POINTS) {
-    return json({ error: `coordinates must hold 2..${MAX_POINTS} points` }, 400);
+  if (!Array.isArray(coords) || coords.length < 1 || coords.length > MAX_POINTS) {
+    return json({ error: `coordinates must hold 1..${MAX_POINTS} points` }, 400);
   }
   if (!coords.every(isValidCoord)) {
     return json({ error: 'coordinates must be [lng,lat] within valid ranges' }, 400);
