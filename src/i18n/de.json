@@ -927,7 +927,7 @@
     "backToMyPosition": "Zurück zu meinem Standort",
     "locationLabel": "Standort",
     "dateLabel": "Zeitraum",
-    "showLabel": "Anzeigen",
+    "showLabel": "Organisiert von",
     "showNone": "Nichts",
     "clearFilter": "Filter löschen",
     "full": "Voll",
@@ -986,6 +986,10 @@
     "resetFilters": "Zurücksetzen",
     "typeActivities": "Gleichgesinnte",
     "typePros": "Pros",
+    "toastPeersOn": "Touren unter Gleichgesinnten eingeblendet",
+    "toastPeersOff": "Touren unter Gleichgesinnten ausgeblendet",
+    "toastProsOn": "Pros eingeblendet",
+    "toastProsOff": "Pros ausgeblendet",
     "apply": "Anwenden",
     "createHere": "Aktivität hier erstellen",
     "recenter": "Auf meinen Standort zentrieren",
@@ -1793,7 +1797,7 @@
       "private_link_approval": "Privat + Bestätigung",
       "private_link_approvalDesc": "Sichtbar für Mitglieder, Link + Bestätigung nötig"
     },
-    "traceFromLibrary": "Meine Bibliothek",
+    "traceFromLibrary": "Meine GPX-Bibliothek",
     "traceDraw": "Zeichnen"
   },
   "proOffering": {

@@ -927,7 +927,7 @@
     "backToMyPosition": "Revenir à ma position",
     "locationLabel": "Localisation",
     "dateLabel": "Période",
-    "showLabel": "Afficher",
+    "showLabel": "Organisées par",
     "showNone": "Rien",
     "clearFilter": "Effacer le filtre",
     "full": "Complet",
@@ -986,6 +986,10 @@
     "resetFilters": "Réinitialiser",
     "typeActivities": "Passionnés",
     "typePros": "Pros",
+    "toastPeersOn": "Sorties entre passionnés affichées",
+    "toastPeersOff": "Sorties entre passionnés masquées",
+    "toastProsOn": "Pros affichés",
+    "toastProsOff": "Pros masqués",
     "apply": "Appliquer",
     "createHere": "Créer une activité ici",
     "recenter": "Recentrer sur ma position",
@@ -1793,7 +1797,7 @@
       "private_link_approval": "Privé + validation",
       "private_link_approvalDesc": "Visible par ses membres, lien + validation requise"
     },
-    "traceFromLibrary": "Ma bibliothèque",
+    "traceFromLibrary": "Ma bibliothèque GPX",
     "traceDraw": "Dessiner"
   },
   "proOffering": {

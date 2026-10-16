@@ -927,7 +927,7 @@
     "backToMyPosition": "Back to my position",
     "locationLabel": "Location",
     "dateLabel": "Period",
-    "showLabel": "Show",
+    "showLabel": "Organised by",
     "showNone": "Nothing",
     "clearFilter": "Clear filter",
     "full": "Full",
@@ -986,6 +986,10 @@
     "resetFilters": "Reset",
     "typeActivities": "Users",
     "typePros": "Pros",
+    "toastPeersOn": "Peer outings shown",
+    "toastPeersOff": "Peer outings hidden",
+    "toastProsOn": "Pros shown",
+    "toastProsOff": "Pros hidden",
     "apply": "Apply",
     "createHere": "Create activity here",
     "recenter": "Recenter on my location",
@@ -1793,7 +1797,7 @@
       "private_link_approval": "Private + approval",
       "private_link_approvalDesc": "For its members, link + approval required"
     },
-    "traceFromLibrary": "My library",
+    "traceFromLibrary": "My GPX library",
     "traceDraw": "Draw"
   },
   "proOffering": {

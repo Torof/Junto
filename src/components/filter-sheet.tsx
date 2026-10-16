@@ -350,10 +350,12 @@ function FiltersTab({
         {/* Entity-type filter — controls what shows on the map AND in
             the drawer. Both on by default; user opts out per type.
             Hidden in mes-activites context (no offerings shown there
-            via this filter; the Catalogue sub-tab handles it). */}
+            via this filter; the Catalogue sub-tab handles it).
+            Title reads « Organisées par : Passionnés · Pros » (Scott
+            2026-10-16 — « Afficher » said nothing). */}
         {showEntityFilter && (
         <CollapsibleSection
-          title={t('map.showLabel', { defaultValue: 'Afficher' })}
+          title={t('map.showLabel', { defaultValue: 'Organisées par' })}
           summary={filters.showActivities && filters.showProOfferings ? null
             : filters.showActivities ? t('map.typeActivities', { defaultValue: 'Passionnés' })
             : filters.showProOfferings ? t('map.typePros', { defaultValue: 'Pros' })
