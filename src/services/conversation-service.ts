@@ -30,6 +30,10 @@ export interface Conversation {
   sport_id: string | null;
   // Canal
   photo_url: string | null;
+  // DM only (00451): how the thread was opened — 'booking' marks a pro ↔ client
+  // conversation (retagged at accept_booking), 'profile' / 'discovery' /
+  // 'transport' / 'invite' / 'request_reply' are social.
+  initiated_from: string | null;
 }
 
 export interface PendingRequest {

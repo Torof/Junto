@@ -1142,6 +1142,8 @@
     "presenceNeedsTwo": "Two testimonies are needed to validate someone's presence."
   },
   "messagerie": {
+    "typeClient": "Client",
+    "typePro": "Pro",
     "blockUser": "Block this member",
     "hideConversation": "Delete conversation",
     "createOutingFromChat": "Create an outing",
@@ -2054,6 +2056,11 @@
     }
   },
   "booking": {
+    "clientMessagesTitle": "Client messages",
+    "clientMessagesEmpty": "No client conversation yet. They open when you confirm a booking.",
+    "hubMessagesUnread_one": "{{count}} unread",
+    "hubMessagesUnread_other": "{{count}} unread",
+    "previewAccepted": "Booking confirmed",
     "addManualShort": "Booking",
     "modeView": "View",
     "modeEdit": "Edit my availability",

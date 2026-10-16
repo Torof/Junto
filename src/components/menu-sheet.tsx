@@ -14,6 +14,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
 import { proService } from '@/services/pro-service';
 import { bookingService } from '@/services/booking-service';
+import { conversationService } from '@/services/conversation-service';
+import { isClientConversation } from '@/utils/client-conversation';
 import { authService } from '@/services/auth-service';
 import { UserAvatar } from './user-avatar';
 import { SettingsDrawer } from './settings-drawer';
@@ -77,6 +79,15 @@ export function MenuSheet({ open, onClose }: Props) {
     enabled: isApprovedPro,
   });
   const pendingBookings = (proAgenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending').length;
+  // Unread client conversations count on the entry too (same cache key as
+  // the messagerie — one fetch).
+  const { data: proConversations } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: () => conversationService.getAll(),
+    enabled: isApprovedPro,
+  });
+  const unreadClients = (proConversations ?? []).filter((c) => isClientConversation(c) && c.is_unread).length;
+  const proBadge = pendingBookings + unreadClients;
 
   const go = (path: string) => {
     modalRef.current?.dismiss();
@@ -167,7 +178,7 @@ export function MenuSheet({ open, onClose }: Props) {
             <MenuItem
               icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
-              badge={pendingBookings > 0 ? String(pendingBookings) : null}
+              badge={proBadge > 0 ? String(proBadge) : null}
               onPress={() => go('/(auth)/pro/espace')}
               styles={styles}
               colors={colors}

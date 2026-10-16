@@ -1142,6 +1142,8 @@
     "presenceNeedsTwo": "Es braucht 2 Stimmen, um die Anwesenheit einer Person zu bestätigen."
   },
   "messagerie": {
+    "typeClient": "Kunde",
+    "typePro": "Pro",
     "blockUser": "Person blockieren",
     "hideConversation": "Unterhaltung löschen",
     "createOutingFromChat": "Tour erstellen",
@@ -2054,6 +2056,11 @@
     }
   },
   "booking": {
+    "clientMessagesTitle": "Kundennachrichten",
+    "clientMessagesEmpty": "Noch keine Unterhaltung mit Kundinnen oder Kunden. Sie öffnet sich, sobald du eine Buchung bestätigst.",
+    "hubMessagesUnread_one": "{{count}} ungelesen",
+    "hubMessagesUnread_other": "{{count}} ungelesen",
+    "previewAccepted": "Buchung bestätigt",
     "addManualShort": "Buchung",
     "modeView": "Ansehen",
     "modeEdit": "Verfügbarkeit bearbeiten",

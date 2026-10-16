@@ -1142,6 +1142,8 @@
     "presenceNeedsTwo": "Servono 2 testimonianze per convalidare la presenza di qualcuno."
   },
   "messagerie": {
+    "typeClient": "Cliente",
+    "typePro": "Pro",
     "blockUser": "Blocca l'appassionato",
     "hideConversation": "Elimina la conversazione",
     "createOutingFromChat": "Crea un'uscita",
@@ -2054,6 +2056,11 @@
     }
   },
   "booking": {
+    "clientMessagesTitle": "Messaggi clienti",
+    "clientMessagesEmpty": "Nessuna conversazione con un cliente per ora. Si aprono quando confermi una prenotazione.",
+    "hubMessagesUnread_one": "{{count}} non letto",
+    "hubMessagesUnread_other": "{{count}} non letti",
+    "previewAccepted": "Prenotazione confermata",
     "addManualShort": "Preno",
     "modeView": "Consulta",
     "modeEdit": "Modifica le mie dispo",

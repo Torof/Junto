@@ -1142,6 +1142,8 @@
     "presenceNeedsTwo": "Hacen falta 2 testimonios para validar la presencia de alguien."
   },
   "messagerie": {
+    "typeClient": "Cliente",
+    "typePro": "Pro",
     "blockUser": "Bloquear al usuario",
     "hideConversation": "Eliminar la conversación",
     "createOutingFromChat": "Crear una salida",
@@ -2054,6 +2056,11 @@
     }
   },
   "booking": {
+    "clientMessagesTitle": "Mensajes de clientes",
+    "clientMessagesEmpty": "Aún no hay conversaciones con clientes. Se abren cuando confirmas una reserva.",
+    "hubMessagesUnread_one": "{{count}} sin leer",
+    "hubMessagesUnread_other": "{{count}} sin leer",
+    "previewAccepted": "Reserva confirmada",
     "addManualShort": "Reserva",
     "modeView": "Consultar",
     "modeEdit": "Editar mi disponibilidad",

@@ -9,6 +9,8 @@ import 'dayjs/locale/fr';
 import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { proOfferingService } from '@/services/pro-offering-service';
+import { conversationService } from '@/services/conversation-service';
+import { isClientConversation } from '@/utils/client-conversation';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
@@ -56,6 +58,14 @@ export default function ProSpaceScreen() {
     queryFn: () => proOfferingService.getByProId(userId as string),
     enabled: !!userId && isApproved,
   });
+  // Client conversations (DMs opened by a confirmed booking, 00451) — the
+  // « Messages » tile counts the unread ones and opens the filtered list.
+  const { data: conversations } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: () => conversationService.getAll(),
+    enabled: isApproved,
+  });
+  const unreadClients = (conversations ?? []).filter((c) => isClientConversation(c) && c.is_unread).length;
 
   // Pull-to-refresh — there is no realtime on bookings, so this is how a
   // pro sees a request that arrived while the screen was open.
@@ -280,8 +290,11 @@ export default function ProSpaceScreen() {
           styles={styles}
           icon={<MessagesSquare size={18} color={colors.cta} strokeWidth={2.2} />}
           title={t('booking.hubMessages', { defaultValue: 'Messages' })}
-          sub={t('booking.hubMessagesSub', { defaultValue: 'Conversations clients' })}
-          onPress={() => router.push('/(auth)/(tabs)/messagerie')}
+          sub={unreadClients > 0
+            ? t('booking.hubMessagesUnread', { defaultValue: '{{count}} non lu', count: unreadClients })
+            : t('booking.hubMessagesSub', { defaultValue: 'Conversations clients' })}
+          badge={unreadClients || undefined}
+          onPress={() => router.push('/(auth)/pro/messages')}
         />
         <Tile
           styles={styles}

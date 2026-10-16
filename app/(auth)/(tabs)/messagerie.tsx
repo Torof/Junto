@@ -23,6 +23,8 @@ import { transportService } from '@/services/transport-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { UserAvatar } from '@/components/user-avatar';
 import { ReliabilityRing } from '@/components/reliability-ring';
+import { proService } from '@/services/pro-service';
+import { isClientConversation } from '@/utils/client-conversation';
 import { useSports } from '@/hooks/use-sports';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { SportIcon } from '@/components/sport-icon';
@@ -90,6 +92,13 @@ export default function MessagerieScreen() {
     queryKey: ['conversations'],
     queryFn: () => conversationService.getAll(),
   });
+  // Am I an approved pro? Decides whether a booking thread reads « Client »
+  // (I am the pro) or « Pro » (I am the client). Cached with the pro screens.
+  const { data: myPro } = useQuery({
+    queryKey: ['pro-profile-mine'],
+    queryFn: () => proService.getMine(),
+  });
+  const iAmPro = myPro?.status === 'approved';
 
   const { data: notifUnread } = useQuery({
     queryKey: ['notifications-count'],
@@ -542,6 +551,10 @@ export default function MessagerieScreen() {
               // Type pill next to the name so DM / Sortie / Canal / Groupe read
               // at a glance (a DM carries no pill — its round avatar says it).
               const typeMeta =
+                // Booking thread (00451): the pro sees « Client », the client sees « Pro » —
+                // same blue as the PRO capsule on the map and the cards.
+                isClientConversation(item)
+                  ? { label: iAmPro ? t('messagerie.typeClient', { defaultValue: 'Client' }) : t('messagerie.typePro', { defaultValue: 'Pro' }), text: colors.pinProBackground, bg: colors.pinProBackground + '20' } :
                 item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: TYPE_OUTING_COLOR, bg: TYPE_OUTING_COLOR + '20' } :
                 item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Discussion' }), text: TYPE_CHANNEL_COLOR, bg: TYPE_CHANNEL_COLOR + '20' } :
                 item.type === 'group' ? { label: t('messagerie.typeGroup', { defaultValue: 'Groupe' }), text: colors.textSecondary, bg: colors.surfaceAlt } :
