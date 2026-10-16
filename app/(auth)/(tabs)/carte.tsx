@@ -133,7 +133,16 @@ export default function CarteScreen() {
   const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
   // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
   // AND offering pins (RA). It used to hide only the offerings.
-  const filteredProsByType = showProOfferings ? (pros ?? []) : [];
+  // With a sport filter on, a storefront pin stays only when the pro offers
+  // one of those sports (Scott 2026-10-16) — its offerings' sports travel
+  // with the pin (NearbyPro.sport_keys).
+  const sportKeys = useMapStore((s) => s.filters.sportKeys);
+  const filteredProsByType = useMemo(() => {
+    if (!showProOfferings) return [];
+    const list = pros ?? [];
+    if (sportKeys.length === 0) return list;
+    return list.filter((p) => (p.sport_keys ?? []).some((k) => sportKeys.includes(k)));
+  }, [pros, showProOfferings, sportKeys]);
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };

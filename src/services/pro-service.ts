@@ -83,6 +83,10 @@ export interface NearbyPro {
   // Review aggregate — present only on getNearby (map labels / hero).
   avg_rating?: number | null;
   review_count?: number;
+  // Sports of the pro's published offerings — present only on getNearby, so
+  // the map's sport filter applies to storefront pins too (Scott 2026-10-16:
+  // « seulement les pros qui font du canyon »). Empty = no offering yet.
+  sport_keys?: string[];
 }
 
 export const proService = {
@@ -225,12 +229,23 @@ export const proService = {
       .select('pro_id, avg_rating, review_count')
       .in('pro_id', pros.map((p) => p.user_id));
     const byId = new Map((stats ?? []).map((s) => [s.pro_id as string, s]));
+    // Sports offered, for the sport filter (same source as the offering pins).
+    const { data: offerings } = await supabase
+      .from('pro_offerings_with_coords')
+      .select('pro_id, sport_key')
+      .in('pro_id', pros.map((p) => p.user_id));
+    const sportsByPro = new Map<string, Set<string>>();
+    for (const o of (offerings ?? []) as { pro_id: string; sport_key: string }[]) {
+      if (!sportsByPro.has(o.pro_id)) sportsByPro.set(o.pro_id, new Set());
+      sportsByPro.get(o.pro_id)!.add(o.sport_key);
+    }
     return pros.map((p) => {
       const s = byId.get(p.user_id);
       return {
         ...p,
         avg_rating: (s?.avg_rating ?? null) as number | null,
         review_count: (s?.review_count ?? 0) as number,
+        sport_keys: [...(sportsByPro.get(p.user_id) ?? [])],
       };
     });
   },
