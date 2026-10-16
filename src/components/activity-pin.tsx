@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path, Circle, Defs, Filter, FeDropShadow } from 'react-native-svg';
 import { Lock } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -8,92 +8,81 @@ import { getActivityTimeStatus } from '@/utils/activity-status';
 import { getSportIcon } from '@/constants/sport-icons';
 import { SportIcon } from '@/components/sport-icon';
 import { hasSportIcon } from '@/constants/sport-icon-svgs';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 import { type NearbyActivity } from '@/services/activity-service';
+import {
+  PIN_STYLE, PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+} from '@/constants/pin-style';
 
 interface ActivityPinProps {
   activity: NearbyActivity;
 }
 
-// Render size (preserves the 54x64 design viewBox aspect ratio).
-// Shrunk from 56 to 40 (~28%) for a less cluttered map — three
-// silhouettes at the previous size dominated the visual field.
-const VIEWBOX_W = 54;
-const VIEWBOX_H = 54;
-const PIN_WIDTH = 40;
-const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-// viewBox y where the sport emoji is vertically centered (raised inside the head bulb).
-const ICON_CENTER_Y_VBX = 24;
-// Ivory plate geometry (circle cx=27 cy=24 r=18.5 in viewBox units), projected
-// to screen px — the icon is clipped to this circle so no glyph ever spills
-// past the plate (same icon size, just masked; Scott 2026-09-11).
-const SCALE = PIN_WIDTH / VIEWBOX_W;
-const PLATE_D = 2 * 18.5 * SCALE;
-const PLATE_LEFT = 27 * SCALE - PLATE_D / 2;
-const PLATE_TOP = ICON_CENTER_Y_VBX * SCALE - PLATE_D / 2;
+// Pin restyle 2026-10-16 (see constants/pin-style.ts): no ink outline, soft
+// shadow drawn in the SVG, rounded tip. The design space stays the historical
+// 54-wide drop so the on-map size is unchanged (40 px wide).
+const DESIGN_W = 54;
+const VIEWBOX_W = DESIGN_W + 2 * PIN_PAD_X;
+const VIEWBOX_H = 54 + 2 * PIN_PAD_Y;
+const DROP_PX = 40;
+const SCALE = DROP_PX / DESIGN_W;
+const PIN_WIDTH = Math.round(VIEWBOX_W * SCALE);
+const PIN_HEIGHT = Math.round(VIEWBOX_H * SCALE);
+// Ivory plate (style A) and glyph centre, projected to screen px.
+const PLATE_R = 17;
+const PLATE_D = 2 * PLATE_R * SCALE;
+const PLATE_LEFT = (PIN_HEAD_CX + PIN_PAD_X) * SCALE - PLATE_D / 2;
+const PLATE_TOP = (PIN_HEAD_CY + PIN_PAD_Y) * SCALE - PLATE_D / 2;
+const GLYPH_A = 22;
+const GLYPH_B = 24;
 
-// Location-pin silhouette with a short, softly-pointed bottom (2026-07-01) —
-// the tail sits at y≈52 and the lower control points ride just above the tip
-// so the bottom reads as a gentle point (a hair less rounded than the fully
-// level version), still clearly non-circular (bulb on top, taper below).
-const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
-
-// Bottom point in viewBox coords is (27, 52); anchor the marker so it sits on
-// the geographic point.
-export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: 52 / VIEWBOX_H };
+// The tip sits on the geographic point.
+export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: (PIN_DROP_TIP_Y + PIN_PAD_Y) / VIEWBOX_H };
 
 export function ActivityPin({ activity }: ActivityPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
-  const fillColor =
+  const statusColor =
     timeStatus === 'in_progress'
       ? colors.success
       : timeStatus === 'soon'
-        ? '#F97316' // orange franc (Scott 2026-09-28) — écart net avec la silhouette citron par défaut
-        : colors.pinFrame;
+        ? '#F97316' // orange franc (Scott 2026-09-28)
+        : null;
+  const universeColor = sportCategoryColor(activity.sport_category, colors.cta);
+  // A: the body carries the status, lemon by default. B: the body is the
+  // universe colour, and the status takes it over when it matters.
+  const bodyColor = PIN_STYLE === 'B'
+    ? (statusColor ?? universeColor)
+    : (statusColor ?? colors.pinFrame);
+  const isPrivate = activity.visibility === 'private_link' || activity.visibility === 'private_link_approval';
 
   return (
     <View style={styles.wrapper}>
-      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <Path
-          d={PIN_PATH}
-          fill={fillColor}
-          stroke={colors.pinBorder}
-          strokeWidth={2}
-          strokeOpacity={0.55}
-          strokeLinejoin="round"
-        />
-        {/* Ivory content plate — completes the universal pin grammar
-            (outline → frame → plate → glyph). The status color draws
-            the round frame instead of flooding the bulb, so the sport
-            emoji always sits on ivory. Default (published) state shows
-            a subtle stone frame (pinFrame) to keep the construction
-            visible. A thin near-black ring outlines the emoji disc. */}
-        <Circle
-          cx={27}
-          cy={24}
-          r={18.5}
-          fill={colors.pinBackground}
-          stroke={colors.pinBorder}
-          strokeWidth={1.5}
-          strokeOpacity={0.95}
-        />
+      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
+        <Defs>
+          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
+            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          </Filter>
+        </Defs>
+        <Path d={PIN_DROP_PATH} fill={bodyColor} filter="url(#pinShadow)" />
+        {PIN_STYLE === 'A' && (
+          <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={PLATE_R} fill={colors.pinBackground} />
+        )}
       </Svg>
       <View style={styles.plateClip}>
-        {/* Universe-coloured glyph on the ivory plate (option B, Scott
-            2026-09-11 — ink lost the at-a-glance pop the emojis had; the
-            5 universe colours restore it AND mean something). The frame
-            still carries the status colour. */}
         {hasSportIcon(activity.sport_key) ? (
-          <SportIcon sportKey={activity.sport_key} size={23} />
+          <SportIcon
+            sportKey={activity.sport_key}
+            size={PIN_STYLE === 'B' ? GLYPH_B : GLYPH_A}
+            color={PIN_STYLE === 'B' ? colors.onCta : undefined}
+          />
         ) : (
           <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
         )}
       </View>
-      {/* Private outing — only its members ever see this pin (view 00315),
-          so the padlock reads as "your private outing", not someone's
-          secret. Ink badge, top-right of the bulb. */}
-      {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
+      {/* Private outing — only its members ever see this pin (view 00315). */}
+      {isPrivate && (
         <View style={styles.lockBadge}>
           <Lock size={9} color="#57534E" strokeWidth={2.8} />
         </View>
@@ -105,16 +94,11 @@ export function ActivityPin({ activity }: ActivityPinProps) {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   lockBadge: {
     position: 'absolute',
-    top: -2,
-    // Left side: the on-map name labels sit to the pin's RIGHT and the
-    // badge overlapped them (Scott 2026-07-10).
-    left: -2,
+    top: PIN_PAD_Y * SCALE - 2,
+    left: PIN_PAD_X * SCALE - 2,
     width: 16,
     height: 16,
     borderRadius: 8,
-    // Amber + warm gray (Scott 2026-07-10): ink read as "forbidden";
-    // yellow says "locked but welcoming". Fixed on-map color, like every
-    // pin color (decision eb1596f).
     backgroundColor: '#FBBF24',
     borderWidth: 1.5,
     borderColor: colors.pinBackground,
@@ -125,11 +109,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     width: PIN_WIDTH,
     height: PIN_HEIGHT,
     overflow: 'visible',
-    shadowColor: '#0A0F1A',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    elevation: 10,
   },
   plateClip: {
     position: 'absolute',
@@ -143,8 +122,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    // Sized to fill the ~27px ivory plate so the sport emoji reads clearly
-    // on the map (emoji glyphs can't be colour-saturated, so size is the lever).
     fontSize: 17,
   },
 });

@@ -1,90 +1,65 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Rect, G, Text as SvgText } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, G, Text as SvgText, Defs, Filter, FeDropShadow } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
 import { SportIcon } from '@/components/sport-icon';
 import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type ProOffering } from '@/services/pro-offering-service';
+import {
+  PIN_STYLE, PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+} from '@/constants/pin-style';
 
 interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// Pin system v4.3 (2026-07-04, candidate I from the candidates artifact) —
-// "la goutte capsule PRO": the RA is the SAME calm teardrop as the UA (stone
-// frame → ivory plate → sport emoji) because RA and UA are both activities;
-// the pro signal is a small blue capsule that literally says "PRO" — the same
-// word/pill already used on the list cards and the RA drawer header, so the
-// map speaks the app's vocabulary. Glyph badges (briefcase, P, pushpin) all
-// read ambiguous at 11px; the word needs no learning. Blue lives ONLY in the
-// capsule so dense maps stay breathable.
+// The pro outing: the same rounded drop as the activity pin, in the pro blue
+// (one colour, one meaning — the PRO capsule, the cards), with the « PRO »
+// capsule at the drop's top-left (labels anchor to the pin's right).
+// Restyle 2026-10-16: no ink outline, soft SVG shadow, rounded tip.
+const DESIGN_W = 54;
+const DROP_OFFSET = 4; // room for the capsule on the left
+const VIEWBOX_W = DESIGN_W + DROP_OFFSET + 2 * PIN_PAD_X;
+const VIEWBOX_H = 54 + 2 * PIN_PAD_Y;
+const DROP_PX = 40;
+const SCALE = DROP_PX / DESIGN_W;
+const PIN_WIDTH = Math.round(VIEWBOX_W * SCALE);
+const PIN_HEIGHT = Math.round(VIEWBOX_H * SCALE);
+const PLATE_R = 17;
+const PLATE_D = 2 * PLATE_R * SCALE;
+const PLATE_LEFT = (PIN_HEAD_CX + DROP_OFFSET + PIN_PAD_X) * SCALE - PLATE_D / 2;
+const PLATE_TOP = (PIN_HEAD_CY + PIN_PAD_Y) * SCALE - PLATE_D / 2;
 
-// The viewBox is 4 units wider than the UA's 54 so the capsule can overhang
-// without clipping. The capsule sits at the drop's top-LEFT (the on-map
-// SymbolLayer labels anchor to the pin's right — a right-side capsule overlapped
-// them), so the extra 4 units go on the left: the drop spans x 4..58.
-const VIEWBOX_W = 58;
-const VIEWBOX_H = 54;
-const PIN_WIDTH = 43; // keeps the drop at the UA's on-screen size (40 × 54/58 ≈ 43)
-const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-// viewBox coords of the emoji center (same drop geometry as the UA pin).
-const ICON_CENTER_Y_VBX = 24;
-const DROP_OFFSET_VBX = 4; // drop shifted right; capsule room on the left
-// Ivory plate circle (cx=27+offset, cy=24, r=18.5 in viewBox units) in screen
-// px — the icon clips to it (same mask as the UA pin, Scott 2026-09-11).
-const SCALE = PIN_WIDTH / VIEWBOX_W;
-const PLATE_D = 2 * 18.5 * SCALE;
-const PLATE_LEFT = (27 + DROP_OFFSET_VBX) * SCALE - PLATE_D / 2;
-const PLATE_TOP = ICON_CENTER_Y_VBX * SCALE - PLATE_D / 2;
+export const PRO_OFFERING_PIN_ANCHOR = {
+  x: (PIN_HEAD_CX + DROP_OFFSET + PIN_PAD_X) / VIEWBOX_W,
+  y: (PIN_DROP_TIP_Y + PIN_PAD_Y) / VIEWBOX_H,
+};
 
-// Identical silhouette to the UA teardrop (activity-pin.tsx), drawn in 0..54
-// coords and shifted right by DROP_OFFSET_VBX via a <G>.
-const PIN_PATH = 'M 27 2 C 13 2 4 12 4 25 C 4 36 21 50 27 52 C 33 50 50 36 50 25 C 50 12 41 2 27 2 Z';
-
-// Tip of the drop is (27 + offset, 52).
-export const PRO_OFFERING_PIN_ANCHOR = { x: (27 + DROP_OFFSET_VBX) / VIEWBOX_W, y: 52 / VIEWBOX_H };
-
-// "PRO" capsule at the drop's top-left.
 const CAPSULE = { x: 1, y: 1.5, w: 22, h: 12, r: 6 };
 
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const blue = colors.pinProBackground;
 
   return (
     <View style={styles.wrapper}>
-      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <G transform={`translate(${DROP_OFFSET_VBX} 0)`}>
-          <Path
-            d={PIN_PATH}
-            fill={colors.pinProFrame}
-            stroke={colors.pinBorder}
-            strokeWidth={2}
-            strokeOpacity={0.55}
-            strokeLinejoin="round"
-          />
-          <Circle
-            cx={27}
-            cy={24}
-            r={18.5}
-            fill={colors.pinBackground}
-            stroke={colors.pinBorder}
-            strokeWidth={1.5}
-            strokeOpacity={0.95}
-          />
+      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
+        <Defs>
+          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
+            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          </Filter>
+        </Defs>
+        <G transform={`translate(${DROP_OFFSET} 0)`}>
+          <Path d={PIN_DROP_PATH} fill={blue} filter="url(#pinShadow)" />
+          {PIN_STYLE === 'A' && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={PLATE_R} fill={colors.pinBackground} />}
         </G>
-        {/* "PRO" capsule — blue pill, near-black ring, the word in white. */}
+        {/* « PRO » capsule: blue on ivory in A, white on the blue body in B. */}
         <Rect
-          x={CAPSULE.x}
-          y={CAPSULE.y}
-          width={CAPSULE.w}
-          height={CAPSULE.h}
-          rx={CAPSULE.r}
-          fill={colors.pinProBackground}
-          stroke={colors.pinBorder}
-          strokeWidth={1.3}
+          x={CAPSULE.x} y={CAPSULE.y} width={CAPSULE.w} height={CAPSULE.h} rx={CAPSULE.r}
+          fill={PIN_STYLE === 'B' ? colors.pinBackground : blue}
         />
         <SvgText
           x={CAPSULE.x + CAPSULE.w / 2}
@@ -92,16 +67,15 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fontSize={8}
           fontWeight="bold"
           letterSpacing={0.5}
-          fill="#FFFFFF"
+          fill={PIN_STYLE === 'B' ? blue : colors.onCta}
           textAnchor="middle"
         >
           PRO
         </SvgText>
       </Svg>
       <View style={styles.plateClip}>
-        {/* Same universe-coloured glyph as the UA pin (option B, 2026-09-11). */}
         {hasSportIcon(offering.sport_key) ? (
-          <SportIcon sportKey={offering.sport_key} size={23} />
+          <SportIcon sportKey={offering.sport_key} size={PIN_STYLE === 'B' ? 24 : 22} color={PIN_STYLE === 'B' ? colors.onCta : undefined} />
         ) : (
           <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
         )}
@@ -115,11 +89,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     width: PIN_WIDTH,
     height: PIN_HEIGHT,
     overflow: 'visible',
-    shadowColor: '#0A0F1A',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    elevation: 10,
   },
   plateClip: {
     position: 'absolute',
@@ -133,7 +102,6 @@ const createStyles = (_colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    // Same emoji-on-ivory sizing as the UA pin.
     fontSize: 17,
   },
 });

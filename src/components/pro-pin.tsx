@@ -1,45 +1,53 @@
 import { useMemo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import Svg, { Path, Circle, G } from 'react-native-svg';
+import Svg, { Path, Circle, G, Defs, Filter, FeDropShadow, ClipPath } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
+import {
+  PIN_STYLE, PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+} from '@/constants/pin-style';
 
 interface ProPinProps {
   displayName: string;
   pinIcon?: string | null;
   // Optional custom logo — fills ONLY the inner disc (circle-cropped); the
-  // pin silhouette, head and rim never change, so the map stays coherent
-  // whatever the logo looks like. Falls back to the universe glyph.
+  // silhouette never changes, so the map stays coherent whatever the logo.
   pinImageUrl?: string | null;
 }
 
-// Pin system v4 (taxonomy v2) — the pushpin (round head on a thin needle =
-// "pinned establishment") follows the Google place-pin grammar: a WHITE head
-// with a grey rim, a needle, and inside it a disc in the pro's UNIVERSE color
-// (the same 5-universe palette as activities) carrying a WHITE glyph. The pro
-// picks one of 4 universes (mountain · water · air · cycling — no "running":
-// no running guides exist). The initial is the fallback before they pick.
+// The pro PAGE pin. Restyle 2026-10-16 (constants/pin-style.ts):
+//   A — the pushpin softened: white head without rim, short needle with a
+//       rounded end, universe disc + white glyph, soft SVG shadow.
+//   B — the same rounded drop as every other pin, in WHITE, with the universe
+//       disc inside: the family reads as one, white = « a place », colour =
+//       « an outing ».
+const DESIGN_W = 54;
+const VIEWBOX_W = DESIGN_W + 2 * PIN_PAD_X;
+const NEEDLE_TIP_Y = 58;
+const VIEWBOX_H = (PIN_STYLE === 'A' ? NEEDLE_TIP_Y + 4 : 54) + 2 * PIN_PAD_Y;
+const DROP_PX = PIN_STYLE === 'A' ? 42 : 40;
+const SCALE = DROP_PX / DESIGN_W;
+const PIN_WIDTH = Math.round(VIEWBOX_W * SCALE);
+const PIN_HEIGHT = Math.round(VIEWBOX_H * SCALE);
+const DISC_R = PIN_STYLE === 'A' ? 17.5 : 15;
+const DISC_D = 2 * DISC_R * SCALE;
+const DISC_LEFT = (PIN_HEAD_CX + PIN_PAD_X) * SCALE - DISC_D / 2;
+const DISC_TOP = (PIN_HEAD_CY + PIN_PAD_Y) * SCALE - DISC_D / 2;
 
-const VIEWBOX_W = 54;
-const VIEWBOX_H = 70;
-const PIN_WIDTH = 42;
-const PIN_HEIGHT = Math.round((PIN_WIDTH * VIEWBOX_H) / VIEWBOX_W);
-const SCALE = PIN_WIDTH / VIEWBOX_W;
-const CIRCLE_CY = 23 * SCALE;
+// Short needle with a rounded end (A only).
+const NEEDLE_PATH = `M 24.4 42 L 25.6 ${NEEDLE_TIP_Y - 2} C 25.8 ${NEEDLE_TIP_Y} 28.2 ${NEEDLE_TIP_Y} 28.4 ${NEEDLE_TIP_Y - 2} L 29.6 42 Z`;
 
-// Needle: slim taper to the tip at (27,67) — the geographic anchor. Filled
-// dark (somber), top tucked behind the head.
-const NEEDLE_PATH = 'M 24.6 41 L 27 67 L 29.4 41 Z';
-
-// Cycling has no clean vector at this size, so it stays a raster (the shape
-// Scott approved) — tinted white over the disc. The others are SVG glyphs.
+// Cycling has no clean vector at this size, so it stays a raster — tinted white.
 const bikeGlyph = require('../../assets/bike-glyph.png');
 
-export const PRO_PIN_ANCHOR = { x: 0.5, y: 67 / VIEWBOX_H };
+export const PRO_PIN_ANCHOR = {
+  x: 0.5,
+  y: ((PIN_STYLE === 'A' ? NEEDLE_TIP_Y : PIN_DROP_TIP_Y) + PIN_PAD_Y) / VIEWBOX_H,
+};
 
-// White glyphs, drawn in the head and scaled 0.8 around the center (27,23).
+// White glyphs, drawn in the head and scaled around its centre (27, 23).
 function glyphFor(key: string, white: string): ReactNode {
   switch (key) {
     case 'mountain':
@@ -58,20 +66,8 @@ function glyphFor(key: string, white: string): ReactNode {
             d="M 15.5 21 C 12 21 12 15.5 16 15.2 C 16 10 23.5 9 25 13.5 C 29.5 11.8 33 15.5 30.5 19 C 33 19.6 32.5 21 30 21 Z"
             fill={white}
           />
-          <Path
-            d="M 17 28 H 34 a 2.4 2.4 0 1 0 -2.4 -2.4"
-            stroke={white}
-            strokeWidth={1.3}
-            strokeLinecap="round"
-            fill="none"
-          />
-          <Path
-            d="M 19 35 H 31 a 2.0 2.0 0 1 0 -2.0 -2.0"
-            stroke={white}
-            strokeWidth={1.3}
-            strokeLinecap="round"
-            fill="none"
-          />
+          <Path d="M 17 28 H 34 a 2.4 2.4 0 1 0 -2.4 -2.4" stroke={white} strokeWidth={1.3} strokeLinecap="round" fill="none" />
+          <Path d="M 19 35 H 31 a 2.0 2.0 0 1 0 -2.0 -2.0" stroke={white} strokeWidth={1.3} strokeLinecap="round" fill="none" />
         </>
       );
     default:
@@ -85,32 +81,43 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
 
   const hasLogo = !!pinImageUrl;
   const discColor = !hasLogo && pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
-  const white = colors.pinProBorder;
+  const white = colors.onCta;
   const glyph = !hasLogo && pinIcon ? glyphFor(pinIcon, white) : null;
   const isBike = !hasLogo && pinIcon === 'cycling';
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
+  const glyphScale = PIN_STYLE === 'A' ? 0.8 : 0.7;
 
   return (
     <View style={styles.wrapper}>
-      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        {/* Needle first — the head renders over its hidden top joint. */}
-        <Path d={NEEDLE_PATH} fill={colors.pinBorder} />
-        <Circle cx={27} cy={23} r={21} fill={colors.pinBackground} stroke={colors.pinProRim} strokeWidth={1.3} />
-        {discColor && <Circle cx={27} cy={23} r={18.5} fill={discColor} />}
+      <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
+        <Defs>
+          <Filter id="pinShadow" x="-30%" y="-30%" width="160%" height="170%">
+            <FeDropShadow dx={PIN_SHADOW.dx} dy={PIN_SHADOW.dy} stdDeviation={PIN_SHADOW.blur} floodColor={PIN_SHADOW.color} floodOpacity={PIN_SHADOW.opacity} />
+          </Filter>
+          <ClipPath id="pinDisc"><Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} /></ClipPath>
+        </Defs>
+        {PIN_STYLE === 'A' ? (
+          <G filter="url(#pinShadow)">
+            <Path d={NEEDLE_PATH} fill={colors.pinBorder} />
+            <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={21} fill={colors.pinBackground} />
+          </G>
+        ) : (
+          <Path d={PIN_DROP_PATH} fill={colors.pinBackground} filter="url(#pinShadow)" />
+        )}
+        {discColor && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} fill={discColor} />}
         {glyph && (
-          <G transform="translate(27 23) scale(0.8) translate(-27 -23)">{glyph}</G>
+          <G transform={`translate(${PIN_HEAD_CX} ${PIN_HEAD_CY}) scale(${glyphScale}) translate(-${PIN_HEAD_CX} -${PIN_HEAD_CY})`}>{glyph}</G>
         )}
       </Svg>
-      {/* Custom logo — circle-cropped over the inner disc; the head/rim
-          stay Junto's whatever the logo is. */}
+      {/* Custom logo — circle-cropped over the inner disc. */}
       {hasLogo && (
-        <View style={styles.content} pointerEvents="none">
+        <View style={styles.disc} pointerEvents="none">
           <Image source={{ uri: pinImageUrl }} style={styles.logo} contentFit="cover" />
         </View>
       )}
       {/* cycling = raster bike (white tint); no icon = the pro's initial */}
       {!hasLogo && (isBike || !pinIcon) && (
-        <View style={styles.content} pointerEvents="none">
+        <View style={styles.disc} pointerEvents="none">
           {isBike ? (
             <Image source={bikeGlyph} tintColor={white} style={styles.bike} contentFit="contain" />
           ) : (
@@ -128,32 +135,27 @@ const createStyles = (colors: AppColors) =>
       width: PIN_WIDTH,
       height: PIN_HEIGHT,
       overflow: 'visible',
-      shadowColor: '#0A0F1A',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.45,
-      shadowRadius: 4,
-      elevation: 6,
     },
-    // Centered on the head circle, not the full wrapper (the needle would
-    // pull a full-height center downward).
-    content: {
+    // Centred on the head disc, in screen px.
+    disc: {
       position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 0,
-      height: CIRCLE_CY * 2,
+      left: DISC_LEFT,
+      top: DISC_TOP,
+      width: DISC_D,
+      height: DISC_D,
+      borderRadius: DISC_D / 2,
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
     },
     bike: {
-      width: 22,
-      height: 14,
+      width: DISC_D * 0.82,
+      height: DISC_D * 0.52,
     },
-    // Inner-disc size (r 18.5 in the 54-unit viewBox, scaled to dp).
     logo: {
-      width: 37 * SCALE,
-      height: 37 * SCALE,
-      borderRadius: (37 * SCALE) / 2,
+      width: DISC_D,
+      height: DISC_D,
+      borderRadius: DISC_D / 2,
     },
     letter: {
       color: colors.pinBorder,
