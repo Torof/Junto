@@ -290,13 +290,14 @@ export default function CarteScreen() {
 
   // Fly to a pin and land it in the upper part of the map (clear of the drawer
   // sliding up), same framing as a pin tap. Used by the cross-drawer links.
-  // `zoom` overrides the map's default (never closer than 13 for a pin): a
-  // searched PLACE is an area, not a point, so it lands at PLACE_ZOOM to show
-  // the outings around it (Scott 2026-10-16: « le zoom est beaucoup trop fort »).
-  const flyToPin = useCallback((coordinate: [number, number], zoom?: number) => {
+  // A searched PLACE is an area, not a point: it lands at PLACE_ZOOM to show
+  // the outings around it, and dead centre — nothing slides up over it
+  // (Scott 2026-10-16: « le zoom est beaucoup trop fort », then « le centre
+  // arrive dans la partie supérieure »).
+  const flyToPin = useCallback((coordinate: [number, number], opts?: { zoom?: number; centered?: boolean }) => {
     setFlyTarget(coordinate);
-    setFlyOffset({ y: -0.28 });
-    setFlyZoom(zoom);
+    setFlyOffset(opts?.centered ? undefined : { y: -0.28 });
+    setFlyZoom(opts?.zoom);
     setFlyToKey((k) => k + 1);
   }, []);
 
@@ -330,7 +331,7 @@ export default function CarteScreen() {
                 then load via the bounds search. */}
             <View style={[styles.searchArea, { top: insets.top + spacing.xs }]}>
               <PlaceSearchBar
-                onSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], PLACE_ZOOM); }}
+                onSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], { zoom: PLACE_ZOOM, centered: true }); }}
                 bias={{ lng: (currentLocation ?? center)[0], lat: (currentLocation ?? center)[1] }}
               />
             </View>
@@ -544,7 +545,7 @@ export default function CarteScreen() {
         <FilterSheet
           visible={showFilters}
           onClose={() => setShowFilters(false)}
-          onPlaceSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], PLACE_ZOOM); setShowFilters(false); }}
+          onPlaceSelect={(p) => { setSearchPlace(p); flyToPin([p.lng, p.lat], { zoom: PLACE_ZOOM, centered: true }); setShowFilters(false); }}
           onResetLocation={() => { setSearchPlace(null); flyToPin(currentLocation ?? center); setShowFilters(false); }}
           locationLabel={searchPlace?.label ?? null}
         />
