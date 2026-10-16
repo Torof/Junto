@@ -11,8 +11,9 @@ import type { AppColors } from '@/constants/colors';
 import { distanceMeters } from '@/utils/geo';
 import { simplifyRDP, type Pt } from '@/utils/simplify-path';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import type { GeoJsonLineString } from '@/services/activity-service';
+import { activityService, type GeoJsonLineString } from '@/services/activity-service';
 import { snapTrailService } from '@/services/snap-trail-service';
+import { fetchTraceElevations } from '@/utils/trace-elevation';
 
 interface Props {
   visible: boolean;
@@ -39,6 +40,10 @@ interface Chunk {
   snapped: boolean;
   pending: boolean;                  // snap request in flight
   fallback: boolean;                 // snap attempted but off-trail → kept straight
+  // One altitude per coord (IGN), fetched once the chunk is settled; undefined
+  // until then, null entries where IGN has no data. Lets the D+ show while
+  // drawing and the saved trace leave already 3D (Scott 2026-10-16).
+  ele?: (number | null)[];
 }
 
 // Reusable trace-drawing tool. Two modes: tap-to-place points (snapped onto the
@@ -155,18 +160,68 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     }),
   ).current;
 
-  // Flatten every chunk into the trace line. Consecutive duplicate points at
-  // joins are dropped so the saved GeoJSON is clean.
+  // Altitudes: once no snap is in flight, every settled chunk still without
+  // `ele` is sent to IGN in ONE batched call (debounced so a burst of taps
+  // costs one call), then split back per chunk. A chunk whose coords changed
+  // meanwhile (snap returned) is a new object without `ele` → picked up next
+  // round. Best effort: on failure the chunks stay 2D and D+ simply hides.
+  useEffect(() => {
+    if (!visible) return;
+    if (chunks.some((c) => c.pending)) return;
+    const todo = chunks.filter((c) => !c.ele && c.coords.length > 0);
+    if (todo.length === 0) return;
+    const timer = setTimeout(() => {
+      const batch = todo.map((c) => ({ id: c.id, coords: c.coords }));
+      const flat = batch.flatMap((b) => b.coords);
+      void fetchTraceElevations(flat).then((z) => {
+        if (!z) return;
+        let offset = 0;
+        const perChunk = new Map<number, { coords: [number, number][]; ele: (number | null)[] }>();
+        for (const b of batch) {
+          perChunk.set(b.id, { coords: b.coords, ele: z.slice(offset, offset + b.coords.length) });
+          offset += b.coords.length;
+        }
+        setChunks((cur) => cur.map((ch) => {
+          const hit = perChunk.get(ch.id);
+          // Only attach when the chunk's coords are still the ones we sent.
+          return hit && hit.coords === ch.coords ? { ...ch, ele: hit.ele } : ch;
+        }));
+      });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [chunks, visible]);
+
+  // Flatten every chunk into the trace line (3D where altitudes are known).
+  // Consecutive duplicate points at joins are dropped so the saved GeoJSON is
+  // clean.
   const flatCoords = useMemo(() => {
-    const out: [number, number][] = [];
+    const out: number[][] = [];
     for (const ch of chunks) {
-      for (const c of ch.coords) {
+      ch.coords.forEach((c, i) => {
         const last = out[out.length - 1];
-        if (!last || last[0] !== c[0] || last[1] !== c[1]) out.push(c);
-      }
+        if (last && last[0] === c[0] && last[1] === c[1]) return;
+        const alt = ch.ele?.[i];
+        out.push(typeof alt === 'number' ? [c[0], c[1], alt] : [c[0], c[1]]);
+      });
     }
     return out;
   }, [chunks]);
+
+  // D+ from the server (same derivation as the saved trace), refreshed when
+  // the 3D line changes and at least 90 % of it carries altitudes.
+  const [gainM, setGainM] = useState<number | null>(null);
+  useEffect(() => {
+    const n = flatCoords.length;
+    const withZ = flatCoords.filter((c) => c.length > 2).length;
+    if (n < 2 || withZ < Math.ceil(n * 0.9)) { setGainM(null); return; }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void activityService.computeTraceStats({ type: 'LineString', coordinates: flatCoords })
+        .then((s) => { if (!cancelled) setGainM(s.elevation_gain_m); })
+        .catch(() => { if (!cancelled) setGainM(null); });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [flatCoords]);
 
   const anchors = useMemo(
     () => chunks.filter((c) => c.anchor).map((c) => ({ id: c.id, coord: c.anchor! })),
@@ -178,7 +233,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     for (let i = 1; i < flatCoords.length; i++) {
       const a = flatCoords[i - 1]!;
       const b = flatCoords[i]!;
-      m += distanceMeters(a[1], a[0], b[1], b[0]);
+      m += distanceMeters(a[1]!, a[0]!, b[1]!, b[0]!);
     }
     return m / 1000;
   }, [flatCoords]);
@@ -189,7 +244,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   const snapVisualOn = snapEnabled && mode !== 'draw';
 
   const pins: MapPin[] = anchors.map((a) => ({ id: `pt-${a.id}`, coordinate: a.coord, color: colors.cta }));
-  const routeLine = flatCoords.length >= 2 ? flatCoords : undefined;
+  const routeLine = flatCoords.length >= 2 ? (flatCoords as [number, number][]) : undefined;
   const canSave = flatCoords.length >= 2 && !saving && !snapping;
 
   const undoLast = () => setChunks((prev) => prev.slice(0, -1));
@@ -245,6 +300,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               : anchors.length === 0
                 ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
                 : `${t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: anchors.length, km: distanceKm.toFixed(1) })}`
+                  + (gainM != null && gainM > 0 ? ` · D+ ${gainM} m` : '')
                   + (snapping ? ` · ${t('gpx.snapping', { defaultValue: 'snap…' })}` : '')
                   + (fallbackCount > 0 ? ` · ${t('gpx.offTrail', { defaultValue: '{{n}} hors sentier', n: fallbackCount, count: fallbackCount })}` : '')}
           </Text>

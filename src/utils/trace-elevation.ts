@@ -22,25 +22,32 @@ export function traceHasElevation(geo: GeoJsonLineString): boolean {
   return withZ >= Math.ceil(n * 0.9);
 }
 
+// One altitude per coordinate (null where IGN has none), or null when the
+// service could not answer (offline, quota, outside France). Never throws.
+export async function fetchTraceElevations(coords: readonly (readonly number[])[]): Promise<(number | null)[] | null> {
+  if (coords.length === 0) return [];
+  try {
+    const { data, error } = await supabase.functions.invoke('trace-elevation', {
+      body: { coordinates: coords.map((c) => [c[0], c[1]]) },
+    });
+    if (error) return null;
+    const d = data as { ok?: boolean; z?: (number | null)[] } | null;
+    if (!d?.ok || !Array.isArray(d.z) || d.z.length !== coords.length) return null;
+    return d.z.map((alt) => (typeof alt === 'number' && Number.isFinite(alt) ? alt : null));
+  } catch {
+    return null;
+  }
+}
+
 export async function enrichTraceElevation(geo: GeoJsonLineString): Promise<GeoJsonLineString> {
   if (traceHasElevation(geo)) return geo;
-  try {
-    const coordinates = geo.coordinates.map((c) => [c[0], c[1]]);
-    const { data, error } = await supabase.functions.invoke('trace-elevation', {
-      body: { coordinates },
-    });
-    if (error) return geo;
-    const d = data as { ok?: boolean; z?: (number | null)[] } | null;
-    if (!d?.ok || !Array.isArray(d.z) || d.z.length !== geo.coordinates.length) return geo;
-    const z = d.z;
-    return {
-      type: 'LineString',
-      coordinates: geo.coordinates.map((c, i) => {
-        const alt = z[i];
-        return typeof alt === 'number' ? [c[0]!, c[1]!, alt] : [c[0]!, c[1]!];
-      }),
-    };
-  } catch {
-    return geo;
-  }
+  const z = await fetchTraceElevations(geo.coordinates);
+  if (!z) return geo;
+  return {
+    type: 'LineString',
+    coordinates: geo.coordinates.map((c, i) => {
+      const alt = z[i];
+      return typeof alt === 'number' ? [c[0]!, c[1]!, alt] : [c[0]!, c[1]!];
+    }),
+  };
 }
