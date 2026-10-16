@@ -9,7 +9,7 @@
 //         when the outing is soon / in progress), white glyph; pros take the
 //         same rounded shape in white with a universe disc.
 // Flip, OTA, compare on the real map; the loser gets deleted.
-export const PIN_STYLE: 'A' | 'B' = 'B';
+export const PIN_STYLE: 'A' | 'B' = 'A';
 
 // Rounded-tip silhouette shared by activity / offering / (B) pro pins, drawn
 // in the historical 54-wide design space (head centre (27, 23), tip (27, 51.6)).
