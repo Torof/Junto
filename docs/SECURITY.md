@@ -186,6 +186,24 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Auto-INSERT participation creator → `accepted`
 - Si visibility public/approval → `check_alerts_for_activity`
 - `p_meeting_locality` (00441) : texte client (village/commune du pin, géocodage inverse côté app), trimé, tronqué à 80, NULL si vide — même niveau de confiance que `meeting_name`, aucune vérification serveur de cohérence géographique (donnée d'affichage, pas d'autorisation)
+- Préremplissage depuis la trace (00452, dernier corps 00452) : si `p_trace_geojson` est fourni, `distance_km` / `elevation_gain_m` sont dérivés par `trace_distance_km` / `trace_elevation_gain_m` **uniquement quand le client envoie NULL** — la valeur saisie gagne toujours
+
+**`update_activity_trace`** (mig 00096, gate statut 00218, préremplissage 00452 — dernier corps 00452) :
+- Auth + non suspendu
+- `auth.uid() = creator_id` + status IN (`published`, `in_progress`) + `deleted_at IS NULL` (generic)
+- Trace posée → `distance_km` / `elevation_gain_m` remplis **seulement s'ils sont NULL** sur l'activité ; trace retirée (NULL) → les chiffres ne bougent pas
+- Forme de la trace : CHECK constraint (LineString 2..10000 points)
+
+**`compute_trace_stats(p_geojson)`** (mig 00452) — calcul pur pour préremplir le formulaire avant que l'activité existe :
+- Auth + non suspendu
+- LineString valide 2..10000 points (`junto.trace_geojson_invalid`), sinon aucun accès aux données, pas de quota
+- Retourne `(distance_km, elevation_gain_m)` ; D+ NULL si < 90 % des points portent une altitude
+
+**Edge Function `trace-elevation`** (2026-10-16) — proxy du service altimétrique IGN (Géoplateforme, RGE ALTI, gratuit, sans clé) qui donne leurs altitudes aux traces dessinées :
+- POST uniquement ; JWT vérifié (`auth.getUser`) ; quota consommé **avant** toute lecture du corps (`consume_trace_elevation_quota`, 30 / heure glissante / user, suspension refusée là)
+- Corps borné à 512 Ko par longueur réelle, puis `coordinates` = 2..10000 `[lng,lat]` valides
+- IGN appelé en POST par paquets de 5000 points (≤ 2 appels) ; sentinelle `-99999` → null ; > 10 % hors couverture (France + DOM/COM) → `{ok:false, reason:'no_coverage'}`
+- Le client fusionne les altitudes en 3e coordonnée ; le D+ est ensuite dérivé **côté serveur** (`trace_elevation_gain_m`) comme pour un GPX importé — l'altitude client n'est jamais un chiffre de confiance, juste une donnée d'affichage
 
 **`update_activity`** (mig 00274, RDV unique 00306, durci 00308/00309/00310, corps 00316, `p_meeting_locality` 00441 — dernier corps 00441) :
 - Auth + non suspendu
@@ -530,7 +548,9 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 ### Fonctions client-callable (GRANT EXECUTE TO authenticated)
 
-**Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés ; date validée si changée, gate premium au switch de visibilité, sentinelle 0 = ouvrir, 00308-00310), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
+**Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés ; date validée si changée, gate premium au switch de visibilité, sentinelle 0 = ouvrir, 00308-00310), `update_activity_trace`, `compute_trace_stats` (00452), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
+
+**Quotas Edge Functions :** `consume_snap_trail_quota` (00346), `consume_trace_elevation_quota` (00452) — appelées par l'Edge Function **en tant que l'appelant** (JWT relayé), tables internes sans policy
 
 **Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`
 
@@ -561,6 +581,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 - `push_notification_to_device` (trigger)
 - `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
 - `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
+- `trace_distance_km`, `trace_elevation_gain_m` (00452 — calculs purs sur une trace, IMMUTABLE)
 - `notify_review_received`, `notify_review_reply` (mig 00260)
 - `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO anon, authenticated (requis pour être appelable depuis les expressions de policy et les corps de vues), mais non exposé via PostgREST car hors du schéma `public` (mig 00256 + 00257)
 
@@ -1085,6 +1106,8 @@ Validation client :
 - Taille max 10MB avant parsing
 - LineString avec 2-10000 coordonnées (CHECK constraint)
 
+Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une trace sans altitudes (dessinée) les reçoit du service altimétrique IGN via l'Edge Function `trace-elevation` (France + DOM/COM seulement, best effort). Distance et D+ sont **dérivés côté serveur** (`trace_distance_km` / `trace_elevation_gain_m`, mig 00452) et ne préremplissent que les champs NULL.
+
 ---
 
 ## Authentification & Sessions
@@ -1162,6 +1185,10 @@ Validation client :
 
 ### Join activity
 - 10 / heure / user
+
+### Edge Functions trace (proxys de services tiers)
+- `snap-trail` (OpenRouteService) : **200 / heure glissante / user** (mig 00346)
+- `trace-elevation` (IGN altimétrie) : **30 / heure glissante / user** (mig 00452) — une trace est enrichie une fois quand elle est posée
 
 ### Recherche géo
 - Rayon max 100km (PostGIS check)
