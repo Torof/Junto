@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Rect, G, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg, { Path, Rect, G, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -8,7 +8,7 @@ import { SportIcon } from '@/components/sport-icon';
 import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type ProOffering } from '@/services/pro-offering-service';
 import {
-  PIN_STYLE, PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+  PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
 } from '@/constants/pin-style';
 
 interface ProOfferingPinProps {
@@ -61,12 +61,11 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
             filter="url(#pinBlur)"
           />
           <Path d={PIN_DROP_PATH} fill={blue} />
-          {PIN_STYLE === 'A' && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={PLATE_R} fill={colors.pinBackground} />}
         </G>
-        {/* « PRO » capsule: blue on ivory in A, white on the blue body in B. */}
+        {/* « PRO » capsule: white on the blue body. */}
         <Rect
           x={CAPSULE.x} y={CAPSULE.y} width={CAPSULE.w} height={CAPSULE.h} rx={CAPSULE.r}
-          fill={PIN_STYLE === 'B' ? colors.pinBackground : blue}
+          fill={colors.pinBackground}
         />
         <SvgText
           x={CAPSULE.x + CAPSULE.w / 2}
@@ -74,7 +73,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fontSize={8}
           fontWeight="bold"
           letterSpacing={0.5}
-          fill={PIN_STYLE === 'B' ? blue : colors.onCta}
+          fill={blue}
           textAnchor="middle"
         >
           PRO
@@ -82,7 +81,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
       </Svg>
       <View style={styles.plateClip}>
         {hasSportIcon(offering.sport_key) ? (
-          <SportIcon sportKey={offering.sport_key} size={PIN_STYLE === 'B' ? 24 : 22} color={PIN_STYLE === 'B' ? colors.onCta : undefined} />
+          <SportIcon sportKey={offering.sport_key} size={24} color={colors.onCta} />
         ) : (
           <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
         )}
