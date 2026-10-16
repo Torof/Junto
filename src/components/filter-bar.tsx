@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Animated, View, Text, Pressable, StyleSheet } from 'react-native';
 import { SlidersHorizontal, Users, BadgeCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import * as Burnt from 'burnt';
 import { radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore } from '@/store/map-store';
@@ -93,11 +94,24 @@ export function EntityTypeToggles() {
   const toggleShowActivities = useMapStore((s) => s.toggleShowActivities);
   const toggleShowProOfferings = useMapStore((s) => s.toggleShowProOfferings);
 
+  // An icon-only switch says nothing about what just happened: a toast
+  // names it (Scott 2026-10-16), so the first try teaches the button.
+  const onTogglePeers = () => {
+    const next = !showActivities;
+    toggleShowActivities();
+    Burnt.toast({ title: t(next ? 'map.toastPeersOn' : 'map.toastPeersOff'), preset: 'none', haptic: 'none', duration: 1.5 });
+  };
+  const onTogglePros = () => {
+    const next = !showProOfferings;
+    toggleShowProOfferings();
+    Burnt.toast({ title: t(next ? 'map.toastProsOn' : 'map.toastProsOff'), preset: 'none', haptic: 'none', duration: 1.5 });
+  };
+
   return (
     <>
       <Pressable
         style={[styles.entityChip, showActivities && styles.entityChipOn]}
-        onPress={toggleShowActivities}
+        onPress={onTogglePeers}
         hitSlop={8}
         accessibilityRole="switch"
         accessibilityState={{ checked: showActivities }}
@@ -107,7 +121,7 @@ export function EntityTypeToggles() {
       </Pressable>
       <Pressable
         style={[styles.entityChip, showProOfferings && styles.entityChipOn]}
-        onPress={toggleShowProOfferings}
+        onPress={onTogglePros}
         hitSlop={8}
         accessibilityRole="switch"
         accessibilityState={{ checked: showProOfferings }}
