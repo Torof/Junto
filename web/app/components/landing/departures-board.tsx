@@ -9,9 +9,14 @@ import { norm, sportLabel, universeColor } from './tokens';
 // « 1 · Rejoins une sortie » — the next departures, peers only, in the
 // grammar of the app's cards. Rows come from the server (anonymous read of
 // activities_with_coords); the text / sport filters run here.
+// On a phone the board shows PHONE_CAP rows and a « voir les N autres »
+// button (CSS hides the rest under 640 px; desktop always shows all).
+const PHONE_CAP = 4;
+
 export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
   const [query, setQuery] = useState('');
   const [sport, setSport] = useState('all');
+  const [expanded, setExpanded] = useState(false);
 
   const sports = useMemo(() => {
     const seen = new Map<string, string>();
@@ -58,7 +63,7 @@ export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
           </label>
         </div>
 
-        <div className="l-board">
+        <div className={`l-board${expanded ? ' expanded' : ''}`}>
           {rows.length === 0 && (
             <div className="l-board-empty">
               {outings.length === 0
@@ -66,12 +71,12 @@ export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
                 : <>Rien ici avec ces critères. <b>Lance ta sortie, elle apparaîtra ici.</b></>}
             </div>
           )}
-          {rows.map((o) => {
+          {rows.map((o, i) => {
             const color = universeColor(o.sport_category);
             const taken = o.participant_count ?? 0;
             const full = o.max_participants != null && taken >= o.max_participants;
             return (
-              <a key={o.id} href={o.mock ? '#telecharger' : `/activity/${o.id}`} className={`l-row${full ? ' full' : ''}`}>
+              <a key={o.id} href={o.mock ? '#telecharger' : `/activity/${o.id}`} className={`l-row${full ? ' full' : ''}${i >= PHONE_CAP ? ' l-row-extra' : ''}`}>
                 <div className="l-row-bar" style={{ background: color }} />
                 <div className="l-row-main">
                   <div className="l-row-title">
@@ -90,6 +95,11 @@ export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
               </a>
             );
           })}
+          {rows.length > PHONE_CAP && !expanded && (
+            <button type="button" className="l-board-more" onClick={() => setExpanded(true)}>
+              Voir les {rows.length - PHONE_CAP} autres sorties
+            </button>
+          )}
           <div className="l-board-foot"><span>{footer}</span><a href="#telecharger">Tout voir sur la carte ›</a></div>
         </div>
       </div>
