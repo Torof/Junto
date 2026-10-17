@@ -166,6 +166,20 @@
   .l-dl-wrap { padding: 56px 5% 40px; gap: 24px; }
   .l-dl-h2 { font-size: clamp(32px, 10vw, 44px); }
   .l-qr { display: none; } /* a QR is useless on the phone itself */
+
+  /* Manual carousels on the phone (Scott 2026-10-17): the three
+     organisation tiles and the pro offers scroll sideways with snap,
+     the next card peeking in so the gesture is obvious. */
+  .l-tiles, .l-offers {
+    display: flex; flex-wrap: nowrap; gap: 12px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    margin: 0 -16px; padding: 4px 16px 10px; scrollbar-width: none;
+  }
+  .l-tiles::-webkit-scrollbar, .l-offers::-webkit-scrollbar { display: none; }
+  .l-tile, .l-offer { flex: 0 0 84%; max-width: 84%; scroll-snap-align: start; }
+  .l-offers { grid-template-columns: none; }
+  .l-org { overflow: hidden; }
   .l-btn-play { width: 100%; justify-content: center; }
   .l-footer-wrap { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
