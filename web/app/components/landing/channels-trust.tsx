@@ -59,7 +59,7 @@ export default function ChannelsTrust() {
             <div className="l-chan-compose">
               <label htmlFor="canal-compose" className="sr-only">Écrire dans le canal</label>
               <input id="canal-compose" type="text" placeholder="Écrire dans le canal…" readOnly />
-              <a href="#telecharger" className="l-btn-outline"><IconPlus size={14} color="#3F7A56" width2={2.6} />Proposer une sortie</a>
+              <a href="#telecharger" className="l-btn-outline" aria-label="Proposer une sortie"><IconPlus size={14} color="#3F7A56" width2={2.6} /><span>Proposer une sortie</span></a>
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#6B6259' }}>Un canal, c&apos;est un lieu et un sport. On y parle conditions, matos, envies — et quand quelqu&apos;un propose, la sortie apparaît dans le fil, prête à rejoindre.</p>
