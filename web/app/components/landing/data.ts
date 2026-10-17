@@ -7,6 +7,8 @@ import { getSupabase } from '@/lib/supabase';
 
 export interface OutingRow {
   id: string;
+  // Illustrative row (mock-data.ts): never linked to a detail page.
+  mock?: boolean;
   title: string;
   starts_at: string;
   created_at: string;
@@ -25,6 +27,7 @@ export interface OutingRow {
 
 export interface OfferRow {
   id: string;
+  mock?: boolean;
   pro_id: string;
   title: string;
   pro_name: string | null;

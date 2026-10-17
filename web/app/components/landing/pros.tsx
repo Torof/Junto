@@ -69,7 +69,7 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
               const duration = formatDuration(o.duration);
               const price = formatPrice(o.price_eur, o.price_unit);
               return (
-                <a key={o.id} href={`/pro/offering/${o.id}`} className="l-offer">
+                <a key={o.id} href={o.mock ? '#telecharger' : `/pro/offering/${o.id}`} className="l-offer">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span className="l-display" style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(37,99,235,0.14)', color: '#2563EB', fontWeight: 800, fontSize: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(o.pro_name)}</span>
                     <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>

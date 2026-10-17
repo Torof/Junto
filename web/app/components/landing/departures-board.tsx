@@ -71,7 +71,7 @@ export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
             const taken = o.participant_count ?? 0;
             const full = o.max_participants != null && taken >= o.max_participants;
             return (
-              <a key={o.id} href={`/activity/${o.id}`} className={`l-row${full ? ' full' : ''}`}>
+              <a key={o.id} href={o.mock ? '#telecharger' : `/activity/${o.id}`} className={`l-row${full ? ' full' : ''}`}>
                 <div className="l-row-bar" style={{ background: color }} />
                 <div className="l-row-main">
                   <div className="l-row-title">
