@@ -1,4 +1,5 @@
 import { IconHash, IconPlus } from './icons';
+import SportGlyph from './sport-glyph';
 import { RELIABILITY_BLUE } from './tokens';
 
 // Two columns: a channel as it lives in the app (left), and the public
@@ -22,7 +23,7 @@ export default function ChannelsTrust() {
     <section id="confiance" style={{ background: '#FFFFFF' }}>
       <div className="l-wrap" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'stretch' }}>
 
-        <div style={{ flex: '1 1 520px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="l-col">
           <div className="l-eyebrow">Les canaux</div>
           <h3 className="l-h3">Des discussions qui finissent dehors.</h3>
           <div className="l-chan">
@@ -64,7 +65,7 @@ export default function ChannelsTrust() {
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#6B6259' }}>Un canal, c&apos;est un lieu et un sport. On y parle conditions, matos, envies — et quand quelqu&apos;un propose, la sortie apparaît dans le fil, prête à rejoindre.</p>
         </div>
 
-        <div style={{ flex: '1 1 340px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="l-col">
           <div className="l-eyebrow">Partir en confiance</div>
           <h3 className="l-h3">Des inconnus, oui. Des inconnus fiables.</h3>
           <div className="l-profile">
@@ -93,9 +94,9 @@ export default function ChannelsTrust() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#6B6259' }}>Niveaux confirmés par ses partenaires</div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}>Rando · avancée</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 5 fois par la commu.</span></div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}>Trail · intermédiaire</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 3 fois par la commu.</span></div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#4A7C59', background: '#4A7C591A' }}>Escalade · 6b</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 2 fois par la commu.</span></div>
+              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}><SportGlyph sportKey="hiking" size={14} />Rando · avancée</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 5 fois par la commu.</span></div>
+              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}><SportGlyph sportKey="trail-running" size={14} />Trail · intermédiaire</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 3 fois par la commu.</span></div>
+              <div className="l-kv"><span className="l-spill" style={{ color: '#4A7C59', background: '#4A7C591A' }}><SportGlyph sportKey="climbing-sport" size={14} />Escalade · 6b</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 2 fois par la commu.</span></div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#6B6259' }}>Ce que disent ceux qui sont sortis avec elle</div>

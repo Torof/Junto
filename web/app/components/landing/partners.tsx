@@ -1,4 +1,5 @@
 import { IconCalendar, IconPin } from './icons';
+import SportGlyph, { LABEL_TO_KEY } from './sport-glyph';
 import { UNIVERSE_COLOR, type Universe } from './tokens';
 
 // « 3 · Trouve des partenaires » — Discovery cards in a slow marquee. These
@@ -44,7 +45,7 @@ function Card({ m }: { m: Dispo }) {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {m.sports.map(([n, lvl]) => {
           const c = UNIVERSE_COLOR[SPORT_U[n] ?? 'mountain'];
-          return <span key={n} className="l-spill" style={{ color: c, background: `${c}1A` }}>{n} · {lvl}</span>;
+          return <span key={n} className="l-spill" style={{ color: c, background: `${c}1A` }}><SportGlyph sportKey={LABEL_TO_KEY[n]} size={14} />{n} · {lvl}</span>;
         })}
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{m.intents.map((i) => <span key={i} className="l-intent">{i}</span>)}</div>

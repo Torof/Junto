@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { IconChevron, IconClock, IconMountain, IconPin } from './icons';
 import { formatDuration, formatPrice, initials, type OfferRow } from './data';
+import SportGlyph, { hasSportGlyph } from './sport-glyph';
 import { norm, sportLabel, universeColor } from './tokens';
 
 // « 4 · Encadré par un pro » — real offers (anonymous read of
@@ -78,7 +79,7 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
                     <span className="l-pro-badge" style={{ width: 26, height: 26, fontSize: 9 }}>PRO</span>
                   </div>
                   <div className="l-offer-title">{o.title}</div>
-                  <span className="l-pill" style={{ color }}><span className="dot" />{sportLabel(o.sport_key)}{o.level && <><span className="sep"> · </span>{o.level}</>}</span>
+                  <span className="l-pill" style={{ color }}>{hasSportGlyph(o.sport_key) ? <SportGlyph sportKey={o.sport_key} size={14} /> : <span className="dot" />}{sportLabel(o.sport_key)}{o.level && <><span className="sep"> · </span>{o.level}</>}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, fontWeight: 500, color: '#6B6259' }}>
                     {o.location_name && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><IconPin size={12} color="#6B6259" />{o.location_name}</span>}
                     {duration && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><IconClock size={12} color="#6B6259" />{duration}</span>}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { IconBackpack, IconCalendar, IconCar, IconChat, IconChevron, IconPin, IconUsers } from './icons';
+import SportGlyph, { LABEL_TO_KEY } from './sport-glyph';
 import { MUTED, UNIVERSE_COLOR, type Universe } from './tokens';
 
 // « 2 · Lance ta sortie » — a demo form with a live preview (nothing is
@@ -45,6 +46,7 @@ export default function LaunchDemo() {
   const [seats, setSeats] = useState('6');
 
   const color = sport ? UNIVERSE_COLOR[SPORT_UNI[sport] ?? 'mountain'] : MUTED;
+  const sportKey = sport ? LABEL_TO_KEY[sport] : undefined;
   const pvTitle = title.trim() || (sport ? `${sport} — ta sortie` : 'Ta sortie');
   const pvPlace = place.trim() || 'Rendez-vous à poser sur la carte';
   const when = `${day} · ${time}`;
@@ -107,14 +109,19 @@ export default function LaunchDemo() {
                   <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color }}>{pvTitle}</div>
                   <div style={{ fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{when} · {seats} places</div>
                 </div>
-                <svg width="30" height="38" viewBox="0 0 40 52" aria-hidden><path d="M20 2 C10 2 3 9.5 3 19 C3 31 20 50 20 50 C20 50 37 31 37 19 C37 9.5 30 2 20 2 Z" fill={color} stroke="#FFFFFF" strokeWidth="2" /><circle cx="20" cy="19" r="6" fill="#FFFFFF" /></svg>
+                {/* The app's pin: universe-colour body, the sport glyph in white
+                    once a sport is chosen (a white dot before). */}
+                <div className="l-pin-shape">
+                  <svg width="40" height="50" viewBox="0 0 40 52" aria-hidden><path d="M20 2 C10 2 3 9.5 3 19 C3 31 20 50 20 50 C20 50 37 31 37 19 C37 9.5 30 2 20 2 Z" fill={color} stroke="#FFFFFF" strokeWidth="2" />{!sportKey && <circle cx="20" cy="19" r="6" fill="#FFFFFF" />}</svg>
+                  {sportKey && <SportGlyph sportKey={sportKey} size={20} color="#FFFFFF" />}
+                </div>
               </div>
             </div>
             <div className="l-card">
               <div className="l-row-bar" style={{ background: color }} />
               <div className="l-row-main">
                 <div className="l-row-title"><span>{pvTitle}</span><span className="l-tag new">Nouveau</span></div>
-                <span className="l-pill" style={{ color }}><span className="dot" />{sport || 'Sport'}<span className="sep"> · </span>{level}</span>
+                <span className="l-pill" style={{ color }}>{sportKey ? <SportGlyph sportKey={sportKey} size={14} /> : <span className="dot" />}{sport || 'Sport'}<span className="sep"> · </span>{level}</span>
                 <div className="l-meta">
                   <span><IconCalendar size={12} color="#6B6259" />{when}</span>
                   <span><IconPin size={12} color="#6B6259" />{pvPlace}</span>

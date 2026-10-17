@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { IconCalendar, IconChevron, IconMountain, IconPin, IconUsers } from './icons';
 import { difficultyLabel, formatWhen, isNew, type OutingRow } from './data';
+import SportGlyph, { hasSportGlyph } from './sport-glyph';
 import { norm, sportLabel, universeColor } from './tokens';
 
 // « 1 · Rejoins une sortie » — the next departures, peers only, in the
@@ -78,7 +79,7 @@ export default function DeparturesBoard({ outings }: { outings: OutingRow[] }) {
                     {isNew(o.created_at) && <span className="l-tag new">Nouveau</span>}
                     {full && <span className="l-tag full">Complet</span>}
                   </div>
-                  <span className="l-pill" style={{ color }}><span className="dot" />{sportLabel(o.sport_key)}<span className="sep"> · </span>{difficultyLabel(o)}</span>
+                  <span className="l-pill" style={{ color }}>{hasSportGlyph(o.sport_key) ? <SportGlyph sportKey={o.sport_key} size={14} /> : <span className="dot" />}{sportLabel(o.sport_key)}<span className="sep"> · </span>{difficultyLabel(o)}</span>
                   <div className="l-meta">
                     <span><IconCalendar size={12} color="#6B6259" />{formatWhen(o.starts_at)}</span>
                     {(o.meeting_locality || o.meeting_name) && <span><IconPin size={12} color="#6B6259" />{o.meeting_locality ?? o.meeting_name}</span>}
