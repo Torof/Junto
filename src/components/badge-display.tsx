@@ -6,7 +6,7 @@ import {
   Users, Mountain, Trophy,
   AlertTriangle, OctagonAlert,
   Clock, Package, Handshake, Shield,
-  Compass, Tent, Waves, Bike, Plane,
+  Compass, Tent, Waves, Plane,
   Hammer, Ban, LogOut, TrendingUp,
   HelpCircle, Check, ChevronRight, Triangle, ArrowUp, ArrowDown, Pencil,
   type LucideIcon,
@@ -243,18 +243,6 @@ const AWARDS: AwardDef[] = [
     minDistinct: [3, 4, 5],
     evaluate: (a) => {
       const c = a.by_category?.mountain;
-      return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
-    },
-  },
-  {
-    id: 'route',
-    Icon: Bike,
-    nounAction: 'A réalisé',
-    nounObject: 'sorties sur route',
-    outings: [25, 50, 100],
-    minDistinct: [2, 3, 3], // road has fewer sports — relax distinct floor
-    evaluate: (a) => {
-      const c = a.by_category?.road;
       return { count: c?.outings ?? 0, distinctSports: c?.distinct_sports ?? 0 };
     },
   },

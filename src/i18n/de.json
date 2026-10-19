@@ -1632,11 +1632,6 @@
         "silver": "Bergler",
         "gold": "Berggolem"
       },
-      "route": {
-        "bronze": "Läufer",
-        "silver": "Marathonläufer",
-        "gold": "Dauerläufer"
-      },
       "air": {
         "bronze": "Luftakrobat",
         "silver": "Pilot",

@@ -1632,11 +1632,6 @@
         "silver": "Mountaineer",
         "gold": "Mountain Golem"
       },
-      "route": {
-        "bronze": "Runner",
-        "silver": "Marathoner",
-        "gold": "Endless Cardio"
-      },
       "air": {
         "bronze": "Flyer",
         "silver": "Pilot",
