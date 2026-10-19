@@ -15,13 +15,14 @@ export const HAIRLINE = 'rgba(31,26,21,0.32)';
 export const HAIRLINE_SOFT = 'rgba(31,26,21,0.16)';
 
 // Universe colours — identical to src/utils/sport-category-color.ts in the app.
-export type Universe = 'mountain' | 'water' | 'air' | 'cycling' | 'on-foot';
+export type Universe = 'mountain' | 'water' | 'air' | 'cycling' | 'on-foot' | 'wellness';
 export const UNIVERSE_COLOR: Record<Universe, string> = {
   mountain: '#4A7C59',
   water: '#2563EB',
   air: '#8B5CF6',
   cycling: '#64748B',
   'on-foot': '#E11D48',
+  wellness: '#C4A782',
 };
 export const UNIVERSE_LABEL: Record<Universe, string> = {
   mountain: 'Montagne',
@@ -29,6 +30,7 @@ export const UNIVERSE_LABEL: Record<Universe, string> = {
   air: 'Air',
   cycling: 'Vélo',
   'on-foot': 'À pied',
+  wellness: 'Bien-être',
 };
 
 export function universeColor(category: string | null | undefined): string {
@@ -48,6 +50,8 @@ export const SPORT_LABEL: Record<string, string> = {
   snowshoeing: 'Raquettes', 'speed-riding': 'Speed-riding', splitboard: 'Splitboard',
   'stand-up-paddle': 'Paddle', surfing: 'Surf', swimming: 'Natation', 'trail-running': 'Trail',
   trekking: 'Trek', 'via-ferrata': 'Via ferrata', wakeboard: 'Wakeboard', windsurfing: 'Planche à voile',
+  yoga: 'Yoga', 'tai-chi': 'Tai-chi', 'qi-gong': 'Qi gong', meditation: 'Méditation',
+  'nordic-walking': 'Marche nordique', kitesurfing: 'Kitesurf', wingfoil: 'Wingfoil',
 };
 
 export function sportLabel(key: string | null | undefined): string {

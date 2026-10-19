@@ -26,5 +26,6 @@ export const LABEL_TO_KEY: Record<string, string> = {
   'Via ferrata': 'via-ferrata', 'Ski de rando': 'ski-touring', Canyoning: 'canyoning', Kayak: 'kayaking',
   'Planche à voile': 'windsurfing', Natation: 'swimming', Parapente: 'paragliding', Gravel: 'gravel',
   'VTT enduro': 'mtb-enduro', Enduro: 'mtb-enduro', Route: 'cycling', Randonnée: 'hiking', Rando: 'hiking',
-  Trail: 'trail-running', Trek: 'trekking',
+  Trail: 'trail-running', Trek: 'trekking', Yoga: 'yoga', 'Marche nordique': 'nordic-walking',
+  Kitesurf: 'kitesurfing', Wingfoil: 'wingfoil',
 };
