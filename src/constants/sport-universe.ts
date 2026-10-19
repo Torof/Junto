@@ -1,7 +1,7 @@
 import { sportCategoryColor } from '@/utils/sport-category-color';
 
 // Static sport_key → universe (category) map, mirroring the sports table
-// (taxonomy v2.1, migs 00281 + 00282 — locked). Lets <SportIcon> self-tint
+// (taxonomy v2.1, migs 00281 + 00282 + 00461 « Bien-être »). Lets <SportIcon> self-tint
 // without a DB lookup at every call site; surfaces that already carry
 // sport_category keep using it directly.
 export const SPORT_UNIVERSE: Record<string, string> = {
@@ -17,10 +17,13 @@ export const SPORT_UNIVERSE: Record<string, string> = {
   splitboard: 'mountain', 'via-ferrata': 'mountain',
   // on-foot
   hiking: 'on-foot', running: 'on-foot', 'trail-running': 'on-foot', trekking: 'on-foot', football: 'on-foot',
+  'nordic-walking': 'on-foot',
   // water
   canyoning: 'water', diving: 'water', kayaking: 'water', rafting: 'water', sailing: 'water',
   'stand-up-paddle': 'water', surfing: 'water', swimming: 'water', freediving: 'water', canoe: 'water',
-  windsurfing: 'water', wakeboard: 'water',
+  windsurfing: 'water', wakeboard: 'water', kitesurfing: 'water', wingfoil: 'water',
+  // wellness (mig 00461)
+  yoga: 'wellness', 'tai-chi': 'wellness', 'qi-gong': 'wellness', meditation: 'wellness',
 };
 
 /** Universe colour for a sport key (T1 tint). Falls back to the given colour. */

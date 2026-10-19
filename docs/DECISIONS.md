@@ -473,3 +473,17 @@ Règles verrouillées :
 **Addendum 2026-10-15 — notifications (socle + lot A livrés) :** après audit des 31 types réellement émis (4 morts, 2 désactivés) : copy FR revue (« sortie » partout, guillemets, tournures neutres sans point médian, corps ≤ 120 caractères, titres désambiguïsés : « Pas de place », « Créneau indisponible », « X veut rejoindre ta sortie », demande de réservation avec date · créneau · nombre). Architecture retenue : le serveur garde title/body FR (secours) et ajoute `data.params` + `data.variant` ; namespace `notif.<type>[.<variant>]` dans les 5 fichiers ; composeur `src/utils/notification-text.ts` pour l'in-app ; `send-push` compose par destinataire depuis `templates.json` généré par `npm run push:templates` (une source de vérité), dates via Intl, secours FR si template ou variable manquante. Lots, TOUS livrés le 2026-10-15 : A réservations (00447) · B contacts/invitations/groupes (00448) · C participation/activité + D covoiturage (00449) · E présence + F avis/badges/pro + G messages `broadcast_and_push_message` (00450). 42 fonctions reconstruites depuis leur définition live. Reste FR quoi qu'il arrive : le libellé de badge (`badge_label_fr`) passé en paramètre — à localiser plus tard via category + tier. Toute modification de `src/i18n/*.json` touchant `notif` exige `npm run push:templates` + redéploiement de la fonction.
 
 **Addendum 2026-10-14 (même jour) :** IT, ES, DE livrés dans la foulée — traduction par modèle, registre informel partout (tu / tú / du), 1829 clés par fichier, contrôles automatiques de parité, de placeholders et d'ordre. Relecture native à organiser (Scott n'a personne sous la main pour l'instant). Les exemples de lieux restent ceux des Hautes-Alpes dans toutes les langues : un visiteur italien ou allemand est ICI. Pas de nouveau champ en base : le CHECK de 00445 couvrait déjà les cinq langues.
+
+## 2026-10-19 — Sixième univers « Bien-être » + sept sports (mig 00461)
+
+**Contexte :** Scott veut ouvrir Junto au yoga et à ce qui lui ressemble (tai-chi, qi gong, méditation), plus trois sports manquants : marche nordique, kitesurf, wingfoil. La randonnée équestre est refusée pour l'instant (pas de demande). Le yoga est aussi côté passionnés (« yoga au parc, 3 places, on rejoint »), pas réservé aux pros.
+
+**Décision :**
+- Univers `wellness` (« Bien-être »), couleur **sable clair #C4A782** (ocre refusé : trop criard ; beiges foncés refusés : trop ternes). Marche nordique → à pied ; kitesurf et wingfoil → eau.
+- `sports.category` reste du texte libre : la migration est de la donnée pure, comme 00282. Pas de matériel, échelle de niveau générique, la marche nordique rejoint les sports à distance + D+.
+- **Pin pro** : le CHECK `pin_icon` et `set_pro_pin_icon` passent de 4 à 5 valeurs (+ `wellness`, glyphe yoga blanc sur disque sable) pour qu'un pro bien-être ait son pin. Chaîne d'autorisation inchangée, fonction reconstruite depuis sa définition live.
+- Pictogrammes choisis planche par planche : yoga MingCute, méditation Solar (CC BY, crédité), qi gong / marche nordique / kitesurf MDI, **tai-chi dessiné maison** (« la grue », trait Phosphor fin, tête ronde, sans cou, réglé en trois itérations), wingfoil dessiné maison (aucune icône n'existe).
+- **Award « sorties sur route » supprimé** : il lisait la catégorie `road` disparue en 00281, donc inatteignable depuis juin. Pas d'award bien-être pour l'instant.
+
+**Hors périmètre :** aucune sortie démo bien-être ; traduction des sept noms faite par modèle dans les cinq langues, à relire avec les autres.
+

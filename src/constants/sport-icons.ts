@@ -41,6 +41,14 @@ const sportIcons: Record<string, string> = {
   football: '⚽',
   windsurfing: '🏄',
   wakeboard: '🏄',
+  // Bien-être + 3 sports (mig 00461)
+  yoga: '🧘',
+  'tai-chi': '🧘',
+  'qi-gong': '🧘',
+  meditation: '🧘',
+  'nordic-walking': '🚶',
+  kitesurfing: '🪁',
+  wingfoil: '🏄',
 };
 
 export function getSportIcon(sportKey: string): string {

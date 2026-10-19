@@ -65,6 +65,13 @@ function glyphFor(key: string, white: string): ReactNode {
           <Path d="M 19 35 H 31 a 2.0 2.0 0 1 0 -2.0 -2.0" stroke={white} strokeWidth={1.3} strokeLinecap="round" fill="none" />
         </>
       );
+    case 'wellness':
+      // Yoga figure (MingCute yoga-fill, Apache 2.0) — 24-box centred on the head.
+      return (
+        <G transform="translate(15 11)">
+          <Path d="M8 21v-6.946L7.84 14H4.963a1.5 1.5 0 0 1-1.495-1.385l-.465-6.038a1 1 0 0 1 1.994-.154L5.427 12h2.337l2.11-1.055a1 1 0 0 0 .48-.522l.478-1.197l-4.126-1.27a1 1 0 0 1 .588-1.912l13 4a1 1 0 0 1-.588 1.912l-4.736-1.458l-1.878 2.254c-.319.382-.728.68-1.19.864L10 14.377V21a1 1 0 0 1-2 0M18 5a3 3 0 1 1-6 0a3 3 0 0 1 6 0" fill={white} />
+        </G>
+      );
     default:
       return null; // cycling -> raster overlay
   }

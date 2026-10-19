@@ -58,13 +58,16 @@ const LICENSES: { group: string; items: License[] }[] = [
     ],
   },
   {
-    // Attribution requise (CC BY) pour game-icons + Font Awesome ; les autres
-    // listés par courtoisie. Sources du jeu d'icônes sport embarqué (2026-09-11).
+    // Attribution requise (CC BY) pour game-icons + Font Awesome + Solar ; les
+    // autres listés par courtoisie. Sources du jeu d'icônes sport embarqué
+    // (2026-09-11, complété 2026-10-19 : bien-être + 3 sports).
     group: 'Icônes de sport',
     items: [
       { name: 'game-icons.net — Lorc, Delapouite, sbed, Caro Asercion', license: 'CC BY 3.0', url: 'https://game-icons.net' },
       { name: 'Font Awesome Free (ski de rando)', license: 'CC BY 4.0', url: 'https://fontawesome.com/license/free' },
-      { name: 'Material Design Icons (dry-tooling)', license: 'Apache 2.0', url: 'https://pictogrammers.com/library/mdi/' },
+      { name: 'Material Design Icons (dry-tooling, qi gong, marche nordique, kitesurf)', license: 'Apache 2.0', url: 'https://pictogrammers.com/library/mdi/' },
+      { name: 'MingCute Icons (yoga)', license: 'Apache 2.0', url: 'https://github.com/Richard9394/MingCute' },
+      { name: 'Solar Icons (méditation)', license: 'CC BY 4.0', url: 'https://www.figma.com/community/file/1166831539721848736' },
       { name: 'Temaki (rafting, wakeboard)', license: 'CC0', url: 'https://github.com/rapideditor/temaki' },
       { name: 'Map Icons (natation)', license: 'OFL 1.1', url: 'https://github.com/scottdejonge/map-icons' },
       { name: 'Fontisto (apnée)', license: 'MIT', url: 'https://github.com/kenangundogan/fontisto' },

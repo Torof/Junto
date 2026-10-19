@@ -225,13 +225,13 @@ export function formatLevelRange(
  * Which sports use distance + D+ as their primary difficulty metrics.
  */
 const SPORTS_WITH_DISTANCE = new Set<string>([
-  'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
+  'hiking', 'trekking', 'trail-running', 'running', 'nordic-walking', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'cross-country-ski', 'snowshoeing',
 ]);
 
 const SPORTS_WITH_ELEVATION = new Set<string>([
-  'hiking', 'trekking', 'trail-running', 'running', 'cycling', 'gravel',
+  'hiking', 'trekking', 'trail-running', 'running', 'nordic-walking', 'cycling', 'gravel',
   'mtb-xc', 'mtb-enduro', 'mtb-downhill',
   'ski-touring', 'ski-freeride', 'splitboard',
   'cross-country-ski', 'snowshoeing', 'mountaineering',
