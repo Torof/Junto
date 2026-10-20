@@ -12,6 +12,8 @@ import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
 import { MapToast } from '@/components/map-toast';
+import { showMapToast } from '@/store/map-toast-store';
+import { MAP_FETCH_CAP } from '@/constants/map-query';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { CompassButton } from '@/components/compass-button';
 import type { PlaceResult } from '@/services/geocode-service';
@@ -125,6 +127,21 @@ export default function CarteScreen() {
   const { data: activities } = useNearbyActivities(searchBounds);
   const { data: pros } = useNearbyPros(searchBounds);
   const { data: proOfferings } = useNearbyProOfferings(searchBounds);
+
+  // A viewport fetch that hits the row cap is incomplete: say so once per
+  // searched area so the user zooms in rather than trusting the field.
+  const truncatedToastFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!searchBounds) return;
+    const hit = (activities?.length ?? 0) >= MAP_FETCH_CAP
+      || (pros?.length ?? 0) >= MAP_FETCH_CAP
+      || (proOfferings?.length ?? 0) >= MAP_FETCH_CAP;
+    const key = JSON.stringify(searchBounds);
+    if (hit && truncatedToastFor.current !== key) {
+      truncatedToastFor.current = key;
+      showMapToast(t('map.toastTruncated'));
+    }
+  }, [activities, pros, proOfferings, searchBounds, t]);
   const searchCenter: [number, number] = searchPlace ? [searchPlace.lng, searchPlace.lat] : (currentLocation ?? center);
   const filtered = useFilteredActivities(activities ?? [], searchCenter);
   const filteredOfferings = useFilteredOfferings(proOfferings ?? [], searchCenter);

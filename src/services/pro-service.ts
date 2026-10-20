@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { MAP_FETCH_CAP } from '@/constants/map-query';
 
 export interface ProProfile {
   user_id: string;
@@ -209,7 +210,9 @@ export const proService = {
     let query = supabase
       .from('pro_profiles')
       .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, tagline, description, status')
-      .eq('status', 'approved');
+      .eq('status', 'approved')
+      .order('display_name', { ascending: true })
+      .limit(MAP_FETCH_CAP);
 
     if (bounds) {
       query = query

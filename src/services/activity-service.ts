@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { MAP_FETCH_CAP } from '@/constants/map-query';
 import { type ActivityFormData } from '@/types/activity-form';
 
 export interface GeoJsonLineString {
@@ -41,6 +42,8 @@ export interface NearbyActivity {
   requires_presence?: boolean;
   /** Only populated by getById (detail view) — omitted from list queries to keep payload small. */
   trace_geojson?: GeoJsonLineString | null;
+  /** Map query only: the trace's GeoJSON type ('LineString') when a trace exists, else null. */
+  has_trace?: string | null;
 }
 
 export const activityService = {
@@ -48,10 +51,15 @@ export const activityService = {
     let query = supabase
       .from('activities_with_coords')
       .select(
-        'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
+        // Map payload: no description, no trace points — the detail view refetches
+        // both. `has_trace` is only the GeoJSON type (3 bytes) so the drawer can
+        // still show its GPX pill. Capped + ordered by start date (see MAP_FETCH_CAP).
+        'id, title, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, has_trace:trace_geojson->>type',
       )
       .in('status', ['published', 'in_progress'])
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .order('starts_at', { ascending: true })
+      .limit(MAP_FETCH_CAP);
 
     if (bounds) {
       query = query

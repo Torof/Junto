@@ -71,6 +71,8 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
   const remaining = activity ? getRemainingPlaces(activity.max_participants, activity.participant_count) : 0;
   const isOpenCount = activity?.max_participants === null;
   const isFull = !isOpenCount && remaining <= 0;
+  // Map rows carry only the trace's type (has_trace); detail rows carry the trace itself.
+  const hasTrace = !!(activity?.has_trace || activity?.trace_geojson);
 
   // Carpool summary — car/carpool rows only: seats offered + departure cities.
   const { data: transportSummary = [] } = useQuery({
@@ -142,7 +144,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               </View>
             ) : null}
 
-            {(signal || activity.trace_geojson) ? (
+            {(signal || hasTrace) ? (
               <View style={styles.infoRow}>
                 <BarChart2 size={15} color={accent} strokeWidth={2.2} />
                 {signal ? (
@@ -150,7 +152,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
                 ) : (
                   <View style={{ flex: 1 }} />
                 )}
-                {activity.trace_geojson ? (
+                {hasTrace ? (
                   <View style={[styles.gpxPill, { borderColor: accent, backgroundColor: accent + '18' }]}>
                     <Route size={11} color={accent} strokeWidth={2.6} />
                     <Text style={[styles.gpxPillText, { color: accent }]}>GPX</Text>
