@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/services/supabase';
 import { enqueueGeoEvent, isTerminalPresenceRejection } from './presence-offline-cache';
 import { trace, captureInfo } from './sentry';
+import { isMockedFix } from '@/utils/mock-location';
 
 // Post-window Enters can repeat all day (GPS flicker at a 300m radius in
 // broken terrain) and re-posting on the same notification id RE-ALERTS on
@@ -86,10 +87,13 @@ const ACCURACY_THRESHOLD_M = 100;
 
 async function getFreshFix(): Promise<Location.LocationObject | null> {
   try {
-    return await Promise.race([
+    const fix = await Promise.race([
       Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), FRESH_FIX_TIMEOUT_MS)),
     ]);
+    // A spoofed fix is no evidence — treated as "no fix", so it is neither
+    // sent nor enqueued for replay.
+    return isMockedFix(fix) ? null : fix;
   } catch {
     return null;
   }

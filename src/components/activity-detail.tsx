@@ -56,6 +56,7 @@ import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { SportIcon } from '@/components/sport-icon';
 import { ChatBackdrop } from '@/components/chat-backdrop';
 import { formatMeetingLabel, MEETING_LABEL_INLINE_MAX } from '@/utils/meeting-label';
+import { isMockedFix } from '@/utils/mock-location';
 
 export type ActivityTab = 'info' | 'transport' | 'gear' | 'chat';
 
@@ -447,6 +448,7 @@ export function ActivityDetail({
         }
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
+        if (isMockedFix(pos)) return;
         // Mirror the server's LEAST(meeting, end, trace) exactly — checking
         // a point the server ignores (the objective) shows "in the zone"
         // for a check-in that would be rejected; skipping one it accepts
@@ -560,6 +562,10 @@ export function ActivityDetail({
         }
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      if (isMockedFix(pos)) {
+        Alert.alert(t('auth.error'), t('errors.confirmPresence'));
+        return;
+      }
       // Quick client-side guard: if our last-known distance says we're outside
       // the 150m zone, don't even hit the server. Saves a generic-error round-trip.
       if (!isAtActivity) {

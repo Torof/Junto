@@ -10,6 +10,7 @@ import {
 } from '@/lib/presence-foreground-service';
 import { trace, captureWarning } from '@/lib/sentry';
 import { distanceMeters } from '@/utils/geo';
+import { isMockedFix } from '@/utils/mock-location';
 
 interface ActiveActivity {
   activity_id: string;
@@ -147,6 +148,10 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
     trace('presence.geofence', 'initial-state skipped: GPS lock timed out');
     return;
   }
+  if (isMockedFix(pos)) {
+    trace('presence.geofence', 'initial-state skipped: mocked location');
+    return;
+  }
 
   if (pos.coords.accuracy != null && pos.coords.accuracy > ACCURACY_THRESHOLD_M) {
     trace('presence.geofence', 'initial-state skipped: accuracy too low', {
@@ -245,6 +250,7 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
     async (pos) => {
       if (timedOut) return;
       if (pos.coords.accuracy != null && pos.coords.accuracy > ACCURACY_THRESHOLD_M) return;
+      if (isMockedFix(pos)) return;
 
       for (const region of activeRegions) {
         const activityId = String(region.identifier ?? '').split(':')[1];

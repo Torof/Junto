@@ -5,6 +5,7 @@ import { supabase } from '@/services/supabase';
 import { trace, captureInfo } from './sentry';
 import { distanceMeters } from '@/utils/geo';
 import { isTerminalPresenceRejection } from './presence-offline-cache';
+import { isMockedFix } from '@/utils/mock-location';
 
 // Task name registered at module-load time. Imported from app/_layout so
 // the OS can find this task definition when it spawns the headless JS
@@ -123,6 +124,10 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
   // batch are stale, only the latest matters for an in-zone decision.
   const fix = locations[locations.length - 1];
   if (!fix) return;
+  if (isMockedFix(fix)) {
+    trace('presence.location', 'mocked location, skipping');
+    return;
+  }
   if (fix.coords.accuracy != null && fix.coords.accuracy > ACCURACY_THRESHOLD_M) {
     trace('presence.location', 'sample too coarse, skipping', {
       accuracy_m: Math.round(fix.coords.accuracy),
