@@ -460,8 +460,9 @@ export default function ConversationScreen() {
       await queryClient.invalidateQueries({ queryKey: ['transport-summary'] });
       await queryClient.invalidateQueries({ queryKey: ['participation'] });
       Burnt.toast({ title: t('transport.seatAccepted', { defaultValue: 'Place confirmée' }), preset: 'done' });
-    } catch {
-      Burnt.toast({ title: t('auth.unknownError') });
+    } catch (e) {
+      // Coded refusals (passenger already seated elsewhere…) say why.
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
     } finally {
       setSeatActionId(null);
     }
