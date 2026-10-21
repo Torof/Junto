@@ -173,6 +173,7 @@
     "errInvalidEmail": "Formato email non valido.",
     "errRateLimit": "Troppi tentativi, riprova tra qualche minuto.",
     "errNetwork": "Problema di connessione — controlla la tua rete.",
+    "errSignupBlocked": "Non è possibile creare un account con questa e-mail. Scrivici se pensi che sia un errore.",
     "errTosRequired": "Accetta le condizioni per continuare.",
     "errPasswordMismatch": "Le due password non corrispondono.",
     "confirmVerifying": "Accesso in corso…",

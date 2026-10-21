@@ -173,6 +173,7 @@
     "errInvalidEmail": "Ungültiges E-Mail-Format.",
     "errRateLimit": "Zu viele Versuche, probier es in ein paar Minuten noch mal.",
     "errNetwork": "Verbindungsproblem — prüf deine Internetverbindung.",
+    "errSignupBlocked": "Mit dieser E-Mail kann kein Konto erstellt werden. Schreib uns, wenn du denkst, dass das ein Fehler ist.",
     "errTosRequired": "Bitte akzeptiere die Bedingungen, um fortzufahren.",
     "errPasswordMismatch": "Die beiden Passwörter stimmen nicht überein.",
     "confirmVerifying": "Anmeldung läuft…",

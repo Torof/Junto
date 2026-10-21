@@ -43,6 +43,9 @@ export default function LoginScreen() {
     if (m.includes('unable to validate email') || m.includes('invalid email')) return t('auth.errInvalidEmail');
     if (m.includes('rate limit') || m.includes('too many requests')) return t('auth.errRateLimit');
     if (m.includes('network')) return t('auth.errNetwork');
+    // Sign-up refused by the server (e-mail of an account deleted while
+    // suspended, mig 00506) — Supabase only says « Database error saving new user ».
+    if (m.includes('database error saving new user')) return t('auth.errSignupBlocked');
     return t('auth.unknownError');
   };
 

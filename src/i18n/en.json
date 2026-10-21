@@ -173,6 +173,7 @@
     "errInvalidEmail": "Invalid email format.",
     "errRateLimit": "Too many attempts, try again in a few minutes.",
     "errNetwork": "Connection issue — check your internet.",
+    "errSignupBlocked": "An account cannot be created with this e-mail. Write to us if you think this is a mistake.",
     "errTosRequired": "Please accept the terms to continue.",
     "errPasswordMismatch": "The two passwords don't match.",
     "confirmVerifying": "Signing you in…",
