@@ -208,7 +208,10 @@ Suite : 1 586 pass, 0 fail, 14 failles connues restantes (12 fermées par la mig
 - **Pro (00518)** : **L16 fermé** + raison sociale et motif de refus non publics ; liens web contrôlés en table ; photos de contributeurs suspendus masquées ; offres bornées ; verrou réservation / suppression ; purge à J+30 des coordonnées saisies.
 - Restent (LOW, connus) : MS-2 résiduel (l'absence après ajout trahit un blocage — inhérent, comme `create_group`) ; AB-6 / AB-9 (format des jetons push, budget de notifications par destinataire) ; PRO_HARDENING B9, B10, B15, B16, B17, B18 ; décision produit : un pro approuvé peut renommer sa vitrine sans nouvelle validation.
 
-Suite : 1 575 pass, 0 fail, 12 failles connues restantes (toutes fermées par la migration : PostGIS, droits de supabase_admin, pg_net).
+- **Contre-vérification (00519)** : pas de remise par une copie de groupe quel que soit son auteur ; groupe retiré par la modération en lecture seule ; suppression de compte uniquement par la fonction delete-account (le rôle service l'exécute pour l'utilisateur vérifié : connexion et fichiers toujours effacés) ; erreurs lisibles avant les contrôles de table ; durée figée hors du test de chevauchement et verrouillée à l'écran ; plafond d'appareils par dernier usage.
+- Reste (LOW) : un lien de connexion piégé peut connecter une personne *déconnectée* au compte de l'attaquant (login-CSRF) — fermeture possible en n'acceptant que les liens à jeton haché.
+
+Suite : 1 582 pass, 0 fail, 12 failles connues restantes (toutes fermées par la migration : PostGIS, droits de supabase_admin, pg_net).
 
 ## Plan de correction proposé (validation Scott par phase)
 
