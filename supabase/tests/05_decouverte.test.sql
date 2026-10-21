@@ -543,7 +543,7 @@ PERFORM pg_temp.as_('past1');
 PERFORM pg_temp.ok('past1 pose une dispo qui chevauche une dispo expirée',
   $$SELECT public.upsert_dispo(ARRAY['hiking'], NULL, 6.08, 44.56, 'Gap', 15, ARRAY['car'], now() - interval '23 hours', now() + interval '2 days')::text || public.activate_dispo()::text$$);
 PERFORM pg_temp.eq('BR-5 : une dispo expirée n''est plus proposée',
-  format($$SELECT count(*)::text FROM public.get_discovery_cards() WHERE user_id = %L$$, pg_temp.id('past2')), '0', 'BR-5');
+  format($$SELECT count(*)::text FROM public.get_discovery_cards() WHERE user_id = %L$$, pg_temp.id('past2')), '0');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('PV-1 : anon ne lit pas les statistiques PostGIS des dispos',
   $$SELECT public._postgis_stats('public.discovery_availabilities'::regclass, 'base')::text$$, 'permission denied', 'PV-1');

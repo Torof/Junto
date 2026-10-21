@@ -82,7 +82,7 @@ PERFORM pg_temp.denied('un compte suspendu ne peut pas supprimer son compte pour
 PERFORM pg_temp.as_('noob');
 PERFORM pg_temp.denied('sans âge confirmé ni CGU acceptées, on ne peut pas créer de sortie',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', 'Tous niveaux', 5, 6.6, 44.9, NULL, NULL, now() + interval '2 days')::text$$,
-  '.', 'BR-4');
+  '.');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('un visiteur sans compte ne peut pas écrire dans spatial_ref_sys',
   $$DELETE FROM public.spatial_ref_sys WHERE srid = -1$$, 'permission denied', 'TX-2');

@@ -71,7 +71,7 @@ PERFORM pg_temp.denied('visibilité inconnue refusée',
 PERFORM pg_temp.denied('trace GeoJSON invalide refusée',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', 'Tous niveaux', 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'public', true, NULL, NULL, NULL, NULL, NULL, NULL, '{"type":"Point","coordinates":[1,2]}'::jsonb)::text$$, 'junto.trace_geojson_invalid');
 PERFORM pg_temp.denied('niveau démesuré refusé (AC-3)',
-  $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', repeat('n', 5000), 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'private_link')::text$$, '.', 'AC-3');
+  $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', repeat('n', 5000), 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'private_link')::text$$, '.');
 
 -- Limite journalière (10 / jour).
 PERFORM pg_temp.as_('spam');
@@ -485,11 +485,13 @@ PERFORM pg_temp.eq('la note privée d''une demande de place n''est pas lisible p
 
 -- BR-3 : une passagère tient deux places.
 PERFORM pg_temp.as_('erin');
-PERFORM pg_temp.ok('erin demande aussi une place à gina', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('gina')));
+PERFORM pg_temp.denied('BR-3 : une passagère déjà placée ne demande pas une seconde place', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('gina')), 'junto\.already_seated');
+-- Demande restée en attente d'avant sa place chez dave : gina ne peut pas l'accepter.
 PERFORM pg_temp.as_('db');
+INSERT INTO public.seat_requests (activity_id, requester_id, driver_id, status) VALUES (pg_temp.id('car'), pg_temp.id('erin'), pg_temp.id('gina'), 'pending');
 PERFORM pg_temp.put('sr_erin_gina', pg_temp.sorties_sr('car', 'erin', 'gina'));
 PERFORM pg_temp.as_('gina');
-PERFORM pg_temp.denied('une passagère déjà placée ne prend pas une seconde place', format($$SELECT public.accept_seat_request(%L)::text$$, pg_temp.id('sr_erin_gina')), '.', 'BR-3');
+PERFORM pg_temp.denied('BR-3 : une passagère déjà placée ne prend pas une seconde place', format($$SELECT public.accept_seat_request(%L)::text$$, pg_temp.id('sr_erin_gina')), 'junto\.passenger_already_seated');
 
 -- decline + AC-4 : renvoi immédiat d'une demande refusée.
 PERFORM pg_temp.as_('hank');
@@ -652,15 +654,15 @@ PERFORM pg_temp.denied('le sport d''une sortie terminée ne change pas en direct
   format($$UPDATE public.activities SET sport_id = (SELECT id FROM public.sports WHERE key <> 'hiking' ORDER BY key LIMIT 1) WHERE id = %L$$, pg_temp.id('done')), 'permission denied');
 PERFORM pg_temp.denied('une date hors bornes ne passe pas en direct',
   format($$UPDATE public.activities SET starts_at = now() + interval '2 years' WHERE id = %L$$, pg_temp.id('del')), 'permission denied');
-PERFORM pg_temp.ok('carl tente de repousser sa sortie en cours', format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '3 days')::text$$, pg_temp.id('run')));
+PERFORM pg_temp.denied('BR-7 : carl ne repousse pas sa sortie en cours', format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '3 days')::text$$, pg_temp.id('run')), 'junto\.activity_locked');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('une sortie en cours ne se déplace pas dans le futur',
-  format($$SELECT (starts_at < now())::text FROM public.activities WHERE id = %L$$, pg_temp.id('run')), 'true', 'BR-7');
+  format($$SELECT (starts_at < now())::text FROM public.activities WHERE id = %L$$, pg_temp.id('run')), 'true');
 PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.activities SET deleted_at = now() WHERE id = pg_temp.id('del');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('carl');
-PERFORM pg_temp.denied('une sortie retirée par l''admin ne se modifie plus', format($$SELECT public.update_activity(%L, 'Retour')::text$$, pg_temp.id('del')), 'Operation not permitted', 'BR-8');
+PERFORM pg_temp.denied('une sortie retirée par l''admin ne se modifie plus', format($$SELECT public.update_activity(%L, 'Retour')::text$$, pg_temp.id('del')), 'Operation not permitted');
 PERFORM pg_temp.denied('une sortie retirée ne change plus de trace', format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[6,44],[6.1,44.1]]}'::jsonb)::text$$, pg_temp.id('del')));
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('on ne rejoint pas une sortie retirée', format($$SELECT public.join_activity(%L)$$, pg_temp.id('del')));
@@ -675,7 +677,7 @@ UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('olga');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('la sortie d''une organisatrice suspendue disparaît de la carte', format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('olga_act')), '0');
-PERFORM pg_temp.denied('on ne rejoint pas la sortie d''une organisatrice suspendue', format($$SELECT public.join_activity(%L)$$, pg_temp.id('olga_act')), 'Operation not permitted', 'AC-11');
+PERFORM pg_temp.denied('on ne rejoint pas la sortie d''une organisatrice suspendue', format($$SELECT public.join_activity(%L)$$, pg_temp.id('olga_act')), 'Operation not permitted');
 
 
 -- ═════ Phase B (mig 00479) : signal carte limité (AB-2), matériel sur canal privé (AB-10) ═════
