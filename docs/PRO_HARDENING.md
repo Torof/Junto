@@ -24,7 +24,7 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 - [ ] **B9** Cooldown sur `resubmit_pro_application` ; `approve_pro` refuse une cible suspendue.
 - [ ] **B10** `approve_pro`/`reject_pro` via `create_notification` (sanitize de `reason`).
 - [ ] **B11** Validation de forme `website`/`email`/`phone` côté DB (strip, pas de `javascript:`).
-- [ ] **B12** Cooldown enseigne 30 j → `junto.pro_location_cooldown` + i18n (aujourd'hui erreur générique).
+- [x] **B12** Cooldown enseigne 30 j → `junto.pro_location_cooldown` + i18n (livré en 00444).
 - [ ] **B15** Storage `pro-photos` : pas de cap d'objets, pas de purge des orphelins.
 - [ ] **B16** `private.pro_photo_url_ok` : hôte du projet codé en dur → `app_config`.
 - [ ] **B17** Documenter les trous assumés de la machine à états booking (pas d'unicité inter-offres, capacité informative).

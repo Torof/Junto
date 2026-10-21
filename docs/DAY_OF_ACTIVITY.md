@@ -19,7 +19,7 @@ Aucun utilisateur ne devrait être enregistré comme absent simplement parce qu'
 | Validation géo serveur | T-15min → T+15min | `confirm_presence_via_geo` |
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |
-| Replay offline (deadline arrivée) | end + 3h | `confirm_presence_via_geo(.., p_captured_at)` |
+| Replay offline (deadline arrivée) | end + 24h (00429) | `confirm_presence_via_geo(.., p_captured_at)` |
 | Peer review | end + 15min → end + 24h | `peer_validate_presence` |
 
 L'asymétrie est intentionnelle, et elle a été **élargie à 24 h en 00431**. Deux raisons distinctes :
@@ -146,7 +146,7 @@ Sur replay réussi, le slot OS bascule à "Présence confirmée".
 
 Bornes serveur :
 - `p_captured_at` doit être dans la fenêtre live (T-15min, T+15min)
-- L'arrivée du replay doit être ≤ end + 3h
+- L'arrivée du replay doit être ≤ end + 24h (00429)
 - Distance toujours ≤ 150m
 - Single-shot (`confirmed_present IS NULL`)
 
