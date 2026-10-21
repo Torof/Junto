@@ -105,6 +105,10 @@ Même méthode (lecture seule, base vivante), mais découpage par angle et non p
 | DB-TX-1 | Écart de doc : suppression directe de ses propres alertes autorisée (`alerts_delete_own`, voulu depuis 00288) | Corriger la doc (CLAUDE.md, SECURITY.md), pas la base. |
 | PO-9 | **Fausse alerte de l'audit** : les avis des offres d'un pro suspendu ne sont pas lisibles (la sous-requête passe par la RLS de `pro_offerings`). | Gardé comme test de non-régression. |
 
+## Phase A des correctifs — livrée (mig 00477, 2026-10-21)
+
+Les 6 bugs trouvés par la suite de tests, chacun corrigé avec la faille qu'il masquait par accident : DB-1, DB-DC-1, DB-PO-1 (colonnes qualifiées) ; DB-PO-2, DB-PR-1/DB-AC-1, DB-AC-2 (test de l'identifiant au lieu de l'enregistrement) ; **AB-1** (délai de 15 min avant de rejoindre une sortie quittée + une seule notification « a quitté » par participant et sortie sur 24 h) ; **PR-4** (colonne `late_cancel_at` : l'annulation tardive survit à une réinscription, reprise des annulations existantes) ; **PR-5** (retirer une demande en attente n'est pas pénalisé) ; **AC-4 / AB-4** (redemande de place : 24 h après un refus, 1 h après une annulation ou une expiration). Codes d'erreur `junto.rejoin_cooldown`, `junto.seat_request_cooldown` (5 langues). Suite : 1 381 pass, 0 fail, 88 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
