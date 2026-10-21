@@ -5,10 +5,16 @@
 -- Atlantique pour ne réveiller aucune alerte réelle), puis ajustées en `db`
 -- (bypass_lock) quand il faut une date passée ou un statut terminé.
 
-EXECUTE $p$CREATE FUNCTION pg_temp.sorties_ca(p_vis text, p_max int, p_when text DEFAULT '2 days') RETURNS text
+-- Chaque sortie par défaut a son propre créneau (00497 : on ne participe pas à deux
+-- sorties qui se chevauchent) : J+2 + n × 4 h.
+EXECUTE 'CREATE TEMP SEQUENCE sorties_slot';
+EXECUTE 'GRANT USAGE ON SEQUENCE pg_temp.sorties_slot TO PUBLIC';
+EXECUTE $p$CREATE FUNCTION pg_temp.sorties_ca(p_vis text, p_max int, p_when text DEFAULT NULL) RETURNS text
   LANGUAGE sql AS $b$
   SELECT format($q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'description', 'Tous niveaux', %s, -30.0, 40.0, NULL, NULL, now() + interval %L, '3 hours', %L)::text$q$,
-    coalesce(p_max::text, 'NULL'), p_when, p_vis)
+    coalesce(p_max::text, 'NULL'),
+    coalesce(p_when, (interval '2 days' + nextval('pg_temp.sorties_slot') * interval '4 hours')::text),
+    p_vis)
 $b$$p$;
 
 -- Accès (en tant que db) à l'identifiant d'une participation.
@@ -226,7 +232,7 @@ PERFORM pg_temp.denied('visibilité inconnue refusée à la modification', forma
 -- Champs gelés dès qu'un participant a rejoint.
 PERFORM pg_temp.ok('alice tente de déplacer la date après inscriptions', format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '5 days', p_max_participants => 10, p_visibility => 'private_link')::text$$, pg_temp.id('pub')));
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('date gelée après inscription', format($$SELECT (starts_at = now() + interval '2 days')::text FROM public.activities WHERE id = %L$$, pg_temp.id('pub')), 'true');
+PERFORM pg_temp.eq('date gelée après inscription', format($$SELECT (starts_at <> now() + interval '5 days')::text FROM public.activities WHERE id = %L$$, pg_temp.id('pub')), 'true');
 PERFORM pg_temp.eq('capacité gelée après inscription', format($$SELECT max_participants::text FROM public.activities WHERE id = %L$$, pg_temp.id('pub')), '3');
 PERFORM pg_temp.eq('visibilité gelée après inscription', format($$SELECT visibility FROM public.activities WHERE id = %L$$, pg_temp.id('pub')), 'public');
 -- AC-10 : modifications en boucle (une notification par participant à chaque fois).
@@ -686,7 +692,7 @@ PERFORM pg_temp.user('b_org', 'tos');
 PERFORM pg_temp.user('b_p', 'tos');
 PERFORM pg_temp.as_('b_org');
 PERFORM pg_temp.put('b_pub', pg_temp.ok('B : sortie publique', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie B', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '3 days')::text$q$));
-PERFORM pg_temp.put('b_priv', pg_temp.ok('B : sortie privée', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie B privée', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '3 days', '2 hours', 'private_link')::text$q$));
+PERFORM pg_temp.put('b_priv', pg_temp.ok('B : sortie privée', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie B privée', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '4 days', '2 hours', 'private_link')::text$q$));
 PERFORM pg_temp.as_('db');
 DELETE FROM public.map_broadcasts WHERE activity_id IN (pg_temp.id('b_pub'), pg_temp.id('b_priv'));
 PERFORM pg_temp.put('b_m0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'map'));
@@ -768,3 +774,34 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('B2 : la suspension de l''organisateur émet un signal (ses sorties quittent les cartes)', $q$SELECT (count(*) - pg_temp.get('b3_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '2');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('B2 : les signaux organisateur sont plafonnés à 30 par heure', format($q$SELECT (count(*) <= 30)::text FROM public.rate_events WHERE user_id = %L AND kind = 'creator_map'$q$, pg_temp.id('b_org')), 'true');
+
+-- ═════ Pas deux sorties au même créneau (mig 00497, demande Scott) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('sc_a', 'tos');
+PERFORM pg_temp.user('sc_b', 'tos');
+PERFORM pg_temp.user('sc_p', 'tos');
+PERFORM pg_temp.as_('sc_a');
+PERFORM pg_temp.put('sc1', pg_temp.ok('créneau : sortie 1 (J+10, 0 h → 3 h)', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '10 days' + interval '0 hours', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.denied('créneau : l''organisatrice ne crée pas une 2e sortie qui chevauche la sienne', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '10 days' + interval '1 hour', '3 hours', 'public')::text$q$, 'junto\.schedule_conflict');
+PERFORM pg_temp.as_('sc_b');
+PERFORM pg_temp.put('sc2', pg_temp.ok('créneau : sortie 2 (1 h → 4 h)', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '10 days' + interval '1 hour', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.put('sc3', pg_temp.ok('créneau : sortie 3 (4 h → 7 h, juste après)', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '10 days' + interval '4 hours', '3 hours', 'approval')::text$q$));
+PERFORM pg_temp.as_('sc_p');
+PERFORM pg_temp.eq('créneau : on rejoint la sortie 1', format($$SELECT public.join_activity(%L)$$, pg_temp.id('sc1')), 'accepted');
+PERFORM pg_temp.denied('créneau : on ne rejoint pas une sortie qui chevauche', format($$SELECT public.join_activity(%L)$$, pg_temp.id('sc2')), 'junto\.schedule_conflict');
+PERFORM pg_temp.eq('créneau : une sortie qui suit sans chevaucher reste possible (demande)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('sc3')), 'pending');
+PERFORM pg_temp.ok('créneau : sc_p quitte la sortie 1', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('sc1')));
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = starts_at - interval '2 hours' WHERE id = pg_temp.id('sc3');
+UPDATE public.activities SET starts_at = now() + interval '20 days' WHERE id = pg_temp.id('sc2');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('sc_p');
+PERFORM pg_temp.eq('créneau : sc_p rejoint la sortie 2 (déplacée)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('sc2')), 'accepted');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = now() + interval '20 days' + interval '1 hour' WHERE id = pg_temp.id('sc3');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('sc_b');
+PERFORM pg_temp.denied('créneau : l''organisateur n''accepte pas une demande qui chevauche une autre sortie de la personne',
+  format($$SELECT public.accept_participation(%L)::text$$, pg_temp.sorties_pid('sc3', 'sc_p')), 'junto\.participant_schedule_conflict');

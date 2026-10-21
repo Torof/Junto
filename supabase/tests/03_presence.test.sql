@@ -484,7 +484,7 @@ PERFORM pg_temp.pr_part('NPV', 'r2');
 PERFORM pg_temp.as_('q1');
 PERFORM pg_temp.ok('q1 vote pour q2', format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('q2'), pg_temp.id('P2')));
 PERFORM pg_temp.as_('r1');
-PERFORM pg_temp.ok('r1 vote pour r2 (sortie sans présence)', format($$SELECT public.give_reputation_badge(%L, %L, 'prudent')::text$$, pg_temp.id('r2'), pg_temp.id('NPV')));
+PERFORM pg_temp.denied('pas de vote sur une sortie sans validation de présence (décision Scott)', format($$SELECT public.give_reputation_badge(%L, %L, 'prudent')::text$$, pg_temp.id('r2'), pg_temp.id('NPV')), 'junto\.votes_need_presence');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.pr_shift('P2', interval '30 hours');
 PERFORM pg_temp.pr_shift('NPV', interval '30 hours');
@@ -495,10 +495,7 @@ PERFORM public.close_presence_window_for(pg_temp.id('P2'));
 PERFORM pg_temp.eq('la fermeture directe, elle, compte ces votes',
   format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true');
 PERFORM public.close_presence_window_for(pg_temp.id('NPV'));
--- BR-2 : les votes d'une sortie sans validation de présence ne sont pas comptés (00495, décision Scott
--- en attente : ne plus les solliciter, ou les compter malgré le risque de réputation fabriquée).
-PERFORM pg_temp.eq('sortie sans validation de présence : votes non comptés (pas de réputation fabriquée)',
-  format($$SELECT (counted_at IS NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('r1')), 'true');
+-- BR-2 : aucune demande ni aucun vote sur une sortie sans validation de présence (00497, décision Scott).
 
 -- ═════ Score de fiabilité ═════
 -- rr : 2 présences + 1 absence → (1+2)/(1+3) = 75.
