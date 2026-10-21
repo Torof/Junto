@@ -1,4 +1,4 @@
-# Reconstruction de la base dans un nouveau projet Supabase — plan v3
+# Reconstruction de la base dans un nouveau projet Supabase — plan v4
 
 > Décision Scott 2026-10-21 : construire une nouvelle base propre à côté de l'actuelle, **sans toucher à l'actuelle**, puis basculer après tests. Origine : audit complet d'octobre (TX-2 PostGIS exposé et non corrigeable sur place, TX-4 privilèges par défaut). v2 intégrait un premier pré-audit indépendant.
 >
@@ -8,7 +8,7 @@
 
 **Étape 1 — les règles (cette passe)** : nouveau projet, réglages de départ (§2), schéma de départ et transformations (§3), données de référence uniquement (§4 v3), comparaison automatique et contre-audit (§6.1, §6.2), tests automatiques sans compte et avec un compte de test créé pour l'occasion (§6.3). L'ancien projet n'est pas touché ; l'app et le site ne sont pas basculés.
 
-**Étape 2 — le branchement (après validation de l'étape 1)** : Edge Functions et secrets, configuration d'authentification et serveur d'envoi d'e-mails, buckets de stockage vides, régénération de la démo, recréation des comptes (Scott, testeurs) et de la page pro, fichiers d'environnement par canal, test de Scott sur preview, bascule (§5, §6.4, §7, §8).
+**Étape 2 — le branchement (après validation de l'étape 1)** : Edge Functions et secrets, configuration d'authentification et serveur d'envoi d'e-mails, régénération de la démo (seed consolidé, voir v4), recréation des comptes (Scott, testeurs) et de la page pro, fichiers d'environnement par canal, test de Scott sur preview, bascule (§5, §6.4, §7, §8).
 
 ## 0. Principes
 
@@ -41,7 +41,7 @@
 1. Activer les extensions dans leurs schémas : `pg_cron`, `pg_net`, `pgcrypto`, `uuid-ossp`, `pg_stat_statements`, `supabase_vault` comme aujourd'hui ; **PostGIS dans `extensions`** (T1).
 2. **Fermer les privilèges par défaut** (T4) *avant* de restaurer quoi que ce soit.
 3. Restaurer le schéma exporté (`public`, `private`) après les réécritures T2 / T3.
-4. **Réappliquer les droits exacts de l'ancien projet par script**, objet par objet — fonctions, tables, colonnes (37 colonnes ont des droits propres), schémas — **y compris `PUBLIC` et y compris les absences**, sans se fier aux GRANT du dump. Raison : le dump écrit les droits par rapport au défaut intégré de Postgres ; avec des défauts fermés, 22 fonctions perdraient leur exécution par `PUBLIC`, dont `private.user_is_suspended`, `demo_content_visible`, `private.is_conversation_member`, `private.message_author_visible`, appelées par les règles d'accès : toute lecture échouerait.
+4. **Réappliquer les droits exacts de l'ancien projet par script**, objet par objet — fonctions, tables, colonnes (37 colonnes ont des droits propres), schémas — **y compris `PUBLIC` et y compris les absences**, sans se fier aux GRANT du dump. Raison : le dump écrit les droits par rapport au défaut intégré de Postgres ; avec des défauts fermés, 19 fonctions de `public` perdraient leur exécution par `PUBLIC` (18 fonctions de trigger, pour lesquelles Postgres ne vérifie pas ce droit, et `demo_content_visible`, qui a aussi des droits explicites). Pas de casse attendue, mais on réapplique quand même les droits exacts pour que la comparaison soit stricte.
 5. Recréer ce qui n'est pas dans le dump : trigger `on_auth_user_created` sur `auth.users` ; buckets et 12 policies de stockage ; policies de `realtime.messages` ; publication `supabase_realtime` (**6 tables** : `activities`, `activity_gear`, `activity_gear_missing`, `notifications`, `participations`, `seat_requests` — les partitions de `realtime.messages` sont gérées par Supabase et ne se recréent pas) ; `REPLICA IDENTITY FULL` sur `activities`, `notifications`, `activity_gear`, `wall_messages`, `private_messages` ; réglages de rôles (`anon` 3 s, `authenticated` 8 s, `authenticator` safeupdate / 8 s / verrou 8 s, chemin de recherche de `postgres`) ; 4 tâches planifiées identiques (utilisateur, actif).
 
 **Transformations, et seulement celles-ci :**
@@ -90,7 +90,7 @@
 
 ## 7. Bascule
 
-1. Copie définitive des données (§4) avec gel court des écritures ; **les écritures faites sur l'ancien projet après ce moment sont perdues** (fenêtre acceptée, quelques minutes, testeurs prévenus).
+1. Aucune copie de données (v3) : la nouvelle base démarre avec les référentiels, la démo régénérée et les comptes recréés à l'étape 2.
 2. Preview, puis production : mise à jour de l'app des testeurs (avec le REVOKE de `real_name`, L16) et redéploiement du site.
 3. **Nouvelle build native de production rapidement après** : en cas d'échec de mise à jour OTA, l'app retombe sur le bundle embarqué, qui pointerait encore vers l'ancien projet.
 4. **Couper les notifications push de l'ancien projet** (retirer son secret `PUSH_WEBHOOK_SECRET`, ou suspendre ses tâches planifiées) : sinon les testeurs recevraient des notifications en double ou fantômes. Exception consciente au principe « intact ».
@@ -112,11 +112,35 @@ TX-2 reste ouvert sur l'ancien projet : **décision Scott** entre le filtre prov
 | Lectures cassées par des droits `PUBLIC` perdus | Défauts fermés d'abord, puis droits exacts réappliqués par script, comparés en ensembles |
 | Une fonction qui ne trouve plus PostGIS (erreur seulement à l'exécution) | Réécriture du dump + contrôle « zéro `public.st_` » + test d'exécution de chaque fonction géographique |
 | Une adresse de l'ancien projet oubliée | Zéro occurrence dans le schéma, les fonctions et toutes les colonnes texte |
-| Notifications envoyées pendant le chargement | Chargement triggers coupés |
 | E-mails non reçus par les testeurs | Serveur d'envoi personnalisé configuré avant, diff de la configuration d'authentification |
 | Publication OTA de production vers la mauvaise base | Fichiers d'environnement par canal + garde-fou d'hôte |
 | Notifications en double après bascule | Push coupé sur l'ancien projet |
 | Dérive du schéma pendant la fenêtre | Gel, correctifs appliqués aux deux, comparaison relancée à la bascule |
+
+## 11. Amendements v4 — second pré-audit indépendant (2026-10-21)
+
+Ces points priment sur les sections précédentes en cas de conflit.
+
+**Étape 1**
+1. **T2 = 5 fonctions**, pas 4 : `handle_activity_update` manquait. Elle compare deux positions (`location_meeting IS NOT DISTINCT FROM …`) avec l'opérateur `=` de PostGIS, qui ne serait plus trouvé : **toute modification de sortie échouerait**. Une recherche textuelle ne peut pas voir un opérateur implicite. **Critère de sortie de l'étape 1** : vérificateur statique `plpgsql_check` installé temporairement sur le nouveau projet, passé sur les 263 fonctions (fonctions de trigger avec leur table), anomalies traitées, puis retiré.
+2. **Privilèges par défaut** : retirer du dump toutes les lignes `ALTER DEFAULT PRIVILEGES` (sinon la restauration rouvre les défauts) et la ligne `CREATE EXTENSION postgis … SCHEMA public`. Ajouter une révocation **globale** `ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` en plus des entrées par schéma. Installer les extensions **avant** cette révocation (les vues publiques ont besoin des fonctions PostGIS). Après restauration, **vérifier explicitement** les lignes attendues de `pg_default_acl` : un écart « attendu » ne prouve pas que T4 est en place.
+3. **T3 doit échouer fermé** : si l'adresse lue dans `app_config` est absente, la vérification d'URL de photo renverrait NULL et accepterait n'importe quelle adresse. Écriture `coalesce(…, false)` ou exception si la clé manque ; test avec la clé supprimée. Les adresses du nouveau projet sont **renseignées dès l'étape 1** (seul le secret push attend l'étape 2). `private.pro_photo_url_ok` reste non exposée (exécution réservée à `postgres`).
+4. **T3 côté push** : les fonctions d'envoi sortent sans rien faire si le secret **ou** l'URL manque (sinon une adresse NULL fait échouer la transaction métier : inscription, invitation).
+5. **Méthode de test sans données** : jeux d'essai dans des **transactions annulées** (création de comptes dans `auth.users` qui déclenche `on_auth_user_created`, rôle `authenticated` simulé, appels des fonctions, `ROLLBACK`) ; chaque fonction PostGIS et chaque vue exécutée au moins une fois en `anon` et `authenticated` ; vérification « 0 ligne hors référentiels » avant l'étape 2 ; vues testées via l'API et non via le site (qui masque les erreurs en liste vide) ; temps réel sur `activities` dans le test réel.
+6. **Comparaison sans faux « identique »** : définitions rendues avec `search_path` vide (noms qualifiés, sinon T1/T2 invisibles) ; diff dans les deux sens ; fonctions comparées par signature complète et `prosrc` exact (seules les fonctions T2/T3 peuvent différer) ; contraintes avec leur état de validation (`reputation_votes_check` est NOT VALID) ; attributs de rôle (`postgres` BYPASSRLS, dont dépendent les 255 fonctions privilégiées et les vues) ; locale de la base, fuseau UTC, versions de Postgres et des extensions ; référentiels comparés par empreinte de ligne ; droits des objets d'extension exclus.
+7. **Chiffres corrigés** : 37 colonnes à droits propres (`bookings` 15, `pro_profiles` 22) ; `REPLICA IDENTITY` est bien dans le dump (contrôle conservé) ; `app_config` ne contient que 2 clés lues par 6 fonctions ; ajouter à la comparaison `app.settings.jwt_exp` et le réglage de `supabase_read_only_user`.
+8. **Stockage à l'étape 1** : buckets et leurs réglages (public, 5 Mo, jpeg/png/webp) créés et comparés dès l'étape 1, vides.
+9. **Vérifications précoces sur le projet neuf** : `postgres` peut-il créer le trigger sur `auth.users` ? Options de création (exposition automatique de l'API, RLS automatique) ? Versions identiques (Postgres 17.6, PostGIS 3.3.7) ?
+
+**Étape 2**
+10. **Démo** : il n'existe pas de script unique ; elle est répartie sur ~25 migrations dont plusieurs se corrigent. Construire **un seed démo consolidé et rejouable** (export des lignes `is_demo` et des comptes démo de l'ancienne base), copier les photos démo du stockage et réécrire leurs adresses.
+11. **Ordre** : compte de Scott → droit admin (SQL avec `junto.bypass_lock`) → page pro → démo.
+12. **Clés** : les Edge Functions lisent `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` (4 fichiers) ; la décision sur les nouveaux types de clés couvre aussi ces variables, et le comportement de la vérification JWT avec des JWT asymétriques est à confirmer avant de choisir.
+13. **Variables EAS** : les builds dans le cloud prennent l'adresse Supabase dans les variables d'environnement d'expo.dev (développement / preview / production), pas dans le `.env` local : les inventorier et les basculer par environnement ; le garde-fou d'hôte couvre aussi `eas update`.
+14. **Téléphones après bascule** : vider au premier lancement la file de présence hors ligne et les géofences qui portent d'anciens identifiants ; les testeurs devront se reconnecter (session propre à chaque projet) — les prévenir.
+15. **Retour arrière** : tout ce qui a été créé dans le nouveau projet est perdu en cas de retour.
+
+**Gel pendant la fenêtre** : garder le dossier de migrations actuel utilisable pour l'ancien projet jusqu'à la bascule ; un correctif « aux deux projets » est un même fichier SQL appliqué à chacun.
 
 ## Annexe — bug préexistant hors périmètre
 
