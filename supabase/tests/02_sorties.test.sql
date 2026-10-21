@@ -627,8 +627,8 @@ PERFORM pg_temp.denied('pas de création directe de sortie',
 PERFORM pg_temp.denied('un inconnu ne modifie pas la sortie d''autrui', format($$UPDATE public.activities SET title = 'Pirate' WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
 PERFORM pg_temp.denied('un inconnu ne supprime pas la sortie d''autrui', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
 PERFORM pg_temp.as_('erin');
-PERFORM pg_temp.eq('une participante ne modifie pas sa participation en direct', format($$UPDATE public.participations SET status = 'removed', confirmed_present = true WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('car'), pg_temp.id('erin')), '0');
-PERFORM pg_temp.eq('une participante ne modifie pas une demande de place en direct', format($$UPDATE public.seat_requests SET status = 'accepted' WHERE id = %L$$, pg_temp.id('sr_erin_gina')), '0');
+PERFORM pg_temp.denied('une participante ne modifie pas sa participation en direct', format($$UPDATE public.participations SET status = 'removed', confirmed_present = true WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('car'), pg_temp.id('erin')), 'permission denied');
+PERFORM pg_temp.denied('une participante ne modifie pas une demande de place en direct', format($$UPDATE public.seat_requests SET status = 'accepted' WHERE id = %L$$, pg_temp.id('sr_erin_gina')), 'permission denied');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('la créatrice ne supprime pas sa sortie en direct', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
 PERFORM pg_temp.denied('la créatrice ne peut plus écrire en direct sur sa sortie (AC-1)', format($$UPDATE public.activities SET status = 'completed', creator_id = %L, is_demo = true, invite_token = gen_random_uuid() WHERE id = %L$$, pg_temp.id('bob'), pg_temp.id('car')), 'permission denied');

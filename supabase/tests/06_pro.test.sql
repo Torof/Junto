@@ -102,7 +102,7 @@ PERFORM pg_temp.eq('le candidat voit sa propre ligne', format($$SELECT count(*):
 PERFORM pg_temp.as_('adm');
 PERFORM pg_temp.eq('l''admin voit une candidature en attente', format($$SELECT count(*)::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('cand')), '1');
 PERFORM pg_temp.as_('cli');
-PERFORM pg_temp.eq('un membre ne peut pas modifier la vitrine d''un pro', format($$WITH u AS (UPDATE public.pro_profiles SET display_name = 'pwned' WHERE user_id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('pro')), '0');
+PERFORM pg_temp.denied('un membre ne peut pas modifier la vitrine d''un pro', format($$WITH u AS (UPDATE public.pro_profiles SET display_name = 'pwned' WHERE user_id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('pro')), 'permission denied');
 PERFORM pg_temp.denied('un membre ne peut pas créer de vitrine directement', format($$INSERT INTO public.pro_profiles (user_id, display_name, company_name, real_name, status) VALUES (%L, 'x', 'SARL x', 'x x', 'approved')$$, pg_temp.id('cli')));
 
 -- ═════ update_pro_profile ═════
@@ -154,8 +154,8 @@ PERFORM pg_temp.denied('prix sans unité refusé', format($$SELECT public.create
 PERFORM pg_temp.denied('min > max refusé', format($$SELECT public.create_pro_offering(p_sport_id := %L, p_title := 'MinMax', p_description := 'd', p_level := 'x',
   p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'B', p_max_participants := 2, p_min_participants := 5)::text$$, pg_temp.id('sport')));
 PERFORM pg_temp.denied('création d''offre directe dans la table refusée', format($$INSERT INTO public.pro_offerings (pro_id, sport_id, title, description, level, location_name) VALUES (%L, %L, 'x', 'x', 'x', 'x')$$, pg_temp.id('pro'), pg_temp.id('sport')));
-PERFORM pg_temp.eq('modification directe d''une offre sans effet', format($$WITH u AS (UPDATE public.pro_offerings SET price_eur = 1 WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('off')), '0');
-PERFORM pg_temp.eq('suppression directe d''une offre sans effet', format($$WITH u AS (DELETE FROM public.pro_offerings WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('off')), '0');
+PERFORM pg_temp.denied('modification directe d''une offre sans effet', format($$WITH u AS (UPDATE public.pro_offerings SET price_eur = 1 WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('off')), 'permission denied');
+PERFORM pg_temp.denied('suppression directe d''une offre sans effet', format($$WITH u AS (DELETE FROM public.pro_offerings WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('off')), 'permission denied');
 PERFORM pg_temp.ok('le pro règle matériel et fiche participant', format($$SELECT public.set_offering_details(%L, ARRAY['Baudrier'], ARRAY['<b>Chaussures</b>'], ARRAY['shoe_size'], ARRAY['Allergies ?'])::text$$, pg_temp.id('off')));
 PERFORM pg_temp.eq('le matériel requis est nettoyé du HTML', format($$SELECT equipment_required->>0 FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off')), 'Chaussures');
 PERFORM pg_temp.denied('champ participant hors catalogue refusé', format($$SELECT public.set_offering_details(%L, NULL, NULL, ARRAY['iban'], NULL)::text$$, pg_temp.id('off')));
@@ -388,7 +388,7 @@ PERFORM pg_temp.denied('un second avis sur le même pro refusé', format($$SELEC
 PERFORM pg_temp.denied('note hors 1..5 refusée', format($$SELECT public.create_pro_review(%L, 6::smallint)::text$$, pg_temp.id('pro2')));
 PERFORM pg_temp.denied('avis sur une candidature en attente refusé', format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('cand')));
 PERFORM pg_temp.denied('avis inséré directement refusé', format($$INSERT INTO public.pro_reviews (pro_id, reviewer_id, rating) VALUES (%L, %L, 5)$$, pg_temp.id('pro2'), pg_temp.id('cli')));
-PERFORM pg_temp.eq('le relecteur ne s''écrit pas une réponse du pro', format($$WITH u AS (UPDATE public.pro_reviews SET pro_reply = 'faux' WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('rv1')), '0');
+PERFORM pg_temp.denied('le relecteur ne s''écrit pas une réponse du pro', format($$WITH u AS (UPDATE public.pro_reviews SET pro_reply = 'faux' WHERE id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('rv1')), 'permission denied');
 PERFORM pg_temp.ok('l''auteur modifie son avis', format($$SELECT public.update_pro_review(%L, 3::smallint, 'Bien')::text$$, pg_temp.id('rv1')));
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.denied('pas d''auto-avis', format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pro')));

@@ -197,8 +197,8 @@ PERFORM pg_temp.eq('un participant valide sa présence par QR',
   format($$SELECT public.confirm_presence_via_token(%L)::text$$, pg_temp.get('tokA')), pg_temp.get('A'));
 PERFORM pg_temp.eq('valider deux fois est idempotent',
   format($$SELECT public.confirm_presence_via_token(%L)::text$$, pg_temp.get('tokA')), pg_temp.get('A'));
-PERFORM pg_temp.eq('p1 ne peut pas modifier sa présence en direct (aucune politique UPDATE)',
-  format($$WITH u AS (UPDATE public.participations SET confirmed_present = false WHERE activity_id = %L AND user_id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('A'), pg_temp.id('p1')), '0');
+PERFORM pg_temp.denied('p1 ne peut pas modifier sa présence en direct (aucune politique UPDATE)',
+  format($$WITH u AS (UPDATE public.participations SET confirmed_present = false WHERE activity_id = %L AND user_id = %L RETURNING 1) SELECT count(*)::text FROM u$$, pg_temp.id('A'), pg_temp.id('p1')), 'permission denied');
 PERFORM pg_temp.as_('sus');
 PERFORM pg_temp.denied('un participant suspendu ne valide pas par QR',
   format($$SELECT public.confirm_presence_via_token(%L)::text$$, pg_temp.get('tokA')));

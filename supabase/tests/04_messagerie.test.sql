@@ -303,18 +303,18 @@ PERFORM pg_temp.ok('masquer un fil dont on n''est pas membre est sans effet', fo
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('insertion directe dans messages refusée',
   format($$INSERT INTO public.messages (conversation_id, sender_id, content) VALUES (%L, %L, 'direct')$$, pg_temp.id('dm_ab'), pg_temp.id('alice')));
-PERFORM pg_temp.eq('modification directe d''un message sans effet',
-  format($$UPDATE public.messages SET content = 'falsifié' WHERE id = %L$$, pg_temp.id('m1')), '0');
-PERFORM pg_temp.eq('suppression directe d''un message sans effet',
-  format($$DELETE FROM public.messages WHERE id = %L$$, pg_temp.id('m1')), '0');
+PERFORM pg_temp.denied('modification directe d''un message sans effet',
+  format($$UPDATE public.messages SET content = 'falsifié' WHERE id = %L$$, pg_temp.id('m1')), 'permission denied');
+PERFORM pg_temp.denied('suppression directe d''un message sans effet',
+  format($$DELETE FROM public.messages WHERE id = %L$$, pg_temp.id('m1')), 'permission denied');
 PERFORM pg_temp.denied('la table conversations n''est pas lisible directement', $$SELECT count(*)::text FROM public.conversations$$, 'permission denied');
 PERFORM pg_temp.denied('insertion directe dans conversations refusée',
   format($$INSERT INTO public.conversations (type, user_1, user_2, status) VALUES ('dm', %L, %L, 'active')$$,
     LEAST(pg_temp.id('alice'), pg_temp.id('mal')), GREATEST(pg_temp.id('alice'), pg_temp.id('mal'))));
 PERFORM pg_temp.eq('alice ne voit que sa propre ligne de membre du DM',
   format($$SELECT count(*)::text FROM public.conversation_members WHERE conversation_id = %L$$, pg_temp.id('dm_ab')), '1');
-PERFORM pg_temp.eq('modification directe d''une ligne de membre sans effet',
-  format($$UPDATE public.conversation_members SET last_read_at = now() WHERE conversation_id = %L$$, pg_temp.id('dm_ab')), '0');
+PERFORM pg_temp.denied('modification directe d''une ligne de membre sans effet',
+  format($$UPDATE public.conversation_members SET last_read_at = now() WHERE conversation_id = %L$$, pg_temp.id('dm_ab')), 'permission denied');
 PERFORM pg_temp.as_('mal');
 PERFORM pg_temp.denied('s''ajouter soi-même comme membre d''un DM est refusé',
   format($$INSERT INTO public.conversation_members (conversation_id, user_id) VALUES (%L, %L)$$, pg_temp.id('dm_ab'), pg_temp.id('mal')));
@@ -635,7 +635,7 @@ PERFORM pg_temp.ok('bob tente de réécrire le titre et le destinataire',
   format($$UPDATE public.notifications SET title = 'pwn', body = 'pwn', user_id = %L$$, pg_temp.id('alice')));
 PERFORM pg_temp.denied('bob ne crée pas de notification',
   format($$INSERT INTO public.notifications (user_id, type, title, body) VALUES (%L, 'x', 'x', 'x')$$, pg_temp.id('bob')));
-PERFORM pg_temp.eq('bob ne supprime pas ses notifications', $$DELETE FROM public.notifications$$, '0');
+PERFORM pg_temp.denied('bob ne supprime pas ses notifications', $$DELETE FROM public.notifications$$, 'permission denied');
 PERFORM pg_temp.denied('create_notification n''est pas appelable par un client',
   format($$SELECT public.create_notification(%L, 'x', 'x', 'x')::text$$, pg_temp.id('alice')));
 PERFORM pg_temp.as_('db');

@@ -245,4 +245,19 @@ BEGIN
   PERFORM pg_temp.ok('filtre d''API : appel de fonction de l''app permis',
     $$SELECT set_config('request.method', 'POST', true), set_config('request.path', '/rpc/join_activity', true), public.junto_pre_request()::text$$);
   PERFORM set_config('request.method', '', true); PERFORM set_config('request.path', '', true);
+  -- 00510 : une fonction créée plus tard n'est appelable par aucun client sans GRANT explicite.
+  PERFORM pg_temp.as_('db');
+  EXECUTE 'CREATE FUNCTION public.zz_resecure_probe() RETURNS int LANGUAGE sql AS $f$ SELECT 1 $f$';
+  PERFORM pg_temp.eq('nouvelle fonction : pas d''EXECUTE par défaut pour authenticated',
+    $$SELECT has_function_privilege('authenticated', 'public.zz_resecure_probe()', 'EXECUTE')::text$$, 'false');
+  PERFORM pg_temp.eq('nouvelle fonction : pas d''EXECUTE par défaut pour anon',
+    $$SELECT has_function_privilege('anon', 'public.zz_resecure_probe()', 'EXECUTE')::text$$, 'false');
+  -- 00510 : users en liste blanche — une colonne ajoutée plus tard est figée pour le client.
+  EXECUTE 'ALTER TABLE public.users ADD COLUMN zz_probe text';
+  EXECUTE 'GRANT UPDATE (zz_probe) ON public.users TO authenticated';
+  PERFORM pg_temp.as_('alice');
+  PERFORM pg_temp.ok('alice tente d''écrire une colonne ajoutée plus tard', format($$UPDATE public.users SET zz_probe = 'x', bio = 'Bio ok' WHERE id = %L$$, pg_temp.get('alice')));
+  PERFORM pg_temp.as_('db');
+  PERFORM pg_temp.eq('la colonne ajoutée plus tard reste intacte, le champ de profil change',
+    format($$SELECT coalesce(zz_probe, 'null') || '|' || bio FROM public.users WHERE id = %L$$, pg_temp.get('alice')), 'null|Bio ok');
 END;

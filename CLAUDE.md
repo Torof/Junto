@@ -10,7 +10,7 @@
 - **All business rules enforced at database level**, not just client-side.
 - **All JOINs with user data** must use `public_profiles` view, NOT `users` table.
 - **All functions are SECURITY DEFINER** + `SET search_path = public`. Authorization chains are the ONLY defense.
-- **Whitelist triggers on users + activities** — force privileged columns to OLD values. New columns protected by default.
+- **Column protection** — `users`: true whitelist trigger (`handle_user_update`, 00510): a client can change only `display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language`; every other column, including new ones, keeps its old value unless a SECURITY DEFINER function sets `junto.bypass_lock`. `activities`: no client write grant at all (00480) + `handle_activity_update` pins privileged columns against definer functions.
 - **Generic errors for SENSITIVE failures** (auth, ownership, participant-status, suspension, access) — "Operation not permitted", never reveal implementation details or another user's state. **User-actionable, NON-sensitive failures** (rate limits, input validation, capacity, premium gates) may `RAISE EXCEPTION 'junto.<code>'` — a stable token the client maps to a friendly message (`errors.code.<code>`). These leak nothing exploitable (the user's own limit/input state). See SECURITY.md "Messages d'erreur".
 
 ## When to Read Which Doc
@@ -86,7 +86,7 @@
 6. Add `ON DELETE CASCADE` or `ON DELETE SET NULL` per SECURITY.md "Stratégie de suppression par table"
 7. Include `suspended_at IS NULL` check in RLS where relevant
 8. Include blocked_users filter in RLS where relevant (unidirectional for wall, bidirectional for private messages)
-9. GRANT/REVOKE appropriate permissions (no anon GRANT on users table)
+9. Grants: since 00502 a new table gives clients SELECT only. A direct client write needs an explicit `GRANT` **and** a write policy (rare — prefer a function). No anon grant on user data.
 10. Generate updated TypeScript types after migration
 11. Update seed data script
 
@@ -100,7 +100,7 @@
 7. Generic "Operation not permitted" for sensitive checks; `RAISE EXCEPTION 'junto.<code>'` for user-actionable non-sensitive ones (limits/validation/capacity/premium) + add `errors.code.<code>` i18n (FR+EN)
 8. Use advisory locks where needed for race conditions (rate limiting)
 9. Use `set_config('junto.bypass_lock', 'true', true)` if the function needs to modify trigger-protected fields
-10. REVOKE EXECUTE from anon. Internal functions: REVOKE from authenticated too.
+10. Since 00511 a new function is executable by NOBODY by default (no PUBLIC/anon/authenticated EXECUTE). Client-callable RPC → `GRANT EXECUTE ON FUNCTION … TO authenticated` explicitly (never anon unless truly public). Internal / trigger functions → no grant.
 11. Add the function to the SECURITY.md function classification table
 
 ## Before Any Feature

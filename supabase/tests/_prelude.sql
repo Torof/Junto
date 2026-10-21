@@ -65,6 +65,9 @@ EXECUTE $p$CREATE FUNCTION pg_temp.as_(p_label text) RETURNS void
   LANGUAGE plpgsql AS $b$
   BEGIN
     EXECUTE 'RESET ROLE';
+    -- 00511: new functions get no EXECUTE for PUBLIC by default — the harness
+    -- grants its own temporary helpers before switching to a client role.
+    EXECUTE format('GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA %I TO PUBLIC', pg_my_temp_schema()::regnamespace::text);
     IF p_label = 'db' THEN
       PERFORM set_config('request.jwt.claims', '', true);
     ELSIF p_label = 'anon' THEN

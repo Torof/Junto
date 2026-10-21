@@ -224,8 +224,8 @@ PERFORM pg_temp.eq('stats pro visibles', format($$SELECT review_count::text FROM
 PERFORM pg_temp.eq('rideau démo : avis pro démo masqués (vue)', format($$SELECT count(*)::text FROM public.pro_reviews_with_profiles WHERE pro_id = %L$$, pg_temp.id('demo1')), '0');
 PERFORM pg_temp.eq('rideau démo : stats pro démo masquées', format($$SELECT count(*)::text FROM public.pro_review_stats WHERE pro_id = %L$$, pg_temp.id('demo1')), '0');
 PERFORM pg_temp.eq('rideau démo : avis pro démo masqués (table)', format($$SELECT count(*)::text FROM public.pro_reviews WHERE pro_id = %L$$, pg_temp.id('demo1')), '0');
-PERFORM pg_temp.eq('alice ne peut pas activer le mode démo',
-  $$WITH u AS (UPDATE public.app_config SET value = 'true' WHERE name = 'demo_mode' RETURNING 1) SELECT count(*)::text FROM u$$, '0');
+PERFORM pg_temp.denied('alice ne peut pas activer le mode démo',
+  $$WITH u AS (UPDATE public.app_config SET value = 'true' WHERE name = 'demo_mode' RETURNING 1) SELECT count(*)::text FROM u$$, 'permission denied');
 PERFORM pg_temp.eq('alice n''a pas accès au contenu démo', $$SELECT public.demo_content_visible()::text$$, 'false');
 
 PERFORM pg_temp.as_('carol');
@@ -272,8 +272,8 @@ PERFORM pg_temp.denied('latitude invalide refusée', $$SELECT public.upsert_disp
 PERFORM pg_temp.denied('libellé de lieu vide refusé', $$SELECT public.upsert_dispo(ARRAY['hiking'], NULL, 6.08, 44.56, '<b></b>', 15, ARRAY['car'], now() + interval '1 hour', now() + interval '2 days')::text$$, 'junto.dispo_place');
 PERFORM pg_temp.denied('pas d''écriture directe dans les dispos',
   format($$INSERT INTO public.discovery_availabilities (user_id, sport_keys, base, base_label, transport_modes, window_start, window_end) VALUES (%L, ARRAY['hiking'], 'POINT(6 44)', 'x', ARRAY['car'], now(), now() + interval '1 day')$$, pg_temp.id('alice')));
-PERFORM pg_temp.ok('tentative de se marquer démo / modifier sa dispo en direct',
-  format($$UPDATE public.discovery_availabilities SET is_demo = true, radius_km = 50 WHERE user_id = %L$$, pg_temp.id('alice')));
+PERFORM pg_temp.denied('tentative de se marquer démo / modifier sa dispo en direct',
+  format($$UPDATE public.discovery_availabilities SET is_demo = true, radius_km = 50 WHERE user_id = %L$$, pg_temp.id('alice')), 'permission denied');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la dispo n''est pas modifiable en direct',
   format($$SELECT (is_demo::text || '/' || radius_km::text) FROM public.discovery_availabilities WHERE user_id = %L$$, pg_temp.id('alice')), 'false/15');
