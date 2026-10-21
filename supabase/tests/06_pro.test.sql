@@ -139,7 +139,7 @@ PERFORM pg_temp.ok('image de pin dans son dossier', format($$SELECT public.set_p
 PERFORM pg_temp.denied('image de pin hors stockage refusée', $$SELECT public.set_pro_pin_image('https://evil.example/pin.jpg')::text$$);
 PERFORM pg_temp.denied('image de pin dans le dossier d''un autre refusée', format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('pro2', 'pin.jpg')));
 PERFORM pg_temp.denied('image de pin : remontée « .. » vers le dossier d''un autre refusée',
-  format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('pro', '../' || pg_temp.id('pro2')::text || '/pin.jpg')), 'Operation not permitted', 'PO-8');
+  format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('pro', '../' || pg_temp.id('pro2')::text || '/pin.jpg')), 'Operation not permitted');
 PERFORM pg_temp.as_('cand');
 PERFORM pg_temp.denied('en attente : pas d''icône de pin', $$SELECT public.set_pro_pin_icon('water')::text$$);
 PERFORM pg_temp.denied('en attente : pas d''image de pin', format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('cand', 'pin.jpg')));
@@ -209,7 +209,7 @@ PERFORM pg_temp.denied('un candidat en attente n''ajoute pas de photo de vitrine
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.ok('le pro retire sa photo', format($$SELECT public.remove_pro_photo(%L)::text$$, pg_temp.id('ph2')));
 PERFORM pg_temp.denied('photo : remontée « .. » vers le dossier d''un autre refusée',
-  format($$SELECT public.add_pro_photo(%L)::text$$, pg_temp.po_url('pro', '../' || pg_temp.id('pro2')::text || '/a.jpg')), 'Operation not permitted', 'PO-8');
+  format($$SELECT public.add_pro_photo(%L)::text$$, pg_temp.po_url('pro', '../' || pg_temp.id('pro2')::text || '/a.jpg')), 'Operation not permitted');
 PERFORM pg_temp.ok('le pro retire sa photo d''offre', format($$SELECT public.remove_pro_offering_photo(%L)::text$$, pg_temp.id('oph1')));
 
 -- ═════ Blocage : le pro bloque le harceleur ═════
@@ -234,7 +234,7 @@ PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.ok('le pro retire une photo communautaire de sa page', format($$SELECT public.remove_pro_community_photo(%L)::text$$, pg_temp.id('cph')));
 PERFORM pg_temp.as_('har');
 PERFORM pg_temp.denied('un membre bloqué par le pro ne poste pas de photo sur sa page',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.po_url('har', 'h.jpg')), 'Operation not permitted', 'PO-4');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.po_url('har', 'h.jpg')), 'Operation not permitted');
 
 -- ═════ Disponibilités ═════
 PERFORM pg_temp.as_('pro');
@@ -323,7 +323,7 @@ PERFORM pg_temp.denied('désinscription avec réservation vivante refusée', $$S
 PERFORM pg_temp.ok('le pro modifie son offre', format($$SELECT public.update_pro_offering(p_offering_id := %L, p_sport_id := %L, p_title := 'Rando test', p_description := 'Description test', p_level := 'Tous niveaux',
   p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'Briançon', p_max_participants := 8, p_price_eur := 500, p_price_unit := 'person')::text$$, pg_temp.id('off'), pg_temp.id('sport')));
 PERFORM pg_temp.as_('cli');
-PERFORM pg_temp.eq('après acceptation, le client garde le prix accepté', format($$SELECT price_eur::int::text FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk1')), '50', 'PO-5');
+PERFORM pg_temp.eq('après acceptation, le client garde le prix accepté', format($$SELECT price_eur::int::text FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk1')), '50');
 PERFORM pg_temp.as_('cli2');
 PERFORM pg_temp.denied('un membre n''ouvre pas d''agenda pro', $$SELECT count(*)::text FROM public.get_pro_agenda(current_date, current_date + 30)$$);
 PERFORM pg_temp.eq('get_my_bookings ne montre pas les réservations des autres', $$SELECT count(*)::text FROM public.get_my_bookings()$$, '0');
@@ -375,7 +375,7 @@ UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('cli');
 PERFORM pg_temp.po_unlock();
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.eq('un suspendu ne lit plus ses réservations par la table', $$SELECT count(*)::text FROM public.bookings$$, '0');
-PERFORM pg_temp.eq('un suspendu ne lit plus ses réservations via get_my_bookings', $$SELECT count(*)::text FROM public.get_my_bookings()$$, '0', 'PO-6');
+PERFORM pg_temp.eq('un suspendu ne lit plus ses réservations via get_my_bookings', $$SELECT count(*)::text FROM public.get_my_bookings()$$, '0');
 PERFORM pg_temp.denied('un suspendu n''annule pas lui-même', format($$SELECT public.cancel_booking(%L)::text$$, pg_temp.id('bk4')));
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.denied('le pro n''accepte pas la demande d''un client suspendu', format($$SELECT public.accept_booking(%L)::text$$, pg_temp.id('bk4')));
@@ -419,7 +419,7 @@ PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.ok('l''auteur réécrit son avis après la réponse', format($$SELECT public.update_pro_review(%L, 1::smallint, 'Nul')::text$$, pg_temp.id('rv1')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le pro est informé d''un avis réécrit après sa réponse',
-  format($$SELECT (count(*) > 1)::text FROM public.notifications WHERE user_id = %L AND data->>'review_id' = %L$$, pg_temp.id('pro'), pg_temp.id('rv1')), 'true', 'PO-11');
+  format($$SELECT (count(*) > 1)::text FROM public.notifications WHERE user_id = %L AND data->>'review_id' = %L$$, pg_temp.id('pro'), pg_temp.id('rv1')), 'true');
 -- PO-2 : réponse / effacement / réponse → une seule notification à l'auteur.
 PERFORM pg_temp.as_('pro');
 PERFORM public.reply_to_pro_review(pg_temp.id('rv1'), NULL);
@@ -427,7 +427,7 @@ PERFORM public.reply_to_pro_review(pg_temp.id('rv1'), 'Merci encore');
 PERFORM pg_temp.po_unlock();
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('effacer puis réécrire la réponse ne renotifie pas l''auteur',
-  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'review_reply'$$, pg_temp.id('cli')), '1', 'PO-2');
+  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'review_reply'$$, pg_temp.id('cli')), '1');
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.ok('l''auteur supprime son avis', format($$SELECT public.delete_pro_review(%L)::text$$, pg_temp.id('rv1')));
 
@@ -438,10 +438,10 @@ PERFORM public.delete_pro_review(pg_temp.id('rv2'));
 PERFORM public.create_pro_review(pg_temp.id('pro2'), 1::smallint, 'Bof encore');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('publier / supprimer en boucle ne renotifie pas le pro',
-  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'review_received'$$, pg_temp.id('pro2')), '1', 'PO-1');
+  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'review_received'$$, pg_temp.id('pro2')), '1');
 -- PO-4 : un membre bloqué par le pro ne devrait pas pouvoir publier d'avis.
 PERFORM pg_temp.as_('har');
-PERFORM pg_temp.denied('un membre bloqué par le pro ne laisse pas d''avis', format($$SELECT public.create_pro_review(%L, 1::smallint, 'Harcèlement')::text$$, pg_temp.id('pro')), 'Operation not permitted', 'PO-4');
+PERFORM pg_temp.denied('un membre bloqué par le pro ne laisse pas d''avis', format($$SELECT public.create_pro_review(%L, 1::smallint, 'Harcèlement')::text$$, pg_temp.id('pro')), 'Operation not permitted');
 
 -- ═════ Avis sur une offre ═════
 PERFORM pg_temp.as_('cli');
@@ -459,7 +459,7 @@ PERFORM pg_temp.denied('un tiers ne modifie pas l''avis d''offre', format($$SELE
 PERFORM pg_temp.denied('un tiers ne supprime pas l''avis d''offre', format($$SELECT public.delete_offering_review(%L)::text$$, pg_temp.id('orv')));
 PERFORM pg_temp.denied('avis d''offre inséré directement refusé', format($$INSERT INTO public.offering_reviews (offering_id, reviewer_id, rating) VALUES (%L, %L, 5)$$, pg_temp.id('off2'), pg_temp.id('cli2')));
 PERFORM pg_temp.as_('har');
-PERFORM pg_temp.denied('un membre bloqué par le pro ne laisse pas d''avis sur son offre', format($$SELECT public.create_offering_review(%L, 1::smallint)::text$$, pg_temp.id('off')), 'Operation not permitted', 'PO-4');
+PERFORM pg_temp.denied('un membre bloqué par le pro ne laisse pas d''avis sur son offre', format($$SELECT public.create_offering_review(%L, 1::smallint)::text$$, pg_temp.id('off')), 'Operation not permitted');
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.ok('l''auteur supprime son avis d''offre', format($$SELECT public.delete_offering_review(%L)::text$$, pg_temp.id('orv')));
 
@@ -482,11 +482,13 @@ PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.pro_profiles SET status = 'pending' WHERE user_id = pg_temp.id('pro');
 PERFORM pg_temp.po_unlock();
 PERFORM pg_temp.as_('cli2');
-PERFORM pg_temp.eq('les offres d''un pro non approuvé sont masquées', format($$SELECT count(*)::text FROM public.pro_offerings WHERE pro_id = %L$$, pg_temp.id('pro')), '0', 'B8');
+PERFORM pg_temp.eq('les offres d''un pro non approuvé sont masquées', format($$SELECT count(*)::text FROM public.pro_offerings WHERE pro_id = %L$$, pg_temp.id('pro')), '0');
 PERFORM pg_temp.denied('réserver l''offre d''un pro non approuvé est refusé', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d2')));
 PERFORM pg_temp.as_('pro');
-PERFORM pg_temp.denied('un pro non approuvé ne modifie pas ses offres', format($$SELECT public.update_pro_offering(p_offering_id := %L, p_sport_id := %L, p_title := 'Encore là', p_description := 'd', p_level := 'x',
-  p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'B')::text$$, pg_temp.id('off'), pg_temp.id('sport')), 'Operation not permitted', 'B8');
+-- B8 (00501) : un pro en attente prépare ses offres (création et modification permises), elles
+-- restent invisibles aux autres tant qu'il n'est pas approuvé.
+PERFORM pg_temp.ok('un pro non approuvé prépare ses offres (invisibles aux autres)', format($$SELECT public.update_pro_offering(p_offering_id := %L, p_sport_id := %L, p_title := 'Encore là', p_description := 'd', p_level := 'x',
+  p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'B')::text$$, pg_temp.id('off'), pg_temp.id('sport')));
 PERFORM pg_temp.denied('un pro non approuvé n''accepte pas de réservation', format($$SELECT public.accept_booking(%L)::text$$, pg_temp.id('bk4')));
 PERFORM pg_temp.as_('db');
 PERFORM set_config('junto.bypass_lock', 'true', true);
