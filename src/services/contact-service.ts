@@ -41,12 +41,22 @@ export const contactService = {
   },
 
   // Scanner side: opens (or activates) the DM with the token's owner. Returns
-  // the conversation id. Throws on an unknown / expired token.
-  connectViaQrToken: async (token: string): Promise<string> => {
+  // the conversation id, or null when the token is unknown / expired / not the
+  // owner printed in the QR (mig 00469 — failures return NULL so they count in
+  // the scan quota). Throws only on auth / rate limit.
+  connectViaQrToken: async (token: string, expectedOwner: string): Promise<string | null> => {
     const { data, error } = await supabase.rpc('connect_via_qr_token' as 'join_activity',
-      { p_token: token } as unknown as { p_activity_id: string });
+      { p_token: token, p_expected_owner: expectedOwner } as unknown as { p_activity_id: string });
     if (error) throw error;
-    return data as unknown as string;
+    return (data as unknown as string | null) ?? null;
+  },
+
+  // Owner side: kills every live QR token when « Mon QR Junto » closes, so a
+  // screenshot relayed elsewhere is already dead (mig 00469).
+  revokeQrTokens: async (): Promise<void> => {
+    const { error } = await supabase.rpc('revoke_contact_qr_tokens' as 'join_activity',
+      {} as unknown as { p_activity_id: string });
+    if (error) throw error;
   },
 
   // Ends a mutual connection — deletes the shared DM (symmetric; re-requestable).

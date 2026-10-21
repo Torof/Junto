@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Share, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -17,11 +17,13 @@ import { LogoSpinner } from '@/components/logo-spinner';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
 // Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>,
-// optionally followed by ?t=<token> — the QR's short-lived token (mig 00456)
+// optionally followed by #t=<token> — the QR's short-lived token (mig 00456)
 // that turns a scan into an instant connection. A shared link never has one.
-const CONTACT_LINK_RE = /(?:\/u\/|profile\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\?t=([0-9a-f]{64}))?/i;
-// The server token lives 10 minutes; refresh well before.
-const TOKEN_REFRESH_MS = 4 * 60_000;
+// The token rides in the URL fragment (never sent to the web server if the
+// code is opened in a browser); `?t=` is still read for older QR codes.
+const CONTACT_LINK_RE = /(?:\/u\/|profile\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:[?#]t=([0-9a-f]{64}))?/i;
+// The server token lives 2 minutes (mig 00469); refresh every minute.
+const TOKEN_REFRESH_MS = 60_000;
 
 export default function MyContactScreen() {
   const colors = useColors();
@@ -53,8 +55,12 @@ export default function MyContactScreen() {
     retry: false,
   });
 
+  // Leaving the screen kills the live token(s): a screenshot relayed elsewhere
+  // is dead before anyone can scan it (audit 2026-10, M2).
+  useEffect(() => () => { void contactService.revokeQrTokens().catch(() => {}); }, []);
+
   const link = userId ? `https://${WEB_HOST}/u/${userId}` : '';
-  const qrValue = link && qrToken ? `${link}?t=${qrToken}` : link;
+  const qrValue = link && qrToken ? `${link}#t=${qrToken}` : link;
 
   const handleShare = async () => {
     if (!link) return;
@@ -81,7 +87,7 @@ export default function MyContactScreen() {
     if (!match) return;
     const scannedId = match[1];
     const token = match[2];
-    if (scannedId === userId) return; // your own code — no-op
+    if (!scannedId || scannedId === userId) return; // your own code — no-op
     handledRef.current = true;
     setScanning(false);
     if (!token) {
@@ -90,8 +96,12 @@ export default function MyContactScreen() {
     }
     // A live QR: connect on the spot. An expired or unknown token falls back
     // to the profile, where the request flow still works.
-    void contactService.connectViaQrToken(token)
+    void contactService.connectViaQrToken(token, scannedId)
       .then(async (conversationId) => {
+        if (!conversationId) {
+          router.push(`/(auth)/profile/${scannedId}`);
+          return;
+        }
         await queryClient.invalidateQueries({ queryKey: ['conversations'] });
         Burnt.toast({ title: t('contactShare.connected', { defaultValue: 'Vous êtes connectés' }), preset: 'done' });
         router.replace(`/(auth)/conversation/${conversationId}`);
