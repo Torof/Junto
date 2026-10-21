@@ -805,3 +805,13 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('sc_b');
 PERFORM pg_temp.denied('créneau : l''organisateur n''accepte pas une demande qui chevauche une autre sortie de la personne',
   format($$SELECT public.accept_participation(%L)::text$$, pg_temp.sorties_pid('sc3', 'sc_p')), 'junto\.participant_schedule_conflict');
+-- 00503 : une demande qui chevauche est refusée à la demande (l'organisateur n'apprend rien).
+PERFORM pg_temp.as_('sc_a');
+PERFORM pg_temp.put('sc4', pg_temp.ok('créneau : sortie sur demande qui chevauche la sortie 2 déplacée', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '20 days 2 hours', '3 hours', 'approval')::text$q$));
+PERFORM pg_temp.as_('sc_p');
+PERFORM pg_temp.denied('créneau : une demande qui chevauche une sortie acceptée est refusée', format($$SELECT public.join_activity(%L)$$, pg_temp.id('sc4')), 'junto\.schedule_conflict');
+-- 00503 : l'organisatrice ne déplace pas sa sortie sur un créneau où elle est déjà prise.
+PERFORM pg_temp.as_('sc_a');
+PERFORM pg_temp.put('sc5', pg_temp.ok('créneau : sc_a crée une sortie à J+40', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '40 days', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.denied('créneau : déplacer sa sortie sur son autre sortie est refusé',
+  format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '40 days 1 hour')::text$$, pg_temp.id('sc1')), 'junto\.schedule_conflict');

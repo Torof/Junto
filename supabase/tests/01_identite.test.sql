@@ -39,6 +39,13 @@ PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('avatar hors du stockage du projet refusé',
   format($$UPDATE public.users SET avatar_url = 'https://evil.example/pixel.png' WHERE id = %L$$, pg_temp.id('alice')),
   '.');
+PERFORM pg_temp.denied('avatar : remontée « .. » vers le dossier d''un autre refusée',
+  format($$UPDATE public.users SET avatar_url = %L WHERE id = %L$$,
+    'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/../' || pg_temp.id('bob') || '/avatar', pg_temp.id('alice')),
+  'Operation not permitted');
+PERFORM pg_temp.ok('avatar : une image de son propre dossier est acceptée',
+  format($$UPDATE public.users SET avatar_url = %L WHERE id = %L$$,
+    'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/avatar?t=1', pg_temp.id('alice')));
 
 -- ───── Vue public_profiles (00476) ─────
 PERFORM pg_temp.eq('alice voit le profil public de bob', format($$SELECT count(*)::text FROM public.public_profiles WHERE id = %L$$, pg_temp.id('bob')), '1');
