@@ -115,28 +115,29 @@
 9. Merge to main only after Scott's validation
 
 ## Tables with NO direct client writes
-All operations via SECURITY DEFINER functions only:
-- `users` (INSERT) — trigger only
-- `notifications` (INSERT, DELETE)
-- `messages` (INSERT, UPDATE, DELETE) — unified store (refonte 2026-08-04); writes via `send_message`/shares/`edit_message`/`delete_message`
-- `conversation_members` (INSERT, UPDATE, DELETE) — membership derived from participations/groups
-- `conversations` (INSERT, UPDATE, DELETE) — SELECT also revoked (curated RPCs only, 00352)
-- `wall_messages` / `private_messages` (INSERT, UPDATE, DELETE) — **legacy**, reads retired, mirrored → `messages` (00361), to drop post-OTA
-- `participations` (INSERT, UPDATE, DELETE)
-- `peer_validations` (INSERT, UPDATE, DELETE)
-- `reputation_votes` (INSERT, UPDATE, DELETE)
-- `presence_tokens` (INSERT, UPDATE, DELETE)
-- `push_tokens` (INSERT, UPDATE, DELETE)
-- `seat_requests` (INSERT, UPDATE)
-- `activity_alerts` (INSERT, UPDATE, DELETE)
-- `activity_gear` (INSERT, UPDATE, DELETE)
-- `activity_gear_missing` (INSERT, UPDATE, DELETE)
-- `reports` (INSERT via `create_report`, DELETE never)
-- `user_badge_progression` (INSERT, UPDATE, DELETE) — auto-managed via trigger
-- `pro_reviews` (INSERT, UPDATE, DELETE)
-- `offering_reviews` (INSERT, UPDATE, DELETE)
-- `pro_profiles` (INSERT, UPDATE, DELETE) — `register_as_pro`/`update_pro_profile`/`unregister_as_pro` + admin approve/reject
-- `pro_offerings` (INSERT, UPDATE, DELETE) — `create/update/delete_pro_offering`, `set_offering_details`
-- `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` (INSERT, UPDATE, DELETE)
-- `pro_availabilities` (INSERT, UPDATE, DELETE) — `set_pro_availability(_bulk)`
-- `bookings` (INSERT, UPDATE, DELETE) — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs
+Every public table has FORCE RLS. A client write needs a table/column grant AND a write policy; many older tables still carry the default `authenticated` INSERT/UPDATE/DELETE grant but have no write policy, so RLS refuses the write. Since 00502, new tables get SELECT only by default. All writes below go through SECURITY DEFINER functions or triggers (verified against the live DB, 2026-10-21):
+- `activities` — `create_activity`, `update_activity`, `update_activity_trace`, `cancel_activity`, lazy/cron transitions (no client grant at all)
+- `participations` — `join_activity`, `leave_activity`, `accept/refuse_participation`, `remove_participant`, invitation RPCs, `set_participation_transport`, `confirm_presence_via_*`
+- `messages` — `send_message` (+ `send_wall_message`/`send_private_message` wrappers), `share_*_message`, `edit_message`, `delete_message`, seat/booking/contact seed messages
+- `conversations` — contact-request RPCs, `create_group`/`rename_group`/`leave_group`, channel RPCs, `create_activity_conversation` trigger; SELECT also revoked (curated RPCs only, 00352)
+- `conversation_members` — derived from participations (`sync_activity_membership`), groups, channels; own row via `mark_conversation_read`/`set_conversation_hidden`
+- `channels`, `channel_bans` — `create_channel`, `close_channel`, `set_channel_photo`, `remove_channel_member`
+- `discovery_availabilities` — `upsert_dispo`, `activate_dispo`/`deactivate_dispo`
+- `seat_requests` — `request_seat`, `accept/decline_seat_request`, `cancel_pending_seat_request`, `cancel_accepted_seat`
+- `activity_gear` / `activity_gear_missing` — `set_activity_gear`, `add/remove_missing_gear`
+- `reputation_votes` — `give/revoke_reputation_badge`, `set_sport_level`
+- `presence_tokens` — `create_presence_token`
+- `push_tokens` — `register_push_token`, `revoke_push_token_for_device`
+- `user_badge_progression` — `award_badge_progression` (trigger)
+- `gpx_traces` — `create/rename/delete_gpx_trace`
+- `favorites` — `add_favorite`/`remove_favorite`
+- `pro_profiles` — `register_as_pro`/`update_pro_profile`/`resubmit_pro_application`/`unregister_as_pro`, pin setters, admin `approve_pro`/`reject_pro`
+- `pro_offerings` — `create/update/delete_pro_offering`, `set_offering_details`
+- `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` — `add/remove/reorder_*` RPCs
+- `pro_reviews` / `offering_reviews` — `create/update/delete/reply_to_*_review`
+- `pro_availabilities` — `set_pro_availability(_bulk)`
+- `bookings` — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs, `set_booking_participant_info`
+- `users` (INSERT) — `handle_new_user` trigger + `ensure_user_row`; `notifications` (INSERT, DELETE) — `create_notification` + `notify_*`; `reports` (INSERT) — `create_report`, DELETE never; `activity_alerts` (INSERT/UPDATE) — `create_alert`
+- Internal tables, no client grant: `rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`. No write policy: `app_config` (only `admin_set_demo_mode`), `gear_catalog` (migrations only)
+
+**Deliberate direct client writes** (grant + RLS policy): `users` UPDATE own row (`handle_user_update` pins privileged columns: client can change `display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language`) · `blocked_users` INSERT/DELETE where `blocker_id = auth.uid()` · `notifications` UPDATE own (`handle_notification_update` keeps only `read_at`) · `activity_alerts` DELETE own · `reports` UPDATE by admins · `sports` INSERT/UPDATE/DELETE by admins.

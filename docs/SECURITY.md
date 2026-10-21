@@ -110,7 +110,7 @@ ALTER TABLE xxx FORCE ROW LEVEL SECURITY;
 `FORCE` garantit que RLS s'applique même au table owner. Aucune donnée ne doit être insérée avant que RLS soit activé et les policies en place.
 
 ### Limitation RLS : colonnes
-RLS opère sur les **lignes**, pas les colonnes. Pour la table `users` qui contient des champs privés (email, phone, date_of_birth), on ne peut pas empêcher un `SELECT email FROM users` via RLS seul.
+RLS opère sur les **lignes**, pas les colonnes. Pour la table `users` qui contient des champs privés (email, statut admin/suspension, préférences), on ne peut pas empêcher un `SELECT email FROM users` via RLS seul.
 
 **Solution : vue `public_profiles`**
 ```sql
@@ -150,7 +150,7 @@ La ligne dans `public.users` est créée par un trigger Postgres sur `auth.users
 
 - **Pas de policy INSERT sur `public.users` pour les clients**
 - Le client ne peut pas injecter `is_admin: true`, skip age verification, ou définir des defaults malveillants
-- Les champs comme `date_of_birth`, `accepted_tos_at` sont set via des fonctions dédiées après la création initiale
+- Les champs comme `age_confirmed_at`, `accepted_tos_at` sont set via des fonctions dédiées (`confirm_age_adult`, `accept_tos`) après la création initiale
 - Self-heal `ensure_user_row` rétablit la ligne si le trigger a échoué
 
 ---
@@ -205,7 +205,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Quota 50 traces / user (advisory lock `uid_gpx_trace`, `junto.trace_quota_reached`)
 - `distance_km` (PostGIS) et `elevation_gain_m` (`trace_elevation_gain_m`, NULL sans altitudes) calculés serveur ; `user_id` / timestamps hardcodés
 
-**QR = connexion immédiate (mig 00456, 2026-10-16)** — amendement de l'invariant 00072 dans l'esprit de `reply_to_request` : jamais de DM actif sans le consentement des deux ; ici l'émission du jeton (afficher son QR) = consentement du propriétaire, le scan = celui du scanneur. Le lien partagé par message ne porte jamais de jeton et garde le flux demande → acceptation.
+**QR = connexion immédiate (mig 00456, 2026-10-16)** — amendement de l'invariant 00072 dans l'esprit de l'ancien `reply_to_request` (retiré en 00508) : jamais de DM actif sans le consentement des deux ; ici l'émission du jeton (afficher son QR) = consentement du propriétaire, le scan = celui du scanneur. Le lien partagé par message ne porte jamais de jeton et garde le flux demande → acceptation.
 - **`create_contact_qr_token()`** : auth · non suspendu · non démo · 120 jetons / heure glissante (advisory lock, `junto.rate_limited` ; jetons révoqués ou expirés comptés une heure) · jeton aléatoire 256 bits, **validité 2 min** (00469, l'écran le rafraîchit chaque minute), table interne `contact_qr_tokens` (aucun grant). **`revoke_contact_qr_tokens()`** (00469) : auth · expire ses propres jetons vivants — appelé à la fermeture de « Mon QR Junto » : une capture relayée est déjà morte. Pas d'usage unique (le scan à plusieurs en face à face doit marcher).
 - **`connect_via_qr_token(p_token, p_expected_owner)`** (00469) : auth · non suspendu **et non démo** · 30 scans / heure glissante (table interne `contact_qr_scans`) — après l'insertion du quota, **tout échec renvoie NULL** sans exception, pour que les tentatives ratées comptent (même signal générique pour inconnu, expiré, autre propriétaire que celui imprimé dans le QR, propriétaire suspendu ou démo, blocage dans un sens ou l'autre) · propriétaire ≠ moi · lock de paire · DM existant actif → rendu tel quel ; pending/declined → activé, le message de demande n'est republié **que si la demande était en attente** (jamais un message refusé), `pending_activity_id` consommé ; aucun → créé **actif**, `initiated_from = 'profile'`, `request_sender_id = NULL`, lignes membres par `trg_dm_member_rows`. Pas de notification : le propriétaire est en face. Le jeton voyage dans le fragment d'URL (`#t=`), jamais envoyé au serveur web.
 
@@ -295,14 +295,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - `now()` dans [starts_at - 15min, starts_at + duration + 3h]
 - Réutilise le token existant **seulement s'il lui reste > 5 min** (mig 00436) OU en génère un nouveau (12 char), **durée de vie 30 min**. Avant 00436 la condition était « non expiré », donc un renouvellement rendait le token mourant et le client affichait une échéance fausse sur un QR qui allait mourir. Le client (`presence-qr-modal`) affiche l'échéance et re-frappe au-delà de 25 min — sans ça un créateur affichait un QR mort en croyant qu'il marchait.
 
-**`peer_validate_presence(p_voted_id, p_activity_id)`** (mig 00140, modèle refondu 00327) :
-- Auth + non suspendu
-- `auth.uid() != p_voted_id` (self-vote bloqué)
-- Activity completed + requires_presence = TRUE
-- `now()` dans [end + 15min, end + 24h] — sinon erreur différenciée (`peer_review_window_not_open` / `peer_review_window_closed`)
-- Target est participant accepté avec `confirmed_present IS NULL` (sinon `peer_already_validated`)
-- **Témoignage peer UNIQUEMENT à 3+ participants acceptés** — à 2, seul QR/géo valide (un ami qui atteste pour un ami, trop facile à truquer ; le direct-flip créateur de 00140 est SUPPRIMÉ — vecteur single-attester)
-- Voter = participant accepté, **pas besoin d'être lui-même vérifié présent** (l'ancien gate deadlockait le groupe si personne n'utilisait QR/géo) ; INSERT vote ; flip si **≥ 2 votes d'AUTRES participants**. Résiduel assumé : collusion de groupe entière (faible incitation, signalable)
+**`peer_validate_presence`** — désactivée en 00434, **supprimée en 00508** avec sa table `peer_validations`. La présence passe uniquement par QR ou géo (+ Règle A). Modèle historique : section « Peer review » de « Système de présence ».
 
 **`give_reputation_badge(p_voted_id, p_activity_id, p_badge_key)`** (mig 00134, garde niveau 00293) :
 - Auth + non suspendu
@@ -355,7 +348,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - Decline **status-blind** (silencieux : `pending_request` et `declined` indistinguables pour le sender) ; accept re-vérifie le blocage
 - Invitation Découverte dont la sortie est morte au moment de l'accept : le fil se connecte quand même (voulu), et l'accepteur reçoit une notif `invite_activity_gone` (« Cette sortie n'est plus disponible ») au lieu d'un silence total (00426)
 
-**`reply_to_request(p_conversation_id, p_content)`** (00355) — le destinataire d'une demande rejoindre/covoit/invitation ouvre le DM (`initiated_from='request_reply'`, status → `active`). Amende l'invariant 00072 : « pas de DM `active` sans le consentement des DEUX parties ». Ne réactive **jamais** un DM contact `pending`/`declined` (`Operation not permitted`, 00363).
+**`reply_to_request(p_conversation_id, p_content)`** (00355, **supprimée en 00508** — sans appelant ; paragraphe gardé pour l'historique de l'invariant) — le destinataire d'une demande rejoindre/covoit/invitation ouvre le DM (`initiated_from='request_reply'`, status → `active`). Amende l'invariant 00072 : « pas de DM `active` sans le consentement des DEUX parties ». Ne réactive **jamais** un DM contact `pending`/`declined` (`Operation not permitted`, 00363).
 
 **`mark_conversation_read` / `set_conversation_hidden`** (00355) : écrivent uniquement `last_read_at` / `hidden_at` de **sa propre** ligne `conversation_members`.
 
@@ -410,7 +403,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 
 `discovery_availabilities` (1 dispo/user) : sports 1-3 + niveaux, base + rayon, fenêtre **≤ 4 semaines**, transport, vibes ≤ 10, présentation ≤ 250 mots. Matching = **sport ∩ zone ∩ temps**.
 
-**Table** : `ENABLE` + `FORCE` RLS ; **policy SELECT-own uniquement** ; `GRANT SELECT` à authenticated (pas d'INSERT/UPDATE/DELETE client). Colonnes gelées (trigger) : `id, user_id, is_active, is_demo, created_at`.
+**Table** : `ENABLE` + `FORCE` RLS ; **policy SELECT-own uniquement** ; aucune policy d'écriture (le GRANT INSERT/UPDATE/DELETE historique à `authenticated` est donc sans effet, RLS forcée). Colonnes gelées (trigger) : `id, user_id, is_active, is_demo, created_at`.
 
 **Invariant A — vie privée de la base** : la base (commune choisie, **jamais le domicile ni un point exact**) n'est JAMAIS renvoyée aux autres. `get_discovery_cards` ne renvoie que `distance_km`. Seul `get_dispo_zone` expose un centre, et **uniquement à un vrai match** (réciprocité : l'appelant a sa propre dispo active + prédicat sport ∩ zone ∩ temps identique).
 
@@ -424,7 +417,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - `get_dispo_zone` — match requis (cf. invariant A).
 - `get_invitable_activities_for_dispo` / `send_discovery_invite` — **réciprocité + gate démo** (mig 00409) : l'appelant doit détenir une dispo active qui matche la cible (prédicat `get_discovery_cards`) et la dispo cible est démo-gatée → pas d'oracle de disponibilité pour un non-match, pas d'interaction avec une dispo démo.
 - `send_discovery_invite` / `accept_contact_request` — anti-cold-invite : quota contact-request (10 pending/5 jour, advisory lock), block bidirectionnel, pas de doublon de conversation, rien n'atterrit chez la cible avant qu'**elle** accepte. `accept_contact_request` re-vérifie la suspension de l'**expéditeur** au moment de l'acceptation (mig 00411).
-- **Audit n°2 (mig 00426)** : garde `is_demo` ABSOLUE sur la cible dans `send_contact_request`, `send_discovery_invite` et les boucles de `invite_users_to_activity`/`send_activity_invitations` ; parité du cap-10 (pending et declined bornés à created+30 j) ; envois en `ON CONFLICT DO NOTHING` ; `contact_state` **directionnel** dans `get_discovery_cards`/`get_conversation_state_with` (`pending` = MA demande, pending OU declined confondus — anti-oracle ; `pending_received` = demande VIVANTE reçue, déjà visible dans mes Demandes ; declined/expirée vue par le destinataire = `none`, cohérent avec son droit de réouverture).
+- **Audit n°2 (mig 00426)** : garde `is_demo` ABSOLUE sur la cible dans `send_contact_request`, `send_discovery_invite` et les boucles de `invite_users_to_activity` (supprimée en 00508)/`send_activity_invitations` ; parité du cap-10 (pending et declined bornés à created+30 j) ; envois en `ON CONFLICT DO NOTHING` ; `contact_state` **directionnel** dans `get_discovery_cards`/`get_conversation_state_with` (`pending` = MA demande, pending OU declined confondus — anti-oracle ; `pending_received` = demande VIVANTE reçue, déjà visible dans mes Demandes ; declined/expirée vue par le destinataire = `none`, cohérent avec son droit de réouverture).
 - `activate_dispo` / `deactivate_dispo` — flip `is_active` via `bypass_lock`.
 
 **Codes d'erreur (SAFE)** : `junto.dispo_{sports,levels,radius,transport,window,place,about,intent}`, `discovery_no_match`, `contact_request_pending_cap`/`daily_cap`.
@@ -434,7 +427,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 **`expire_stale_contact_requests()`** (mig 00142, refonte 00426) — interne :
 - **SUPPRIME** les demandes mortes : `type='dm' AND status IN (pending_request, declined) AND created_at < now() − 30 j` (cascades propres : membres/messages en `ON DELETE CASCADE`, une DM non-active n'a jamais de messages)
 - Un refus et une pending ignorée meurent à la MÊME échéance (`request_expires_at` = created+30 j par construction) → le refus silencieux reste inobservable, et **la paire redevient contactable** ensuite (arbitrage 2026-09-30 : le refus n'est plus perpétuel)
-- Hooké dans `check_activity_transitions` (foreground app)
+- Appelée par `check_activity_transitions` (pg_cron `junto-presence-sweep`, chaque minute)
 
 **Trigger `on_activity_finished_expire_seat_requests`** (mig 00142) :
 - AFTER UPDATE OF status sur activities
@@ -450,20 +443,21 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 
 ### Alertes
 
-**`create_alert`, `delete_alert`** :
+**`create_alert`** :
 - Auth + non suspendu
 - User tier ∈ (`premium`, `pro`)
 - Bornes lat/lng valides ; `radius_km` ∈ [1, 100]
+
+**Suppression** : DELETE direct du client, policy `alerts_delete_own` (`auth.uid() = user_id`) — `delete_alert` n'existe plus.
 
 **`check_alerts_for_activity(p_activity_id)`** — interne :
 - Pour chaque alerte qui matche (sport, level, period, location dans le rayon) : crée notif `alert_match` (capée 3/jour/user UTC midnight reset)
 
 ### Auth users
 
-**`set_date_of_birth(p_dob)`** :
+**`confirm_age_adult()`** (00318 — remplace `set_date_of_birth`, aucune date de naissance stockée) :
 - Auth + non suspendu
-- `date_of_birth` est NULL (one-shot)
-- Âge ≥ 18 ans
+- Pose `users.age_confirmed_at = now()` (bypass whitelist) ; idempotent (déjà confirmé → no-op)
 
 **`accept_tos()`** :
 - Auth + non suspendu
@@ -477,7 +471,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 **`ensure_user_row()`** :
 - Crée la ligne `public.users` si elle manque (self-heal)
 
-**`delete_own_account()`** — interne (appelé via Edge Function) :
+**`delete_own_account()`** — appelée par l'Edge Function `delete-account` avec le JWT de l'utilisateur (EXECUTE `authenticated`) :
 - Voir section Suppression de compte
 
 ### Activity transitions (cron / lazy)
@@ -486,11 +480,14 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - Flip published → in_progress (start atteint)
 - Flip in_progress → completed (end atteint)
 - Flip published → expired (start + 2h, aucun participant non-créateur)
-- Émet (post mig 00165 + 00166) : `presence_pre_warning` (T-2h), `presence_pre_warning_10min` (T-10min), `qr_create_reminder` (T-10min, créateur), `presence_validate_warning` (T+duration/2), `presence_validate_overdue` (end+1h), `peer_review_closing` (end+22h..end+24h, voters avec ≥1 peer non-confirmé restant)
+- Émet (post mig 00165 + 00166) : `presence_pre_warning` (T-2h), `presence_pre_warning_10min` (T-10min), `qr_create_reminder` (T-10min, créateur), `presence_validate_warning` (T+duration/2), `presence_validate_overdue` (end+1h) ; `peer_review_closing` n'est plus émis (témoignage des pairs supprimé, 00434/00508)
 - Appelle `close_due_presence_windows()`
 
-**`check_activity_transitions()`** (mig 00142) — appelé par client en foreground :
-- Wraps `transition_statuses_only()` + `expire_stale_contact_requests()` sous advisory lock
+**`check_activity_transitions()`** (mig 00142, corps 00495) — **pg_cron uniquement** (job `junto-presence-sweep`, chaque minute ; EXECUTE retiré aux clients en 00491) :
+- `pg_try_advisory_xact_lock` (un seul balayage à la fois)
+- Enchaîne `transition_statuses_only()`, `expire_stale_contact_requests()`, `expire_idle_seat_requests()` — chaque étape isolée (00495 : l'échec de l'une n'annule pas les autres)
+
+**`transition_single_activity(p_activity_id)`** — client (lazy, à l'ouverture d'une sortie) : auth + non suspendu ; sortie d'un organisateur suspendu figée (00495)
 
 ### Reliability score
 
@@ -518,8 +515,8 @@ Rattrapage 2026-10-12 (audit DB) : ces chaînes n'existaient que dans les commen
 - `set_offering_details` (00422) : voir section booking.
 
 **Galeries** (toutes : URL ancrée `private.pro_photo_url_ok`, 00418)
-- `add_pro_photo(url)` (00418) : auth → non suspendu → tier pro → profil → URL → lock → **cap 25** (`junto.photo_cap`) → INSERT. `remove_pro_photo(id)` / `reorder_pro_photos(ids[])` (00252) : ownership ; reorder = tableau exactement égal au count, tous owned, shift +1000 contre l'UNIQUE(pro, order_index). `set_pro_photo_url(id, url)` (00418) : ownership + URL → bypass.
-- `add_pro_offering_photo(offering, url)` (00418) / `remove_` / `reorder_` (00252) / `set_pro_offering_photo_url` (00418) : idem via JOIN ownership de l'offre.
+- `add_pro_photo(url)` (00418) : auth → non suspendu → tier pro → profil → URL → lock → **cap 25** (`junto.photo_cap`) → INSERT. `remove_pro_photo(id)` / `reorder_pro_photos(ids[])` (00252) : ownership ; reorder = tableau exactement égal au count, tous owned, shift +1000 contre l'UNIQUE(pro, order_index). (`set_pro_photo_url` supprimée en 00508, sans appelant.)
+- `add_pro_offering_photo(offering, url)` (00418) / `remove_` / `reorder_` (00252) : idem via JOIN ownership de l'offre. (`set_pro_offering_photo_url` supprimée en 00508.)
 - `add_pro_community_photo(pro, url, review?, offering?)` (00443, base 00418) : auth → non suspendu → cible **approuvée ET non démo** → URL ancrée au dossier du **contributeur** → avis lié = le sien sur ce pro → offre liée appartient au pro → lock → **cap 5 / contributeur / pro** (`junto.photo_limit`) → INSERT. `remove_pro_community_photo(id)` (00283) : contributeur OU pro propriétaire.
 
 **Internes** (REVOKE anon + authenticated) : `private.assert_approved_pro(uid)` (tier pro ∧ profil approved ∧ non suspendu), `private.pro_photo_url_ok(url, uid)` (IMMUTABLE — **hôte du projet codé en dur**, audit B16), triggers `pro_offerings_require_approved`, `pro_reviews_require_approved` (INSERT, pro_reviews seulement), `pro_*_whitelist_columns`, `pro_*_touch_updated_at`, `strip_html_reviews`.
@@ -556,57 +553,82 @@ Rattrapage 2026-10-12 (audit DB) : ces chaînes n'existaient que dans les commen
 
 Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public`. **Toute fonction non destinée aux clients doit avoir EXECUTE révoqué.**
 
-### Fonctions client-callable (GRANT EXECUTE TO authenticated)
+> **Inventaire relu contre la base live le 2026-10-21** (après 00508) : catalogue `pg_proc` des schémas `public` et `private`, fonctions PostGIS exclues (`pg_depend.deptype = 'e'`), droits lus par `has_function_privilege('anon' | 'authenticated', oid, 'EXECUTE')`. Toutes les fonctions sont SECURITY DEFINER + `search_path` sauf mention « INVOKER ».
+>
+> ⚠️ **Droits par défaut des fonctions** : pour le rôle `postgres` dans `public`, `ALTER DEFAULT PRIVILEGES` donne EXECUTE à `authenticated` (pas à `anon` ni `PUBLIC`). **Une nouvelle fonction est donc appelable par tout utilisateur connecté tant qu'on ne l'a pas révoquée** — une fonction interne exige `REVOKE EXECUTE … FROM PUBLIC, anon, authenticated` dans la même migration.
 
-**Activités :** `create_activity`, `join_activity`, `leave_activity`, `cancel_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `update_activity` (champs autorisés ; date validée si changée, gate premium au switch de visibilité, sentinelle 0 = ouvrir, 00308-00310), `update_activity_trace`, `compute_trace_stats` (00452), `regenerate_invite_token`, `get_activity_by_invite_token`, `get_own_invite_token`
+### Fonctions client-callable (EXECUTE `authenticated` seulement — aucune n'est exécutable par `anon`)
+
+**Activités :** `create_activity`, `update_activity` (champs autorisés ; date validée si changée, gate premium au switch de visibilité, sentinelle 0 = ouvrir, 00308-00310), `update_activity_trace`, `cancel_activity`, `join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `waive_late_cancel_penalty` + `get_late_leavers` (créateur, 00478), `get_activity_detail`, `get_activity_participants`, `get_activity_by_invite_token`, `get_own_invite_token`, `transition_single_activity` (transition lazy d'une sortie à l'ouverture de l'écran), `compute_trace_stats` (00452), `create_gpx_trace`, `rename_gpx_trace`, `delete_gpx_trace`, `add_favorite`, `remove_favorite`, `get_favorites`
 
 **Archive de retrait de contact (00469) :** `remove_connection` copie le fil (id, auteur, texte, date) dans `contact_removal_archive` avant de le supprimer — table RLS forcée sans policy ni grant (admin / service seulement), purge à 90 jours (`junto-contact-archive-purge`). Rien ne change à l'écran ; un harceleur qui se retire ne détruit plus la preuve d'un signalement.
 
 **QR contact (00456, 00469) :** `create_contact_qr_token`, `revoke_contact_qr_tokens`, `connect_via_qr_token`
 
-**Quotas Edge Functions :** `consume_snap_trail_quota` (00346), `consume_trace_elevation_quota` (00452) — appelées par l'Edge Function **en tant que l'appelant** (JWT relayé), tables internes sans policy
+**Quotas Edge Functions :** `consume_snap_trail_quota` (00346), `consume_trace_elevation_quota` (00452), `consume_trace_elevation_points` (00471 — 50 000 points / heure glissante) — appelées par l'Edge Function **en tant que l'appelant** (JWT relayé), tables internes sans policy
 
-**Présence :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `peer_validate_presence`, `give_reputation_badge`, `revoke_reputation_badge`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `get_user_reputation`, `get_user_trophies`
+**Présence & réputation :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `give_reputation_badge`, `revoke_reputation_badge`, `get_user_reputation`, `get_user_trophies`, `get_user_award_aggregates`, `get_voters_for_badge`, `get_user_public_stats`, `get_user_sport_levels`, `get_user_sport_level_votes`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
-**Messagerie (modèle unifié, migs 00350-00367) :** `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `reply_to_request`, `mark_conversation_read`, `set_conversation_hidden`, `edit_message`, `delete_message`, `share_activity_message`, `share_trace_message`, `create_group`, `add_group_member`, `leave_group`, `rename_group`, `send_activity_invitations`, `accept_activity_invitation`, `decline_activity_invitation`, `get_my_conversations`, `get_conversation_state_with`, `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages`, `get_my_invitations`
-  - *Legacy encore GRANTé (à REVOKE/DROP au port final)* : `hide_conversation`, `edit_wall_message`, `edit_private_message` (client repointé sur les équivalents unifiés)
+**Messagerie (modèle unifié, migs 00350-00367) :** `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `edit_message`, `delete_message`, `share_activity_message`, `share_trace_message`, `mark_conversation_read`, `set_conversation_hidden`, `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `remove_connection`, `get_contacts`, `get_recent_partners`, `create_group`, `add_group_member`, `leave_group`, `rename_group`, `get_group_info`, `send_activity_invitations`, `accept_activity_invitation`, `decline_activity_invitation`, `get_my_invitations`, `get_my_conversations`, `get_conversation_state_with`, `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages`
+  - Retirées en 00508 (sans appelant) : `reply_to_request`, `hide_conversation`, `edit_wall_message`, `edit_private_message`, `invite_users_to_activity`
 
-**Transport / sièges :** `set_participation_transport`, `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`
+**Canaux :** `create_channel`, `join_channel`, `leave_channel`, `search_channels`, `get_channel`, `get_channel_members`, `rename_channel`, `remove_channel_member`, `close_channel`, `set_channel_photo`
 
-**Alertes / gear :** `create_alert`, `delete_alert`, `set_activity_gear`, `update_gear`, `add_gear_assignment`, `remove_gear_assignment`, `add_missing_gear`, `remove_missing_gear` (mig 00303 — chaîne : auth → suspension → activité active → participant accepté OU créateur → sanitisation + plafonds 60 car./qté 1-99/20 manques ; upsert sur doublon ; retrait collaboratif ; trigger `clear_missing_on_shared_gear` auto-ferme la tuile quand un apport partagé du même nom est déclaré)
+**Découverte :** `upsert_dispo`, `activate_dispo`, `deactivate_dispo`, `get_my_dispo`, `get_discovery_cards`, `get_discovery_count`, `get_dispo_zone`, `get_invitable_activities_for_dispo`, `send_discovery_invite`
 
-**User :** `set_date_of_birth`, `accept_tos`, `register_push_token`, `ensure_user_row`, `block_user`, `unblock_user`, `create_report`, `get_user_public_stats`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
+**Transport / sièges :** `set_participation_transport`, `request_seat`, `cancel_pending_seat_request`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`, `get_transport_summary`, `get_activity_seat_assignments`
 
-**Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` (REVOKE from public ET anon — mig 00259, cf. 00018 "REVOKE didn't stick")
+**Alertes / gear :** `create_alert` (la suppression d'une alerte est un DELETE direct, policy `alerts_delete_own`), `set_activity_gear`, `add_missing_gear`, `remove_missing_gear` (mig 00303 — chaîne : auth → suspension → activité active → participant accepté OU créateur → sanitisation + plafonds 60 car./qté 1-99/20 manques ; upsert sur doublon ; retrait collaboratif ; trigger `clear_missing_on_shared_gear` auto-ferme la tuile quand un apport partagé du même nom est déclaré)
 
-**Fiche Pro (privilèges colonnes 00418) :** `get_my_pro_application` (own — real_name/rejection_reason inclus) · `admin_get_pending_pro_applications` (admin only, file pending avec real_name/email/phone) · `set_pro_banner` DROPPÉE (code mort)
+**User / compte :** `ensure_user_row`, `accept_tos`, `confirm_age_adult`, `mark_tutorial_seen`, `register_push_token`, `revoke_push_token_for_device`, `create_report`, `delete_own_account` (appelée par l'Edge Function `delete-account` avec le JWT de l'utilisateur — opère sur `auth.uid()`). Le blocage est un INSERT/DELETE direct sur `blocked_users` (policies own), plus de RPC.
 
-**Cron-on-foreground :** `check_activity_transitions`
+**Fiche Pro :** `register_as_pro`, `update_pro_profile`, `resubmit_pro_application`, `unregister_as_pro`, `set_pro_pin_icon`, `set_pro_pin_image`, `get_my_pro_application` (own — real_name/rejection_reason inclus), `create_pro_offering`, `update_pro_offering`, `delete_pro_offering`, `set_offering_details`, `add_pro_photo`, `remove_pro_photo`, `reorder_pro_photos`, `add_pro_offering_photo`, `remove_pro_offering_photo`, `reorder_pro_offering_photos`, `add_pro_community_photo`, `remove_pro_community_photo`
 
-### Fonctions internes (REVOKE EXECUTE FROM anon AND authenticated)
+**Avis Pro :** `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review`, `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review`
 
-- `create_notification`, `notify_presence_*`, `notify_creator_qr_reminder`, `notify_peer_review_closing`, `notify_presence_confirmed`
-- `transition_statuses_only`, `transition_single_activity`, `close_due_presence_windows`, `close_presence_window_for`
-- `expire_stale_contact_requests`
-- `check_alerts_for_activity`
-- `award_badge_progression`, `recalculate_reliability_score`
-- `handle_new_user`, `handle_user_update`, `handle_activity_update`, `strip_html_*` (triggers)
-- **Messagerie (triggers/helpers, migs 00353-00367)** : `create_activity_conversation`, `sync_activity_membership`, `create_dm_member_rows`, `cascade_block_invited`, `expire_invited_on_activity_end`, `broadcast_and_push_message`, `mirror_private_message`, `conversations_whitelist_columns`, `conversation_members_whitelist_columns`, `messages_whitelist_columns` (triggers) ; `private.is_conversation_member`, `private.message_author_visible`, `private.is_messaging_eligible`, `private.insert_rich_message`, `private.assert_can_send` (helpers, hors schéma `public`)
-- `push_notification_to_device` (trigger)
-- `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests` (triggers)
-- `generate_random_name`, `sanitize_notif_text`, `badge_tier_for`
-- `trace_distance_km`, `trace_elevation_gain_m` (00452 — calculs purs sur une trace, IMMUTABLE)
-- `notify_review_received`, `notify_review_reply` (mig 00260)
-- `private.user_is_suspended` — cas particulier : GRANT EXECUTE TO anon, authenticated (requis pour être appelable depuis les expressions de policy et les corps de vues), mais non exposé via PostgREST car hors du schéma `public` (mig 00256 + 00257)
+**Réservations pro :** `create_booking`, `create_manual_booking`, `accept_booking`, `decline_booking`, `cancel_booking`, `cancel_booking_pro`, `set_booking_participant_info`, `set_pro_availability`, `set_pro_availability_bulk`, `get_pro_availability`, `get_pro_agenda`, `get_my_bookings`
+
+**Utilitaires purs (INVOKER, sans accès aux données) :** `badge_label_fr`, `badge_tier_for`, `reliability_tier`, `sanitize_notif_text` — encore exécutables par `authenticated` (calculs sur leurs arguments, rien à protéger)
+
+**Admin** (EXECUTE `authenticated`, garde `is_admin = true AND suspended_at IS NULL` dans le corps) : voir « Fonctions privilégiées admin » ci-dessous.
+
+### Fonctions internes (aucun EXECUTE pour `anon` ni `authenticated`)
+
+- **Notifications** : `create_notification`, `notify_participant_joined`, `notify_presence_confirmed`, `notify_presence_pre_warning`, `notify_presence_pre_warning_10min`, `notify_presence_validate_warning`, `notify_presence_validate_overdue`, `notify_creator_qr_reminder`, `notify_rate_participants`, `notify_review_received`, `notify_review_reply`
+- **Statuts / présence / fiabilité** : `transition_statuses_only`, `close_due_presence_windows`, `close_presence_window_for`, `check_alerts_for_activity`, `award_badge_progression`, `recalculate_reliability_score`, `get_active_negative_count`, `expire_stale_contact_requests`, `expire_idle_seat_requests`
+- **Divers** : `generate_random_name`, `map_ping` (signal carte, 1 / 15 s / sortie), `log_admin_action`, `trace_distance_km`, `trace_elevation_gain_m` (00452 — calculs sur une trace), `trace_geojson_ok` (INVOKER, 00484)
+- **Cron (pg_cron)** : `check_activity_transitions` (job `junto-presence-sweep`, chaque minute — EXECUTE retiré aux clients en 00491), `purge_old_notifications` (`junto-notif-purge`), `purge_booking_participant_info` (`junto-booking-participant-purge`, 00467), `purge_contact_removal_archive` (`junto-contact-archive-purge`, 00469), `purge_throttle_tables` (`junto-throttle-purge`, 00480 : `rate_events` > 2 j, `map_broadcasts` > 1 j) ; `junto-cron-log-purge` (00508) est un DELETE SQL direct sur `cron.job_run_details` (> 7 j)
+- **Schéma `private`** (hors PostgREST) : `assert_approved_pro`, `assert_can_send`, `insert_rich_message`, `private_activity_access` (00486/00489), `rate_hit` (00480), `email_hash` / `email_is_banned` (00506), `pro_photo_url_ok` (INVOKER)
+  - Cas particulier : `private.user_is_suspended`, `private.is_conversation_member`, `private.message_author_visible` (EXECUTE `anon` + `authenticated`) et `private.is_messaging_eligible` (EXECUTE `authenticated`) — requis pour être appelables depuis les expressions de policy et les corps de vues, mais non exposés via PostgREST car hors du schéma `public` (mig 00256 + 00257)
+- `public.demo_content_visible()` — EXECUTE `anon` + `authenticated` (utilisée par les policies et les vues ; ne renvoie que « l'appelant est un admin en mode démo »)
+- `public.junto_pre_request()` — INVOKER, EXECUTE `anon` + `authenticated` (requis : PostgREST l'appelle avant chaque requête, cf. « Garde d'API PostgREST », 00504)
+
+### Fonctions trigger
+
+Une fonction `RETURNS trigger` n'est pas appelable via PostgREST ni hors d'un déclencheur ; certaines gardent un EXECUTE hérité pour `anon`/`authenticated`, sans effet.
+
+- **`users`** : `handle_user_update`, `strip_html_users`, `check_avatar_url` (00499), `clear_push_token_on_suspension`, `broadcast_map_creator`, `private.ban_email_on_suspended_delete` (00506) ; `handle_new_user` (sur `auth.users`)
+- **`activities`** : `handle_activity_update`, `strip_html_tags`, `create_activity_conversation`, `expire_invited_on_activity_end`, `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests`, `broadcast_map_activity`
+- **`participations`** : `sync_activity_membership`, `recalc_creator_on_participant_change`, `broadcast_activity_change`, `broadcast_map_participation`, `private.check_schedule_conflict` (00497/00498/00503)
+- **Messagerie** : `messages_whitelist_columns`, `conversations_whitelist_columns`, `conversation_members_whitelist_columns`, `strip_html_messages`, `broadcast_and_push_message`, `messages_block_closed_channel`, `create_dm_member_rows`, `cleanup_notifications_on_conversation_delete`, `channels_whitelist_columns`
+- **Blocage** : `cascade_block_cleanup`, `cascade_block_invited`, `cascade_block_to_requests`
+- **Autres** : `handle_notification_update`, `push_notification_to_device` (notifications) · `broadcast_activity_change` (seat_requests) · `broadcast_activity_change_stmt` (activity_gear / activity_gear_missing, 00480) · `clear_missing_on_shared_gear` (INVOKER) · `discovery_availabilities_whitelist_columns` · `bookings_whitelist_columns`, `bookings_clear_participant_info` (00467) · `pro_*_whitelist_columns` (profiles, offerings, photos ×3, reviews, offering_reviews, availabilities), `pro_offerings_require_approved`, `pro_reviews_require_approved`, `pro_profiles_touch_updated_at`, `pro_offerings_touch_updated_at`, `reviews_touch_updated_at`, `strip_html_reviews`
+- **Garde d'onboarding** : `private.require_onboarded_actor` (00494/00496) sur `activities`, `participations`, `messages`, `conversations`, `conversation_members`, `seat_requests`, `reputation_votes`, `bookings`, `pro_profiles`, `discovery_availabilities`, `gpx_traces`, `contact_qr_tokens`
 
 ### Fonctions privilégiées admin
 
-- `delete_own_account` — appelée par Edge Function avec `service_role`
-- `moderate_report(p_report_id, p_action, p_admin_note, p_suspend_user_id)` — `auth.uid()` doit être admin ; classe un report et peut suspendre un user
-- `approve_pro(p_user_id)` / `reject_pro(p_user_id, p_reason)` — `auth.uid()` doit être admin ; valident/refusent une candidature pro
+Toutes EXECUTE `authenticated` ; chacune commence par `auth.uid()` admin **non suspendu**, sinon `Operation not permitted`, et journalise dans `admin_actions` via `log_admin_action` quand elle agit.
+
+- `moderate_report(p_report_id, p_action, p_admin_note, p_suspend_user_id)` — classe un report et peut suspendre un user
+- `admin_suspend_user(p_user_id, p_reason)` / `admin_unsuspend_user(p_user_id, p_reason)` — motif 1..500 obligatoire (`junto.admin_reason_required`) ; pas d'auto-suspension ; la suspension annule les réservations futures du suspendu et notifie les contreparties en copy neutre
+- `admin_remove_content(p_target_type, p_target_id, p_reason)` — soft-delete message / masquage groupe, canal, avis, activité
+- `admin_resolve_user(p_user_id)`, `admin_pro_owner(p_pro_id)` — lecture d'identité (e-mail) pour la modération, journalisée
+- `admin_get_pending_pro_applications()`, `approve_pro(p_user_id)`, `reject_pro(p_user_id, p_reason)` — file et décision des candidatures pro
+- `admin_set_demo_mode(p_on)` — bascule `app_config.demo_mode`
+- Écritures directes admin (policies, pas de fonction) : `reports` UPDATE, `sports` INSERT/UPDATE/DELETE
 - Voir `docs/ADMIN.md` (charte du rôle admin) pour l'inventaire complet, les frontières, et la feuille de route.
 
-> Note (audit 2026-07-13) : `admin_suspend_user`, `admin_unsuspend_user`, `admin_resolve_report` n'ont **jamais existé** — la vraie fonction est `moderate_report`. Il n'existe à ce jour **aucune** fonction de dé-suspension.
+> Note : `admin_suspend_user` / `admin_unsuspend_user` existent (créées en 00321, durcies jusqu'en 00447). `admin_resolve_report` n'a jamais existé — le classement d'un report passe par `moderate_report`.
 
 ---
 
@@ -614,7 +636,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Constat architectural :** Le design bloque tous les INSERT/UPDATE/DELETE clients sur 7+ tables. Les fonctions qui écrivent dans ces tables DOIVENT être SECURITY DEFINER pour bypasser RLS.
 
-En pratique, **toutes les fonctions client-callable sont SECURITY DEFINER** — chacune écrit dans au moins une table restreinte. La catégorie SECURITY INVOKER est vide.
+En pratique, **toutes les fonctions client-callable qui lisent ou écrivent des données sont SECURITY DEFINER**. Exceptions INVOKER (live 2026-10-21) : les utilitaires purs `badge_label_fr`, `badge_tier_for`, `reliability_tier`, `sanitize_notif_text` (sans `search_path` fixé — calculs sur leurs arguments), `junto_pre_request` (garde d'API), `trace_geojson_ok`, `private.pro_photo_url_ok`, et les triggers `clear_missing_on_shared_gear`, `strip_html_messages`.
 
 **Conséquence critique :** Il n'y a PAS de filet de sécurité RLS sur les fonctions. La chaîne d'autorisation documentée dans chaque fonction EST la seule ligne de défense. Chaque vérification manquante = une faille directe.
 
@@ -635,29 +657,34 @@ AS $$ ... $$;
 |-------|---------------------|--------|---------------------|
 | `users` | INSERT | Empêche injection de is_admin, skip age check | Trigger `handle_new_user` + RPC `ensure_user_row` |
 | `notifications` | INSERT, DELETE | Empêche création de fausses notifications | `create_notification` + helpers `notify_*` |
-| `messages` | INSERT, UPDATE, DELETE | Store unifié — bypass rate limit, membership, blocage, longueur, gel `metadata`/`sender_id` | `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `share_activity_message`, `share_trace_message`, `edit_message`, `delete_message`, `admin_remove_content` |
-| `conversation_members` | INSERT, UPDATE, DELETE | Appartenance **dérivée** (participations/groupes) — jamais forgée côté client | triggers `sync_activity_membership`/`create_dm_member_rows` + `create_group`/`add_group_member`/`leave_group` ; UPDATE limité à `mark_conversation_read`/`set_conversation_hidden` (sa propre ligne) |
-| `wall_messages` / `private_messages` | INSERT, UPDATE, DELETE | **Legacy** (refonte 2026-08-04) — lecture retirée ; 3 écrivains restants (invite card, `request_seat`, `accept_seat_request`) mirrorés → `messages` via `mirror_private_message` (00361). À dropper post-fenêtre OTA | wrappers/écrivains legacy uniquement |
-| `participations` | INSERT, UPDATE, DELETE | Bypass concurrent join, status, removal rules | `join_activity`, `accept_*`, `refuse_*`, `remove_participant`, `leave_activity`, `set_participation_transport`, `confirm_presence_via_*`, `peer_validate_presence` |
-| `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check ; **SELECT révoqué** — lecture curée uniquement (00352) | `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `reply_to_request`, `create_group`, `rename_group`, `leave_group`, `create_activity_conversation` (trigger), `send_message` (`last_message_at`) |
+| `messages` | INSERT, UPDATE, DELETE | Store unifié — bypass rate limit, membership, blocage, longueur, gel `metadata`/`sender_id` | `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `share_activity_message`, `share_trace_message`, `edit_message`, `delete_message`, `admin_remove_content` ; messages d'amorce de `accept_contact_request`, `connect_via_qr_token`, `request_seat`, `accept_seat_request`, `accept_booking` |
+| `conversation_members` | INSERT, UPDATE, DELETE | Appartenance **dérivée** (participations/groupes/canaux) — jamais forgée côté client | triggers `sync_activity_membership`/`create_dm_member_rows` + `create_group`/`add_group_member`/`leave_group` + `create_channel`/`join_channel`/`leave_channel`/`remove_channel_member` ; UPDATE limité à `mark_conversation_read`/`set_conversation_hidden` (sa propre ligne) |
+| `participations` | INSERT, UPDATE, DELETE | Bypass concurrent join, status, removal rules, conflit d'horaire | `join_activity`, `accept_*`, `refuse_*`, `remove_participant`, `leave_activity`, `send_activity_invitations`, `accept/decline_activity_invitation`, `set_participation_transport`, `confirm_presence_via_*`, `waive_late_cancel_penalty`, finalisation (`close_presence_window_for`) |
+| `conversations` | INSERT, UPDATE, DELETE | Bypass rate limit, duplicate check ; **SELECT révoqué** — lecture curée uniquement (00352) | `send_contact_request`, `send_discovery_invite`, `accept_contact_request`, `decline_contact_request`, `connect_via_qr_token`, `remove_connection`, `create_group`, `rename_group`, `leave_group`, RPC canaux, `request_seat`/`accept_seat_request`/`accept_booking` (DM logistique), `create_activity_conversation` (trigger), `send_message` (`last_message_at`) |
 | `pro_profiles` | INSERT, UPDATE, DELETE | Statut d'approbation, identité vérifiée (gelée après approved, 00443), cooldown enseigne 30 j, strip HTML | `register_as_pro`, `update_pro_profile`, `unregister_as_pro`, `resubmit_pro_application`, `set_pro_pin_image`, `set_pro_pin_icon`, `approve_pro`/`reject_pro` (admin) |
 | `pro_offerings` | INSERT, UPDATE, DELETE | Gate approved (trigger INSERT), ownership, cap 12, validations prix/places/durée, réservations futures | `create_pro_offering`, `update_pro_offering`, `delete_pro_offering`, `set_offering_details` |
-| `pro_profile_photos` / `pro_offering_photos` | INSERT, UPDATE, DELETE | Ownership, URL ancrée hôte+dossier (00418), cap 25/galerie, réordonnancement atomique | `add/remove/reorder_pro_photos`, `set_pro_photo_url` (×2 familles) |
+| `pro_profile_photos` / `pro_offering_photos` | INSERT, UPDATE, DELETE | Ownership, URL ancrée hôte+dossier (00418), cap 25/galerie, réordonnancement atomique | `add/remove/reorder_pro_photos` (×2 familles) |
 | `pro_community_photos` | INSERT, UPDATE, DELETE | Cible approuvée non démo (00443), URL ancrée au contributeur, avis lié = le sien, cap 5/user/pro | `add_pro_community_photo`, `remove_pro_community_photo` (contributeur ou pro) |
 | `pro_availabilities` | INSERT, UPDATE, DELETE | assert_approved_pro, bornes de dates | `set_pro_availability`, `set_pro_availability_bulk`, `unregister_as_pro` (purge) |
 | `bookings` | INSERT, UPDATE, DELETE | Machine à états, caps, cooldown, double consentement, ownership NULL-safe | `create_booking`, `create_manual_booking`, `accept/decline/cancel/cancel_pro_booking`, `set_booking_participant_info`, flips lazy `expired` (`get_pro_agenda`/`get_my_bookings`), `admin_suspend_user` |
 | `pro_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, pro), rate limit, self-review, reply ownership | `create_pro_review`, `update_pro_review`, `delete_pro_review`, `reply_to_pro_review` |
 | `offering_reviews` | INSERT, UPDATE, DELETE | Bypass unicité (reviewer, offering), rate limit, self-review, reply ownership | `create_offering_review`, `update_offering_review`, `delete_offering_review`, `reply_to_offering_review` |
-| `peer_validations` | INSERT, UPDATE, DELETE | Bypass voter-presence + threshold logic | `peer_validate_presence` |
 | `reputation_votes` | INSERT, UPDATE, DELETE | Bypass UNIQUE + window check | `give_reputation_badge`, `revoke_reputation_badge` |
 | `presence_tokens` | INSERT, UPDATE, DELETE | Tokens issus uniquement par le créateur | `create_presence_token` |
-| `push_tokens` | INSERT, UPDATE, DELETE | Multi-device managed | `register_push_token` |
-| `seat_requests` | INSERT, UPDATE | Bypass driver/requester checks | `request_seat`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`, trigger d'expiration |
-| `activity_alerts` | INSERT, UPDATE, DELETE | Bypass tier check, sanity bounds | `create_alert`, `delete_alert` |
-| `activity_gear` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear` |
+| `push_tokens` | INSERT, UPDATE, DELETE | Multi-device managed | `register_push_token`, `revoke_push_token_for_device`, trigger `clear_push_token_on_suspension` |
+| `seat_requests` | INSERT, UPDATE | Bypass driver/requester checks | `request_seat`, `cancel_pending_seat_request`, `accept_seat_request`, `decline_seat_request`, `cancel_accepted_seat`, expiration (`expire_idle_seat_requests`, trigger de fin de sortie) |
+| `activity_alerts` | INSERT, UPDATE | Bypass tier check, sanity bounds | `create_alert` (DELETE = direct, policy `alerts_delete_own`) |
+| `activity_gear` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `set_activity_gear` |
 | `activity_gear_missing` | INSERT, UPDATE, DELETE | Bypass participant/creator check | `add_missing_gear`, `remove_missing_gear` (+ trigger interne 00303) |
 | `reports` | INSERT, DELETE | Rate limit + dup-check + target validation | `create_report` (DELETE jamais autorisé) |
 | `user_badge_progression` | INSERT, UPDATE, DELETE | Auto-managed par trigger (DELETE jamais autorisé) | `award_badge_progression` |
+| `activities` | INSERT, UPDATE, DELETE | Aucun droit d'écriture client (ni grant ni policy) | `create_activity`, `update_activity`, `update_activity_trace`, `cancel_activity`, transitions (`transition_*`, `close_presence_window_for`), `admin_remove_content`, `delete_own_account` |
+| `channels` / `channel_bans` | INSERT, UPDATE, DELETE | Aucun grant client | `create_channel`, `close_channel`, `set_channel_photo`, `remove_channel_member`, `admin_remove_content` |
+| `discovery_availabilities` | INSERT, UPDATE, DELETE | Validation, colonnes gelées | `upsert_dispo`, `activate_dispo`, `deactivate_dispo` |
+| `gpx_traces` / `favorites` | INSERT, UPDATE, DELETE | Quotas, validation | `create/rename/delete_gpx_trace` ; `add_favorite`/`remove_favorite` |
+| Tables internes (`rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`) | Tout (aucun grant client, RLS forcée sans policy) | Compteurs, journaux, preuves | Leurs fonctions propriétaires uniquement |
+
+**Écritures client directes délibérées** (grant + policy, live 2026-10-21) : `users` UPDATE de sa ligne (colonnes non gelées par `handle_user_update`) · `blocked_users` INSERT/DELETE (`blocker_id = auth.uid()`) · `notifications` UPDATE de ses lignes (`handle_notification_update` ne laisse passer que `read_at`) · `activity_alerts` DELETE de ses alertes · `reports` UPDATE (admins) · `sports` INSERT/UPDATE/DELETE (admins).
 
 Sans ces restrictions, un client peut contourner les fonctions et opérer directement via l'API REST.
 
@@ -732,57 +759,55 @@ INSERT INTO activities (
 
 ## Colonnes privilégiées — jamais modifiables directement par le client
 
-> **Droits par défaut (00502).** Une table créée dans `public` par nos migrations n'accorde plus aux clients (`anon`, `authenticated`) que SELECT par défaut — ni INSERT/UPDATE/DELETE, ni TRUNCATE/TRIGGER/REFERENCES. Une écriture client directe (rare : on passe par des fonctions) exige donc un `GRANT` explicite **et** une policy.
+> **Droits par défaut (00502).** Une table créée dans `public` par nos migrations n'accorde plus aux clients (`anon`, `authenticated`) que SELECT par défaut — ni INSERT/UPDATE/DELETE, ni TRUNCATE/TRIGGER/REFERENCES. Une écriture client directe (rare : on passe par des fonctions) exige donc un `GRANT` explicite **et** une policy. 00502 a aussi retiré TRUNCATE/TRIGGER/REFERENCES aux clients sur toutes les tables existantes (TRUNCATE ignore la RLS) et tout droit sur la file HTTP de `pg_net`. Les tables **antérieures** gardent en revanche leur `GRANT INSERT, UPDATE, DELETE … TO authenticated` historique : c'est l'absence de policy d'écriture (RLS forcée) qui les ferme. Les fonctions, elles, restent EXECUTE `authenticated` par défaut (cf. « Exposition des fonctions »).
 
-> **Lecture par colonne (00468 `users`, 00486 `activities`).** Ces deux tables n'ont plus de droit SELECT de table pour `anon`/`authenticated`, seulement des droits par colonne (`activities` : tout sauf `invite_token`). **Une colonne ajoutée n'est donc lisible en direct par aucun client tant qu'elle n'est pas accordée explicitement** (`GRANT SELECT (col) ON … TO anon, authenticated`). Les vues sont exécutées par leur propriétaire et ne sont pas concernées. Ne jamais réaccorder un SELECT de table (il rendrait `invite_token` à nouveau lisible).
+> **Lecture par colonne (live 2026-10-21).** Trois tables n'ont plus de droit SELECT de table pour les clients, seulement des droits par colonne : `activities` (00486, `anon` + `authenticated` : tout sauf `invite_token`), `bookings` (00468, `authenticated` : tout sauf `participant_info`, `price_eur`, `price_unit`), `pro_profiles` (00418, `authenticated` : tout sauf `primary_location`, `reviewed_at`, `reviewed_by`). **Une colonne ajoutée à ces tables n'est donc lisible en direct par aucun client tant qu'elle n'est pas accordée explicitement** (`GRANT SELECT (col) ON … TO …`). Les vues sont exécutées par leur propriétaire et ne sont pas concernées. Ne jamais réaccorder un SELECT de table (il rendrait `invite_token` / `participant_info` à nouveau lisibles). `users` garde un SELECT de table pour `authenticated` (pas `anon`, 00288), borné par la policy `users_select_own` (sa propre ligne) — les autres profils se lisent via `public_profiles`.
 
 ### Table `users`
-- `is_admin`, `tier`, `suspended_at` (`is_pro_verified`/`pro_verified_at` sont des colonnes **mortes** : le statut pro vit dans `pro_profiles.status` + `users.tier`, posés par `approve_pro`/`unregister_as_pro` — toujours gelées au trigger, jamais lues)
-- `phone_verified`, `phone_verified_at` (Supabase Auth flow)
+- `id`, `email`, `created_at`
+- `is_admin`, `tier`, `is_demo`, `suspended_at` (le statut pro vit dans `pro_profiles.status` + `users.tier`, posés par `approve_pro`/`unregister_as_pro` ; `is_pro_verified`/`pro_verified_at` supprimées en 00508)
+- `age_confirmed_at` (via `confirm_age_adult`)
 - `accepted_tos_at`, `accepted_privacy_at` (one-shot via `accept_tos`)
-- `date_of_birth` (one-shot via `set_date_of_birth`)
+- `tutorial_seen_at` (via `mark_tutorial_seen`)
 - `reliability_score` (auto-calculé)
 - `levels_per_sport` (écrit **uniquement** via `set_sport_level` — niveau peer-gated, mig 00295 ; l'UPDATE direct est forcé à OLD)
-- `notification_preferences` (UPDATE direct OK — c'est l'utilisateur qui choisit ses propres préférences)
-- `subscription_status`, `stripe_customer_id` (Stripe webhook seulement)
 - `push_token` (legacy column, remplacé par `push_tokens` table — UPDATE quand même bloqué)
 
 **Colonnes user modifiables par le client :**
 `display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language` (00445 — langue effective de l'app, CHECK fr/en/it/es/de, écrite par `useLanguageSync` ; base de la future composition des notifications dans la langue du destinataire)
 (`levels_per_sport` était modifiable directement jusqu'à mig 00295 ; désormais peer-gated via `set_sport_level`.)
 
-**Enforcement : trigger `handle_user_update`** — approche **whitelist** :
+**Enforcement : trigger `handle_user_update`** (corps live, dernier 00508) :
 ```sql
 IF current_setting('junto.bypass_lock', true) = 'true' THEN
-  NEW.updated_at := NOW();
+  NEW.updated_at := now();
   RETURN NEW;
 END IF;
 
--- WHITELIST : forcer toutes les colonnes non autorisées à OLD
+NEW.id := OLD.id;
 NEW.email := OLD.email;
 NEW.created_at := OLD.created_at;
-NEW.is_admin := OLD.is_admin;
+NEW.age_confirmed_at := OLD.age_confirmed_at;
 NEW.tier := OLD.tier;
-NEW.is_pro_verified := OLD.is_pro_verified;
+NEW.is_admin := OLD.is_admin;
+NEW.is_demo := OLD.is_demo;
 NEW.suspended_at := OLD.suspended_at;
-NEW.phone_verified := OLD.phone_verified;
 NEW.accepted_tos_at := OLD.accepted_tos_at;
 NEW.accepted_privacy_at := OLD.accepted_privacy_at;
-NEW.date_of_birth := OLD.date_of_birth;
+NEW.tutorial_seen_at := OLD.tutorial_seen_at;
+NEW.push_token := OLD.push_token;
 NEW.reliability_score := OLD.reliability_score;
 NEW.levels_per_sport := OLD.levels_per_sport;  -- mig 00295 : peer-gated via set_sport_level
-NEW.subscription_status := OLD.subscription_status;
-NEW.stripe_customer_id := OLD.stripe_customer_id;
-NEW.push_token := OLD.push_token;
 
-NEW.updated_at := NOW();
+NEW.updated_at := now();
 ```
 
-**Pourquoi whitelist** : chaque nouvelle colonne est automatiquement protégée (forcée à OLD). Le défaut sûr est "protégé".
+⚠️ **Ce n'est PAS une whitelist automatique** : le trigger énumère les colonnes privilégiées à forcer à OLD. Toutes les colonnes actuelles sont couvertes (les 6 colonnes client ci-dessus + `updated_at` sont les seules non gelées), mais **une colonne ajoutée à `users` est modifiable par son propriétaire tant qu'elle n'est pas ajoutée à cette liste** (UPDATE direct permis par `users_update_own`). Toute nouvelle colonne privilégiée exige donc d'étendre `handle_user_update` dans la même migration. Même constat pour `handle_activity_update` (pas d'écriture client directe sur `activities` aujourd'hui, mais l'UPDATE principal de `update_activity` passe par ce trigger sans `bypass_lock`).
 
 ### Table `activities` (trigger `handle_activity_update`, corps 00333 + 00441 — relu contre le code le 2026-10-07)
 - `creator_id`, `status`, `invite_token`, `created_at`, `deleted_at`, `cancelled_reason`, `distance_km`, `elevation_gain_m`, `meeting_name`, `trace_geojson`, `route`, `is_demo` — toujours OLD (whitelist inconditionnelle ; les fonctions dédiées passent par `bypass_lock`)
 - `location_meeting`, `location_end`, `location_objective`, `objective_name`, `starts_at`, `level`, `level_max`, `max_participants`, `visibility`, `requires_presence` — verrouillées dès qu'un participant accepté autre que le créateur existe
+- `duration` — figée dès que la sortie a commencé (`now() >= starts_at`, 00467 : la fenêtre QR et le finaliseur d'absence en dépendent)
 - `meeting_locality` (00441) — forcé à OLD sauf dans l'UPDATE qui change `location_meeting` (donc jamais après un premier participant)
 - `title`, `description`, `sport_id`, `duration` — modifiables si créateur (via `update_activity`)
 
@@ -791,11 +816,11 @@ NEW.updated_at := NOW();
 Pas de trigger whitelist sur `participations` — la table n'a **aucune policy UPDATE** (cf. mig 00004 et le commentaire explicite dans 00065 : *"The whitelist trigger on participations doesn't exist — these are only writable via SECURITY DEFINER fns"*). C'est plus strict qu'un whitelist par colonne : aucune écriture client n'est possible, point.
 
 Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFINER dédiées :
-- `confirmed_present` — via les fonctions de présence (`confirm_presence_via_geo`, `confirm_presence_via_token`, `peer_validate_presence`)
+- `confirmed_present` — via les fonctions de présence (`confirm_presence_via_geo`, `confirm_presence_via_token`) et la finalisation (`close_presence_window_for`)
 - `status` — via les fonctions de participation (`accept_participation`, `refuse_participation`, `leave_activity`, `remove_participant`)
 - `transport_*` — via `set_participation_transport` (et `accept_seat_request` / `cancel_accepted_seat` pour le décrément/refund de `transport_seats`)
 
-**Convention `bypass_lock` (dette technique connue)** : `junto.bypass_lock` est interprété par les triggers whitelist sur `users`, `activities` et les 3 tables messagerie `conversations`/`conversation_members`/`messages` (00367). Les appels `set_config('junto.bypass_lock', 'true', true)` qui précèdent uniquement des écritures sur `participations`, `peer_validations`, `seat_requests` ou `notifications` sont des **no-ops bénins** (pas de trigger qui les lit). Sur les tables messagerie, aucun écrivain n'a besoin du bypass : l'ensemble gelé est disjoint des colonnes qu'ils mutent. Mig 00200 a déjà nettoyé `set_participation_transport`, `accept_seat_request`, `cancel_accepted_seat`. Les appels morts résiduels (`join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `cascade_block_cleanup`, `peer_validate_presence`, `create_activity`) seront supprimés **opportunistiquement** la prochaine fois que la fonction est réécrite pour une autre raison — pas de migration cosmétique dédiée.
+**Convention `bypass_lock` (dette technique connue)** : `junto.bypass_lock` est interprété par les triggers whitelist sur `users`, `activities` et les 3 tables messagerie `conversations`/`conversation_members`/`messages` (00367). Les appels `set_config('junto.bypass_lock', 'true', true)` qui précèdent uniquement des écritures sur `participations`, `seat_requests` ou `notifications` sont des **no-ops bénins** (pas de trigger qui les lit). Sur les tables messagerie, aucun écrivain n'a besoin du bypass : l'ensemble gelé est disjoint des colonnes qu'ils mutent. Mig 00200 a déjà nettoyé `set_participation_transport`, `accept_seat_request`, `cancel_accepted_seat`. Les appels morts résiduels (`join_activity`, `leave_activity`, `accept_participation`, `refuse_participation`, `remove_participant`, `cascade_block_cleanup`, `create_activity`) seront supprimés **opportunistiquement** la prochaine fois que la fonction est réécrite pour une autre raison — pas de migration cosmétique dédiée.
 
 ### Table `notifications`
 - INSERT interdit pour les clients (fonctions seulement)
@@ -812,7 +837,7 @@ Toutes les colonnes ne sont donc modifiables que via les fonctions SECURITY DEFI
 
 Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes gelées à OLD sauf `bypass_lock`. Défense en profondeur derrière le REVOKE (aucun GRANT d'écriture client). L'ensemble gelé est **disjoint** des colonnes que les fonctions live mutent → aucun écrivain ne change.
 
-- `conversations` — gelées : `id`, `user_1`, `user_2`, `type`, `activity_id`, `created_by`, `created_at`, `initiated_by`, `initiated_from`, `request_sender_id` · mutables : `status`, `name`, `icon`, `last_message_at`, `request_expires_at`, `request_message`, `hidden_by_user_*`
+- `conversations` — gelées : `id`, `user_1`, `user_2`, `type`, `activity_id`, `created_by`, `created_at`, `initiated_by`, `initiated_from`, `request_sender_id` · mutables : `status`, `name`, `icon`, `last_message_at`, `request_expires_at`, `request_message` (`hidden_by_user_*` supprimées en 00508 — le masquage vit dans `conversation_members.hidden_at`)
 - `conversation_members` — gelées : `conversation_id`, `user_id`, `added_by`, `joined_at` · mutables : `last_read_at`, `hidden_at`
 - `messages` — gelées : `id`, `conversation_id`, `sender_id`, `reply_to_message_id`, `created_at`, `metadata` (payload de carte de partage) · mutables : `content`, `edited_at`, `deleted_at`
 
@@ -830,12 +855,12 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 #### `activities`
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| Discovery: published/in_progress, créateur non suspendu, non bloqué. Privé: via RPC + invite_token | 🔧 `create_activity` | ✅ `auth.uid() = creator_id` + whitelist trigger | ❌ Cancel only |
+| Discovery: published/in_progress, créateur non suspendu, non bloqué. Privé: via RPC + invite_token. SELECT par colonne (sans `invite_token`, 00486) | 🔧 `create_activity` | 🔧 `update_activity` / `update_activity_trace` (aucun grant ni policy UPDATE client) + trigger `handle_activity_update` | ❌ Cancel only |
 
 #### `sports`
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| ✅ Everyone (incl. anon) | ❌ Admin only | ❌ Admin only | ❌ Admin only |
+| ✅ Everyone (incl. anon) | ✅ Admin only (`sports_insert_admin`) | ✅ Admin only | ✅ Admin only |
 
 #### `participations`
 | SELECT | INSERT | UPDATE | DELETE |
@@ -851,11 +876,6 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
 | Own rows (`user_id = auth.uid()`) | 🔧 triggers sync + fns groupes | 🔧 `mark_conversation_read`/`set_conversation_hidden` (own row) + whitelist | 🔧 leave/cascade |
-
-#### `wall_messages` / `private_messages` — **legacy** (refonte 2026-08-04)
-| SELECT | INSERT | UPDATE | DELETE |
-|--------|--------|--------|--------|
-| Lecture retirée (client repointé sur `messages`) | 🔧 3 écrivains legacy, mirrorés → `messages` (00361) | 🔧 wrappers legacy | 🔧 Soft delete — À dropper post-OTA |
 
 #### `notifications`
 | SELECT | INSERT | UPDATE | DELETE |
@@ -876,11 +896,6 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
 | Reporter voit les siens + admins voient tout | 🔧 `create_report` (rate-limited, dup-check) | ✅ Admins (status) | ❌ |
-
-#### `peer_validations` (nouveau)
-| SELECT | INSERT | UPDATE | DELETE |
-|--------|--------|--------|--------|
-| Voter ou voted | 🔧 `peer_validate_presence` | ❌ | ❌ |
 
 #### `reputation_votes` (nouveau)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -905,7 +920,7 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 #### `activity_alerts` (nouveau)
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| `auth.uid() = user_id` | 🔧 `create_alert` | ❌ | 🔧 `delete_alert` |
+| `auth.uid() = user_id` | 🔧 `create_alert` | ❌ | ✅ `alerts_delete_own` (`auth.uid() = user_id`) |
 
 #### `user_badge_progression` (nouveau)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -913,7 +928,7 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 | `auth.uid() = user_id` | 🔧 trigger via `award_badge_progression` | 🔧 | ❌ |
 
 #### `activity_gear` (nouveau)
-Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remove_gear_assignment`, `update_gear`). Lecture par participants/créateur.
+Écriture via `set_activity_gear` uniquement (et `add/remove_missing_gear` pour `activity_gear_missing`). Lecture par participants/créateur.
 
 #### `pro_profiles` (policy live 00443)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -928,7 +943,7 @@ Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remov
 #### `pro_profile_photos` / `pro_offering_photos` (policies live 00347)
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| authenticated : parent non suspendu ∧ gate démo (via parent) | 🔧 `add_pro_(offering_)photo` | 🔧 `reorder_*`, `set_*_photo_url` + whitelist | 🔧 `remove_*` |
+| authenticated : parent non suspendu ∧ gate démo (via parent) | 🔧 `add_pro_(offering_)photo` | 🔧 `reorder_*` + whitelist | 🔧 `remove_*` |
 
 #### `pro_community_photos` (policy live 00443)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -963,7 +978,7 @@ Voir ses fonctions dédiées (`set_activity_gear`, `add_gear_assignment`, `remov
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |
 | Replay offline (deadline arrivée) | **end + 24h** (00429, était end+3h) | `confirm_presence_via_geo(.., p_captured_at)` |
-| Peer review | end + 15min → end + 24h | `peer_validate_presence`, `give_reputation_badge` |
+| Votes de caractère / niveau | end + 15min → end + 24h | `give_reputation_badge` (le témoignage de présence `peer_validate_presence` est supprimé, 00508) |
 
 ### Distance check (mig 00149)
 
@@ -979,7 +994,7 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 
 ### Peer review
 
-> **Témoignage de présence par les pairs DÉSACTIVÉ depuis 00434** (`peer_validate_presence` lève `junto.peer_review_unavailable`) ; les notifications `peer_review_closing` / `presence_validate_final` ne partent plus. La validation de caractère (`give_reputation_badge`) reste active. Description ci-dessous conservée comme référence pour une éventuelle réactivation (qui exige d'abord de corriger le vote du créateur, cf. 00434).
+> **Témoignage de présence par les pairs DÉSACTIVÉ en 00434, SUPPRIMÉ en 00508** (fonctions `peer_validate_presence` / `notify_peer_review_closing` et table `peer_validations` retirées) ; les notifications `peer_review_closing` / `presence_validate_final` ne partent plus. La validation de caractère (`give_reputation_badge`) reste active. Description ci-dessous conservée comme référence historique pour une éventuelle reconstruction (qui exige d'abord de corriger le vote du créateur, cf. 00434).
 
 > ⚠️ Cette section décrivait jusqu'au 2026-09-30 un modèle **supprimé en 00327** (1 vote à 2 participants + direct-flip créateur). C'est cette dérive qui a permis la régression 00419. Le modèle réel :
 
@@ -1001,11 +1016,9 @@ Pour l'usage outdoor (alpinisme, ski de rando) où le réseau peut être absent 
 | T-10min | `presence_pre_warning_10min` | Participants non confirmés |
 | T-10min | `qr_create_reminder` | Créateur (QR live dès T-15min) |
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés |
-| Validation | `presence_confirmed` | User validé (push gated par `skip_push` ; le DEFAULT de `notify_presence_confirmed` est **FALSE** — ce sont les RPC géo/QR qui passent TRUE, et `peer_validate_presence` l'appelle en 2 args donc le push part) |
+| Validation | `presence_confirmed` | User validé (push gated par `skip_push` ; le DEFAULT de `notify_presence_confirmed` est **FALSE** — ce sont les RPC géo/QR qui passent TRUE) |
 | End+15min | `rate_participants` | Participants (in-app uniquement) — émis par les balayages via `notify_rate_participants` (00427) une fois la fenêtre de vote OUVERTE (fin+15 min ≤ now ≤ fin+24 h, dédup par user+activité, ≥2 acceptés) ; plus jamais au flip `completed` (le tap immédiat garantissait « trop tôt ») |
 | End+1h | `presence_validate_overdue` | Participants non confirmés |
-| End+22h | `peer_review_closing` | Participants avec ≥1 peer non-confirmé restant à valider (gate `confirmed_present IS DISTINCT FROM FALSE`, 00429) |
-| End+22h | `presence_validate_final` | Les non-confirmés eux-mêmes (émis par `notify_peer_review_closing`, branche b) — demande **2** co-participants, pas « un participant présent » (00429) |
 | Détection geofence (BG) | "Présence détectée" → "Présence confirmée" (local notif) | Participant |
 
 Les types `presence_pre_warning`, `presence_pre_warning_10min`, `presence_validate_warning`, `presence_validate_overdue`, `presence_confirmed` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.
@@ -1106,7 +1119,7 @@ Notifs > 7 jours supprimées par cron. Empêche l'accumulation infinie.
 | Bucket | Type | Usage |
 |--------|------|-------|
 | `avatars` | Public | Path `/avatars/{user_id}/…`. Policies owner-scoped (dossier = `auth.uid()`). Contraintes serveur : `allowed_mime_types = {jpeg,png,webp}`, `file_size_limit = 5 MB` (mig 00287 — avant, aucune, la validation ne vivait que côté client) |
-| `pro-photos` | Public | Path `/{user_id}/…`. Photos pro (offres, galerie communautaire). Policies owner-scoped. Contraintes serveur : mêmes que `avatars` (mig 00241). **Les 6 setters d'URL (add_pro_photo, add_pro_offering_photo, set_pro_photo_url, set_pro_offering_photo_url, set_pro_pin_image, add_pro_community_photo) sont ANCRÉS HÔTE + dossier du caller depuis 00418 (H4, pattern 00408 : `https://…/pro-photos/{uid}/%`) — fini les URLs arbitraires dans les pins de carte / photos d'offres ; community photo exige en plus une cible pro `approved` (anti-oracle de candidature). `set_pro_banner` : droppée (code mort, colonne partie en 00254)** |
+| `pro-photos` | Public | Path `/{user_id}/…`. Photos pro (offres, galerie communautaire). Policies owner-scoped. Contraintes serveur : mêmes que `avatars` (mig 00241). **Les setters d'URL (add_pro_photo, add_pro_offering_photo, set_pro_pin_image, add_pro_community_photo ; set_pro_photo_url / set_pro_offering_photo_url supprimées en 00508) sont ANCRÉS HÔTE + dossier du caller depuis 00418 (H4, pattern 00408 : `https://…/pro-photos/{uid}/%`) — fini les URLs arbitraires dans les pins de carte / photos d'offres ; community photo exige en plus une cible pro `approved` (anti-oracle de candidature). `set_pro_banner` : droppée (code mort, colonne partie en 00254)** |
 
 **Note (2026-07-07) :** le bucket privé `pro-documents` (SIRET/BPJEPS) décrit dans les versions précédentes **n'a jamais été créé**. Il n'existe aujourd'hui **aucun bucket privé**. Si des documents de vérification pro sont ajoutés un jour, ils DOIVENT aller dans un bucket **privé** (jamais `pro-photos`/`avatars` qui sont publics), servis par URLs signées, lecture admin uniquement.
 
@@ -1156,9 +1169,8 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 - Soumission : `verifyOtp` puis `updateUser({ password })` puis sign out
 
 ### Âge
-- `date_of_birth` obligatoire à l'inscription
-- 18 ans minimum (`CHECK (date_of_birth <= CURRENT_DATE - INTERVAL '18 years')`)
-- One-shot via `set_date_of_birth`
+- Aucune date de naissance stockée : l'utilisateur confirme être majeur, `confirm_age_adult()` pose `users.age_confirmed_at` (00318, idempotent, colonne gelée au trigger)
+- **Garde d'onboarding (00494/00496)** : trigger `private.require_onboarded_actor` (BEFORE INSERT) sur les tables d'action (`activities`, `participations`, `messages`, `conversations`, `conversation_members`, `seat_requests`, `reputation_votes`, `bookings`, `pro_profiles`, `discovery_availabilities`, `gpx_traces`, `contact_qr_tokens`) — si `auth.uid()` est renseigné, exige `age_confirmed_at` **et** `accepted_tos_at` non NULL, sinon `Operation not permitted`. Les écritures système (cron, `auth.uid()` NULL) passent. Un compte qui n'a pas fini l'onboarding ne peut donc agir par aucune RPC.
 
 ---
 
@@ -1170,7 +1182,7 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 | stats activités | Non | Agrégées | Détail complet |
 | reliability_tier (label) | Non | Oui | Oui |
 | reliability_score (raw %) | Non | Non | Oui |
-| email, téléphone, date_of_birth | Non | Non | Oui |
+| email | Non | Non | Oui |
 
 ---
 
@@ -1219,6 +1231,11 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 ### Alert match
 - Cap 3/jour/user (UTC midnight reset)
 
+### Compteur de fréquence commun — `private.rate_hit(kind, limit, window)` (00480)
+- Une ligne par action dans `rate_events` (RLS forcée, aucun grant client) ; advisory lock `<uid>_rate_<kind>` ; au-delà de `limit` sur `window` → `junto.too_many_actions` (SAFE). EXECUTE révoqué à tous : appelé uniquement depuis les RPC
+- Branché (live) : `set_activity_gear` 20/min + 200/h · `add/remove_missing_gear` 30/min + 300/h · `update_activity` 30/h · `update_activity_trace` 20/h · `compute_trace_stats` 600/h · `get_discovery_count` 300/h · `upsert_dispo` 30/jour
+- Purge quotidienne > 2 jours (`purge_throttle_tables`, job `junto-throttle-purge`)
+
 ### Supabase API rate
 - Anonyme : 30 req/min
 - Authentifié : 100 req/min
@@ -1236,11 +1253,9 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 | messages | Anonymiser | SET NULL (sender_id) |
 | conversation_members | Supprimer | CASCADE (user_id) |
 | conversations (DM) | Supprimer | CASCADE (user_1/user_2) ; activité/groupe : `created_by` SET NULL, la conversation survit |
-| wall_messages / private_messages | *legacy* — Anonymiser / Supprimer | SET NULL / CASCADE (à dropper post-OTA) |
 | notifications | Supprimer | CASCADE |
 | reputation_votes (voter) | Supprimer | CASCADE |
 | reputation_votes (voted) | Supprimer | CASCADE |
-| peer_validations | Supprimer | CASCADE |
 | reports (reporter) | Anonymiser | SET NULL (**implémenté 00418** — était documenté mais NOT NULL sans ON DELETE depuis 00037 : suppression de compte bloquée à vie pour tout reporter, RGPD) |
 | reports (reported) | Conserver | RESTRICT |
 | bookings (client/pro) | Supprimer, contreparties futures NOTIFIÉES avant (00419) | CASCADE |
@@ -1267,11 +1282,13 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 - Activités, messages, profil filtrés par RLS
 - Push tokens cleared
 - `confirmed_present`, `reliability_score` préservés (utiles si réinstauration)
+- Pose / levée : `moderate_report`, `admin_suspend_user`, `admin_unsuspend_user` (admin non suspendu, motif obligatoire, journalisé)
+- **E-mail banni après suppression d'un compte suspendu (00506)** : un suspendu peut toujours supprimer son compte (droit à l'effacement), mais le trigger `private.ban_email_on_suspended_delete` (BEFORE DELETE sur `users`, seulement si `suspended_at` non NULL) enregistre l'empreinte HMAC-SHA256 de l'e-mail du profil et de l'e-mail de connexion dans `banned_email_hashes` (RLS forcée, aucun grant client). L'e-mail lui-même n'est jamais gardé : `private.email_hash` normalise (minuscules, trim, `+tag` retiré) et signe avec un secret serveur (`app_config.email_ban_pepper`, illisible des clients). `handle_new_user` refuse l'inscription si `private.email_is_banned(email)`. Une levée de suspension avant la suppression ne laisse aucune trace ; réinscription possible seulement par le support (suppression de la ligne).
 
 ### Tables
 - `blocked_users` — affecte RLS sur toutes tables
-- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only. Cibles étendues au store unifié (00362) : `message` et `group` (en plus de `user`/`activity`/`wall_message`/`private_message` legacy)
-- `admin_remove_content` (00362) — soft-delete sur `messages` / masquage `conversations` (repointé du legacy wall/private vers le store unifié)
+- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only. Cibles (CHECK live, 00500/00508) : `user`, `activity`, `message`, `group`, `channel`, `pro_review`, `offering_review` — les cibles legacy `wall_message`/`private_message` sont retirées en 00508
+- `admin_remove_content` (00362) — soft-delete sur `messages` / masquage `conversations` (repointé du legacy wall/private vers le store unifié ; le type `wall_message` reste accepté en entrée et vise `messages`, l'id étant partagé)
 
 ---
 
@@ -1286,10 +1303,6 @@ CHECK (status IN ('accepted', 'pending', 'declined', 'removed', 'left'))
 
 -- Reputation votes
 UNIQUE (voter_id, voted_id, activity_id, badge_key)
-CHECK (voter_id != voted_id)
-
--- Peer validations
-UNIQUE (voter_id, voted_id, activity_id)
 CHECK (voter_id != voted_id)
 
 -- Conversations
@@ -1316,6 +1329,10 @@ CHECK (status IN ('pending', 'accepted', 'declined', 'cancelled', 'expired'))
 CHECK (char_length(display_name) BETWEEN 2 AND 30)
 CHECK (char_length(bio) <= 500)
 ```
+
+### Conflit d'horaire (00497, 00498, 00503)
+
+Trigger `private.check_schedule_conflict` (BEFORE INSERT OR UPDATE OF status sur `participations`) : une personne ne peut pas avoir deux participations **acceptées** dont les créneaux `[starts_at, starts_at + duration)` se chevauchent sur des sorties vivantes (`published`/`in_progress`, non supprimées, non démo). Une demande `pending` est vérifiée aussi, mais seulement quand c'est le demandeur lui-même qui écrit (sinon l'organisateur qui accepte apprendrait l'existence d'une autre sortie). Advisory lock `schedule:<user>` (deux acceptations simultanées). Codes SAFE : `junto.schedule_conflict` (moi) / `junto.participant_schedule_conflict` (l'organisateur accepte quelqu'un déjà pris). Écritures système (`auth.uid()` NULL : cron, seed démo) et sorties démo exemptées.
 
 ### Concurrent join protection
 
@@ -1359,6 +1376,12 @@ Cron / lazy via `transition_statuses_only` :
 - [ ] FCM V1 credentials chargés pour push Android
 - [ ] APNs credentials chargés pour push iOS
 - [ ] PostGIS extension enabled
+
+### Garde d'API PostgREST — `public.junto_pre_request` (00504)
+- Rôle `authenticator` : `pgrst.db_pre_request = public.junto_pre_request` (avec `statement_timeout = 8s`, `lock_timeout = 8s`, `session_preload_libraries = safeupdate`)
+- Refuse (`42501`, « Operation not permitted ») toute requête autre que GET/HEAD/OPTIONS sur `spatial_ref_sys`, `geometry_columns`, `geography_columns`. Ces objets PostGIS appartiennent à `supabase_admin` : on ne peut ni retirer les droits d'écriture de `anon`/`authenticated` ni y activer la RLS, et un DELETE anonyme de `srid = 4326` casserait toute requête géographique
+- **Temporaire** : à retirer quand PostGIS sera déplacé dans le schéma `extensions`
+- INVOKER, EXECUTE `anon` + `authenticated` (obligatoire : PostgREST l'appelle avec le rôle de la requête)
 
 ### Edge Functions secrets
 - `PUSH_WEBHOOK_SECRET` (matché par `app_config.push_webhook_secret`)
@@ -1412,8 +1435,8 @@ Connue : 2 confirmed friends peuvent valider un no-show en activité 3-personnes
 - Badge "Vérifié" retiré
 
 ### Pro → non-Pro
-- Display-time check sur `is_pro_verified`
-- Pas de migration de données
+- Statut lu dans `pro_profiles.status` (+ `users.tier`) ; `is_pro_verified` n'existe plus (supprimée en 00508)
+- `unregister_as_pro` supprime le profil pro (CASCADE offres, photos, avis), purge `pro_availabilities` et repasse `tier = 'free'` ; refusé (`junto.offering_has_bookings`) s'il reste des réservations futures
 
 ---
 
@@ -1446,7 +1469,7 @@ Le bypass est nécessaire car `is_admin` est dans la whitelist du trigger user.
 
 ## Ce document est la référence sécurité
 
-Toute question de sécurité se réfère à ce document. Mis à jour au fil du développement (la dernière refonte est postérieure à la mig 00149).
+Toute question de sécurité se réfère à ce document. Mis à jour au fil du développement (la dernière refonte est postérieure à la mig 00149 ; classification des fonctions, écritures client directes et protections de la campagne 00467-00508 relues contre la base live le 2026-10-21).
 
 ## Réservations pro (booking) — migs 00416-00422, 00443
 

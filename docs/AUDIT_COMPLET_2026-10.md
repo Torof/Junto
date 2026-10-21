@@ -190,6 +190,14 @@ Suite : 1 528 pass, 0 fail, 44 failles connues restantes.
 
 Suite : 1 586 pass, 0 fail, 14 failles connues restantes (12 fermées par la migration, 1 de nettoyage, L16 à la prochaine version de production).
 
+## Phase de nettoyage — livrée (mig 00508-00509, 2026-10-21)
+
+- Anciennes tables des murs et messages privés retirées (les messages de covoiturage vont directement dans la messagerie), 11 fonctions mortes, table `contacts`, vue `public_participants`, table et écran du témoignage de présence entre pairs, colonnes mortes, 6 index en double ; purge quotidienne du journal cron (42 Mo).
+- App : 5 composants et les méthodes jamais appelées supprimés, écoutes temps réel muettes retirées, types régénérés et ~160 contournements de typage retirés.
+- **Bug trouvé par la régénération des types** : depuis 00441, les listes « Mes sorties » (créées / rejointes / en attente) échouaient — colonne `meeting_locality` absente des vues (00509, test ajouté).
+- Stockage : 6 photos orphelines supprimées. Documentation (CLAUDE.md, SECURITY.md, sprint-messaging.md) réécrite depuis la base réelle.
+- Pour la re-sécurisation : droits d'écriture inutiles sur ~30 tables ; protection des colonnes de `users` / `activities` par liste de colonnes figées (une nouvelle colonne n'est pas protégée par défaut) ; EXECUTE accordé par défaut aux comptes sur toute nouvelle fonction ; fonctions de déclencheur exécutables par les clients ; 4 fonctions sans `search_path` ; reliquat `wall_message` dans `admin_remove_content`.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
