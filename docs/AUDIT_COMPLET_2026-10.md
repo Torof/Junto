@@ -119,6 +119,15 @@ Les 6 bugs trouvés par la suite de tests, chacun corrigé avec la faille qu'il 
 
 Suite : 1 405 pass, 0 fail, 87 failles connues restantes.
 
+## Phase B — livrée (mig 00479, 2026-10-21) — les deux HIGH restantes
+
+- **AB-3** : 500 messages / 24 h par compte ; 20 traces et 50 sorties partagées / 24 h ; trace partagée bornée à 1 Mo par la garde commune (**MS-7** corrigé). Codes `junto.message_daily_cap`, `junto.share_daily_cap` (5 langues). Index `messages (sender_id, created_at)`.
+- **AB-2** : `activities` et `participations` retirées de la publication postgres_changes ; à la place, un signal sans contenu sur le canal privé `map` (comptes connectés), au plus une fois par sortie toutes les 15 s, seulement pour les sorties publiques / sur demande non démo et un champ visible sur la carte ou une place qui change. Identité de réplication de `activities` et `activity_gear` revenue à DEFAULT. L'app écoute ce signal et recharge la zone (avec anti-rebond). Effet assumé : un visiteur sans compte et un membre d'une sortie privée voient la carte se mettre à jour au déplacement et non en direct.
+- **AB-10** : le matériel passe sur le canal privé de la sortie (`activity:<id>`) ; plus de suppressions envoyées à tous les écrans ouverts.
+- Noté pour le nettoyage : les écoutes `pro_profiles` / `pro_offerings` de l'app ne reçoivent rien (ces tables ne sont pas publiées).
+
+Suite : 1 421 pass, 0 fail, 85 failles connues restantes. Plus aucune faille HIGH ouverte hors celles liées à PostGIS (TX-2, PV-1 : fermées par la migration).
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
