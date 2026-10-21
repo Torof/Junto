@@ -4022,6 +4022,7 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      delete_account_as: { Args: { p_user_id: string }; Returns: undefined }
       delete_gpx_trace: { Args: { p_id: string }; Returns: undefined }
       delete_message: { Args: { p_message_id: string }; Returns: undefined }
       delete_offering_review: {

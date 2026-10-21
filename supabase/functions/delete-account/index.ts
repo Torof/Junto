@@ -44,10 +44,13 @@ Deno.serve(async (req) => {
   }
   const userId = userData.user.id;
 
-  // Step 1: cascade public-schema deletion via the existing RPC. The
-  // RPC also cancels active activities the user created and notifies
-  // their participants.
-  const { error: rpcErr } = await userClient.rpc('delete_own_account');
+  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  // Step 1: cascade public-schema deletion. Since mig 00519 the deletion RPC
+  // is not callable by app accounts: the service role runs it for the user
+  // whose JWT was just verified (delete_account_as), so a deletion always
+  // goes through here — auth row and files included.
+  const { error: rpcErr } = await adminClient.rpc('delete_account_as', { p_user_id: userId });
   if (rpcErr) {
     console.warn(`[delete-account] rpc failed for user ${userId}: ${rpcErr.message}`);
     return new Response(
@@ -62,8 +65,6 @@ Deno.serve(async (req) => {
   // a storage failure must not strand the user in a half-deleted state
   // where public-schema data is gone but the auth row survives, so we
   // log and continue rather than abort.
-  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
   // channel-photos added in the re-secure pass (audit ID-7): the user's
   // discussions are closed by delete_own_account, their photos go too.
   for (const bucket of ['avatars', 'pro-photos', 'channel-photos']) {

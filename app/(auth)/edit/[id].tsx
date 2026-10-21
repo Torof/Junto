@@ -246,7 +246,9 @@ export default function EditActivityScreen() {
       )}
 
       <Text style={styles.label}>{t('create.duration')}</Text>
-      <View style={[styles.durationRow, hasStarted && styles.locked]} pointerEvents={hasStarted ? 'none' : 'auto'}>
+      {/* Locked once started (00467) and once people joined (00516: their
+          schedules depend on it — the server ignores a change). */}
+      <View style={[styles.durationRow, (hasStarted || hasParticipants) && styles.locked]} pointerEvents={hasStarted || hasParticipants ? 'none' : 'auto'}>
         <Pressable
           style={styles.counterButton}
           onPress={() =>

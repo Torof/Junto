@@ -750,3 +750,14 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le fil retiré est supprimé', format($$SELECT count(*)::text FROM public.conversations WHERE id = %L$$, pg_temp.id('dm_ab')), '0');
 PERFORM pg_temp.eq('le fil retiré est archivé pour la modération',
   format($$SELECT count(*)::text FROM public.contact_removal_archive WHERE conversation_id = %L$$, pg_temp.id('dm_ab')), '1');
+
+-- 00519 : un groupe retiré par la modération passe en lecture seule.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('g_adm', 'tos,admin');
+PERFORM pg_temp.as_('g_adm');
+PERFORM pg_temp.ok('l''admin retire le groupe', format($$SELECT public.admin_remove_content('group', %L, 'Contenu signalé')::text$$, pg_temp.id('g1')));
+PERFORM pg_temp.as_('bob');
+PERFORM pg_temp.denied('on n''écrit plus dans un groupe retiré', format($$SELECT public.send_message(%L, 'encore')::text$$, pg_temp.id('g1')), 'Operation not permitted');
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.denied('on ne renomme plus un groupe retiré', format($$SELECT public.rename_group(%L, 'Revenu', NULL)::text$$, pg_temp.id('g1')), 'Operation not permitted');
+

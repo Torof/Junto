@@ -576,6 +576,7 @@
       "participant_schedule_conflict": "Cette personne participe déjà à une autre sortie sur ce créneau.",
       "member_left_recently": "Cette personne a quitté ce groupe récemment : elle ne peut pas y être remise avant 30 jours.",
       "channel_full": "Cette discussion est complète (500 membres).",
+      "offering_duration": "La durée doit être comprise entre 15 minutes et 30 jours.",
       "pro_website_invalid": "Le site web doit commencer par http:// ou https://.",
       "seats_still_active": "Des passagers ont une place confirmée. Annule leurs places avant de changer de transport.",
       "pickup_out_of_window": "L'heure de prise en charge est trop éloignée de l'horaire de la sortie.",

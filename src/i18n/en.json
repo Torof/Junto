@@ -572,6 +572,7 @@
       "participant_schedule_conflict": "This person is already in another outing at that time.",
       "member_left_recently": "This person left this group recently: they cannot be added back for 30 days.",
       "channel_full": "This discussion is full (500 members).",
+      "offering_duration": "The duration must be between 15 minutes and 30 days.",
       "pro_website_invalid": "The website must start with http:// or https://.",
       "seats_still_active": "Passengers have a confirmed seat. Cancel their seats before changing transport.",
       "pickup_out_of_window": "The pickup time is too far from the activity time.",

@@ -88,8 +88,9 @@ PERFORM pg_temp.eq('l''action admin est journalisée', format($$SELECT (count(*)
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.put('sam_email', (SELECT email FROM auth.users WHERE id = pg_temp.id('sam')));
 PERFORM pg_temp.as_('sam');
-PERFORM pg_temp.ok('un compte suspendu peut effacer son compte', $$SELECT public.delete_own_account()::text$$);
+PERFORM pg_temp.denied('00519 : l''app n''appelle plus la suppression directement (elle laissait la connexion vivante)', $$SELECT public.delete_own_account()::text$$, 'permission denied');
 PERFORM pg_temp.as_('db');
+PERFORM pg_temp.ok('un compte suspendu peut effacer son compte (par la fonction delete-account, rôle service)', format($$SELECT public.delete_account_as(%L)::text$$, pg_temp.id('sam')));
 PERFORM pg_temp.eq('ID-2 : l''empreinte de l''e-mail est gardée, pas l''e-mail', $$SELECT private.email_is_banned(pg_temp.get('sam_email'))::text$$, 'true');
 PERFORM pg_temp.denied('ID-2 : se réinscrire avec cet e-mail (variante +tag, majuscules) est refusé',
   $$INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, created_at, updated_at)
