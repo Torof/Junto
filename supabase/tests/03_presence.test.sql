@@ -157,7 +157,7 @@ PERFORM pg_temp.pr_act('CX', 'crea', interval '-5 minutes', interval '2 hours', 
 PERFORM pg_temp.pr_part('CX', 'p1');
 PERFORM pg_temp.pr_act('B', 'p3', interval '-5 minutes', interval '2 hours', 'in_progress');
 PERFORM pg_temp.pr_part('B', 'p1');
-PERFORM pg_temp.pr_act('S', 'susc', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('S', 'susc', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('S', 's1', 'accepted', true);
 PERFORM pg_temp.pr_part('S', 's2');
 PERFORM pg_temp.pr_setcp('S', 'susc', true);
@@ -340,7 +340,7 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.pr_setcp('V', 'crea', true);
 PERFORM pg_temp.pr_setcp('V', 'p1', true);
 PERFORM pg_temp.pr_setcp('V', 'p2', true);
-PERFORM pg_temp.pr_shift('V', interval '2 days');
+PERFORM pg_temp.pr_shift('V', interval '30 hours');
 PERFORM pg_temp.ok('fermeture de la fenêtre de V', format($$SELECT public.close_presence_window_for(%L)::text$$, pg_temp.id('V')));
 PERFORM pg_temp.eq('votes entre présents comptés',
   format($$SELECT count(*)::text FROM public.reputation_votes WHERE voter_id = %L AND voted_id = %L AND counted_at IS NOT NULL$$, pg_temp.id('p1'), pg_temp.id('p2')), '3');
@@ -399,31 +399,31 @@ PERFORM pg_temp.eq('rideau démo : get_user_sport_level_votes', format($$SELECT 
 -- ═════ Fermeture de la fenêtre de présence (règles 2 / 3+) ═════
 PERFORM pg_temp.as_('db');
 -- 2 personnes, aucun non-créateur validé → expirée, validation isolée effacée.
-PERFORM pg_temp.pr_act('C2a', 'crea', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('C2a', 'crea', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('C2a', 'x1');
 PERFORM pg_temp.pr_setcp('C2a', 'crea', true);
 -- 2 personnes, le participant validé → rien ne change.
-PERFORM pg_temp.pr_act('C2b', 'crea', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('C2b', 'crea', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('C2b', 'x1', 'accepted', true);
 PERFORM pg_temp.pr_setcp('C2b', 'crea', true);
 -- 3+, personne validé → expirée, neutre.
-PERFORM pg_temp.pr_act('C3a', 'crea', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('C3a', 'crea', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('C3a', 'x1');
 PERFORM pg_temp.pr_part('C3a', 'x3');
 -- 3+, une présence → les autres absents.
-PERFORM pg_temp.pr_act('C3b', 'crea', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('C3b', 'crea', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('C3b', 'x1', 'accepted', true);
 PERFORM pg_temp.pr_part('C3b', 'x2');
 PERFORM pg_temp.pr_setcp('C3b', 'crea', true);
 -- Solo, supprimée, sans validation, trop tôt : aucun effet.
-PERFORM pg_temp.pr_act('Csolo', 'x4', interval '-3 days', interval '2 hours', 'completed');
-PERFORM pg_temp.pr_act('Cdel', 'crea', interval '-3 days', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('Csolo', 'x4', interval '-30 hours', interval '2 hours', 'completed');
+PERFORM pg_temp.pr_act('Cdel', 'crea', interval '-30 hours', interval '2 hours', 'completed');
 PERFORM pg_temp.pr_part('Cdel', 'x1', 'accepted', true);
 PERFORM pg_temp.pr_part('Cdel', 'x3');
 PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.activities SET deleted_at = now() WHERE id = pg_temp.id('Cdel');
 PERFORM set_config('junto.bypass_lock', 'false', true);
-PERFORM pg_temp.pr_act('Cnp', 'crea', interval '-3 days', interval '2 hours', 'completed', 'public', false);
+PERFORM pg_temp.pr_act('Cnp', 'crea', interval '-30 hours', interval '2 hours', 'completed', 'public', false);
 PERFORM pg_temp.pr_part('Cnp', 'x1', 'accepted', true);
 PERFORM pg_temp.pr_part('Cnp', 'x3');
 PERFORM pg_temp.pr_act('Cearly', 'crea', interval '-5 hours', interval '2 hours', 'completed');
@@ -451,6 +451,17 @@ PERFORM pg_temp.ok('un tiers appelle transition_single_activity sur la sortie du
   format($$SELECT coalesce(public.transition_single_activity(%L), 'null')$$, pg_temp.id('S')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('créateur suspendu : aucune absence posée sur ses participants', $$SELECT pg_temp.pr_cp('S', 's2')$$, 'null');
+-- H2 (00495) : réactivé plus tard, l'organisateur ne fait pas tomber d'absences après coup.
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET suspended_at = NULL WHERE id = pg_temp.id('susc');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.pr_shift('S', interval '2 days');
+PERFORM public.close_due_presence_windows();
+PERFORM pg_temp.eq('organisateur réactivé après coup : toujours aucune absence', $$SELECT pg_temp.pr_cp('S', 's2')$$, 'null');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('susc');
+PERFORM set_config('junto.bypass_lock', 'false', true);
 
 -- PR-2 : tout le monde présent → le balayage ne compte jamais les votes.
 PERFORM pg_temp.pr_act('P2', 'crea', interval '-3 hours', interval '2 hours', 'completed');
@@ -466,8 +477,8 @@ PERFORM pg_temp.ok('q1 vote pour q2', format($$SELECT public.give_reputation_bad
 PERFORM pg_temp.as_('r1');
 PERFORM pg_temp.ok('r1 vote pour r2 (sortie sans présence)', format($$SELECT public.give_reputation_badge(%L, %L, 'prudent')::text$$, pg_temp.id('r2'), pg_temp.id('NPV')));
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.pr_shift('P2', interval '2 days');
-PERFORM pg_temp.pr_shift('NPV', interval '2 days');
+PERFORM pg_temp.pr_shift('P2', interval '30 hours');
+PERFORM pg_temp.pr_shift('NPV', interval '30 hours');
 PERFORM public.close_due_presence_windows();
 PERFORM pg_temp.eq('sortie où tous sont présents : le balayage compte les votes',
   format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true');
@@ -475,8 +486,10 @@ PERFORM public.close_presence_window_for(pg_temp.id('P2'));
 PERFORM pg_temp.eq('la fermeture directe, elle, compte ces votes',
   format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true');
 PERFORM public.close_presence_window_for(pg_temp.id('NPV'));
-PERFORM pg_temp.eq('sortie sans validation de présence : les votes finissent comptés',
-  format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('r1')), 'true');
+-- BR-2 : les votes d'une sortie sans validation de présence ne sont pas comptés (00495, décision Scott
+-- en attente : ne plus les solliciter, ou les compter malgré le risque de réputation fabriquée).
+PERFORM pg_temp.eq('sortie sans validation de présence : votes non comptés (pas de réputation fabriquée)',
+  format($$SELECT (counted_at IS NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('r1')), 'true');
 
 -- ═════ Score de fiabilité ═════
 -- rr : 2 présences + 1 absence → (1+2)/(1+3) = 75.
