@@ -109,6 +109,16 @@ Même méthode (lecture seule, base vivante), mais découpage par angle et non p
 
 Les 6 bugs trouvés par la suite de tests, chacun corrigé avec la faille qu'il masquait par accident : DB-1, DB-DC-1, DB-PO-1 (colonnes qualifiées) ; DB-PO-2, DB-PR-1/DB-AC-1, DB-AC-2 (test de l'identifiant au lieu de l'enregistrement) ; **AB-1** (délai de 15 min avant de rejoindre une sortie quittée + une seule notification « a quitté » par participant et sortie sur 24 h) ; **PR-4** (colonne `late_cancel_at` : l'annulation tardive survit à une réinscription, reprise des annulations existantes) ; **PR-5** (retirer une demande en attente n'est pas pénalisé) ; **AC-4 / AB-4** (redemande de place : 24 h après un refus, 1 h après une annulation ou une expiration). Codes d'erreur `junto.rejoin_cooldown`, `junto.seat_request_cooldown` (5 langues). Suite : 1 381 pass, 0 fail, 88 failles connues restantes.
 
+## Phase A2 — livrée (mig 00478, 2026-10-21) — résidus de la contre-vérification de A
+
+- **DB-MS-1** (nouveau bug trouvé par `plpgsql_check`) : la liste « partenaires récents » (inviter, créer un groupe) était cassée pour tout le monde (`get_recent_partners`, colonne ambiguë). Corrigé. `plpgsql_check` ne signale plus aucune fonction de l'app.
+- **PR-4 complété** : la colonne de 00477 s'effaçait avec la ligne (refus d'une nouvelle invitation, cascade de blocage) et comptait double après un retour suivi d'un verdict → table `late_cancels` (une ligne par personne et sortie), comptée sans verdict de présence et hors sorties annulées / retirées ; une nouvelle annulation tardive réarme une levée.
+- **PR-6 corrigé** : levée de pénalité possible après réinscription ; l'organisateur voit enfin ses départs tardifs (`get_late_leavers`, créateur seul — la lecture directe était limitée par la RLS à sa propre ligne, liste toujours vide).
+- **AB-1 affiné** : au plus une notification de départ **par type** et par 24 h (un départ anticipé ne masque plus l'avis de départ tardif).
+- Laissé tel quel (LOW) : le délai après refus de place se mesure depuis la demande, faute d'horodatage de décision.
+
+Suite : 1 405 pass, 0 fail, 87 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
