@@ -561,6 +561,8 @@
       "no_seats_available": "Ce conducteur n'a plus de place disponible.",
       "seats_exhausted": "Plus aucune place disponible — la voiture est complète.",
       "seat_already_requested": "Tu as déjà demandé une place à ce conducteur.",
+      "already_seated": "Tu as déjà une place dans une voiture pour cette sortie.",
+      "passenger_already_seated": "Cette personne a déjà une place dans une autre voiture.",
       "seats_still_active": "Des passagers ont une place confirmée. Annule leurs places avant de changer de transport.",
       "pickup_out_of_window": "L'heure de prise en charge est trop éloignée de l'horaire de la sortie.",
       "depart_out_of_window": "L'heure de départ est trop éloignée de l'horaire de la sortie.",

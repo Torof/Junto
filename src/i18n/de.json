@@ -561,6 +561,8 @@
       "no_seats_available": "Dieser Fahrer hat keinen freien Platz mehr.",
       "seats_exhausted": "Kein Platz mehr frei — das Auto ist voll.",
       "seat_already_requested": "Du hast bei diesem Fahrer schon einen Platz angefragt.",
+      "already_seated": "Du hast für diese Tour schon einen Platz in einem Auto.",
+      "passenger_already_seated": "Diese Person hat schon einen Platz in einem anderen Auto.",
       "seats_still_active": "Mitfahrer haben einen bestätigten Platz. Storniere ihre Plätze, bevor du die Anreise änderst.",
       "pickup_out_of_window": "Die Abholzeit liegt zu weit von der Startzeit der Tour entfernt.",
       "depart_out_of_window": "Die Abfahrtszeit liegt zu weit von der Startzeit der Tour entfernt.",

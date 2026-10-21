@@ -557,6 +557,8 @@
       "no_seats_available": "This driver has no seats left.",
       "seats_exhausted": "No seats left — the car is full.",
       "seat_already_requested": "You've already requested a ride from this driver.",
+      "already_seated": "You already have a seat in a car for this outing.",
+      "passenger_already_seated": "This person already has a seat in another car.",
       "seats_still_active": "Passengers have a confirmed seat. Cancel their seats before changing transport.",
       "pickup_out_of_window": "The pickup time is too far from the activity time.",
       "depart_out_of_window": "The departure time is too far from the activity time.",
