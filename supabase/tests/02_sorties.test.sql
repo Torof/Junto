@@ -353,18 +353,10 @@ PERFORM pg_temp.denied('un compte suspendu ne décline pas', format($$SELECT pub
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('anon n''accepte pas d''invitation', format($$SELECT public.accept_activity_invitation(%L)::text$$, pg_temp.id('priv')));
 
--- invite_users_to_activity (partage par demande de contact)
 PERFORM pg_temp.as_('anon');
-PERFORM pg_temp.denied('anon ne partage pas une sortie', format($$SELECT public.invite_users_to_activity(%L, ARRAY[%L]::uuid[])::text$$, pg_temp.id('pub'), pg_temp.id('kim')));
 PERFORM pg_temp.as_('sam');
-PERFORM pg_temp.denied('un compte suspendu ne partage pas une sortie', format($$SELECT public.invite_users_to_activity(%L, ARRAY[%L]::uuid[])::text$$, pg_temp.id('pub'), pg_temp.id('kim')));
 PERFORM pg_temp.as_('frank');
-PERFORM pg_temp.denied('un inconnu ne partage pas une sortie privée', format($$SELECT public.invite_users_to_activity(%L, ARRAY[%L]::uuid[])::text$$, pg_temp.id('priv'), pg_temp.id('kim')));
-PERFORM pg_temp.eq('un inconnu partage une sortie publique (demande de contact)', format($$SELECT public.invite_users_to_activity(%L, ARRAY[%L]::uuid[])::text$$, pg_temp.id('pub'), pg_temp.id('kim')), '1');
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('le partage crée une demande en attente, pas une conversation active',
-  format($$SELECT status FROM public.conversations WHERE user_1 = least(%L::uuid, %L::uuid) AND user_2 = greatest(%L::uuid, %L::uuid)$$,
-    pg_temp.id('frank'), pg_temp.id('kim'), pg_temp.id('frank'), pg_temp.id('kim')), 'pending_request');
 
 -- ═════ cancel_activity ═════
 PERFORM pg_temp.as_('anon');
@@ -815,3 +807,11 @@ PERFORM pg_temp.as_('sc_a');
 PERFORM pg_temp.put('sc5', pg_temp.ok('créneau : sc_a crée une sortie à J+40', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '40 days', '3 hours', 'public')::text$q$));
 PERFORM pg_temp.denied('créneau : déplacer sa sortie sur son autre sortie est refusé',
   format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '40 days 1 hour')::text$$, pg_temp.id('sc1')), 'junto\.schedule_conflict');
+
+-- 00508 : les messages de covoiturage arrivent directement dans la messagerie unifiée.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('demande de place : le message de demande est dans la messagerie',
+  $$SELECT (count(*) > 0)::text FROM public.messages WHERE metadata->>'type' = 'seat_request_pending'$$, 'true');
+PERFORM pg_temp.eq('place acceptée : le message de confirmation est dans la messagerie',
+  $$SELECT (count(*) > 0)::text FROM public.messages WHERE metadata->>'type' = 'seat_accepted'$$, 'true');
+

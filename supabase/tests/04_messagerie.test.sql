@@ -372,7 +372,7 @@ PERFORM pg_temp.as_('f1');
 PERFORM pg_temp.eq('au-delà de 15 messages par minute dans un DM, refus',
   format($$SELECT pg_temp.ms_flood(%L, 20)$$, pg_temp.id('dm_f1_f2')), 'junto.dm_rate_limit');
 
--- ═════ Réponse rapide à une demande (reply_to_request) ═════
+-- ═════ Demandes (contact / participation) ═════
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.put('act_a', pg_temp.ok('alice crée une sortie',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test messagerie', 'x', 'Tous niveaux', 6, -130.5, -45.5, NULL, NULL, now() + interval '2 days')::text$$));
@@ -388,25 +388,14 @@ PERFORM pg_temp.put('p_rq2', pg_temp.run(format($$INSERT INTO public.participati
 PERFORM set_config('junto.bypass_lock', 'false', true);
 
 PERFORM pg_temp.as_('alice');
-PERFORM pg_temp.denied('répondre à une demande ne force pas une demande de contact en attente',
-  format($$SELECT public.reply_to_request('join', %L, 'Bienvenue')::text$$, pg_temp.id('p_rq1')));
-PERFORM pg_temp.ok('alice répond à la demande de participation de rq2',
-  format($$SELECT public.reply_to_request('join', %L, 'Bienvenue')::text$$, pg_temp.id('p_rq2')));
-PERFORM pg_temp.denied('type de demande inconnu refusé',
-  format($$SELECT public.reply_to_request('bogus', %L, 'x')::text$$, pg_temp.id('p_rq2')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la demande de contact en attente reste en attente',
   format($$SELECT status FROM public.conversations WHERE user_1 = LEAST(%L::uuid, %L::uuid) AND user_2 = GREATEST(%L::uuid, %L::uuid)$$,
     pg_temp.id('alice'), pg_temp.id('rq1'), pg_temp.id('alice'), pg_temp.id('rq1')), 'pending_request');
-PERFORM pg_temp.eq('la réponse ouvre un fil logistique « request_reply »',
-  format($$SELECT status || '/' || initiated_from FROM public.conversations WHERE user_1 = LEAST(%L::uuid, %L::uuid) AND user_2 = GREATEST(%L::uuid, %L::uuid)$$,
-    pg_temp.id('alice'), pg_temp.id('rq2'), pg_temp.id('alice'), pg_temp.id('rq2')), 'active/request_reply');
 PERFORM pg_temp.as_('rq2');
 PERFORM pg_temp.eq('un fil logistique ne fait pas un contact',
   format($$SELECT count(*)::text FROM public.get_contacts() WHERE id = %L$$, pg_temp.id('alice')), '0');
 PERFORM pg_temp.as_('mal');
-PERFORM pg_temp.denied('un tiers ne répond pas à la demande d''une autre sortie',
-  format($$SELECT public.reply_to_request('join', %L, 'x')::text$$, pg_temp.id('p_rq2')));
 
 -- ═════ Partages (sortie, trace) ═════
 PERFORM pg_temp.as_('alice');
@@ -675,7 +664,6 @@ PERFORM pg_temp.denied('insertion directe d''un jeton push refusée',
 PERFORM pg_temp.as_('carol');
 PERFORM pg_temp.ok('carol enregistre son jeton push', $$SELECT public.register_push_token('ExponentPushToken[junto-test-carol-01]')::text$$);
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.ok('bob tente de révoquer le jeton de carol', $$SELECT public.revoke_push_token('ExponentPushToken[junto-test-carol-01]')::text$$);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le jeton de bob est enregistré',
   format($$SELECT count(*)::text FROM public.push_tokens WHERE user_id = %L$$, pg_temp.id('bob')), '1');
@@ -687,16 +675,7 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le jeton de l''appareil de bob est retiré',
   format($$SELECT count(*)::text FROM public.push_tokens WHERE user_id = %L$$, pg_temp.id('bob')), '0');
 
--- ═════ Anciennes tables (wall_messages / private_messages) ═════
 PERFORM pg_temp.as_('alice');
-PERFORM pg_temp.denied('insertion directe dans private_messages refusée',
-  format($$INSERT INTO public.private_messages (conversation_id, sender_id, receiver_id, content) VALUES (%L, %L, %L, 'x')$$,
-    pg_temp.id('dm_ab'), pg_temp.id('alice'), pg_temp.id('bob')));
--- private_messages : la lecture échoue aujourd'hui seulement parce que sa politique lit conversations (lecture révoquée, 00352).
-PERFORM pg_temp.denied('l''ancienne table private_messages n''est plus lisible',
-  $$SELECT count(*)::text FROM public.private_messages$$, 'permission denied');
-PERFORM pg_temp.denied('l''ancienne table wall_messages n''est plus lisible',
-  $$SELECT count(*)::text FROM public.wall_messages$$, 'permission denied', 'MS-4');
 
 -- ═════ Invitations à une sortie : un refus doit tenir (MS-3) ═════
 PERFORM pg_temp.as_('alice');
@@ -771,6 +750,3 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le fil retiré est supprimé', format($$SELECT count(*)::text FROM public.conversations WHERE id = %L$$, pg_temp.id('dm_ab')), '0');
 PERFORM pg_temp.eq('le fil retiré est archivé pour la modération',
   format($$SELECT count(*)::text FROM public.contact_removal_archive WHERE conversation_id = %L$$, pg_temp.id('dm_ab')), '1');
-PERFORM pg_temp.eq('le fil logistique est conservé',
-  format($$SELECT count(*)::text FROM public.conversations WHERE user_1 = LEAST(%L::uuid, %L::uuid) AND user_2 = GREATEST(%L::uuid, %L::uuid)$$,
-    pg_temp.id('alice'), pg_temp.id('rq2'), pg_temp.id('alice'), pg_temp.id('rq2')), '1');

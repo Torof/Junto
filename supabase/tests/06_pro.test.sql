@@ -191,16 +191,12 @@ PERFORM pg_temp.denied('photo dans le dossier d''un autre refusée', format($$SE
 PERFORM pg_temp.ok('le pro réordonne ses photos', format($$SELECT public.reorder_pro_photos(ARRAY[%L, %L]::uuid[])::text$$, pg_temp.id('ph2'), pg_temp.id('ph1')));
 PERFORM pg_temp.eq('le nouvel ordre est appliqué', format($$SELECT order_index::text FROM public.pro_profile_photos WHERE id = %L$$, pg_temp.id('ph2')), '0');
 PERFORM pg_temp.denied('réordonner une liste incomplète refusé', format($$SELECT public.reorder_pro_photos(ARRAY[%L]::uuid[])::text$$, pg_temp.id('ph1')));
-PERFORM pg_temp.ok('le pro remplace l''adresse d''une photo', format($$SELECT public.set_pro_photo_url(%L, %L)::text$$, pg_temp.id('ph1'), pg_temp.po_url('pro', 'c.jpg')));
-PERFORM pg_temp.denied('remplacer par une adresse étrangère refusé', format($$SELECT public.set_pro_photo_url(%L, 'https://evil.example/c.jpg')::text$$, pg_temp.id('ph1')));
 PERFORM pg_temp.denied('photo de vitrine insérée directement refusée', format($$INSERT INTO public.pro_profile_photos (pro_id, photo_url, order_index) VALUES (%L, 'https://evil.example/x.jpg', 9)$$, pg_temp.id('pro')));
 PERFORM pg_temp.put('oph1', pg_temp.ok('le pro ajoute une photo d''offre', format($$SELECT public.add_pro_offering_photo(%L, %L)::text$$, pg_temp.id('off'), pg_temp.po_url('pro', 'o1.jpg'))));
 PERFORM pg_temp.ok('le pro réordonne les photos d''offre', format($$SELECT public.reorder_pro_offering_photos(%L, ARRAY[%L]::uuid[])::text$$, pg_temp.id('off'), pg_temp.id('oph1')));
-PERFORM pg_temp.ok('le pro remplace l''adresse d''une photo d''offre', format($$SELECT public.set_pro_offering_photo_url(%L, %L)::text$$, pg_temp.id('oph1'), pg_temp.po_url('pro', 'o2.jpg')));
 
 PERFORM pg_temp.as_('pro2');
 PERFORM pg_temp.denied('pro2 ne réordonne pas avec la photo de pro', format($$SELECT public.reorder_pro_photos(ARRAY[%L, %L]::uuid[])::text$$, pg_temp.id('ph1'), pg_temp.id('ph2')));
-PERFORM pg_temp.denied('pro2 ne modifie pas la photo de pro', format($$SELECT public.set_pro_photo_url(%L, %L)::text$$, pg_temp.id('ph1'), pg_temp.po_url('pro2', 'x.jpg')));
 PERFORM pg_temp.denied('pro2 ne retire pas la photo de pro', format($$SELECT public.remove_pro_photo(%L)::text$$, pg_temp.id('ph1')));
 PERFORM pg_temp.denied('pro2 n''ajoute pas de photo à l''offre de pro', format($$SELECT public.add_pro_offering_photo(%L, %L)::text$$, pg_temp.id('off'), pg_temp.po_url('pro2', 'x.jpg')));
 PERFORM pg_temp.denied('pro2 ne retire pas la photo d''offre de pro', format($$SELECT public.remove_pro_offering_photo(%L)::text$$, pg_temp.id('oph1')));

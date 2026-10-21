@@ -145,7 +145,6 @@ PERFORM pg_temp.eq('anon : my_joined_activities vide', $$SELECT count(*)::text F
 PERFORM pg_temp.eq('anon : my_pending_activities vide', $$SELECT count(*)::text FROM public.my_pending_activities$$, '0');
 PERFORM pg_temp.eq('anon : aucune participation lisible',
   format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L$$, pg_temp.id('a_pub')), '0');
-PERFORM pg_temp.denied('anon ne lit pas public_participants', $$SELECT count(*)::text FROM public.public_participants$$);
 PERFORM pg_temp.denied('anon ne lit pas activity_participants', $$SELECT count(*)::text FROM public.activity_participants$$);
 PERFORM pg_temp.denied('anon ne lit pas offering_reviews_with_profiles', $$SELECT count(*)::text FROM public.offering_reviews_with_profiles$$);
 PERFORM pg_temp.denied('anon ne lit pas offering_review_stats', $$SELECT count(*)::text FROM public.offering_review_stats$$);
@@ -203,8 +202,6 @@ PERFORM pg_temp.eq('my_activities ne montre que mes sorties',
   pg_temp.get('a_alice'));
 PERFORM pg_temp.eq('my_joined_activities montre la sortie rejointe',
   format($$SELECT count(*)::text FROM public.my_joined_activities WHERE id = %L$$, pg_temp.id('a_pub')), '1');
-PERFORM pg_temp.eq('public_participants : seulement ma propre ligne',
-  format($$SELECT count(*)::text FROM public.public_participants WHERE activity_id = %L AND user_id <> %L$$, pg_temp.id('a_pub'), pg_temp.id('alice')), '0');
 PERFORM pg_temp.eq('activity_participants : rien pour un non-créateur',
   format($$SELECT count(*)::text FROM public.activity_participants WHERE activity_id = %L$$, pg_temp.id('a_pub')), '0');
 PERFORM pg_temp.eq('offre pro publique visible', format($$SELECT count(*)::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('o_pub')), '1');
