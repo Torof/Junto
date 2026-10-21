@@ -1,3 +1,5 @@
+> **Remplacé par `docs/MIGRATION_PLAN.md` (v6, 2026-10-22).** Conservé pour l'historique des pré-audits ; son inventaire est en partie dépassé.
+
 # Reconstruction de la base dans un nouveau projet Supabase — plan v5
 
 > Décision Scott 2026-10-21 : construire une nouvelle base propre à côté de l'actuelle, **sans toucher à l'actuelle**, puis basculer après tests. Origine : audit complet d'octobre (TX-2 PostGIS exposé et non corrigeable sur place, TX-4 privilèges par défaut). v2 intégrait un premier pré-audit indépendant.
