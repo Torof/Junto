@@ -8,7 +8,7 @@ import { type ProOffering } from '@/services/pro-offering-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
 import { ProOfferingPin, PRO_OFFERING_PIN_ANCHOR } from './pro-offering-pin';
-import { ClusterPin } from './cluster-pin';
+import { ClusterPin, type ClusterSegment } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
 import { UserLocationDot } from './user-location-dot';
 import { useColors } from '@/hooks/use-theme';
@@ -157,8 +157,13 @@ export type JuntoMapRef = ComponentRef<typeof Mapbox.MapView>;
 // of type — a cluster shows total count; at expansion zoom, individual
 // typed pins emerge (teardrop / square / hexagon).
 type PinType = 'activity' | 'pro' | 'offering';
-type PinPointProps = { type: PinType; id: string };
+// `u` = universe key (sport_category / pro pin_icon, '' when none) — summed
+// per cluster by Supercluster's map/reduce into `u` counts for the ring.
+type PinPointProps = { type: PinType; id: string; u: string };
+type ClusterAgg = { u: Record<string, number> };
 type PinPoint = Supercluster.PointFeature<PinPointProps>;
+// Fixed slice order so a cluster's ring reads the same everywhere.
+const UNIVERSE_ORDER = ['mountain', 'water', 'air', 'cycling', 'on-foot', 'wellness', ''];
 
 export function JuntoMapView({
   center = DEFAULT_CENTER,
@@ -291,7 +296,7 @@ export function JuntoMapView({
   // cluster pin at low zoom shows the total count regardless of type;
   // tapping zooms to expansion so the typed individual pins emerge.
   const cluster = useMemo(() => {
-    const sc = new Supercluster<PinPointProps>({
+    const sc = new Supercluster<PinPointProps, ClusterAgg>({
       // "See what's around at a glance" is the product. History: 60px
       // merged pins long before they'd overlap; 38 (≈ one pin width) let
       // near-neighbours kiss at the edges, which read as too busy; 44 still
@@ -300,22 +305,26 @@ export function JuntoMapView({
       // clean. Dial down (44/40) for more declustering, up (56) if busy.
       radius: 48,
       maxZoom: 20,
+      map: (p) => ({ u: { [p.u]: 1 } }),
+      reduce: (acc, p) => {
+        for (const k in p.u) acc.u[k] = (acc.u[k] ?? 0) + (p.u[k] ?? 0);
+      },
     });
     const points: PinPoint[] = [
       ...activities.map<PinPoint>((a) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
-        properties: { type: 'activity', id: a.id },
+        properties: { type: 'activity', id: a.id, u: a.sport_category ?? '' },
       })),
       ...pros.map<PinPoint>((p) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [p.primary_lng, p.primary_lat] },
-        properties: { type: 'pro', id: p.user_id },
+        properties: { type: 'pro', id: p.user_id, u: p.pin_icon ?? '' },
       })),
       ...proOfferings.map<PinPoint>((o) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [o.lng, o.lat] },
-        properties: { type: 'offering', id: o.id },
+        properties: { type: 'offering', id: o.id, u: o.sport_category ?? '' },
       })),
     ];
     sc.load(points);
@@ -746,6 +755,10 @@ export function JuntoMapView({
         if ('cluster' in props && props.cluster) {
           const clusterId = (props.cluster_id ?? 0) as number;
           const count = (props.point_count ?? 0) as number;
+          const agg = (props as unknown as Partial<ClusterAgg>).u ?? {};
+          const segments: ClusterSegment[] = UNIVERSE_ORDER
+            .filter((k) => (agg[k] ?? 0) > 0)
+            .map((k) => ({ color: SPORT_CATEGORY_COLORS[k] ?? colors.pinProBackground, count: agg[k] ?? 0 }));
 
           return (
             <Mapbox.MarkerView
@@ -797,7 +810,7 @@ export function JuntoMapView({
                   cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], zoomLevel: 18, animationDuration: 300 });
                 }
               }}>
-                <ClusterPin count={count} />
+                <ClusterPin count={count} segments={segments} />
               </Pressable>
             </Mapbox.MarkerView>
           );
