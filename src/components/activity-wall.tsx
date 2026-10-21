@@ -16,6 +16,7 @@ import { participationService } from '@/services/participation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useMessageStore } from '@/store/message-store';
 import { UserAvatar } from './user-avatar';
+import { ReportModal } from './report-modal';
 import { haptic } from '@/lib/haptics';
 
 interface ActivityWallProps {
@@ -33,6 +34,7 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [actionMenuMessage, setActionMenuMessage] = useState<WallMessageWithProfile | null>(null);
+  const [reportMessageId, setReportMessageId] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState<WallMessageWithProfile | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -241,7 +243,7 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                       </Text>
                     )}
                     <Pressable
-                      onLongPress={isMine && item.user_id ? () => openActionMenu(item) : undefined}
+                      onLongPress={item.user_id ? () => openActionMenu(item) : undefined}
                       delayLongPress={250}
                       style={[
                         styles.messageCard,
@@ -305,20 +307,40 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setActionMenuMessage(null)}>
           <Pressable style={styles.actionMenuCard} onPress={(e) => e.stopPropagation()}>
-            <Pressable style={styles.actionMenuItem} onPress={handleStartEdit}>
-              <Text style={styles.actionMenuItemText}>
-                {t('wall.actionEdit', { defaultValue: 'Modifier' })}
-              </Text>
-            </Pressable>
-            <View style={styles.actionMenuDivider} />
-            <Pressable style={styles.actionMenuItem} onPress={handleDelete}>
-              <Text style={[styles.actionMenuItemText, { color: colors.error }]}>
-                {t('wall.actionDelete', { defaultValue: 'Supprimer' })}
-              </Text>
-            </Pressable>
+            {actionMenuMessage && actionMenuMessage.user_id === currentUserId ? (
+              <>
+                <Pressable style={styles.actionMenuItem} onPress={handleStartEdit}>
+                  <Text style={styles.actionMenuItemText}>
+                    {t('wall.actionEdit', { defaultValue: 'Modifier' })}
+                  </Text>
+                </Pressable>
+                <View style={styles.actionMenuDivider} />
+                <Pressable style={styles.actionMenuItem} onPress={handleDelete}>
+                  <Text style={[styles.actionMenuItemText, { color: colors.error }]}>
+                    {t('wall.actionDelete', { defaultValue: 'Supprimer' })}
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <Pressable
+                style={styles.actionMenuItem}
+                onPress={() => { setReportMessageId(actionMenuMessage?.id ?? null); setActionMenuMessage(null); }}
+              >
+                <Text style={[styles.actionMenuItemText, { color: colors.error }]}>
+                  {t('report.reportMessage', { defaultValue: 'Signaler le message' })}
+                </Text>
+              </Pressable>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
+
+      <ReportModal
+        visible={reportMessageId !== null}
+        targetType="message"
+        targetId={reportMessageId ?? ''}
+        onClose={() => setReportMessageId(null)}
+      />
 
       {/* Edit modal — prefilled with the current message content. Save
           fires the edit_wall_message RPC; the message gets an "modifié"

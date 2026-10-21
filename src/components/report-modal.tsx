@@ -12,7 +12,7 @@ import type { AppColors } from '@/constants/colors';
 
 interface ReportModalProps {
   visible: boolean;
-  targetType: 'user' | 'activity' | 'wall_message' | 'private_message' | 'pro_review' | 'offering_review';
+  targetType: 'user' | 'activity' | 'wall_message' | 'private_message' | 'pro_review' | 'offering_review' | 'message' | 'group' | 'channel';
   targetId: string;
   onClose: () => void;
 }

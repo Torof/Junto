@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, MoreHorizontal, Send, Users, Share2 , MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff } from 'lucide-react-native';
+import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, MoreHorizontal, Send, Users, Share2 , MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff, Flag } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
+import { ReportModal } from '@/components/report-modal';
 import { SharedActivityCard } from '@/components/shared-activity-card';
 import { userService } from '@/services/user-service';
 import { conversationService } from '@/services/conversation-service';
@@ -75,6 +76,8 @@ export default function ConversationScreen() {
   const [showGroupManage, setShowGroupManage] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PrivateMessage | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+  // What is being reported from this screen (a message, the group, the channel).
+  const [reportTarget, setReportTarget] = useState<{ type: 'message' | 'group' | 'channel'; id: string } | null>(null);
   const navigation = useNavigation();
 
   // Mark conversation as read when opened — local store (legacy surfaces) +
@@ -1019,6 +1022,12 @@ export default function ConversationScreen() {
                   )}
                 </>
               )}
+              {!channelIsCreator && id && (
+                <Pressable style={styles.channelRowBtn} onPress={() => { setShowChannelManage(false); setReportTarget({ type: 'channel', id }); }}>
+                  <Flag size={18} color={colors.error} strokeWidth={2.2} />
+                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('report.reportChannel', { defaultValue: 'Signaler la discussion' })}</Text>
+                </Pressable>
+              )}
               {channelIsMember && !channelIsCreator && (
                 <Pressable style={styles.channelRowBtn} onPress={handleLeaveChannel}>
                   <LogOutIcon size={18} color={colors.error} strokeWidth={2.2} />
@@ -1078,6 +1087,12 @@ export default function ConversationScreen() {
           })()}
         </View>
       </Modal>
+      <ReportModal
+        visible={reportTarget !== null}
+        targetType={reportTarget?.type ?? 'message'}
+        targetId={reportTarget?.id ?? ''}
+        onClose={() => setReportTarget(null)}
+      />
       {/* Header menu — Block / Delete (hide) the conversation. */}
       <Modal visible={showHeaderMenu} animationType="slide" transparent onRequestClose={() => setShowHeaderMenu(false)}>
         <Pressable style={styles.menuBackdrop} onPress={() => setShowHeaderMenu(false)}>
@@ -1095,6 +1110,11 @@ export default function ConversationScreen() {
                 <Text style={styles.menuTextDanger}>
                   {t('messagerie.removeContact', { defaultValue: 'Retirer de mes contacts' })}
                 </Text>
+              </Pressable>
+            )}
+            {isGroup && id && (
+              <Pressable style={styles.menuItem} onPress={() => { setShowHeaderMenu(false); setReportTarget({ type: 'group', id }); }}>
+                <Text style={styles.menuTextDanger}>{t('report.reportGroup', { defaultValue: 'Signaler le groupe' })}</Text>
               </Pressable>
             )}
             {isGroup ? (
@@ -1121,6 +1141,14 @@ export default function ConversationScreen() {
             <Pressable style={styles.menuItem} onPress={handleReplyTo}>
               <Text style={styles.menuText}>{t('messagerie.reply', { defaultValue: 'Répondre' })}</Text>
             </Pressable>
+            {selectedMessage && selectedMessage.sender_id && selectedMessage.sender_id !== currentUser && (
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => { setReportTarget({ type: 'message', id: selectedMessage.id }); setSelectedMessage(null); }}
+              >
+                <Text style={styles.menuTextDanger}>{t('report.reportMessage', { defaultValue: 'Signaler le message' })}</Text>
+              </Pressable>
+            )}
             {selectedMessage && selectedMessage.sender_id === currentUser && (
               <>
                 <Pressable style={styles.menuItem} onPress={handleEdit}>
