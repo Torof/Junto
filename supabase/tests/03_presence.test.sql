@@ -612,8 +612,13 @@ PERFORM pg_temp.ok('lc2 rejoint L', format($$SELECT public.join_activity(%L)$$, 
 PERFORM pg_temp.ok('lc2 quitte tard', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('L')));
 -- DB-PR-1 : join_activity teste `v_existing IS NOT NULL` sur un RECORD, faux dès qu'un champ
 -- (refused_at) est NULL → la ligne existante est ignorée et l'INSERT heurte la contrainte UNIQUE.
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET left_at = left_at - interval '20 minutes' WHERE activity_id = pg_temp.id('L') AND user_id = pg_temp.id('lc2');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('lc2');
 PERFORM pg_temp.eq('lc2 se réinscrit après un retrait',
-  format($$SELECT public.join_activity(%L)$$, pg_temp.id('L')), 'accepted', 'DB-PR-1');
+  format($$SELECT public.join_activity(%L)$$, pg_temp.id('L')), 'accepted');
 PERFORM pg_temp.as_('db');
 -- Réinscription simulée telle que join_activity l'écrit (status accepted, left_at NULL).
 PERFORM set_config('junto.bypass_lock', 'true', true);
@@ -621,21 +626,21 @@ UPDATE public.participations SET status = 'accepted', left_at = NULL, created_at
 WHERE activity_id = pg_temp.id('L') AND user_id = pg_temp.id('lc2');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM public.recalculate_reliability_score(pg_temp.id('lc2'));
-PERFORM pg_temp.eq('la réinscription n''efface pas la pénalité d''annulation tardive', $$SELECT pg_temp.pr_score('lc2')$$, '50', 'PR-4');
+PERFORM pg_temp.eq('la réinscription n''efface pas la pénalité d''annulation tardive', $$SELECT pg_temp.pr_score('lc2')$$, '50');
 
 -- DB-PR-1 (suite) : accepter une invitation passe par join_activity → même défaut.
 PERFORM pg_temp.as_('db');
 INSERT INTO public.participations (activity_id, user_id, status, invited_by) VALUES (pg_temp.id('L4'), pg_temp.id('p2'), 'invited', pg_temp.id('crea'));
 PERFORM pg_temp.as_('p2');
 PERFORM pg_temp.eq('un invité accepte son invitation via join_activity',
-  format($$SELECT public.join_activity(%L)$$, pg_temp.id('L4')), 'accepted', 'DB-PR-1');
+  format($$SELECT public.join_activity(%L)$$, pg_temp.id('L4')), 'accepted');
 
 -- PR-5 : retirer une demande en attente est pénalisé.
 PERFORM pg_temp.as_('lc3');
 PERFORM pg_temp.eq('lc3 demande à rejoindre L3', format($$SELECT public.join_activity(%L)$$, pg_temp.id('L3')), 'pending');
 PERFORM pg_temp.ok('lc3 retire sa demande à moins de 12 h', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('L3')));
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('retirer une demande en attente n''est pas pénalisé', $$SELECT pg_temp.pr_score('lc3')$$, '100', 'PR-5');
+PERFORM pg_temp.eq('retirer une demande en attente n''est pas pénalisé', $$SELECT pg_temp.pr_score('lc3')$$, '100');
 
 -- ═════ Transitions de statut à la demande ═════
 PERFORM pg_temp.as_('db');

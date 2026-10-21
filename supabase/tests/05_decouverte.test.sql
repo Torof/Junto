@@ -292,7 +292,7 @@ PERFORM pg_temp.as_('carol');
 PERFORM pg_temp.denied('activer sans dispo composée est refusé', $$SELECT public.activate_dispo()::text$$, 'Operation not permitted');
 PERFORM pg_temp.eq('sans dispo active, aucune carte découverte', $$SELECT count(*)::text FROM public.get_discovery_cards()$$, '0');
 PERFORM pg_temp.eq('sans dispo active, aucune zone', format($$SELECT count(*)::text FROM public.get_dispo_zone(%L)$$, pg_temp.id('bob')), '0');
-PERFORM pg_temp.eq('sans dispo active, rien à inviter', format($$SELECT count(*)::text FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('bob')), '0', 'DB-DC-1');
+PERFORM pg_temp.eq('sans dispo active, rien à inviter', format($$SELECT count(*)::text FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('bob')), '0');
 
 PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('un compte suspendu ne pose pas de dispo',
@@ -319,8 +319,8 @@ PERFORM pg_temp.eq('zone d''un bloqué invisible', format($$SELECT count(*)::tex
 PERFORM pg_temp.eq('zone d''un suspendu invisible', format($$SELECT count(*)::text FROM public.get_dispo_zone(%L)$$, pg_temp.id('sam')), '0');
 PERFORM pg_temp.eq('ma propre zone ne passe pas par get_dispo_zone', format($$SELECT count(*)::text FROM public.get_dispo_zone(%L)$$, pg_temp.id('alice')), '0');
 PERFORM pg_temp.eq('sorties invitables pour bob',
-  format($$SELECT string_agg(id::text, ',') FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('bob')), pg_temp.get('a_alice'), 'DB-DC-1');
-PERFORM pg_temp.eq('rien à inviter pour un compte démo', format($$SELECT count(*)::text FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('demo1')), '0', 'DB-DC-1');
+  format($$SELECT string_agg(id::text, ',') FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('bob')), pg_temp.get('a_alice'));
+PERFORM pg_temp.eq('rien à inviter pour un compte démo', format($$SELECT count(*)::text FROM public.get_invitable_activities_for_dispo(%L)$$, pg_temp.id('demo1')), '0');
 PERFORM pg_temp.denied('pas d''invitation vers un compte démo',
   format($$SELECT public.send_discovery_invite(%L, %L)::text$$, pg_temp.id('demo1'), pg_temp.id('a_alice')), 'Operation not permitted');
 PERFORM pg_temp.denied('pas d''invitation vers un compte bloqué',

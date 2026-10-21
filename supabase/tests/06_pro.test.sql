@@ -304,7 +304,7 @@ PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.ok('le client remplit la fiche participant', format($$SELECT public.set_booking_participant_info(%L, '[{"shoe_size":"<b>42</b>","custom":{"Allergies ?":"non"}}]'::jsonb)::text$$, pg_temp.id('bk1')));
 -- DB-PO-1 : get_my_bookings plante à chaque appel (« column reference "status" is ambiguous » :
 -- `status` non qualifié dans l'UPDATE d'expiration, en conflit avec la colonne de sortie `status`).
-PERFORM pg_temp.eq('le client relit ses réservations via get_my_bookings', format($$SELECT count(*)::text FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk1')), '1', 'DB-PO-1');
+PERFORM pg_temp.eq('le client relit ses réservations via get_my_bookings', format($$SELECT count(*)::text FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk1')), '1');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la fiche est stockée nettoyée', format($$SELECT participant_info->0->>'shoe_size' FROM public.bookings WHERE id = %L$$, pg_temp.id('bk1')), '42');
 PERFORM pg_temp.as_('cli');
@@ -326,7 +326,7 @@ PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.eq('après acceptation, le client garde le prix accepté', format($$SELECT price_eur::int::text FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk1')), '50', 'PO-5');
 PERFORM pg_temp.as_('cli2');
 PERFORM pg_temp.denied('un membre n''ouvre pas d''agenda pro', $$SELECT count(*)::text FROM public.get_pro_agenda(current_date, current_date + 30)$$);
-PERFORM pg_temp.eq('get_my_bookings ne montre pas les réservations des autres', $$SELECT count(*)::text FROM public.get_my_bookings()$$, '0', 'DB-PO-1');
+PERFORM pg_temp.eq('get_my_bookings ne montre pas les réservations des autres', $$SELECT count(*)::text FROM public.get_my_bookings()$$, '0');
 
 -- Refus, annulation pro.
 PERFORM pg_temp.put('bk2', pg_temp.ok('cli2 réserve un autre créneau', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d2'))));
@@ -340,7 +340,7 @@ PERFORM pg_temp.denied('annuler une demande refusée est refusé', format($$SELE
 -- DB-PO-2 : redemander un créneau refusé doit passer par la branche de réactivation (délai anti-spam d'1 h),
 -- pas buter sur un doublon et répondre « déjà réservé ».
 PERFORM pg_temp.as_('cli2');
-PERFORM pg_temp.denied('redemander aussitôt un créneau refusé applique le délai anti-spam', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d2')), 'junto.booking_cooldown', 'DB-PO-2');
+PERFORM pg_temp.denied('redemander aussitôt un créneau refusé applique le délai anti-spam', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d2')), 'junto.booking_cooldown');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('cli2 est notifié du refus', format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'booking_declined'$$, pg_temp.id('cli2')), '1');
 

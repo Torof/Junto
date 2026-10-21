@@ -96,7 +96,7 @@ PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('bob rejoint la sortie publique', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'accepted');
 -- DB-AC-1 : `IF v_existing IS NOT NULL` sur un RECORD est faux dès qu'un champ est NULL (refused_at) :
 -- la branche « ligne existante » n'est jamais prise → INSERT → violation d'unicité brute.
-PERFORM pg_temp.denied('bob ne rejoint pas deux fois (erreur codée)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'junto.already_joined', 'DB-AC-1');
+PERFORM pg_temp.denied('bob ne rejoint pas deux fois (erreur codée)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'junto.already_joined');
 PERFORM pg_temp.as_('carl');
 PERFORM pg_temp.eq('carl rejoint (sortie pleine à 3)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'accepted');
 PERFORM pg_temp.as_('frank');
@@ -126,7 +126,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('ab1_err', SQLERRM);
 END;
 PERFORM pg_temp.eq('12 inscriptions / désinscriptions en boucle sont freinées par une limite',
-  $$SELECT (coalesce(pg_temp.get('ab1_err'), '') ~ 'junto\.')::text$$, 'true', 'AB-1');
+  $$SELECT (coalesce(pg_temp.get('ab1_err'), '') ~ 'junto\.')::text$$, 'true');
 
 -- ═════ Rideau démo ═════
 PERFORM pg_temp.as_('demo1');
@@ -287,7 +287,13 @@ PERFORM pg_temp.ok('bob quitte la sortie', format($$SELECT public.leave_activity
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('bob est marqué parti', format($$SELECT status FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('pub'), pg_temp.id('bob')), 'withdrawn');
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.eq('un participant parti peut revenir', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'accepted', 'DB-AC-1');
+PERFORM pg_temp.denied('rejoindre aussitôt une sortie quittée est freiné (AB-1)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'junto.rejoin_cooldown');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET left_at = left_at - interval '20 minutes' WHERE activity_id = pg_temp.id('pub') AND user_id = pg_temp.id('bob');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('bob');
+PERFORM pg_temp.eq('un participant parti peut revenir (après le délai)', format($$SELECT public.join_activity(%L)$$, pg_temp.id('pub')), 'accepted');
 
 -- ═════ Invitations ═════
 PERFORM pg_temp.as_('db');
@@ -404,7 +410,7 @@ PERFORM pg_temp.denied('heure de prise en charge hors fenêtre refusée', format
 PERFORM pg_temp.ok('erin demande une place à dave', format($$SELECT public.request_seat(%L, %L, 'Gap gare', 'note privée pour dave')::text$$, pg_temp.id('car'), pg_temp.id('dave')));
 -- DB-AC-2 : même piège `v_existing IS NOT NULL` sur un RECORD (colonnes NULL) → la branche
 -- « demande existante » est morte : erreur générique au lieu du code, et pas de renvoi possible.
-PERFORM pg_temp.denied('pas de seconde demande en attente au même conducteur (erreur codée)', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), 'junto.seat_already_requested', 'DB-AC-2');
+PERFORM pg_temp.denied('pas de seconde demande en attente au même conducteur (erreur codée)', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), 'junto.seat_already_requested');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.put('sr_erin', pg_temp.sorties_sr('car', 'erin', 'dave'));
 PERFORM pg_temp.eq('la demande est en attente', format($$SELECT status FROM public.seat_requests WHERE id = %L$$, pg_temp.id('sr_erin')), 'pending');
@@ -499,7 +505,11 @@ PERFORM pg_temp.denied('un inconnu n''annule pas la demande d''autrui', format($
 PERFORM pg_temp.as_('ivy');
 PERFORM pg_temp.ok('ivy annule sa demande', format($$SELECT public.cancel_pending_seat_request(%L)::text$$, pg_temp.id('sr_ivy')));
 PERFORM pg_temp.denied('une demande annulée ne s''annule pas deux fois', format($$SELECT public.cancel_pending_seat_request(%L)::text$$, pg_temp.id('sr_ivy')));
-PERFORM pg_temp.ok('après avoir annulé sa demande, ivy peut redemander au même conducteur', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), 'DB-AC-2');
+PERFORM pg_temp.denied('redemander aussitôt après une annulation est freiné (AB-4)', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), 'junto.seat_request_cooldown');
+PERFORM pg_temp.as_('db');
+UPDATE public.seat_requests SET created_at = created_at - interval '2 hours' WHERE id = pg_temp.id('sr_ivy');
+PERFORM pg_temp.as_('ivy');
+PERFORM pg_temp.ok('après avoir annulé sa demande, ivy peut redemander au même conducteur (après le délai)', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')));
 
 -- cancel_accepted_seat
 PERFORM pg_temp.as_('anon');

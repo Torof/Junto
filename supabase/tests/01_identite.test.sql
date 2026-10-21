@@ -66,9 +66,9 @@ PERFORM pg_temp.denied('un compte suspendu ne peut pas signaler', format($$SELEC
 -- ───── Administration ─────
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('un non-admin ne peut pas suspendre', format($$SELECT public.admin_suspend_user(%L, 'raison de test')::text$$, pg_temp.id('bob')));
-PERFORM pg_temp.denied('un non-admin ne peut pas chercher un compte', format($$SELECT count(*)::text FROM public.admin_resolve_user(%L)$$, pg_temp.id('bob')), 'Operation not permitted', 'DB-1');
+PERFORM pg_temp.denied('un non-admin ne peut pas chercher un compte', format($$SELECT count(*)::text FROM public.admin_resolve_user(%L)$$, pg_temp.id('bob')), 'Operation not permitted');
 PERFORM pg_temp.as_('adm');
-PERFORM pg_temp.eq('un admin retrouve un compte par son identifiant', format($$SELECT count(*)::text FROM public.admin_resolve_user(%L)$$, pg_temp.id('bob')), '1', 'DB-1');
+PERFORM pg_temp.eq('un admin retrouve un compte par son identifiant', format($$SELECT count(*)::text FROM public.admin_resolve_user(%L)$$, pg_temp.id('bob')), '1');
 PERFORM pg_temp.denied('un admin ne peut pas suspendre un autre admin', format($$SELECT public.admin_suspend_user(%L, 'raison de test')::text$$, pg_temp.id('adm2')));
 PERFORM pg_temp.ok('un admin suspend un utilisateur', format($$SELECT public.admin_suspend_user(%L, 'raison de test')::text$$, pg_temp.id('bob')));
 PERFORM pg_temp.as_('db');
