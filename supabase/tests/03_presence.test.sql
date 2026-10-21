@@ -569,8 +569,10 @@ PERFORM pg_temp.eq('le créateur est notifié du départ tardif',
 PERFORM pg_temp.put('L:lc', (SELECT id::text FROM public.participations WHERE activity_id = pg_temp.id('L') AND user_id = pg_temp.id('lc')));
 
 PERFORM pg_temp.as_('crea');
-PERFORM pg_temp.eq('le créateur lit ses départs tardifs comme le fait l''app (participations)',
-  format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L AND status = 'withdrawn'$$, pg_temp.id('L')), '1', 'PR-6');
+PERFORM pg_temp.eq('le créateur ne lit pas directement les participations d''autrui (RLS) — l''app passe par get_late_leavers',
+  format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L AND status = 'withdrawn'$$, pg_temp.id('L')), '0');
+PERFORM pg_temp.eq('le créateur voit ses départs tardifs via get_late_leavers (PR-6)',
+  format($$SELECT (count(*) > 0)::text FROM public.get_late_leavers(%L)$$, pg_temp.id('L')), 'true');
 PERFORM pg_temp.as_('p1');
 PERFORM pg_temp.denied('un non-créateur ne lève pas la pénalité', format($$SELECT public.waive_late_cancel_penalty(%L)::text$$, pg_temp.id('L:lc')));
 PERFORM pg_temp.as_('crea');
@@ -669,3 +671,79 @@ PERFORM pg_temp.eq('fenêtre de vote ouverte : invitation à évaluer envoyée',
 PERFORM pg_temp.as_('p1');
 PERFORM pg_temp.denied('pas d''écriture directe dans user_badge_progression',
   format($$INSERT INTO public.user_badge_progression (user_id, category, tier_key) VALUES (%L, 'joined', 'gold')$$, pg_temp.id('p1')));
+
+
+-- ═════ Phase A2 (mig 00478) : registre des annulations tardives, levée, avis tardif, partenaires récents ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('a2_rc', 'tos');
+PERFORM pg_temp.user('a2_r1', 'tos');
+PERFORM pg_temp.user('a2_r2', 'tos');
+PERFORM pg_temp.user('a2_r3', 'tos');
+PERFORM pg_temp.user('a2_r4', 'tos');
+PERFORM pg_temp.user('a2_x', 'tos');
+PERFORM pg_temp.as_('a2_rc');
+PERFORM pg_temp.put('a2_act', pg_temp.ok('A2 : sortie qui démarre dans 2 h', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie A2', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '2 hours')::text$q$));
+
+-- 1. Le registre survit à la suppression de la ligne (refus d'une nouvelle invitation, cascade de blocage).
+PERFORM pg_temp.as_('a2_r1');
+PERFORM pg_temp.ok('A2 : r1 rejoint', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.ok('A2 : r1 part tard', format($q$SELECT public.leave_activity(%L)::text$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('db');
+DELETE FROM public.participations WHERE activity_id = pg_temp.id('a2_act') AND user_id = pg_temp.id('a2_r1');
+PERFORM public.recalculate_reliability_score(pg_temp.id('a2_r1'));
+PERFORM pg_temp.eq('A2 : la pénalité survit à la suppression de la ligne (PR-4)', format($q$SELECT reliability_score::int::text FROM public.users WHERE id = %L$q$, pg_temp.id('a2_r1')), '50');
+
+-- 2. Levée possible après réinscription, et liste des départs tardifs visible par l'organisateur.
+PERFORM pg_temp.as_('a2_r2');
+PERFORM pg_temp.ok('A2 : r2 rejoint', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.ok('A2 : r2 part tard', format($q$SELECT public.leave_activity(%L)::text$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET left_at = left_at - interval '20 minutes' WHERE activity_id = pg_temp.id('a2_act') AND user_id = pg_temp.id('a2_r2');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('a2_r2');
+PERFORM pg_temp.ok('A2 : r2 revient après le délai', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('a2_rc');
+PERFORM pg_temp.eq('A2 : l''organisateur voit le départ tardif de r2 (PR-6)', format($q$SELECT count(*)::text FROM public.get_late_leavers(%L) WHERE user_id = %L$q$, pg_temp.id('a2_act'), pg_temp.id('a2_r2')), '1');
+PERFORM pg_temp.ok('A2 : l''organisateur lève la pénalité après réinscription (PR-6)', format($q$SELECT public.waive_late_cancel_penalty((SELECT participation_id FROM public.get_late_leavers(%L) WHERE user_id = %L))::text$q$, pg_temp.id('a2_act'), pg_temp.id('a2_r2')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('A2 : pénalité levée → score intact', format($q$SELECT reliability_score::int::text FROM public.users WHERE id = %L$q$, pg_temp.id('a2_r2')), '100');
+PERFORM pg_temp.as_('a2_x');
+PERFORM pg_temp.eq('A2 : un tiers ne voit pas les départs tardifs', format($q$SELECT count(*)::text FROM public.get_late_leavers(%L)$q$, pg_temp.id('a2_act')), '0');
+PERFORM pg_temp.denied('A2 : un tiers ne lève pas une pénalité', format($q$SELECT public.waive_late_cancel_penalty((SELECT id FROM public.participations WHERE activity_id = %L AND user_id = %L))::text$q$, pg_temp.id('a2_act'), pg_temp.id('a2_r2')));
+PERFORM pg_temp.denied('A2 : le registre n''est pas lisible par un client', $q$SELECT count(*)::text FROM public.late_cancels$q$);
+
+-- 3. Un départ anticipé ne masque pas l'avis de départ tardif.
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET notification_preferences = coalesce(notification_preferences, '{}'::jsonb) || '{"participant_left": true, "participant_joined": true}'::jsonb WHERE id = pg_temp.id('a2_rc');
+UPDATE public.activities SET starts_at = now() + interval '2 days' WHERE id = pg_temp.id('a2_act');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('a2_r3');
+PERFORM pg_temp.ok('A2 : r3 rejoint', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.ok('A2 : r3 part tôt', format($q$SELECT public.leave_activity(%L)::text$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET left_at = left_at - interval '20 minutes' WHERE activity_id = pg_temp.id('a2_act') AND user_id = pg_temp.id('a2_r3');
+UPDATE public.activities SET starts_at = now() + interval '2 hours' WHERE id = pg_temp.id('a2_act');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('a2_r3');
+PERFORM pg_temp.ok('A2 : r3 revient', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.ok('A2 : r3 repart, tard cette fois', format($q$SELECT public.leave_activity(%L)::text$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('A2 : l''avis de départ tardif est bien envoyé (AB-1)', format($q$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'participant_left_late' AND data->>'activity_id' = %L AND data->>'participation_id' = (SELECT id::text FROM public.participations WHERE activity_id = %L AND user_id = %L)$q$, pg_temp.id('a2_rc'), pg_temp.id('a2_act'), pg_temp.id('a2_act'), pg_temp.id('a2_r3')), '1');
+
+-- 4. Pas de double comptage : départ tardif, retour, puis verdict de présence.
+PERFORM pg_temp.as_('a2_r4');
+PERFORM pg_temp.ok('A2 : r4 rejoint', format($q$SELECT public.join_activity(%L)$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.ok('A2 : r4 part tard', format($q$SELECT public.leave_activity(%L)::text$q$, pg_temp.id('a2_act')));
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET status = 'accepted', left_at = NULL, confirmed_present = true WHERE activity_id = pg_temp.id('a2_act') AND user_id = pg_temp.id('a2_r4');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM public.recalculate_reliability_score(pg_temp.id('a2_r4'));
+PERFORM pg_temp.eq('A2 : présent après un retour → pas de pénalité comptée en double', format($q$SELECT reliability_score::int::text FROM public.users WHERE id = %L$q$, pg_temp.id('a2_r4')), '100');
+
+-- 5. Partenaires récents (DB-MS-1).
+PERFORM pg_temp.as_('a2_rc');
+PERFORM pg_temp.ok('A2 : la liste des partenaires récents se charge (DB-MS-1)', $q$SELECT count(*)::text FROM public.get_recent_partners()$q$);
