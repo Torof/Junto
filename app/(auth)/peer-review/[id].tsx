@@ -247,6 +247,12 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
   }
 
+  // Votes only exist on outings with a presence check (Scott 2026-10-21,
+  // mig 00497): the server refuses them elsewhere, so say so up front.
+  if (activity && activity.requires_presence === false) {
+    return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.noPresenceNoVotes')}</Text></View>;
+  }
+
   // Peer presence testimony needs 3+ (state excludes self → length >= 2) AND
   // the activity to actually require presence — otherwise there's nothing to
   // validate and peer_validate_presence rejects it (Scott 2026-07-13, a

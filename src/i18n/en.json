@@ -563,7 +563,7 @@
       "votes_need_presence": "Votes are only possible on outings with presence check.",
       "schedule_conflict": "You are already in another outing at that time.",
       "participant_schedule_conflict": "This person is already in another outing at that time.",
-      "member_left_recently": "This person left this group recently: they can come back themselves, but cannot be added back for now.",
+      "member_left_recently": "This person left this group recently: they cannot be added back for 30 days.",
       "pro_website_invalid": "The website must start with http:// or https://.",
       "seats_still_active": "Passengers have a confirmed seat. Cancel their seats before changing transport.",
       "pickup_out_of_window": "The pickup time is too far from the activity time.",
@@ -1124,6 +1124,7 @@
   },
   "peerReview": {
     "headerTitle": "Peer review",
+    "noPresenceNoVotes": "No reviews on an outing without presence check.",
     "subtitle": "Rate your co-participants — toggle a badge to vote or revoke.",
     "deferNote": "Your ratings are applied 24h after the outing ends, once attendance is confirmed.",
     "empty": "No co-participants to rate.",

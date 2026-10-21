@@ -114,7 +114,8 @@ function compose(
   const vars: Record<string, string> = { reason: '' };
   for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
     if (v === null || v === undefined) continue;
-    vars[k] = String(v);
+    // Control characters (newline spoofing) never reach a push.
+    vars[k] = String(v).replace(/[\u0000-\u001F\u007F]/g, ' ');
   }
   if (vars.date) vars.date = formatDay(vars.date, lang);
   if (vars.period === 'am' || vars.period === 'pm') vars.period = bundle.period[vars.period];
