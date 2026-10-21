@@ -587,6 +587,8 @@
       "send_rate_limit": "You're sending messages too fast. Slow down a little.",
       "message_daily_cap": "You've reached today's message limit. Try again tomorrow.",
       "share_daily_cap": "You've reached today's sharing limit. Try again tomorrow.",
+      "too_many_actions": "Too many actions in a short time. Wait a moment and try again.",
+      "trace_too_large": "This trace is too large to share.",
       "message_too_long": "Your message is too long (500 characters maximum).",
       "group_name_invalid": "Choose a group name (60 characters maximum).",
       "group_min_members": "A group needs at least 3 members.",

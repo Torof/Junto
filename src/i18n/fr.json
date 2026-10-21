@@ -591,6 +591,8 @@
       "send_rate_limit": "Tu envoies trop de messages. Ralentis un peu.",
       "message_daily_cap": "Tu as atteint la limite de messages pour aujourd'hui. Réessaie demain.",
       "share_daily_cap": "Tu as atteint la limite de partages pour aujourd'hui. Réessaie demain.",
+      "too_many_actions": "Trop d'actions en peu de temps. Patiente un moment et réessaie.",
+      "trace_too_large": "Cette trace est trop lourde pour être partagée.",
       "message_too_long": "Ton message est trop long (500 caractères maximum).",
       "group_name_invalid": "Choisis un nom de groupe (60 caractères maximum).",
       "group_min_members": "Un groupe doit compter au moins 3 membres.",

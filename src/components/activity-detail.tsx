@@ -144,8 +144,9 @@ export function ActivityDetail({
   //   "stale" ping. Clients invalidate and refetch through the
   //   already-RLS-protected views/RPCs.
   //
-  // - activity_gear stays on postgres_changes — its RLS already lets
-  //   any accepted activity member see all rows for the activity.
+  // - activity_gear / activity_gear_missing ride the same "stale" ping
+  //   (00479, one ping per statement since 00480): they left the public
+  //   publication so the whole base no longer streams every gear write.
   //
   // - the wall's 'wall' broadcast rides the SAME topic, so it is bound here
   //   too. This screen is the single owner of `activity:<id>`: supabase
