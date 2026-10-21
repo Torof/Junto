@@ -552,6 +552,8 @@
       "join_rate_limit": "Du trittst zu vielen Aktivitäten auf einmal bei. Versuch es in ein paar Minuten noch mal.",
       "already_joined": "Du bist bei dieser Aktivität schon dabei.",
       "refuse_cooldown": "Deine Anfrage wurde abgelehnt. In 24 Std. kannst du erneut anfragen.",
+      "rejoin_cooldown": "Du hast diese Tour gerade verlassen. In ein paar Minuten kannst du wieder beitreten.",
+      "seat_request_cooldown": "Du hast diesen Fahrer erst kürzlich um einen Platz gebeten. Versuch es später noch einmal.",
       "level_up_locked": "Deine Partner haben dieses Niveau noch nicht bestätigt. Du kannst aufsteigen, sobald sie es bestätigt haben.",
       "cancel_reason_invalid": "Gib einen Grund für die Absage an (mindestens 3 Zeichen).",
       "activity_locked": "Diese Aktivität kann nicht mehr bearbeitet werden.",

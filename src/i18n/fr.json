@@ -552,6 +552,8 @@
       "join_rate_limit": "Tu rejoins trop d'activités d'un coup. Réessaie dans quelques minutes.",
       "already_joined": "Tu participes déjà à cette activité.",
       "refuse_cooldown": "Ta demande a été refusée. Tu pourras redemander à rejoindre dans 24 h.",
+      "rejoin_cooldown": "Tu viens de quitter cette sortie. Tu pourras la rejoindre à nouveau dans quelques minutes.",
+      "seat_request_cooldown": "Tu as déjà demandé une place à ce conducteur récemment. Réessaie plus tard.",
       "level_up_locked": "Tes partenaires n'ont pas encore confirmé ce niveau. Tu pourras monter quand ils l'auront validé.",
       "cancel_reason_invalid": "Indique une raison d'annulation (3 caractères minimum).",
       "activity_locked": "Cette activité n'accepte plus de modifications.",
