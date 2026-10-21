@@ -92,6 +92,12 @@ Même méthode (lecture seule, base vivante), mais découpage par angle et non p
 
 **Aggravations confirmées** : AC-1 (écriture directe : aussi date hors limites et visibilité), AC-2 (aussi les sorties privées pour une personne retirée, et les personnes bloquées), AC-6, PR-1, PR-4 (aussi par réinvitation), ID-9, MS-7, CL-1 (aussi par la page de confirmation d'e-mail), CL-4, TX-2 (aussi modification, pas seulement suppression).
 
+## Défauts trouvés par la suite de tests automatiques
+
+| # | Défaut | Détail |
+|---|---|---|
+| DB-1 | **La recherche de compte par l'admin (`admin_resolve_user`) est cassée pour tout le monde depuis le 2026-07-13** | `WHERE id = v_admin` est ambigu avec la colonne de sortie `id` de `RETURNS TABLE` : erreur SQL avant même la vérification admin. Correctif : qualifier (`users.id`). |
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
