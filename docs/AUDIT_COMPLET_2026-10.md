@@ -186,7 +186,9 @@ Suite : 1 528 pass, 0 fail, 44 failles connues restantes.
 - **ID-2 (décision Scott, mig 00506)** : un compte suspendu peut s'effacer, mais l'empreinte HMAC de son e-mail (pas l'e-mail) bloque la réinscription, variantes « +tag » et majuscules comprises ; réinscription par le support.
 - **Signalement (mig 00507 + app)** : bouton « Signaler » sur un message (conversations et murs de sortie), un groupe, une discussion ouverte ; l'admin peut retirer un message ou un groupe et fermer une discussion.
 
-Suite : 1 586 pass, 0 fail, 16 failles connues restantes.
+- **DC-4 fermé comme choix assumé (Scott)** : avant connexion, la carte ne montre que les points (sorties et pros), sans clic ; un lien partagé ouvre la page complète d'une sortie publique. Les fiches pros (contacts) ne sont pas lisibles sans compte.
+
+Suite : 1 586 pass, 0 fail, 14 failles connues restantes (12 fermées par la migration, 1 de nettoyage, L16 à la prochaine version de production).
 
 ## Plan de correction proposé (validation Scott par phase)
 

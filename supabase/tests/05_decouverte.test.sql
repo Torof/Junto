@@ -529,10 +529,10 @@ PERFORM pg_temp.denied('DC-3 : changer 30 fois la trace d''une sortie est limit�
 PERFORM pg_temp.denied('DC-3 : 700 calculs de stats de trace d''affilée sont limités',
   $$SELECT pg_temp.dc_stats_spam(700)::text$$, 'junto\.too_many_actions');
 PERFORM pg_temp.as_('anon');
-PERFORM pg_temp.denied('DC-4 : anon ne lit pas creator_id sur la carte',
-  format($$SELECT creator_id::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_pub')), 'permission denied', 'DC-4');
-PERFORM pg_temp.denied('DC-4 : anon ne lit pas la trace ni la description',
-  format($$SELECT left(description || trace_geojson::text, 20) FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_pub')), 'permission denied', 'DC-4');
+-- DC-4 fermé comme choix assumé (Scott 2026-10-21) : un lien partagé ouvre la page complète d'une
+-- sortie PUBLIQUE sans compte (c'est ce qui donne envie). Une sortie privée reste fermée.
+PERFORM pg_temp.eq('DC-4 (choix) : un lien partagé montre la sortie publique sans compte',
+  format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L AND description IS NOT NULL$$, pg_temp.id('a_pub')), '1');
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('DC-6 : create_alert refuse un sport inconnu',
   $$SELECT public.create_alert(6.08, 44.56, 20, 'sport-inexistant')::text$$, '.');
