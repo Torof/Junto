@@ -292,7 +292,7 @@ PERFORM pg_temp.as_('p1');
 PERFORM pg_temp.ok('p1 donne « ponctuel » à p2', format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('p2'), pg_temp.id('V')));
 PERFORM pg_temp.ok('p1 donne « préparé » à p2', format($$SELECT public.give_reputation_badge(%L, %L, 'prepared')::text$$, pg_temp.id('p2'), pg_temp.id('V')));
 PERFORM pg_temp.pr_noraw('voter deux fois le même badge ne remonte pas d''erreur brute',
-  format($$SELECT public.give_reputation_badge(%L, %L, 'prepared')::text$$, pg_temp.id('p2'), pg_temp.id('V')), 'PR-12');
+  format($$SELECT public.give_reputation_badge(%L, %L, 'prepared')::text$$, pg_temp.id('p2'), pg_temp.id('V')));
 PERFORM pg_temp.denied('on ne vote pas pour soi-même', format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('p1'), pg_temp.id('V')));
 PERFORM pg_temp.denied('on ne vote pas pour un non-participant', format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('str'), pg_temp.id('V')));
 PERFORM pg_temp.denied('on ne vote pas pour un participant qui s''est retiré', format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('w1'), pg_temp.id('V')));
@@ -361,12 +361,12 @@ PERFORM pg_temp.eq('les votes de niveau ne figurent pas dans la réputation',
 PERFORM pg_temp.eq('votes de niveau de p2 en randonnée : 1 « surestimé »',
   format($$SELECT level_over::text || '/' || level_right::text FROM public.get_user_sport_level_votes(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('p2')), '1/0');
 PERFORM pg_temp.eq('get_voters_for_badge ne liste pas les auteurs d''un vote négatif',
-  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'aggressive')$$, pg_temp.id('p2')), '0', 'PR-3');
+  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'aggressive')$$, pg_temp.id('p2')), '0');
 PERFORM pg_temp.eq('get_voters_for_badge applique un seuil (1 seul votant : rien)',
-  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('p2')), '0', 'PR-3');
+  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('p2')), '0');
 PERFORM pg_temp.as_('p2');
 PERFORM pg_temp.eq('le visé ne voit pas qui a voté négativement contre lui',
-  $$SELECT count(*)::text FROM public.reputation_votes WHERE badge_key = 'aggressive'$$, '0', 'PR-3');
+  $$SELECT count(*)::text FROM public.reputation_votes WHERE badge_key = 'aggressive'$$, '0');
 PERFORM pg_temp.as_('sus');
 PERFORM pg_temp.eq('un suspendu ne lit pas la réputation', format($$SELECT count(*)::text FROM public.get_user_reputation(%L)$$, pg_temp.id('p2')), '0');
 PERFORM pg_temp.eq('un suspendu ne lit pas les votants', format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('p2')), '0');
@@ -382,7 +382,9 @@ PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('5 votants distincts : « ponctuel » mis en avant',
   format($$SELECT badge_key || ':' || vote_count FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('tv2')), 'punctual:5');
 PERFORM pg_temp.eq('le seuil compte les votants, pas les votes (1 votant × 5 sorties : rien)',
-  format($$SELECT count(*)::text FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('tv')), '0', 'PR-11');
+  format($$SELECT count(*)::text FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('tv')), '0');
+PERFORM pg_temp.eq('PR-3 : 5 personnes ont donné « ponctuel » : les votants s''affichent',
+  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('tv2')), '5');
 
 -- Rideau démo sur les lectures de vote.
 PERFORM pg_temp.as_('db');
@@ -390,9 +392,9 @@ PERFORM pg_temp.pr_vote(v, 'dem', 'V', 'punctual') FROM unnest(ARRAY['crea', 'p1
 PERFORM pg_temp.pr_vote('p1', 'dem', 'V', 'level_right');
 PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('rideau démo : get_user_reputation', format($$SELECT count(*)::text FROM public.get_user_reputation(%L)$$, pg_temp.id('dem')), '0');
-PERFORM pg_temp.eq('rideau démo : get_voters_for_badge', format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('dem')), '0', 'IX-3');
-PERFORM pg_temp.eq('rideau démo : get_top_vouched_badges', format($$SELECT count(*)::text FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('dem')), '0', 'IX-3');
-PERFORM pg_temp.eq('rideau démo : get_user_sport_level_votes', format($$SELECT count(*)::text FROM public.get_user_sport_level_votes(%L)$$, pg_temp.id('dem')), '0', 'IX-3');
+PERFORM pg_temp.eq('rideau démo : get_voters_for_badge', format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('dem')), '0');
+PERFORM pg_temp.eq('rideau démo : get_top_vouched_badges', format($$SELECT count(*)::text FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('dem')), '0');
+PERFORM pg_temp.eq('rideau démo : get_user_sport_level_votes', format($$SELECT count(*)::text FROM public.get_user_sport_level_votes(%L)$$, pg_temp.id('dem')), '0');
 
 -- ═════ Fermeture de la fenêtre de présence (règles 2 / 3+) ═════
 PERFORM pg_temp.as_('db');
