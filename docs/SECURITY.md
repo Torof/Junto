@@ -732,6 +732,8 @@ INSERT INTO activities (
 
 ## Colonnes privilégiées — jamais modifiables directement par le client
 
+> **Lecture par colonne (00468 `users`, 00486 `activities`).** Ces deux tables n'ont plus de droit SELECT de table pour `anon`/`authenticated`, seulement des droits par colonne (`activities` : tout sauf `invite_token`). **Une colonne ajoutée n'est donc lisible en direct par aucun client tant qu'elle n'est pas accordée explicitement** (`GRANT SELECT (col) ON … TO anon, authenticated`). Les vues sont exécutées par leur propriétaire et ne sont pas concernées. Ne jamais réaccorder un SELECT de table (il rendrait `invite_token` à nouveau lisible).
+
 ### Table `users`
 - `is_admin`, `tier`, `suspended_at` (`is_pro_verified`/`pro_verified_at` sont des colonnes **mortes** : le statut pro vit dans `pro_profiles.status` + `users.tier`, posés par `approve_pro`/`unregister_as_pro` — toujours gelées au trigger, jamais lues)
 - `phone_verified`, `phone_verified_at` (Supabase Auth flow)

@@ -144,6 +144,22 @@ Suite : 1 421 pass, 0 fail, 85 failles connues restantes. Plus aucune faille HIG
 
 Suite : 1 459 pass, 0 fail, 80 failles connues restantes.
 
+## Phase vie privée — livrée (mig 00485-00489, 2026-10-21)
+
+- **AC-2** : point de départ des conducteurs (nom et coordonnées) réservé aux membres acceptés d'une sortie à venir ou en cours, jamais à travers un blocage ; même règle pour les lieux de départ du résumé transport ; point de prise en charge des passagers réservé au conducteur, au passager et à l'organisateur une fois la sortie terminée.
+- **DX-1** : une absence n'est visible que par l'organisateur et la personne ; les non-membres ne reçoivent aucune coche (sinon l'absence se déduisait d'une sortie finalisée) ; la revue entre pairs ne renvoie plus « absent » ; **TX-6** score brut retiré de `get_user_public_stats`.
+- **DC-1 / DX-2** : base des dispos arrondie au centième de degré dès l'enregistrement (bases existantes reprises), distance en km entiers, 30 enregistrements / jour. **DC-2** : compteur limité aux rayons de la liste, point sondé arrondi, 300 appels / h (anti-rebond côté app).
+- **MS-1** : auteurs bloqués ou suspendus masqués dans les groupes et canaux (messages, aperçus, non-lus, notifications).
+- **AC-6** : les co-participants ne lisent plus les demandes de place en direct.
+- **IX-1** : une sortie privée (simple ou sur demande) ne se rejoint et ne se lit qu'après avoir ouvert son lien (30 jours), via un partage direct de l'organisateur, ou après s'en être désisté ; jamais pour une personne retirée ou bloquée par l'organisateur. Corrige au passage un bug : une sortie privée partagée par l'organisateur ne s'ouvrait pas chez le destinataire.
+- **AC-8** : `invite_token` illisible en direct (droits par colonne) ; passer une sortie en privée change son lien.
+- **IX-2 / BR-1** : une demande de place ne rouvre plus un contact refusé ou en attente par le conducteur (notification seulement).
+- **TX-3** : buckets non listables (lecture de son propre dossier).
+- Erreur de reconstruction rattrapée par la suite : `request_seat` reconstruite depuis une copie antérieure à la phase A (00486), réparée en 00487.
+- Restent : **DC-4** (ce qu'un visiteur sans compte voit d'une sortie, décision Scott, demande une version de l'app d'abord) ; aperçu « départs depuis… » perdu pour les non-membres (option : enregistrer la commune) ; finesse de l'arrondi en zone peu dense (option : 2-5 km ou centre de commune) ; photos orphelines du stockage (phase de nettoyage) ; invitation d'un non-contact à une sortie privée sans accès après acceptation (LOW, fonctionnel).
+
+Suite : 1 501 pass, 0 fail, 65 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
