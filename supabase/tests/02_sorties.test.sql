@@ -412,6 +412,10 @@ PERFORM pg_temp.eq('AC-2 : un inconnu ne lit ni coordonnées ni nom du point de 
 PERFORM pg_temp.as_('hank');
 PERFORM pg_temp.eq('AC-2 : un participant accepté lit le point de départ du conducteur',
   format($$SELECT (count(*) > 0)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), 'true');
+PERFORM pg_temp.eq('AC-2 : un participant lit les lieux de départ dans le résumé transport', format($$SELECT (count(*) > 0)::text FROM public.get_transport_summary(%L) WHERE cities IS NOT NULL$$, pg_temp.id('car')), 'true');
+PERFORM pg_temp.as_('frank');
+PERFORM pg_temp.eq('AC-2 : un inconnu ne lit pas les lieux de départ dans le résumé transport', format($$SELECT count(*)::text FROM public.get_transport_summary(%L) WHERE cities IS NOT NULL$$, pg_temp.id('car')), '0');
+PERFORM pg_temp.as_('hank');
 
 -- request_seat
 PERFORM pg_temp.as_('anon');

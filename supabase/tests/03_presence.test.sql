@@ -498,7 +498,7 @@ PERFORM pg_temp.eq('stats publiques : les absences ne comptent pas comme sorties
 PERFORM pg_temp.eq('stats publiques : palier de fiabilité', format($$SELECT reliability_tier FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')),
   (SELECT public.reliability_tier(75)));
 PERFORM pg_temp.eq('le score brut n''est pas renvoyé par get_user_public_stats',
-  format($$SELECT coalesce(reliability_score::text, 'null') FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), 'null', 'TX-6');
+  format($$SELECT coalesce(reliability_score::text, 'null') FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), 'null');
 PERFORM pg_temp.eq('trophées : les absences ne comptent pas comme sorties rejointes',
   format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'joined'$$, pg_temp.id('rr')), '2', 'PR-7');
 PERFORM pg_temp.eq('niveaux par sport : 1 point en randonnée',
@@ -534,6 +534,8 @@ PERFORM pg_temp.as_('p3');
 PERFORM pg_temp.eq('DX-1 : la personne voit sa propre absence', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE user_id = %L AND confirmed_present = false$$, pg_temp.id('V'), pg_temp.id('p3')), '1');
 PERFORM pg_temp.as_('p1');
 PERFORM pg_temp.eq('DX-1 : une co-participante ne voit pas l''absence', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE confirmed_present = false$$, pg_temp.id('V')), '0');
+PERFORM pg_temp.as_('str');
+PERFORM pg_temp.eq('DX-1 : un inconnu ne reçoit aucune coche (une absence ne se déduit pas)', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE confirmed_present IS NOT NULL$$, pg_temp.id('V')), '0');
 PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('la vue public_participants ne montre rien d''autrui',
   format($$SELECT count(*)::text FROM public.public_participants WHERE activity_id = %L$$, pg_temp.id('V')), '0');
