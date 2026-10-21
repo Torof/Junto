@@ -815,3 +815,10 @@ PERFORM pg_temp.eq('demande de place : le message de demande est dans la message
 PERFORM pg_temp.eq('place acceptée : le message de confirmation est dans la messagerie',
   $$SELECT (count(*) > 0)::text FROM public.messages WHERE metadata->>'type' = 'seat_accepted'$$, 'true');
 
+-- 00509 : les vues « mes sorties » ont toutes les colonnes que l'app leur demande (sélection copiée
+-- de activity-service.ts) — une colonne manquante cassait les listes sans bruit.
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.ok('mes sorties créées : la lecture de l''app passe', $$SELECT count(*)::text FROM (SELECT id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson FROM public.my_activities) x$$);
+PERFORM pg_temp.ok('mes sorties rejointes : la lecture de l''app passe', $$SELECT count(*)::text FROM (SELECT id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson FROM public.my_joined_activities) x$$);
+PERFORM pg_temp.ok('mes demandes en attente : la lecture de l''app passe', $$SELECT count(*)::text FROM (SELECT id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson FROM public.my_pending_activities) x$$);
+
