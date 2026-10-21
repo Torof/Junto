@@ -771,3 +771,27 @@ PERFORM pg_temp.eq('A2 : présent après un retour → pas de pénalité compté
 -- 5. Partenaires récents (DB-MS-1).
 PERFORM pg_temp.as_('a2_rc');
 PERFORM pg_temp.ok('A2 : la liste des partenaires récents se charge (DB-MS-1)', $q$SELECT count(*)::text FROM public.get_recent_partners()$q$);
+
+-- 00516-00517 : le piège de l'annulation tardive (demande acceptée au dernier moment) est refermé.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('trap', 'tos');
+PERFORM pg_temp.pr_act('TRAP', 'crea', interval '5 hours', interval '2 hours', 'published', 'approval');
+PERFORM pg_temp.as_('trap');
+PERFORM pg_temp.eq('piège : la demande part en attente', format($$SELECT public.join_activity(%L)$$, pg_temp.id('TRAP')), 'pending');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('trap_pid', (SELECT id::text FROM public.participations WHERE activity_id = pg_temp.id('TRAP') AND user_id = pg_temp.id('trap')));
+PERFORM pg_temp.as_('crea');
+PERFORM pg_temp.ok('piège : l''organisateur accepte à 5 h du départ', format($$SELECT public.accept_participation(%L)::text$$, pg_temp.get('trap_pid')));
+PERFORM pg_temp.as_('trap');
+PERFORM pg_temp.ok('piège : la personne se retire', format($$SELECT public.leave_activity(%L, 'pas prévu')::text$$, pg_temp.id('TRAP')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('piège : aucune annulation tardive enregistrée', format($$SELECT count(*)::text FROM public.late_cancels WHERE user_id = %L AND activity_id = %L$$, pg_temp.id('trap'), pg_temp.id('TRAP')), '0');
+-- 00516 : coordonnées réelles exigées ; plus d'entrée après départ + 15 min.
+PERFORM pg_temp.as_('trap');
+PERFORM pg_temp.denied('coordonnées NaN refusées', $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'NaN', 'x', 'Tous niveaux', 5, 'NaN'::float8, 44.0, NULL, NULL, now() + interval '9 days')::text$$, 'Operation not permitted');
+PERFORM pg_temp.denied('latitude hors bornes refusée', $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Lat', 'x', 'Tous niveaux', 5, 6.0, 100.0, NULL, NULL, now() + interval '9 days')::text$$, 'Operation not permitted');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.pr_act('LATEJOIN', 'crea', interval '-1 hour', interval '3 hours', 'in_progress');
+PERFORM pg_temp.as_('trap');
+PERFORM pg_temp.denied('on ne rejoint plus une sortie avec présence commencée depuis plus de 15 min', format($$SELECT public.join_activity(%L)$$, pg_temp.id('LATEJOIN')), 'junto\.activity_locked');
+
