@@ -61,7 +61,10 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
 
   return (
     <View style={[styles.cluster, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+      {/* Outline + ring share ONE svg (same centre). A View border would push
+          the absolutely-filled svg 1px down-right (it fills the padding box). */}
+      <Svg width={size} height={size} style={styles.svg}>
+        <Circle cx={size / 2} cy={size / 2} r={size / 2 - 0.5} stroke={colors.pinBorder} strokeWidth={1} fill="none" />
         {parts.length === 0 ? (
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.pinBorder} strokeWidth={2} fill="none" />
         ) : (
@@ -94,10 +97,13 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
 const createStyles = (colors: AppColors) => StyleSheet.create({
   cluster: {
     backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.pinBorder,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  svg: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
   },
   count: {
     color: colors.textPrimary,
