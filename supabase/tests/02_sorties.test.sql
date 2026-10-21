@@ -610,7 +610,7 @@ PERFORM pg_temp.as_('kim');
 PERFORM pg_temp.put('alert', pg_temp.ok('kim crée une alerte', $$SELECT public.create_alert(6.0, 44.0, 20, 'hiking', ARRAY['débutant'])::text$$));
 PERFORM pg_temp.denied('niveau d''alerte inconnu refusé', $$SELECT public.create_alert(6.0, 44.0, 20, NULL, ARRAY['légende'])::text$$);
 PERFORM pg_temp.denied('période d''alerte inversée refusée', $$SELECT public.create_alert(6.0, 44.0, 20, NULL, NULL, current_date + 5, current_date + 1)::text$$, 'junto.alert_date_invalid');
-PERFORM pg_temp.denied('rayon d''alerte hors bornes refusé', $$SELECT public.create_alert(6.0, 44.0, 5000)::text$$, 'violates|junto');
+PERFORM pg_temp.denied('rayon d''alerte hors bornes refusé', $$SELECT public.create_alert(6.0, 44.0, 5000)::text$$, 'Operation not permitted');
 PERFORM pg_temp.denied('pas d''écriture directe dans activity_alerts',
   format($$INSERT INTO public.activity_alerts (user_id, location, radius_km) VALUES (%L, 'SRID=4326;POINT(6 44)', 20)$$, pg_temp.id('kim')));
 DECLARE i int;
@@ -620,7 +620,7 @@ EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('alert_err', SQLERRM);
 END;
 PERFORM pg_temp.denied('11e alerte refusée', $$SELECT public.create_alert(6.0, 44.0, 20)::text$$, 'junto.alert_limit_reached');
 PERFORM pg_temp.as_('frank');
-PERFORM pg_temp.denied('coordonnées d''alerte invalides refusées', $$SELECT public.create_alert(6.0, 300.0, 20)::text$$, '.', 'DC-6');
+PERFORM pg_temp.denied('coordonnées d''alerte invalides refusées', $$SELECT public.create_alert(6.0, 300.0, 20)::text$$, '.');
 PERFORM pg_temp.eq('un inconnu ne lit pas les alertes d''autrui', format($$SELECT count(*)::text FROM public.activity_alerts WHERE id = %L$$, pg_temp.id('alert')), '0');
 PERFORM pg_temp.eq('un inconnu ne supprime pas les alertes d''autrui', format($$DELETE FROM public.activity_alerts WHERE id = %L$$, pg_temp.id('alert')), '0');
 

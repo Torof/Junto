@@ -535,10 +535,10 @@ PERFORM pg_temp.denied('DC-4 : anon ne lit pas la trace ni la description',
   format($$SELECT left(description || trace_geojson::text, 20) FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_pub')), 'permission denied', 'DC-4');
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('DC-6 : create_alert refuse un sport inconnu',
-  $$SELECT public.create_alert(6.08, 44.56, 20, 'sport-inexistant')::text$$, '.', 'DC-6');
+  $$SELECT public.create_alert(6.08, 44.56, 20, 'sport-inexistant')::text$$, '.');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.denied('DC-7 : un compte ne peut pas avoir deux dispos',
-  format($$SELECT pg_temp.dc_dispo(%L, false, now() + interval '1 hour', now() + interval '2 days', false)::text$$, pg_temp.id('alice')), 'duplicate|violates', 'DC-7');
+  format($$SELECT pg_temp.dc_dispo(%L, false, now() + interval '1 hour', now() + interval '2 days', false)::text$$, pg_temp.id('alice')), 'duplicate|violates');
 PERFORM pg_temp.as_('past1');
 PERFORM pg_temp.ok('past1 pose une dispo qui chevauche une dispo expirée',
   $$SELECT public.upsert_dispo(ARRAY['hiking'], NULL, 6.08, 44.56, 'Gap', 15, ARRAY['car'], now() - interval '23 hours', now() + interval '2 days')::text || public.activate_dispo()::text$$);
@@ -549,4 +549,4 @@ PERFORM pg_temp.denied('PV-1 : anon ne lit pas les statistiques PostGIS des disp
   $$SELECT public._postgis_stats('public.discovery_availabilities'::regclass, 'base')::text$$, 'permission denied', 'PV-1');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('AB-14 : la recherche de canaux borne la longueur de la requête',
-  $$SELECT count(*)::text FROM public.search_channels(repeat('a', 5000))$$, '.', 'AB-14');
+  $$SELECT count(*)::text FROM public.search_channels(repeat('a', 5000))$$, '.');

@@ -38,7 +38,7 @@ PERFORM pg_temp.eq('e-mail inchangé', format($$SELECT (email LIKE '%%@junto.tes
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('avatar hors du stockage du projet refusé',
   format($$UPDATE public.users SET avatar_url = 'https://evil.example/pixel.png' WHERE id = %L$$, pg_temp.id('alice')),
-  '.', 'ID-3');
+  '.');
 
 -- ───── Vue public_profiles (00476) ─────
 PERFORM pg_temp.eq('alice voit le profil public de bob', format($$SELECT count(*)::text FROM public.public_profiles WHERE id = %L$$, pg_temp.id('bob')), '1');

@@ -526,7 +526,7 @@ PERFORM pg_temp.eq('niveaux par sport : 1 point en randonnée',
   format($$SELECT dots::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('rr')), '1');
 PERFORM pg_temp.eq('rideau démo : stats publiques', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('dem')), '0');
 PERFORM pg_temp.eq('rideau démo : trophées', format($$SELECT count(*)::text FROM public.get_user_trophies(%L)$$, pg_temp.id('dem')), '0');
-PERFORM pg_temp.eq('compte suspendu : les stats ne le révèlent pas', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('sus')), '0', 'DX-3');
+PERFORM pg_temp.eq('compte suspendu : les stats ne le révèlent pas', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('sus')), '0');
 PERFORM pg_temp.as_('sus');
 PERFORM pg_temp.eq('un suspendu ne lit pas les trophées', format($$SELECT count(*)::text FROM public.get_user_trophies(%L)$$, pg_temp.id('rr')), '0');
 
@@ -538,7 +538,7 @@ PERFORM pg_temp.put('privAt', (SELECT starts_at::text FROM public.activities WHE
 PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('les niveaux par sport ne révèlent pas la date exacte d''une sortie privée',
   format($$SELECT count(*)::text FROM public.get_user_sport_levels(%L) WHERE last_at = %L::timestamptz OR first_at = %L::timestamptz$$,
-    pg_temp.id('pv'), pg_temp.get('privAt'), pg_temp.get('privAt')), '0', 'DX-4');
+    pg_temp.id('pv'), pg_temp.get('privAt'), pg_temp.get('privAt')), '0');
 
 -- DX-1 : absences lisibles par un inconnu.
 PERFORM pg_temp.eq('un inconnu voit les participants d''une sortie publique',

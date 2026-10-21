@@ -334,7 +334,7 @@ PERFORM pg_temp.ok('alice supprime son message', format($$SELECT public.delete_m
 PERFORM pg_temp.denied('un message supprimé ne se modifie plus', format($$SELECT public.edit_message(%L, 'retour')::text$$, pg_temp.id('m1')));
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('un message supprimé n''est plus lisible', format($$SELECT count(*)::text FROM public.messages WHERE id = %L$$, pg_temp.id('m1')), '0');
-PERFORM pg_temp.ok('un message supprimé reste signalable', format($$SELECT public.create_report('message', %L, 'Raison de test suffisamment longue')::text$$, pg_temp.id('m1')), 'MS-8');
+PERFORM pg_temp.ok('un message supprimé reste signalable', format($$SELECT public.create_report('message', %L, 'Raison de test suffisamment longue')::text$$, pg_temp.id('m1')));
 
 -- Masquer / démasquer
 PERFORM pg_temp.as_('alice');
@@ -520,7 +520,7 @@ PERFORM pg_temp.eq('bob ne lit pas les messages de dave, qu''il a bloqué, dans 
   format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND sender_id = %L$$, pg_temp.id('g1'), pg_temp.id('dave')), '0');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.ok('ajouter un contact bloqué par un autre membre ne révèle pas le blocage (pas d''erreur)',
-  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('erin')), 'MS-2');
+  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('erin')));
 PERFORM pg_temp.as_('carol');
 PERFORM pg_temp.denied('deux personnes qui se bloquent ne sont pas réunies dans un nouveau groupe',
   format($$SELECT public.create_group('Trio', NULL, ARRAY[%L, %L]::uuid[])::text$$, pg_temp.id('bob'), pg_temp.id('dave')), 'junto\.group_min_members');
@@ -534,7 +534,7 @@ PERFORM pg_temp.eq('après départ, carol ne lit plus les messages du groupe',
   format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L$$, pg_temp.id('g1')), '0');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('une personne qui a quitté un groupe ne peut pas y être remise aussitôt',
-  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('carol')), '.', 'AB-12');
+  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('carol')), '.');
 
 -- Plafond journalier de création de groupes (5)
 PERFORM pg_temp.eq('au-delà de 5 groupes créés par jour, refus',
@@ -615,7 +615,7 @@ PERFORM pg_temp.ok('t6 quitte le canal', format($$SELECT public.leave_channel(%L
 PERFORM pg_temp.eq('après départ, t6 n''est plus membre', format($$SELECT is_member::text FROM public.get_channel(%L)$$, pg_temp.id('ch1')), 'false');
 
 PERFORM pg_temp.as_('t9');
-PERFORM pg_temp.ok('un canal est signalable', format($$SELECT public.create_report('channel', %L, 'Raison de test suffisamment longue')::text$$, pg_temp.id('ch1')), 'MS-8');
+PERFORM pg_temp.ok('un canal est signalable', format($$SELECT public.create_report('channel', %L, 'Raison de test suffisamment longue')::text$$, pg_temp.id('ch1')));
 
 -- Fermeture
 PERFORM pg_temp.as_('frank');
@@ -702,7 +702,7 @@ PERFORM pg_temp.ok('alice réinvite dave', format($$SELECT public.send_activity_
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('une invitation refusée ne peut pas être renvoyée aussitôt',
   format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L AND user_id = %L AND status = 'invited'$$, pg_temp.id('act_a'), pg_temp.id('dave')),
-  '0', 'MS-3');
+  '0');
 
 -- ═════ Demande de place vs demande de contact refusée (IX-2 / BR-1) ═════
 PERFORM pg_temp.as_('carol');
@@ -749,7 +749,7 @@ PERFORM pg_temp.ok('alice envoie un message avec un caractère de contrôle',
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('le texte du push de message est nettoyé (caractères de contrôle)',
   $$SELECT coalesce(bool_and(strpos(convert_from(body, 'UTF8'), '\u0001') = 0)::text, 'no push')
-    FROM net.http_request_queue WHERE convert_from(body, 'UTF8') LIKE '%MS5MARK%'$$, 'true', 'MS-5');
+    FROM net.http_request_queue WHERE convert_from(body, 'UTF8') LIKE '%MS5MARK%'$$, 'true');
 
 -- ═════ Retirer un contact ═════
 PERFORM pg_temp.as_('alice');
