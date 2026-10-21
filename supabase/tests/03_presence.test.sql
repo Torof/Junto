@@ -122,10 +122,10 @@ PERFORM pg_temp.eq('recalculate_reliability_score non appelable par un compte',
   $$SELECT has_function_privilege('authenticated', 'public.recalculate_reliability_score(uuid)', 'EXECUTE')::text$$, 'false');
 PERFORM pg_temp.eq('award_badge_progression non appelable par un compte',
   $$SELECT has_function_privilege('authenticated', 'public.award_badge_progression(uuid, boolean)', 'EXECUTE')::text$$, 'false');
-PERFORM pg_temp.eq('transition_single_activity non appelable par un compte',
-  $$SELECT has_function_privilege('authenticated', 'public.transition_single_activity(uuid)', 'EXECUTE')::text$$, 'false', 'PR-1');
+-- transition_single_activity reste appelable : elle fait ce que fait la tâche minute ; PR-1 est fermé
+-- par la garde « organisateur suspendu » de close_presence_window_for (00491).
 PERFORM pg_temp.eq('check_activity_transitions non appelable par un compte',
-  $$SELECT has_function_privilege('authenticated', 'public.check_activity_transitions()', 'EXECUTE')::text$$, 'false', 'PR-1');
+  $$SELECT has_function_privilege('authenticated', 'public.check_activity_transitions()', 'EXECUTE')::text$$, 'false');
 
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('anon ne peut pas confirmer une présence par géo',
@@ -448,7 +448,7 @@ PERFORM pg_temp.as_('str');
 PERFORM pg_temp.ok('un tiers appelle transition_single_activity sur la sortie du suspendu',
   format($$SELECT coalesce(public.transition_single_activity(%L), 'null')$$, pg_temp.id('S')));
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('créateur suspendu : aucune absence posée sur ses participants', $$SELECT pg_temp.pr_cp('S', 's2')$$, 'null', 'PR-1');
+PERFORM pg_temp.eq('créateur suspendu : aucune absence posée sur ses participants', $$SELECT pg_temp.pr_cp('S', 's2')$$, 'null');
 
 -- PR-2 : tout le monde présent → le balayage ne compte jamais les votes.
 PERFORM pg_temp.pr_act('P2', 'crea', interval '-3 hours', interval '2 hours', 'completed');
@@ -468,13 +468,13 @@ PERFORM pg_temp.pr_shift('P2', interval '2 days');
 PERFORM pg_temp.pr_shift('NPV', interval '2 days');
 PERFORM public.close_due_presence_windows();
 PERFORM pg_temp.eq('sortie où tous sont présents : le balayage compte les votes',
-  format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true', 'PR-2');
+  format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true');
 PERFORM public.close_presence_window_for(pg_temp.id('P2'));
 PERFORM pg_temp.eq('la fermeture directe, elle, compte ces votes',
   format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('q1')), 'true');
 PERFORM public.close_presence_window_for(pg_temp.id('NPV'));
 PERFORM pg_temp.eq('sortie sans validation de présence : les votes finissent comptés',
-  format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('r1')), 'true', 'BR-2');
+  format($$SELECT (counted_at IS NOT NULL)::text FROM public.reputation_votes WHERE voter_id = %L$$, pg_temp.id('r1')), 'true');
 
 -- ═════ Score de fiabilité ═════
 -- rr : 2 présences + 1 absence → (1+2)/(1+3) = 75.
@@ -500,7 +500,7 @@ PERFORM pg_temp.eq('stats publiques : palier de fiabilité', format($$SELECT rel
 PERFORM pg_temp.eq('le score brut n''est pas renvoyé par get_user_public_stats',
   format($$SELECT coalesce(reliability_score::text, 'null') FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), 'null');
 PERFORM pg_temp.eq('trophées : les absences ne comptent pas comme sorties rejointes',
-  format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'joined'$$, pg_temp.id('rr')), '2', 'PR-7');
+  format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'joined'$$, pg_temp.id('rr')), '2');
 PERFORM pg_temp.eq('niveaux par sport : 1 point en randonnée',
   format($$SELECT dots::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('rr')), '1');
 PERFORM pg_temp.eq('rideau démo : stats publiques', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('dem')), '0');
