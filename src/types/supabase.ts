@@ -33,8 +33,8 @@ export type Database = {
           location_meeting: unknown
           location_objective: unknown
           max_participants: number | null
-          meeting_name: string | null
           meeting_locality: string | null
+          meeting_name: string | null
           objective_name: string | null
           requires_presence: boolean
           route: unknown
@@ -64,8 +64,8 @@ export type Database = {
           location_meeting: unknown
           location_objective?: unknown
           max_participants?: number | null
-          meeting_name?: string | null
           meeting_locality?: string | null
+          meeting_name?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
@@ -95,8 +95,8 @@ export type Database = {
           location_meeting?: unknown
           location_objective?: unknown
           max_participants?: number | null
-          meeting_name?: string | null
           meeting_locality?: string | null
+          meeting_name?: string | null
           objective_name?: string | null
           requires_presence?: boolean
           route?: unknown
@@ -403,6 +403,21 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_email_hashes: {
+        Row: {
+          banned_at: string
+          email_hash: string
+        }
+        Insert: {
+          banned_at?: string
+          email_hash: string
+        }
+        Update: {
+          banned_at?: string
+          email_hash?: string
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -464,6 +479,8 @@ export type Database = {
           participant_info: Json | null
           party_size: number
           period: string
+          price_eur: number | null
+          price_unit: string | null
           pro_id: string
           status: string
           submitted_count: number
@@ -482,6 +499,8 @@ export type Database = {
           participant_info?: Json | null
           party_size: number
           period: string
+          price_eur?: number | null
+          price_unit?: string | null
           pro_id: string
           status?: string
           submitted_count?: number
@@ -500,6 +519,8 @@ export type Database = {
           participant_info?: Json | null
           party_size?: number
           period?: string
+          price_eur?: number | null
+          price_unit?: string | null
           pro_id?: string
           status?: string
           submitted_count?: number
@@ -710,47 +731,136 @@ export type Database = {
           },
         ]
       }
-      contacts: {
+      contact_qr_scans: {
         Row: {
-          contact_id: string
-          created_at: string
-          owner_id: string
+          scanned_at: string
+          user_id: string
         }
         Insert: {
-          contact_id: string
-          created_at?: string
-          owner_id: string
+          scanned_at?: string
+          user_id: string
         }
         Update: {
-          contact_id?: string
-          created_at?: string
-          owner_id?: string
+          scanned_at?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contacts_contact_id_fkey"
-            columns: ["contact_id"]
+            foreignKeyName: "contact_qr_scans_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contacts_contact_id_fkey"
-            columns: ["contact_id"]
+            foreignKeyName: "contact_qr_scans_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      contact_qr_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "contacts_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "contact_qr_tokens_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contacts_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "contact_qr_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_removal_archive: {
+        Row: {
+          conversation_id: string
+          id: string
+          messages: Json
+          removed_at: string
+          removed_by: string
+          user_1: string
+          user_2: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          messages?: Json
+          removed_at?: string
+          removed_by: string
+          user_1: string
+          user_2: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          messages?: Json
+          removed_at?: string
+          removed_by?: string
+          user_1?: string
+          user_2?: string
+        }
+        Relationships: []
+      }
+      conversation_departures: {
+        Row: {
+          at: string
+          conversation_id: string
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          conversation_id: string
+          user_id: string
+        }
+        Update: {
+          at?: string
+          conversation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_departures_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_departures_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_departures_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -825,8 +935,6 @@ export type Database = {
           activity_id: string | null
           created_at: string
           created_by: string | null
-          hidden_by_user_1: boolean
-          hidden_by_user_2: boolean
           icon: string | null
           id: string
           initiated_by: string | null
@@ -846,8 +954,6 @@ export type Database = {
           activity_id?: string | null
           created_at?: string
           created_by?: string | null
-          hidden_by_user_1?: boolean
-          hidden_by_user_2?: boolean
           icon?: string | null
           id?: string
           initiated_by?: string | null
@@ -867,8 +973,6 @@ export type Database = {
           activity_id?: string | null
           created_at?: string
           created_by?: string | null
-          hidden_by_user_1?: boolean
-          hidden_by_user_2?: boolean
           icon?: string | null
           id?: string
           initiated_by?: string | null
@@ -1278,6 +1382,254 @@ export type Database = {
           },
         ]
       }
+      invitation_declines: {
+        Row: {
+          activity_id: string
+          at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_declines_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_declines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invite_grants: {
+        Row: {
+          activity_id: string
+          at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_grants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      late_cancels: {
+        Row: {
+          activity_id: string
+          at: string
+          user_id: string
+          waived: boolean
+        }
+        Insert: {
+          activity_id: string
+          at?: string
+          user_id: string
+          waived?: boolean
+        }
+        Update: {
+          activity_id?: string
+          at?: string
+          user_id?: string
+          waived?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "late_cancels_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_joined_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "my_pending_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_cancels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      map_broadcasts: {
+        Row: {
+          activity_id: string
+          at: string
+        }
+        Insert: {
+          activity_id: string
+          at?: string
+        }
+        Update: {
+          activity_id?: string
+          at?: string
+        }
+        Relationships: []
+      }
+      message_original_content: {
+        Row: {
+          content: string
+          message_id: string
+          saved_at: string
+        }
+        Insert: {
+          content: string
+          message_id: string
+          saved_at?: string
+        }
+        Update: {
+          content?: string
+          message_id?: string
+          saved_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_original_content_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -1583,94 +1935,6 @@ export type Database = {
           },
         ]
       }
-      peer_validations: {
-        Row: {
-          activity_id: string
-          created_at: string
-          id: string
-          voted_id: string
-          voter_id: string
-        }
-        Insert: {
-          activity_id: string
-          created_at?: string
-          id?: string
-          voted_id: string
-          voter_id: string
-        }
-        Update: {
-          activity_id?: string
-          created_at?: string
-          id?: string
-          voted_id?: string
-          voter_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "peer_validations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities_with_coords"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_joined_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_pending_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_voted_id_fkey"
-            columns: ["voted_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_voted_id_fkey"
-            columns: ["voted_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_validations_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       presence_tokens: {
         Row: {
           activity_id: string
@@ -1724,88 +1988,6 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "my_pending_activities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      private_messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          deleted_at: string | null
-          edited_at: string | null
-          id: string
-          metadata: Json | null
-          receiver_id: string
-          reply_to_message_id: string | null
-          sender_id: string
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          deleted_at?: string | null
-          edited_at?: string | null
-          id?: string
-          metadata?: Json | null
-          receiver_id: string
-          reply_to_message_id?: string | null
-          sender_id: string
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          deleted_at?: string | null
-          edited_at?: string | null
-          id?: string
-          metadata?: Json | null
-          receiver_id?: string
-          reply_to_message_id?: string | null
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "private_messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_reply_to_message_id_fkey"
-            columns: ["reply_to_message_id"]
-            isOneToOne: false
-            referencedRelation: "private_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2297,6 +2479,24 @@ export type Database = {
           },
         ]
       }
+      rate_events: {
+        Row: {
+          at: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          at?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           admin_note: string | null
@@ -2623,6 +2823,39 @@ export type Database = {
         }
         Relationships: []
       }
+      trace_elevation_calls: {
+        Row: {
+          called_at: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          called_at?: string
+          points?: number
+          user_id: string
+        }
+        Update: {
+          called_at?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trace_elevation_calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trace_elevation_calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badge_progression: {
         Row: {
           awarded_at: string
@@ -2678,11 +2911,9 @@ export type Database = {
           id: string
           is_admin: boolean
           is_demo: boolean
-          is_pro_verified: boolean
+          language: string
           levels_per_sport: Json | null
           notification_preferences: Json
-          language: string
-          pro_verified_at: string | null
           push_token: string | null
           reliability_score: number | null
           sports: Json | null
@@ -2703,11 +2934,9 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_demo?: boolean
-          is_pro_verified?: boolean
+          language?: string
           levels_per_sport?: Json | null
           notification_preferences?: Json
-          language?: string
-          pro_verified_at?: string | null
           push_token?: string | null
           reliability_score?: number | null
           sports?: Json | null
@@ -2728,11 +2957,9 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_demo?: boolean
-          is_pro_verified?: boolean
+          language?: string
           levels_per_sport?: Json | null
           notification_preferences?: Json
-          language?: string
-          pro_verified_at?: string | null
           push_token?: string | null
           reliability_score?: number | null
           sports?: Json | null
@@ -2742,86 +2969,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      wall_messages: {
-        Row: {
-          activity_id: string
-          content: string
-          created_at: string
-          deleted_at: string | null
-          edited_at: string | null
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          activity_id: string
-          content: string
-          created_at?: string
-          deleted_at?: string | null
-          edited_at?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          activity_id?: string
-          content?: string
-          created_at?: string
-          deleted_at?: string | null
-          edited_at?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wall_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities_with_coords"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_joined_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_pending_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wall_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
@@ -2846,8 +2993,8 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
-          meeting_name: string | null
           meeting_locality: string | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3040,7 +3187,6 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
-          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3103,7 +3249,6 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
-          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3166,7 +3311,6 @@ export type Database = {
           meeting_lat: number | null
           meeting_lng: number | null
           meeting_name: string | null
-          meeting_locality: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -3376,74 +3520,6 @@ export type Database = {
           },
         ]
       }
-      public_participants: {
-        Row: {
-          activity_id: string | null
-          avatar_url: string | null
-          confirmed_present: boolean | null
-          created_at: string | null
-          display_name: string | null
-          left_at: string | null
-          participation_id: string | null
-          status: string | null
-          transport_departs_at: string | null
-          transport_from_name: string | null
-          transport_seats: number | null
-          transport_type: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "participations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities_with_coords"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_joined_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "my_pending_activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       public_profiles: {
         Row: {
           avatar_url: string | null
@@ -3451,10 +3527,10 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           id: string | null
+          is_demo: boolean | null
           levels_per_sport: Json | null
           reliability_score: number | null
           reliability_tier: string | null
-          is_demo: boolean | null
           sports: Json | null
         }
         Insert: {
@@ -3463,6 +3539,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           id?: string | null
+          is_demo?: boolean | null
           levels_per_sport?: Json | null
           reliability_score?: never
           reliability_tier?: never
@@ -3474,6 +3551,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           id?: string | null
+          is_demo?: boolean | null
           levels_per_sport?: Json | null
           reliability_score?: never
           reliability_tier?: never
@@ -3483,7 +3561,6 @@ export type Database = {
       }
     }
     Functions: {
-      _is_presence_window: { Args: { p_activity_id: string }; Returns: boolean }
       _postgis_deprecate: {
         Args: { newname: string; oldname: string; version: string }
         Returns: undefined
@@ -3740,6 +3817,13 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      compute_trace_stats: {
+        Args: { p_geojson: Json }
+        Returns: {
+          distance_km: number
+          elevation_gain_m: number
+        }[]
+      }
       confirm_age_adult: { Args: never; Returns: undefined }
       confirm_presence_via_geo: {
         Args: {
@@ -3755,7 +3839,16 @@ export type Database = {
         Args: { p_skip_push?: boolean; p_token: string }
         Returns: string
       }
+      connect_via_qr_token: {
+        Args: { p_expected_owner?: string; p_token: string }
+        Returns: string
+      }
       consume_snap_trail_quota: { Args: never; Returns: undefined }
+      consume_trace_elevation_points: {
+        Args: { p_points: number }
+        Returns: undefined
+      }
+      consume_trace_elevation_quota: { Args: never; Returns: undefined }
       create_activity: {
         Args: {
           p_description: string
@@ -3769,8 +3862,8 @@ export type Database = {
           p_max_participants: number
           p_meeting_lat: number
           p_meeting_lng: number
-          p_meeting_name?: string
           p_meeting_locality?: string
+          p_meeting_name?: string
           p_objective_lat?: number
           p_objective_lng?: number
           p_objective_name?: string
@@ -3822,11 +3915,13 @@ export type Database = {
           duplicate: boolean
         }[]
       }
+      create_contact_qr_token: { Args: never; Returns: string }
       create_gpx_trace: {
         Args: { p_geojson: Json; p_name: string }
         Returns: {
           created_at: string
           distance_km: number
+          elevation_gain_m: number | null
           geojson: Json
           id: string
           name: string
@@ -3961,14 +4056,6 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       edit_message: {
         Args: { p_content: string; p_message_id: string }
-        Returns: undefined
-      }
-      edit_private_message: {
-        Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
-        Returns: undefined
-      }
-      edit_wall_message: {
-        Args: { p_content?: string; p_delete?: boolean; p_message_id: string }
         Returns: undefined
       }
       enablelongtransactions: { Args: never; Returns: string }
@@ -4126,8 +4213,8 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
-          meeting_name: string | null
           meeting_locality: string | null
+          meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
           objective_name: string | null
@@ -4230,8 +4317,8 @@ export type Database = {
         Returns: {
           avatar_url: string
           display_name: string
+          initiated_from: string
           other_id: string
-          initiated_from: string | null
         }[]
       }
       get_conversation_state_with: {
@@ -4251,6 +4338,7 @@ export type Database = {
           display_name: string
           distance_km: number
           intent: string[]
+          is_demo: boolean
           levels: Json
           radius_km: number
           reliability_tier: string
@@ -4311,6 +4399,18 @@ export type Database = {
           title: string
         }[]
       }
+      get_late_leavers: {
+        Args: { p_activity_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          left_at: string
+          left_reason: string
+          participation_id: string
+          penalty_waived: boolean
+          user_id: string
+        }[]
+      }
       get_my_active_presence_activities: {
         Args: never
         Returns: {
@@ -4356,6 +4456,7 @@ export type Database = {
           created_at: string
           icon: string
           id: string
+          initiated_from: string
           is_unread: boolean
           last_message_at: string
           last_message_content: string
@@ -4368,7 +4469,6 @@ export type Database = {
           other_user_name: string
           other_user_reliability_tier: string
           photo_url: string
-          initiated_from: string
           sport_id: string
           status: string
           type: string
@@ -4487,14 +4587,6 @@ export type Database = {
           id: string
         }[]
       }
-      get_top_vouched_badges: {
-        Args: { p_user_ids: string[] }
-        Returns: {
-          badge_key: string
-          user_id: string
-          vote_count: number
-        }[]
-      }
       get_transport_summary: {
         Args: { p_activity_id: string }
         Returns: {
@@ -4577,16 +4669,9 @@ export type Database = {
         Args: { p_activity_id: string; p_badge_key: string; p_voted_id: string }
         Returns: undefined
       }
-      hide_conversation: {
-        Args: { p_conversation_id: string }
-        Returns: undefined
-      }
-      invite_users_to_activity: {
-        Args: { p_activity_id: string; p_user_ids: string[] }
-        Returns: number
-      }
       join_activity: { Args: { p_activity_id: string }; Returns: string }
       join_channel: { Args: { p_conversation_id: string }; Returns: undefined }
+      junto_pre_request: { Args: never; Returns: undefined }
       leave_activity: {
         Args: { p_activity_id: string; p_reason?: string }
         Returns: undefined
@@ -4605,6 +4690,7 @@ export type Database = {
         Returns: undefined
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      map_ping: { Args: { p_activity_id: string }; Returns: undefined }
       mark_conversation_read: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -4632,10 +4718,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      notify_peer_review_closing: {
-        Args: { p_activity_id: string }
-        Returns: undefined
-      }
       notify_presence_confirmed: {
         Args: {
           p_activity_id: string
@@ -4660,6 +4742,10 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      notify_rate_participants: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       notify_review_received: {
         Args: {
           p_data: Json
@@ -4677,10 +4763,6 @@ export type Database = {
           p_reviewer_id: string
           p_target_label: string
         }
-        Returns: undefined
-      }
-      peer_validate_presence: {
-        Args: { p_activity_id: string; p_voted_id: string }
         Returns: undefined
       }
       populate_geometry_columns:
@@ -4723,7 +4805,10 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      purge_booking_participant_info: { Args: never; Returns: undefined }
+      purge_contact_removal_archive: { Args: never; Returns: undefined }
       purge_old_notifications: { Args: never; Returns: undefined }
+      purge_throttle_tables: { Args: never; Returns: undefined }
       recalculate_reliability_score: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -4816,14 +4901,6 @@ export type Database = {
         Args: { p_reply?: string; p_review_id: string }
         Returns: undefined
       }
-      reply_to_request: {
-        Args: {
-          p_content: string
-          p_request_id: string
-          p_request_type: string
-        }
-        Returns: string
-      }
       request_seat: {
         Args: {
           p_activity_id: string
@@ -4835,7 +4912,10 @@ export type Database = {
         Returns: string
       }
       resubmit_pro_application: { Args: never; Returns: undefined }
-      revoke_push_token: { Args: { p_token: string }; Returns: undefined }
+      revoke_contact_qr_tokens: {
+        Args: { p_token?: string }
+        Returns: undefined
+      }
       revoke_push_token_for_device: {
         Args: { p_device_id: string }
         Returns: undefined
@@ -4946,14 +5026,6 @@ export type Database = {
       }
       set_pro_availability_bulk: {
         Args: { p_available: boolean; p_days: string[]; p_periods: string[] }
-        Returns: undefined
-      }
-      set_pro_offering_photo_url: {
-        Args: { p_photo_id: string; p_photo_url: string }
-        Returns: undefined
-      }
-      set_pro_photo_url: {
-        Args: { p_photo_id: string; p_photo_url: string }
         Returns: undefined
       }
       set_pro_pin_icon: { Args: { p_pin_icon?: string }; Returns: undefined }
@@ -5558,6 +5630,9 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      trace_distance_km: { Args: { p_geojson: Json }; Returns: number }
+      trace_elevation_gain_m: { Args: { p_geojson: Json }; Returns: number }
+      trace_geojson_ok: { Args: { p_geojson: Json }; Returns: boolean }
       transition_single_activity: {
         Args: { p_activity_id: string }
         Returns: string
@@ -5575,6 +5650,7 @@ export type Database = {
           p_max_participants?: number
           p_meeting_lat?: number
           p_meeting_lng?: number
+          p_meeting_locality?: string
           p_starts_at?: string
           p_title?: string
           p_visibility?: string
@@ -5612,6 +5688,7 @@ export type Database = {
       }
       update_pro_profile: {
         Args: {
+          p_clear?: string[]
           p_company_name?: string
           p_description?: string
           p_display_name?: string
