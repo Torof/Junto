@@ -240,6 +240,14 @@ BEGIN
     $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
   PERFORM pg_temp.denied('filtre d''API : PATCH sur geometry_columns refusé',
     $$SELECT set_config('request.method', 'PATCH', true), set_config('request.path', '/geometry_columns', true), public.junto_pre_request()$$, 'Operation not permitted');
+  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /spatial%5Fref%5Fsys » refusé (00512)',
+    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial%5Fref%5Fsys', true), public.junto_pre_request()$$, 'Operation not permitted');
+  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /%73patial_ref_sys » refusé (00512)',
+    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/%73patial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+  PERFORM pg_temp.denied('filtre d''API : DELETE sur « //spatial_ref_sys » refusé (00512)',
+    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '//spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /rpc/../spatial_ref_sys » refusé (00512)',
+    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/rpc/../spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
   PERFORM pg_temp.ok('filtre d''API : lecture de spatial_ref_sys permise',
     $$SELECT set_config('request.method', 'GET', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()::text$$);
   PERFORM pg_temp.ok('filtre d''API : appel de fonction de l''app permis',
