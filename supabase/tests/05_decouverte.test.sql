@@ -511,16 +511,18 @@ PERFORM pg_temp.denied('un compte suspendu ne met pas de favori', format($$SELEC
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.eq('DC-1 : la zone d''une autre dispo est renvoyée arrondie (~1 km)',
   format($$SELECT (base_lng = round(base_lng::numeric, 2)::float8 AND base_lat = round(base_lat::numeric, 2)::float8)::text FROM public.get_dispo_zone(%L)$$, pg_temp.id('bob')),
-  'true', 'DC-1');
+  'true');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('DX-2 : la base de dispo est arrondie dès l''enregistrement',
   format($$SELECT (ST_X(base::geometry) = round(ST_X(base::geometry)::numeric, 2)::float8)::text FROM public.discovery_availabilities WHERE user_id = %L$$, pg_temp.id('bob')),
-  'true', 'DX-2');
+  'true');
 PERFORM pg_temp.as_('carol');
 PERFORM pg_temp.denied('DC-2 : le compteur refuse un rayon hors liste (sondage à 1 km)',
-  $$SELECT public.get_discovery_count(ARRAY['hiking'], 6.083217, 44.561234, 1, now(), now() + interval '7 days')::text$$, '.', 'DC-2');
-PERFORM pg_temp.denied('DC-2 : le compteur refuse un rayon nul (sans borne)',
-  $$SELECT public.get_discovery_count(ARRAY['hiking'], 6.08, 44.56, NULL, now(), now() + interval '7 days')::text$$, '.', 'DC-2');
+  $$SELECT public.get_discovery_count(ARRAY['hiking'], 6.083217, 44.561234, 1, now(), now() + interval '7 days')::text$$, 'junto\.dispo_radius');
+PERFORM pg_temp.eq('DC-2 : « peu importe » ne dépend pas du point sondé (pas d''oracle de position)',
+  $$SELECT (public.get_discovery_count(ARRAY['hiking'], 6.08, 44.56, NULL, now(), now() + interval '7 days') = public.get_discovery_count(ARRAY['hiking'], -120.5, -40.2, NULL, now(), now() + interval '7 days'))::text$$, 'true');
+PERFORM pg_temp.eq('DC-1 : la distance d''une carte Découverte est en km entiers',
+  $$SELECT coalesce(bool_and(distance_km = round(distance_km) AND distance_km >= 1), true)::text FROM public.get_discovery_cards()$$, 'true');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('DC-3 : changer 30 fois la trace d''une sortie est limité',
   format($$SELECT pg_temp.dc_trace_spam(%L, 30)::text$$, pg_temp.id('a_alice')), 'junto\.too_many_actions');

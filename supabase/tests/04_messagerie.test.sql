@@ -422,6 +422,11 @@ PERFORM pg_temp.put('act_cp', pg_temp.ok('carol crée une sortie privée',
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('on ne partage pas la sortie privée d''autrui',
   format($$SELECT public.share_activity_message(%L, %L)::text$$, pg_temp.id('dm_bob_carol'), pg_temp.id('act_cp')));
+PERFORM pg_temp.eq('IX-1 : bob ne voit pas la sortie privée de carol avant tout partage', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('act_cp')), '0');
+PERFORM pg_temp.as_('carol');
+PERFORM pg_temp.ok('carol partage sa sortie privée avec bob', format($$SELECT public.share_activity_message(%L, %L)::text$$, pg_temp.id('dm_bob_carol'), pg_temp.id('act_cp')));
+PERFORM pg_temp.as_('bob');
+PERFORM pg_temp.eq('IX-1 : partagée par l''organisatrice, la sortie privée s''ouvre chez bob', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('act_cp')), '1');
 PERFORM pg_temp.put('m_trace', pg_temp.ok('bob partage une trace',
   format($$SELECT public.share_trace_message(%L, '{"type":"LineString","coordinates":[[6.6,44.9],[6.61,44.91,1200]]}'::jsonb, 'Ma <b>trace</b>')::text$$, pg_temp.id('dm_ab'))));
 PERFORM pg_temp.denied('une carte partagée n''est pas modifiable', format($$SELECT public.edit_message(%L, 'texte')::text$$, pg_temp.id('m_trace')));
@@ -512,7 +517,7 @@ PERFORM pg_temp.as_('dave');
 PERFORM pg_temp.ok('dave écrit dans le groupe', format($$SELECT public.send_message(%L, 'message de dave')::text$$, pg_temp.id('g1')));
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('bob ne lit pas les messages de dave, qu''il a bloqué, dans un groupe',
-  format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND sender_id = %L$$, pg_temp.id('g1'), pg_temp.id('dave')), '0', 'MS-1');
+  format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND sender_id = %L$$, pg_temp.id('g1'), pg_temp.id('dave')), '0');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.ok('ajouter un contact bloqué par un autre membre ne révèle pas le blocage (pas d''erreur)',
   format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('erin')), 'MS-2');
@@ -602,7 +607,9 @@ PERFORM pg_temp.ok('t6 rejoint le canal de frank', format($$SELECT public.join_c
 PERFORM pg_temp.ok('t6 écrit dans le canal', format($$SELECT public.send_message(%L, 'message de t6')::text$$, pg_temp.id('ch1')));
 PERFORM pg_temp.as_('frank');
 PERFORM pg_temp.eq('frank ne lit pas les messages de t6, qu''il a bloqué, dans un canal',
-  format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND sender_id = %L$$, pg_temp.id('ch1'), pg_temp.id('t6')), '0', 'MS-1');
+  format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND sender_id = %L$$, pg_temp.id('ch1'), pg_temp.id('t6')), '0');
+PERFORM pg_temp.eq('MS-1 : frank lit toujours les autres messages du canal',
+  format($$SELECT (count(*) > 0)::text FROM public.messages WHERE conversation_id = %L AND sender_id IS DISTINCT FROM %L$$, pg_temp.id('ch1'), pg_temp.id('t6')), 'true');
 PERFORM pg_temp.as_('t6');
 PERFORM pg_temp.ok('t6 quitte le canal', format($$SELECT public.leave_channel(%L)::text$$, pg_temp.id('ch1')));
 PERFORM pg_temp.eq('après départ, t6 n''est plus membre', format($$SELECT is_member::text FROM public.get_channel(%L)$$, pg_temp.id('ch1')), 'false');
@@ -717,7 +724,9 @@ PERFORM pg_temp.as_('r1');
 PERFORM pg_temp.ok('r1 demande une place à carol', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('act_c'), pg_temp.id('carol')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('une demande de place ne rouvre pas une demande de contact refusée',
-  format($$SELECT status FROM public.conversations WHERE id = %L$$, pg_temp.id('dm_r1c')), 'declined', 'IX-2/BR-1');
+  format($$SELECT status FROM public.conversations WHERE id = %L$$, pg_temp.id('dm_r1c')), 'declined');
+PERFORM pg_temp.eq('IX-2 : carol est quand même notifiée de la demande de place',
+  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'seat_request'$$, pg_temp.id('carol')), '1');
 
 -- ═════ Plafond journalier de messages (AB-3) ═════
 PERFORM pg_temp.as_('s1');

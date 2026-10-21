@@ -113,7 +113,14 @@ PERFORM pg_temp.eq('blocage unidirectionnel : la personne bloquée voit encore l
 -- Sortie privée par lien : rejoindre avec le seul identifiant (IX-1 / AC-8).
 PERFORM pg_temp.as_('pry');
 PERFORM pg_temp.denied('rejoindre une sortie privée par son seul identifiant est refusé',
-  format($$SELECT public.join_activity(%L)$$, pg_temp.id('priv')), 'Operation not permitted', 'IX-1');
+  format($$SELECT public.join_activity(%L)$$, pg_temp.id('priv')), 'Operation not permitted');
+PERFORM pg_temp.eq('IX-1 : sans le lien, le détail d''une sortie privée reste fermé', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('priv')), '0');
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.put('priv_tok', pg_temp.ok('alice récupère le lien de sa sortie privée', format($$SELECT public.get_own_invite_token(%L)::text$$, pg_temp.id('priv'))));
+PERFORM pg_temp.as_('pry');
+PERFORM pg_temp.eq('IX-1 : ouvrir le lien montre la sortie', format($$SELECT count(*)::text FROM public.get_activity_by_invite_token(%L::uuid)$$, pg_temp.get('priv_tok')), '1');
+PERFORM pg_temp.eq('IX-1 : après avoir ouvert le lien, on rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.id('priv')), 'accepted');
+PERFORM pg_temp.ok('IX-1 : pry quitte la sortie privée', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('priv')));
 
 -- Boucle inscription / désinscription (AB-1).
 PERFORM pg_temp.as_('loop');
@@ -163,8 +170,8 @@ PERFORM pg_temp.eq('sortie privée absente de la vue carte pour un inconnu', for
 PERFORM pg_temp.eq('sortie publique présente dans la vue carte', format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('pub')), '1');
 PERFORM pg_temp.eq('un inconnu ne voit pas les sorties d''alice dans my_activities', format($$SELECT count(*)::text FROM public.my_activities WHERE id = %L$$, pg_temp.id('pub')), '0');
 PERFORM pg_temp.eq('un inconnu ne lit pas les participations des autres', format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L$$, pg_temp.id('pub')), '0');
-PERFORM pg_temp.eq('le jeton d''invitation n''est pas lisible par un inconnu',
-  format($$SELECT count(*)::text FROM public.activities WHERE id = %L AND invite_token IS NOT NULL$$, pg_temp.id('pub')), '0', 'AC-8');
+PERFORM pg_temp.denied('le jeton d''invitation n''est pas lisible en direct (AC-8)',
+  format($$SELECT count(*)::text FROM public.activities WHERE id = %L AND invite_token IS NOT NULL$$, pg_temp.id('pub')), 'permission denied');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.eq('alice voit sa sortie privée dans le détail', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('priv')), '1');
 PERFORM pg_temp.eq('alice voit sa sortie dans my_activities', format($$SELECT count(*)::text FROM public.my_activities WHERE id = %L$$, pg_temp.id('pub')), '1');
@@ -393,7 +400,18 @@ PERFORM pg_temp.as_('hank');
 PERFORM pg_temp.eq('un participant lit le résumé : 4 places en voiture', format($$SELECT total_seats::text FROM public.get_transport_summary(%L) WHERE transport_type = 'car'$$, pg_temp.id('car')), '4');
 PERFORM pg_temp.as_('frank');
 PERFORM pg_temp.eq('les coordonnées de départ d''un conducteur ne sont pas lisibles par un inconnu',
-  format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), '0', 'AC-2');
+  format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), '0');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET transport_from_lat = 44.56, transport_from_lng = 6.08, transport_from_name = 'Chez moi'
+WHERE activity_id = pg_temp.id('car') AND transport_type IN ('car', 'carpool');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('frank');
+PERFORM pg_temp.eq('AC-2 : un inconnu ne lit ni coordonnées ni nom du point de départ',
+  format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL OR transport_from_name IS NOT NULL$$, pg_temp.id('car')), '0');
+PERFORM pg_temp.as_('hank');
+PERFORM pg_temp.eq('AC-2 : un participant accepté lit le point de départ du conducteur',
+  format($$SELECT (count(*) > 0)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), 'true');
 
 -- request_seat
 PERFORM pg_temp.as_('anon');
@@ -448,7 +466,7 @@ PERFORM pg_temp.eq('un inconnu ne lit pas les demandes de place en direct', form
 PERFORM pg_temp.as_('hank');
 PERFORM pg_temp.eq('un participant voit l''affectation erin → dave', format($$SELECT count(*)::text FROM public.get_activity_seat_assignments(%L)$$, pg_temp.id('car')), '1');
 PERFORM pg_temp.eq('la note privée d''une demande de place n''est pas lisible par les co-participants',
-  format($$SELECT count(*)::text FROM public.seat_requests WHERE id = %L AND message IS NOT NULL$$, pg_temp.id('sr_erin')), '0', 'AC-6');
+  format($$SELECT count(*)::text FROM public.seat_requests WHERE id = %L AND message IS NOT NULL$$, pg_temp.id('sr_erin')), '0');
 
 -- BR-3 : une passagère tient deux places.
 PERFORM pg_temp.as_('erin');
@@ -491,7 +509,7 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.put('sr_ivy', pg_temp.sorties_sr('car', 'ivy', 'dave'));
 PERFORM pg_temp.eq('le contact refusé n''est pas réactivé par une demande de place',
   format($$SELECT status FROM public.conversations WHERE user_1 = least(%L::uuid, %L::uuid) AND user_2 = greatest(%L::uuid, %L::uuid)$$,
-    pg_temp.id('ivy'), pg_temp.id('dave'), pg_temp.id('ivy'), pg_temp.id('dave')), 'declined', 'IX-2');
+    pg_temp.id('ivy'), pg_temp.id('dave'), pg_temp.id('ivy'), pg_temp.id('dave')), 'declined');
 
 -- cancel_pending_seat_request
 PERFORM pg_temp.as_('anon');

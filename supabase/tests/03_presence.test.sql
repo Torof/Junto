@@ -523,7 +523,18 @@ PERFORM pg_temp.eq('les niveaux par sport ne révèlent pas la date exacte d''un
 PERFORM pg_temp.eq('un inconnu voit les participants d''une sortie publique',
   format($$SELECT (count(*) > 0)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('V')), 'true');
 PERFORM pg_temp.eq('un inconnu ne voit pas les absences (confirmed_present = false)',
-  format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE confirmed_present = false$$, pg_temp.id('V')), '0', 'DX-1');
+  format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE confirmed_present = false$$, pg_temp.id('V')), '0');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET confirmed_present = false WHERE activity_id = pg_temp.id('V') AND user_id = pg_temp.id('p3');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('crea');
+PERFORM pg_temp.eq('DX-1 : l''organisateur voit l''absence', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE user_id = %L AND confirmed_present = false$$, pg_temp.id('V'), pg_temp.id('p3')), '1');
+PERFORM pg_temp.as_('p3');
+PERFORM pg_temp.eq('DX-1 : la personne voit sa propre absence', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE user_id = %L AND confirmed_present = false$$, pg_temp.id('V'), pg_temp.id('p3')), '1');
+PERFORM pg_temp.as_('p1');
+PERFORM pg_temp.eq('DX-1 : une co-participante ne voit pas l''absence', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE confirmed_present = false$$, pg_temp.id('V')), '0');
+PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('la vue public_participants ne montre rien d''autrui',
   format($$SELECT count(*)::text FROM public.public_participants WHERE activity_id = %L$$, pg_temp.id('V')), '0');
 

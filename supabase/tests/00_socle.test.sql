@@ -180,7 +180,11 @@ BEGIN
   END LOOP;
   PERFORM pg_temp.as_('anon');
   PERFORM pg_temp.eq('anon ne peut pas lister les fichiers des buckets',
-    $$SELECT (count(*) > 0)::text FROM storage.objects WHERE bucket_id IN ('avatars', 'pro-photos', 'channel-photos')$$, 'false', 'TX-3');
+    $$SELECT (count(*) > 0)::text FROM storage.objects WHERE bucket_id IN ('avatars', 'pro-photos', 'channel-photos')$$, 'false');
+  PERFORM pg_temp.as_('alice');
+  PERFORM pg_temp.eq('un compte ne liste pas les fichiers des autres (TX-3)',
+    format($$SELECT count(*)::text FROM storage.objects WHERE bucket_id IN ('avatars', 'pro-photos', 'channel-photos') AND (storage.foldername(name))[1] <> %L$$, pg_temp.get('alice')), '0');
+  PERFORM pg_temp.as_('anon');
   PERFORM pg_temp.denied('anon n''écrit pas dans le stockage',
     $$INSERT INTO storage.objects (bucket_id, name) VALUES ('avatars', 'anon/socle-test.jpg')$$);
 
