@@ -438,7 +438,11 @@ PERFORM pg_temp.eq('alice voit sa trace renommée', format($$SELECT name FROM pu
 PERFORM pg_temp.ok('alice supprime sa trace', format($$SELECT public.delete_gpx_trace(%L)::text$$, pg_temp.id('gpx1')));
 PERFORM pg_temp.denied('plafond de 50 traces', $$SELECT pg_temp.dc_gpx_fill(51)::text$$, 'junto.trace_quota_reached');
 PERFORM pg_temp.eq('calcul de stats de trace', format($$SELECT (distance_km > 0 AND elevation_gain_m > 0)::text FROM public.compute_trace_stats(%L::jsonb)$$, pg_temp.dc_trace()), 'true');
-PERFORM pg_temp.denied('stats : forme invalide refusée', $$SELECT distance_km::text FROM public.compute_trace_stats('{"type":"Polygon","coordinates":[]}'::jsonb)$$, 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('stats : forme invalide = aucune statistique (00482)', $$SELECT coalesce(distance_km::text, 'null') FROM public.compute_trace_stats('{"type":"Polygon","coordinates":[]}'::jsonb)$$, 'null');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('stats : une trace invalide est quand même comptée (00482)',
+  format($$SELECT (count(*) >= 1)::text FROM public.rate_events WHERE user_id = %L AND kind = 'trace_stats'$$, pg_temp.id('alice')), 'true');
+PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('un compte suspendu ne calcule pas de stats', format($$SELECT distance_km::text FROM public.compute_trace_stats(%L::jsonb)$$, pg_temp.dc_trace()), 'Operation not permitted');
 PERFORM pg_temp.denied('un compte suspendu n''enregistre pas de trace', format($$SELECT (public.create_gpx_trace('x', %L::jsonb)).id::text$$, pg_temp.dc_trace()), 'Operation not permitted');
@@ -502,9 +506,9 @@ PERFORM pg_temp.denied('DC-2 : le compteur refuse un rayon nul (sans borne)',
   $$SELECT public.get_discovery_count(ARRAY['hiking'], 6.08, 44.56, NULL, now(), now() + interval '7 days')::text$$, '.', 'DC-2');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('DC-3 : changer 30 fois la trace d''une sortie est limité',
-  format($$SELECT pg_temp.dc_trace_spam(%L, 30)::text$$, pg_temp.id('a_alice')), '.', 'DC-3');
-PERFORM pg_temp.denied('DC-3 : 300 calculs de stats de trace d''affilée sont limités',
-  $$SELECT pg_temp.dc_stats_spam(300)::text$$, '.', 'DC-3');
+  format($$SELECT pg_temp.dc_trace_spam(%L, 30)::text$$, pg_temp.id('a_alice')), 'junto\.too_many_actions');
+PERFORM pg_temp.denied('DC-3 : 700 calculs de stats de trace d''affilée sont limités',
+  $$SELECT pg_temp.dc_stats_spam(700)::text$$, 'junto\.too_many_actions');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('DC-4 : anon ne lit pas creator_id sur la carte',
   format($$SELECT creator_id::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_pub')), 'permission denied', 'DC-4');

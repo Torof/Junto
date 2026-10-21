@@ -221,7 +221,7 @@ BEGIN
   END LOOP;
 EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('ac10_err', SQLERRM);
 END;
-PERFORM pg_temp.eq('30 modifications en boucle sont freinées', $$SELECT (pg_temp.get('ac10_err') IS NOT NULL)::text$$, 'true', 'AC-10');
+PERFORM pg_temp.eq('30 modifications en boucle sont freinées', $$SELECT (pg_temp.get('ac10_err') IS NOT NULL)::text$$, 'true');
 
 -- ═════ update_activity_trace ═════
 PERFORM pg_temp.as_('anon');
@@ -591,14 +591,14 @@ PERFORM pg_temp.denied('pas de demande de place directe',
   format($$INSERT INTO public.seat_requests (activity_id, requester_id, driver_id) VALUES (%L, %L, %L)$$, pg_temp.id('car'), pg_temp.id('frank'), pg_temp.id('dave')));
 PERFORM pg_temp.denied('pas de création directe de sortie',
   format($$INSERT INTO public.activities (creator_id, sport_id, title, level, location_meeting, starts_at, duration) VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Directe', 'x', 'SRID=4326;POINT(6 44)', now() + interval '1 day', '2 hours')$$, pg_temp.id('frank')));
-PERFORM pg_temp.eq('un inconnu ne modifie pas la sortie d''autrui', format($$UPDATE public.activities SET title = 'Pirate' WHERE id = %L$$, pg_temp.id('car')), '0');
-PERFORM pg_temp.eq('un inconnu ne supprime pas la sortie d''autrui', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), '0');
+PERFORM pg_temp.denied('un inconnu ne modifie pas la sortie d''autrui', format($$UPDATE public.activities SET title = 'Pirate' WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
+PERFORM pg_temp.denied('un inconnu ne supprime pas la sortie d''autrui', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
 PERFORM pg_temp.as_('erin');
 PERFORM pg_temp.eq('une participante ne modifie pas sa participation en direct', format($$UPDATE public.participations SET status = 'removed', confirmed_present = true WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('car'), pg_temp.id('erin')), '0');
 PERFORM pg_temp.eq('une participante ne modifie pas une demande de place en direct', format($$UPDATE public.seat_requests SET status = 'accepted' WHERE id = %L$$, pg_temp.id('sr_erin_gina')), '0');
 PERFORM pg_temp.as_('alice');
-PERFORM pg_temp.eq('la créatrice ne supprime pas sa sortie en direct', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), '0');
-PERFORM pg_temp.ok('la créatrice tente de forcer statut / créateur / démo en direct', format($$UPDATE public.activities SET status = 'completed', creator_id = %L, is_demo = true, invite_token = gen_random_uuid() WHERE id = %L$$, pg_temp.id('bob'), pg_temp.id('car')));
+PERFORM pg_temp.denied('la créatrice ne supprime pas sa sortie en direct', format($$DELETE FROM public.activities WHERE id = %L$$, pg_temp.id('car')), 'permission denied');
+PERFORM pg_temp.denied('la créatrice ne peut plus écrire en direct sur sa sortie (AC-1)', format($$UPDATE public.activities SET status = 'completed', creator_id = %L, is_demo = true, invite_token = gen_random_uuid() WHERE id = %L$$, pg_temp.id('bob'), pg_temp.id('car')), 'permission denied');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('statut, créateur et drapeau démo inchangés', format($$SELECT status || '|' || (creator_id = %L)::text || '|' || is_demo::text FROM public.activities WHERE id = %L$$, pg_temp.id('alice'), pg_temp.id('car')), 'published|true|false');
 
@@ -616,9 +616,9 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('carl');
 PERFORM pg_temp.denied('une sortie terminée ne se modifie plus par update_activity', format($$SELECT public.update_activity(%L, 'Réécriture')::text$$, pg_temp.id('done')));
 PERFORM pg_temp.denied('le sport d''une sortie terminée ne change pas en direct',
-  format($$UPDATE public.activities SET sport_id = (SELECT id FROM public.sports WHERE key <> 'hiking' ORDER BY key LIMIT 1) WHERE id = %L$$, pg_temp.id('done')), '.', 'AC-1');
+  format($$UPDATE public.activities SET sport_id = (SELECT id FROM public.sports WHERE key <> 'hiking' ORDER BY key LIMIT 1) WHERE id = %L$$, pg_temp.id('done')), 'permission denied');
 PERFORM pg_temp.denied('une date hors bornes ne passe pas en direct',
-  format($$UPDATE public.activities SET starts_at = now() + interval '2 years' WHERE id = %L$$, pg_temp.id('del')), '.', 'AC-1');
+  format($$UPDATE public.activities SET starts_at = now() + interval '2 years' WHERE id = %L$$, pg_temp.id('del')), 'permission denied');
 PERFORM pg_temp.ok('carl tente de repousser sa sortie en cours', format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '3 days')::text$$, pg_temp.id('run')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('une sortie en cours ne se déplace pas dans le futur',
@@ -674,3 +674,41 @@ PERFORM pg_temp.as_('b_org');
 PERFORM pg_temp.ok('B : l''organisateur ajoute un objet manquant', format($q$SELECT public.add_missing_gear(%L, 'Corde 60 m', 1)::text$q$, pg_temp.id('b_pub')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('B : le matériel est signalé sur le canal privé de la sortie (AB-10)', format($q$SELECT (count(*) - %s)::text FROM realtime.messages WHERE topic = 'activity:' || %L$q$, pg_temp.get('b_g0'), pg_temp.get('b_pub')), '1');
+
+
+-- ═════ Phase B2 (mig 00480) : limiteur commun, matériel par instruction, signal carte complet ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : aucun accès client à rate_events', $q$SELECT (has_table_privilege('authenticated', 'public.rate_events', 'SELECT') OR has_table_privilege('authenticated', 'public.rate_events', 'INSERT') OR has_table_privilege('anon', 'public.rate_events', 'SELECT'))::text$q$, 'false');
+PERFORM pg_temp.eq('B2 : private.rate_hit non appelable par un compte', $q$SELECT has_function_privilege('authenticated', 'private.rate_hit(text, integer, interval)', 'EXECUTE')::text$q$, 'false');
+PERFORM pg_temp.eq('B2 : map_broadcasts sans journal', $q$SELECT (relpersistence = 'u')::text FROM pg_class WHERE oid = 'public.map_broadcasts'::regclass$q$, 'true');
+PERFORM pg_temp.eq('B2 : purge quotidienne planifiée', $q$SELECT count(*)::text FROM cron.job WHERE jobname = 'junto-throttle-purge'$q$, '1');
+PERFORM pg_temp.eq('B2 : plus de policy UPDATE client sur activities', $q$SELECT count(*)::text FROM pg_policies WHERE tablename = 'activities' AND cmd IN ('UPDATE', 'ALL')$q$, '0');
+
+-- Matériel : 40 objets d'un coup = un seul signal par instruction.
+PERFORM pg_temp.put('b2_g0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'activity:' || pg_temp.get('b_pub')));
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B2 : l''organisateur pose 40 objets', format($q$SELECT public.set_activity_gear(%L, (SELECT jsonb_agg(jsonb_build_object('name', 'Objet ' || g, 'quantity', 1)) FROM generate_series(1, 40) g))::text$q$, pg_temp.id('b_pub')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : 40 objets ne font pas 40 signaux (au plus un par instruction)',
+  format($q$SELECT ((count(*) - %s) BETWEEN 1 AND 3)::text FROM realtime.messages WHERE topic = 'activity:' || %L$q$, pg_temp.get('b2_g0'), pg_temp.get('b_pub')), 'true');
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.denied('B2 : remplacer le matériel en boucle est freiné',
+  format($q$DO $d$ BEGIN FOR i IN 1..25 LOOP PERFORM public.set_activity_gear(%L, '[{"name":"Corde","quantity":1}]'::jsonb); END LOOP; END $d$$q$, pg_temp.id('b_pub')),
+  'junto\.too_many_actions');
+
+-- Signal carte : distance, lieu d'arrivée et passage en démo émettent aussi.
+PERFORM pg_temp.as_('db');
+DELETE FROM public.map_broadcasts WHERE activity_id = pg_temp.id('b_pub');
+PERFORM pg_temp.put('b2_m0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'map'));
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET distance_km = 12.5 WHERE id = pg_temp.id('b_pub');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('B2 : un changement de distance émet un signal carte', $q$SELECT (count(*) - pg_temp.get('b2_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '1');
+DELETE FROM public.map_broadcasts WHERE activity_id = pg_temp.id('b_pub');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET is_demo = true WHERE id = pg_temp.id('b_pub');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('B2 : le passage en démo émet un signal (la sortie quitte les cartes)', $q$SELECT (count(*) - pg_temp.get('b2_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '2');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET is_demo = false WHERE id = pg_temp.id('b_pub');
+PERFORM set_config('junto.bypass_lock', 'false', true);

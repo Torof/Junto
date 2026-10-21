@@ -435,7 +435,24 @@ PERFORM pg_temp.denied('une trace hors des bornes géographiques est refusée',
 PERFORM pg_temp.denied('une trace partagée de plusieurs Mo est refusée',
   format($$SELECT public.share_trace_message(%L, jsonb_build_object('type', 'LineString', 'coordinates', '[[6.6,44.9],[6.61,44.91]]'::jsonb,
       'properties', jsonb_build_object('pad', repeat('x', 2000000))), 'grosse')::text$$, pg_temp.id('dm_bob_carol')),
-  'Operation not permitted|junto\.');
+  'junto\.trace_too_large');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('b2_heavy', (SELECT jsonb_build_object('type', 'LineString', 'coordinates', '[[6.6,44.9],[6.61,44.91]]'::jsonb,
+  'properties', jsonb_build_object('pad', (SELECT string_agg(md5(g::text), '') FROM generate_series(1, 28000) g)))::text));
+FOR i IN 1..5 LOOP
+  PERFORM pg_temp.as_('carol');
+  PERFORM pg_temp.ok('B2 : carol partage une trace lourde (< 1 Mo) n° ' || i,
+    format($$SELECT public.share_trace_message(%L, %L::jsonb, 'lourde')::text$$, pg_temp.id('dm_bob_carol'), pg_temp.get('b2_heavy')));
+  PERFORM pg_temp.as_('db');
+  PERFORM set_config('junto.bypass_lock', 'true', true);
+  UPDATE public.messages SET created_at = created_at - interval '2 minutes'
+  WHERE sender_id = pg_temp.id('carol') AND metadata->>'type' = 'shared_trace';
+  PERFORM set_config('junto.bypass_lock', 'false', true);
+END LOOP;
+PERFORM pg_temp.as_('carol');
+PERFORM pg_temp.denied('B2 : au-delà de 5 Mo de traces partagées en 24 h, refusé',
+  format($$SELECT public.share_trace_message(%L, %L::jsonb, 'lourde')::text$$, pg_temp.id('dm_bob_carol'), pg_temp.get('b2_heavy')),
+  'junto\.share_daily_cap');
 
 -- ═════ Groupes ═════
 PERFORM pg_temp.as_('alice');
