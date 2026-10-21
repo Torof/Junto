@@ -132,19 +132,29 @@ export default function DiscoveryComposeScreen() {
   const aboutOk = aboutWords <= 250;
   const ready = sportKeys.length >= 1 && !!base && modes.length >= 1 && windowEnd > windowStart;
 
-  // Live counter (debounced) — free during compose; seeing people needs activating.
-  const { data: count } = useQuery({
-    queryKey: ['discovery-count', sportKeys, base?.lng, base?.lat, radiusKm, windowStart.toISOString(), windowEnd.toISOString()],
+  // Live counter — free during compose; seeing people needs activating.
+  // Debounced (400 ms) so a burst of chip taps makes one server call: the
+  // server caps this counter per hour (mig 00485).
+  const countKey = JSON.stringify([sportKeys, base?.lng, base?.lat, radiusKm, windowStart.toISOString(), windowEnd.toISOString()]);
+  const [debouncedCountKey, setDebouncedCountKey] = useState(countKey);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedCountKey(countKey), 400);
+    return () => clearTimeout(id);
+  }, [countKey]);
+  const { data: count, error: countError } = useQuery({
+    queryKey: ['discovery-count', debouncedCountKey],
     queryFn: () => discoveryService.getCount({
       sportKeys, baseLng: base!.lng, baseLat: base!.lat, radiusKm,
       windowStart: windowStart.toISOString(), windowEnd: windowEnd.toISOString(),
     }),
-    enabled: ready,
+    enabled: ready && debouncedCountKey === countKey,
     staleTime: 30_000,
+    retry: false,
   });
 
   const counterText = () => {
     if (!ready) return t('discovery.counterIncomplete', { defaultValue: 'Complète tes critères pour voir combien de passionnés correspondent.' });
+    if (countError) return getFriendlyError(countError, 'generic');
     if (count === undefined) return '…';
     if (count === -1) return t('discovery.counterFew', { defaultValue: 'Quelques personnes correspondent dans ta zone.' });
     if (count === 0) return t('discovery.counterNone', { defaultValue: 'Personne pour l’instant — élargis ta zone ou tes dates.' });
