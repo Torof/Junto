@@ -822,3 +822,30 @@ PERFORM pg_temp.ok('mes sorties créées : la lecture de l''app passe', $$SELECT
 PERFORM pg_temp.ok('mes sorties rejointes : la lecture de l''app passe', $$SELECT count(*)::text FROM (SELECT id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson FROM public.my_joined_activities) x$$);
 PERFORM pg_temp.ok('mes demandes en attente : la lecture de l''app passe', $$SELECT count(*)::text FROM (SELECT id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson FROM public.my_pending_activities) x$$);
 
+-- 00514 : une demande de place n'ouvre pas de conversation ; l'accord du conducteur, si.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('cv_org', 'tos'); PERFORM pg_temp.user('cv_drv', 'tos'); PERFORM pg_temp.user('cv_pas', 'tos');
+PERFORM pg_temp.as_('cv_org');
+PERFORM pg_temp.put('cv_act', pg_temp.ok('covoit : sortie', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Covoit 514', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '60 days', '3 hours')::text$q$));
+PERFORM pg_temp.as_('cv_drv');
+PERFORM pg_temp.eq('covoit : le conducteur rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.id('cv_act')), 'accepted');
+PERFORM pg_temp.ok('covoit : le conducteur propose 3 places', format($$SELECT public.set_participation_transport(%L, 'car', 3::smallint, 'Gap')::text$$, pg_temp.id('cv_act')));
+PERFORM pg_temp.as_('cv_pas');
+PERFORM pg_temp.eq('covoit : le passager rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.id('cv_act')), 'accepted');
+PERFORM pg_temp.eq('covoit : la demande de place ne renvoie pas de conversation', format($$SELECT coalesce(public.request_seat(%L, %L)::text, 'null')$$, pg_temp.id('cv_act'), pg_temp.id('cv_drv')), 'null');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('covoit : aucune conversation créée par la demande',
+  format($$SELECT count(*)::text FROM public.conversations WHERE type = 'dm' AND user_1 = least(%L::uuid, %L::uuid) AND user_2 = greatest(%L::uuid, %L::uuid)$$, pg_temp.id('cv_drv'), pg_temp.id('cv_pas'), pg_temp.id('cv_drv'), pg_temp.id('cv_pas')), '0');
+PERFORM pg_temp.as_('cv_drv');
+PERFORM pg_temp.ok('covoit : le conducteur accepte', format($$SELECT public.accept_seat_request(%L)::text$$, pg_temp.sorties_sr('cv_act', 'cv_pas', 'cv_drv')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('covoit : l''accord ouvre la conversation',
+  format($$SELECT status FROM public.conversations WHERE type = 'dm' AND user_1 = least(%L::uuid, %L::uuid) AND user_2 = greatest(%L::uuid, %L::uuid)$$, pg_temp.id('cv_drv'), pg_temp.id('cv_pas'), pg_temp.id('cv_drv'), pg_temp.id('cv_pas')), 'active');
+-- 00514 : un compte suspendu ne lit plus ses conversations.
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('cv_pas');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('cv_pas');
+PERFORM pg_temp.eq('suspendu : aucun message lisible', $$SELECT count(*)::text FROM public.messages$$, '0');
+PERFORM pg_temp.eq('suspendu : aucune conversation listée', $$SELECT count(*)::text FROM public.get_my_conversations()$$, '0');
+

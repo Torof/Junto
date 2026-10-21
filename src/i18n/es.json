@@ -575,6 +575,7 @@
       "schedule_conflict": "Ya participas en otra salida en ese horario.",
       "participant_schedule_conflict": "Esta persona ya participa en otra salida en ese horario.",
       "member_left_recently": "Esta persona dejó el grupo hace poco: no se la puede volver a añadir durante 30 días.",
+      "channel_full": "Esta conversación está completa (500 miembros).",
       "pro_website_invalid": "El sitio web debe empezar por http:// o https://.",
       "seats_still_active": "Hay pasajeros con plaza confirmada. Cancela sus plazas antes de cambiar de transporte.",
       "pickup_out_of_window": "La hora de recogida está demasiado alejada del horario de la salida.",

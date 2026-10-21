@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
   const { user_id, user_ids, title, body, data, collapseId } = payload;
   const targets = (user_ids && user_ids.length > 0 ? user_ids : (user_id ? [user_id] : []))
     .filter((u): u is string => typeof u === 'string' && u.length > 0)
-    .slice(0, 50); // hard bound — the group cap is 20, anything above is a bug
+    .slice(0, 500); // hard bound = the open-discussion member cap (mig 00514); groups are ≤ 20
   if (targets.length === 0 || !title) {
     return new Response('Missing fields', { status: 400 });
   }
@@ -166,12 +166,20 @@ Deno.serve(async (req) => {
 
   // Fan out to every device the user is signed into. Falls back to
   // users.push_token only if push_tokens has no rows yet (first-run / unmigrated).
-  const { data: tokenRows, error } = await supabase
-    .from('push_tokens')
-    .select('token, user_id')
-    .in('user_id', targets);
+  // Queried in slices of 100 ids (a 500-member discussion would make one
+  // over-long filter URL).
+  const tokenRows: { token: string | null; user_id: string }[] = [];
+  let error: unknown = null;
+  for (let i = 0; i < targets.length; i += 100) {
+    const { data: part, error: partErr } = await supabase
+      .from('push_tokens')
+      .select('token, user_id')
+      .in('user_id', targets.slice(i, i + 100));
+    if (partErr) { error = partErr; break; }
+    tokenRows.push(...(part ?? []));
+  }
 
-  let tokens: { token: string; user_id: string }[] = (tokenRows ?? [])
+  let tokens: { token: string; user_id: string }[] = tokenRows
     .filter((r): r is { token: string; user_id: string } => typeof r.token === 'string' && r.token.length > 0);
 
   // Legacy fallback only makes sense for the single-recipient shape.
@@ -192,12 +200,14 @@ Deno.serve(async (req) => {
   // payload is composable; one query for the whole batch.
   const langByUser = new Map<string, string>();
   if (data && typeof data.type === 'string' && data.params) {
-    const { data: langRows } = await supabase
-      .from('users')
-      .select('id, language')
-      .in('id', targets);
-    for (const r of langRows ?? []) {
-      if (typeof r.id === 'string' && typeof r.language === 'string') langByUser.set(r.id, r.language);
+    for (let i = 0; i < targets.length; i += 100) {
+      const { data: langRows } = await supabase
+        .from('users')
+        .select('id, language')
+        .in('id', targets.slice(i, i + 100));
+      for (const r of langRows ?? []) {
+        if (typeof r.id === 'string' && typeof r.language === 'string') langByUser.set(r.id, r.language);
+      }
     }
   }
   const textCache = new Map<string, { title: string; body: string }>();

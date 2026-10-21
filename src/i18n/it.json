@@ -575,6 +575,7 @@
       "schedule_conflict": "Partecipi già a un'altra uscita in quell'orario.",
       "participant_schedule_conflict": "Questa persona partecipa già a un'altra uscita in quell'orario.",
       "member_left_recently": "Questa persona ha lasciato il gruppo di recente: non può essere aggiunta di nuovo per 30 giorni.",
+      "channel_full": "Questa discussione è al completo (500 membri).",
       "pro_website_invalid": "Il sito web deve iniziare con http:// o https://.",
       "seats_still_active": "Alcuni passeggeri hanno un posto confermato. Annulla i loro posti prima di cambiare trasporto.",
       "pickup_out_of_window": "L'orario di prelievo è troppo lontano dall'orario dell'uscita.",
