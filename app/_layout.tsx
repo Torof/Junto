@@ -18,7 +18,6 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAuth } from '@/hooks/use-auth';
 import { useNetworkAwareness } from '@/hooks/use-network';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
-import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
 import { useMapStyleStore } from '@/store/map-style-store';
 import { useClusterStyleStore } from '@/store/cluster-style-store';
@@ -101,24 +100,19 @@ function AuthGate() {
 
     if (onCorrectRoute) setIsReady(true);
 
-    // Trigger activity status transitions once per session (no pg_cron available)
+    // Statuses move server-side every minute (pg_cron, mig 00491): just
+    // refresh what this session shows once it is authenticated.
     if (isAuthenticated && !transitionRan.current) {
       transitionRan.current = true;
-      (async () => {
-        await supabase.rpc('check_activity_transitions' as 'accept_tos');
-        await queryClient.invalidateQueries({ queryKey: ['activities'] });
-      })();
+      void queryClient.invalidateQueries({ queryKey: ['activities'] });
     }
   }, [isLoading, isAuthenticated, needsOnboarding, segments, router]);
 
-  // Re-run transition check when app returns to foreground
+  // Refresh statuses when the app returns to foreground (the server moves them).
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active' && isAuthenticated) {
-        (async () => {
-          await supabase.rpc('check_activity_transitions' as 'accept_tos');
-          await queryClient.invalidateQueries({ queryKey: ['activities'] });
-        })();
+        void queryClient.invalidateQueries({ queryKey: ['activities'] });
       }
     });
     return () => sub.remove();

@@ -293,11 +293,8 @@ export default function CarteScreen() {
   // Refresh activity statuses every time the map tab gets focus
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        await supabase.rpc('check_activity_transitions' as 'accept_tos');
-        // Invalidate so the freshly-transitioned statuses are re-fetched
-        await queryClient.invalidateQueries({ queryKey: ['activities'] });
-      })();
+      // Statuses move server-side every minute (mig 00491): just refetch.
+      void queryClient.invalidateQueries({ queryKey: ['activities'] });
     }, [queryClient])
   );
 
