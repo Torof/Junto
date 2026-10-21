@@ -59,6 +59,7 @@
       "updated": { "title": "Avis modifié", "body": "{{name}} a modifié son avis ({{rating}}★) sur {{label}}" }
     },
     "review_reply": { "title": "Réponse à ton avis", "body": "{{name}} a répondu à ton avis sur {{label}}" },
+    "pro_renamed": { "title": "Vitrine pro renommée", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "Nouveau badge !", "body": "Tu es maintenant {{label}}" },
     "pro_approved": { "title": "Page pro validée", "body": "Ta page pro est en ligne. Tu peux maintenant publier tes sorties." },
     "pro_rejected": {
@@ -577,6 +578,8 @@
       "member_left_recently": "Cette personne a quitté ce groupe récemment : elle ne peut pas y être remise avant 30 jours.",
       "channel_full": "Cette discussion est complète (500 membres).",
       "offering_duration": "La durée doit être comprise entre 15 minutes et 30 jours.",
+      "blocked_member_present": "Une personne que tu as bloquée participe à cette sortie.",
+      "storage_quota": "Tu as atteint la limite de fichiers pour cet espace.",
       "pro_website_invalid": "Le site web doit commencer par http:// ou https://.",
       "seats_still_active": "Des passagers ont une place confirmée. Annule leurs places avant de changer de transport.",
       "pickup_out_of_window": "L'heure de prise en charge est trop éloignée de l'horaire de la sortie.",

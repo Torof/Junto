@@ -188,6 +188,10 @@
      "title": "Réponse à ton avis",
      "body": "{{name}} a répondu à ton avis sur {{label}}"
     },
+    "pro_renamed": {
+     "title": "Vitrine pro renommée",
+     "body": "{{old}} → {{new}}"
+    },
     "badge_unlocked": {
      "title": "Nouveau badge !",
      "body": "Tu es maintenant {{label}}"
@@ -404,6 +408,10 @@
     "review_reply": {
      "title": "Reply to your review",
      "body": "{{name}} replied to your review on {{label}}"
+    },
+    "pro_renamed": {
+     "title": "Pro page renamed",
+     "body": "{{old}} → {{new}}"
     },
     "badge_unlocked": {
      "title": "New badge!",
@@ -622,6 +630,10 @@
      "title": "Risposta alla tua recensione",
      "body": "{{name}} ha risposto alla tua recensione su {{label}}"
     },
+    "pro_renamed": {
+     "title": "Pagina pro rinominata",
+     "body": "{{old}} → {{new}}"
+    },
     "badge_unlocked": {
      "title": "Nuovo badge!",
      "body": "Ora sei {{label}}"
@@ -839,6 +851,10 @@
      "title": "Respuesta a tu reseña",
      "body": "{{name}} ha respondido a tu reseña sobre {{label}}"
     },
+    "pro_renamed": {
+     "title": "Página pro renombrada",
+     "body": "{{old}} → {{new}}"
+    },
     "badge_unlocked": {
      "title": "¡Nueva insignia!",
      "body": "Ahora eres {{label}}"
@@ -1055,6 +1071,10 @@
     "review_reply": {
      "title": "Antwort auf deine Bewertung",
      "body": "{{name}} hat auf deine Bewertung zu {{label}} geantwortet"
+    },
+    "pro_renamed": {
+     "title": "Profi-Seite umbenannt",
+     "body": "{{old}} → {{new}}"
     },
     "badge_unlocked": {
      "title": "Neues Abzeichen!",

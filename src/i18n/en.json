@@ -59,6 +59,7 @@
       "updated": { "title": "Review updated", "body": "{{name}} updated their review ({{rating}}★) of {{label}}" }
     },
     "review_reply": { "title": "Reply to your review", "body": "{{name}} replied to your review on {{label}}" },
+    "pro_renamed": { "title": "Pro page renamed", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "New badge!", "body": "You are now {{label}}" },
     "pro_approved": { "title": "Pro page approved", "body": "Your pro page is live. You can now publish your outings." },
     "pro_rejected": {
@@ -573,6 +574,8 @@
       "member_left_recently": "This person left this group recently: they cannot be added back for 30 days.",
       "channel_full": "This discussion is full (500 members).",
       "offering_duration": "The duration must be between 15 minutes and 30 days.",
+      "blocked_member_present": "Someone you blocked is taking part in this outing.",
+      "storage_quota": "You have reached the file limit for this space.",
       "pro_website_invalid": "The website must start with http:// or https://.",
       "seats_still_active": "Passengers have a confirmed seat. Cancel their seats before changing transport.",
       "pickup_out_of_window": "The pickup time is too far from the activity time.",

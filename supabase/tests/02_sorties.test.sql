@@ -411,15 +411,15 @@ PERFORM pg_temp.eq('les coordonnées de départ d''un conducteur ne sont pas lis
   format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), '0');
 PERFORM pg_temp.as_('db');
 PERFORM set_config('junto.bypass_lock', 'true', true);
-UPDATE public.participations SET transport_from_lat = 44.56, transport_from_lng = 6.08, transport_from_name = 'Chez moi'
+UPDATE public.participations SET transport_from_lat = 44.56, transport_from_lng = 6.08, transport_from_name = 'Chez moi', transport_from_locality = 'Gap'
 WHERE activity_id = pg_temp.id('car') AND transport_type IN ('car', 'carpool');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('frank');
 PERFORM pg_temp.eq('AC-2 : un inconnu ne lit ni coordonnées ni nom du point de départ',
   format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL OR transport_from_name IS NOT NULL$$, pg_temp.id('car')), '0');
 PERFORM pg_temp.as_('hank');
-PERFORM pg_temp.eq('AC-2 : un participant accepté lit le point de départ du conducteur',
-  format($$SELECT (count(*) > 0)::text FROM public.get_activity_participants(%L) WHERE transport_from_lat IS NOT NULL$$, pg_temp.id('car')), 'true');
+PERFORM pg_temp.eq('00521 : un membre non passager ne lit pas le point exact d''un conducteur', format($$SELECT count(*)::text FROM public.get_activity_participants(%L) WHERE user_id <> %L AND transport_from_lat IS NOT NULL$$, pg_temp.id('car'), pg_temp.id('hank')), '0');
+PERFORM pg_temp.eq('00521 : il lit le village de départ', format($$SELECT (count(*) > 0)::text FROM public.get_activity_participants(%L) WHERE transport_from_locality = 'Gap'$$, pg_temp.id('car')), 'true');
 PERFORM pg_temp.eq('AC-2 : un participant lit les lieux de départ dans le résumé transport', format($$SELECT (count(*) > 0)::text FROM public.get_transport_summary(%L) WHERE cities IS NOT NULL$$, pg_temp.id('car')), 'true');
 PERFORM pg_temp.as_('frank');
 PERFORM pg_temp.eq('résumé transport : un non-inscrit voit d''où partent les voitures (décision Scott)', format($$SELECT (count(*) > 0)::text FROM public.get_transport_summary(%L) WHERE cities IS NOT NULL$$, pg_temp.id('car')), 'true');
@@ -861,4 +861,21 @@ PERFORM pg_temp.eq('C6 : demande en attente', format($$SELECT public.join_activi
 PERFORM pg_temp.eq('C6 : puis rejoint une sortie publique qui chevauche', format($$SELECT public.join_activity(%L)$$, pg_temp.id('c6_pub')), 'accepted');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C6 : la demande qui chevauche est retirée d''elle-même', format($$SELECT status FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('c6_req'), pg_temp.id('c6_p')), 'withdrawn');
+
+-- 00521 (décision 1) : deux personnes qui se bloquent ne se retrouvent pas dans la même sortie.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('bk_org', 'tos'); PERFORM pg_temp.user('bk_victim', 'tos'); PERFORM pg_temp.user('bk_stalker', 'tos');
+PERFORM pg_temp.as_('bk_org');
+PERFORM pg_temp.put('bk_act', pg_temp.ok('bloc : sortie publique', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie bloc', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '80 days', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.as_('bk_victim');
+PERFORM pg_temp.eq('bloc : la victime rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.id('bk_act')), 'accepted');
+PERFORM pg_temp.ok('bloc : la victime bloque le harceleur', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('bk_victim'), pg_temp.id('bk_stalker')));
+PERFORM pg_temp.as_('bk_stalker');
+PERFORM pg_temp.denied('bloc : la personne bloquée ne rejoint pas une sortie où est la victime', format($$SELECT public.join_activity(%L)$$, pg_temp.id('bk_act')), 'Operation not permitted');
+PERFORM pg_temp.as_('bk_org');
+PERFORM pg_temp.put('bk_act2', pg_temp.ok('bloc : seconde sortie', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie bloc', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '81 days', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.as_('bk_stalker');
+PERFORM pg_temp.eq('bloc : la personne bloquée rejoint une autre sortie', format($$SELECT public.join_activity(%L)$$, pg_temp.id('bk_act2')), 'accepted');
+PERFORM pg_temp.as_('bk_victim');
+PERFORM pg_temp.denied('bloc : la victime est prévenue qu''une personne bloquée y participe', format($$SELECT public.join_activity(%L)$$, pg_temp.id('bk_act2')), 'junto\.blocked_member_present');
 

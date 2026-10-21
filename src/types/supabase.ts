@@ -1829,6 +1829,7 @@ export type Database = {
           transport_departs_at: string | null
           transport_from_lat: number | null
           transport_from_lng: number | null
+          transport_from_locality: string | null
           transport_from_name: string | null
           transport_seats: number | null
           transport_type: string | null
@@ -1851,6 +1852,7 @@ export type Database = {
           transport_departs_at?: string | null
           transport_from_lat?: number | null
           transport_from_lng?: number | null
+          transport_from_locality?: string | null
           transport_from_name?: string | null
           transport_seats?: number | null
           transport_type?: string | null
@@ -1873,6 +1875,7 @@ export type Database = {
           transport_departs_at?: string | null
           transport_from_lat?: number | null
           transport_from_lng?: number | null
+          transport_from_locality?: string | null
           transport_from_name?: string | null
           transport_seats?: number | null
           transport_type?: string | null
@@ -4265,6 +4268,7 @@ export type Database = {
           transport_departs_at: string
           transport_from_lat: number
           transport_from_lng: number
+          transport_from_locality: string
           transport_from_name: string
           transport_seats: number
           transport_type: string
@@ -5027,6 +5031,7 @@ export type Database = {
           p_transport_departs_at?: string
           p_transport_from_lat?: number
           p_transport_from_lng?: number
+          p_transport_from_locality?: string
           p_transport_from_name?: string
           p_transport_seats?: number
           p_transport_type: string

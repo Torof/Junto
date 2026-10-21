@@ -497,7 +497,7 @@ export function GroupCard({
               const isFull = d.free === 0;
               const tier = reliabilityById.get(d.user_id) ?? null;
               const driverPassengers = passengersByDriver.get(d.user_id) ?? [];
-              const hasMeta = Boolean(d.transport_from_name || d.transport_departs_at);
+              const hasMeta = Boolean(d.transport_from_name || d.transport_from_locality || d.transport_departs_at);
               return (
                 <View key={d.user_id} style={styles.nc}>
                   <View style={[styles.ncStripe, isFull && styles.ncStripeFull]} />
@@ -538,15 +538,17 @@ export function GroupCard({
                   {/* Journey — from (own line, may wrap) then departure time below. */}
                   {hasMeta && (
                     <View style={styles.journey}>
-                      {d.transport_from_name ? (
+                      {/* Exact point for the driver's passengers; the village for
+                          everyone else (mig 00521). */}
+                      {(d.transport_from_name || d.transport_from_locality) ? (
                         <Pressable
                           style={styles.jFromRow}
                           disabled={d.transport_from_lat == null || d.transport_from_lng == null}
-                          onPress={(e) => { e.stopPropagation(); openMaps(d.transport_from_lat as number, d.transport_from_lng as number, d.transport_from_name); }}
+                          onPress={(e) => { e.stopPropagation(); openMaps(d.transport_from_lat as number, d.transport_from_lng as number, d.transport_from_name ?? undefined); }}
                           hitSlop={4}
                         >
                           <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                          <Text style={[styles.jFrom, d.transport_from_lat != null && styles.jFromLink]} numberOfLines={2}>{d.transport_from_name}</Text>
+                          <Text style={[styles.jFrom, d.transport_from_lat != null && styles.jFromLink]} numberOfLines={2}>{d.transport_from_name ?? d.transport_from_locality}</Text>
                           {d.transport_from_lat != null && d.transport_from_lng != null ? (
                             <Navigation size={12} color={colors.cta} strokeWidth={2.4} />
                           ) : null}

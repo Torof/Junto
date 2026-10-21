@@ -59,6 +59,7 @@
       "updated": { "title": "Bewertung geändert", "body": "{{name}} hat die Bewertung ({{rating}}★) zu {{label}} geändert" }
     },
     "review_reply": { "title": "Antwort auf deine Bewertung", "body": "{{name}} hat auf deine Bewertung zu {{label}} geantwortet" },
+    "pro_renamed": { "title": "Profi-Seite umbenannt", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "Neues Abzeichen!", "body": "Du bist jetzt {{label}}" },
     "pro_approved": { "title": "Pro-Seite freigegeben", "body": "Deine Pro-Seite ist online. Du kannst jetzt deine Touren veröffentlichen." },
     "pro_rejected": {
@@ -577,6 +578,8 @@
       "member_left_recently": "Diese Person hat die Gruppe kürzlich verlassen: Sie kann 30 Tage lang nicht wieder hinzugefügt werden.",
       "channel_full": "Diese Diskussion ist voll (500 Mitglieder).",
       "offering_duration": "Die Dauer muss zwischen 15 Minuten und 30 Tagen liegen.",
+      "blocked_member_present": "Eine Person, die du blockiert hast, nimmt an dieser Tour teil.",
+      "storage_quota": "Du hast das Dateilimit für diesen Bereich erreicht.",
       "pro_website_invalid": "Die Website muss mit http:// oder https:// beginnen.",
       "seats_still_active": "Mitfahrer haben einen bestätigten Platz. Storniere ihre Plätze, bevor du die Anreise änderst.",
       "pickup_out_of_window": "Die Abholzeit liegt zu weit von der Startzeit der Tour entfernt.",

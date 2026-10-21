@@ -133,6 +133,12 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     const isCar = selectedType === 'car';
     setIsSaving(true);
     try {
+      // The village of the start point (mig 00521): the only start info other
+      // members see. Best effort — never block the save on it.
+      let fromLocality: string | null = null;
+      if (fromName.trim() && fromLat != null && fromLng != null) {
+        try { fromLocality = await geocodeService.reverseLocality(fromLat, fromLng); } catch { fromLocality = null; }
+      }
       await transportService.setTransport(
         activityId,
         selectedType,
@@ -143,6 +149,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
         departsAt ? departsAt.toISOString() : null,
         fromLat,
         fromLng,
+        fromLocality,
       );
       await queryClient.invalidateQueries({ queryKey: ['transport', activityId] });
       await queryClient.invalidateQueries({ queryKey: ['transport-summary', activityId] });

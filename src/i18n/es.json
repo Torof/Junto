@@ -59,6 +59,7 @@
       "updated": { "title": "Opinión modificada", "body": "{{name}} ha modificado su opinión ({{rating}}★) sobre {{label}}" }
     },
     "review_reply": { "title": "Respuesta a tu reseña", "body": "{{name}} ha respondido a tu reseña sobre {{label}}" },
+    "pro_renamed": { "title": "Página pro renombrada", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "¡Nueva insignia!", "body": "Ahora eres {{label}}" },
     "pro_approved": { "title": "Página pro validada", "body": "Tu página pro está en línea. Ya puedes publicar tus salidas." },
     "pro_rejected": {
@@ -577,6 +578,8 @@
       "member_left_recently": "Esta persona dejó el grupo hace poco: no se la puede volver a añadir durante 30 días.",
       "channel_full": "Esta conversación está completa (500 miembros).",
       "offering_duration": "La duración debe estar entre 15 minutos y 30 días.",
+      "blocked_member_present": "Una persona que has bloqueado participa en esta salida.",
+      "storage_quota": "Has alcanzado el límite de archivos de este espacio.",
       "pro_website_invalid": "El sitio web debe empezar por http:// o https://.",
       "seats_still_active": "Hay pasajeros con plaza confirmada. Cancela sus plazas antes de cambiar de transporte.",
       "pickup_out_of_window": "La hora de recogida está demasiado alejada del horario de la salida.",

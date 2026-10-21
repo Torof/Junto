@@ -524,3 +524,13 @@ PERFORM pg_temp.denied('niveau d''offre démesuré refusé par la table', format
 PERFORM pg_temp.denied('durée d''offre négative refusée par la table', format($$UPDATE public.pro_offerings SET duration = interval '-3 days' WHERE id = %L$$, pg_temp.id('off')), 'pro_offerings_duration_range');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 
+-- 00521 (décision 6) : l'admin est prévenu quand une vitrine approuvée change de nom.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('rn_adm', 'tos,admin');
+PERFORM pg_temp.put('rn0', (SELECT count(*)::text FROM public.notifications WHERE user_id = pg_temp.id('rn_adm') AND type = 'pro_renamed'));
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.pro_profiles SET display_name = 'Nouveau nom pro', status = 'approved' WHERE user_id = pg_temp.id('pro');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('renommage d''une vitrine approuvée : l''admin est prévenu',
+  format($$SELECT (count(*) - %s)::text FROM public.notifications WHERE user_id = %L AND type = 'pro_renamed'$$, pg_temp.get('rn0'), pg_temp.id('rn_adm')), '1');
+

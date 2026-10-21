@@ -299,7 +299,13 @@ PERFORM pg_temp.denied('invitations : anon refusé', $$SELECT count(*)::text FRO
 -- get_user_award_aggregates
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('compteurs : sortie rejointe comptée pour alice', format($$SELECT public.get_user_award_aggregates(%L) ->> 'joined'$$, pg_temp.id('alice')), '1');
-PERFORM pg_temp.eq('compteurs : sortie organisée comptée pour crea', format($$SELECT public.get_user_award_aggregates(%L) ->> 'created'$$, pg_temp.id('crea')), '1');
+PERFORM pg_temp.eq('00521 : sortie organisée sans présence validée : pas comptée', format($$SELECT public.get_user_award_aggregates(%L) ->> 'created'$$, pg_temp.id('crea')), '0');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.participations SET confirmed_present = true WHERE activity_id = pg_temp.id('C') AND user_id = pg_temp.id('crea');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('bob');
+PERFORM pg_temp.eq('compteurs : sortie organisée comptée pour crea (présence validée)', format($$SELECT public.get_user_award_aggregates(%L) ->> 'created'$$, pg_temp.id('crea')), '1');
 PERFORM pg_temp.eq('compteurs : rien pour un compte suspendu', format($$SELECT public.get_user_award_aggregates(%L) ->> 'joined'$$, pg_temp.id('sam')), '0');
 PERFORM pg_temp.eq('compteurs : rien pour un compte démo hors mode démo', format($$SELECT public.get_user_award_aggregates(%L) ->> 'joined'$$, pg_temp.id('demo1')), '0');
 PERFORM pg_temp.eq('compteurs : une demande en attente ne compte pas', format($$SELECT public.get_user_award_aggregates(%L) ->> 'joined'$$, pg_temp.id('dan')), '0');

@@ -17,6 +17,9 @@ export interface ParticipantTransport {
   transport_departs_at: string | null;
   transport_from_lat: number | null;
   transport_from_lng: number | null;
+  // Village of the start point (mig 00521) — what members who are not this
+  // driver's passengers see instead of the exact point.
+  transport_from_locality?: string | null;
   confirmed_present?: boolean | null;
 }
 
@@ -52,6 +55,7 @@ export const transportService = {
     departsAt?: string | null,
     fromLat?: number | null,
     fromLng?: number | null,
+    fromLocality?: string | null,
   ): Promise<void> => {
     const { error } = await supabase.rpc('set_participation_transport', {
       p_activity_id: activityId,
@@ -61,6 +65,7 @@ export const transportService = {
       p_transport_departs_at: departsAt ?? undefined,
       p_transport_from_lat: fromLat ?? undefined,
       p_transport_from_lng: fromLng ?? undefined,
+      p_transport_from_locality: fromLocality ?? undefined,
     });
     if (error) throw error;
   },
@@ -191,6 +196,7 @@ export const transportService = {
         transport_departs_at: r.transport_departs_at,
         transport_from_lat: r.transport_from_lat,
         transport_from_lng: r.transport_from_lng,
+        transport_from_locality: r.transport_from_locality,
       })) as ParticipantTransport[];
   },
 
