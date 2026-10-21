@@ -5583,7 +5583,7 @@ export type Database = {
       }
       update_activity_trace: {
         Args: { p_activity_id: string; p_trace_geojson: Json }
-        Returns: undefined
+        Returns: string
       }
       update_offering_review: {
         Args: { p_body?: string; p_rating: number; p_review_id: string }

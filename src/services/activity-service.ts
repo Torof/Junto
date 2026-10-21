@@ -229,11 +229,15 @@ export const activityService = {
   },
 
   updateTrace: async (activityId: string, trace: GeoJsonLineString | null): Promise<void> => {
-    const { error } = await supabase.rpc('update_activity_trace' as 'join_activity', {
+    const { data, error } = await supabase.rpc('update_activity_trace' as 'join_activity', {
       p_activity_id: activityId,
       p_trace_geojson: trace ?? null,
     } as unknown as { p_activity_id: string });
     if (error) throw error;
+    // Since mig 00483 a refused trace is RETURNED as a junto.<code> (so the
+    // server-side frequency counter still counts it) instead of raised.
+    const refused = data as unknown as string | null;
+    if (typeof refused === 'string' && refused.startsWith('junto.')) throw new Error(refused);
   },
 
   // Distance / D+ the server derives from a trace (mig 00452) — used to
