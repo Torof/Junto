@@ -23,7 +23,9 @@ const MIN_SHARE = 0.08;  // smallest slice drawn, so a 1-in-20 stays visible
 
 function clusterSize(count: number): number {
   if (count < 2) return MIN_SIZE;
-  return Math.max(MIN_SIZE, Math.min(MAX_SIZE, 36 + Math.log10(count) * 12));
+  // Whole pixels: a fractional box gets floored by layout while the svg draws
+  // at full size, which clipped the outline on the bottom/right edges.
+  return Math.round(Math.max(MIN_SIZE, Math.min(MAX_SIZE, 36 + Math.log10(count) * 12)));
 }
 
 function formatClusterCount(n: number): string {
@@ -52,7 +54,9 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
   const label = formatClusterCount(count);
   const fontSize = size <= 44 ? 13 : size <= 52 ? 15 : 17;
 
-  const r = (size - RING) / 2 - 1; // 1px inside the outer ink outline
+  const c = size / 2;
+  const outline = c - 1;              // ink outline centre line, 0.5px clear of the edge
+  const r = outline - 0.5 - RING / 2; // ring sits flush inside the outline
   const circ = 2 * Math.PI * r;
   const parts = segments.filter((s) => s.count > 0);
   const fr = shares(parts);
@@ -60,28 +64,28 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
   let offset = 0;
 
   return (
-    <View style={[styles.cluster, { width: size, height: size, borderRadius: size / 2 }]}>
+    <View style={[styles.cluster, { width: size, height: size }]}>
       {/* Outline + ring share ONE svg (same centre). A View border would push
           the absolutely-filled svg 1px down-right (it fills the padding box). */}
       <Svg width={size} height={size} style={styles.svg}>
-        <Circle cx={size / 2} cy={size / 2} r={size / 2 - 0.5} stroke={colors.pinBorder} strokeWidth={1} fill="none" />
+        <Circle cx={c} cy={c} r={outline} fill={colors.background} stroke={colors.pinBorder} strokeWidth={1} />
         {parts.length === 0 ? (
-          <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.pinBorder} strokeWidth={2} fill="none" />
+          <Circle cx={c} cy={c} r={r} stroke={colors.pinBorder} strokeWidth={2} fill="none" />
         ) : (
           parts.map((p, i) => {
             const len = Math.max(fr[i]! * circ - gap, 0.5);
             const el = (
               <Circle
                 key={p.color + i}
-                cx={size / 2}
-                cy={size / 2}
+                cx={c}
+                cy={c}
                 r={r}
                 stroke={p.color}
                 strokeWidth={RING}
                 fill="none"
                 strokeDasharray={`${len} ${circ - len}`}
                 strokeDashoffset={-offset}
-                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                transform={`rotate(-90 ${c} ${c})`}
               />
             );
             offset += fr[i]! * circ;
@@ -95,8 +99,8 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
 });
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  // Transparent box: the white disc + outline + ring are all drawn in the svg.
   cluster: {
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
