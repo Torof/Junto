@@ -136,9 +136,13 @@ Suite : 1 421 pass, 0 fail, 85 failles connues restantes. Plus aucune faille HIG
 - **AB-10 (suite)** : matériel 20 mises à jour / min et 200 / h, objets manquants 30 / min et 300 / h ; un seul signal par instruction, et un seul pour une mise à jour complète du matériel (au lieu d'un par objet).
 - **Signal carte** : lieu d'arrivée, noms de lieu, distance, D+, présence d'une trace et présence exigée déclenchent aussi le signal ; verrou de limitation pris seulement quand la fenêtre est écoulée ; table `map_broadcasts` sans journal et purgée.
 - **Traces partagées** : taille et fréquence vérifiées avant le parcours des coordonnées ; budget de 5 Mo / 24 h en octets bruts ; code `junto.trace_too_large`.
-- Restent (LOW, acceptés pour l'instant) : un changement de nom/avatar ou une suspension d'organisateur ne déclenche pas le signal carte (rafraîchi au déplacement) ; `update_activity_trace` avec une trace invalide n'est pas compté (le contrôle du propriétaire passe d'abord, coût borné).
+- **Points faibles refusés par Scott, corrigés (mig 00483-00484)** :
+  - un changement de nom ou d'avatar, une suspension ou une réactivation de l'organisateur émet un signal carte (un seul par changement, ≤ 1 / 15 s et 30 / h par organisateur) ;
+  - une trace invalide envoyée à `update_activity_trace` est comptée (la fonction renvoie le code au lieu de lever ; l'app lève côté client) ;
+  - `trace_geojson_ok` réécrite en jsonpath : 31 ms → 2 ms sur 10 000 points, donc un appel raté coûte autant qu'une requête ordinaire pour les cinq fonctions qui valident une trace ; trous corrigés au passage (objet sans `type` accepté, objet sans `coordinates` en erreur brute, nombres infinitésimaux qui plantaient le calcul du D+).
+- Restent, rares et réservés à l'admin : passage d'un compte en démo, bascule du mode démo, icône ou catégorie d'un sport ne déclenchent pas de signal carte (rafraîchi au déplacement). Les anciennes versions de l'app en production ignorent le code renvoyé par `update_activity_trace` : une trace invalide y semble enregistrée sans l'être.
 
-Suite : 1 444 pass, 0 fail, 80 failles connues restantes.
+Suite : 1 459 pass, 0 fail, 80 failles connues restantes.
 
 ## Plan de correction proposé (validation Scott par phase)
 
