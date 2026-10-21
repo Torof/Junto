@@ -60,6 +60,8 @@ async function ignElevations(coords: number[][]): Promise<number[]> {
   const res = await fetch(IGN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    // A slow IGN must not hold the invocation open (audit 2026-10, L8).
+    signal: AbortSignal.timeout(10_000),
     body: JSON.stringify({
       lon: coords.map((c) => c[0].toFixed(6)).join('|'),
       lat: coords.map((c) => c[1].toFixed(6)).join('|'),
@@ -122,6 +124,11 @@ Deno.serve(async (req) => {
     return json({ error: 'coordinates must be [lng,lat] within valid ranges' }, 400);
   }
   const clean = (coords as number[][]).map((c) => [c[0], c[1]]);
+
+  // Point quota (50 000 / rolling hour, mig 00471) — the call quota alone let
+  // one account push 1.5 M points/h to IGN.
+  const { error: ptErr } = await userClient.rpc('consume_trace_elevation_points', { p_points: clean.length });
+  if (ptErr) return json({ ok: false, reason: 'rate_limited' }, 429);
 
   // 4) IGN, by batches of 5000, in order.
   const z: number[] = [];
