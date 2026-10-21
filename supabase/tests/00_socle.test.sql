@@ -213,14 +213,23 @@ BEGIN
   PERFORM pg_temp.denied('anon n''écrit pas dans spatial_ref_sys',
     $$DELETE FROM public.spatial_ref_sys WHERE srid = -1$$, 'permission denied', 'TX-2');
   PERFORM pg_temp.as_('db');
-  PERFORM pg_temp.eq('privilèges par défaut : pas d''écriture accordée aux clients sur les nouvelles tables de public',
+  -- TX-4 (00502) : nos tables (rôle postgres) n'accordent plus d'écriture par défaut aux clients.
+  PERFORM pg_temp.eq('privilèges par défaut (postgres) : pas d''écriture accordée aux clients sur les nouvelles tables',
     $$SELECT count(*)::text FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
-      WHERE d.defaclnamespace = 'public'::regnamespace AND d.defaclobjtype = 'r'
+      WHERE d.defaclnamespace = 'public'::regnamespace AND d.defaclobjtype = 'r' AND d.defaclrole = 'postgres'::regrole
+        AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole)
+        AND a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')$$, '0');
+  -- Reste : les droits par défaut du rôle interne supabase_admin (non modifiables ici) — fermés par la migration.
+  PERFORM pg_temp.eq('privilèges par défaut (supabase_admin) : pas d''écriture accordée aux clients',
+    $$SELECT count(*)::text FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+      WHERE d.defaclnamespace = 'public'::regnamespace AND d.defaclobjtype = 'r' AND d.defaclrole = 'supabase_admin'::regrole
         AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole)
         AND a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')$$, '0', 'TX-4');
+  -- PV-3 (00502) : aucun TRUNCATE client sur nos tables (spatial_ref_sys, à supabase_admin, relève de TX-2).
   PERFORM pg_temp.eq('aucun TRUNCATE accordé aux clients sur les tables de public',
     $$SELECT count(*)::text FROM pg_class c CROSS JOIN unnest('{anon,authenticated}'::text[]) g(role)
-      WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND has_table_privilege(g.role, c.oid, 'TRUNCATE')$$, '0', 'PV-3');
+      WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND c.relname <> 'spatial_ref_sys'
+        AND has_table_privilege(g.role, c.oid, 'TRUNCATE')$$, '0');
   PERFORM pg_temp.eq('les clients n''ont aucun droit sur net.http_request_queue',
     $$SELECT (has_table_privilege('anon', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE')
            OR has_table_privilege('authenticated', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE'))::text$$, 'false', 'PV-4');
