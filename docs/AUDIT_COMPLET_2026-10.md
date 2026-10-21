@@ -198,6 +198,18 @@ Suite : 1 586 pass, 0 fail, 14 failles connues restantes (12 fermées par la mig
 - Stockage : 6 photos orphelines supprimées. Documentation (CLAUDE.md, SECURITY.md, sprint-messaging.md) réécrite depuis la base réelle.
 - Pour la re-sécurisation : droits d'écriture inutiles sur ~30 tables ; protection des colonnes de `users` / `activities` par liste de colonnes figées (une nouvelle colonne n'est pas protégée par défaut) ; EXECUTE accordé par défaut aux comptes sur toute nouvelle fonction ; fonctions de déclencheur exécutables par les clients ; 4 fonctions sans `search_path` ; reliquat `wall_message` dans `admin_remove_content`.
 
+## Re-sécurisation — audit neuf en 4 domaines et corrections (mig 00510-00518, 2026-10-22)
+
+- **Lot 1 (00510-00511)** : `users` en vraie liste blanche (6 champs de profil) ; droits d'écriture client seulement là où une policy existe, aucun pour anon ; plus d'EXECUTE par défaut sur une nouvelle fonction (défaut global retiré) ; fonctions de déclencheur et utilitaires internes fermés ; `search_path` fixé.
+- **TX-2 (HIGH, 00512)** : le filtre d'API se contournait par un chemin encodé (`DELETE /spatial%5Fref%5Fsys` → 204 en réel). Toute écriture à chemin encodé est refusée ; vérifié en réel.
+- **Identité (00513)** : HIGH — un suspendu supprimant son profil par la seule RPC gardait sa connexion et `ensure_user_row` recréait un profil propre ; fermé (refus de l'e-mail interdit, écran suspendu → suppression complète, purge des photos de canal). Empreinte Gmail normalisée, changement d'e-mail vers un e-mail interdit refusé ; ID-4 (signalement → suspension de la seule personne visée, chemin complet) ; CL-1 (lien de connexion refusé si une session est ouverte, cache vidé au changement de compte) ; `users.sports` borné.
+- **Messagerie (00514-00515 + send-push)** : une demande de place n'ouvre plus de conversation (seul l'accord du conducteur) ; pas de remise dans une copie de groupe ; groupes modérés et discussions fermées figés ; un suspendu ne lit plus aucune conversation ; invitation Découverte après refus bloquée ; demandes de contact de suspendus masquées ; discussions ≤ 500 membres et notifications à tous ; 10 appareils par compte.
+- **Sorties (00516-00517)** : piège de l'annulation tardive refermé (demande acceptée par l'organisateur à moins de 12 h, ou organisateur suspendu) ; demandeurs prévenus des changements ; durée figée avec participants ; sortie modérée figée partout ; coordonnées réelles exigées ; transport et levée limités ; pas d'entrée après départ + 15 min ; suspendus : ni trophées, ni réputation, ni votants.
+- **Pro (00518)** : **L16 fermé** + raison sociale et motif de refus non publics ; liens web contrôlés en table ; photos de contributeurs suspendus masquées ; offres bornées ; verrou réservation / suppression ; purge à J+30 des coordonnées saisies.
+- Restent (LOW, connus) : MS-2 résiduel (l'absence après ajout trahit un blocage — inhérent, comme `create_group`) ; AB-6 / AB-9 (format des jetons push, budget de notifications par destinataire) ; PRO_HARDENING B9, B10, B15, B16, B17, B18 ; décision produit : un pro approuvé peut renommer sa vitrine sans nouvelle validation.
+
+Suite : 1 575 pass, 0 fail, 12 failles connues restantes (toutes fermées par la migration : PostGIS, droits de supabase_admin, pg_net).
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
