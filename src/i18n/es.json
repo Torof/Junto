@@ -1395,6 +1395,7 @@
       "dark": "Oscuro"
     },
     "accent": "Color de acento",
+    "clusterRing": "Grupos de colores",
     "accentOption": {
       "orange": "Naranja",
       "mountain": "Verde montaña",

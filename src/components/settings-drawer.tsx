@@ -6,8 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
   Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
-  ShieldAlert, ChevronDown, Globe, type LucideIcon,
-} from 'lucide-react-native';
+  ShieldAlert, ChevronDown, Globe, type LucideIcon, PieChart } from 'lucide-react-native';
 import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference, type LanguagePreference } from '@/i18n';
 import * as Burnt from 'burnt';
 import * as Location from 'expo-location';
@@ -16,6 +15,7 @@ import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
+import { useClusterStyleStore, CLUSTER_RING_WIDTHS } from '@/store/cluster-style-store';
 import { useIntroStore } from '@/store/intro-store';
 import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
@@ -134,6 +134,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const savingPrefRef = useRef(false);
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
+  const clusterRingOn = useClusterStyleStore((s) => s.ringOn);
+  const setClusterRingOn = useClusterStyleStore((s) => s.setRingOn);
+  const clusterRingWidth = useClusterStyleStore((s) => s.ringWidth);
+  const setClusterRingWidth = useClusterStyleStore((s) => s.setRingWidth);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -396,6 +400,23 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       return (
                         <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => handlePickLanguage(opt)}>
                           <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.languageOption.${opt}`)}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+              <Row icon={PieChart} label={t('drawer.clusterRing')} right={
+                <Switch value={clusterRingOn} onValueChange={setClusterRingOn} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
+              } />
+              {clusterRingOn && (
+                <View style={styles.themeContent}>
+                  <View style={styles.segmentedPill}>
+                    {CLUSTER_RING_WIDTHS.map((w) => {
+                      const active = clusterRingWidth === w;
+                      return (
+                        <Pressable key={w} style={[styles.segment, active && styles.segmentActive]} onPress={() => setClusterRingWidth(w)}>
+                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{`${w} px`}</Text>
                         </Pressable>
                       );
                     })}

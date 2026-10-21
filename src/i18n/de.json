@@ -1395,6 +1395,7 @@
       "dark": "Dunkel"
     },
     "accent": "Akzentfarbe",
+    "clusterRing": "Farbige Cluster",
     "accentOption": {
       "orange": "Orange",
       "mountain": "Berggrün",

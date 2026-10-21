@@ -21,6 +21,7 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { supabase } from '@/services/supabase';
 import { useMessageStore } from '@/store/message-store';
 import { useMapStyleStore } from '@/store/map-style-store';
+import { useClusterStyleStore } from '@/store/cluster-style-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -50,11 +51,13 @@ function AuthGate() {
   const transitionRan = useRef(false);
   const { loadReadState } = useMessageStore();
   const loadMapStyle = useMapStyleStore((s) => s.load);
+  const loadClusterStyle = useClusterStyleStore((s) => s.load);
 
   useEffect(() => {
     loadReadState();
     loadMapStyle();
-  }, [loadReadState, loadMapStyle]);
+    loadClusterStyle();
+  }, [loadReadState, loadMapStyle, loadClusterStyle]);
 
   useEffect(() => {
     if (isLoading) return;

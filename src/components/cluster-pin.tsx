@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { useClusterStyleStore } from '@/store/cluster-style-store';
 
 export interface ClusterSegment {
   color: string;
@@ -17,7 +18,6 @@ interface ClusterPinProps {
 
 const MIN_SIZE = 36;
 const MAX_SIZE = 60;
-const RING = 5;          // ring thickness (px)
 const GAP = 1.5;         // white gap between two slices (px of arc)
 const MIN_SHARE = 0.08;  // smallest slice drawn, so a 1-in-20 stays visible
 
@@ -53,12 +53,15 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
   const size = clusterSize(count);
   const label = formatClusterCount(count);
   const fontSize = size <= 44 ? 13 : size <= 52 ? 15 : 17;
+  const ringOn = useClusterStyleStore((s) => s.ringOn);
+  const RING = useClusterStyleStore((s) => s.ringWidth);
 
   const c = size / 2;
   const outline = c - 1;              // ink outline centre line, 0.5px clear of the edge
   const r = outline - 0.5 - RING / 2; // ring sits flush inside the outline
   const circ = 2 * Math.PI * r;
-  const parts = segments.filter((s) => s.count > 0);
+  // Ring off → the plain white bubble with an ink outline (pre-2026-10-21 look).
+  const parts = ringOn ? segments.filter((s) => s.count > 0) : [];
   const fr = shares(parts);
   const gap = parts.length > 1 ? GAP : 0;
   let offset = 0;
