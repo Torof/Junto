@@ -122,34 +122,21 @@ export const participationService = {
     left_reason: string | null;
     penalty_waived: boolean;
   }[]> => {
-    const { data, error } = await supabase
-      .from('participations')
-      .select('id, user_id, left_at, left_reason, penalty_waived, public_profiles!inner(display_name, avatar_url), activities!inner(starts_at)')
-      .eq('activity_id', activityId)
-      .eq('status', 'withdrawn')
-      .not('left_at', 'is', null);
+    // Creator-only RPC backed by the late_cancels ledger (mig 00478). The old
+    // direct read of `participations` was limited by RLS to the caller's own
+    // row, so the list was always empty (audit PR-6).
+    const { data, error } = await supabase.rpc('get_late_leavers' as 'join_activity',
+      { p_activity_id: activityId } as unknown as { p_activity_id: string });
     if (error) throw error;
-    type Row = {
-      id: string;
+    return ((data ?? []) as unknown as {
+      participation_id: string;
       user_id: string;
+      display_name: string;
+      avatar_url: string | null;
       left_at: string;
       left_reason: string | null;
       penalty_waived: boolean;
-      public_profiles: { display_name: string; avatar_url: string | null };
-      activities: { starts_at: string };
-    };
-    const rows = (data ?? []) as unknown as Row[];
-    return rows
-      .filter((r) => new Date(r.left_at).getTime() > new Date(r.activities.starts_at).getTime() - 12 * 3600 * 1000)
-      .map((r) => ({
-        participation_id: r.id,
-        user_id: r.user_id,
-        display_name: r.public_profiles.display_name,
-        avatar_url: r.public_profiles.avatar_url,
-        left_at: r.left_at,
-        left_reason: r.left_reason,
-        penalty_waived: r.penalty_waived,
-      }));
+    }[]);
   },
 
   getPendingForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {
