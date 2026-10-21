@@ -35,6 +35,9 @@ export default function EditActivityScreen() {
 
   // Check if fields are locked (participants besides creator exist)
   const hasParticipants = (activity?.participant_count ?? 1) > 1;
+  // The server freezes the duration once the outing has started (mig 00467):
+  // lock the counter so an edit never looks saved when it was ignored.
+  const hasStarted = activity ? new Date(activity.starts_at).getTime() <= Date.now() : false;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -243,7 +246,7 @@ export default function EditActivityScreen() {
       )}
 
       <Text style={styles.label}>{t('create.duration')}</Text>
-      <View style={styles.durationRow}>
+      <View style={[styles.durationRow, hasStarted && styles.locked]} pointerEvents={hasStarted ? 'none' : 'auto'}>
         <Pressable
           style={styles.counterButton}
           onPress={() =>
