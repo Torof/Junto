@@ -14,38 +14,32 @@ export interface MapBounds {
 export function useNearbyActivities(bounds?: MapBounds | null) {
   const queryClient = useQueryClient();
 
-  // Realtime: refresh the map's nearby caches on activity create/edit/
-  // delete. Scoped to ['activities','nearby'] (the broad ['activities']
-  // prefix dragged every list/detail query into each event) and
-  // throttled — one invalidation per 2s window per client, not one per
-  // row event (prod audit D). Migration 00186 ensures activities is in
-  // the publication.
   const invalidateNearby = useMemo(
     () => makeDebouncedInvalidator(queryClient, ['activities', 'nearby']),
     [queryClient],
   );
 
   useEffect(() => {
-    const channel = supabase
-      .channel('activities-nearby')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'activities' },
-        invalidateNearby,
-      )
-      // A removal/acceptance touches participations, not activities — but
-      // the map's private-outing visibility (view 00315) depends on the
-      // caller's accepted participation, so a removed member's pin would
-      // otherwise linger until they pan (Scott's audit, 2026-07-10).
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'participations' },
-        invalidateNearby,
-      )
-      .subscribe();
+    // 00479 (audit AB-2): the map no longer listens to postgres_changes on
+    // activities / participations (every open map received every write on
+    // every outing). The server sends a content-less ping on the private
+    // `map` topic — at most once per outing every 15 s, only for map-visible
+    // changes on public/approval outings — and we refetch the viewport,
+    // debounced. Signed-in users only (the topic is private); visitors refresh
+    // on pan / focus.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (cancelled || !data.session) return;
+      channel = supabase
+        .channel('map', { config: { private: true } })
+        .on('broadcast', { event: 'map' }, invalidateNearby)
+        .subscribe();
+    });
     return () => {
+      cancelled = true;
       invalidateNearby.cancel();
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [invalidateNearby]);
 

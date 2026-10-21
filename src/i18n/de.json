@@ -589,6 +589,8 @@
       "channel_rate_limit": "Du hast heute zu viele Diskussionen erstellt. Versuch es morgen noch mal.",
       "share_rate_limit": "Du teilst zu schnell. Warte eine Minute.",
       "send_rate_limit": "Du schickst zu viele Nachrichten. Mach etwas langsamer.",
+      "message_daily_cap": "Du hast das Nachrichtenlimit für heute erreicht. Versuch es morgen wieder.",
+      "share_daily_cap": "Du hast das Teilen-Limit für heute erreicht. Versuch es morgen wieder.",
       "message_too_long": "Deine Nachricht ist zu lang (maximal 500 Zeichen).",
       "group_name_invalid": "Wähle einen Gruppennamen (maximal 60 Zeichen).",
       "group_min_members": "Eine Gruppe braucht mindestens 3 Mitglieder.",

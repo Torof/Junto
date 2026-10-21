@@ -589,6 +589,8 @@
       "channel_rate_limit": "Has creado demasiados canales hoy. Vuelve a intentarlo mañana.",
       "share_rate_limit": "Estás compartiendo demasiado rápido. Espera un minuto.",
       "send_rate_limit": "Estás enviando demasiados mensajes. Frena un poco.",
+      "message_daily_cap": "Has alcanzado el límite de mensajes de hoy. Inténtalo mañana.",
+      "share_daily_cap": "Has alcanzado el límite de compartidos de hoy. Inténtalo mañana.",
       "message_too_long": "Tu mensaje es demasiado largo (500 caracteres como máximo).",
       "group_name_invalid": "Elige un nombre de grupo (60 caracteres como máximo).",
       "group_min_members": "Un grupo debe tener al menos 3 miembros.",

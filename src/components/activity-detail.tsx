@@ -178,27 +178,19 @@ export function ActivityDetail({
             // confirmed_present). Without this, the screen-level query in
             // app/(auth)/activity/[id].tsx stays stale until manual refresh.
             queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+          } else if (table === 'activity_gear') {
+            // 00479 (audit AB-10): gear rides this private topic instead of
+            // postgres_changes, whose DELETE events cannot be filtered.
+            queryClient.invalidateQueries({ queryKey: ['activity-gear', activity.id] });
+            // The shared-gear trigger (00303) may have auto-cleared a missing tile.
+            queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
+          } else if (table === 'activity_gear_missing') {
+            queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
           } else if (table === 'seat_requests') {
             queryClient.invalidateQueries({ queryKey: ['seat-requests', activity.id] });
             queryClient.invalidateQueries({ queryKey: ['seat-requests-accepted', activity.id] });
             queryClient.invalidateQueries({ queryKey: ['transport-summary', activity.id] });
           }
-        },
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'activity_gear', filter: `activity_id=eq.${activity.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['activity-gear', activity.id] });
-          // The shared-gear trigger (00303) may have auto-cleared a missing tile.
-          queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
-        },
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'activity_gear_missing', filter: `activity_id=eq.${activity.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['gear-missing', activity.id] });
         },
       )
       .subscribe();
