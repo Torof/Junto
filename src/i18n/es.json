@@ -54,7 +54,10 @@
     "presence_confirmed": { "title": "Presencia confirmada", "body": "Tu presencia está validada para «{{title}}»" },
     "qr_create_reminder": { "title": "{{title}}", "body": "Genera el QR de presencia para tus participantes" },
     "rate_participants": { "title": "Valora a tus compañeros", "body": "«{{title}}»: cuéntanos cómo ha ido." },
-    "review_received": { "title": "Nueva reseña", "body": "{{name}} ha dejado una reseña ({{rating}}★) sobre {{label}}" },
+    "review_received": {
+      "title": "Nueva reseña", "body": "{{name}} ha dejado una reseña ({{rating}}★) sobre {{label}}",
+      "updated": { "title": "Opinión modificada", "body": "{{name}} ha modificado su opinión ({{rating}}★) sobre {{label}}" }
+    },
     "review_reply": { "title": "Respuesta a tu reseña", "body": "{{name}} ha respondido a tu reseña sobre {{label}}" },
     "badge_unlocked": { "title": "¡Nueva insignia!", "body": "Ahora eres {{label}}" },
     "pro_approved": { "title": "Página pro validada", "body": "Tu página pro está en línea. Ya puedes publicar tus salidas." },

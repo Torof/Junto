@@ -54,7 +54,10 @@
     "presence_confirmed": { "title": "Présence confirmée", "body": "Ta présence est validée pour « {{title}} »" },
     "qr_create_reminder": { "title": "{{title}}", "body": "Génère le QR de présence pour tes participants" },
     "rate_participants": { "title": "Évalue tes co-participants", "body": "« {{title}} » — dis-nous comment ça s’est passé." },
-    "review_received": { "title": "Nouvel avis", "body": "{{name}} a laissé un avis ({{rating}}★) sur {{label}}" },
+    "review_received": {
+      "title": "Nouvel avis", "body": "{{name}} a laissé un avis ({{rating}}★) sur {{label}}",
+      "updated": { "title": "Avis modifié", "body": "{{name}} a modifié son avis ({{rating}}★) sur {{label}}" }
+    },
     "review_reply": { "title": "Réponse à ton avis", "body": "{{name}} a répondu à ton avis sur {{label}}" },
     "badge_unlocked": { "title": "Nouveau badge !", "body": "Tu es maintenant {{label}}" },
     "pro_approved": { "title": "Page pro validée", "body": "Ta page pro est en ligne. Tu peux maintenant publier tes sorties." },

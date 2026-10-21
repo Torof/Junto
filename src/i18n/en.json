@@ -54,7 +54,10 @@
     "presence_confirmed": { "title": "Presence confirmed", "body": "Your presence is validated for “{{title}}”" },
     "qr_create_reminder": { "title": "{{title}}", "body": "Generate the presence QR for your participants" },
     "rate_participants": { "title": "Rate your co-participants", "body": "“{{title}}” — tell us how it went." },
-    "review_received": { "title": "New review", "body": "{{name}} left a review ({{rating}}★) on {{label}}" },
+    "review_received": {
+      "title": "New review", "body": "{{name}} left a review ({{rating}}★) on {{label}}",
+      "updated": { "title": "Review updated", "body": "{{name}} updated their review ({{rating}}★) of {{label}}" }
+    },
     "review_reply": { "title": "Reply to your review", "body": "{{name}} replied to your review on {{label}}" },
     "badge_unlocked": { "title": "New badge!", "body": "You are now {{label}}" },
     "pro_approved": { "title": "Pro page approved", "body": "Your pro page is live. You can now publish your outings." },

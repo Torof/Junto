@@ -54,7 +54,10 @@
     "presence_confirmed": { "title": "Anwesenheit bestätigt", "body": "Deine Anwesenheit bei „{{title}}“ ist bestätigt" },
     "qr_create_reminder": { "title": "{{title}}", "body": "Erzeuge den Anwesenheits-QR für deine Teilnehmenden" },
     "rate_participants": { "title": "Bewerte deine Mitstreiter", "body": "„{{title}}“ — erzähl uns, wie es war." },
-    "review_received": { "title": "Neue Bewertung", "body": "{{name}} hat eine Bewertung ({{rating}}★) zu {{label}} hinterlassen" },
+    "review_received": {
+      "title": "Neue Bewertung", "body": "{{name}} hat eine Bewertung ({{rating}}★) zu {{label}} hinterlassen",
+      "updated": { "title": "Bewertung geändert", "body": "{{name}} hat die Bewertung ({{rating}}★) zu {{label}} geändert" }
+    },
     "review_reply": { "title": "Antwort auf deine Bewertung", "body": "{{name}} hat auf deine Bewertung zu {{label}} geantwortet" },
     "badge_unlocked": { "title": "Neues Abzeichen!", "body": "Du bist jetzt {{label}}" },
     "pro_approved": { "title": "Pro-Seite freigegeben", "body": "Deine Pro-Seite ist online. Du kannst jetzt deine Touren veröffentlichen." },

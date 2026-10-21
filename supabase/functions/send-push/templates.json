@@ -178,7 +178,11 @@
     },
     "review_received": {
      "title": "Nouvel avis",
-     "body": "{{name}} a laissé un avis ({{rating}}★) sur {{label}}"
+     "body": "{{name}} a laissé un avis ({{rating}}★) sur {{label}}",
+     "updated": {
+      "title": "Avis modifié",
+      "body": "{{name}} a modifié son avis ({{rating}}★) sur {{label}}"
+     }
     },
     "review_reply": {
      "title": "Réponse à ton avis",
@@ -391,7 +395,11 @@
     },
     "review_received": {
      "title": "New review",
-     "body": "{{name}} left a review ({{rating}}★) on {{label}}"
+     "body": "{{name}} left a review ({{rating}}★) on {{label}}",
+     "updated": {
+      "title": "Review updated",
+      "body": "{{name}} updated their review ({{rating}}★) of {{label}}"
+     }
     },
     "review_reply": {
      "title": "Reply to your review",
@@ -604,7 +612,11 @@
     },
     "review_received": {
      "title": "Nuova recensione",
-     "body": "{{name}} ha lasciato una recensione ({{rating}}★) su {{label}}"
+     "body": "{{name}} ha lasciato una recensione ({{rating}}★) su {{label}}",
+     "updated": {
+      "title": "Recensione modificata",
+      "body": "{{name}} ha modificato la recensione ({{rating}}★) su {{label}}"
+     }
     },
     "review_reply": {
      "title": "Risposta alla tua recensione",
@@ -817,7 +829,11 @@
     },
     "review_received": {
      "title": "Nueva reseña",
-     "body": "{{name}} ha dejado una reseña ({{rating}}★) sobre {{label}}"
+     "body": "{{name}} ha dejado una reseña ({{rating}}★) sobre {{label}}",
+     "updated": {
+      "title": "Opinión modificada",
+      "body": "{{name}} ha modificado su opinión ({{rating}}★) sobre {{label}}"
+     }
     },
     "review_reply": {
      "title": "Respuesta a tu reseña",
@@ -1030,7 +1046,11 @@
     },
     "review_received": {
      "title": "Neue Bewertung",
-     "body": "{{name}} hat eine Bewertung ({{rating}}★) zu {{label}} hinterlassen"
+     "body": "{{name}} hat eine Bewertung ({{rating}}★) zu {{label}} hinterlassen",
+     "updated": {
+      "title": "Bewertung geändert",
+      "body": "{{name}} hat die Bewertung ({{rating}}★) zu {{label}} geändert"
+     }
     },
     "review_reply": {
      "title": "Antwort auf deine Bewertung",
