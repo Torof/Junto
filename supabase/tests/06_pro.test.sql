@@ -337,6 +337,10 @@ PERFORM pg_temp.ok('le pro refuse une demande', format($$SELECT public.decline_b
 PERFORM pg_temp.ok('le pro annule une demande', format($$SELECT public.cancel_booking_pro(%L)::text$$, pg_temp.id('bk3')));
 PERFORM pg_temp.as_('cli2');
 PERFORM pg_temp.denied('annuler une demande refusée est refusé', format($$SELECT public.cancel_booking(%L)::text$$, pg_temp.id('bk2')));
+-- DB-PO-2 : redemander un créneau refusé doit passer par la branche de réactivation (délai anti-spam d'1 h),
+-- pas buter sur un doublon et répondre « déjà réservé ».
+PERFORM pg_temp.as_('cli2');
+PERFORM pg_temp.denied('redemander aussitôt un créneau refusé applique le délai anti-spam', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d2')), 'junto.booking_cooldown', 'DB-PO-2');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('cli2 est notifié du refus', format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'booking_declined'$$, pg_temp.id('cli2')), '1');
 
