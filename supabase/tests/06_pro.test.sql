@@ -439,6 +439,13 @@ PERFORM public.create_pro_review(pg_temp.id('pro2'), 1::smallint, 'Bof encore');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('publier / supprimer en boucle ne renotifie pas le pro',
   format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'review_received'$$, pg_temp.id('pro2')), '1');
+-- 00505 : un avis sur la page et un avis sur une offre, le même jour, font deux notifications.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('n0', (SELECT count(*)::text FROM public.notifications WHERE user_id = pg_temp.id('pro2') AND type = 'review_received'));
+PERFORM public.notify_review_received(pg_temp.id('pro2'), 'Cli', 4::smallint, 'Offre A',
+  jsonb_build_object('offering_id', gen_random_uuid(), 'review_id', gen_random_uuid(), 'reviewer_id', pg_temp.id('cli')));
+PERFORM pg_temp.eq('avis sur une offre après un avis sur la page : le pro est bien prévenu',
+  format($$SELECT (count(*) - %s)::text FROM public.notifications WHERE user_id = %L AND type = 'review_received'$$, pg_temp.get('n0'), pg_temp.id('pro2')), '1');
 -- PO-4 : un membre bloqué par le pro ne devrait pas pouvoir publier d'avis.
 PERFORM pg_temp.as_('har');
 PERFORM pg_temp.denied('un membre bloqué par le pro ne laisse pas d''avis', format($$SELECT public.create_pro_review(%L, 1::smallint, 'Harcèlement')::text$$, pg_temp.id('pro')), 'Operation not permitted');
