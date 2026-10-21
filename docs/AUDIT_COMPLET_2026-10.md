@@ -183,7 +183,10 @@ Suite : 1 528 pass, 0 fail, 44 failles connues restantes.
 - **Droits** : aucune écriture client par défaut sur les nouvelles tables ; plus de TRUNCATE / TRIGGER / REFERENCES / MAINTAIN pour les clients.
 - **Restent** : 17 failles connues — 12 fermées par la migration (PostGIS, droits de supabase_admin, pg_net), 2 de nettoyage (ancienne table des murs, suppression directe de ses alertes = écart de documentation), DC-4 ×2 et ID-2 (décisions Scott), L16 (prochaine version de production). Proposé, non fait : bouton « Signaler » sur message / groupe / canal + fermeture d'un canal par l'admin (interface).
 
-Suite : 1 579 pass, 0 fail, 17 failles connues restantes.
+- **ID-2 (décision Scott, mig 00506)** : un compte suspendu peut s'effacer, mais l'empreinte HMAC de son e-mail (pas l'e-mail) bloque la réinscription, variantes « +tag » et majuscules comprises ; réinscription par le support.
+- **Signalement (mig 00507 + app)** : bouton « Signaler » sur un message (conversations et murs de sortie), un groupe, une discussion ouverte ; l'admin peut retirer un message ou un groupe et fermer une discussion.
+
+Suite : 1 586 pass, 0 fail, 16 failles connues restantes.
 
 ## Plan de correction proposé (validation Scott par phase)
 
