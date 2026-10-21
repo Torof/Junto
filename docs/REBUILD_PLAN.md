@@ -1,4 +1,4 @@
-# Reconstruction de la base dans un nouveau projet Supabase — plan v4
+# Reconstruction de la base dans un nouveau projet Supabase — plan v5
 
 > Décision Scott 2026-10-21 : construire une nouvelle base propre à côté de l'actuelle, **sans toucher à l'actuelle**, puis basculer après tests. Origine : audit complet d'octobre (TX-2 PostGIS exposé et non corrigeable sur place, TX-4 privilèges par défaut). v2 intégrait un premier pré-audit indépendant.
 >
@@ -141,6 +141,31 @@ Ces points priment sur les sections précédentes en cas de conflit.
 15. **Retour arrière** : tout ce qui a été créé dans le nouveau projet est perdu en cas de retour.
 
 **Gel pendant la fenêtre** : garder le dossier de migrations actuel utilisable pour l'ancien projet jusqu'à la bascule ; un correctif « aux deux projets » est un même fichier SQL appliqué à chacun.
+
+## 12. Amendements v5 — troisième pré-audit (simulation d'exécution, 2026-10-21)
+
+Verdict du relecteur : **pas prêt tel quel ; exécutable après ces corrections**. Aucune action de l'étape 1 n'est irréversible ; le seul contact avec l'ancien projet est l'export en lecture.
+
+**Blocages**
+1. **Outils** : l'export passe par `pg_dump` dans Docker ; ni Docker, ni `pg_dump`, ni `psql` ne sont installés sur la machine (l'export a échoué). → Installer Docker (action Scott, droits administrateur), figer la version de la ligne de commande Supabase (2.121.0), dossier de travail séparé lié au nouveau projet (le dépôt reste lié à l'ancien).
+2. **Réécriture PostGIS** : l'export met tous les noms entre guillemets (`"public"."geography"`, `"public"."st_x"`). L'expression du plan ne trouvait rien et son contrôle passait à vide. → Expression sur noms entre guillemets ; contrôles : zéro `"public"."st_|geograph|geometr|postgis|box2d|box3d"` et zéro `OPERATOR("public"` ; **compte positif** : exactement 9 `"extensions"."geography"(` ; zéro ligne `ALTER DEFAULT PRIVILEGES` restante.
+
+**Points importants (deviennent SQL exact dans le script d'exécution)**
+3. **T2** par `ALTER FUNCTION … SET search_path = public, extensions` après restauration, sur les 5 fonctions (droits et corps conservés), pas par édition de texte.
+4. **T3** : une seule clé `project_url` (format vérifié, sans barre finale) ; échec fermé dans les **3** fonctions de contrôle d'URL (`pro_photo_url_ok`, `create_channel`, `set_channel_photo` — ces deux dernières échouaient aussi ouvert) ; `pro_photo_url_ok` passe de IMMUTABLE à STABLE avec `search_path`, écart listé comme attendu ; comparaison d'hôte par `starts_with` plutôt que `LIKE`. Preuve : zéro adresse `.supabase.co` dans les corps de fonction, tests clé présente / clé supprimée / ancien hôte refusé.
+5. **T4** écrit comme un **état final exact** des lignes de `pg_default_acl` (global : fonctions sans `PUBLIC` ; `public` : fonctions sans `anon` ni `authenticated`, tables sans écriture), **`anon` nommé explicitement** (un projet neuf l'autorise par défaut). Preuve par un test canari (objets créés puis annulés, droits vérifiés à faux).
+6. **Droits des fonctions PostGIS utilisées par les vues publiques** : vérifier explicitement l'exécution de `st_x`, `st_y`, `geometry(geography)` et l'usage du schéma `extensions` pour `anon` et `authenticated` — sinon les 5 vues de la carte cassent silencieusement (risque le plus probable selon le relecteur).
+7. **Publication temps réel** : probablement déjà dans l'export → ajout idempotent ; vérifier tôt que `postgres` en est propriétaire.
+8. **Vérificateur statique** : `plpgsql_check` couvre 238 fonctions plpgsql ; les 25 fonctions SQL sont validées à part (validateur + exécution) ; les 49 fonctions de trigger par table ; canari : `handle_activity_update` doit échouer **avant** la correction T2, preuve que le vérificateur respecte le `search_path`.
+9. **Tests** : pas de confiance dans BEGIN / ROLLBACK via l'API d'administration → chaque test est un bloc qui se termine par une exception volontaire portant ses résultats ; puis vérification : 0 compte, 0 ligne hors référentiels, file d'envoi HTTP vide. `now()` est figé dans une transaction : les parcours temporels (fenêtres de présence) utilisent des dates passées ou sont listés comme non testés.
+10. **Réglages de rôles** : comparer seulement, ne pas rejouer (réservé au superutilisateur).
+11. **Comparaison par attribut** : T2 n'autorise qu'un changement de `proconfig` sur 5 fonctions (corps identiques à l'octet) ; T3 n'autorise que `prosrc` sur 7 fonctions plus volatilité et `proconfig` de `pro_photo_url_ok` ; droits comparés en ensembles incluant `PUBLIC` ; vues rendues sous `search_path` vide avec leurs options ; état activé des triggers ; droits de colonne dans les deux sens.
+12. **Vérifications précoces ajoutées** : propriétaire de la publication, droit de créer des policies sur `storage.objects` et `realtime.messages`, droit TRIGGER sur `auth.users`, état de départ de `pg_default_acl`, locale (ICU en-US) et versions — à décider avant de construire si elles diffèrent (non modifiables ensuite).
+13. **Divers** : chaque phase dans sa propre migration, noms entièrement qualifiés (l'export vide le `search_path` pour la session) ; T6 couvre aussi MAINTAIN ; contrôle « aucune ligne commençant par `--` » dans les corps (supprimées par l'outil d'export) ; suppression d'un bucket créé par erreur via l'API Storage ; lecture de `cron.job_run_details` une fois les tâches actives.
+
+**Inventaire PostGIS confirmé** : aucune fonction avec un type PostGIS en argument ou en retour ; 9 colonnes `geography` sans défaut ; 6 index GiST (classe d'opérateurs par défaut, insensibles au schéma) ; 5 vues ; aucune policy, contrainte, clause WHEN ou défaut dépendant de PostGIS ; aucun SQL dynamique.
+
+**Droits (2e passage, PV-3)** : la recopie exacte reproduit les droits complets par défaut des tables (seule la RLS protège aujourd'hui). Elle reste la règle de l'étape 1 pour garder une comparaison stricte ; leur réduction au strict nécessaire est une phase ultérieure, sur la nouvelle base.
 
 ## Annexe — bug préexistant hors périmètre
 

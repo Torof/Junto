@@ -37,7 +37,7 @@
 | TX-3 / PO-3 | Stockage | Les 3 buckets publics sont listables sans compte : identifiants des utilisateurs et photos retirées de l'app restent trouvables et téléchargeables. | Remplacer la lecture publique par la lecture de son propre dossier (les liens publics restent valides) ; purger les fichiers orphelins. |
 | CL-1 | App | Un lien de réinitialisation piégé fait basculer un utilisateur connecté sur le compte de l'attaquant, sans le prévenir. | Refuser ces liens si une session existe ; vider le cache à tout changement d'utilisateur. |
 | CL-2 | Site | Next.js 15.5.15 : faille connue de déni de service sur le rendu serveur. | Mettre à jour Next.js. |
-| BUG | Sorties / contacts | **Les demandes de covoiturage et de contact n'expirent jamais** : la tâche planifiée appelle `transition_statuses_only`, qui n'inclut pas `expire_idle_seat_requests` / `expire_stale_contact_requests` (seule une fonction jamais appelée les lance). | Ajouter les deux expirations au balayage planifié. |
+| BUG (corrigé par le 2e passage) | Sorties / contacts | Les expirations de demandes de covoiturage et de contact ne sont pas dans la tâche planifiée : elles ne tournent que lorsque l'app appelle `check_activity_transitions` à l'ouverture (19 demandes bien expirées, aucune en attente > 48 h). Dépendance au trafic, pas un arrêt. | Les déplacer dans le balayage planifié et retirer la fonction aux clients (PR-1). |
 
 ## LOW (résumé)
 
@@ -55,6 +55,42 @@
 RLS activée et forcée sur les 47 tables ; aucune écriture client possible sur les tables réservées aux fonctions ; 248 fonctions privilégiées toutes avec `search_path` ; seules des fonctions de trigger et `demo_content_visible` exécutables sans compte ; toutes les fonctions internes fermées aux clients ; fonctions admin toutes gardées et journalisées ; temps réel : canaux privés, contenu jamais diffusé, sujets réservés aux membres ; push : secret comparé en temps constant, jetons illisibles ; Edge Functions authentifiées, quotas avant lecture, aucune SSRF ; aucun secret dans le dépôt ni l'historique ; rideau démo tenu sur toutes les surfaces de lecture ; aucune conversation active créée sans consentement hors QR ; app : pas de `service_role`, pas de `select('*')`, pas de lien automatique sur le texte utilisateur, session en stockage sécurisé, cache vidé à la déconnexion, Sentry sans données personnelles par défaut.
 
 **Non vérifiable en lecture seule** : réglages Auth du tableau de bord Supabase (confirmation d'email, longueur de mot de passe, URL de redirection, limites de débit) et restrictions des clés Google / Mapbox.
+
+## Second passage (2026-10-21) — 5 angles transverses
+
+Même méthode (lecture seule, base vivante), mais découpage par angle et non par domaine, avec consigne de ne remonter que ce que le premier passage a manqué : **droits** (matrice complète : 95 lignes, 204 fonctions), **accès croisés** (127 fonctions à identifiant), **fuite de données** (matrice colonne sensible → chemins), **règles métier et cycles de vie**, **abus et coûts**. Aucune critique ; le premier passage n'était pas exhaustif.
+
+### HIGH (nouvelles)
+
+| # | Trouvaille | Correctif proposé |
+|---|---|---|
+| AB-1 | **Inscription / désinscription en boucle** : la limite de 10 inscriptions / h compte des lignes, et une réinscription réutilise la même ligne → un compte peut envoyer des dizaines de milliers de push par heure à un organisateur, avec 200 caractères de texte libre (motif de départ). | Compter les événements ; délai après désinscription ; un seul push « a quitté » par personne et par sortie et par jour. |
+| AB-2 | **Diffusion temps réel non filtrée de `activities`** : chaque carte ouverte reçoit toute modification de toute sortie et recharge la carte ; un organisateur qui modifie en boucle sature le temps réel et la base pour tous. | Remplacer par une diffusion limitée en fréquence ; limiter `update_activity` ; supprimer l'écriture directe (AC-1). |
+| AB-3 | **Aucun plafond journalier ni de taille sur les messages et les traces partagées** : un compte peut remplir la base (73 Mo aujourd'hui) en moins d'une journée → passage en lecture seule pour toute l'app sur l'offre gratuite. | Plafonds journaliers ; taille maximale des traces partagées (garde existante `trace_geojson_ok`). |
+
+### MEDIUM (nouvelles ou aggravées)
+
+| # | Trouvaille | Correctif proposé |
+|---|---|---|
+| IX-1 / AC-8 aggravé | Une sortie privée par lien se rejoint avec son seul identifiant : le jeton d'invitation n'est jamais vérifié. Quiconque a vu la sortie quand elle était publique peut la rejoindre. | Exiger le jeton (ou une invitation existante) pour les sorties privées. |
+| IX-2 / BR-1 | Une demande de place rouvre une conversation dont la demande de contact avait été refusée, et y dépose un message. Contredit « jamais de conversation active sans les deux consentements ». | Ne toucher à la conversation qu'à l'acceptation du conducteur. |
+| BR-2 | Votes de réputation sur une sortie sans vérification de présence : enregistrés, jamais comptés. | Les compter à fin + 24 h, ou ne pas les solliciter. |
+| BR-3 | Covoiturage garanti seulement par l'app : un passager peut tenir plusieurs places ; un conducteur peut devenir passager et abandonner ses passagers. | Contrôles dans `request_seat` / `accept_seat_request`. |
+| BR-4 | Âge ≥ 18 ans et conditions d'utilisation vérifiés seulement par l'app : un compte qui contourne l'app agit sans les avoir validés (sujet légal). | Contrôle commun dans les fonctions d'action. |
+| PV-1 | **Sans compte**, des fonctions statistiques de PostGIS lisent les statistiques internes : rectangle englobant des bases de dispo à quelques mètres près, répartition des points de rendez-vous (sorties privées comprises), nombres de lignes. Non révocable par notre rôle. | Fermé par le déplacement de PostGIS (reconstruction) ; contrôle explicite après. |
+| DX-1 | Les absences (`confirmed_present = false`) sont lisibles par tout compte, pour toujours, sur toute sortie publique : historique d'absences constituable. | Ne jamais renvoyer `false` hors créateur ; limiter aux sorties en cours. |
+| DX-2 | Le correctif prévu de DC-1 (arrondir à l'affichage) ne suffit pas : en déplaçant sa base pas à pas (sans limite), on retrouve le point exact d'une autre base par les apparitions / disparitions de correspondance. | Arrondir la base **à l'enregistrement** ; limiter les changements de base. |
+| AB-4 | Demande de place / annulation en boucle → push et messages illimités vers un conducteur. | Délai après annulation, ou comptage d'événements. |
+| AB-5 | Buckets publics utilisables comme hébergeur de fichiers gratuit (aucun plafond d'objets, aucun contrôle « est pro » sur `pro-photos`). | Plafond par dossier ; `pro-photos` réservé aux pros. |
+| AB-6 | Un jeton push étranger enregistré par un membre fait échouer silencieusement les push de toute une conversation (lots Expo mixtes). | Envoyer par projet ; écarter les jetons étrangers. |
+| AB-7 | Le quota partagé du service d'itinéraire (ORS) épuisable par un seul compte ; pas de délai d'attente. | Plafond global, quota individuel réduit, délai. |
+| AB-8 | Texte sans limite (`avatar_url`, `sports`, `level`) servi à chaque affichage de carte, y compris sans compte. | Contraintes de taille. |
+| AB-9 | Invocations de fonctions serveur multipliées (une par notification ou message) : quota mensuel épuisable. | Fermer AB-1 / AB-3 / AB-4 ; budget de push par destinataire. |
+| AB-10 | Mise à jour du matériel en boucle → tempête temps réel sur tous les écrans de sortie ouverts. | Diffusion limitée ; limite de fréquence. |
+
+**LOW nouvelles** : IX-3 / DX-5 rideau démo absent de 3 lectures de profil ; DX-3 suspension détectable par les lectures de statistiques ; DX-4 date exacte des sorties privées révélée par les niveaux par sport ; BR-5 dispos jamais expirées ; BR-6 réservations en attente passées expirées seulement à la lecture ; BR-7 sortie « en cours » déplaçable dans le futur ; BR-8 sortie retirée par l'admin encore modifiable ; BR-9 deux plafonds sans verrou ; BR-10 place non rendue lors d'un blocage ; BR-11 aucun retrait possible d'un statut pro approuvé ; AB-11 jetons push illimités ; AB-12 quitter un groupe ne tient pas ; AB-13 push « nouveau participant » ignore les préférences ; AB-14 recherche de canaux sans borne ; AB-15 requête carte sans index ; PV-2 744 fonctions PostGIS appelables sans compte (fermé par la reconstruction) ; PV-3 tables avec les droits complets par défaut (seule la RLS protège ; TRUNCATE l'ignore) ; PV-4 file d'envoi HTTP de pg_net lisible par les rôles clients (non exposée aujourd'hui).
+
+**Aggravations confirmées** : AC-1 (écriture directe : aussi date hors limites et visibilité), AC-2 (aussi les sorties privées pour une personne retirée, et les personnes bloquées), AC-6, PR-1, PR-4 (aussi par réinvitation), ID-9, MS-7, CL-1 (aussi par la page de confirmation d'e-mail), CL-4, TX-2 (aussi modification, pas seulement suppression).
 
 ## Plan de correction proposé (validation Scott par phase)
 
