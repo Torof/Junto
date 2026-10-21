@@ -36,7 +36,10 @@ export default function SuspendedScreen() {
               style: 'destructive',
               onPress: async () => {
                 try {
-                  await supabase.rpc('delete_own_account');
+                  // The full deletion (auth account + files), like the settings
+                  // drawer — the bare RPC left the login alive (audit, re-secure).
+                  const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+                  if (error) throw error;
                   await authService.signOut();
                 } catch {
                   Alert.alert(t('auth.error'), t('auth.unknownError'));

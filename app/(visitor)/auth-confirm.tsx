@@ -7,10 +7,11 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
+import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 
-type Phase = 'verifying' | 'invalid';
+type Phase = 'verifying' | 'invalid' | 'signedIn';
 
 // Signup email confirmation landing — mirror of reset-password. The web
 // /auth/callback bridge forwards the confirmation token here via
@@ -38,6 +39,15 @@ export default function AuthConfirmScreen() {
       const accessToken = typeof params.access_token === 'string' ? params.access_token : null;
       const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null;
 
+      // A sign-in link must never silently switch an open session to another
+      // account (audit CL-1: a link carrying someone else's tokens would log
+      // the victim into the attacker's account). Signed in → refuse.
+      const { data: { session: current } } = await supabase.auth.getSession();
+      if (current) {
+        if (!cancelled) setPhase('signedIn');
+        return;
+      }
+
       try {
         if (tokenHash) {
           await authService.verifySignupToken(tokenHash);
@@ -58,6 +68,18 @@ export default function AuthConfirmScreen() {
     })();
     return () => { cancelled = true; };
   }, [params.token_hash, params.access_token, params.refresh_token, router]);
+
+  if (phase === 'signedIn') {
+    return (
+      <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Text style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</Text>
+        <Text style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</Text>
+        <Pressable style={styles.primaryButton} onPress={() => router.replace('/')}>
+          <Text style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (phase === 'invalid') {
     return (

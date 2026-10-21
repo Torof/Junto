@@ -94,6 +94,9 @@ PERFORM pg_temp.eq('ID-2 : l''empreinte de l''e-mail est gardée, pas l''e-mail'
 PERFORM pg_temp.denied('ID-2 : se réinscrire avec cet e-mail (variante +tag, majuscules) est refusé',
   $$INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, created_at, updated_at)
     VALUES (gen_random_uuid(), upper(replace(pg_temp.get('sam_email'), '@', '+re@')), 'authenticated', 'authenticated', '{}'::jsonb, now(), now())$$, 'Operation not permitted');
+PERFORM pg_temp.as_('sam');
+PERFORM pg_temp.denied('ID-2 : la connexion survivante ne recrée pas de profil (00513)', $$SELECT public.ensure_user_row()::text$$, 'Operation not permitted');
+PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('ID-2 : un compte non suspendu qui s''efface ne laisse aucune empreinte',
   $$SELECT private.email_is_banned('test-' || pg_temp.id('bob') || '@junto.test')::text$$, 'false');
 PERFORM pg_temp.as_('noob');
@@ -103,3 +106,14 @@ PERFORM pg_temp.denied('sans âge confirmé ni CGU acceptées, on ne peut pas cr
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('un visiteur sans compte ne peut pas écrire dans spatial_ref_sys',
   $$DELETE FROM public.spatial_ref_sys WHERE srid = -1$$, 'permission denied', 'TX-2');
+
+-- 00513 : profil — sports est un tableau borné (un objet cassait l'affichage du profil chez les autres).
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.denied('sports doit être un tableau', format($$UPDATE public.users SET sports = '{"a":1}'::jsonb WHERE id = %L$$, pg_temp.id('alice')), 'users_sports_shape');
+PERFORM pg_temp.ok('une liste de sports est acceptée', format($$UPDATE public.users SET sports = '["hiking"]'::jsonb WHERE id = %L$$, pg_temp.id('alice')));
+-- 00513 (ID-4) : un signalement ne sert pas à suspendre quelqu'un d'autre que la personne visée.
+PERFORM pg_temp.as_('adm');
+PERFORM pg_temp.put('rep_x', (SELECT id::text FROM public.reports WHERE target_type = 'user' AND target_id = pg_temp.id('bob') LIMIT 1));
+PERFORM pg_temp.denied('suspendre une autre personne que la visée du signalement est refusé',
+  format($$SELECT public.moderate_report(%L, 'actioned', 'note', %L)::text$$, pg_temp.get('rep_x'), pg_temp.id('alice')), 'Operation not permitted');
+

@@ -10,10 +10,11 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
+import { supabase } from '@/services/supabase';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
 
-type Phase = 'verifying' | 'ready' | 'invalid' | 'submitting';
+type Phase = 'verifying' | 'ready' | 'invalid' | 'submitting' | 'signedIn';
 
 export default function ResetPasswordScreen() {
   const colors = useColors();
@@ -40,6 +41,15 @@ export default function ResetPasswordScreen() {
       const tokenHash = typeof params.token_hash === 'string' ? params.token_hash : null;
       const accessToken = typeof params.access_token === 'string' ? params.access_token : null;
       const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null;
+
+      // A sign-in link must never silently switch an open session to another
+      // account (audit CL-1: a link carrying someone else's tokens would log
+      // the victim into the attacker's account). Signed in → refuse.
+      const { data: { session: current } } = await supabase.auth.getSession();
+      if (current) {
+        if (!cancelled) setPhase('signedIn');
+        return;
+      }
 
       try {
         if (tokenHash) {
@@ -84,6 +94,18 @@ export default function ResetPasswordScreen() {
     return (
       <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <LogoSpinner />
+      </View>
+    );
+  }
+
+  if (phase === 'signedIn') {
+    return (
+      <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Text style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</Text>
+        <Text style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</Text>
+        <Pressable style={styles.primaryButton} onPress={() => router.replace('/')}>
+          <Text style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</Text>
+        </Pressable>
       </View>
     );
   }

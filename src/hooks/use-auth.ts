@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { type Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/auth-service';
@@ -20,6 +20,8 @@ export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  // Last signed-in account id seen (cross-account cache wipe on any path).
+  const lastUserIdRef = useRef<string | null>(null);
   const [isSuspended, setIsSuspended] = useState(false);
 
   const checkUserStatus = useCallback(async (userId: string) => {
@@ -99,6 +101,10 @@ export function useAuth(): AuthState {
       }
 
       if (s) {
+        // A different account than the one cached (any path, not only an
+        // explicit sign-out) → never show the previous account's data.
+        if (lastUserIdRef.current && lastUserIdRef.current !== s.user.id) queryClient.clear();
+        lastUserIdRef.current = s.user.id;
         // Propagate the session synchronously so AuthGate re-renders + routes
         // immediately. Status check runs in the background and may flip
         // needsOnboarding/isSuspended, triggering another route evaluation.

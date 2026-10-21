@@ -64,11 +64,14 @@ Deno.serve(async (req) => {
   // log and continue rather than abort.
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  for (const bucket of ['avatars', 'pro-photos']) {
+  // channel-photos added in the re-secure pass (audit ID-7): the user's
+  // discussions are closed by delete_own_account, their photos go too.
+  for (const bucket of ['avatars', 'pro-photos', 'channel-photos']) {
     try {
       const paths: string[] = [];
       // list() is per-folder; walk the user's folder tree (depth is
-      // bounded: avatars/<uid>/file, pro-photos/<uid>/<surface>/<id>/gallery/file).
+      // bounded: avatars/<uid>/file, pro-photos/<uid>/<surface>/<id>/gallery/file,
+      // channel-photos/<uid>/channels/file).
       const walk = async (prefix: string) => {
         const { data: entries, error } = await adminClient.storage.from(bucket).list(prefix, { limit: 1000 });
         if (error || !entries) return;
