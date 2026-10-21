@@ -121,6 +121,16 @@ PERFORM pg_temp.as_('pry');
 PERFORM pg_temp.eq('IX-1 : ouvrir le lien montre la sortie', format($$SELECT count(*)::text FROM public.get_activity_by_invite_token(%L::uuid)$$, pg_temp.get('priv_tok')), '1');
 PERFORM pg_temp.eq('IX-1 : après avoir ouvert le lien, on rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.id('priv')), 'accepted');
 PERFORM pg_temp.ok('IX-1 : pry quitte la sortie privée', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('priv')));
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.put('privA', pg_temp.ok('alice crée une sortie privée sur demande', pg_temp.sorties_ca('private_link_approval', 6)));
+PERFORM pg_temp.put('rot', pg_temp.ok('alice crée une sortie publique', pg_temp.sorties_ca('public', 6)));
+PERFORM pg_temp.put('rot_tok', pg_temp.ok('alice récupère le lien de sa sortie publique', format($$SELECT public.get_own_invite_token(%L)::text$$, pg_temp.id('rot'))));
+PERFORM pg_temp.ok('alice passe la sortie en privée', format($$SELECT public.update_activity(%L, p_visibility := 'private_link')::text$$, pg_temp.id('rot')));
+PERFORM pg_temp.as_('pry');
+PERFORM pg_temp.denied('IX-1 : une sortie privée sur demande ne se demande pas par son seul identifiant', format($$SELECT public.join_activity(%L)$$, pg_temp.id('privA')), 'Operation not permitted');
+PERFORM pg_temp.eq('IX-1 : ni son détail', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('privA')), '0');
+PERFORM pg_temp.eq('AC-8 : passée en privée, l''ancien lien ne mène plus à la sortie', format($$SELECT count(*)::text FROM public.get_activity_by_invite_token(%L::uuid)$$, pg_temp.get('rot_tok')), '0');
+PERFORM pg_temp.denied('AC-8 : ni à la rejoindre', format($$SELECT public.join_activity(%L)$$, pg_temp.id('rot')), 'Operation not permitted');
 
 -- Boucle inscription / désinscription (AB-1).
 PERFORM pg_temp.as_('loop');
