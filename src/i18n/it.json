@@ -567,6 +567,8 @@
       "votes_need_presence": "Si può votare solo nelle uscite con verifica della presenza.",
       "schedule_conflict": "Partecipi già a un'altra uscita in quell'orario.",
       "participant_schedule_conflict": "Questa persona partecipa già a un'altra uscita in quell'orario.",
+      "member_left_recently": "Questa persona ha lasciato il gruppo di recente: può tornare da sola, ma per ora non può essere aggiunta di nuovo.",
+      "pro_website_invalid": "Il sito web deve iniziare con http:// o https://.",
       "seats_still_active": "Alcuni passeggeri hanno un posto confermato. Annulla i loro posti prima di cambiare trasporto.",
       "pickup_out_of_window": "L'orario di prelievo è troppo lontano dall'orario dell'uscita.",
       "depart_out_of_window": "L'orario di partenza è troppo lontano dall'orario dell'uscita.",

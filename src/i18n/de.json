@@ -567,6 +567,8 @@
       "votes_need_presence": "Bewertungen sind nur bei Touren mit Anwesenheitsbestätigung möglich.",
       "schedule_conflict": "Du bist zu dieser Zeit schon bei einer anderen Tour dabei.",
       "participant_schedule_conflict": "Diese Person ist zu dieser Zeit schon bei einer anderen Tour dabei.",
+      "member_left_recently": "Diese Person hat die Gruppe kürzlich verlassen: Sie kann selbst zurückkommen, aber vorerst nicht wieder hinzugefügt werden.",
+      "pro_website_invalid": "Die Website muss mit http:// oder https:// beginnen.",
       "seats_still_active": "Mitfahrer haben einen bestätigten Platz. Storniere ihre Plätze, bevor du die Anreise änderst.",
       "pickup_out_of_window": "Die Abholzeit liegt zu weit von der Startzeit der Tour entfernt.",
       "depart_out_of_window": "Die Abfahrtszeit liegt zu weit von der Startzeit der Tour entfernt.",

@@ -567,6 +567,8 @@
       "votes_need_presence": "Solo se puede votar en salidas con validación de presencia.",
       "schedule_conflict": "Ya participas en otra salida en ese horario.",
       "participant_schedule_conflict": "Esta persona ya participa en otra salida en ese horario.",
+      "member_left_recently": "Esta persona dejó el grupo hace poco: puede volver por sí misma, pero no se la puede añadir de nuevo por ahora.",
+      "pro_website_invalid": "El sitio web debe empezar por http:// o https://.",
       "seats_still_active": "Hay pasajeros con plaza confirmada. Cancela sus plazas antes de cambiar de transporte.",
       "pickup_out_of_window": "La hora de recogida está demasiado alejada del horario de la salida.",
       "depart_out_of_window": "La hora de salida está demasiado alejada del horario de la actividad.",
