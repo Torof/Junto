@@ -232,7 +232,7 @@ PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('un participant ne change pas la trace d''autrui', format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[6,44],[6.1,44.1]]}'::jsonb)::text$$, pg_temp.id('pub')));
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.ok('alice pose une trace valide', format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[6,44],[6.1,44.1]]}'::jsonb)::text$$, pg_temp.id('cxl')));
-PERFORM pg_temp.denied('trace invalide refusée', format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[600,44]]}'::jsonb)::text$$, pg_temp.id('cxl')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('trace invalide refusée', format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[600,44]]}'::jsonb)::text$$, pg_temp.id('cxl')), 'junto.trace_geojson_invalid');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la distance est déduite de la trace', format($$SELECT (distance_km > 0)::text FROM public.activities WHERE id = %L$$, pg_temp.id('cxl')), 'true');
 
@@ -712,3 +712,24 @@ PERFORM pg_temp.eq('B2 : le passage en démo émet un signal (la sortie quitte l
 PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.activities SET is_demo = false WHERE id = pg_temp.id('b_pub');
 PERFORM set_config('junto.bypass_lock', 'false', true);
+
+-- ═════ Phase B2 fin (mig 00483) : signal carte quand l'organisateur change ═════
+PERFORM pg_temp.as_('db');
+DELETE FROM public.map_broadcasts WHERE activity_id = pg_temp.id('b_pub');
+PERFORM pg_temp.put('b3_m0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'map'));
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B2 : l''organisateur change sa bio (pas affichée sur la carte)', format($q$UPDATE public.users SET bio = 'Nouvelle bio' WHERE id = %L$q$, pg_temp.id('b_org')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : une bio modifiée n''émet rien', $q$SELECT (count(*) - pg_temp.get('b3_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '0');
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B2 : l''organisateur change son nom affiché', format($q$UPDATE public.users SET display_name = 'Org renommé' WHERE id = %L$q$, pg_temp.id('b_org')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : un nom d''organisateur modifié émet un seul signal', $q$SELECT (count(*) - pg_temp.get('b3_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '1');
+DELETE FROM public.map_broadcasts WHERE activity_id IN (pg_temp.id('b_pub'), pg_temp.id('b_org'));
+PERFORM pg_temp.user('b_adm', 'tos,admin');
+PERFORM pg_temp.as_('b_adm');
+PERFORM pg_temp.ok('B2 : un admin suspend l''organisateur', format($q$SELECT public.admin_suspend_user(%L, 'raison de test')::text$q$, pg_temp.id('b_org')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : la suspension de l''organisateur émet un signal (ses sorties quittent les cartes)', $q$SELECT (count(*) - pg_temp.get('b3_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '2');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B2 : les signaux organisateur sont plafonnés à 30 par heure', format($q$SELECT (count(*) <= 30)::text FROM public.rate_events WHERE user_id = %L AND kind = 'creator_map'$q$, pg_temp.id('b_org')), 'true');

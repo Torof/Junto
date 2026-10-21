@@ -447,21 +447,38 @@ PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('un compte suspendu ne calcule pas de stats', format($$SELECT distance_km::text FROM public.compute_trace_stats(%L::jsonb)$$, pg_temp.dc_trace()), 'Operation not permitted');
 PERFORM pg_temp.denied('un compte suspendu n''enregistre pas de trace', format($$SELECT (public.create_gpx_trace('x', %L::jsonb)).id::text$$, pg_temp.dc_trace()), 'Operation not permitted');
 
+-- ───── Validateur de trace (00484) ─────
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('validateur : objet vide refusé sans erreur', $$SELECT public.trace_geojson_ok('{}'::jsonb)::text$$, 'false');
+PERFORM pg_temp.eq('validateur : LineString sans coordonnées refusée', $$SELECT public.trace_geojson_ok('{"type":"LineString"}'::jsonb)::text$$, 'false');
+PERFORM pg_temp.eq('validateur : coordonnées sans type refusées', $$SELECT public.trace_geojson_ok('{"coordinates":[[6,44],[6.1,44.1]]}'::jsonb)::text$$, 'false');
+PERFORM pg_temp.eq('validateur : type nul refusé', $$SELECT public.trace_geojson_ok('{"type":null,"coordinates":[[6,44],[6.1,44.1]]}'::jsonb)::text$$, 'false');
+PERFORM pg_temp.eq('validateur : altitude infinitésimale refusée', $$SELECT public.trace_geojson_ok('{"type":"LineString","coordinates":[[6,44,1e-400],[6.1,44.1]]}'::jsonb)::text$$, 'false');
+PERFORM pg_temp.eq('validateur : trace normale acceptée (zéros compris)', $$SELECT public.trace_geojson_ok('{"type":"LineString","coordinates":[[0,0,0],[6.1,44.1,1200.5]]}'::jsonb)::text$$, 'true');
+
 -- ───── Trace d'une sortie ─────
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.ok('alice change la trace de sa sortie', format($$SELECT public.update_activity_trace(%L, %L::jsonb)::text$$, pg_temp.id('a_alice'), pg_temp.dc_trace(0.01)));
-PERFORM pg_temp.denied('trace Polygon refusée', format($$SELECT public.update_activity_trace(%L, '{"type":"Polygon","coordinates":[]}'::jsonb)::text$$, pg_temp.id('a_alice')), 'junto.trace_geojson_invalid');
-PERFORM pg_temp.denied('trace de plus de 10 000 points refusée',
+PERFORM pg_temp.eq('trace Polygon refusée', format($$SELECT public.update_activity_trace(%L, '{"type":"Polygon","coordinates":[]}'::jsonb)::text$$, pg_temp.id('a_alice')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('une trace refusée laisse la trace précédente en place (00483)',
+  format($$SELECT (trace_geojson->>'type')::text FROM public.activities WHERE id = %L$$, pg_temp.id('a_alice')), 'LineString');
+PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.eq('trace de plus de 10 000 points refusée',
   format($$SELECT public.update_activity_trace(%L, jsonb_build_object('type','LineString','coordinates',(SELECT jsonb_agg(jsonb_build_array(6, 44)) FROM generate_series(1, 10001))))::text$$, pg_temp.id('a_alice')), 'junto.trace_geojson_invalid');
-PERFORM pg_temp.denied('trace avec latitude impossible refusée',
+PERFORM pg_temp.eq('trace avec latitude impossible refusée',
   format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[6,44],[6,200]]}'::jsonb)::text$$, pg_temp.id('a_alice')), 'junto.trace_geojson_invalid');
-PERFORM pg_temp.denied('trace avec point non numérique refusée',
+PERFORM pg_temp.eq('trace avec point non numérique refusée',
   format($$SELECT public.update_activity_trace(%L, '{"type":"LineString","coordinates":[[6,44],["a","b"]]}'::jsonb)::text$$, pg_temp.id('a_alice')), 'junto.trace_geojson_invalid');
 PERFORM pg_temp.denied('alice ne change pas la trace de la sortie de bob',
   format($$SELECT public.update_activity_trace(%L, %L::jsonb)::text$$, pg_temp.id('a_pub'), pg_temp.dc_trace()), 'Operation not permitted');
 PERFORM pg_temp.ok('alice efface la trace', format($$SELECT public.update_activity_trace(%L, NULL)::text$$, pg_temp.id('a_alice')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la trace est effacée', format($$SELECT (trace_geojson IS NULL)::text FROM public.activities WHERE id = %L$$, pg_temp.id('a_alice')), 'true');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('une trace refusée est quand même comptée (00483)',
+  format($$SELECT (count(*) >= 4)::text FROM public.rate_events WHERE user_id = %L AND kind = 'activity_trace'$$, pg_temp.id('alice')), 'true');
+PERFORM pg_temp.as_('alice');
 
 -- ───── Favoris ─────
 PERFORM pg_temp.as_('alice');
