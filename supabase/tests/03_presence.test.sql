@@ -385,6 +385,15 @@ PERFORM pg_temp.eq('le seuil compte les votants, pas les votes (1 votant × 5 so
   format($$SELECT count(*)::text FROM public.get_top_vouched_badges(ARRAY[%L]::uuid[])$$, pg_temp.id('tv')), '0');
 PERFORM pg_temp.eq('PR-3 : 5 personnes ont donné « ponctuel » : les votants s''affichent',
   format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('tv2')), '5');
+PERFORM pg_temp.eq('PR-11 : la réputation compte des personnes (1 personne × 5 sorties = 1)',
+  format($$SELECT vote_count::text FROM public.get_user_reputation(%L) WHERE badge_key = 'punctual'$$, pg_temp.id('tv')), '1');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('neg', 'tos');
+PERFORM pg_temp.pr_vote(v, 'neg', 'V', 'aggressive') FROM unnest(ARRAY['crea', 'p1']) v;
+PERFORM pg_temp.as_('neg');
+PERFORM pg_temp.eq('PR-3 : sous le seuil, la personne visée ne voit pas le trait négatif (pas d''élimination)',
+  format($$SELECT count(*)::text FROM public.get_user_reputation(%L) WHERE badge_key = 'aggressive'$$, pg_temp.id('neg')), '0');
+PERFORM pg_temp.as_('str');
 
 -- Rideau démo sur les lectures de vote.
 PERFORM pg_temp.as_('db');
