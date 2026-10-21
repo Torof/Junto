@@ -81,6 +81,10 @@ EXECUTE $p$CREATE FUNCTION pg_temp.run(p_sql text) RETURNS text
   LANGUAGE plpgsql AS $b$
   DECLARE v text; n bigint;
   BEGIN
+    -- Some RPCs leave junto.bypass_lock on until the end of the transaction (harmless over
+    -- PostgREST, one call = one transaction). Inside a test block it would silently disable
+    -- the protective triggers for every later statement: reset it before each check.
+    PERFORM set_config('junto.bypass_lock', 'false', true);
     -- Statements that return rows give their first value; plain writes give their row count.
     IF p_sql ~* '^\s*(select|with|values|table)\M' OR p_sql ~* '\mreturning\M' THEN
       EXECUTE p_sql INTO v;
