@@ -97,6 +97,13 @@ Même méthode (lecture seule, base vivante), mais découpage par angle et non p
 | # | Défaut | Détail |
 |---|---|---|
 | DB-1 | **La recherche de compte par l'admin (`admin_resolve_user`) est cassée pour tout le monde depuis le 2026-07-13** | `WHERE id = v_admin` est ambigu avec la colonne de sortie `id` de `RETURNS TABLE` : erreur SQL avant même la vérification admin. Correctif : qualifier (`users.id`). |
+| DB-DC-1 | **« Inviter » depuis Découverte cassé pour tout le monde** (`get_invitable_activities_for_dispo`) | Même cause qu'DB-1 : `WHERE id = v_user_id` ambigu avec la colonne de sortie `id`. Qualifier la colonne. |
+| DB-PO-1 | **« Mes réservations » et le formulaire participant ne se chargent pour aucun client** (`get_my_bookings`) | `status` non qualifié dans l'UPDATE d'expiration, ambigu avec la colonne de sortie. Dernière définition : 00422 (2026-09-29). Écrire `bookings.status`. |
+| DB-PR-1 / DB-AC-1 | **Rejoindre une sortie déjà quittée échoue** avec une erreur brute de doublon ; accepter une invitation par `join_activity` aussi ; « déjà inscrit » et « retiré » renvoient l'erreur brute | `IF v_existing IS NOT NULL` sur un enregistrement est faux dès qu'un champ est NULL (`refused_at`) → la branche « ligne existante » est sautée. Remplacer par `FOUND` ou `v_existing.id IS NOT NULL`. |
+| DB-AC-2 | **Redemander une place au même conducteur après un refus ou une annulation est toujours refusé** (`request_seat`) | Même piège `IS NOT NULL` sur enregistrement : la branche de réactivation est du code mort. |
+| DB-PO-2 | **Re-réserver le même créneau chez un pro après une annulation échoue** (`create_booking`) | Même piège (trouvé par recherche systématique : 42 tests NULL sur enregistrement dans 39 fonctions ; seules ces 3 formes `IS NOT NULL` sont fausses, les 39 `IS NULL` sont correctes). |
+| DB-TX-1 | Écart de doc : suppression directe de ses propres alertes autorisée (`alerts_delete_own`, voulu depuis 00288) | Corriger la doc (CLAUDE.md, SECURITY.md), pas la base. |
+| PO-9 | **Fausse alerte de l'audit** : les avis des offres d'un pro suspendu ne sont pas lisibles (la sous-requête passe par la RLS de `pro_offerings`). | Gardé comme test de non-régression. |
 
 ## Plan de correction proposé (validation Scott par phase)
 
