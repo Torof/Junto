@@ -174,6 +174,17 @@ Suite : 1 501 pass, 0 fail, 65 failles connues restantes.
 
 Suite : 1 528 pass, 0 fail, 44 failles connues restantes.
 
+## Décisions Scott + phase intégrité — livrées (mig 00497-00505, 2026-10-21)
+
+- **Décisions Scott** : plus de demande de vote ni de vote sur une sortie sans validation de présence (écran d'évaluation explicite) ; **pas deux sorties au même créneau** (rejoindre, demander, accepter une invitation, être accepté, créer, déplacer sa sortie) ; lieux de départ des voitures visibles par tous, sans dire qui.
+- **TX-2 (HIGH) — filtre d'API** : PostgREST refuse toute écriture sur `spatial_ref_sys` / `geometry_columns` / `geography_columns` (hook `db_pre_request`, vérifié en réel : DELETE / PATCH refusés, lectures intactes). Les droits eux-mêmes (rôle supabase_admin) tombent avec la migration.
+- **Intégrité** : DX-3 (suspendu : aucune statistique, niveau, trophée), DX-4 (dates au mois), DC-6 (alertes validées), DC-7 (une dispo par compte), MS-8 (message supprimé et canal signalables), MS-2 (ajout à un groupe sans révéler un blocage), AB-12 (pas de remise dans un groupe quitté pendant 30 jours), MS-3 (invitation refusée jamais renvoyée, même par une demande de contact), MS-5 (caractères de contrôle retirés des notifications, côté base et côté envoi), AB-14, B11, ID-3 (avatar et photos de canal dans son propre dossier, sans « .. »).
+- **Pro** : PO-8, PO-4 (personne bloquée : ni avis, ni photo), PO-5 (prix demandé gardé, repris à la re-soumission), PO-6, PO-11 (« avis modifié » notifié, texte propre), PO-1 / PO-2 (pas de notification répétée, par cible), B8 (offres, avis, favoris et vues limités aux pros approuvés ; un pro en attente prépare ses offres, invisibles).
+- **Droits** : aucune écriture client par défaut sur les nouvelles tables ; plus de TRUNCATE / TRIGGER / REFERENCES / MAINTAIN pour les clients.
+- **Restent** : 17 failles connues — 12 fermées par la migration (PostGIS, droits de supabase_admin, pg_net), 2 de nettoyage (ancienne table des murs, suppression directe de ses alertes = écart de documentation), DC-4 ×2 et ID-2 (décisions Scott), L16 (prochaine version de production). Proposé, non fait : bouton « Signaler » sur message / groupe / canal + fermeture d'un canal par l'admin (interface).
+
+Suite : 1 579 pass, 0 fail, 17 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
