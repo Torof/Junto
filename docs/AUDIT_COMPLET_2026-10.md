@@ -128,6 +128,18 @@ Suite : 1 405 pass, 0 fail, 87 failles connues restantes.
 
 Suite : 1 421 pass, 0 fail, 85 failles connues restantes. Plus aucune faille HIGH ouverte hors celles liées à PostGIS (TX-2, PV-1 : fermées par la migration).
 
+## Phase B2 — livrée (mig 00480-00482, 2026-10-21) — résidus de la contre-vérification de B
+
+- **Compteur de fréquence commun** `private.rate_hit(type, limite, fenêtre)` sur la table `rate_events` (aucun accès client, verrou par compte et par type, purge quotidienne). Code `junto.too_many_actions` (5 langues).
+- **AC-1** : plus aucune écriture directe sur `activities` (UPDATE retiré, policy supprimée ; INSERT/DELETE/TRUNCATE résiduels retirés aussi, de même sur `activity_gear` et `activity_gear_missing`). L'app n'écrivait jamais en direct.
+- **AC-10 / DC-3** : `update_activity` 30 / h, `update_activity_trace` 20 / h, `compute_trace_stats` 600 / h (le tracé recalcule à chaque point). Une trace invalide envoyée au calcul est comptée quand même et ne renvoie aucune statistique.
+- **AB-10 (suite)** : matériel 20 mises à jour / min et 200 / h, objets manquants 30 / min et 300 / h ; un seul signal par instruction, et un seul pour une mise à jour complète du matériel (au lieu d'un par objet).
+- **Signal carte** : lieu d'arrivée, noms de lieu, distance, D+, présence d'une trace et présence exigée déclenchent aussi le signal ; verrou de limitation pris seulement quand la fenêtre est écoulée ; table `map_broadcasts` sans journal et purgée.
+- **Traces partagées** : taille et fréquence vérifiées avant le parcours des coordonnées ; budget de 5 Mo / 24 h en octets bruts ; code `junto.trace_too_large`.
+- Restent (LOW, acceptés pour l'instant) : un changement de nom/avatar ou une suspension d'organisateur ne déclenche pas le signal carte (rafraîchi au déplacement) ; `update_activity_trace` avec une trace invalide n'est pas compté (le contrôle du propriétaire passe d'abord, coût borné).
+
+Suite : 1 444 pass, 0 fail, 80 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
