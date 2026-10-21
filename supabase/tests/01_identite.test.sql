@@ -83,9 +83,19 @@ PERFORM pg_temp.eq('la suspension est effective', format($$SELECT (suspended_at 
 PERFORM pg_temp.eq('l''action admin est journalisée', format($$SELECT (count(*) > 0)::text FROM public.admin_actions WHERE target_id = %L$$, pg_temp.id('bob')), 'true');
 
 -- ───── Trous connus (doivent échouer tant qu'ils ne sont pas corrigés) ─────
+-- ID-2 (00506, décision Scott) : un suspendu peut effacer son compte, mais son e-mail ne sert plus
+-- à se réinscrire (empreinte HMAC gardée ; réinscription par le support).
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('sam_email', (SELECT email FROM auth.users WHERE id = pg_temp.id('sam')));
 PERFORM pg_temp.as_('sam');
-PERFORM pg_temp.denied('un compte suspendu ne peut pas supprimer son compte pour lever la suspension',
-  $$SELECT public.delete_own_account()::text$$, 'Operation not permitted|permission denied', 'ID-2');
+PERFORM pg_temp.ok('un compte suspendu peut effacer son compte', $$SELECT public.delete_own_account()::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('ID-2 : l''empreinte de l''e-mail est gardée, pas l''e-mail', $$SELECT private.email_is_banned(pg_temp.get('sam_email'))::text$$, 'true');
+PERFORM pg_temp.denied('ID-2 : se réinscrire avec cet e-mail (variante +tag, majuscules) est refusé',
+  $$INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, created_at, updated_at)
+    VALUES (gen_random_uuid(), upper(replace(pg_temp.get('sam_email'), '@', '+re@')), 'authenticated', 'authenticated', '{}'::jsonb, now(), now())$$, 'Operation not permitted');
+PERFORM pg_temp.eq('ID-2 : un compte non suspendu qui s''efface ne laisse aucune empreinte',
+  $$SELECT private.email_is_banned('test-' || pg_temp.id('bob') || '@junto.test')::text$$, 'false');
 PERFORM pg_temp.as_('noob');
 PERFORM pg_temp.denied('sans âge confirmé ni CGU acceptées, on ne peut pas créer de sortie',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', 'Tous niveaux', 5, 6.6, 44.9, NULL, NULL, now() + interval '2 days')::text$$,
