@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Json } from '@/types/supabase';
 import type { GeoJsonLineString } from './activity-service';
 
 export interface MessageMetadata {
@@ -75,10 +76,10 @@ export const messageService = {
     const { data, error } = await supabase.rpc('send_private_message', {
       p_conversation_id: conversationId,
       p_content: content,
-      p_reply_to_message_id: replyToMessageId ?? null,
+      p_reply_to_message_id: (replyToMessageId ?? null) as string,
       // Regenerated types (00351) declare the param optional (undefined) but we
       // MUST ship an explicit null key for overload routing — see comment above.
-    } as unknown as { p_conversation_id: string; p_content: string; p_reply_to_message_id?: string });
+    });
     if (error) throw error;
     return data;
   },
@@ -100,21 +101,21 @@ export const messageService = {
   },
 
   shareActivity: async (conversationId: string, activityId: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('share_activity_message' as 'join_activity', {
+    const { data, error } = await supabase.rpc('share_activity_message', {
       p_conversation_id: conversationId,
       p_activity_id: activityId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   shareTrace: async (conversationId: string, traceGeojson: GeoJsonLineString, name: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('share_trace_message' as 'join_activity', {
+    const { data, error } = await supabase.rpc('share_trace_message', {
       p_conversation_id: conversationId,
-      p_trace_geojson: traceGeojson,
+      p_trace_geojson: traceGeojson as unknown as Json,
       p_name: name,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 };

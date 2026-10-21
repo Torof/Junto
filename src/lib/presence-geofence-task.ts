@@ -259,12 +259,12 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       return;
     }
 
-    const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+    const { error } = await supabase.rpc('confirm_presence_via_geo', {
       p_activity_id: activityId,
       p_lng: fix.coords.longitude,
       p_lat: fix.coords.latitude,
       p_skip_push: true,
-    } as unknown as { p_activity_id: string });
+    });
 
     if (!error) {
       trace('presence.geofence', 'task: RPC succeeded, replacing détectée with confirmée');

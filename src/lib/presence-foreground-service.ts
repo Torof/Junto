@@ -15,19 +15,8 @@ import {
 const WINDOW_BEFORE_MS = 15 * 60_000;
 const WINDOW_AFTER_MS = 15 * 60_000;
 
-interface ActiveActivity {
-  activity_id: string;
-  meeting_lng: number | null;
-  meeting_lat: number | null;
-  end_lng: number | null;
-  end_lat: number | null;
-  starts_at: string;
-}
-
 async function fetchInWindowCandidates(): Promise<PresenceCandidate[]> {
-  const { data } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
-    data: ActiveActivity[] | null;
-  };
+  const { data } = await supabase.rpc('get_my_active_presence_activities');
   const rows = data ?? [];
   const now = Date.now();
   const result: PresenceCandidate[] = [];

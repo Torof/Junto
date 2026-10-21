@@ -3186,6 +3186,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_locality: string | null
           meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
@@ -3248,6 +3249,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_locality: string | null
           meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null
@@ -3310,6 +3312,7 @@ export type Database = {
           max_participants: number | null
           meeting_lat: number | null
           meeting_lng: number | null
+          meeting_locality: string | null
           meeting_name: string | null
           objective_lat: number | null
           objective_lng: number | null

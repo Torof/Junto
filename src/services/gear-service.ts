@@ -87,28 +87,28 @@ export const gearService = {
   // --- "Manquant" tiles (mig 00303) — collaborative missing-gear statements.
   getMissing: async (activityId: string): Promise<MissingGearItem[]> => {
     const { data, error } = await supabase
-      .from('activity_gear_missing' as 'activity_gear')
+      .from('activity_gear_missing')
       .select('id, name, quantity, created_by')
       .eq('activity_id', activityId)
-      .order('created_at' as 'gear_name') as unknown as { data: MissingGearItem[] | null; error: Error | null };
+      .order('created_at');
     if (error) return [];
     return data ?? [];
   },
 
   addMissing: async (activityId: string, name: string, quantity: number): Promise<void> => {
-    const { error } = await supabase.rpc('add_missing_gear' as 'join_activity', {
+    const { error } = await supabase.rpc('add_missing_gear', {
       p_activity_id: activityId,
       p_name: name,
       p_quantity: quantity,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
   removeMissing: async (activityId: string, name: string): Promise<void> => {
-    const { error } = await supabase.rpc('remove_missing_gear' as 'join_activity', {
+    const { error } = await supabase.rpc('remove_missing_gear', {
       p_activity_id: activityId,
       p_name: name,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 };

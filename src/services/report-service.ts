@@ -14,31 +14,31 @@ export interface Report {
 
 export const reportService = {
   create: async (targetType: string, targetId: string, reason: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('create_report' as 'join_activity', {
+    const { data, error } = await supabase.rpc('create_report', {
       p_target_type: targetType,
       p_target_id: targetId,
       p_reason: reason,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   getAll: async (): Promise<Report[]> => {
     const { data, error } = await supabase
-      .from('reports' as 'users')
+      .from('reports')
       .select('id, reporter_id, target_type, target_id, reason, status, admin_note, created_at, resolved_at')
-      .order('created_at', { ascending: false }) as unknown as { data: Report[] | null; error: Error | null };
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as Report[];
   },
 
   moderate: async (reportId: string, action: 'dismissed' | 'actioned', adminNote?: string, suspendUserId?: string): Promise<void> => {
-    const { error } = await supabase.rpc('moderate_report' as 'join_activity', {
+    const { error } = await supabase.rpc('moderate_report', {
       p_report_id: reportId,
       p_action: action,
-      p_admin_note: adminNote ?? null,
-      p_suspend_user_id: suspendUserId ?? null,
-    } as unknown as { p_activity_id: string });
+      p_admin_note: (adminNote ?? null) as string,
+      p_suspend_user_id: (suspendUserId ?? null) as string,
+    });
     if (error) throw error;
   },
 };

@@ -36,7 +36,7 @@ export default function SuspendedScreen() {
               style: 'destructive',
               onPress: async () => {
                 try {
-                  await supabase.rpc('delete_own_account' as 'accept_tos');
+                  await supabase.rpc('delete_own_account');
                   await authService.signOut();
                 } catch {
                   Alert.alert(t('auth.error'), t('auth.unknownError'));

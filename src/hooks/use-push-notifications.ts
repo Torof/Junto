@@ -74,10 +74,10 @@ export function usePushNotifications(enabled: boolean) {
       const result = await registerForPushAsync();
       if (result.kind === 'token') {
         const deviceId = await getOrCreateDeviceId();
-        await supabase.rpc('register_push_token' as 'accept_tos', {
+        await supabase.rpc('register_push_token', {
           p_token: result.token,
           p_device_id: deviceId,
-        } as unknown as never);
+        });
       } else if (result.kind === 'denied') {
         // Audit 2026-10-01: we used to revoke the token here. Display
         // permission and data delivery are different things — a data-only push

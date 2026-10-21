@@ -86,77 +86,77 @@ export interface PeerReviewParticipant {
 
 export const badgeService = {
   giveReputationBadge: async (votedId: string, activityId: string, badgeKey: string): Promise<void> => {
-    const { error } = await supabase.rpc('give_reputation_badge' as 'join_activity', {
+    const { error } = await supabase.rpc('give_reputation_badge', {
       p_voted_id: votedId,
       p_activity_id: activityId,
       p_badge_key: badgeKey,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
   revokeReputationBadge: async (votedId: string, activityId: string, badgeKey: string): Promise<void> => {
-    const { error } = await supabase.rpc('revoke_reputation_badge' as 'join_activity', {
+    const { error } = await supabase.rpc('revoke_reputation_badge', {
       p_voted_id: votedId,
       p_activity_id: activityId,
       p_badge_key: badgeKey,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 
 
   getPeerReviewState: async (activityId: string): Promise<PeerReviewParticipant[]> => {
-    const { data, error } = await supabase.rpc('get_activity_peer_review_state' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_activity_peer_review_state', {
       p_activity_id: activityId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
     // Migration 00138 returns a jsonb array directly — supabase-js gives us
     // the parsed value, which is already a list of records.
-    return (data as unknown as PeerReviewParticipant[] | null) ?? [];
+    return (data as PeerReviewParticipant[] | null) ?? [];
   },
 
   getUserReputation: async (userId: string): Promise<ReputationBadge[]> => {
-    const { data, error } = await supabase.rpc('get_user_reputation' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_reputation', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
-    return (data as unknown as ReputationBadge[]) ?? [];
+    return data ?? [];
   },
 
   getVotersForBadge: async (
     userId: string,
     badgeKey: string,
   ): Promise<BadgeVoter[]> => {
-    const { data, error } = await supabase.rpc('get_voters_for_badge' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_voters_for_badge', {
       p_user_id: userId,
       p_badge_key: badgeKey,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
-    return (data as unknown as BadgeVoter[]) ?? [];
+    return data ?? [];
   },
 
 
   getUserTrophies: async (userId: string): Promise<Trophy[]> => {
-    const { data, error } = await supabase.rpc('get_user_trophies' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_trophies', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
-    return (data as unknown as Trophy[]) ?? [];
+    return (data as Trophy[]) ?? [];
   },
 
   getUserSportLevels: async (userId: string): Promise<SportLevel[]> => {
-    const { data, error } = await supabase.rpc('get_user_sport_levels' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_sport_levels', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
-    return (data as unknown as SportLevel[]) ?? [];
+    return data ?? [];
   },
 
   getUserSportLevelVotes: async (userId: string): Promise<SportLevelVotes[]> => {
-    const { data, error } = await supabase.rpc('get_user_sport_level_votes' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_sport_level_votes', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return [];
-    return (data as unknown as SportLevelVotes[]) ?? [];
+    return data ?? [];
   },
 
   getUserAwardAggregates: async (userId: string): Promise<AwardAggregates> => {
@@ -167,9 +167,9 @@ export const badgeService = {
       multi_day_count: 0,
       by_category: {},
     };
-    const { data, error } = await supabase.rpc('get_user_award_aggregates' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_award_aggregates', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error || !data) return empty;
     return data as unknown as AwardAggregates;
   },

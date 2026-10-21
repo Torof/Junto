@@ -276,7 +276,7 @@ export default function CarteScreen() {
     // the request otherwise, so the "seen" flag never persisted and the
     // intro re-showed on every launch.
     try {
-      await supabase.rpc('mark_tutorial_seen' as 'accept_tos');
+      await supabase.rpc('mark_tutorial_seen');
     } catch {
       // Non-fatal: worst case the intro shows again next launch.
     }

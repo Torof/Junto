@@ -24,7 +24,7 @@ export function useAuth(): AuthState {
 
   const checkUserStatus = useCallback(async (userId: string) => {
     // Self-heal: ensure public.users row exists (guards against trigger failures)
-    await supabase.rpc('ensure_user_row' as 'accept_tos');
+    await supabase.rpc('ensure_user_row');
 
     const { data } = await supabase
       .from('users')

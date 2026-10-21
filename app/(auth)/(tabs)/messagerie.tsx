@@ -173,12 +173,12 @@ export default function MessagerieScreen() {
     queryKey: ['join-requests-received'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('activity_participants' as 'activities_with_coords')
-        .select('participation_id, activity_id, user_id, created_at, display_name, avatar_url' as never)
-        .eq('status' as never, 'pending')
-        .order('created_at' as never, { ascending: false });
+        .from('activity_participants')
+        .select('participation_id, activity_id, user_id, created_at, display_name, avatar_url')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
       if (error) throw error;
-      const rows = (data ?? []) as unknown as { participation_id: string; activity_id: string; user_id: string; created_at: string; display_name: string; avatar_url: string | null }[];
+      const rows = (data ?? []) as { participation_id: string; activity_id: string; user_id: string; created_at: string; display_name: string; avatar_url: string | null }[];
       if (rows.length === 0) return [];
       const activityIds = Array.from(new Set(rows.map((r) => r.activity_id)));
       const { data: activities } = await supabase

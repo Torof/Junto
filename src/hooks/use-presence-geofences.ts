@@ -55,10 +55,7 @@ let registeredRegionIds = new Set<string>();
 // the phone had no signal at app-open is exactly the outdoor scenario the
 // offline replay exists for.
 async function fetchCandidates(): Promise<ActiveActivity[] | null> {
-  const { data, error } = (await supabase.rpc('get_my_active_presence_activities' as 'accept_tos')) as unknown as {
-    data: ActiveActivity[] | null;
-    error: { message?: string } | null;
-  };
+  const { data, error } = await supabase.rpc('get_my_active_presence_activities');
   if (error) {
     trace('presence.geofence', 'candidate fetch failed, keeping current regions', {
       reason: error.message ?? 'unknown',
@@ -181,11 +178,11 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
     });
 
     try {
-      const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+      const { error } = await supabase.rpc('confirm_presence_via_geo', {
         p_activity_id: activityId,
         p_lng: pos.coords.longitude,
         p_lat: pos.coords.latitude,
-      } as unknown as { p_activity_id: string });
+      });
       if (error) {
         trace('presence.geofence', 'initial-state RPC rejected', { reason: error.message });
       } else {
@@ -266,11 +263,11 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
         });
 
         try {
-          const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+          const { error } = await supabase.rpc('confirm_presence_via_geo', {
             p_activity_id: activityId,
             p_lng: pos.coords.longitude,
             p_lat: pos.coords.latitude,
-          } as unknown as { p_activity_id: string });
+          });
           if (error) {
             trace('presence.geofence', 'foreground watcher RPC rejected', { reason: error.message });
           } else {

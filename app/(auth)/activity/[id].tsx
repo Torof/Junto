@@ -21,9 +21,9 @@ export default function AuthActivityScreen() {
   // Must be declared before any early return per Rules of Hooks.
   useEffect(() => {
     if (!id) return;
-    supabase.rpc('transition_single_activity' as 'join_activity', {
+    supabase.rpc('transition_single_activity', {
       p_activity_id: id,
-    } as unknown as { p_activity_id: string }).then((result) => {
+    }).then((result) => {
       if (result.data) {
         queryClient.invalidateQueries({ queryKey: ['activity', id] });
       }

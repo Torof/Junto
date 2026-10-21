@@ -125,18 +125,10 @@ export const participationService = {
     // Creator-only RPC backed by the late_cancels ledger (mig 00478). The old
     // direct read of `participations` was limited by RLS to the caller's own
     // row, so the list was always empty (audit PR-6).
-    const { data, error } = await supabase.rpc('get_late_leavers' as 'join_activity',
-      { p_activity_id: activityId } as unknown as { p_activity_id: string });
+    const { data, error } = await supabase.rpc('get_late_leavers',
+      { p_activity_id: activityId });
     if (error) throw error;
-    return ((data ?? []) as unknown as {
-      participation_id: string;
-      user_id: string;
-      display_name: string;
-      avatar_url: string | null;
-      left_at: string;
-      left_reason: string | null;
-      penalty_waived: boolean;
-    }[]);
+    return data ?? [];
   },
 
   getPendingForActivity: async (activityId: string): Promise<ParticipantInfo[]> => {

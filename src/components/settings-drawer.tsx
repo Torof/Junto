@@ -185,7 +185,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     try {
       await supabase
         .from('users')
-        .update({ notification_preferences: updated } as unknown as { bio: string })
+        .update({ notification_preferences: updated })
         .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     } catch (err) {

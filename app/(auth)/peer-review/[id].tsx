@@ -51,9 +51,9 @@ export default function PeerReviewScreen() {
   // refuses ("not completed") with a vague error (Scott 2026-07-13).
   useEffect(() => {
     if (!id) return;
-    supabase.rpc('transition_single_activity' as 'join_activity', {
+    supabase.rpc('transition_single_activity', {
       p_activity_id: id,
-    } as unknown as { p_activity_id: string }).then((r) => {
+    }).then((r) => {
       if (r.data) {
         queryClient.invalidateQueries({ queryKey: ['activity', id] });
         queryClient.invalidateQueries({ queryKey: ['peer-review-state', id] });

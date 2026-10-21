@@ -59,12 +59,12 @@ export const wallService = {
   },
 
   send: async (activityId: string, content: string): Promise<string> => {
-    const { data, error } = await supabase.rpc('send_wall_message' as 'join_activity', {
+    const { data, error } = await supabase.rpc('send_wall_message', {
       p_activity_id: activityId,
       p_content: content,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   // Unified store (00358): sender-only edit/delete on `messages`.

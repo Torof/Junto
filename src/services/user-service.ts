@@ -46,13 +46,13 @@ export const userService = {
     if (!userId) {
       return empty;
     }
-    const { data, error } = await supabase.rpc('get_user_public_stats' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_user_public_stats', {
       p_user_id: userId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) {
       return empty;
     }
-    const rows = data as unknown as UserStats[];
+    const rows = data;
     if (!Array.isArray(rows) || rows.length === 0) {
       return empty;
     }
@@ -73,10 +73,10 @@ export const userService = {
   // is free; a change is peer-gated (up requires net ≥ 3) and resets the votes.
   // See set_sport_level (mig 00295).
   setSportLevel: async (sportKey: string, level: string): Promise<void> => {
-    const { error } = await supabase.rpc('set_sport_level' as 'join_activity', {
+    const { error } = await supabase.rpc('set_sport_level', {
       p_sport_key: sportKey,
       p_new_level: level,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
   },
 

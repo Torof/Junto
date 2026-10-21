@@ -158,12 +158,12 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
     });
 
     try {
-      const { error: rpcError } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+      const { error: rpcError } = await supabase.rpc('confirm_presence_via_geo', {
         p_activity_id: candidate.activity_id,
         p_lng: fix.coords.longitude,
         p_lat: fix.coords.latitude,
         p_skip_push: true,
-      } as unknown as { p_activity_id: string });
+      });
 
       if (!rpcError) {
         validated.add(candidate.activity_id);

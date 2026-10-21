@@ -16,11 +16,11 @@ export interface ActivityAlert {
 export const alertService = {
   getAll: async (): Promise<ActivityAlert[]> => {
     const { data, error } = await supabase
-      .from('activity_alerts' as 'users')
+      .from('activity_alerts')
       .select('id, user_id, sport_key, radius_km, levels, starts_on, ends_on, created_at')
-      .order('created_at', { ascending: false }) as unknown as { data: ActivityAlert[] | null; error: Error | null };
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as ActivityAlert[];
   },
 
   create: async (
@@ -32,22 +32,22 @@ export const alertService = {
     startsOn?: string,
     endsOn?: string,
   ): Promise<string> => {
-    const { data, error } = await supabase.rpc('create_alert' as 'join_activity', {
+    const { data, error } = await supabase.rpc('create_alert', {
       p_lng: lng,
       p_lat: lat,
       p_radius_km: radiusKm,
-      p_sport_key: sportKey ?? null,
-      p_levels: levels && levels.length > 0 ? levels : null,
-      p_starts_on: startsOn ?? null,
-      p_ends_on: endsOn ?? null,
-    } as unknown as { p_activity_id: string });
+      p_sport_key: (sportKey ?? null) as string,
+      p_levels: (levels && levels.length > 0 ? levels : null) as string[],
+      p_starts_on: (startsOn ?? null) as string,
+      p_ends_on: (endsOn ?? null) as string,
+    });
     if (error) throw error;
-    return data as unknown as string;
+    return data;
   },
 
   delete: async (alertId: string): Promise<void> => {
     const { error } = await supabase
-      .from('activity_alerts' as 'users')
+      .from('activity_alerts')
       .delete()
       .eq('id', alertId);
     if (error) throw error;

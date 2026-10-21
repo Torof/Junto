@@ -20,21 +20,20 @@ export interface FavoritesDetailed {
 
 export const favoriteService = {
   getFavorites: async (): Promise<FavoriteRef[]> => {
-    const { data, error } = await supabase.rpc('get_favorites' as 'join_activity',
-      {} as unknown as { p_activity_id: string });
+    const { data, error } = await supabase.rpc('get_favorites');
     if (error) throw error;
-    return (data ?? []) as unknown as FavoriteRef[];
+    return (data ?? []) as FavoriteRef[];
   },
 
   add: async (kind: FavoriteKind, id: string): Promise<void> => {
-    const { error } = await supabase.rpc('add_favorite' as 'join_activity',
-      { p_kind: kind, p_id: id } as unknown as { p_activity_id: string });
+    const { error } = await supabase.rpc('add_favorite',
+      { p_kind: kind, p_id: id });
     if (error) throw error;
   },
 
   remove: async (kind: FavoriteKind, id: string): Promise<void> => {
-    const { error } = await supabase.rpc('remove_favorite' as 'join_activity',
-      { p_kind: kind, p_id: id } as unknown as { p_activity_id: string });
+    const { error } = await supabase.rpc('remove_favorite',
+      { p_kind: kind, p_id: id });
     if (error) throw error;
   },
 

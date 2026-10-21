@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Json } from '@/types/supabase';
 import { MAP_FETCH_CAP } from '@/constants/map-query';
 import { type ActivityFormData } from '@/types/activity-form';
 
@@ -71,12 +72,12 @@ export const activityService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data ?? []) as unknown as NearbyActivity[];
+    return (data ?? []) as NearbyActivity[];
   },
 
   getMyCreated: async (): Promise<NearbyActivity[]> => {
     const { data, error } = await supabase
-      .from('my_activities' as 'activities_with_coords')
+      .from('my_activities')
       .select(
         'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
@@ -87,7 +88,7 @@ export const activityService = {
 
   getMyJoined: async (): Promise<NearbyActivity[]> => {
     const { data, error } = await supabase
-      .from('my_joined_activities' as 'activities_with_coords')
+      .from('my_joined_activities')
       .select(
         'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
@@ -98,7 +99,7 @@ export const activityService = {
 
   getMyPending: async (): Promise<NearbyActivity[]> => {
     const { data, error } = await supabase
-      .from('my_pending_activities' as 'activities_with_coords')
+      .from('my_pending_activities')
       .select(
         'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
@@ -139,20 +140,20 @@ export const activityService = {
   },
 
   getByInviteToken: async (token: string): Promise<NearbyActivity | null> => {
-    const { data, error } = await supabase.rpc('get_activity_by_invite_token' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_activity_by_invite_token', {
       p_token: token,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) throw error;
-    const rows = data as unknown as NearbyActivity[];
+    const rows = data as NearbyActivity[];
     return Array.isArray(rows) && rows.length > 0 ? rows[0] ?? null : null;
   },
 
   getInviteToken: async (activityId: string): Promise<string | null> => {
-    const { data, error } = await supabase.rpc('get_own_invite_token' as 'join_activity', {
+    const { data, error } = await supabase.rpc('get_own_invite_token', {
       p_activity_id: activityId,
-    } as unknown as { p_activity_id: string });
+    });
     if (error) return null;
-    return data as unknown as string | null;
+    return data;
   },
 
   getById: async (id: string): Promise<NearbyActivity | null> => {
@@ -164,11 +165,11 @@ export const activityService = {
       )
       .eq('id', id)
       .maybeSingle();
-    if (data) return data as unknown as NearbyActivity;
+    if (data) return data as NearbyActivity;
 
     // Fallback: my_activities (creator's own, includes private + all statuses)
     const { data: myData } = await supabase
-      .from('my_activities' as 'activities_with_coords')
+      .from('my_activities')
       .select(
         'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
@@ -178,7 +179,7 @@ export const activityService = {
 
     // Fallback: my_joined_activities
     const { data: joinedData } = await supabase
-      .from('my_joined_activities' as 'activities_with_coords')
+      .from('my_joined_activities')
       .select(
         'id, title, description, level, level_max, max_participants, starts_at, duration, status, visibility, sport_id, creator_id, lng, lat, meeting_lng, meeting_lat, end_lng, end_lat, objective_lng, objective_lat, objective_name, meeting_name, meeting_locality, distance_km, elevation_gain_m, creator_name, creator_avatar, sport_key, sport_icon, sport_category, participant_count, requires_presence, trace_geojson',
       )
@@ -191,7 +192,7 @@ export const activityService = {
     // viewers. get_activity_detail loads a single one with proper access
     // control (involved, or public/approval visibility). See migration 00275.
     const { data: detailData } = await supabase.rpc('get_activity_detail', { p_activity_id: id });
-    if (detailData && detailData.length > 0) return detailData[0] as unknown as NearbyActivity;
+    if (detailData && detailData.length > 0) return detailData[0] as NearbyActivity;
 
     if (error) throw error;
     return null;
@@ -211,32 +212,32 @@ export const activityService = {
     duration?: string;
     visibility?: string;
   }): Promise<void> => {
-    const { error } = await supabase.rpc('update_activity' as 'join_activity', {
+    const { error } = await supabase.rpc('update_activity', {
       p_activity_id: activityId,
-      p_title: fields.title ?? null,
-      p_description: fields.description ?? null,
-      p_level: fields.level ?? null,
-      p_level_max: fields.level_max ?? null,
-      p_max_participants: fields.max_participants ?? null,
-      p_meeting_lng: fields.meeting_lng ?? null,
-      p_meeting_lat: fields.meeting_lat ?? null,
-      p_meeting_locality: fields.meeting_locality ?? null,
-      p_starts_at: fields.starts_at ?? null,
-      p_duration: fields.duration ?? null,
-      p_visibility: fields.visibility ?? null,
-    } as unknown as { p_activity_id: string });
+      p_title: (fields.title ?? null) as string,
+      p_description: (fields.description ?? null) as string,
+      p_level: (fields.level ?? null) as string,
+      p_level_max: (fields.level_max ?? null) as string,
+      p_max_participants: (fields.max_participants ?? null) as number,
+      p_meeting_lng: (fields.meeting_lng ?? null) as number,
+      p_meeting_lat: (fields.meeting_lat ?? null) as number,
+      p_meeting_locality: (fields.meeting_locality ?? null) as string,
+      p_starts_at: (fields.starts_at ?? null) as string,
+      p_duration: (fields.duration ?? null) as string,
+      p_visibility: (fields.visibility ?? null) as string,
+    });
     if (error) throw error;
   },
 
   updateTrace: async (activityId: string, trace: GeoJsonLineString | null): Promise<void> => {
-    const { data, error } = await supabase.rpc('update_activity_trace' as 'join_activity', {
+    const { data, error } = await supabase.rpc('update_activity_trace', {
       p_activity_id: activityId,
-      p_trace_geojson: trace ?? null,
-    } as unknown as { p_activity_id: string });
+      p_trace_geojson: (trace ?? null) as unknown as Json,
+    });
     if (error) throw error;
     // Since mig 00483 a refused trace is RETURNED as a junto.<code> (so the
     // server-side frequency counter still counts it) instead of raised.
-    const refused = data as unknown as string | null;
+    const refused = data;
     if (typeof refused === 'string' && refused.startsWith('junto.')) throw new Error(refused);
   },
 
@@ -246,9 +247,9 @@ export const activityService = {
   computeTraceStats: async (
     trace: GeoJsonLineString,
   ): Promise<{ distance_km: number | null; elevation_gain_m: number | null }> => {
-    const { data, error } = await supabase.rpc('compute_trace_stats' as 'join_activity', {
-      p_geojson: trace,
-    } as unknown as { p_activity_id: string });
+    const { data, error } = await supabase.rpc('compute_trace_stats', {
+      p_geojson: trace as unknown as Json,
+    });
     if (error) throw error;
     const row = (Array.isArray(data) ? data[0] : data) as
       | { distance_km: number | string | null; elevation_gain_m: number | null }

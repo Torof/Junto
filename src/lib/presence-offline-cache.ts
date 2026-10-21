@@ -201,13 +201,13 @@ export async function flushOfflineGeoQueue(): Promise<void> {
     for (const event of queue) {
       if (confirmedActivities.has(event.activity_id)) continue;
       try {
-        const { error } = await supabase.rpc('confirm_presence_via_geo' as 'join_activity', {
+        const { error } = await supabase.rpc('confirm_presence_via_geo', {
           p_activity_id: event.activity_id,
           p_lng: event.lng,
           p_lat: event.lat,
           p_captured_at: event.captured_at,
           p_skip_push: true,
-        } as unknown as { p_activity_id: string });
+        });
 
         if (!error) {
           trace('presence.offline', 'replay succeeded, flipping slot to confirmée');
