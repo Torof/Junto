@@ -160,6 +160,20 @@ Suite : 1 459 pass, 0 fail, 80 failles connues restantes.
 
 Suite : 1 501 pass, 0 fail, 65 failles connues restantes.
 
+## Phase fiabilité — livrée (mig 00491-00496, 2026-10-21)
+
+- **PR-1** : la sortie d'un organisateur suspendu n'est jamais finalisée (quel que soit l'appelant), ni pendant la suspension ni après réactivation (finalisation seulement entre fin + 24 h et fin + 48 h) ; elle reste figée à l'ouverture (pas de rappel, pas de demande de vote). `check_activity_transitions` retirée aux clients ; la tâche minute l'appelle, étapes isolées.
+- **BUG expirations** : demandes de place et de contact expirées chaque minute côté serveur.
+- **PR-2** : votes comptés sur une sortie où tous étaient validés. **BR-2** : votes d'une sortie sans validation de présence **non comptés** (deux comptes pouvaient se fabriquer ou salir une réputation) — décision Scott attendue : ne plus les solliciter (recommandé) ou les compter malgré le risque.
+- **PR-7 / PR-10** : absences et sorties retirées exclues des trophées, niveaux par sport, badges de progression et de la fiabilité.
+- **PR-3 / PR-11 / PR-12 / IX-3** : un vote négatif ne révèle jamais son auteur (votants listés pour les traits positifs à partir de 5 personnes ; traits négatifs renvoyés seulement à partir du seuil d'affichage ; date au mois ; lignes de vote lisibles par leur seul auteur) ; seuils et réputation en personnes ; double vote sans erreur ; rideau démo.
+- **BR-4** : âge et CGU exigés pour toute action au niveau des données (déclencheur sur les tables d'action, acceptation d'invitation et de contact).
+- **BR-3** : une place par passager (garde-fou unique) ; un conducteur avec passagers ne monte pas ailleurs, un passager placé ne propose pas de places ; ses autres demandes sont retirées quand l'une est acceptée.
+- **AC-3, AC-11, BR-5, BR-7, BR-8** : niveaux bornés ; pas de participation chez un organisateur suspendu ; dispos passées ignorées ; date et durée figées pendant la sortie ; sortie retirée figée (ni modification ni vote).
+- Reste (LOW) : les votes de niveau par sport s'affichent dès 1 vote (décision Scott du 2026-07-07, conservée).
+
+Suite : 1 528 pass, 0 fail, 44 failles connues restantes.
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
