@@ -732,6 +732,8 @@ INSERT INTO activities (
 
 ## Colonnes privilégiées — jamais modifiables directement par le client
 
+> **Droits par défaut (00502).** Une table créée dans `public` par nos migrations n'accorde plus aux clients (`anon`, `authenticated`) que SELECT par défaut — ni INSERT/UPDATE/DELETE, ni TRUNCATE/TRIGGER/REFERENCES. Une écriture client directe (rare : on passe par des fonctions) exige donc un `GRANT` explicite **et** une policy.
+
 > **Lecture par colonne (00468 `users`, 00486 `activities`).** Ces deux tables n'ont plus de droit SELECT de table pour `anon`/`authenticated`, seulement des droits par colonne (`activities` : tout sauf `invite_token`). **Une colonne ajoutée n'est donc lisible en direct par aucun client tant qu'elle n'est pas accordée explicitement** (`GRANT SELECT (col) ON … TO anon, authenticated`). Les vues sont exécutées par leur propriétaire et ne sont pas concernées. Ne jamais réaccorder un SELECT de table (il rendrait `invite_token` à nouveau lisible).
 
 ### Table `users`
