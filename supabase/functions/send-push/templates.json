@@ -45,7 +45,11 @@
     },
     "activity_updated": {
      "title": "Sortie modifiée",
-     "body": "« {{title}} » a changé — vérifie l’heure et le rendez-vous."
+     "body": "« {{title}} » a changé — vérifie l’heure et le rendez-vous.",
+     "trace": {
+      "title": "Itinéraire modifié",
+      "body": "« {{title}} » a un nouvel itinéraire — jette un œil à la trace."
+     }
     },
     "alert_match": {
      "title": "Nouvelle sortie pour ton alerte",
@@ -254,7 +258,11 @@
     },
     "activity_updated": {
      "title": "Outing updated",
-     "body": "“{{title}}” changed — check the time and meeting point."
+     "body": "“{{title}}” changed — check the time and meeting point.",
+     "trace": {
+      "title": "Route changed",
+      "body": "“{{title}}” has a new route — take a look at the trace."
+     }
     },
     "alert_match": {
      "title": "New outing for your alert",
@@ -463,7 +471,11 @@
     },
     "activity_updated": {
      "title": "Uscita modificata",
-     "body": "« {{title}} » è cambiata — controlla orario e ritrovo."
+     "body": "« {{title}} » è cambiata — controlla orario e ritrovo.",
+     "trace": {
+      "title": "Percorso modificato",
+      "body": "«{{title}}» ha un nuovo percorso — dai un’occhiata alla traccia."
+     }
     },
     "alert_match": {
      "title": "Nuova uscita per il tuo avviso",
@@ -672,7 +684,11 @@
     },
     "activity_updated": {
      "title": "Salida modificada",
-     "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro."
+     "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro.",
+     "trace": {
+      "title": "Ruta modificada",
+      "body": "«{{title}}» tiene una nueva ruta — echa un vistazo al recorrido."
+     }
     },
     "alert_match": {
      "title": "Nueva salida para tu alerta",
@@ -881,7 +897,11 @@
     },
     "activity_updated": {
      "title": "Tour geändert",
-     "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt."
+     "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt.",
+     "trace": {
+      "title": "Route geändert",
+      "body": "„{{title}}“ hat eine neue Route — schau dir den Track an."
+     }
     },
     "alert_match": {
      "title": "Neue Tour für deinen Alarm",

@@ -12,7 +12,9 @@
       "no_reason": { "title": "Sortie annulée", "body": "« {{title}} »" },
       "creator_gone": { "title": "Sortie annulée", "body": "« {{title}} » — l’organisateur a quitté Junto" }
     },
-    "activity_updated": { "title": "Sortie modifiée", "body": "« {{title}} » a changé — vérifie l’heure et le rendez-vous." },
+    "activity_updated": { "title": "Sortie modifiée", "body": "« {{title}} » a changé — vérifie l’heure et le rendez-vous.",
+      "trace": { "title": "Itinéraire modifié", "body": "« {{title}} » a un nouvel itinéraire — jette un œil à la trace." }
+    },
     "alert_match": { "title": "Nouvelle sortie pour ton alerte", "body": "« {{title}} »" },
     "contact_request": {
       "title": "{{name}} souhaite te contacter", "body": "",

@@ -12,7 +12,9 @@
       "no_reason": { "title": "Tour abgesagt", "body": "„{{title}}“" },
       "creator_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ — die Organisation hat Junto verlassen" }
     },
-    "activity_updated": { "title": "Tour geändert", "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt." },
+    "activity_updated": { "title": "Tour geändert", "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt.",
+      "trace": { "title": "Route geändert", "body": "„{{title}}“ hat eine neue Route — schau dir den Track an." }
+    },
     "alert_match": { "title": "Neue Tour für deinen Alarm", "body": "„{{title}}“" },
     "contact_request": {
       "title": "{{name}} möchte dich kontaktieren", "body": "",

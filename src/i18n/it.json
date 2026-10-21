@@ -12,7 +12,9 @@
       "no_reason": { "title": "Uscita annullata", "body": "« {{title}} »" },
       "creator_gone": { "title": "Uscita annullata", "body": "« {{title}} » — l'organizzatore ha lasciato Junto" }
     },
-    "activity_updated": { "title": "Uscita modificata", "body": "« {{title}} » è cambiata — controlla orario e ritrovo." },
+    "activity_updated": { "title": "Uscita modificata", "body": "« {{title}} » è cambiata — controlla orario e ritrovo.",
+      "trace": { "title": "Percorso modificato", "body": "«{{title}}» ha un nuovo percorso — dai un’occhiata alla traccia." }
+    },
     "alert_match": { "title": "Nuova uscita per il tuo avviso", "body": "« {{title}} »" },
     "contact_request": {
       "title": "{{name}} vuole contattarti", "body": "",

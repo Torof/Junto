@@ -12,7 +12,9 @@
       "no_reason": { "title": "Outing cancelled", "body": "“{{title}}”" },
       "creator_gone": { "title": "Outing cancelled", "body": "“{{title}}” — the organiser left Junto" }
     },
-    "activity_updated": { "title": "Outing updated", "body": "“{{title}}” changed — check the time and meeting point." },
+    "activity_updated": { "title": "Outing updated", "body": "“{{title}}” changed — check the time and meeting point.",
+      "trace": { "title": "Route changed", "body": "“{{title}}” has a new route — take a look at the trace." }
+    },
     "alert_match": { "title": "New outing for your alert", "body": "“{{title}}”" },
     "contact_request": {
       "title": "{{name}} wants to get in touch", "body": "",

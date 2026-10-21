@@ -12,7 +12,9 @@
       "no_reason": { "title": "Salida cancelada", "body": "«{{title}}»" },
       "creator_gone": { "title": "Salida cancelada", "body": "«{{title}}»: el organizador ha dejado Junto" }
     },
-    "activity_updated": { "title": "Salida modificada", "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro." },
+    "activity_updated": { "title": "Salida modificada", "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro.",
+      "trace": { "title": "Ruta modificada", "body": "«{{title}}» tiene una nueva ruta — echa un vistazo al recorrido." }
+    },
     "alert_match": { "title": "Nueva salida para tu alerta", "body": "«{{title}}»" },
     "contact_request": {
       "title": "{{name}} quiere contactarte", "body": "",
