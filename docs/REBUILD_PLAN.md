@@ -1,6 +1,14 @@
-# Reconstruction de la base dans un nouveau projet Supabase — plan v2
+# Reconstruction de la base dans un nouveau projet Supabase — plan v3
 
-> Décision Scott 2026-10-21 : construire une nouvelle base propre à côté de l'actuelle, **sans toucher à l'actuelle**, puis basculer après tests. Origine : audit complet d'octobre (TX-2 PostGIS exposé et non corrigeable sur place, TX-4 privilèges par défaut). **v2 intègre le pré-audit indépendant du 2026-10-21 (3 blocages, 13 points importants).** Rien n'est exécuté avant validation de Scott, étape par étape.
+> Décision Scott 2026-10-21 : construire une nouvelle base propre à côté de l'actuelle, **sans toucher à l'actuelle**, puis basculer après tests. Origine : audit complet d'octobre (TX-2 PostGIS exposé et non corrigeable sur place, TX-4 privilèges par défaut). v2 intégrait un premier pré-audit indépendant.
+>
+> **v3 — simplification décidée par Scott le 2026-10-21 : on reconstruit les RÈGLES, pas les données.** Aucun compte ni donnée utilisateur n'est copié (ni démo, ni comptes réels, ni fichiers) : on reconstruira ce qu'il faut ensuite. Seules les **données de référence** nécessaires au fonctionnement sont chargées (`sports`, `gear_catalog`, `app_config`). Les e-mails, les notifications push, les Edge Functions et tout ce qui est relié à l'ancien projet passent en **étape 2**, après validation du schéma. Les sections du plan v2 qui portaient sur la copie de données (§4) sont remplacées ci-dessous ; le reste est conservé et ordonné en deux étapes.
+
+## Les deux étapes
+
+**Étape 1 — les règles (cette passe)** : nouveau projet, réglages de départ (§2), schéma de départ et transformations (§3), données de référence uniquement (§4 v3), comparaison automatique et contre-audit (§6.1, §6.2), tests automatiques sans compte et avec un compte de test créé pour l'occasion (§6.3). L'ancien projet n'est pas touché ; l'app et le site ne sont pas basculés.
+
+**Étape 2 — le branchement (après validation de l'étape 1)** : Edge Functions et secrets, configuration d'authentification et serveur d'envoi d'e-mails, buckets de stockage vides, régénération de la démo, recréation des comptes (Scott, testeurs) et de la page pro, fichiers d'environnement par canal, test de Scott sur preview, bascule (§5, §6.4, §7, §8).
 
 ## 0. Principes
 
@@ -50,13 +58,12 @@
 
 **Historique** : les 471 migrations sont archivées dans `supabase/migrations_archive/` ; le nouveau projet démarre avec une migration de base unique. `supabase link` vers le nouveau projet avec un garde-fou qui affiche le projet visé avant tout `db push`.
 
-## 4. Données : copie complète, identifiants conservés
+## 4. Données (v3) : référentiels seulement
 
-- **Comptes** : copie de `auth.users` et `auth.identities` pour les **27 comptes** (24 démo + Scott + 2 testeurs), par INSERT à colonnes explicites (le schéma d'authentification d'un projet neuf peut avoir plus de colonnes). Les mots de passe chiffrés sont portables : **personne ne se réinscrit, tous les identifiants restent les mêmes** (liens `/u/{id}` et `/pro/{id}`, dossiers de stockage, files hors ligne).
-- **Tout `public`**, données comprises (référentiels : `sports` 48 lignes, `gear_catalog` 63, `app_config` dont `demo_mode`), sauf `spatial_ref_sys` et `push_tokens` ; `users.push_token` remis à NULL (les jetons se réenregistrent à la connexion). Raison : les vrais comptes sont mêlés à la démo (15 participations, 5 messages, 41 actions admin, 5 canaux créés par de vrais comptes) — une copie partielle casse les clés étrangères.
-- **Chargement triggers coupés** (`session_replication_role = replica`, à vérifier sur le nouveau projet), sinon : notifications push réelles envoyées par le chargement, `handle_new_user` qui crée des doublons, triggers de protection qui écrasent des colonnes. Ordre : `auth.users` → `public.users` → le reste. Ce mode coupe aussi les clés étrangères : **contrôle d'intégrité de chaque clé étrangère après chargement**, et comptage des lignes ancien / nouveau.
-- **Fichiers** : les 34 objets de stockage (pro-photos 25, channel-photos 7, avatars 2) copiés par l'API Storage, chemins conservés ; colonnes d'URL réécrites vers le nouvel hôte (`pro_offering_photos.photo_url` 17, `pro_profile_photos.photo_url` 6, `channels.photo_url` 3, `pro_profiles.pin_image_url` 1, `users.avatar_url` 2). **Contrôle : zéro adresse de l'ancien projet dans toute colonne texte.**
-- **Répétition** : une copie d'essai tôt, puis la copie définitive au moment de la bascule, avec un court gel des écritures.
+- **Chargés** : `sports` (48 lignes), `gear_catalog` (63), `app_config` (`demo_mode` = false ; `push_webhook_secret` et adresses de T3 renseignés à l'étape 2). Copiés à l'identique depuis l'ancien projet, identifiants compris (les migrations démo et le client référencent les `sports.key`).
+- **Non chargés** : comptes (`auth.users` et `public.users`), sorties, participations, messages, conversations, réservations, pro, avis, dispos, canaux, fichiers, démo, jetons push. La base démarre vide de toute donnée utilisateur.
+- **Conséquences assumées** : liens `/u/{id}` et `/pro/{id}` existants invalides ; comptes réels à recréer (Scott + 2 testeurs) ; page pro et offre de Scott à recréer ; démo régénérée à l'étape 2 par les scripts existants (identifiants démo fixes) ; buckets de stockage créés vides.
+- Les risques de la copie de données du pré-audit n°1 (clés étrangères, triggers actifs au chargement, comptes en double, URL de fichiers à réécrire) **disparaissent**. Le trigger `on_auth_user_created` reste indispensable : c'est lui qui crée la ligne `public.users` à chaque inscription.
 
 ## 5. Hors base
 
