@@ -435,7 +435,7 @@ PERFORM pg_temp.denied('une trace hors des bornes géographiques est refusée',
 PERFORM pg_temp.denied('une trace partagée de plusieurs Mo est refusée',
   format($$SELECT public.share_trace_message(%L, jsonb_build_object('type', 'LineString', 'coordinates', '[[6.6,44.9],[6.61,44.91]]'::jsonb,
       'properties', jsonb_build_object('pad', repeat('x', 2000000))), 'grosse')::text$$, pg_temp.id('dm_bob_carol')),
-  'Operation not permitted|junto\.', 'MS-7');
+  'Operation not permitted|junto\.');
 
 -- ═════ Groupes ═════
 PERFORM pg_temp.as_('alice');
@@ -711,7 +711,7 @@ PERFORM pg_temp.run(format($$INSERT INTO public.messages (conversation_id, sende
   SELECT %L, %L, 'ancien ' || g, now() - interval '2 hours' FROM generate_series(1, 2000) g$$, pg_temp.id('ch_s1'), pg_temp.id('s1')));
 PERFORM pg_temp.as_('s1');
 PERFORM pg_temp.denied('après 2000 messages dans la journée, un plafond s''applique',
-  format($$SELECT public.send_message(%L, 'encore un')::text$$, pg_temp.id('ch_s1')), '.', 'AB-3');
+  format($$SELECT public.send_message(%L, 'encore un')::text$$, pg_temp.id('ch_s1')), '.');
 
 -- ═════ Contenu des push de message (MS-5) ═════
 -- request_seat (miroir legacy) laisse junto.skip_message_push actif pour la fin de la transaction : on le remet.

@@ -643,3 +643,34 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.eq('la sortie d''une organisatrice suspendue disparaît de la carte', format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('olga_act')), '0');
 PERFORM pg_temp.denied('on ne rejoint pas la sortie d''une organisatrice suspendue', format($$SELECT public.join_activity(%L)$$, pg_temp.id('olga_act')), 'Operation not permitted', 'AC-11');
+
+
+-- ═════ Phase B (mig 00479) : signal carte limité (AB-2), matériel sur canal privé (AB-10) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('b_org', 'tos');
+PERFORM pg_temp.user('b_p', 'tos');
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.put('b_pub', pg_temp.ok('B : sortie publique', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie B', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '3 days')::text$q$));
+PERFORM pg_temp.put('b_priv', pg_temp.ok('B : sortie privée', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie B privée', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '3 days', '2 hours', 'private_link')::text$q$));
+PERFORM pg_temp.as_('db');
+DELETE FROM public.map_broadcasts WHERE activity_id IN (pg_temp.id('b_pub'), pg_temp.id('b_priv'));
+PERFORM pg_temp.put('b_m0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'map'));
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B : modifier le titre de la sortie publique', format($q$SELECT public.update_activity(%L, p_title := 'Sortie B renommée')::text$q$, pg_temp.id('b_pub')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B : un changement visible émet un signal carte', $q$SELECT (count(*) - pg_temp.get('b_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '1');
+PERFORM pg_temp.eq('B : le signal carte ne transporte aucune donnée', $q$SELECT (payload - 'id')::text FROM realtime.messages WHERE topic = 'map' ORDER BY inserted_at DESC LIMIT 1$q$, '{}');
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B : modifier encore aussitôt', format($q$SELECT public.update_activity(%L, p_title := 'Sortie B encore')::text$q$, pg_temp.id('b_pub')));
+PERFORM pg_temp.ok('B : modifier la sortie privée', format($q$SELECT public.update_activity(%L, p_title := 'Privée renommée')::text$q$, pg_temp.id('b_priv')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B : limité à un signal par sortie toutes les 15 s, rien pour une sortie privée', $q$SELECT (count(*) - pg_temp.get('b_m0')::int)::text FROM realtime.messages WHERE topic = 'map'$q$, '1');
+PERFORM pg_temp.eq('B : activities et participations ne sont plus publiées en postgres_changes', $q$SELECT count(*)::text FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename IN ('activities', 'participations', 'activity_gear', 'activity_gear_missing')$q$, '0');
+PERFORM pg_temp.as_('b_p');
+PERFORM pg_temp.denied('B : un compte ne diffuse pas lui-même sur le canal carte', $q$INSERT INTO realtime.messages (topic, extension, event, payload, private) VALUES ('map', 'broadcast', 'map', '{}', true)$q$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('b_g0', (SELECT count(*)::text FROM realtime.messages WHERE topic = 'activity:' || pg_temp.get('b_pub')));
+PERFORM pg_temp.as_('b_org');
+PERFORM pg_temp.ok('B : l''organisateur ajoute un objet manquant', format($q$SELECT public.add_missing_gear(%L, 'Corde 60 m', 1)::text$q$, pg_temp.id('b_pub')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('B : le matériel est signalé sur le canal privé de la sortie (AB-10)', format($q$SELECT (count(*) - %s)::text FROM realtime.messages WHERE topic = 'activity:' || %L$q$, pg_temp.get('b_g0'), pg_temp.get('b_pub')), '1');
