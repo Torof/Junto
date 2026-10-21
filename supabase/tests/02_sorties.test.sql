@@ -849,3 +849,16 @@ PERFORM pg_temp.as_('cv_pas');
 PERFORM pg_temp.eq('suspendu : aucun message lisible', $$SELECT count(*)::text FROM public.messages$$, '0');
 PERFORM pg_temp.eq('suspendu : aucune conversation listée', $$SELECT count(*)::text FROM public.get_my_conversations()$$, '0');
 
+-- 00520 (C6) : accepté quelque part → ses demandes en attente qui chevauchent sont retirées.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c6_a', 'tos'); PERFORM pg_temp.user('c6_b', 'tos'); PERFORM pg_temp.user('c6_p', 'tos');
+PERFORM pg_temp.as_('c6_a');
+PERFORM pg_temp.put('c6_req', pg_temp.ok('C6 : sortie sur demande', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau C6', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '70 days', '3 hours', 'approval')::text$q$));
+PERFORM pg_temp.as_('c6_b');
+PERFORM pg_temp.put('c6_pub', pg_temp.ok('C6 : sortie publique au même créneau', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Créneau C6', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '70 days 1 hour', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.as_('c6_p');
+PERFORM pg_temp.eq('C6 : demande en attente', format($$SELECT public.join_activity(%L)$$, pg_temp.id('c6_req')), 'pending');
+PERFORM pg_temp.eq('C6 : puis rejoint une sortie publique qui chevauche', format($$SELECT public.join_activity(%L)$$, pg_temp.id('c6_pub')), 'accepted');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C6 : la demande qui chevauche est retirée d''elle-même', format($$SELECT status FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.id('c6_req'), pg_temp.id('c6_p')), 'withdrawn');
+

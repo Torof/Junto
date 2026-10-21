@@ -516,8 +516,10 @@ PERFORM pg_temp.eq('DX-2 : la base de dispo est arrondie dès l''enregistrement'
 PERFORM pg_temp.as_('carol');
 PERFORM pg_temp.denied('DC-2 : le compteur refuse un rayon hors liste (sondage à 1 km)',
   $$SELECT public.get_discovery_count(ARRAY['hiking'], 6.083217, 44.561234, 1, now(), now() + interval '7 days')::text$$, 'junto\.dispo_radius');
-PERFORM pg_temp.eq('DC-2 : « peu importe » ne dépend pas du point sondé (pas d''oracle de position)',
-  $$SELECT (public.get_discovery_count(ARRAY['hiking'], 6.08, 44.56, NULL, now(), now() + interval '7 days') = public.get_discovery_count(ARRAY['hiking'], -120.5, -40.2, NULL, now(), now() + interval '7 days'))::text$$, 'true');
+-- 00520 (C1) : « peu importe » n'est plus un annuaire national — les zones doivent se croiser
+-- (le rayon de l'autre doit contenir le point). Depuis l'autre bout du monde : personne.
+PERFORM pg_temp.eq('C1 : « peu importe » depuis l''autre bout du monde ne trouve personne',
+  $$SELECT public.get_discovery_count(ARRAY['hiking'], -120.5, -40.2, NULL, now(), now() + interval '7 days')::text$$, '0');
 PERFORM pg_temp.eq('DC-1 : la distance d''une carte Découverte est en km entiers',
   $$SELECT coalesce(bool_and(distance_km = round(distance_km) AND distance_km >= 1), true)::text FROM public.get_discovery_cards()$$, 'true');
 PERFORM pg_temp.as_('alice');

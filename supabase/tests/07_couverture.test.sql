@@ -261,7 +261,7 @@ PERFORM pg_temp.eq('relecture : un demandeur non accepté n''apparaît pas', $$S
 -- Note : la fonction ne vérifie pas non plus que la sortie est terminée ni qu'elle exige la présence
 -- (sans fuite au-delà de la liste des participants, déjà visible d'un participant accepté).
 PERFORM pg_temp.as_('sam');
-PERFORM pg_temp.denied('un participant suspendu ne lit pas l''état de relecture', format($$SELECT public.get_activity_peer_review_state(%L)::text$$, pg_temp.id('C')), 'Operation not permitted', 'COV-1');
+PERFORM pg_temp.denied('un participant suspendu ne lit pas l''état de relecture', format($$SELECT public.get_activity_peer_review_state(%L)::text$$, pg_temp.id('C')), 'Operation not permitted');
 
 -- get_my_active_presence_activities
 PERFORM pg_temp.as_('alice');

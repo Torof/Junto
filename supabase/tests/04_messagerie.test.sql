@@ -761,3 +761,13 @@ PERFORM pg_temp.denied('on n''écrit plus dans un groupe retiré', format($$SELE
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('on ne renomme plus un groupe retiré', format($$SELECT public.rename_group(%L, 'Revenu', NULL)::text$$, pg_temp.id('g1')), 'Operation not permitted');
 
+-- 00520 : pas de réécriture dans une discussion fermée (régression de 00519 rattrapée).
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+PERFORM pg_temp.put('m_closed', (SELECT id::text FROM public.messages WHERE conversation_id = pg_temp.id('ch1') AND sender_id = pg_temp.id('frank') AND metadata IS NULL AND deleted_at IS NULL LIMIT 1));
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('le message de frank existe bien dans la discussion fermée', $$SELECT (pg_temp.get('m_closed') IS NOT NULL)::text$$, 'true');
+PERFORM pg_temp.as_('frank');
+PERFORM pg_temp.denied('on ne réécrit pas un message dans une discussion fermée',
+  format($$SELECT public.edit_message(%L, 'réécrit')::text$$, coalesce(pg_temp.get('m_closed'), gen_random_uuid()::text)), 'Operation not permitted');
+
