@@ -65,11 +65,4 @@ export const contactService = {
     if (error) throw error;
   },
 
-  // Returns how many were actually invited (after dedup / skips).
-  inviteToActivity: async (activityId: string, userIds: string[]): Promise<number> => {
-    const { data, error } = await supabase.rpc('invite_users_to_activity' as 'join_activity',
-      { p_activity_id: activityId, p_user_ids: userIds } as unknown as { p_activity_id: string });
-    if (error) throw error;
-    return (data as unknown as number) ?? 0;
-  },
 };

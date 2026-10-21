@@ -56,13 +56,6 @@ export const proPhotoService = {
     if (error) throw error;
   },
 
-  setUrl: async (photoId: string, photoUrl: string): Promise<void> => {
-    const { error } = await supabase.rpc('set_pro_photo_url', {
-      p_photo_id: photoId,
-      p_photo_url: photoUrl,
-    });
-    if (error) throw error;
-  },
 
   reorder: async (photoIds: string[]): Promise<void> => {
     const { error } = await supabase.rpc('reorder_pro_photos', {
@@ -144,13 +137,6 @@ export const proOfferingPhotoService = {
     if (error) throw error;
   },
 
-  setUrl: async (photoId: string, photoUrl: string): Promise<void> => {
-    const { error } = await supabase.rpc('set_pro_offering_photo_url', {
-      p_photo_id: photoId,
-      p_photo_url: photoUrl,
-    });
-    if (error) throw error;
-  },
 
   reorder: async (offeringId: string, photoIds: string[]): Promise<void> => {
     const { error } = await supabase.rpc('reorder_pro_offering_photos', {

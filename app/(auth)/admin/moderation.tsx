@@ -18,7 +18,7 @@ import { adminService, type AdminUserInfo } from '@/services/admin-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 
 // Content types the admin can take down from a report (never DMs or users).
-const REMOVABLE_TYPES = ['activity', 'wall_message', 'message', 'group', 'channel', 'pro_review', 'offering_review'];
+const REMOVABLE_TYPES = ['activity', 'message', 'group', 'channel', 'pro_review', 'offering_review'];
 
 dayjs.extend(relativeTime);
 
@@ -153,8 +153,6 @@ export default function ModerationScreen() {
     const typeLabels: Record<string, string> = {
       user: t('admin.targetUser'),
       activity: t('admin.targetActivity'),
-      wall_message: t('admin.targetWallMessage'),
-      private_message: t('admin.targetPrivateMessage'),
       message: t('admin.targetMessage', { defaultValue: 'Message' }),
       group: t('admin.targetGroup', { defaultValue: 'Groupe' }),
       channel: t('admin.targetChannel', { defaultValue: 'Discussion ouverte' }),

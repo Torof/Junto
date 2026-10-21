@@ -59,21 +59,6 @@ export const userService = {
     return rows[0] ?? empty;
   },
 
-  updateProfile: async (updates: {
-    display_name?: string;
-    avatar_url?: string;
-    bio?: string;
-    sports?: string[];
-  }) => {
-    const { data, error } = await supabase
-      .from('users')
-      .update(updates)
-      .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '')
-      .select('id, display_name, avatar_url, bio, sports, levels_per_sport')
-      .single();
-    if (error) throw error;
-    return data;
-  },
 
   // Effective app language → users.language (00445). Own-row column, not
   // privileged (same status as notification_preferences).

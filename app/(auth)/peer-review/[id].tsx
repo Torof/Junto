@@ -3,7 +3,6 @@ import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-nati
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import {
   Clock, Backpack, Handshake, ShieldCheck,
@@ -155,30 +154,6 @@ export default function PeerReviewScreen() {
     }
   };
 
-  const handlePresenceTap = async (target: PeerReviewParticipant) => {
-    if (target.confirmed_present === true) return;
-    if (!canVote) {
-      Alert.alert(t('auth.error'), windowState === 'closed' ? t('peerReview.errors.windowClosed') : t('peerReview.errors.windowNotOpen'));
-      return;
-    }
-    try {
-      await badgeService.peerValidatePresence(target.user_id, id ?? '');
-      Burnt.toast({ title: t('peerReview.presenceVoted'), preset: 'done' });
-      refresh();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '';
-      let userMsg = t('peerReview.notAllowed');
-      if (msg.includes('peer_review_no_presence')) userMsg = t('peerReview.errors.noPresence');
-      else if (msg.includes('peer_review_unavailable')) userMsg = t('errors.code.peer_review_unavailable');
-      else if (msg.includes('peer_review_target_not_in')) userMsg = t('peerReview.errors.targetNotIn');
-      else if (msg.includes('peer_review_not_completed')) userMsg = t('peerReview.errors.notCompleted');
-      else if (msg.includes('peer_review_window_not_open')) userMsg = t('peerReview.errors.windowNotOpen');
-      else if (msg.includes('peer_review_window_closed')) userMsg = t('peerReview.errors.windowClosed');
-      else if (msg.includes('peer_voter_not_present')) userMsg = t('peerReview.errors.voterNotPresent');
-      else if (msg.includes('peer_already_validated')) userMsg = t('peerReview.errors.alreadyValidated');
-      Alert.alert(t('auth.error'), userMsg);
-    }
-  };
 
   // Window expires at activity end + 24h. Computed before useLayoutEffect
   // so we can pass the urgency string to the navigation header.
@@ -253,19 +228,6 @@ export default function PeerReviewScreen() {
     return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.noPresenceNoVotes')}</Text></View>;
   }
 
-  // Peer presence testimony needs 3+ (state excludes self → length >= 2) AND
-  // the activity to actually require presence — otherwise there's nothing to
-  // validate and peer_validate_presence rejects it (Scott 2026-07-13, a
-  // requires_presence=false activity was still showing the button).
-  // Presence testimony by peers is DISABLED (mig 00434, product decision
-  // 2026-10-01): it detected nothing, its rescue never fired in practice, and
-  // it carried a fraud vector. Character voting below is untouched. Flipped to
-  // a constant rather than deleted so re-enabling is one line — but read the
-  // 00434 header first: do NOT re-enable without fixing the creator-vote hole.
-  const peerPresenceEnabled = false as boolean;
-  // When the presence pill is absent, SAY WHY instead of hiding it silently
-  // (Scott 2026-09-30): no presence required, or fewer than 3 participants
-  // (testimony would be circular — QR/geo only at 2).
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -298,7 +260,7 @@ export default function PeerReviewScreen() {
           const isCollapsed = collapsed[p.user_id] === true;
           // Quick "completion" cue while collapsed: how many trait votes
           // the user has cast for this person (presence + traits + level).
-          const voteCount = p.my_badge_votes.length + (p.i_voted_presence ? 1 : 0);
+          const voteCount = p.my_badge_votes.length;
           return (
             <View key={p.user_id} style={styles.card}>
               <Pressable
@@ -323,35 +285,6 @@ export default function PeerReviewScreen() {
 
               {!isCollapsed && (
                 <>
-              {/* Presence above the trait pills — it's the gate, not a nuance.
-                  Hidden below 3 participants (state excludes self, so length < 2):
-                  peer presence testimony is circular at 2 — QR/geo only there,
-                  and the server (peer_validate_presence) rejects it anyway. */}
-              {!presenceConfirmed && peerPresenceEnabled && (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.presencePill,
-                    p.i_voted_presence && styles.presencePillVoted,
-                    pressed && !p.i_voted_presence && styles.tappedDim,
-                  ]}
-                  onPress={() => handlePresenceTap(p)}
-                  disabled={p.i_voted_presence}
-                >
-                  <Text style={[styles.presenceText, p.i_voted_presence && styles.presenceTextVoted]}>
-                    {p.i_voted_presence
-                      ? t('peerReview.presenceVoted')
-                      : t('peerReview.presenceVoteCta', { name: p.display_name })}
-                  </Text>
-                  {/* The threshold is 2 testimonies (mig 00327) — showing a bare
-                      ×N never said how many were needed. */}
-                  {p.peer_validation_count > 0 && (
-                    <Text style={styles.presenceCount}>
-                      {t('peerReview.presenceCountOf', { count: p.peer_validation_count })}
-                    </Text>
-                  )}
-                </Pressable>
-              )}
-
               {/* Positives — own row so cell widths are uniform. */}
               <Text style={styles.sectionLabel}>{t('peerReview.sectionPositives')}</Text>
               <View style={styles.metroPill}>
@@ -624,23 +557,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontWeight: '800',
   },
 
-  presencePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.cta,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    marginTop: spacing.xs,
-  },
-  presencePillVoted: { backgroundColor: colors.success + '33', borderColor: colors.success },
-  presenceText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
-  presenceTextVoted: { color: colors.success },
-  presenceCount: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
 
   submitButton: {
     alignSelf: 'center',

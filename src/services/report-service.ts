@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export interface Report {
   id: string;
   reporter_id: string;
-  target_type: 'user' | 'activity' | 'wall_message' | 'private_message';
+  target_type: 'user' | 'activity' | 'pro_review' | 'offering_review' | 'message' | 'group' | 'channel';
   target_id: string;
   reason: string;
   status: 'pending' | 'dismissed' | 'actioned';

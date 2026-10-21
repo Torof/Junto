@@ -67,6 +67,3 @@ export async function pickAndUploadProPinImage(apply = true): Promise<string | n
   return pinUrl;
 }
 
-export async function removeProPinImage(): Promise<void> {
-  await proService.setPinImage(null);
-}
