@@ -616,6 +616,13 @@ PERFORM pg_temp.eq('après départ, t6 n''est plus membre', format($$SELECT is_m
 
 PERFORM pg_temp.as_('t9');
 PERFORM pg_temp.ok('un canal est signalable', format($$SELECT public.create_report('channel', %L, 'Raison de test suffisamment longue')::text$$, pg_temp.id('ch1')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('m_adm', 'tos,admin');
+PERFORM pg_temp.as_('m_adm');
+PERFORM pg_temp.ok('l''admin ferme un canal signalé', format($$SELECT public.admin_remove_content('channel', %L, 'Contenu signalé, fermeture')::text$$, pg_temp.id('ch1')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('le canal signalé est fermé', format($$SELECT (closed_at IS NOT NULL)::text FROM public.channels WHERE conversation_id = %L$$, pg_temp.id('ch1')), 'true');
+PERFORM pg_temp.as_('t9');
 
 -- Fermeture
 PERFORM pg_temp.as_('frank');
