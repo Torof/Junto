@@ -31,6 +31,10 @@ interface PhotonFeature {
 // a rendez-vous (« Puy-Chalvin », not « Parking de la ferme », not « Hautes-Alpes »).
 const SETTLEMENT_VALUES = new Set(['city', 'town', 'village', 'hamlet', 'locality', 'suburb', 'neighbourhood', 'isolated_dwelling']);
 
+// Commune level only — for a driver's start shown to other people (mig 00521):
+// a hamlet or an isolated dwelling can designate a single house.
+const COMMUNE_VALUES = new Set(['city', 'town', 'village']);
+
 export const geocodeService = {
   // `bias` (current map center) ranks nearby results first. `signal` lets the
   // caller cancel an in-flight request when the query changes.
@@ -97,6 +101,25 @@ export const geocodeService = {
     }
     const p = (json.features ?? [])[0]?.properties ?? {};
     const label = p.locality ?? p.district ?? p.city ?? p.county ?? null;
+    return label ? label.slice(0, 80) : null;
+  },
+
+  // The commune a point falls in — never below the village level (no hamlet,
+  // no isolated dwelling, no neighbourhood). For a driver's start point, which
+  // other people see (mig 00521-00522).
+  reverseCommune: async (lat: number, lng: number, signal?: AbortSignal): Promise<string | null> => {
+    const params = new URLSearchParams({ lat: String(lat), lon: String(lng), lang: 'fr', limit: '3' });
+    const res = await fetch(`https://photon.komoot.io/reverse?${params.toString()}`, { signal });
+    if (!res.ok) throw new Error(`reverse ${res.status}`);
+    const json = (await res.json()) as { features?: PhotonFeature[] };
+    for (const f of json.features ?? []) {
+      const p = f.properties ?? {};
+      if (p.osm_key === 'place' && p.osm_value && COMMUNE_VALUES.has(p.osm_value) && p.name) {
+        return p.name.slice(0, 80);
+      }
+    }
+    const p = (json.features ?? [])[0]?.properties ?? {};
+    const label = p.city ?? p.county ?? null;
     return label ? label.slice(0, 80) : null;
   },
 };

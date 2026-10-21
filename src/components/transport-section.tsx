@@ -135,9 +135,18 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
     try {
       // The village of the start point (mig 00521): the only start info other
       // members see. Best effort — never block the save on it.
-      let fromLocality: string | null = null;
+      // Commune level only, 3 s at most; on failure keep the commune saved
+      // earlier for the same point (never wipe it because the lookup failed).
+      const samePoint = myTransport && myTransport.transport_from_lat === fromLat && myTransport.transport_from_lng === fromLng;
+      let fromLocality: string | null = samePoint ? (myTransport?.transport_from_locality ?? null) : null;
       if (fromName.trim() && fromLat != null && fromLng != null) {
-        try { fromLocality = await geocodeService.reverseLocality(fromLat, fromLng); } catch { fromLocality = null; }
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3000);
+        try {
+          fromLocality = (await geocodeService.reverseCommune(fromLat, fromLng, ctrl.signal)) ?? fromLocality;
+        } catch { /* keep the previous commune for the same point */ } finally {
+          clearTimeout(timer);
+        }
       }
       await transportService.setTransport(
         activityId,

@@ -197,9 +197,10 @@ export function GroupCard({
   }, [seatAssignments]);
 
   // Free-seats summary at the top of the Transport tab — gives the user
-  // a one-glance answer to "is there capacity, and where from?". Cities
-  // come from each driver's transport_from_name (deduped, ordered by
-  // first appearance — the sort by departs_at carries through).
+  // a one-glance answer to "is there capacity, and where from?". Places
+  // come from each driver's start as this viewer may see it — exact text for
+  // their own passengers, the commune otherwise (mig 00521; deduped, ordered
+  // by first appearance — the sort by departs_at carries through).
   const totalFreeSeats = useMemo(
     () => drivers.reduce((sum, d) => sum + d.free, 0),
     [drivers],
@@ -686,7 +687,8 @@ export function GroupCard({
                   <View style={styles.selfMoversList}>
                     {list.map((p) => {
                       const isSelf = p.user_id === currentUserId;
-                      const place = p.transport_from_name?.trim() || null;
+                      // Exact text for oneself / passengers; the commune otherwise (mig 00521).
+                      const place = p.transport_from_name?.trim() || p.transport_from_locality || null;
                       const time = p.transport_departs_at
                         ? dayjs(p.transport_departs_at).format('H[h]mm')
                         : null;

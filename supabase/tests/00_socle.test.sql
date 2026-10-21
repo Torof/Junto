@@ -268,10 +268,10 @@ BEGIN
   PERFORM pg_temp.as_('db');
   PERFORM pg_temp.eq('la colonne ajoutée plus tard reste intacte, le champ de profil change',
     format($$SELECT coalesce(zz_probe, 'null') || '|' || bio FROM public.users WHERE id = %L$$, pg_temp.get('alice')), 'null|Bio ok');
-  -- 00521 (décision 5) : plafond de fichiers par compte (avatars : 10).
+  -- 00521-00522 (décision 5) : plafond d'envois de fichiers par compte et par jour (avatars : 20).
   PERFORM pg_temp.as_('db');
   PERFORM pg_temp.user('quota_u', 'tos');
   PERFORM pg_temp.as_('quota_u');
-  PERFORM pg_temp.ok('quota : 10 fichiers d''avatar acceptés', format($q$DO $d$ BEGIN FOR i IN 1..10 LOOP INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('avatars', %L || '/q' || i || '.jpg', %L); END LOOP; END $d$$q$, pg_temp.get('quota_u'), pg_temp.get('quota_u')));
-  PERFORM pg_temp.denied('quota : le 11e est refusé', format($q$INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('avatars', %L || '/q11.jpg', %L)$q$, pg_temp.get('quota_u'), pg_temp.get('quota_u')), 'junto\.storage_quota');
+  PERFORM pg_temp.ok('quota : 20 envois d''avatar dans la journée acceptés', format($q$DO $d$ BEGIN FOR i IN 1..20 LOOP INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('avatars', %L || '/q' || i || '.jpg', %L); END LOOP; END $d$$q$, pg_temp.get('quota_u'), pg_temp.get('quota_u')));
+  PERFORM pg_temp.denied('quota : le 21e envoi du jour est refusé', format($q$INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('avatars', %L || '/q21.jpg', %L)$q$, pg_temp.get('quota_u'), pg_temp.get('quota_u')), 'junto\.storage_quota');
 END;
