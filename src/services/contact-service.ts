@@ -31,7 +31,7 @@ export const contactService = {
     return (data ?? []) as unknown as PartnerRow[];
   },
 
-  // My current QR token (10-minute validity, mig 00456). The QR encodes it so a
+  // My current QR token (2-minute validity, refreshed every minute — migs 00456, 00469). The QR encodes it so a
   // scan connects instantly; the shared link never carries it.
   createQrToken: async (): Promise<string> => {
     const { data, error } = await supabase.rpc('create_contact_qr_token' as 'join_activity',
@@ -53,9 +53,9 @@ export const contactService = {
 
   // Owner side: kills every live QR token when « Mon QR Junto » closes, so a
   // screenshot relayed elsewhere is already dead (mig 00469).
-  revokeQrTokens: async (): Promise<void> => {
+  revokeQrTokens: async (token: string): Promise<void> => {
     const { error } = await supabase.rpc('revoke_contact_qr_tokens' as 'join_activity',
-      {} as unknown as { p_activity_id: string });
+      { p_token: token } as unknown as { p_activity_id: string });
     if (error) throw error;
   },
 

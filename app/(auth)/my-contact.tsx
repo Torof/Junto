@@ -45,7 +45,7 @@ export default function MyContactScreen() {
   // Rotating token for the QR only. Not cached across openings; refreshed
   // while the screen is up. On failure the QR falls back to the bare link
   // (profile → request), never blank.
-  const { data: qrToken } = useQuery({
+  const { data: qrToken, dataUpdatedAt } = useQuery({
     queryKey: ['contact-qr-token'],
     queryFn: () => contactService.createQrToken(),
     enabled: !!userId,
@@ -55,12 +55,27 @@ export default function MyContactScreen() {
     retry: false,
   });
 
-  // Leaving the screen kills the live token(s): a screenshot relayed elsewhere
-  // is dead before anyone can scan it (audit 2026-10, M2).
-  useEffect(() => () => { void contactService.revokeQrTokens().catch(() => {}); }, []);
+  // Leaving the screen kills the token it was showing: a screenshot relayed
+  // elsewhere is dead before anyone can scan it (audit 2026-10, M2). Only that
+  // token — a quick reopen's fresher one survives a late revoke.
+  const shownTokenRef = useRef<string | null>(null);
+  useEffect(() => { shownTokenRef.current = qrToken ?? null; }, [qrToken]);
+  useEffect(() => () => {
+    const tok = shownTokenRef.current;
+    if (tok) void contactService.revokeQrTokens(tok).catch(() => {});
+  }, []);
+
+  // A failed refresh (no network, quota) would leave a dead token on screen:
+  // past 110 s the QR falls back to the plain link (request flow).
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10_000);
+    return () => clearInterval(id);
+  }, []);
+  const tokenFresh = !!qrToken && now - dataUpdatedAt < 110_000;
 
   const link = userId ? `https://${WEB_HOST}/u/${userId}` : '';
-  const qrValue = link && qrToken ? `${link}#t=${qrToken}` : link;
+  const qrValue = link && tokenFresh ? `${link}#t=${qrToken}` : link;
 
   const handleShare = async () => {
     if (!link) return;

@@ -165,8 +165,15 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   // costs one call), then split back per chunk. A chunk whose coords changed
   // meanwhile (snap returned) is a new object without `ele` → picked up next
   // round. Best effort: on failure the chunks stay 2D and D+ simply hides.
+  // After one refusal (outside IGN coverage, quota, offline) stop asking for
+  // this drawing session: every later tap would resend all 2D chunks and burn
+  // the hourly point quota for nothing (counter-audit 2026-10, F2).
+  const elevationOffRef = useRef(false);
+  useEffect(() => { if (visible) elevationOffRef.current = false; }, [visible]);
+
   useEffect(() => {
     if (!visible) return;
+    if (elevationOffRef.current) return;
     if (chunks.some((c) => c.pending)) return;
     const todo = chunks.filter((c) => !c.ele && c.coords.length > 0);
     if (todo.length === 0) return;
@@ -174,7 +181,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
       const batch = todo.map((c) => ({ id: c.id, coords: c.coords }));
       const flat = batch.flatMap((b) => b.coords);
       void fetchTraceElevations(flat).then((z) => {
-        if (!z) return;
+        if (!z) { elevationOffRef.current = true; return; }
         let offset = 0;
         const perChunk = new Map<number, { coords: [number, number][]; ele: (number | null)[] }>();
         for (const b of batch) {

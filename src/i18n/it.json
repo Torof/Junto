@@ -77,7 +77,7 @@
     "scanHint": "Inquadra il QR del tuo partner",
     "cameraDeniedTitle": "Fotocamera negata",
     "cameraDeniedBody": "Autorizza la fotocamera per scansionare un QR.",
-    "footnote": "Il QR cambia ogni 10 minuti. Un link inviato resta una richiesta da accettare.",
+    "footnote": "Il QR cambia ogni minuto. Un link inviato resta una richiesta da accettare.",
     "connected": "Siete connessi"
   },
   "contacts": {

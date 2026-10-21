@@ -77,7 +77,7 @@
     "scanHint": "Richte die Kamera auf den QR deines Partners",
     "cameraDeniedTitle": "Kamera verweigert",
     "cameraDeniedBody": "Erlaube die Kamera, um einen QR zu scannen.",
-    "footnote": "Der QR wechselt alle 10 Minuten. Ein geteilter Link bleibt eine Anfrage, die angenommen werden muss.",
+    "footnote": "Der QR wechselt jede Minute. Ein geteilter Link bleibt eine Anfrage, die angenommen werden muss.",
     "connected": "Ihr seid verbunden"
   },
   "contacts": {

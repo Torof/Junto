@@ -77,7 +77,7 @@
     "scanHint": "Aim at your partner's QR",
     "cameraDeniedTitle": "Camera refused",
     "cameraDeniedBody": "Allow the camera to scan a QR.",
-    "footnote": "The QR changes every 10 minutes. A shared link remains a request to accept.",
+    "footnote": "The QR changes every minute. A shared link remains a request to accept.",
     "connected": "You are connected"
   },
   "contacts": {
