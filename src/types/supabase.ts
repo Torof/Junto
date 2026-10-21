@@ -940,6 +940,7 @@ export type Database = {
           initiated_by: string | null
           initiated_from: string | null
           last_message_at: string | null
+          moderated_at: string | null
           name: string | null
           pending_activity_id: string | null
           request_expires_at: string | null
@@ -959,6 +960,7 @@ export type Database = {
           initiated_by?: string | null
           initiated_from?: string | null
           last_message_at?: string | null
+          moderated_at?: string | null
           name?: string | null
           pending_activity_id?: string | null
           request_expires_at?: string | null
@@ -978,6 +980,7 @@ export type Database = {
           initiated_by?: string | null
           initiated_from?: string | null
           last_message_at?: string | null
+          moderated_at?: string | null
           name?: string | null
           pending_activity_id?: string | null
           request_expires_at?: string | null
@@ -1810,6 +1813,8 @@ export type Database = {
       }
       participations: {
         Row: {
+          accepted_at: string | null
+          accepted_via: string | null
           activity_id: string
           confirmed_present: boolean | null
           created_at: string
@@ -1830,6 +1835,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accepted_at?: string | null
+          accepted_via?: string | null
           activity_id: string
           confirmed_present?: boolean | null
           created_at?: string
@@ -1850,6 +1857,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accepted_at?: string | null
+          accepted_via?: string | null
           activity_id?: string
           confirmed_present?: boolean | null
           created_at?: string

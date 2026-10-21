@@ -477,7 +477,7 @@ PERFORM pg_temp.eq('la candidature a disparu', $$SELECT count(*)::text FROM publ
 -- ═════ Trous connus sur la lecture ═════
 -- L16 : l'identité civile d'un pro ne doit pas être lisible par un autre membre.
 PERFORM pg_temp.as_('cli2');
-PERFORM pg_temp.denied('un membre ne lit pas l''identité civile d''un pro', format($$SELECT real_name FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pro')), 'permission denied', 'L16');
+PERFORM pg_temp.denied('un membre ne lit pas l''identité civile d''un pro', format($$SELECT real_name FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pro')), 'permission denied');
 
 -- B8 : un pro dont la vitrine n'est plus approuvée ne doit plus exposer ni modifier ses offres.
 PERFORM pg_temp.as_('db');
@@ -512,3 +512,15 @@ PERFORM pg_temp.denied('pas d''avis sur un pro suspendu', format($$SELECT public
 PERFORM pg_temp.as_('pro2');
 PERFORM pg_temp.denied('un pro suspendu ne crée pas d''offre', pg_temp.po_offering_sql('Offre suspendue'));
 PERFORM pg_temp.denied('un pro suspendu n''ouvre pas d''agenda', $$SELECT count(*)::text FROM public.get_pro_agenda(current_date, current_date + 30)$$);
+
+-- 00518 : raison sociale non publique ; liens et offres bornés au niveau des tables.
+PERFORM pg_temp.as_('cli2');
+PERFORM pg_temp.denied('un membre ne lit pas la raison sociale d''un pro', format($$SELECT company_name FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pro')), 'permission denied');
+PERFORM pg_temp.ok('un membre lit toujours la vitrine publique d''un pro', format($$SELECT display_name FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pro')));
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+PERFORM pg_temp.denied('site web en javascript: refusé par la table', format($$UPDATE public.pro_profiles SET website = 'javascript:alert(1)' WHERE user_id = %L$$, pg_temp.id('pro')), 'pro_profiles_website_http');
+PERFORM pg_temp.denied('niveau d''offre démesuré refusé par la table', format($$UPDATE public.pro_offerings SET level = repeat('x', 500) WHERE id = %L$$, pg_temp.id('off')), 'pro_offerings_level_len');
+PERFORM pg_temp.denied('durée d''offre négative refusée par la table', format($$UPDATE public.pro_offerings SET duration = interval '-3 days' WHERE id = %L$$, pg_temp.id('off')), 'pro_offerings_duration_range');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+
