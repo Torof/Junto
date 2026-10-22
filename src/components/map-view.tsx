@@ -301,6 +301,14 @@ export function JuntoMapView({
   // with often identical content. A rebuild renumbers every cluster, so their
   // markers were torn down and redrawn — a tenth-of-a-second blink during
   // which a tap was lost, or landed on the activity pin redrawn underneath.
+  // A tap on a marker also reaches the map underneath (Mapbox fires the map's
+  // onPress on tap-up). The screen then closed a preview or opened the
+  // « create here » tooltip, re-rendering the map MID-tap: the cluster blinked
+  // and its own press was cancelled (Scott 2026-10-22). Markers stamp the
+  // moment a finger lands on them (onPressIn, always earlier) and the map
+  // ignores a press that started on a marker.
+  const markerTouchAt = useRef(0);
+  const stampMarkerTouch = useCallback(() => { markerTouchAt.current = Date.now(); }, []);
   const clusterCache = useRef<{ sig: string; sc: Supercluster<PinPointProps, ClusterAgg> } | null>(null);
   const cluster = useMemo(() => {
     const sig = [
@@ -519,6 +527,7 @@ export function JuntoMapView({
       // camera stops and re-syncs the authoritative final state.
       onMapIdle={handleCameraChanged}
       onPress={(feature) => {
+        if (Date.now() - markerTouchAt.current < 700) return;  // the tap was a marker's
         if (onMapPress && feature.geometry.type === 'Point') {
           const [lng, lat] = feature.geometry.coordinates;
           if (typeof lng === 'number' && typeof lat === 'number') {
@@ -741,7 +750,7 @@ export function JuntoMapView({
       ) : (
         pins.map((pin) => (
           <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR} allowOverlap>
-            <Pressable onPress={() => onPinPress?.(pin)} hitSlop={10}>
+            <Pressable onPressIn={stampMarkerTouch} onPress={() => onPinPress?.(pin)} hitSlop={10}>
               <MapPinIcon color={pin.color} />
             </Pressable>
           </Mapbox.MarkerView>
@@ -781,7 +790,7 @@ export function JuntoMapView({
               coordinate={[lng, lat]}
               allowOverlap
             >
-              <Pressable onPress={() => {
+              <Pressable onPressIn={stampMarkerTouch} onPress={() => {
                 const leaves = cluster.getLeaves(clusterId, Infinity);
                 // Bounding box of every point under this cluster + track the
                 // southernmost leaf (lowest latitude = lowest on screen).
@@ -855,7 +864,7 @@ export function JuntoMapView({
               allowOverlap
             >
               <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
-                <Pressable onPress={() => onActivityPress?.(activity)} hitSlop={14}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => onActivityPress?.(activity)} hitSlop={14}>
                   <ActivityPin activity={activity} />
                 </Pressable>
               </View>
@@ -875,7 +884,7 @@ export function JuntoMapView({
               allowOverlap
             >
               <View style={highlightStyle}>
-                <Pressable onPress={() => onProPress?.(pro)} hitSlop={14}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => onProPress?.(pro)} hitSlop={14}>
                   <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} />
                 </Pressable>
               </View>
@@ -895,7 +904,7 @@ export function JuntoMapView({
             allowOverlap
           >
             <View style={highlightStyle}>
-              <Pressable onPress={() => onProOfferingPress?.(offering)} hitSlop={14}>
+              <Pressable onPressIn={stampMarkerTouch} onPress={() => onProOfferingPress?.(offering)} hitSlop={14}>
                 <ProOfferingPin offering={offering} />
               </Pressable>
             </View>
