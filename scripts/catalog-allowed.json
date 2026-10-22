@@ -1,0 +1,121 @@
+[
+ {
+  "k": "constraint",
+  "n": "public.discovery_availabilities.discovery_availabilities_transport_modes_check",
+  "old": "c|CHECK ((((array_length(transport_modes, 1) >= 1) AND (array_length(transport_modes, 1) <= 5)) AND (transport_modes <@ ARRAY['car'::text, 'motorbike'::text, 'bike'::text, 'on_foot'::text, 'public_transport'::text])))|valid=true",
+  "new": "c|CHECK (((array_length(transport_modes, 1) >= 1) AND (array_length(transport_modes, 1) <= 5) AND (transport_modes <@ ARRAY['car'::text, 'motorbike'::text, 'bike'::text, 'on_foot'::text, 'public_transport'::text])))|valid=true",
+  "why": "PostGIS spatial_ref_sys left public / PG 17.11 prints fewer parentheses"
+ },
+ {
+  "k": "constraint",
+  "n": "spatial_ref_sys.spatial_ref_sys_pkey",
+  "old": "p|PRIMARY KEY (srid)|valid=true",
+  "new": "",
+  "why": "PostGIS spatial_ref_sys left public / PG 17.11 prints fewer parentheses"
+ },
+ {
+  "k": "constraint",
+  "n": "spatial_ref_sys.spatial_ref_sys_srid_check",
+  "old": "c|CHECK (((srid > 0) AND (srid <= 998999)))|valid=true",
+  "new": "",
+  "why": "PostGIS spatial_ref_sys left public / PG 17.11 prints fewer parentheses"
+ },
+ {
+  "k": "cron",
+  "n": "junto-booking-participant-purge",
+  "old": "15 4 * * *|19419151ed6ad5de67ba00b5d876ed91|active=true",
+  "new": "15 4 * * *|19419151ed6ad5de67ba00b5d876ed91|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "cron",
+  "n": "junto-contact-archive-purge",
+  "old": "30 4 * * *|6c0a6eed76476def7735ab467d865172|active=true",
+  "new": "30 4 * * *|6c0a6eed76476def7735ab467d865172|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "cron",
+  "n": "junto-cron-log-purge",
+  "old": "50 4 * * *|43a8b47dbef9c249951587c0c7404db6|active=true",
+  "new": "50 4 * * *|43a8b47dbef9c249951587c0c7404db6|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "cron",
+  "n": "junto-notif-purge",
+  "old": "0 4 * * *|a24b70335b9dcd0a717e708a409328d3|active=true",
+  "new": "0 4 * * *|a24b70335b9dcd0a717e708a409328d3|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "cron",
+  "n": "junto-presence-sweep",
+  "old": "* * * * *|e8384e306fea1c00a0bb22cb7db4c135|active=true",
+  "new": "* * * * *|e8384e306fea1c00a0bb22cb7db4c135|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "cron",
+  "n": "junto-throttle-purge",
+  "old": "45 4 * * *|00a8291998183a34d325e7e0fcaeaa88|active=true",
+  "new": "45 4 * * *|00a8291998183a34d325e7e0fcaeaa88|active=false",
+  "why": "jobs created inactive until phase D"
+ },
+ {
+  "k": "extension",
+  "n": "postgis",
+  "old": "public",
+  "new": "extensions",
+  "why": "PostGIS moved to extensions (purpose of the migration)"
+ },
+ {
+  "k": "function",
+  "n": "junto_pre_request()",
+  "old": "CREATE OR REPLACE FUNCTION public.junto_pre_request()\n RETURNS void\n LANGUAGE plpgsql\n STABLE\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_method TEXT := upper(coalesce(current_setting('request.method', true), 'GET'));\n  v_path TEXT := lower(regexp_replace(coalesce(current_setting('request.path', true), ''), '/+', '/', 'g'));\nBEGIN\n  IF v_method IN ('GET', 'HEAD', 'OPTIONS') THEN RETURN; END IF;\n  IF position('%' in v_path) > 0\n     OR v_path ~ '(^|/)(spatial_ref_sys|geometry_columns|geography_columns)(/|$|\\?)' THEN\n    RAISE EXCEPTION 'Operation not permitted' USING ERRCODE = '42501';\n  END IF;\nEND;\n$function$\n",
+  "new": "",
+  "why": "junto_pre_request dropped (decision 4)"
+ },
+ {
+  "k": "grant.function",
+  "n": "junto_pre_request().anon",
+  "old": "true",
+  "new": "",
+  "why": "junto_pre_request dropped"
+ },
+ {
+  "k": "grant.function",
+  "n": "junto_pre_request().authenticated",
+  "old": "true",
+  "new": "",
+  "why": "junto_pre_request dropped"
+ },
+ {
+  "k": "grant.function",
+  "n": "junto_pre_request().service_role",
+  "old": "true",
+  "new": "",
+  "why": "junto_pre_request dropped"
+ },
+ {
+  "k": "index",
+  "n": "public.spatial_ref_sys_pkey",
+  "old": "CREATE UNIQUE INDEX spatial_ref_sys_pkey ON spatial_ref_sys USING btree (srid)",
+  "new": "",
+  "why": "PostGIS spatial_ref_sys left public"
+ },
+ {
+  "k": "owner",
+  "n": "function.junto_pre_request()",
+  "old": "postgres",
+  "new": "",
+  "why": "junto_pre_request dropped"
+ },
+ {
+  "k": "role_setting",
+  "n": "authenticator",
+  "old": "session_preload_libraries=safeupdate;statement_timeout=8s;lock_timeout=8s;pgrst.db_pre_request=public.junto_pre_request",
+  "new": "session_preload_libraries=supautils, safeupdate;statement_timeout=8s;lock_timeout=8s",
+  "why": "API pre-request hook dropped (decision 4) + platform supautils preload"
+ }
+]
