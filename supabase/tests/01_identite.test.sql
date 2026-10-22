@@ -109,7 +109,8 @@ PERFORM pg_temp.denied('sans âge confirmé ni CGU acceptées, on ne peut pas cr
   '^Operation not permitted$');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('un visiteur sans compte ne peut pas écrire dans spatial_ref_sys',
-  format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied', 'TX-2');  -- où que soit PostGIS
+  format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied',
+    CASE WHEN to_regclass('public.spatial_ref_sys') IS NOT NULL THEN 'TX-2' END);  -- trou tant que PostGIS est dans public
 
 -- 00513 : profil — sports est un tableau borné (un objet cassait l'affichage du profil chez les autres).
 PERFORM pg_temp.as_('alice');

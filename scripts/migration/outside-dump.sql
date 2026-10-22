@@ -2,6 +2,8 @@
 -- (MIGRATION_PLAN v7 §B.6). Read-only; run on the OLD project:
 --   npx supabase db query --experimental --linked -f scripts/migration/outside-dump.sql
 -- The single text column is the SQL file to apply on the new project.
+-- Empty search_path: every printed name comes out schema-qualified (like pg_dump).
+SET search_path = '';
 SELECT concat_ws(E'\n\n',
   '-- Generated from the old project ' || now()::date || ' — do not edit by hand.',
   -- Triggers we own on auth.users and storage.objects
@@ -22,10 +24,13 @@ SELECT concat_ws(E'\n\n',
   -- Realtime publication membership
   (SELECT string_agg(format('ALTER PUBLICATION supabase_realtime ADD TABLE %I.%I;', pt.schemaname, pt.tablename), E'\n' ORDER BY pt.tablename)
    FROM pg_publication_tables pt WHERE pt.pubname = 'supabase_realtime'),
-  -- Role settings (the API pre-request hook is NOT recreated — plan v7 decision 4)
+  -- Role settings we chose (timeouts). NOT copied: the API pre-request hook
+  -- (plan v7 decision 4) and session_preload_libraries (platform-owned,
+  -- superuser-only — a fresh project ships it).
   (SELECT string_agg(format('ALTER ROLE %I SET %s = %L;', r.rolname, split_part(c, '=', 1), substr(c, strpos(c, '=') + 1)), E'\n' ORDER BY r.rolname, c)
    FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole CROSS JOIN unnest(s.setconfig) c
-   WHERE r.rolname IN ('authenticator', 'anon', 'authenticated', 'service_role') AND c NOT LIKE 'pgrst.db_pre_request=%'),
+   WHERE r.rolname IN ('authenticator', 'anon', 'authenticated', 'service_role')
+     AND split_part(c, '=', 1) IN ('statement_timeout', 'lock_timeout', 'idle_in_transaction_session_timeout')),
   -- Scheduled jobs, created INACTIVE (activated in phase D)
   (SELECT string_agg(format('SELECT cron.schedule(%L, %L, %L);', j.jobname, j.schedule, j.command)
             || E'\n' || format('SELECT cron.alter_job((SELECT jobid FROM cron.job WHERE jobname = %L), active := false);', j.jobname), E'\n' ORDER BY j.jobname)

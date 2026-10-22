@@ -21,24 +21,24 @@ Ubuntu fournit la version 18 : elle sait lire une base 17. La répétition dira 
 
 **3. Exporter l'ancien projet** (lecture seule)
 
-Dans le tableau de bord de l'**ancien** projet : bouton **Connect** → **Session pooler** → copier l'adresse, et remplacer `[YOUR-PASSWORD]` par le mot de passe de la base.
+Dans le tableau de bord de l'**ancien** projet : bouton **Connect** → **Session pooler** → copier l'adresse **telle quelle** (avec `[YOUR-PASSWORD]`, sans rien remplacer). Le script te demande ensuite le mot de passe à part : il ne s'affiche pas, n'est enregistré nulle part et n'apparaît jamais dans une ligne de commande.
 
 ```bash
 cd ~/Desktop/Junto
 bash scripts/migration/export.sh
 ```
 
-Colle l'adresse quand elle est demandée (elle ne s'affiche pas). Dis-moi « export fait ».
+Colle l'adresse, puis tape le mot de passe. Dis-moi « export fait ».
 
 **4. Attendre mon feu vert** : je vérifie le nouveau projet, je prépare les fichiers de construction et je les relis.
 
 **5. Construire sur le projet jetable**
 
-Même chose que l'étape 3, mais avec l'adresse « Session pooler » du **projet jetable** :
+Même chose que l'étape 3, mais avec l'adresse et le mot de passe du **projet jetable**, et sa référence dans la commande (le script refuse toute autre adresse) :
 
 ```bash
 cd ~/Desktop/Junto
-bash scripts/migration/build.sh
+bash scripts/migration/build.sh <référence-du-projet-jetable>
 ```
 
 Le script s'arrête au premier problème (rien de l'étape en cause n'est appliqué). Dis-moi « build fait » ou « build échoué » : je lis les journaux dans `~/junto-migration/build-logs/`.
@@ -53,7 +53,7 @@ Le script s'arrête au premier problème (rien de l'étape en cause n'est appliq
 |---|---|---|
 | Vérifier le projet neuf | `npx supabase db query --experimental --linked -f scripts/migration/precheck-new.sql` depuis `~/junto-migration/link` | non |
 | Préparer | `python3 scripts/migration/prepare.py <référence>` | non |
-| Prouver la structure | `JUNTO_DB_WORKDIR=~/junto-migration/link node scripts/catalog-diff.mjs snapshot > new.json` puis `node scripts/catalog-diff.mjs old.json new.json` | non |
-| Tests | `JUNTO_DB_WORKDIR=~/junto-migration/link JUNTO_DB_REF=<référence> npm run test:db` | non |
+| Prouver la structure | `JUNTO_DB_WORKDIR=~/junto-migration/link node scripts/catalog-diff.mjs snapshot > new.json` puis `JUNTO_DB_REF=<référence> node scripts/catalog-diff.mjs old.json new.json` (refuse deux instantanés du même projet) | non |
+| Tests | `JUNTO_DB_WORKDIR=~/junto-migration/link JUNTO_DB_REF=<référence> npm run test:db` (exige la référence et la vérifie dans la base) | non |
 
 `~/junto-migration/link` est un dossier qui contient seulement `supabase/.temp/project-ref` (la référence du projet jetable) : les commandes ci-dessus visent alors ce projet, et le dépôt reste lié à l'ancien.

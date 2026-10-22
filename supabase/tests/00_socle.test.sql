@@ -209,7 +209,8 @@ BEGIN
   -- ───── Trous connus ─────
   PERFORM pg_temp.as_('anon');
   PERFORM pg_temp.denied('anon n''écrit pas dans spatial_ref_sys',
-    format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied', 'TX-2');  -- où que soit PostGIS
+    format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied',
+    CASE WHEN to_regclass('public.spatial_ref_sys') IS NOT NULL THEN 'TX-2' END);  -- trou tant que PostGIS est dans public
   PERFORM pg_temp.as_('db');
   -- TX-4 (00502) : nos tables (rôle postgres) n'accordent plus d'écriture par défaut aux clients.
   PERFORM pg_temp.eq('privilèges par défaut (postgres) : pas d''écriture accordée aux clients sur les nouvelles tables',

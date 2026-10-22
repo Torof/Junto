@@ -3,7 +3,9 @@
 //   node scripts/catalog-diff.mjs snapshot           → print the linked project's snapshot JSON
 //   node scripts/catalog-diff.mjs old.json new.json  → list every difference; exit 1 if any
 // Allowed differences (decided in MIGRATION_PLAN) go in scripts/catalog-allowed.json
-// as {"k": kind, "n": name} entries; nothing else may differ.
+// as {"k", "n", "old", "new"} entries: old/new are the EXACT expected fingerprints
+// ("" = absent on that side) or {"re": "…"} regexes. A matching kind+name with any
+// other content is still reported. Nothing else may differ.
 import { readFileSync, writeFileSync, mkdtempSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
@@ -79,10 +81,21 @@ const load = (p) => JSON.parse(readFileSync(p, 'utf8'));
 // it lives. That prefix is the one allowed difference — strip it on both sides.
 const POSTGIS = /\b(?:public|extensions)\.(?="?(?:geography|geometry|box2d|box3d|spatial_ref_sys|geometry_columns|geography_columns|st_[a-z0-9_]+|postgis_[a-z0-9_]+)\b)/g;
 const norm = (r) => ({ k: r.k, n: r.n.replace(POSTGIS, ''), f: String(r.f).replace(POSTGIS, '') });
-const left = load(cmd).map(norm);
-const right = load(a).map(norm);
+const leftRaw = load(cmd);
+const rightRaw = load(a);
+// Identity guard: the two snapshots must come from two different projects, and the
+// second from the expected one when JUNTO_DB_REF is given — never a false « 0 écart ».
+const idOf = (rows) => rows.find((r) => r.k === 'identity')?.f;
+const idL = idOf(leftRaw); const idR = idOf(rightRaw);
+console.log(`old snapshot: ${idL ?? '?'}\nnew snapshot: ${idR ?? '?'}`);
+if (!idL || !idR || idL === idR) { console.error('refusing: both snapshots come from the same project (or carry no identity)'); process.exit(2); }
+if (process.env.JUNTO_DB_REF && !idR.includes(process.env.JUNTO_DB_REF)) { console.error(`refusing: new snapshot is not ${process.env.JUNTO_DB_REF}`); process.exit(2); }
+const left = leftRaw.filter((r) => r.k !== 'identity').map(norm);
+const right = rightRaw.filter((r) => r.k !== 'identity').map(norm);
 const allowedPath = join(root, 'scripts', 'catalog-allowed.json');
-const allowed = new Set((existsSync(allowedPath) ? load(allowedPath) : []).map((x) => `${x.k}\u0000${x.n}`));
+const allowedList = existsSync(allowedPath) ? load(allowedPath) : [];
+const fits = (rule, v) => (rule && typeof rule === 'object' ? new RegExp(rule.re).test(v) : rule === v);
+const isAllowed = ([, k, f1, f2]) => allowedList.some((x) => `${x.k}\u0000${x.n}` === k && fits(x.old, f1) && fits(x.new, f2));
 const key = (r) => `${r.k}\u0000${r.n}`;
 const L = new Map(left.map((r) => [key(r), r.f]));
 const R = new Map(right.map((r) => [key(r), r.f]));
@@ -92,7 +105,7 @@ for (const [k, f] of L) {
   else if (R.get(k) !== f) diffs.push(['changed', k, f, R.get(k)]);
 }
 for (const [k, f] of R) if (!L.has(k)) diffs.push(['extra on new', k, '', f]);
-const real = diffs.filter((d) => !allowed.has(d[1]));
+const real = diffs.filter((d) => !isAllowed(d));
 for (const [what, k, f1, f2] of real) {
   const [kind, name] = k.split('\u0000');
   console.log(`${what.padEnd(15)} ${kind.padEnd(15)} ${name}${f1 || f2 ? `\n    old: ${f1}\n    new: ${f2}` : ''}`);

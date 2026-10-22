@@ -34,8 +34,12 @@ const dbDir = process.env.JUNTO_DB_WORKDIR ?? root;
 let linkedRef = '?';
 try { linkedRef = readFileSync(join(dbDir, 'supabase', '.temp', 'project-ref'), 'utf8').trim(); } catch { /* not linked */ }
 console.log(`target project: ${linkedRef}`);
+if (process.env.JUNTO_DB_WORKDIR && !process.env.JUNTO_DB_REF) {
+  console.error('refusing: JUNTO_DB_WORKDIR needs JUNTO_DB_REF (the project you mean to test)');
+  process.exit(2);
+}
 if (process.env.JUNTO_DB_REF && process.env.JUNTO_DB_REF !== linkedRef) {
-  console.error(`refusing: JUNTO_DB_REF=${process.env.JUNTO_DB_REF} but the repo is linked to ${linkedRef}`);
+  console.error(`refusing: JUNTO_DB_REF=${process.env.JUNTO_DB_REF} but the folder is linked to ${linkedRef}`);
   process.exit(2);
 }
 
@@ -53,6 +57,15 @@ function runSql(sql) {
 
 const colour = { pass: '\x1b[32m', fail: '\x1b[31m', xfail: '\x1b[33m', xpass: '\x1b[35m', reset: '\x1b[0m' };
 const totals = { pass: 0, fail: 0, xfail: 0, xpass: 0, crashed: 0 };
+
+// Ask the database itself which project it is (project_url, 00524).
+if (process.env.JUNTO_DB_REF) {
+  const who = runSql(`SELECT private.project_url() AS u`);
+  if (!who.includes(`${process.env.JUNTO_DB_REF}.supabase.co`)) {
+    console.error(`refusing: the database does not say it is ${process.env.JUNTO_DB_REF}`);
+    process.exit(2);
+  }
+}
 
 for (const f of files) {
   const body = readFileSync(join(testsDir, f), 'utf8');

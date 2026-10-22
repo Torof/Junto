@@ -46,24 +46,44 @@ rows AS (
     OR (n2.nspname = 'storage' AND t.tgfoid IN (SELECT p.oid FROM pg_proc p JOIN ours o ON o.oid = p.pronamespace)))
   UNION ALL
   -- functions: body hash, config, security, volatility, return type
-  SELECT 'function', p.oid::regprocedure::text,
-         md5(p.prosrc) || '|secdef=' || p.prosecdef || '|vol=' || p.provolatile::text || '|lang=' || l.lanname
-         || '|ret=' || pg_get_function_result(p.oid) || '|cfg=' || coalesce(array_to_string(p.proconfig, ';'), '')
-  FROM pg_proc p JOIN ours n ON n.oid = p.pronamespace JOIN pg_language l ON l.oid = p.prolang
-  WHERE p.oid NOT IN (SELECT objid FROM ext_member)
+  -- full definition: arguments and defaults, STRICT, LEAKPROOF, PARALLEL, COST,
+  -- SECURITY, volatility, config and body (PostGIS prefixes normalised by the diff)
+  SELECT 'function', p.oid::regprocedure::text, pg_get_functiondef(p.oid)
+  FROM pg_proc p JOIN ours n ON n.oid = p.pronamespace
+  WHERE p.oid NOT IN (SELECT objid FROM ext_member) AND p.prokind IN ('f', 'p')
   UNION ALL
   -- table and column privileges for client roles
-  SELECT 'grant.table', g.table_schema || '.' || g.table_name || '.' || g.grantee, string_agg(g.privilege_type, ',' ORDER BY g.privilege_type)
-  FROM information_schema.role_table_grants g
-  WHERE g.table_schema IN ('public', 'private') AND g.grantee IN ('anon', 'authenticated', 'service_role', 'PUBLIC')
-    AND (g.table_schema || '.' || g.table_name)::regclass NOT IN (SELECT objid FROM ext_member)
+  -- grants read from the ACLs themselves (MAINTAIN included, every grantee but the owner)
+  SELECT 'grant.table', n.nspname || '.' || c.relname || '.' || CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE a.grantee::regrole::text END,
+         string_agg(a.privilege_type || CASE WHEN a.is_grantable THEN '*' ELSE '' END, ',' ORDER BY a.privilege_type)
+  FROM pg_class c JOIN ours n ON n.oid = c.relnamespace CROSS JOIN LATERAL aclexplode(c.relacl) a
+  WHERE c.relkind IN ('r', 'p', 'v', 'm', 'S') AND c.oid NOT IN (SELECT objid FROM ext_member) AND a.grantee <> c.relowner
   GROUP BY 1, 2
   UNION ALL
-  SELECT 'grant.column', g.table_schema || '.' || g.table_name || '.' || g.column_name || '.' || g.grantee, string_agg(g.privilege_type, ',' ORDER BY g.privilege_type)
-  FROM information_schema.column_privileges g
-  WHERE g.table_schema IN ('public', 'private') AND g.grantee IN ('anon', 'authenticated', 'service_role', 'PUBLIC')
-    AND (g.table_schema || '.' || g.table_name)::regclass NOT IN (SELECT objid FROM ext_member)
+  SELECT 'grant.column', n.nspname || '.' || c.relname || '.' || att.attname || '.' || CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE a.grantee::regrole::text END,
+         string_agg(a.privilege_type, ',' ORDER BY a.privilege_type)
+  FROM pg_attribute att JOIN pg_class c ON c.oid = att.attrelid JOIN ours n ON n.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(att.attacl) a
+  WHERE att.attnum > 0 AND NOT att.attisdropped AND att.attacl IS NOT NULL AND c.oid NOT IN (SELECT objid FROM ext_member)
   GROUP BY 1, 2
+  UNION ALL
+  -- owners (all postgres today)
+  SELECT 'owner', 'relation.' || n.nspname || '.' || c.relname, c.relowner::regrole::text
+  FROM pg_class c JOIN ours n ON n.oid = c.relnamespace WHERE c.relkind IN ('r', 'p', 'v', 'm', 'S') AND c.oid NOT IN (SELECT objid FROM ext_member)
+  UNION ALL
+  SELECT 'owner', 'function.' || p.oid::regprocedure::text, p.proowner::regrole::text
+  FROM pg_proc p JOIN ours n ON n.oid = p.pronamespace WHERE p.oid NOT IN (SELECT objid FROM ext_member)
+  UNION ALL
+  -- database-level settings
+  SELECT 'db_setting', 'database', array_to_string(ARRAY(SELECT x FROM unnest(s.setconfig) x ORDER BY 1), ';')
+  FROM pg_db_role_setting s WHERE s.setrole = 0 AND s.setdatabase = (SELECT oid FROM pg_database WHERE datname = current_database())
+  UNION ALL
+  -- publication options
+  SELECT 'publication_opts', p.pubname, 'ins=' || p.pubinsert || '|upd=' || p.pubupdate || '|del=' || p.pubdelete || '|trunc=' || p.pubtruncate || '|root=' || p.pubviaroot
+  FROM pg_publication p WHERE p.pubname = 'supabase_realtime'
+  UNION ALL
+  -- identity (never compared: proves which project each snapshot came from)
+  SELECT 'identity', 'project_url', coalesce(private.project_url(), '?')
   UNION ALL
   SELECT 'grant.function', p.oid::regprocedure::text || '.' || r.rolname,
          has_function_privilege(r.oid, p.oid, 'EXECUTE')::text

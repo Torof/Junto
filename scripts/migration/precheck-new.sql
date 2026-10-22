@@ -5,6 +5,11 @@ SELECT json_build_object(
   'locale', (SELECT datlocprovider::text || ' ' || coalesce(datlocale, datcollate) FROM pg_database WHERE datname = current_database()),
   'timezone', current_setting('TimeZone'),
   'postgis_available', (SELECT string_agg(version, ', ') FROM pg_available_extension_versions WHERE name = 'postgis'),
+  'other_extensions_available', (SELECT json_object_agg(name, default_version) FROM pg_available_extensions
+      WHERE name IN ('pg_cron', 'pg_net', 'pgcrypto', 'uuid-ossp', 'pg_stat_statements', 'plpgsql_check')),
+  'postgres_bypassrls', (SELECT rolbypassrls FROM pg_roles WHERE rolname = 'postgres'),
+  'private_schema_exists', to_regnamespace('private') IS NOT NULL,
+  'anon_usage_on_extensions', (SELECT has_schema_privilege('anon', n.oid, 'USAGE') FROM pg_namespace n WHERE nspname = 'extensions'),
   'installed', (SELECT json_object_agg(e.extname, n.nspname) FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace),
   'schemas', (SELECT json_agg(nspname ORDER BY nspname) FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname <> 'information_schema'),
   'public_tables', (SELECT count(*) FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind IN ('r', 'v')),
