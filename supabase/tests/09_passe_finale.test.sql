@@ -292,3 +292,26 @@ PERFORM pg_temp.denied('P12 sans adresse configurée, un avatar est refusé',
 PERFORM pg_temp.as_('db');
 INSERT INTO public.app_config (name, value) VALUES ('project_url', 'https://bad.example.com/');
 PERFORM pg_temp.eq('P12 une adresse mal formée compte comme absente', $$SELECT coalesce(private.project_url(), 'null')$$, 'null');
+
+-- ═════ P13 — Points de niveau du profil : les valeurs réelles de l'app comptent (00525) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('P13 « 6b » en escalade = Intermédiaire', $$SELECT private.level_tier('climbing-sport', '6b')::text$$, '1');
+PERFORM pg_temp.eq('P13 « PD » en alpinisme = Intermédiaire', $$SELECT private.level_tier('mountaineering', 'PD')::text$$, '1');
+PERFORM pg_temp.eq('P13 « PD » en via ferrata = Débutant (échelle par sport)', $$SELECT private.level_tier('via-ferrata', 'PD')::text$$, '0');
+PERFORM pg_temp.eq('P13 « WI6 » = Expert', $$SELECT private.level_tier('ice-climbing', 'WI6')::text$$, '3');
+PERFORM pg_temp.eq('P13 « Classe III » = Intermédiaire', $$SELECT private.level_tier('kayaking', 'Classe III')::text$$, '1');
+PERFORM pg_temp.eq('P13 « Avancé » (majuscule) = Avancé', $$SELECT private.level_tier('hiking', 'Avancé')::text$$, '2');
+PERFORM pg_temp.eq('P13 « avancé » (ancien format) = Avancé', $$SELECT private.level_tier('hiking', 'avancé')::text$$, '2');
+PERFORM pg_temp.eq('P13 « Tous niveaux » = aucun palier', $$SELECT coalesce(private.level_tier('hiking', 'Tous niveaux')::text, 'null')$$, 'null');
+PERFORM pg_temp.eq('P13 une cotation d''une autre échelle ne compte pas', $$SELECT coalesce(private.level_tier('hiking', '6b')::text, 'null')$$, 'null');
+PERFORM pg_temp.eq('P13 la fonction n''est pas appelable par les clients',
+  $$SELECT (has_function_privilege('authenticated', 'private.level_tier(text,text)', 'EXECUTE') OR has_function_privilege('anon', 'private.level_tier(text,text)', 'EXECUTE'))::text$$, 'false');
+PERFORM pg_temp.user('lv_u', 'tos'); PERFORM pg_temp.user('lv_o', 'tos'); PERFORM pg_temp.user('lv_viewer', 'tos');
+PERFORM pg_temp.pf_act('lv_1', 'lv_o', interval '-30 days', 'completed', 'public', true, true, '6b', 'climbing-sport');
+PERFORM pg_temp.pf_act('lv_2', 'lv_o', interval '-20 days', 'completed', 'public', true, true, '6c', 'climbing-sport');
+PERFORM pg_temp.pf_act('lv_3', 'lv_o', interval '-10 days', 'completed', 'public', true, true, 'Intermédiaire', 'climbing-sport');
+PERFORM pg_temp.pf_part('lv_1', 'lv_u', 'accepted', true); PERFORM pg_temp.pf_part('lv_2', 'lv_u', 'accepted', true);
+PERFORM pg_temp.pf_part('lv_3', 'lv_u', 'accepted', true);
+PERFORM pg_temp.as_('lv_viewer');
+PERFORM pg_temp.eq('P13 trois sorties validées en « 6b » / « 6c » / « Intermédiaire » → 2 points sur le profil',
+  format($$SELECT dots::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'climbing-sport'$$, pg_temp.id('lv_u')), '2');

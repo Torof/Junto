@@ -201,6 +201,8 @@ export function levelSpanMatchesTiers(
 }
 
 /** Get the appropriate level scale for a given sport. Falls back to generic. */
+// The server mirrors these scales in private.level_tier (mig 00525) to count
+// profile level dots — keep both in sync when a scale changes.
 export function getLevelScale(sportKey: string): LevelOption[] {
   return SPORT_LEVEL_SCALES[sportKey] ?? GENERIC;
 }
