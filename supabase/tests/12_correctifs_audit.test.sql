@@ -142,3 +142,28 @@ PERFORM pg_temp.as_('c7_d');
 PERFORM pg_temp.eq('C7 bloqué par le passager, le conducteur ne lit plus sa demande', format($$SELECT count(*)::text FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srq')), '0');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C7 et l''adresse est effacée de la demande annulée par le blocage', format($$SELECT coalesce(pickup_from, 'effacée') FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srq')), 'effacée');
+
+-- ═════ C8 — Aucune information sur une sortie qu'on ne peut pas voir (00535) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c8_org', 'tos'); PERFORM pg_temp.user('c8_eve', 'tos'); PERFORM pg_temp.user('c8_p', 'tos');
+PERFORM pg_temp.put('c8_priv', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status, requires_presence)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie privée C8', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-135.5, -42.5), 4326)::geography, now() - interval '20 minutes', interval '3 hours', 'private_link', 'in_progress', true)
+  RETURNING id::text$q$, pg_temp.id('c8_org'))));
+INSERT INTO public.participations (activity_id, user_id, status, created_at) VALUES
+  (pg_temp.id('c8_priv'), pg_temp.id('c8_org'), 'accepted', now() - interval '1 day'),
+  (pg_temp.id('c8_priv'), pg_temp.id('c8_p'), 'accepted', now() - interval '1 day');
+PERFORM pg_temp.as_('c8_eve');
+PERFORM pg_temp.denied('C8 géo : une inconnue obtient le refus générique, pas une fenêtre horaire',
+  format($$SELECT public.confirm_presence_via_geo(%L, 0, 0, now() - interval '60 minutes')::text$$, pg_temp.id('c8_priv')), '^Operation not permitted$');
+PERFORM pg_temp.denied('C8 géo : même réponse pour un identifiant inventé',
+  format($$SELECT public.confirm_presence_via_geo(%L, 0, 0, now() - interval '60 minutes')::text$$, gen_random_uuid()), '^Operation not permitted$');
+PERFORM pg_temp.eq('C8 statut : rien pour une sortie privée qu''on ne voit pas',
+  format($$SELECT coalesce(public.transition_single_activity(%L), 'rien')$$, pg_temp.id('c8_priv')), 'rien');
+PERFORM pg_temp.denied('C8 signalement : refus générique sur une sortie privée qu''on ne voit pas',
+  format($$SELECT public.create_report('activity', %L, 'contenu inapproprié dans cette sortie')::text$$, pg_temp.id('c8_priv')), '^Operation not permitted$');
+PERFORM pg_temp.as_('c8_p');
+PERFORM pg_temp.eq('C8 statut : la participante obtient le statut', format($$SELECT public.transition_single_activity(%L)$$, pg_temp.id('c8_priv')), 'in_progress');
+PERFORM pg_temp.denied('C8 géo : des coordonnées hors limites sont refusées (plus de bouclage)',
+  format($$SELECT public.confirm_presence_via_geo(%L, 330, 400)::text$$, pg_temp.id('c8_priv')), '^junto\.presence_too_far$');
+PERFORM pg_temp.ok('C8 signalement : la participante peut signaler la sortie', format($$SELECT public.create_report('activity', %L, 'contenu inapproprié dans cette sortie')::text$$, pg_temp.id('c8_priv')));
