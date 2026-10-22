@@ -71,10 +71,14 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
       {/* Outline + ring share ONE svg (same centre). A View border would push
           the absolutely-filled svg 1px down-right (it fills the padding box). */}
       <Svg width={size} height={size} style={styles.svg}>
-        <Circle cx={c} cy={c} r={outline} fill={colors.background} stroke={colors.pinBorder} strokeWidth={1} />
         {parts.length === 0 ? (
-          <Circle cx={c} cy={c} r={r} stroke={colors.pinBorder} strokeWidth={2} fill="none" />
+          // Ring off: ONE 2px ink border on the white disc — the pre-2026-10-21
+          // look (an extra inner circle used to draw a second black ring).
+          <Circle cx={c} cy={c} r={c - 1} fill={colors.background} stroke={colors.pinBorder} strokeWidth={2} />
         ) : (
+          <Circle cx={c} cy={c} r={outline} fill={colors.background} stroke={colors.pinBorder} strokeWidth={1} />
+        )}
+        {parts.length > 0 &&
           parts.map((p, i) => {
             const len = Math.max(fr[i]! * circ - gap, 0.5);
             const el = (
@@ -93,8 +97,7 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
             );
             offset += fr[i]! * circ;
             return el;
-          })
-        )}
+          })}
       </Svg>
       <Text style={[styles.count, { fontSize }]}>{label}</Text>
     </View>
