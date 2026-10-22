@@ -34,7 +34,8 @@ for part in config/auth postgrest; do
   # The old configuration stays in memory: Supabase returns the SMTP password in
   # clear, so the copy written to disk is redacted first.
   OLD_JSON=$(get "$OLD/$part") || { echo "Lecture de l'ancien projet impossible ($part) — jeton valide ?"; unset SUPABASE_TOKEN; exit 1; }
-  export OLD_JSON
+  NEW_JSON=$(get "$NEW/$part") || { echo "Lecture du nouveau projet impossible ($part)."; unset OLD_JSON SUPABASE_TOKEN; exit 1; }
+  export OLD_JSON NEW_JSON
   # Body = every setting except secrets — but the SMTP password is carried over
   # from the old project (memory only: the SMTP settings cannot be saved without it).
   BODY=$(python3 - "$WORK/old-$name.json" "$WORK/patch-$name.json" "$WORK/secrets-$name.txt" <<'PY'
@@ -57,14 +58,23 @@ for k, v in d.items():
 json.dump(keep, open(out, 'w'))  # what is compared afterwards (no secret)
 json.dump({k: ('<retiré>' if SECRET.search(k) and v not in (None, '', False) else v) for k, v in d.items()}, open(redacted, 'w'))
 open(sec, 'w').write('\n'.join(secrets))
-body = dict(keep)
-if d.get('smtp_pass') and d.get('smtp_host'): body['smtp_pass'] = d['smtp_pass']
+# Send ONLY what differs from the new project's current values: identical settings
+# (defaults, plan-gated options left off, paired OAuth fields…) are never sent.
+cur = json.loads(os.environ['NEW_JSON'])
+body = {k: v for k, v in keep.items() if cur.get(k) != v}
+if any(k.startswith('smtp_') for k in body) and d.get('smtp_pass') and d.get('smtp_host'):
+    body['smtp_pass'] = d['smtp_pass']
+    for k in ('smtp_host', 'smtp_port', 'smtp_user', 'smtp_admin_email', 'smtp_sender_name'):
+        if keep.get(k) is not None: body[k] = keep[k]
 print(json.dumps(body))
+print(f"{len([k for k in body if k != 'smtp_pass'])} réglage(s) à changer", file=sys.stderr)
 PY
 )
-  unset OLD_JSON
+  unset OLD_JSON NEW_JSON
+  if [ "$BODY" = "{}" ]; then echo "$part : déjà identique, rien à écrire"; else
   if ! printf '%s' "$BODY" | call PATCH "$NEW/$part" /dev/stdin > /dev/null; then
     unset BODY SUPABASE_TOKEN; echo "Écriture refusée sur le nouveau projet ($part) — dis-le-moi, je lis $WORK."; exit 1
+  fi
   fi
   unset BODY
   get "$NEW/$part" | python3 - "$WORK/patch-$name.json" "$part" "$WORK/secrets-$name.txt" "$WORK/new-$name.json" <<'PY'
