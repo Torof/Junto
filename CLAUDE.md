@@ -119,7 +119,7 @@
 ## Tables with NO direct client writes
 Every public table has FORCE RLS. A client write needs a table/column grant AND a write policy; many older tables still carry the default `authenticated` INSERT/UPDATE/DELETE grant but have no write policy, so RLS refuses the write. Since 00502, new tables get SELECT only by default. All writes below go through SECURITY DEFINER functions or triggers (verified against the live DB, 2026-10-21):
 - `activities` — `create_activity`, `update_activity`, `update_activity_trace`, `cancel_activity`, lazy/cron transitions (no client grant at all)
-- `participations` — `join_activity`, `leave_activity`, `accept/refuse_participation`, `remove_participant`, invitation RPCs, `set_participation_transport`, `confirm_presence_via_*`
+- `participations` — `join_activity`, `leave_activity`, `accept/refuse_participation`, `remove_participant`, invitation RPCs, `set_participation_transport`, `confirm_presence_via_*`, `declare_my_presence`
 - `messages` — `send_message` (+ `send_wall_message`/`send_private_message` wrappers), `share_*_message`, `edit_message`, `delete_message`, seat/booking/contact seed messages
 - `conversations` — contact-request RPCs, `create_group`/`rename_group`/`leave_group`, channel RPCs, `create_activity_conversation` trigger; SELECT also revoked (curated RPCs only, 00352)
 - `conversation_members` — derived from participations (`sync_activity_membership`), groups, channels; own row via `mark_conversation_read`/`set_conversation_hidden`

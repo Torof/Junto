@@ -23,6 +23,8 @@ export interface Participation {
   created_at: string;
   left_at: string | null;
   confirmed_present: boolean | null;
+  /** 00543: « Tu y étais ? » answer on an outing without presence validation. */
+  self_presence?: string | null;
 }
 
 export const participationService = {
@@ -78,13 +80,21 @@ export const participationService = {
     if (error) throw error;
   },
 
+  declarePresence: async (activityId: string, present: boolean): Promise<void> => {
+    const { error } = await supabase.rpc('declare_my_presence', {
+      p_activity_id: activityId,
+      p_present: present,
+    });
+    if (error) throw error;
+  },
+
   getMyStatus: async (activityId: string): Promise<Participation | null> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return null;
 
     const { data, error } = await supabase
       .from('participations')
-      .select('id, activity_id, user_id, status, created_at, left_at, confirmed_present')
+      .select('id, activity_id, user_id, status, created_at, left_at, confirmed_present, self_presence')
       .eq('activity_id', activityId)
       .eq('user_id', userId)
       .maybeSingle();

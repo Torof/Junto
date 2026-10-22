@@ -469,6 +469,14 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 - UPSERT dans `push_tokens` keyed sur `(user_id, device_id)` — multi-device aware
 - 00542 : un jeton déjà lié à un autre compte ne change de compte que si le **même `device_id`** le présente (changement de compte sur un téléphone) ; sinon l'appel est ignoré en silence — un jeton connu ne permet pas de détourner les notifications de quelqu'un
 
+**`declare_my_presence(p_activity_id, p_present)`** (00543, « Tu y étais ? ») :
+- Auth + non suspendu
+- Sortie `completed`, non supprimée, **sans** validation de présence (`requires_presence` faux)
+- Participation **acceptée** de l'appelant — on ne répond que pour soi (aucun paramètre utilisateur)
+- ≤ 48 h après la fin, sinon `junto.presence_declare_closed` ; modifiable jusque-là
+- Écrit `participations.self_presence` (`yes`/`no`) ; « no » retire la sortie des compteurs publics (niveaux, trophées, stats, découverte) et reprend un palier de trophée atteint grâce à elle ; jamais d'effet sur la fiabilité ni sur les votes (réservés aux sorties validées, 00497)
+- Échecs sensibles = `Operation not permitted`. La réponse n'est lisible que par la personne (RLS `participations_select_own`)
+
 **`ensure_user_row()`** :
 - Crée la ligne `public.users` si elle manque (self-heal)
 
@@ -568,7 +576,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 **Quotas Edge Functions :** `consume_snap_trail_quota` (00346), `consume_trace_elevation_quota` (00452), `consume_trace_elevation_points` (00471 — 50 000 points / heure glissante) — appelées par l'Edge Function **en tant que l'appelant** (JWT relayé), tables internes sans policy
 
-**Présence & réputation :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `create_presence_token`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `give_reputation_badge`, `revoke_reputation_badge`, `get_user_reputation`, `get_user_trophies`, `get_user_award_aggregates`, `get_voters_for_badge`, `get_user_public_stats`, `get_user_sport_levels`, `get_user_sport_level_votes`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
+**Présence & réputation :** `confirm_presence_via_geo`, `confirm_presence_via_token`, `declare_my_presence` (00543), `create_presence_token`, `get_my_active_presence_activities`, `get_activity_peer_review_state`, `give_reputation_badge`, `revoke_reputation_badge`, `get_user_reputation`, `get_user_trophies`, `get_user_award_aggregates`, `get_voters_for_badge`, `get_user_public_stats`, `get_user_sport_levels`, `get_user_sport_level_votes`, `set_sport_level` (niveau par sport, peer-gated — mig 00295)
 
 **Messagerie (modèle unifié, migs 00350-00367) :** `send_message` (+ wrappers `send_wall_message`/`send_private_message`), `edit_message`, `delete_message`, `share_activity_message`, `share_trace_message`, `mark_conversation_read`, `set_conversation_hidden`, `send_contact_request`, `accept_contact_request`, `decline_contact_request`, `remove_connection`, `get_contacts`, `get_recent_partners`, `create_group`, `add_group_member`, `leave_group`, `rename_group`, `get_group_info`, `send_activity_invitations`, `accept_activity_invitation`, `decline_activity_invitation`, `get_my_invitations`, `get_my_conversations`, `get_conversation_state_with`, `get_pending_contact_requests`, `get_conversation_peer`, `get_wall_messages`
   - Retirées en 00508 (sans appelant) : `reply_to_request`, `hide_conversation`, `edit_wall_message`, `edit_private_message`, `invite_users_to_activity`

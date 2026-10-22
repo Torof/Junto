@@ -41,6 +41,7 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   presence_validate_warning: { icon: AlarmClock, color: colors.warning },
   presence_validate_overdue: { icon: AlertTriangle, color: colors.warning },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
+  presence_self_declare: { icon: UserCheck, color: colors.cta },
   badge_unlocked: { icon: Trophy, color: colors.cta },
   pro_approved: { icon: BadgeCheck, color: colors.success },
   pro_rejected: { icon: BadgeCheck, color: colors.error },

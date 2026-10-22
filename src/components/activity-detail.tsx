@@ -383,6 +383,12 @@ export function ActivityDetail({
   // nothing more can be done, and here is when it will count as an absence.
   const showNoRecourseLeft = requiresPresence && isPresenceSubject && notValidated
     && !isDuo && nowMs > qrCloseMs && nowMs < absentAtMs;
+  // 00543 « Tu y étais ? » — outing without presence validation: each
+  // participant answers for themself for 48 h after the end.
+  const selfDeclareCloseMs = endMs + 48 * 60 * 60 * 1000;
+  const canSelfDeclare = !requiresPresence && activity.status === 'completed'
+    && participation?.status === 'accepted' && nowMs < selfDeclareCloseMs;
+  const selfPresence = participation?.self_presence ?? null;
   const fmtTime = (ms: number) => dayjs(ms).format('HH:mm');
   const fmtDate = (ms: number) => dayjs(ms).format('DD/MM');
   const relFuture = (ms: number) => {
@@ -546,6 +552,26 @@ export function ActivityDetail({
 
     return () => clearTimeout(timer);
   }, [isCreator, requiresPresence, activity.id, startsAtMs, durationMs]);
+
+  const [isDeclaring, setIsDeclaring] = useState(false);
+  const [editingSelfPresence, setEditingSelfPresence] = useState(false);
+  const handleDeclarePresence = async (present: boolean) => {
+    setIsDeclaring(true);
+    try {
+      await participationService.declarePresence(activity.id, present);
+      haptic.success();
+      setEditingSelfPresence(false);
+      await queryClient.invalidateQueries({ queryKey: ['participation', activity.id] });
+      await queryClient.invalidateQueries({ queryKey: ['user-public-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['public-profile'] });
+      Burnt.toast({ title: t('presence.selfDeclareSaved'), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setIsDeclaring(false);
+    }
+  };
 
   const handleCheckIn = async () => {
     setIsConfirming(true);
@@ -1095,6 +1121,49 @@ export function ActivityDetail({
                 <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
                   {t('presence.bgLocationHint')}
                 </Text>
+              </View>
+            )}
+            {canSelfDeclare && (
+              <View style={styles.presenceBlock}>
+                <View style={styles.presenceHeader}>
+                  <MapPinCheck size={18} color={colors.textPrimary} strokeWidth={2.4} />
+                  <Text style={styles.presenceTitle}>{t('presence.selfDeclareQuestion')}</Text>
+                </View>
+                {selfPresence && !editingSelfPresence ? (
+                  <>
+                    <Text style={styles.presenceSubtitle}>
+                      {t(selfPresence === 'yes' ? 'presence.selfDeclareAnsweredYes' : 'presence.selfDeclareAnsweredNo',
+                        { date: fmtDate(selfDeclareCloseMs), time: fmtTime(selfDeclareCloseMs) })}
+                    </Text>
+                    <View style={styles.presenceActions}>
+                      <PressableScale style={styles.presenceSecondaryButton} onPress={() => setEditingSelfPresence(true)}>
+                        <Text style={styles.presenceSecondaryText}>{t('presence.selfDeclareChange')}</Text>
+                      </PressableScale>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.presenceSubtitle}>
+                      {t('presence.selfDeclareSubtitle', { date: fmtDate(selfDeclareCloseMs), time: fmtTime(selfDeclareCloseMs) })}
+                    </Text>
+                    <View style={styles.presenceActions}>
+                      <PressableScale
+                        style={[styles.presenceButton, isDeclaring && styles.buttonDisabled]}
+                        onPress={() => handleDeclarePresence(true)}
+                        disabled={isDeclaring}
+                      >
+                        <Text style={styles.presenceButtonText} numberOfLines={1}>{t('presence.selfDeclareYes')}</Text>
+                      </PressableScale>
+                      <PressableScale
+                        style={[styles.presenceSecondaryButton, isDeclaring && styles.buttonDisabled]}
+                        onPress={() => handleDeclarePresence(false)}
+                        disabled={isDeclaring}
+                      >
+                        <Text style={styles.presenceSecondaryText} numberOfLines={1}>{t('presence.selfDeclareNo')}</Text>
+                      </PressableScale>
+                    </View>
+                  </>
+                )}
               </View>
             )}
             {canCheckIn && (

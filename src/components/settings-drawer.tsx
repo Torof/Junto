@@ -41,6 +41,7 @@ const NOTIFICATION_TYPES = [
   // presence_validate_final / peer_review_closing: emitters disabled in 00434
   // (peer presence testimony off) — no point offering a switch for them.
   'presence_confirmed',
+  'presence_self_declare',
   'badge_unlocked',
   'qr_create_reminder',
   'seat_request',
