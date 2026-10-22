@@ -213,6 +213,22 @@ Suite : 1 586 pass, 0 fail, 14 failles connues restantes (12 fermées par la mig
 
 Suite : 1 582 pass, 0 fail, 12 failles connues restantes (toutes fermées par la migration : PostGIS, droits de supabase_admin, pg_net).
 
+## Passe finale avant migration — 4 analyses neuves (mig 00523-00524, 2026-10-22)
+
+Contrat app ↔ base vérifié mécaniquement (173 appels de fonctions, 73 lectures et écritures, 109 codes d'erreur dans 5 langues, 42 types de notification, temps réel, stockage, fonctions Edge), chasse aux bugs fonctionnels, qualité de la suite de tests, répétition à blanc du plan de migration.
+
+- **Covoiturage (00523)** : un passager qui quitte la sortie ou en est retiré gardait sa place (compteur faux, conducteur jamais prévenu) ; un conducteur retiré laissait ses passagers assis ; une place annulée par un blocage n'était jamais rendue. Désormais un déclencheur sur `participations` libère les liens (avis `seat_passenger_left` / `driver_left`) et un déclencheur sur `seat_requests` rend la place pour toute fin de place acceptée.
+- **Niveaux** : trouvé — le calcul des points de niveau du profil ne reconnaît que « intermédiaire / avancé / expert » en minuscules, alors que l'app enregistre « Intermédiaire » ou des cotations (« 6b »…) ; correction retirée avant application, décision de Scott en attente.
+- **Trophées (00523)** : une présence validée après la fin n'attribuait rien (effet de bord de « présence validée seulement », 00521). Déclencheur sur `confirmed_present`.
+- **Jour de Paris (00523)** : 17 fonctions de réservation, disponibilité, alerte et purge comptaient en jour UTC (créneaux de la veille réservables entre minuit et 1-2 h). `private.today_paris()`. Les demandes de réservation dépassées ne bloquent plus le client.
+- **Notifications (00523)** : appui sur un push vers le bon écran (`by`, `pro_id`, `offering_id`, `booking_id` transmis) ; une demande retirée emporte sa notification ; **décision Scott F2** : l'organisateur est prévenu quand un blocage retire une demande (`join_request_blocked`, sans dire qui) ; invitations reçues hors du plafond d'inscriptions ; pas d'invitation à une sortie verrouillée ; un message de covoiturage fait réapparaître un fil masqué ; modifications et suppressions de messages diffusées en direct ; « sortie modifiée » activé par défaut (décision Scott).
+- **App** : le bouton « Débloquer » n'apparaissait jamais (colonne `id` inexistante sur `blocked_users`) ; les visiteurs lançaient des requêtes interdites ; note sous l'option sans validation de présence (**décision Scott F9**) ; 12 codes d'erreur morts retirés ; formulaire iOS du site retiré (sa fonction n'existait pas).
+- **Préparation migration (00524)** : adresse du projet dans `app_config.project_url`, lue par les 7 fonctions en échec fermé (testé : adresse absente ou mal formée → photo refusée, push non envoyé) ; `extensions` dans le chemin des 6 fonctions PostGIS ; `pro_photo_url_ok` avec chemin fixé. Plan v7 (17 corrections, voir `docs/MIGRATION_PLAN.md` §13), script de comparaison prouvé, lanceur de tests protégé contre la mauvaise base.
+- **Tests** : `08_garde_fous` (214 vérifications, une par règle de 00467-00522 qu'aucun test ne protégeait) ; `09_passe_finale` (91, chacune échoue sans la correction qu'elle garde) ; une quinzaine de tests trop permissifs resserrés (motif d'erreur exact, ou vérification qui ne pouvait pas échouer).
+- Restent (connus) : le refus d'inscription au moment même où un blocage existe n'est pas signalé à l'organisateur (seules les demandes déjà en attente le sont) ; les deux cosmétiques du cycle de vie (expiration d'une sortie solo à départ + 2 h par le chemin à la demande, code mort du balayage).
+
+Suite (à blanc avec 00523-00524) : 2 060 pass, 0 fail, 12 failles connues (migration : PostGIS, droits de supabase_admin, pg_net).
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).

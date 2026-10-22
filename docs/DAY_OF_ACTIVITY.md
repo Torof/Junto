@@ -20,7 +20,7 @@ Aucun utilisateur ne devrait être enregistré comme absent simplement parce qu'
 | Validation QR | T-15min → end + 3h | `confirm_presence_via_token` |
 | Émission token QR | T-15min → end + 3h | `create_presence_token` |
 | Replay offline (deadline arrivée) | end + 24h (00429) | `confirm_presence_via_geo(.., p_captured_at)` |
-| Peer review | end + 15min → end + 24h | `peer_validate_presence` |
+| ~~Peer review~~ | — | **supprimé (00508)** : plus de témoignage de présence entre participants ; la fenêtre end + 15min → end + 24h ne sert plus qu'aux votes (traits, niveau) |
 
 L'asymétrie est intentionnelle, et elle a été **élargie à 24 h en 00431**. Deux raisons distinctes :
 
@@ -61,8 +61,7 @@ Comportement : la demande ne **bloque jamais** le « Rejoindre » (on rejoint, p
 | Validation succès | `presence_confirmed` | User validé | Conditionnel — le DEFAULT de `notify_presence_confirmed` est **FALSE** ; ce sont les RPC géo/QR qui passent `skip_push = TRUE` (le replay offline poste sa propre notif locale). `peer_validate_presence` appelle en 2 args → le push part. |
 | End+15min | `rate_participants` | Participants | Non (in-app) — émis au premier balayage une fois la fenêtre de vote ouverte (00427) |
 | End + 1h | `presence_validate_overdue` | Participants non confirmés (≥3 acceptés, créateur exclu) — la copy ne prétend plus « tu es enregistré comme absent » (faux à ce moment : le marquage est à end+24h) et nomme le QR, encore valable 2h (00429) | Oui |
-| End + 22h | `peer_review_closing` | Participants avec ≥1 peer non-confirmé restant à valider (≥3 acceptés ; gate `confirmed_present IS DISTINCT FROM FALSE` depuis 00429) | Oui |
-| End + 22h | `presence_validate_final` | Les non-confirmés eux-mêmes (branche b de `notify_peer_review_closing`) — demande **2** co-participants | Oui |
+| ~~End + 22h~~ | ~~`peer_review_closing`~~, ~~`presence_validate_final`~~ | **Supprimées (00508)** avec le témoignage entre pairs | — |
 | Rejet définitif d'un replay | « Présence non enregistrée » (notif locale) | Participant concerné (00429) | Local |
 
 Tous les types `presence_*` partagent un `collapse_id = 'presence-{activity_id}'` — un seul slot OS par activité, mis à jour au lieu d'être empilé. Suffixe `(×N)` au titre selon le nombre de fois que le slot a été touché dans la fenêtre 24h.
@@ -120,7 +119,10 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 - Pas de check distance (la possession physique du QR suffit)
 - **Règle A** — auto-flip du créateur à `confirmed_present = TRUE` s'il ne l'est pas encore. Le créateur ne s'auto-atteste JAMAIS (invariant 00292, no-op s'il scanne son propre QR) : c'est son SEUL chemin, avec le témoignage des pairs. ⚠️ Ne jamais retirer — il est volontairement exclu de toutes les relances.
 
-### 7. Peer testimony (`peer_validate_presence`)
+### 7. ~~Peer testimony (`peer_validate_presence`)~~ — supprimé en 00508
+
+> Historique conservé ci-dessous. Depuis 00508, la présence se valide uniquement par géolocalisation ou QR. Depuis 00523, une présence validée **après la fin** (QR au parking, géo rejouée hors ligne) attribue aussitôt les trophées qu'elle débloque.
+
 - Pas un path GPS, mais une 3ème voie : **2 témoignages** flippent un peer non-confirmé à TRUE. Le témoin **n'a pas besoin d'être lui-même confirmé présent** (gate retiré en 00327). Minimum **3 participants acceptés** (en dessous : `junto.peer_review_unavailable`).
 - Émission post-event : tous les acceptés reçoivent `rate_participants` au premier balayage APRÈS fin+15 min (ouverture réelle de la fenêtre de vote, 00427 — plus au flip `completed`) ; à T+22h les voters avec ≥1 peer non-confirmé restant à voter reçoivent `peer_review_closing`
 - Side effect : si scanner ≠ créateur, le créateur est lui-même auto-validé (preuve qu'il était là) — Règle A, présente côté QR ET côté géo (restaurée en 00428 après avoir été perdue par 00419).
@@ -170,7 +172,7 @@ Erreurs différenciées (mig 00139) :
 - `peer_already_validated`
 - ~~`peer_voter_not_present`~~ — **plus jamais levé depuis 00327** (clé i18n et mapping client conservés mais morts)
 
-Notif `peer_review_closing` envoyée à end+22h aux participants ayant encore quelqu'un à valider (gate `confirmed_present IS DISTINCT FROM FALSE` depuis 00429 : il était `= TRUE`, donc personne n'était relancé sur une sortie sans aucun confirmé). La branche (b) émet `presence_validate_final` aux non-confirmés eux-mêmes.
+(Historique, supprimé en 00508.) Notif `peer_review_closing` envoyée à end+22h aux participants ayant encore quelqu'un à valider (gate `confirmed_present IS DISTINCT FROM FALSE` depuis 00429 : il était `= TRUE`, donc personne n'était relancé sur une sortie sans aucun confirmé). La branche (b) émet `presence_validate_final` aux non-confirmés eux-mêmes.
 
 ## Auto-validation cascade — résumé
 
