@@ -30,7 +30,8 @@
 - **Phase D faite** (2026-10-22) : 4 fonctions Edge déployées (mêmes réglages), nouveau secret des notifications aux deux endroits, clé ORS saisie par Scott, configuration d'authentification et d'API copiée (145 + 4 réglages, vérifiés identiques ; mot de passe SMTP ressaisi par Scott — la valeur lue par l'API était masquée), 6 tâches actives.
 - **Phase E en cours** : canal preview séparé chez Expo (production inchangée), app preview sur le nouveau projet, compte de Scott créé (admin), démo recopiée à l'identique (`scripts/migration/copy-demo.py`, 24 comptes bloqués à vie), tests manuels de Scott en cours. Publications preview : **toujours** `bash scripts/ota-preview.sh "message"` (sans cache Metro, adresse vérifiée).
 - **F.6 fait par anticipation** (2026-10-22) : migrations archivées, `00526_baseline.sql` seule migration, dépôt lié au nouveau projet (`~/junto-migration/link-old` pour lire l'ancien).
-- **Reste** : notifications push à prouver sur le téléphone, sauvegarde du nouveau projet, phase F (production, site, arrêt des notifications de l'ancien projet).
+- **Chaîne push prouvée côté serveur** (2026-10-22) : notification de test → déclencheur → `send-push` (secret accepté) → Expo (réponse `DeviceNotRegistered` pour le faux jeton, que `send-push` a ensuite supprimé lui-même) ; traces nettoyées. La preview ne peut pas recevoir de push : elle est construite sans fichier Firebase (préexistant, sans lien avec la migration). **Le dernier maillon (Expo → téléphone) se teste en F avec l'app Google Play.** Première sauvegarde du nouveau projet faite par Scott.
+- **Reste** : phase F (production, site, arrêt des notifications de l'ancien projet, test push réel sur le téléphone).
 
 ## 0 bis. Ce qui se fige — à ne pas rater une seconde fois
 
