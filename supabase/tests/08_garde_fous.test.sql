@@ -536,9 +536,9 @@ PERFORM pg_temp.as_('ch_y');
 PERFORM pg_temp.denied('B1 discussion pleine à 500 membres (00514 MS-6)', format($$SELECT public.join_channel(%L)::text$$, pg_temp.id('ch1')), 'junto\.channel_full');
 PERFORM pg_temp.as_('ch_c');
 PERFORM pg_temp.denied('B1 photo de discussion : remontée « .. » refusée (00503)', format($$SELECT public.set_channel_photo(%L, %L)::text$$, pg_temp.id('ch1'),
-  'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/channel-photos/' || pg_temp.get('ch_c') || '/../' || pg_temp.get('ch_x') || '/x.jpg'), 'junto\.channel_photo');
+  pg_temp.host() || '/storage/v1/object/public/channel-photos/' || pg_temp.get('ch_c') || '/../' || pg_temp.get('ch_x') || '/x.jpg'), 'junto\.channel_photo');
 PERFORM pg_temp.ok('B1 photo de son propre dossier acceptée', format($$SELECT public.set_channel_photo(%L, %L)::text$$, pg_temp.id('ch1'),
-  'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/channel-photos/' || pg_temp.get('ch_c') || '/x.jpg'));
+  pg_temp.host() || '/storage/v1/object/public/channel-photos/' || pg_temp.get('ch_c') || '/x.jpg'));
 PERFORM pg_temp.ok('B1 le créateur ferme la discussion', format($$SELECT public.close_channel(%L)::text$$, pg_temp.id('ch1')));
 PERFORM pg_temp.denied('B1 une discussion fermée ne se renomme plus (00514)', format($$SELECT public.rename_channel(%L, 'Nouveau nom')::text$$, pg_temp.id('ch1')), '^Operation not permitted$');
 
@@ -760,7 +760,7 @@ PERFORM pg_temp.user('pc_pro', 'tos'); PERFORM pg_temp.user('pc_pro2', 'tos'); P
 PERFORM pg_temp.gf_pro('pc_pro', 'pc_off'); PERFORM pg_temp.gf_pro('pc_pro2', 'pc_off2');
 PERFORM pg_temp.as_('pc_c1');
 PERFORM pg_temp.put('pc_ph', pg_temp.ok('D3 pc_c1 ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pc_pro'),
-  'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c1') || '/c.jpg')));
+  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c1') || '/c.jpg')));
 PERFORM pg_temp.as_('pc_c2');
 PERFORM pg_temp.eq('D3 la photo est visible des autres', format($$SELECT count(*)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('pc_ph')), '1');
 PERFORM pg_temp.as_('db'); PERFORM pg_temp.gf_suspend('pc_c1');
@@ -769,7 +769,7 @@ PERFORM pg_temp.eq('D3 contributeur suspendu : sa photo est masquée (00518 L2)'
 PERFORM pg_temp.as_('db'); PERFORM pg_temp.gf_suspend('pc_pro2');
 PERFORM pg_temp.as_('pc_c2');
 PERFORM pg_temp.denied('D3 pas de photo communautaire chez un pro suspendu (00520 authz 8)', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pc_pro2'),
-  'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c2') || '/c.jpg'), '^Operation not permitted$');
+  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c2') || '/c.jpg'), '^Operation not permitted$');
 
 -- D4 — Bloqué par le pro : on ne réécrit pas un ancien avis (00501 PO-4).
 PERFORM pg_temp.as_('pc_c2');
