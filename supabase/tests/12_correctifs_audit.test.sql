@@ -280,3 +280,21 @@ PERFORM pg_temp.ok('C13 la personne bloque l''organisatrice', format($$INSERT IN
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C13 sa demande est retirée, pas refusée',
   format($$SELECT status || '|' || (refused_at IS NULL)::text FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.get('c13_a'), pg_temp.id('c13_req')), 'withdrawn|true');
+
+-- ═════ C14 — Un jeton push ne change de compte que depuis le même appareil (00542) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c14_v', 'tos'); PERFORM pg_temp.user('c14_m', 'tos'); PERFORM pg_temp.user('c14_w', 'tos');
+PERFORM pg_temp.as_('c14_v');
+PERFORM pg_temp.ok('C14 la victime enregistre son téléphone', $$SELECT public.register_push_token('ExponentPushToken[c14-victime-0000000000]', 'device-victime')::text$$);
+PERFORM pg_temp.as_('c14_m');
+PERFORM pg_temp.ok('C14 un autre compte présente le même jeton depuis un autre appareil', $$SELECT public.register_push_token('ExponentPushToken[c14-victime-0000000000]', 'device-autre')::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C14 le jeton reste à la victime',
+  $$SELECT string_agg(u.display_name, ',') FROM public.push_tokens t JOIN public.users u ON u.id = t.user_id WHERE t.token = 'ExponentPushToken[c14-victime-0000000000]'$$,
+  (SELECT display_name FROM public.users WHERE id = pg_temp.id('c14_v')));
+PERFORM pg_temp.as_('c14_w');
+PERFORM pg_temp.ok('C14 changement de compte sur le même téléphone', $$SELECT public.register_push_token('ExponentPushToken[c14-victime-0000000000]', 'device-victime')::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C14 le même appareil reprend le jeton pour le nouveau compte',
+  $$SELECT string_agg(u.display_name, ',') FROM public.push_tokens t JOIN public.users u ON u.id = t.user_id WHERE t.token = 'ExponentPushToken[c14-victime-0000000000]'$$,
+  (SELECT display_name FROM public.users WHERE id = pg_temp.id('c14_w')));
