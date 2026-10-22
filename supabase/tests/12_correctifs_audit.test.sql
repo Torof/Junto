@@ -233,3 +233,25 @@ PERFORM pg_temp.as_('c10_adm');
 PERFORM pg_temp.ok('C10 un admin retire le groupe', format($$SELECT public.admin_remove_content('group', %L, 'signalement confirmé')::text$$, pg_temp.get('c10_g')));
 PERFORM pg_temp.as_('c10_b');
 PERFORM pg_temp.denied('C10 groupe retiré : l''auteur ne fait plus disparaître ses messages', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_gm')), '^Operation not permitted$');
+
+-- ═════ C11 — Chaque renommage d'une vitrine approuvée parvient à l'admin (00538) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c11_pro', 'tos'); PERFORM pg_temp.user('c11_adm', 'tos,admin');
+PERFORM pg_temp.as_('c11_pro');
+PERFORM pg_temp.ok('C11 le pro s''inscrit', $$SELECT public.register_as_pro(p_display_name := 'Guide Alpha', p_company_name := 'SARL Test', p_real_name := 'Jean Test', p_primary_lng := -131.5, p_primary_lat := -39.5, p_primary_location_name := 'Océan')::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.pro_profiles SET status = 'approved' WHERE user_id = pg_temp.id('c11_pro');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c11_pro');
+PERFORM pg_temp.ok('C11 premier renommage', $$SELECT public.update_pro_profile(p_display_name := 'Guide Beta')::text$$);
+PERFORM pg_temp.ok('C11 second renommage le même jour', $$SELECT public.update_pro_profile(p_display_name := 'Nom Problématique')::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C11 l''admin a un seul avis, qui montre le nom ACTUEL',
+  format($$SELECT string_agg(body, ' / ') FROM public.notifications WHERE user_id = %L AND type = 'pro_renamed' AND data->>'pro_id' = %L$$, pg_temp.id('c11_adm'), pg_temp.get('c11_pro')),
+  'Guide Alpha → Nom Problématique');
+PERFORM pg_temp.as_('c11_pro');
+PERFORM pg_temp.ok('C11 retour au nom du matin', $$SELECT public.update_pro_profile(p_display_name := 'Guide Alpha')::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C11 revenu au nom du matin : plus rien à signaler',
+  format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'pro_renamed' AND data->>'pro_id' = %L$$, pg_temp.id('c11_adm'), pg_temp.get('c11_pro')), '0');
