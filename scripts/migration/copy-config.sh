@@ -31,31 +31,46 @@ patch() { call PATCH "$1" "$2" > /dev/null; }
 
 for part in config/auth postgrest; do
   name=${part//\//-}
-  get "$OLD/$part" > "$WORK/old-$name.json" || { echo "Lecture de l'ancien projet impossible ($part) — jeton valide ?"; unset SUPABASE_TOKEN; exit 1; }
-  python3 - "$WORK/old-$name.json" "$WORK/patch-$name.json" "$WORK/secrets-$name.txt" <<'PY'
-import json, re, sys
-src, out, sec = sys.argv[1:4]
-d = json.load(open(src))
+  # The old configuration stays in memory: Supabase returns the SMTP password in
+  # clear, so the copy written to disk is redacted first.
+  OLD_JSON=$(get "$OLD/$part") || { echo "Lecture de l'ancien projet impossible ($part) — jeton valide ?"; unset SUPABASE_TOKEN; exit 1; }
+  export OLD_JSON
+  # Body = every setting except secrets — but the SMTP password is carried over
+  # from the old project (memory only: the SMTP settings cannot be saved without it).
+  BODY=$(python3 - "$WORK/old-$name.json" "$WORK/patch-$name.json" "$WORK/secrets-$name.txt" <<'PY'
+import json, os, re, sys
+redacted, out, sec = sys.argv[1:4]
+d = json.loads(os.environ['OLD_JSON'])
 SECRET = re.compile(r'(smtp_pass|secret|auth_token|api_key|private_key|_key$|^jwt_secret)')
 keep, secrets = {}, []
 for k, v in d.items():
     if SECRET.search(k):
-        if v not in (None, '', False): secrets.append(k)
+        if v not in (None, '', False) and k != 'smtp_pass': secrets.append(k)
         continue
     if v is None: continue
     keep[k] = v
-json.dump(keep, open(out, 'w'))
+json.dump(keep, open(out, 'w'))  # what is compared afterwards (no secret)
+json.dump({k: ('<retiré>' if SECRET.search(k) and v not in (None, '', False) else v) for k, v in d.items()}, open(redacted, 'w'))
 open(sec, 'w').write('\n'.join(secrets))
+body = dict(keep)
+if d.get('smtp_pass') and d.get('smtp_host'): body['smtp_pass'] = d['smtp_pass']
+print(json.dumps(body))
 PY
-  if ! patch "$NEW/$part" "$WORK/patch-$name.json"; then
-    echo "Écriture refusée sur le nouveau projet ($part) — dis-le-moi, je lis $WORK."; unset SUPABASE_TOKEN; exit 1
+)
+  unset OLD_JSON
+  if ! printf '%s' "$BODY" | call PATCH "$NEW/$part" /dev/stdin > /dev/null; then
+    unset BODY SUPABASE_TOKEN; echo "Écriture refusée sur le nouveau projet ($part) — dis-le-moi, je lis $WORK."; exit 1
   fi
-  get "$NEW/$part" > "$WORK/new-$name.json"
-  python3 - "$WORK/patch-$name.json" "$WORK/new-$name.json" "$part" "$WORK/secrets-$name.txt" <<'PY'
-import json, sys
-want, got, part, sec = json.load(open(sys.argv[1])), json.load(open(sys.argv[2])), sys.argv[3], sys.argv[4]
+  unset BODY
+  get "$NEW/$part" | python3 - "$WORK/patch-$name.json" "$part" "$WORK/secrets-$name.txt" "$WORK/new-$name.json" <<'PY'
+import json, re, sys
+want, part, sec, newfile = json.load(open(sys.argv[1])), sys.argv[2], sys.argv[3], sys.argv[4]
+got = json.load(sys.stdin)
+SECRET = re.compile(r'(smtp_pass|secret|auth_token|api_key|private_key|_key$|^jwt_secret)')
+json.dump({k: ('<retiré>' if SECRET.search(k) and v not in (None, '', False) else v) for k, v in got.items()}, open(newfile, 'w'))
 diff = sorted(k for k, v in want.items() if got.get(k) != v)
 print(f"{part} : {len(want)} réglages copiés, {len(diff)} différent(s) après copie" + (f" : {', '.join(diff)}" if diff else ""))
+if part == 'config/auth': print(f"  mot de passe SMTP repris de l'ancien projet : {'oui' if got.get('smtp_pass') else 'non'}")
 s = open(sec).read().split()
 if s: print(f"  secrets NON copiés (à saisir à la main dans le tableau de bord) : {', '.join(s)}")
 PY
