@@ -9,7 +9,7 @@ import 'dayjs/locale/fr';
 import { CalendarCheck, CalendarClock, CalendarX2,
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, AlarmClock, Hourglass, QrCode,
-  Car, CarFront, CarTaxiFront, Mail, MailCheck, Users, BadgeCheck, Trophy,
+  Car, CarFront, CarTaxiFront, Mail, MailCheck, BadgeCheck, Trophy,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -40,7 +40,6 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   presence_pre_warning_10min: { icon: AlarmClock, color: colors.cta },
   presence_validate_warning: { icon: AlarmClock, color: colors.warning },
   presence_validate_overdue: { icon: AlertTriangle, color: colors.warning },
-  presence_validate_final: { icon: AlertTriangle, color: colors.error },
   presence_confirmed: { icon: BadgeCheck, color: colors.success },
   badge_unlocked: { icon: Trophy, color: colors.cta },
   pro_approved: { icon: BadgeCheck, color: colors.success },
@@ -48,12 +47,13 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
-  peer_review_closing: { icon: Users, color: colors.warning },
   seat_request: { icon: Car, color: colors.cta },
   seat_request_accepted: { icon: CarFront, color: colors.success },
   seat_request_declined: { icon: Car, color: colors.error },
   seat_request_expired: { icon: CarTaxiFront, color: colors.textMuted },
   driver_left: { icon: Car, color: colors.warning },
+  seat_passenger_left: { icon: Car, color: colors.textSecondary },
+  join_request_blocked: { icon: UserMinus, color: colors.textSecondary },
   contact_request: { icon: Mail, color: colors.cta },
   contact_request_accepted: { icon: MailCheck, color: colors.success },
   invite_activity_gone: { icon: CalendarX2, color: colors.warning },
@@ -111,7 +111,7 @@ export function NotificationsView() {
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
     }
 
-    if ((notification.type === 'rate_participants' || notification.type === 'peer_review_closing') && notification.data?.activity_id) {
+    if (notification.type === 'rate_participants' && notification.data?.activity_id) {
       router.push(`/(auth)/peer-review/${notification.data.activity_id}`);
     } else if (notification.type === 'contact_request' || notification.type === 'seat_request') {
       router.push('/(auth)/(tabs)/messagerie?tab=requests');

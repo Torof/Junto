@@ -107,6 +107,14 @@
      "title": "Place annulée",
      "body": "{{name}} a quitté « {{title}} » — trouve une autre place"
     },
+    "seat_passenger_left": {
+     "title": "Place libérée",
+     "body": "{{name}} ne participe plus à « {{title}} » — sa place dans ta voiture est libérée"
+    },
+    "join_request_blocked": {
+     "title": "Demande retirée",
+     "body": "La demande de {{name}} pour « {{title}} » a été retirée : un blocage l'oppose à un participant."
+    },
     "booking_request": {
      "title": "Nouvelle demande de réservation",
      "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.",
@@ -327,6 +335,14 @@
     "driver_left": {
      "title": "Seat cancelled",
      "body": "{{name}} left “{{title}}” — find another seat"
+    },
+    "seat_passenger_left": {
+     "title": "Seat freed",
+     "body": "{{name}} is no longer part of “{{title}}” — their seat in your car is free again"
+    },
+    "join_request_blocked": {
+     "title": "Request withdrawn",
+     "body": "{{name}}’s request for “{{title}}” was withdrawn: a block stands between them and a participant."
     },
     "booking_request": {
      "title": "New booking request",
@@ -549,6 +565,14 @@
      "title": "Posto annullato",
      "body": "{{name}} ha lasciato « {{title}} » — trova un altro posto"
     },
+    "seat_passenger_left": {
+     "title": "Posto liberato",
+     "body": "{{name}} non partecipa più a « {{title}} » — il suo posto nella tua auto è di nuovo libero"
+    },
+    "join_request_blocked": {
+     "title": "Richiesta ritirata",
+     "body": "La richiesta di {{name}} per « {{title}} » è stata ritirata: un blocco lo separa da un partecipante."
+    },
     "booking_request": {
      "title": "Nuova richiesta di prenotazione",
      "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.",
@@ -770,6 +794,14 @@
      "title": "Plaza cancelada",
      "body": "{{name}} ha dejado «{{title}}»: busca otra plaza"
     },
+    "seat_passenger_left": {
+     "title": "Plaza liberada",
+     "body": "{{name}} ya no participa en « {{title}} »: su plaza en tu coche vuelve a estar libre"
+    },
+    "join_request_blocked": {
+     "title": "Solicitud retirada",
+     "body": "La solicitud de {{name}} para « {{title}} » se ha retirado: un bloqueo lo separa de un participante."
+    },
     "booking_request": {
      "title": "Nueva solicitud de reserva",
      "body_one": "{{name}} · «{{title}}» · {{date}}, {{period}} · 1 pers.",
@@ -990,6 +1022,14 @@
     "driver_left": {
      "title": "Platz entfällt",
      "body": "{{name}} hat „{{title}}“ verlassen — such dir einen anderen Platz"
+    },
+    "seat_passenger_left": {
+     "title": "Platz frei",
+     "body": "{{name}} nimmt nicht mehr an „{{title}}“ teil — der Platz in deinem Auto ist wieder frei"
+    },
+    "join_request_blocked": {
+     "title": "Anfrage zurückgezogen",
+     "body": "Die Anfrage von {{name}} für „{{title}}“ wurde zurückgezogen: Zwischen dieser Person und einem Teilnehmer besteht eine Blockierung."
     },
     "booking_request": {
      "title": "Neue Buchungsanfrage",

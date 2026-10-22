@@ -129,9 +129,9 @@ export function usePushNotifications(enabled: boolean) {
         router.push(data.by === 'client' ? '/(auth)/pro/agenda' : '/(auth)/my-bookings');
         return;
       }
-      // Peer-review pushes land on the review screen (mirrors the in-app
+      // Review-screen push lands on the review screen (mirrors the in-app
       // notification router) — not the activity detail.
-      if ((data?.type === 'rate_participants' || data?.type === 'peer_review_closing') && data.activity_id) {
+      if (data?.type === 'rate_participants' && data.activity_id) {
         router.push(`/(auth)/peer-review/${data.activity_id}`);
       }
       // Seat-request push: land the driver on the chat thread (00206
@@ -153,6 +153,8 @@ export function usePushNotifications(enabled: boolean) {
         router.push(`/(auth)/activity/${data.activity_id}?tab=chat`);
       } else if (data?.conversation_id) {
         router.push(`/(auth)/conversation/${data.conversation_id}`);
+      } else if (data?.type === 'pro_rejected') {
+        router.push('/(auth)/pro/edit');
       } else if (data?.offering_id) {
         // review_received / review_reply on an offering
         router.push(`/(auth)/pro/offering/${data.offering_id}`);
