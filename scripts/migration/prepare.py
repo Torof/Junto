@@ -22,6 +22,8 @@ WORK = os.environ.get('JUNTO_MIG_WORK', os.path.expanduser('~/junto-migration'))
 EXPORT = os.path.join(WORK, 'export')
 BUILD = os.path.join(WORK, 'build')
 OLD_REF = 'lvjlthzdydzatcvwwriu'
+# Folder linked to the OLD project (the repo itself is linked to the new one since F.6).
+OLD_LINK = os.path.expanduser('~/junto-migration/link-old')
 # First migration number of the new project (after the last one applied on the old).
 BASELINE = '%05d' % (max(int(f[:5]) for f in os.listdir(os.path.join(ROOT, 'supabase', 'migrations')) if f[:5].isdigit()) + 1)
 
@@ -31,12 +33,12 @@ def die(msg):
 
 
 def old_query(sql):
-    """Read-only query on the OLD project (the repo is linked to it)."""
+    """Read-only query on the OLD project (through OLD_LINK)."""
     path = os.path.join(WORK, '.q.sql')
     with open(path, 'w') as f:
         f.write(sql)
     out = subprocess.run(['npx', 'supabase', 'db', 'query', '--experimental', '--linked', '-f', path],
-                         cwd=ROOT, capture_output=True, text=True).stdout
+                         cwd=OLD_LINK, capture_output=True, text=True).stdout
     os.remove(path)
     data = json.loads(out[out.index('{'):])
     return data['rows']
@@ -54,9 +56,9 @@ def main():
     new_ref = sys.argv[1]
     if new_ref == OLD_REF:
         die("c'est la référence de l'ancien projet")
-    linked = open(os.path.join(ROOT, 'supabase', '.temp', 'project-ref')).read().strip()
+    linked = open(os.path.join(OLD_LINK, 'supabase', '.temp', 'project-ref')).read().strip()
     if linked != OLD_REF:
-        die(f'le dépôt doit rester lié à l\'ancien projet (lié à {linked})')
+        die(f'{OLD_LINK} doit viser l\'ancien projet (vise {linked})')
     for f in ('schema.sql', 'reference.sql'):
         if not os.path.exists(os.path.join(EXPORT, f)):
             die(f'{f} absent de {EXPORT} — lancer export.sh')

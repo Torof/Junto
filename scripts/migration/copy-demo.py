@@ -19,6 +19,7 @@ import json, os, re, subprocess, sys, base64, urllib.request
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OLD = 'lvjlthzdydzatcvwwriu'
 LINK = os.path.expanduser('~/junto-migration/link')
+OLD_LINK = os.path.expanduser('~/junto-migration/link-old')  # repo is linked to the new project since F.6
 OUT = os.path.expanduser('~/junto-migration/demo')
 
 # table → {fk column: referenced set}. Sets: users, activities, conversations,
@@ -59,7 +60,7 @@ TABLES = [
 KEY = {'pro_profiles': 'user_id', 'channels': 'conversation_id'}  # primary key column when it is not "id" (read from the catalog)
 
 
-def q(sql, cwd=ROOT):
+def q(sql, cwd=OLD_LINK):
     path = os.path.join(OUT, '.q.sql')
     open(path, 'w').write(sql)
     out = subprocess.run(['npx', 'supabase', 'db', 'query', '--experimental', '--linked', '-f', path],
