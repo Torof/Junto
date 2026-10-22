@@ -523,7 +523,7 @@ PERFORM pg_temp.eq('après départ, carol ne lit plus les messages du groupe',
   format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L$$, pg_temp.id('g1')), '0');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('une personne qui a quitté un groupe ne peut pas y être remise aussitôt',
-  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('carol')), '.');
+  format($$SELECT public.add_group_member(%L, %L)::text$$, pg_temp.id('g1'), pg_temp.id('carol')), 'junto\.member_left_recently');
 
 -- Plafond journalier de création de groupes (5)
 PERFORM pg_temp.eq('au-delà de 5 groupes créés par jour, refus',
@@ -574,7 +574,7 @@ PERFORM pg_temp.denied('photo hors du dossier du créateur refusée',
   format($$SELECT public.set_channel_photo(%L, 'https://evil.example/x.jpg')::text$$, pg_temp.id('ch1')), 'junto\.channel_photo');
 PERFORM pg_temp.ok('le créateur pose une photo de son dossier',
   format($$SELECT public.set_channel_photo(%L, %L)::text$$, pg_temp.id('ch1'),
-    'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/channel-photos/' || pg_temp.get('frank') || '/photo.jpg'));
+    pg_temp.host() || '/storage/v1/object/public/channel-photos/' || pg_temp.get('frank') || '/photo.jpg'));
 PERFORM pg_temp.put('m_frank', pg_temp.ok('frank écrit dans le canal', format($$SELECT public.send_message(%L, 'message du créateur')::text$$, pg_temp.id('ch1'))));
 PERFORM pg_temp.ok('le créateur supprime le message d''un membre (modération)', format($$SELECT public.delete_message(%L)::text$$, pg_temp.id('m_mal')));
 PERFORM pg_temp.as_('mal');
@@ -723,7 +723,7 @@ PERFORM pg_temp.run(format($$INSERT INTO public.messages (conversation_id, sende
   SELECT %L, %L, 'ancien ' || g, now() - interval '2 hours' FROM generate_series(1, 2000) g$$, pg_temp.id('ch_s1'), pg_temp.id('s1')));
 PERFORM pg_temp.as_('s1');
 PERFORM pg_temp.denied('après 2000 messages dans la journée, un plafond s''applique',
-  format($$SELECT public.send_message(%L, 'encore un')::text$$, pg_temp.id('ch_s1')), '.');
+  format($$SELECT public.send_message(%L, 'encore un')::text$$, pg_temp.id('ch_s1')), 'junto\.message_daily_cap');
 
 -- ═════ Contenu des push de message (MS-5) ═════
 -- request_seat (miroir legacy) laisse junto.skip_message_push actif pour la fin de la transaction : on le remet.

@@ -68,9 +68,10 @@ BEGIN
         AND p.prorettype <> 'trigger'::regtype
         AND p.proname NOT IN ('demo_content_visible', 'junto_pre_request')  -- filtre d'API (00504), appelé par PostgREST avec le rôle du client
         AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid AND d.deptype = 'e')$$, '');
-  PERFORM pg_temp.eq('anon ne peut pas exécuter public._postgis_stats',
-    $$SELECT bool_or(has_function_privilege('anon', p.oid, 'EXECUTE'))::text FROM pg_proc p
-      WHERE p.pronamespace = 'public'::regnamespace AND p.proname = '_postgis_stats'$$, 'false', 'PV-1');
+  PERFORM pg_temp.eq('anon ne peut pas exécuter _postgis_stats (où que soit PostGIS)',
+    $$SELECT bool_or(has_function_privilege('anon', p.oid, 'EXECUTE')
+                     AND has_schema_privilege('anon', p.pronamespace, 'USAGE'))::text FROM pg_proc p
+      WHERE p.proname = '_postgis_stats'$$, 'false', 'PV-1');
 
   -- ───── 5. Fonctions internes non exécutables par les rôles clients ─────
   -- close_channel est une RPC client (modération par le créateur du canal), pas un job interne.
@@ -208,7 +209,7 @@ BEGIN
   -- ───── Trous connus ─────
   PERFORM pg_temp.as_('anon');
   PERFORM pg_temp.denied('anon n''écrit pas dans spatial_ref_sys',
-    $$DELETE FROM public.spatial_ref_sys WHERE srid = -1$$, 'permission denied', 'TX-2');
+    format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied', 'TX-2');  -- où que soit PostGIS
   PERFORM pg_temp.as_('db');
   -- TX-4 (00502) : nos tables (rôle postgres) n'accordent plus d'écriture par défaut aux clients.
   PERFORM pg_temp.eq('privilèges par défaut (postgres) : pas d''écriture accordée aux clients sur les nouvelles tables',

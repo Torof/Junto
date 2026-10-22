@@ -435,10 +435,13 @@ PERFORM pg_temp.eq('alice voit sa trace renommée', format($$SELECT name FROM pu
 PERFORM pg_temp.ok('alice supprime sa trace', format($$SELECT public.delete_gpx_trace(%L)::text$$, pg_temp.id('gpx1')));
 PERFORM pg_temp.denied('plafond de 50 traces', $$SELECT pg_temp.dc_gpx_fill(51)::text$$, 'junto.trace_quota_reached');
 PERFORM pg_temp.eq('calcul de stats de trace', format($$SELECT (distance_km > 0 AND elevation_gain_m > 0)::text FROM public.compute_trace_stats(%L::jsonb)$$, pg_temp.dc_trace()), 'true');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('ts_before', (SELECT count(*)::text FROM public.rate_events WHERE user_id = pg_temp.id('alice') AND kind = 'trace_stats'));
+PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.eq('stats : forme invalide = aucune statistique (00482)', $$SELECT coalesce(distance_km::text, 'null') FROM public.compute_trace_stats('{"type":"Polygon","coordinates":[]}'::jsonb)$$, 'null');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('stats : une trace invalide est quand même comptée (00482)',
-  format($$SELECT (count(*) >= 1)::text FROM public.rate_events WHERE user_id = %L AND kind = 'trace_stats'$$, pg_temp.id('alice')), 'true');
+  format($$SELECT (count(*) - %s)::text FROM public.rate_events WHERE user_id = %L AND kind = 'trace_stats'$$, pg_temp.get('ts_before'), pg_temp.id('alice')), '1');
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('un compte suspendu ne calcule pas de stats', format($$SELECT distance_km::text FROM public.compute_trace_stats(%L::jsonb)$$, pg_temp.dc_trace()), 'Operation not permitted');
@@ -520,9 +523,9 @@ PERFORM pg_temp.denied('DC-2 : le compteur refuse un rayon hors liste (sondage �
 -- (le rayon de l'autre doit contenir le point). Depuis l'autre bout du monde : personne.
 PERFORM pg_temp.eq('C1 : « peu importe » depuis l''autre bout du monde ne trouve personne',
   $$SELECT public.get_discovery_count(ARRAY['hiking'], -120.5, -40.2, NULL, now(), now() + interval '7 days')::text$$, '0');
-PERFORM pg_temp.eq('DC-1 : la distance d''une carte Découverte est en km entiers',
-  $$SELECT coalesce(bool_and(distance_km = round(distance_km) AND distance_km >= 1), true)::text FROM public.get_discovery_cards()$$, 'true');
 PERFORM pg_temp.as_('alice');
+PERFORM pg_temp.eq('DC-1 : la distance d''une carte Découverte est en km entiers (cartes présentes)',
+  $$SELECT (count(*) > 0 AND bool_and(distance_km = round(distance_km) AND distance_km >= 1))::text FROM public.get_discovery_cards()$$, 'true');
 PERFORM pg_temp.denied('DC-3 : changer 30 fois la trace d''une sortie est limité',
   format($$SELECT pg_temp.dc_trace_spam(%L, 30)::text$$, pg_temp.id('a_alice')), 'junto\.too_many_actions');
 PERFORM pg_temp.denied('DC-3 : 700 calculs de stats de trace d''affilée sont limités',
@@ -534,7 +537,7 @@ PERFORM pg_temp.eq('DC-4 (choix) : un lien partagé montre la sortie publique sa
   format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L AND description IS NOT NULL$$, pg_temp.id('a_pub')), '1');
 PERFORM pg_temp.as_('bob');
 PERFORM pg_temp.denied('DC-6 : create_alert refuse un sport inconnu',
-  $$SELECT public.create_alert(6.08, 44.56, 20, 'sport-inexistant')::text$$, '.');
+  $$SELECT public.create_alert(6.08, 44.56, 20, 'sport-inexistant')::text$$, '^Operation not permitted$');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.denied('DC-7 : un compte ne peut pas avoir deux dispos',
   format($$SELECT pg_temp.dc_dispo(%L, false, now() + interval '1 hour', now() + interval '2 days', false)::text$$, pg_temp.id('alice')), 'duplicate|violates');
@@ -545,7 +548,9 @@ PERFORM pg_temp.eq('BR-5 : une dispo expirée n''est plus proposée',
   format($$SELECT count(*)::text FROM public.get_discovery_cards() WHERE user_id = %L$$, pg_temp.id('past2')), '0');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('PV-1 : anon ne lit pas les statistiques PostGIS des dispos',
-  $$SELECT public._postgis_stats('public.discovery_availabilities'::regclass, 'base')::text$$, 'permission denied', 'PV-1');
+  format($$SELECT %s('public.discovery_availabilities'::regclass, 'base')::text$$,
+    (SELECT n.nspname || '._postgis_stats' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE p.proname = '_postgis_stats' LIMIT 1)),
+  'permission denied', 'PV-1');  -- où que soit PostGIS
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('AB-14 : la recherche de canaux borne la longueur de la requête',
-  $$SELECT count(*)::text FROM public.search_channels(repeat('a', 5000))$$, '.');
+  $$SELECT count(*)::text FROM public.search_channels(repeat('a', 5000))$$, '^Operation not permitted$');

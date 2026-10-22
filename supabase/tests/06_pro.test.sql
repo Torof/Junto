@@ -7,7 +7,7 @@
 
 -- ───── Helpers locaux ─────
 EXECUTE $p$CREATE FUNCTION pg_temp.po_url(p_label text, p_file text) RETURNS text
-  LANGUAGE sql AS $b$ SELECT 'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/pro-photos/' || pg_temp.id(p_label)::text || '/' || p_file $b$$p$;
+  LANGUAGE sql AS $b$ SELECT pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.id(p_label)::text || '/' || p_file $b$$p$;
 EXECUTE $p$CREATE FUNCTION pg_temp.po_unlock() RETURNS void
   LANGUAGE sql AS $b$ SELECT set_config('junto.bypass_lock', 'false', true) $b$$p$;
 -- Inscription standard (nom, raison sociale, identité, coordonnées).
@@ -119,7 +119,7 @@ PERFORM pg_temp.denied('p_clear refuse une colonne hors liste blanche', $$SELECT
 PERFORM pg_temp.denied('p_clear refuse plus de 7 entrées', $$SELECT public.update_pro_profile(p_clear := ARRAY['tagline','tagline','tagline','tagline','tagline','tagline','tagline','tagline'])::text$$);
 PERFORM pg_temp.denied('approuvé : déplacement de l''enseigne sous cooldown', $$SELECT public.update_pro_profile(p_primary_lng := 6.0, p_primary_lat := 45.0, p_primary_location_name := 'Ailleurs')::text$$, 'junto.pro_location_cooldown');
 PERFORM pg_temp.denied('déplacement sans nom de lieu refusé', $$SELECT public.update_pro_profile(p_primary_lng := 6.0, p_primary_lat := 45.0)::text$$);
-PERFORM pg_temp.denied('site web en javascript: refusé', $$SELECT public.update_pro_profile(p_website := 'javascript:alert(1)')::text$$, '.');
+PERFORM pg_temp.denied('site web en javascript: refusé', $$SELECT public.update_pro_profile(p_website := 'javascript:alert(1)')::text$$, 'junto\.pro_website_invalid');
 PERFORM pg_temp.po_unlock();
 PERFORM pg_temp.as_('cand');
 PERFORM pg_temp.ok('en attente : la raison sociale reste modifiable', $$SELECT public.update_pro_profile(p_company_name := 'Nouvelle SARL')::text$$);

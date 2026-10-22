@@ -38,14 +38,14 @@ PERFORM pg_temp.eq('e-mail inchangé', format($$SELECT (email LIKE '%%@junto.tes
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('avatar hors du stockage du projet refusé',
   format($$UPDATE public.users SET avatar_url = 'https://evil.example/pixel.png' WHERE id = %L$$, pg_temp.id('alice')),
-  '.');
+  '^Operation not permitted$');
 PERFORM pg_temp.denied('avatar : remontée « .. » vers le dossier d''un autre refusée',
   format($$UPDATE public.users SET avatar_url = %L WHERE id = %L$$,
-    'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/../' || pg_temp.id('bob') || '/avatar', pg_temp.id('alice')),
+    pg_temp.host() || '/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/../' || pg_temp.id('bob') || '/avatar', pg_temp.id('alice')),
   'Operation not permitted');
 PERFORM pg_temp.ok('avatar : une image de son propre dossier est acceptée',
   format($$UPDATE public.users SET avatar_url = %L WHERE id = %L$$,
-    'https://lvjlthzdydzatcvwwriu.supabase.co/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/avatar?t=1', pg_temp.id('alice')));
+    pg_temp.host() || '/storage/v1/object/public/avatars/' || pg_temp.id('alice') || '/avatar?t=1', pg_temp.id('alice')));
 
 -- ───── Vue public_profiles (00476) ─────
 PERFORM pg_temp.eq('alice voit le profil public de bob', format($$SELECT count(*)::text FROM public.public_profiles WHERE id = %L$$, pg_temp.id('bob')), '1');
@@ -98,15 +98,18 @@ PERFORM pg_temp.denied('ID-2 : se réinscrire avec cet e-mail (variante +tag, ma
 PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('ID-2 : la connexion survivante ne recrée pas de profil (00513)', $$SELECT public.ensure_user_row()::text$$, 'Operation not permitted');
 PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('quitter', 'tos');
+PERFORM pg_temp.ok('ID-2 : un compte non suspendu s''efface', format($$SELECT public.delete_account_as(%L)::text$$, pg_temp.id('quitter')));
+PERFORM pg_temp.eq('ID-2 : fixture — le compte est bien effacé', format($$SELECT count(*)::text FROM public.users WHERE id = %L$$, pg_temp.id('quitter')), '0');
 PERFORM pg_temp.eq('ID-2 : un compte non suspendu qui s''efface ne laisse aucune empreinte',
-  $$SELECT private.email_is_banned('test-' || pg_temp.id('bob') || '@junto.test')::text$$, 'false');
+  $$SELECT private.email_is_banned('test-' || pg_temp.id('quitter') || '@junto.test')::text$$, 'false');
 PERFORM pg_temp.as_('noob');
 PERFORM pg_temp.denied('sans âge confirmé ni CGU acceptées, on ne peut pas créer de sortie',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', 'Tous niveaux', 5, 6.6, 44.9, NULL, NULL, now() + interval '2 days')::text$$,
-  '.');
+  '^Operation not permitted$');
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('un visiteur sans compte ne peut pas écrire dans spatial_ref_sys',
-  $$DELETE FROM public.spatial_ref_sys WHERE srid = -1$$, 'permission denied', 'TX-2');
+  format('DELETE FROM %s WHERE srid = -1', (SELECT c.oid::regclass::text FROM pg_class c WHERE c.relname = 'spatial_ref_sys' AND c.relkind = 'r')), 'permission denied', 'TX-2');  -- où que soit PostGIS
 
 -- 00513 : profil — sports est un tableau borné (un objet cassait l'affichage du profil chez les autres).
 PERFORM pg_temp.as_('alice');

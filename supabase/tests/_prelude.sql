@@ -42,6 +42,10 @@ EXECUTE $p$CREATE FUNCTION pg_temp.rec(p_name text, p_ok boolean, p_detail text,
       left(p_detail, 300), p_known);
   END $b$$p$;
 
+-- 00524: the project host comes from app_config (never hardcoded in tests).
+EXECUTE $p$CREATE FUNCTION pg_temp.host() RETURNS text
+  LANGUAGE sql SECURITY DEFINER AS $b$ SELECT private.project_url() $b$$p$;
+
 EXECUTE $p$CREATE FUNCTION pg_temp.user(p_label text, p_flags text DEFAULT '') RETURNS uuid
   LANGUAGE plpgsql SECURITY DEFINER AS $b$
   DECLARE v uuid := gen_random_uuid(); f text := ',' || coalesce(p_flags, '') || ',';

@@ -77,7 +77,7 @@ PERFORM pg_temp.denied('visibilité inconnue refusée',
 PERFORM pg_temp.denied('trace GeoJSON invalide refusée',
   $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', 'Tous niveaux', 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'public', true, NULL, NULL, NULL, NULL, NULL, NULL, '{"type":"Point","coordinates":[1,2]}'::jsonb)::text$$, 'junto.trace_geojson_invalid');
 PERFORM pg_temp.denied('niveau démesuré refusé (AC-3)',
-  $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', repeat('n', 5000), 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'private_link')::text$$, '.');
+  $$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie test', 'x', repeat('n', 5000), 5, -30.0, 40.0, NULL, NULL, now() + interval '2 days', '2 hours', 'private_link')::text$$, 'activities_level_len');
 
 -- Limite journalière (10 / jour).
 PERFORM pg_temp.as_('spam');
@@ -149,7 +149,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('ab1_err', SQLERRM);
 END;
 PERFORM pg_temp.eq('12 inscriptions / désinscriptions en boucle sont freinées par une limite',
-  $$SELECT (coalesce(pg_temp.get('ab1_err'), '') ~ 'junto\.')::text$$, 'true');
+  $$SELECT (coalesce(pg_temp.get('ab1_err'), '') ~ 'junto\.rejoin_cooldown')::text$$, 'true');
 
 -- ═════ Rideau démo ═════
 PERFORM pg_temp.as_('demo1');
@@ -244,7 +244,7 @@ BEGIN
   END LOOP;
 EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('ac10_err', SQLERRM);
 END;
-PERFORM pg_temp.eq('30 modifications en boucle sont freinées', $$SELECT (pg_temp.get('ac10_err') IS NOT NULL)::text$$, 'true');
+PERFORM pg_temp.eq('30 modifications en boucle sont freinées', $$SELECT (coalesce(pg_temp.get('ac10_err'), '') ~ 'junto\.too_many_actions')::text$$, 'true');
 
 -- ═════ update_activity_trace ═════
 PERFORM pg_temp.as_('anon');
@@ -505,8 +505,8 @@ PERFORM pg_temp.ok('dave décline hank', format($$SELECT public.decline_seat_req
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la demande est déclinée', format($$SELECT status FROM public.seat_requests WHERE id = %L$$, pg_temp.id('sr_hank')), 'declined');
 PERFORM pg_temp.as_('hank');
--- AC-4 tient aujourd'hui, mais seulement par l'effet de DB-AC-2 (aucun renvoi n'est jamais possible).
-PERFORM pg_temp.denied('une demande déclinée ne se renvoie pas aussitôt', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), '.');
+-- AC-4 : délai de 24 h après un refus du conducteur.
+PERFORM pg_temp.denied('une demande déclinée ne se renvoie pas aussitôt', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('car'), pg_temp.id('dave')), 'junto\.seat_request_cooldown');
 
 -- Blocage entre passager et conducteur.
 PERFORM pg_temp.as_('db');
@@ -612,7 +612,7 @@ EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.put('alert_err', SQLERRM);
 END;
 PERFORM pg_temp.denied('11e alerte refusée', $$SELECT public.create_alert(6.0, 44.0, 20)::text$$, 'junto.alert_limit_reached');
 PERFORM pg_temp.as_('frank');
-PERFORM pg_temp.denied('coordonnées d''alerte invalides refusées', $$SELECT public.create_alert(6.0, 300.0, 20)::text$$, '.');
+PERFORM pg_temp.denied('coordonnées d''alerte invalides refusées', $$SELECT public.create_alert(6.0, 300.0, 20)::text$$, '^Operation not permitted$');
 PERFORM pg_temp.eq('un inconnu ne lit pas les alertes d''autrui', format($$SELECT count(*)::text FROM public.activity_alerts WHERE id = %L$$, pg_temp.id('alert')), '0');
 PERFORM pg_temp.eq('un inconnu ne supprime pas les alertes d''autrui', format($$DELETE FROM public.activity_alerts WHERE id = %L$$, pg_temp.id('alert')), '0');
 

@@ -378,6 +378,10 @@ PERFORM pg_temp.pr_vote('p1', 'tv', 'K' || g, 'punctual') FROM generate_series(1
 PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('PR-3 : 5 personnes ont donné « ponctuel » : les votants s''affichent',
   format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('tv2')), '5');
+PERFORM pg_temp.as_('sus');
+PERFORM pg_temp.eq('un suspendu ne lit pas les votants, même au-delà du seuil',
+  format($$SELECT count(*)::text FROM public.get_voters_for_badge(%L, 'punctual')$$, pg_temp.id('tv2')), '0');
+PERFORM pg_temp.as_('str');
 PERFORM pg_temp.eq('PR-11 : la réputation compte des personnes (1 personne × 5 sorties = 1)',
   format($$SELECT vote_count::text FROM public.get_user_reputation(%L) WHERE badge_key = 'punctual'$$, pg_temp.id('tv')), '1');
 PERFORM pg_temp.as_('db');
