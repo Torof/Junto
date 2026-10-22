@@ -21,6 +21,14 @@
 6. **Gel du schéma** de l'ancien projet pendant la fenêtre. Tout correctif urgent est un même fichier SQL appliqué aux deux projets.
 7. **Ce qui peut être fait sur l'ancien projet avant la fenêtre l'est** (00524) : moins d'étapes le jour J, et chacune déjà prouvée par la suite de tests.
 
+## État — répétition du 2026-10-22 sur le vrai nouveau projet (`fajfigpwfdwmchhzecwe`, Irlande)
+
+- **Phase A** : export fait par Scott (pg_dump 18.6 sur Postgres 17.6) ; vérifications précoces conformes.
+- **Phase B** : construction passée **du premier coup**, 9 étapes « ok », journaux sans avertissement.
+- **Phase C** : comparaison objet par objet = **0 écart inattendu** (17 écarts admis, tous décidés : PostGIS déplacé, filtre d'API retiré, tâches désactivées, réglage interne de la plateforme, une contrainte imprimée sans parenthèses par Postgres 17.11) ; suite complète **2 063 pass, 0 fail, 5 trous connus** (12 sur l'ancien) ; API réelle conforme (PostGIS et schéma `extensions` hors d'atteinte, écritures anonymes refusées) ; vérificateur statique : 245 fonctions, 0 erreur.
+- Trouvé en route : partitions du temps réel absentes tant que le service n'a pas démarré (→ D.5) ; un test qui ne passait que grâce aux données réelles (réécrit).
+- **Reste** : phase D (services), phase E (app preview), phase F (production).
+
 ## 0 bis. Ce qui se fige — à ne pas rater une seconde fois
 
 L'ancienne base est irréparable pour deux raisons : **PostGIS installé dans `public`** (ses objets appartiennent au rôle interne de la plateforme : impossible de les protéger ni de les déplacer) et des droits par défaut de ce même rôle. Tout ce qui suit se décide **une fois**, à la création ou au premier chargement :
@@ -128,6 +136,7 @@ Chaque étape est appliquée avec `psql -v ON_ERROR_STOP=1 --single-transaction 
 2. **Authentification** : reproduire la configuration par l'API d'administration (confirmation d'e-mail, mots de passe, durée de session, limites de débit, adresses de retour, modèles d'e-mail à jeton haché, SMTP, CAPTCHA, confirmation du changement d'e-mail ; aucun « hook » d'authentification aujourd'hui). **API de données et temps réel** : schémas exposés (`public` seulement), chemin de recherche supplémentaire, `max_rows`, réglage d'accès du temps réel **identique à l'ancien projet** — pas « canaux privés seulement » : le badge des notifications et la boîte des demandes de covoiturage écoutent sur des canaux non privés (protégés par la RLS des tables) et se figeraient. **Réglages à poser dès le départ** (gratuits, pénibles à rattraper avec des utilisateurs) : connexion SSL obligatoire à la base ; protection contre les mots de passe divulgués si l'offre le permet ; sauvegardes selon l'offre (restauration à un instant précis à décider avant l'ouverture au public).
 3. **Point faible des liens de connexion** : à fermer ici ou lors du changement de nom (modèles qui n'envoient que des liens à jeton haché).
 4. **Activer les 6 tâches planifiées** et vérifier leurs premières exécutions réussies.
+5. **Démarrer le temps réel** avant toute vérification : une connexion temps réel (même brève) fait créer les partitions par jour de `realtime.messages`. Sans elles, chaque signal envoyé par la base est perdu sans bruit (constaté pendant la répétition : 12 tests en échec, tous verts après une connexion).
 
 **Porte D** : une notification de test arrive ; un e-mail de confirmation et un de réinitialisation arrivent ; `delete-account` (compte jetable), `snap-trail` et `trace-elevation` répondent avec une vraie session ; les 6 tâches sont actives et ont tourné sans erreur ; contrôle de santé : `project_url`, `push_webhook_secret`, `email_ban_pepper`, `demo_mode` présents et bien formés.
 
