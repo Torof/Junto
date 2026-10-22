@@ -510,14 +510,14 @@ PERFORM pg_temp.eq('la validation d''une sortie solo ne compte pas', $$SELECT pg
 
 -- ───── Statistiques, trophées, niveaux par sport ─────
 PERFORM pg_temp.as_('str');
-PERFORM pg_temp.eq('stats publiques : les absences ne comptent pas comme sorties',
-  format($$SELECT total_activities::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), '2');
+PERFORM pg_temp.eq('stats publiques : toutes les sorties terminées comptent, absences comprises (00528)',
+  format($$SELECT total_activities::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), '3');
 PERFORM pg_temp.eq('stats publiques : palier de fiabilité', format($$SELECT reliability_tier FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')),
   (SELECT public.reliability_tier(75)));
 PERFORM pg_temp.eq('le score brut n''est pas renvoyé par get_user_public_stats',
   format($$SELECT coalesce(reliability_score::text, 'null') FROM public.get_user_public_stats(%L)$$, pg_temp.id('rr')), 'null');
-PERFORM pg_temp.eq('trophées : les absences ne comptent pas comme sorties rejointes',
-  format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'joined'$$, pg_temp.id('rr')), '2');
+PERFORM pg_temp.eq('trophées : toutes les sorties rejointes terminées comptent, absences comprises (00528)',
+  format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'joined'$$, pg_temp.id('rr')), '3');
 PERFORM pg_temp.eq('niveaux par sport : 1 point en randonnée',
   format($$SELECT dots::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('rr')), '1');
 PERFORM pg_temp.eq('rideau démo : stats publiques', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('dem')), '0');

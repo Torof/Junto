@@ -447,8 +447,8 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('ag_obs');
 PERFORM pg_temp.eq('A16 compteurs : une sortie retirée ne compte pas (00520 authz 2)', format($$SELECT public.get_user_award_aggregates(%L) ->> 'joined'$$, pg_temp.id('ag_j')), '1');
 PERFORM pg_temp.eq('A16 niveaux : une présence validée donne un niveau', format($$SELECT count(*)::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('ag_j')), '1');
-PERFORM pg_temp.eq('A16 niveaux : une sortie sans présence validée n''en donne pas (00521)', format($$SELECT count(*)::text FROM public.get_user_sport_levels(%L)$$, pg_temp.id('ag_u')), '0');
-PERFORM pg_temp.eq('A16 stats : une sortie sans présence validée ne compte pas (00521)', format($$SELECT coalesce((SELECT total_activities FROM public.get_user_public_stats(%L)), 0)::text$$, pg_temp.id('ag_u')), '0');
+PERFORM pg_temp.eq('A16 niveaux : une sortie terminée sans présence validée compte aussi (00528)', format($$SELECT count(*)::text FROM public.get_user_sport_levels(%L)$$, pg_temp.id('ag_u')), '1');
+PERFORM pg_temp.eq('A16 stats : une sortie terminée sans présence validée compte aussi (00528)', format($$SELECT coalesce((SELECT total_activities FROM public.get_user_public_stats(%L)), 0)::text$$, pg_temp.id('ag_u')), '1');
 PERFORM pg_temp.eq('A16 stats : un appelant ordinaire lit les stats', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('ag_j')), '1');
 PERFORM pg_temp.as_('ag_sus');
 PERFORM pg_temp.eq('A16 stats : rien pour un appelant suspendu (00520 ID-9)', format($$SELECT count(*)::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('ag_j')), '0');
@@ -465,9 +465,9 @@ FOR i IN 1..5 LOOP
 END LOOP;
 PERFORM public.award_badge_progression(pg_temp.id(u), true) FROM unnest(ARRAY['bg_org', 'bg_org2', 'bg_j', 'bg_u']) u;
 PERFORM pg_temp.eq('A16 badge « sorties rejointes » : 5 présences validées → bronze', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L AND category = 'joined' AND tier_key = 'bronze'$$, pg_temp.id('bg_j')), '1');
-PERFORM pg_temp.eq('A16 badge : 5 sorties sans présence validée ne donnent rien (00521)', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L$$, pg_temp.id('bg_u')), '0');
+PERFORM pg_temp.eq('A16 badge : 5 sorties terminées sans présence validée donnent aussi le bronze (00528)', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L$$, pg_temp.id('bg_u')), '1');
 PERFORM pg_temp.eq('A16 badge « organisateur » : présence de l''organisateur validée → bronze', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L AND category = 'created'$$, pg_temp.id('bg_org')), '1');
-PERFORM pg_temp.eq('A16 badge « organisateur » : sans présence validée, rien (00522 F8)', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L AND category = 'created'$$, pg_temp.id('bg_org2')), '0');
+PERFORM pg_temp.eq('A16 badge « organisateur » : 5 sorties terminées sans présence validée → bronze aussi (00528)', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L AND category = 'created'$$, pg_temp.id('bg_org2')), '1');
 -- Fiabilité : absences sur sorties retirées / annulées ignorées (00495 PR-10).
 PERFORM pg_temp.gf_act('rl_del', 'ag_org', interval '-6 days', 'completed', 'public', true, true);
 PERFORM pg_temp.gf_act('rl_cxl', 'ag_org', interval '-7 days', 'cancelled', 'public', true, true);

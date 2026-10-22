@@ -143,24 +143,10 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('P1 la place de l_p est annulée', format($$SELECT status FROM public.seat_requests WHERE id = %L$$, pg_temp.pf_sr('l_act', 'l_p', 'l_d')), 'cancelled');
 PERFORM pg_temp.eq('P1 l_p reçoit exactement un avis driver_left', $$SELECT pg_temp.pf_notifs('l_p', 'driver_left')$$, '1');
 
--- ═════ P3 — Présence validée après la fin : le trophée arrive ═════
-PERFORM pg_temp.as_('db');
-PERFORM pg_temp.user('aw_u', 'tos'); PERFORM pg_temp.user('aw_o', 'tos');
-PERFORM pg_temp.pf_act('aw_' || i, 'aw_o', (-40 + i) * interval '1 day', 'completed', 'public', true, true) FROM generate_series(1, 5) i;
-PERFORM pg_temp.pf_part('aw_' || i, 'aw_u', 'accepted', true) FROM generate_series(1, 4) i;
-PERFORM pg_temp.pf_part('aw_5', 'aw_u', 'accepted', NULL);
-PERFORM pg_temp.eq('P3 fixture : pas encore de trophée « rejoint »', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L AND category = 'joined'$$, pg_temp.id('aw_u')), '0');
-UPDATE public.participations SET confirmed_present = true WHERE id = pg_temp.pf_pid('aw_5', 'aw_u')::uuid;
-PERFORM pg_temp.eq('P3 la 5e présence validée après la fin donne le bronze', format($$SELECT tier_key FROM public.user_badge_progression WHERE user_id = %L AND category = 'joined'$$, pg_temp.id('aw_u')), 'bronze');
-PERFORM pg_temp.eq('P3 et le notifie', $$SELECT pg_temp.pf_notifs('aw_u', 'badge_unlocked')$$, '1');
--- Une sortie pas encore terminée ne déclenche rien.
-PERFORM pg_temp.user('aw2_u', 'tos');
-PERFORM pg_temp.pf_act('aw2_' || i, 'aw_o', (-60 + i) * interval '1 day', 'completed', 'public', true, true) FROM generate_series(1, 4) i;
-PERFORM pg_temp.pf_part('aw2_' || i, 'aw2_u', 'accepted', true) FROM generate_series(1, 4) i;
-PERFORM pg_temp.pf_act('aw2_run', 'aw_o', interval '-1 hour', 'in_progress', 'public', true, true);
-PERFORM pg_temp.pf_part('aw2_run', 'aw2_u', 'accepted', NULL);
-UPDATE public.participations SET confirmed_present = true WHERE id = pg_temp.pf_pid('aw2_run', 'aw2_u')::uuid;
-PERFORM pg_temp.eq('P3 une présence sur une sortie en cours n''attribue rien maintenant', format($$SELECT count(*)::text FROM public.user_badge_progression WHERE user_id = %L$$, pg_temp.id('aw2_u')), '0');
+-- ═════ P3 — (retiré en 00528) ═════
+-- La présence validée ne compte plus dans les trophées (seulement la fiabilité) :
+-- le déclencheur « présence validée après la fin → trophée » (00523) n'existe plus.
+-- La règle « toutes les sorties terminées comptent » est vérifiée en 12_correctifs_audit (C2).
 
 -- ═════ P4 — Jour de Paris ═════
 PERFORM pg_temp.eq('P4 le jour de référence est celui de Paris', $$SELECT (private.today_paris() = (now() AT TIME ZONE 'Europe/Paris')::date)::text$$, 'true');

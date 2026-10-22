@@ -20,3 +20,26 @@ PERFORM pg_temp.eq('C1 un admin actif lit les blocages (modération)', format($$
 PERFORM pg_temp.eq('C1 un admin actif modifie le catalogue des sports', $$UPDATE public.sports SET icon = icon WHERE key = 'hiking'$$, '1');
 PERFORM pg_temp.eq('C1 même un admin actif ne réécrit pas un signalement directement (seulement par moderate_report)',
   format($$UPDATE public.reports SET status = 'dismissed', reason = 'réécrit' WHERE reporter_id = %L$$, pg_temp.id('c1_alice')), '0');
+
+-- ═════ C2 — Les compteurs publics comptent toutes les sorties terminées (00528, Scott) ═════
+-- Une absence ne se devine plus en comparant les compteurs avant / après une sortie.
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c2_org', 'tos'); PERFORM pg_temp.user('c2_pres', 'tos'); PERFORM pg_temp.user('c2_abs', 'tos'); PERFORM pg_temp.user('c2_vue', 'tos');
+PERFORM pg_temp.put('c2_act', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status, requires_presence)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C2', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-138.5, -45.5), 4326)::geography, now() - interval '3 days', interval '3 hours', 'public', 'completed', true)
+  RETURNING id::text$q$, pg_temp.id('c2_org'))));
+INSERT INTO public.participations (activity_id, user_id, status, confirmed_present, created_at) VALUES
+  (pg_temp.id('c2_act'), pg_temp.id('c2_org'), 'accepted', NULL, now() - interval '4 days'),
+  (pg_temp.id('c2_act'), pg_temp.id('c2_pres'), 'accepted', true, now() - interval '4 days'),
+  (pg_temp.id('c2_act'), pg_temp.id('c2_abs'), 'accepted', false, now() - interval '4 days');
+PERFORM pg_temp.as_('c2_vue');
+PERFORM pg_temp.eq('C2 le présent et l''absent ont le même nombre de sorties publiques',
+  format($$SELECT (SELECT completed_activities FROM public.get_user_public_stats(%L))::text || '|' || (SELECT completed_activities FROM public.get_user_public_stats(%L))::text$$, pg_temp.id('c2_pres'), pg_temp.id('c2_abs')), '1|1');
+PERFORM pg_temp.eq('C2 l''absent a bien un niveau dans ce sport',
+  format($$SELECT count(*)::text FROM public.get_user_sport_levels(%L) WHERE sport_key = 'hiking'$$, pg_temp.id('c2_abs')), '1');
+PERFORM pg_temp.eq('C2 la sortie de l''organisateur compte même sans présence validée',
+  format($$SELECT (public.get_user_award_aggregates(%L)->>'created')$$, pg_temp.id('c2_org')), '1');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C2 plus de déclencheur de trophée à la présence tardive',
+  $$SELECT count(*)::text FROM pg_trigger WHERE tgname = 'trg_participations_late_presence_award'$$, '0');
