@@ -67,3 +67,14 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C3 le départ tardif est enregistré', format($$SELECT count(*)::text FROM public.late_cancels WHERE user_id = %L$$, pg_temp.id('c3_u')), '1');
 PERFORM pg_temp.eq('C3 sa fiabilité baisse : la présence validée avant de partir ne compte plus',
   format($$SELECT (reliability_score < 100)::text FROM public.users WHERE id = %L$$, pg_temp.id('c3_u')), 'true');
+
+-- ═════ C4 — Celui qui signale ne lit pas l'issue ni la note de l'admin (00530) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c4_rep', 'tos'); PERFORM pg_temp.user('c4_cible', 'tos'); PERFORM pg_temp.user('c4_adm', 'tos,admin');
+PERFORM pg_temp.as_('c4_rep');
+PERFORM pg_temp.put('c4_r', pg_temp.ok('C4 signalement créé', format($$SELECT public.create_report('user', %L, 'harcèlement')::text$$, pg_temp.id('c4_cible'))));
+PERFORM pg_temp.as_('c4_adm');
+PERFORM pg_temp.ok('C4 l''admin sanctionne avec une note privée', format($$SELECT public.moderate_report(%L, 'actioned', 'Suspendu : récidive', %L)::text$$, pg_temp.get('c4_r'), pg_temp.id('c4_cible')));
+PERFORM pg_temp.eq('C4 l''admin relit le signalement', format($$SELECT status FROM public.reports WHERE id = %L$$, pg_temp.get('c4_r')), 'actioned');
+PERFORM pg_temp.as_('c4_rep');
+PERFORM pg_temp.eq('C4 celui qui a signalé ne voit ni l''issue ni la note', format($$SELECT count(*)::text FROM public.reports WHERE id = %L$$, pg_temp.get('c4_r')), '0');
