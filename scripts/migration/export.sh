@@ -13,8 +13,13 @@ echo "Elle ne s'affiche pas et n'est enregistrée nulle part."
 read -rsp "Adresse : " OLD_DB_URL; echo
 case "$OLD_DB_URL" in *lvjlthzdydzatcvwwriu*) ;; *) echo "Ce n'est pas l'adresse de l'ancien projet — arrêt."; exit 1;; esac
 export PGCONNECT_TIMEOUT=15
-pg_dump "$OLD_DB_URL" --schema-only -n public -n private --no-owner -f "$WORK/export/schema.sql"
-pg_dump "$OLD_DB_URL" --data-only -t public.sports -t public.gear_catalog --column-inserts -f "$WORK/export/reference.sql"
+# pg_dump 18 can also carry planner statistics: never wanted here.
+STATS=""; [ "$(pg_dump --version | grep -oE '[0-9]+' | head -1)" -ge 18 ] && STATS="--no-statistics"
+pg_dump "$OLD_DB_URL" --schema-only -n public -n private --no-owner $STATS -f "$WORK/export/schema.sql"
+# Reference data + the security data that must survive an empty migration:
+# banned e-mail fingerprints (re-signup block after a suspended account is deleted).
+pg_dump "$OLD_DB_URL" --data-only -t public.sports -t public.gear_catalog -t public.banned_email_hashes \
+  --column-inserts $STATS -f "$WORK/export/reference.sql"
 psql "$OLD_DB_URL" -X -A -t -c "select version()" > "$WORK/export/server-version.txt"
 unset OLD_DB_URL
 echo

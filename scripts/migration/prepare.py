@@ -91,6 +91,10 @@ def main():
     if meta['our_operators']:
         die('des opérateurs à nous existent dans public — requalification à revoir')
     outside = old_query(open(os.path.join(ROOT, 'scripts', 'migration', 'outside-dump.sql')).read())[0]['sql']
+    # The ban fingerprints are HMACs keyed by this pepper: it must move with them.
+    pepper = old_query("select value from app_config where name = 'email_ban_pepper'")[0]['value']
+    if not re.fullmatch(r'[0-9a-f]{64}', pepper or ''):
+        die('email_ban_pepper absent ou de forme inattendue sur l\'ancien projet')
 
     # ── 10 Extensions ────────────────────────────────────────────────────────
     write('10_extensions', """
@@ -182,7 +186,7 @@ GRANT USAGE ON SCHEMA extensions TO anon, authenticated, service_role;
 INSERT INTO public.app_config (name, value) VALUES
   ('demo_mode', 'false'),
   ('project_url', 'https://{new_ref}.supabase.co'),
-  ('email_ban_pepper', '{secrets.token_hex(32)}'),
+  ('email_ban_pepper', '{pepper}'),  -- same key: banned fingerprints stay valid
   ('push_webhook_secret', 'provisoire-{secrets.token_hex(16)}');
 """)
 
