@@ -36,6 +36,18 @@ L'ancienne base est irréparable pour deux raisons : **PostGIS installé dans `p
 | Règles d'écriture des fonctions | `SET search_path = public, extensions` pour toute nouvelle fonction (CLAUDE.md, 2026-10-22) — sinon une fonction géographique échoue à l'exécution | CLAUDE.md ; vérificateur statique |
 | Historique des migrations | **Une seule migration de base, déjà marquée appliquée** ; les anciennes archivées. Sinon le premier `db push` rejouerait les 520 anciennes, à commencer par celle qui met PostGIS dans `public` | Étape 80 du kit ; F.6 |
 
+## 0 ter. Le contrôle reste à nous
+
+| Sujet | Ce qui garantit qu'on ne dépend de personne |
+|---|---|
+| Structure de la base | Le dépôt la porte entière (`00526_baseline.sql` + migrations suivantes) : on peut la reconstruire sur n'importe quel Postgres 17 + PostGIS, chez Supabase ou ailleurs |
+| Données | **Nos propres sauvegardes** : `bash scripts/db-backup.sh <référence>` (Scott ; complète, restaurable table par table), chaque semaine et avant toute opération risquée, en plus de celles de Supabase ; une restauration d'essai de temps en temps |
+| Règles de sécurité | Uniquement les nôtres (RLS, fonctions, déclencheurs, droits), testées par notre suite — jamais un réglage par défaut de la plateforme |
+| Limites de temps des requêtes | Posées par nous (étape 55), pas laissées aux valeurs par défaut |
+| Secrets | Tenus par Scott dans son gestionnaire de mots de passe : mot de passe de la base, clé des empreintes d'e-mails bannis (perdue = interdictions invérifiables), secret des notifications, clé ORS, identifiants SMTP, clé secrète d'API |
+| Compte Supabase | Scott seul propriétaire de l'organisation, double authentification activée |
+| Ce que la plateforme garde (inévitable) | Les objets PostGIS (dans `extensions`, non exposé), les droits par défaut de son rôle interne, la file de `pg_net`, ses propres réglages de rôles. **Aucun n'est atteignable par l'API** (prouvé en C.4) et notre sécurité ne s'appuie sur aucun d'eux |
+
 ## 1. Prérequis (actions de Scott)
 
 | # | Action | Pourquoi |
@@ -113,7 +125,7 @@ Chaque étape est appliquée avec `psql -v ON_ERROR_STOP=1 --single-transaction 
 ## 6. Phase D — Brancher les services (nouveau projet seulement)
 
 1. **Fonctions Edge** : `npm run push:templates`, puis `npx supabase functions deploy send-push --no-verify-jwt --project-ref <nouveau>` (**le drapeau est obligatoire** : sans lui, chaque notification est refusée sans bruit), et les 3 autres avec vérification JWT. Secrets `ORS_API_KEY` et un **nouveau** `PUSH_WEBHOOK_SECRET`, identique dans `app_config`. Les fonctions lisent `SUPABASE_ANON_KEY` (3 usages) et `SUPABASE_SERVICE_ROLE_KEY` (2) : vérifier qu'elles existent sous ce nom avec le modèle de clés choisi en A.2.
-2. **Authentification** : reproduire la configuration par l'API d'administration (confirmation d'e-mail, mots de passe, durée de session, limites de débit, adresses de retour, modèles d'e-mail à jeton haché, SMTP, CAPTCHA, confirmation du changement d'e-mail ; aucun « hook » d'authentification aujourd'hui). **API de données et temps réel** : schémas exposés (`public` seulement), chemin de recherche supplémentaire, `max_rows`, temps réel en canaux privés seulement. **Réglages à poser dès le départ** (gratuits, pénibles à rattraper avec des utilisateurs) : connexion SSL obligatoire à la base ; protection contre les mots de passe divulgués si l'offre le permet ; sauvegardes selon l'offre (restauration à un instant précis à décider avant l'ouverture au public).
+2. **Authentification** : reproduire la configuration par l'API d'administration (confirmation d'e-mail, mots de passe, durée de session, limites de débit, adresses de retour, modèles d'e-mail à jeton haché, SMTP, CAPTCHA, confirmation du changement d'e-mail ; aucun « hook » d'authentification aujourd'hui). **API de données et temps réel** : schémas exposés (`public` seulement), chemin de recherche supplémentaire, `max_rows`, réglage d'accès du temps réel **identique à l'ancien projet** — pas « canaux privés seulement » : le badge des notifications et la boîte des demandes de covoiturage écoutent sur des canaux non privés (protégés par la RLS des tables) et se figeraient. **Réglages à poser dès le départ** (gratuits, pénibles à rattraper avec des utilisateurs) : connexion SSL obligatoire à la base ; protection contre les mots de passe divulgués si l'offre le permet ; sauvegardes selon l'offre (restauration à un instant précis à décider avant l'ouverture au public).
 3. **Point faible des liens de connexion** : à fermer ici ou lors du changement de nom (modèles qui n'envoient que des liens à jeton haché).
 4. **Activer les 6 tâches planifiées** et vérifier leurs premières exécutions réussies.
 

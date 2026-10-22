@@ -207,6 +207,18 @@ END $$;
     # ── 50 What pg_dump -n does not carry ────────────────────────────────────
     write('50_outside_dump', outside)  # names fully qualified by the generator
 
+    # ── 55 Our own time limits, set by us (not left to platform defaults) ────
+    # Each one in its own block: if the platform refuses one, the build warns
+    # (visible in build-logs) instead of stopping, and the catalog diff shows it.
+    limits = old_query("""
+      select string_agg(format('DO $r$ BEGIN EXECUTE %L; EXCEPTION WHEN insufficient_privilege THEN RAISE WARNING %L; END $r$;',
+               format('ALTER ROLE %I SET %s = %L', r.rolname, split_part(c, '=', 1), substr(c, strpos(c, '=') + 1)),
+               'refused: ' || r.rolname || ' ' || c), E'\n' order by r.rolname, c) as sql
+      from pg_db_role_setting s join pg_roles r on r.oid = s.setrole cross join unnest(s.setconfig) c
+      where r.rolname in ('authenticator', 'anon', 'authenticated', 'service_role')
+        and split_part(c, '=', 1) in ('statement_timeout', 'lock_timeout', 'idle_in_transaction_session_timeout')""")[0]['sql']
+    write('55_role_time_limits', limits or '-- none')
+
     # ── 60 Reference data + app_config ───────────────────────────────────────
     ref = strip_meta(open(os.path.join(EXPORT, 'reference.sql')).read())
     write('60_reference_data', ref + f"""
