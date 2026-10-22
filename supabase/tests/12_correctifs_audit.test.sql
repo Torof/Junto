@@ -298,3 +298,52 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C14 le même appareil reprend le jeton pour le nouveau compte',
   $$SELECT string_agg(u.display_name, ',') FROM public.push_tokens t JOIN public.users u ON u.id = t.user_id WHERE t.token = 'ExponentPushToken[c14-victime-0000000000]'$$,
   (SELECT display_name FROM public.users WHERE id = pg_temp.id('c14_w')));
+
+-- ═════ C15 — « Tu y étais ? » : présence auto-déclarée sans validation (00543) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c15_org', 'tos'); PERFORM pg_temp.user('c15_p', 'tos'); PERFORM pg_temp.user('c15_x', 'tos');
+PERFORM pg_temp.as_('c15_org');
+PERFORM pg_temp.put('c15_a', pg_temp.ok('C15 l''organisatrice publie une sortie', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C15', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '60 days', '2 hours', 'public')::text$q$));
+PERFORM pg_temp.put('c15_v', pg_temp.ok('C15 et une sortie avec validation de présence', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C15 validée', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '61 days', '2 hours', 'public')::text$q$));
+PERFORM pg_temp.as_('c15_p');
+PERFORM pg_temp.eq('C15 p rejoint la sortie', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c15_a')), 'accepted');
+PERFORM pg_temp.eq('C15 p rejoint la sortie validée', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c15_v')), 'accepted');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = now() - interval '5 hours', requires_presence = false, status = 'completed' WHERE id = pg_temp.get('c15_a')::uuid;
+UPDATE public.activities SET starts_at = now() - interval '5 hours', requires_presence = true, status = 'completed' WHERE id = pg_temp.get('c15_v')::uuid;
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('C15 la fin de la sortie pose la question à chaque participant (organisatrice comprise)',
+  format($$SELECT count(*)::text FROM public.notifications WHERE type = 'presence_self_declare' AND data->>'activity_id' = %L$$, pg_temp.get('c15_a')), '2');
+PERFORM pg_temp.eq('C15 pas de question sur une sortie avec validation',
+  format($$SELECT count(*)::text FROM public.notifications WHERE type = 'presence_self_declare' AND data->>'activity_id' = %L$$, pg_temp.get('c15_v')), '0');
+PERFORM pg_temp.as_('c15_x');
+PERFORM pg_temp.eq('C15 sans réponse, la sortie compte',
+  format($$SELECT joined_activities::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('c15_p')), '2');
+PERFORM pg_temp.denied('C15 un non-participant ne déclare rien', format($$SELECT public.declare_my_presence(%L, true)::text$$, pg_temp.get('c15_a')), '^Operation not permitted$');
+PERFORM pg_temp.as_('c15_p');
+PERFORM pg_temp.denied('C15 refusé sur une sortie avec validation', format($$SELECT public.declare_my_presence(%L, false)::text$$, pg_temp.get('c15_v')), '^Operation not permitted$');
+PERFORM pg_temp.ok('C15 p répond « non »', format($$SELECT public.declare_my_presence(%L, false)::text$$, pg_temp.get('c15_a')));
+PERFORM pg_temp.eq('C15 p lit sa propre réponse', format($$SELECT self_presence FROM public.participations WHERE activity_id = %L AND user_id = auth.uid()$$, pg_temp.get('c15_a')), 'no');
+PERFORM pg_temp.as_('c15_x');
+PERFORM pg_temp.eq('C15 « non » : la sortie ne compte plus',
+  format($$SELECT joined_activities::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('c15_p')), '1');
+PERFORM pg_temp.eq('C15 « non » : retirée des trophées par sport',
+  format($$SELECT coalesce(sum(count), 0)::text FROM public.get_user_trophies(%L) WHERE category = 'sport'$$, pg_temp.id('c15_p')), '1');
+PERFORM pg_temp.as_('c15_p');
+PERFORM pg_temp.ok('C15 p change d''avis : « oui »', format($$SELECT public.declare_my_presence(%L, true)::text$$, pg_temp.get('c15_a')));
+PERFORM pg_temp.as_('c15_x');
+PERFORM pg_temp.eq('C15 « oui » : la sortie compte', format($$SELECT joined_activities::text FROM public.get_user_public_stats(%L)$$, pg_temp.id('c15_p')), '2');
+PERFORM pg_temp.as_('c15_org');
+PERFORM pg_temp.ok('C15 l''organisatrice dit que la sortie n''a pas eu lieu pour elle', format($$SELECT public.declare_my_presence(%L, false)::text$$, pg_temp.get('c15_a')));
+PERFORM pg_temp.as_('c15_x');
+PERFORM pg_temp.eq('C15 sa sortie créée ne compte plus',
+  format($$SELECT count::text FROM public.get_user_trophies(%L) WHERE category = 'created'$$, pg_temp.id('c15_org')), '1');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = now() - interval '60 hours' WHERE id = pg_temp.get('c15_a')::uuid;
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c15_p');
+PERFORM pg_temp.denied('C15 après 48 h, la réponse est figée', format($$SELECT public.declare_my_presence(%L, false)::text$$, pg_temp.get('c15_a')), 'junto\.presence_declare_closed');
+PERFORM pg_temp.denied('C15 les votes restent fermés sur une sortie sans validation',
+  format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('c15_org'), pg_temp.get('c15_a')), 'junto\.votes_need_presence|Operation not permitted');
