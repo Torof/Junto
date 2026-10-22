@@ -59,6 +59,33 @@ BEGIN
         AND EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid AND d.deptype = 'e')$$,
     '', 'PV-1');
 
+  -- ───── 3b. Tout ce qui est à nous appartient à postgres ─────
+  -- Ce qui a rendu l'ancienne base irréparable : des objets dans public possédés par le rôle
+  -- interne de la plateforme (PostGIS installé là), qu'on ne peut plus modifier. Membres
+  -- d'extension exclus (ils appartiennent à leur extension).
+  PERFORM pg_temp.eq('aucun objet de public/private n''appartient à un autre rôle que postgres',
+    $$SELECT coalesce(string_agg(DISTINCT o, ', '), '') FROM (
+        SELECT c.oid::regclass::text || ' (' || c.relowner::regrole::text || ')' AS o FROM pg_class c
+        WHERE c.relnamespace IN ('public'::regnamespace, 'private'::regnamespace) AND c.relowner <> 'postgres'::regrole
+          AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid IN (c.oid, c.reltype) AND d.deptype = 'e')
+          AND c.relkind NOT IN ('i', 't')  -- index et TOAST suivent leur table
+        UNION ALL
+        SELECT p.oid::regprocedure::text || ' (' || p.proowner::regrole::text || ')' FROM pg_proc p
+        WHERE p.pronamespace IN ('public'::regnamespace, 'private'::regnamespace) AND p.proowner <> 'postgres'::regrole
+          AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
+        UNION ALL
+        SELECT t.typname || ' (' || t.typowner::regrole::text || ')' FROM pg_type t
+        WHERE t.typnamespace IN ('public'::regnamespace, 'private'::regnamespace) AND t.typowner <> 'postgres'::regrole
+          AND t.typelem = 0
+          AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid IN (t.oid, t.typrelid) AND d.deptype = 'e')
+      ) x$$, '');
+  PERFORM pg_temp.eq('aucune extension installée dans public (hors PostGIS de l''ancien projet)',
+    $$SELECT coalesce(string_agg(e.extname, ', '), '') FROM pg_extension e
+      WHERE e.extnamespace = 'public'::regnamespace AND e.extname <> 'postgis'$$, '');
+  PERFORM pg_temp.eq('PostGIS hors de public',
+    $$SELECT (NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis' AND extnamespace = 'public'::regnamespace))::text$$, 'true',
+    CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis' AND extnamespace = 'public'::regnamespace) THEN 'TX-2' END);
+
   -- ───── 4. Fonctions de public exécutables par anon : liste blanche ─────
   -- Autorisé : fonctions trigger (non appelables directement), demo_content_visible (rideau démo des vues
   -- carte du site), membres d'extension (PostGIS — PV-2, fermé par la reconstruction).

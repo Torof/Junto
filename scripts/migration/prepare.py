@@ -22,6 +22,8 @@ WORK = os.environ.get('JUNTO_MIG_WORK', os.path.expanduser('~/junto-migration'))
 EXPORT = os.path.join(WORK, 'export')
 BUILD = os.path.join(WORK, 'build')
 OLD_REF = 'lvjlthzdydzatcvwwriu'
+# First migration number of the new project (after the last one applied on the old).
+BASELINE = '%05d' % (max(int(f[:5]) for f in os.listdir(os.path.join(ROOT, 'supabase', 'migrations')) if f[:5].isdigit()) + 1)
 
 
 def die(msg):
@@ -226,6 +228,30 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE, SELECT,
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO service_role;
 NOTIFY pgrst, 'reload schema';
 """)
+
+    # ── 80 Migration history: ONE baseline, already applied ──────────────────
+    # Without it the CLI would replay the 500+ archived migrations on the next
+    # `db push` — starting with 00001, which installs PostGIS in public (the very
+    # defect we are leaving). Same table shape as the old project's.
+    write('80_migration_history', f"""
+CREATE SCHEMA IF NOT EXISTS supabase_migrations;
+CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (version text PRIMARY KEY, statements text[], name text);
+INSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('{BASELINE}', 'baseline')
+ON CONFLICT (version) DO NOTHING;
+""")
+    # The baseline file the repo will carry (supabase/migrations/{BASELINE}_baseline.sql at cutover):
+    # the build itself, secrets masked — rebuilding a project from scratch replays it.
+    parts = []
+    for name in sorted(os.listdir(BUILD)):
+        body = open(os.path.join(BUILD, name)).read()
+        body = re.sub(r"\('email_ban_pepper', '[0-9a-f]{64}'\)", "('email_ban_pepper', '<set from the old project>')", body)
+        body = re.sub(r"\('push_webhook_secret', '[^']*'\)", "('push_webhook_secret', '<set in phase D>')", body)
+        parts.append(f'-- ===== {name} =====\n' + body)
+    with open(os.path.join(WORK, f'{BASELINE}_baseline.sql'), 'w') as f:
+        f.write(f'-- {BASELINE} baseline — the whole database as migrated (MIGRATION_PLAN v7).\n'
+                '-- Earlier migrations live in supabase/migrations_archive/ (history only, never replayed).\n\n'
+                + '\n'.join(parts))
+    report.append(f'historique : une seule migration de base {BASELINE}, déjà marquée appliquée ; fichier {BASELINE}_baseline.sql prêt')
 
     with open(os.path.join(WORK, 'prepare-report.txt'), 'w') as f:
         f.write('\n'.join(report) + '\n')

@@ -21,6 +21,19 @@
 6. **Gel du schéma** de l'ancien projet pendant la fenêtre. Tout correctif urgent est un même fichier SQL appliqué aux deux projets.
 7. **Ce qui peut être fait sur l'ancien projet avant la fenêtre l'est** (00524) : moins d'étapes le jour J, et chacune déjà prouvée par la suite de tests.
 
+## 0 bis. Ce qui se fige — à ne pas rater une seconde fois
+
+L'ancienne base est irréparable pour deux raisons : **PostGIS installé dans `public`** (ses objets appartiennent au rôle interne de la plateforme : impossible de les protéger ni de les déplacer) et des droits par défaut de ce même rôle. Tout ce qui suit se décide **une fois**, à la création ou au premier chargement :
+
+| Choix figé | Décision | Garde |
+|---|---|---|
+| Région | **Francfort (eu-central-1)**, comme l'ancien projet | Création du projet (P3) |
+| Version, locale, fuseau | Postgres 17, ICU en-US, UTC — identiques à l'ancien | Vérifications précoces (A.2) |
+| Emplacement des extensions | Toutes dans `extensions` (`pg_cron` dans son schéma propre), **jamais** activées depuis le tableau de bord | Étape 10 du kit ; test « aucune extension dans public » |
+| Propriétaire de nos objets | `postgres` seulement — tout changement de structure passe par une migration, jamais par l'éditeur de tables | Test « aucun objet de public/private à un autre rôle » (00_socle) |
+| Noms des espaces de stockage | `avatars`, `pro-photos`, `channel-photos` inchangés (ils sont dans les adresses des photos) | Étape 50 ; comparaison |
+| Historique des migrations | **Une seule migration de base, déjà marquée appliquée** ; les anciennes archivées. Sinon le premier `db push` rejouerait les 520 anciennes, à commencer par celle qui met PostGIS dans `public` | Étape 80 du kit ; F.6 |
+
 ## 1. Prérequis (actions de Scott)
 
 | # | Action | Pourquoi |
@@ -122,6 +135,7 @@ Chaque étape est appliquée avec `psql -v ON_ERROR_STOP=1 --single-transaction 
 3. **Couper les notifications de l'ancien projet** (retirer son secret, suspendre ses tâches planifiées).
 4. L'ancien projet reste disponible quelques semaines, en lecture, puis est mis en pause (décision Scott). Les liens de partage et d'invitation créés avant la bascule ne fonctionnent plus (données non migrées).
 5. Documentation mise à jour (`CLAUDE.md`, `SECURITY.md`, mémoire du projet).
+6. **Historique du dépôt** : `supabase/migrations/*` → `supabase/migrations_archive/` ; le fichier `00526_baseline.sql` produit par la préparation (secrets masqués) devient la seule migration ; le dépôt est lié au nouveau projet ; `npx supabase migration list` doit montrer `00526` appliquée des deux côtés avant tout nouveau `db push`.
 
 ## 9. Parcours de validation (phase E, téléphone de Scott)
 
