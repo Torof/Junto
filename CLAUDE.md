@@ -9,7 +9,9 @@
 - **TypeScript strict — no `any`, no JavaScript.**
 - **All business rules enforced at database level**, not just client-side.
 - **All JOINs with user data** must use `public_profiles` view, NOT `users` table.
-- **All functions are SECURITY DEFINER** + `SET search_path = public`. Authorization chains are the ONLY defense.
+- **All functions are SECURITY DEFINER** + `SET search_path = public, extensions`. Authorization chains are the ONLY defense. (`extensions` because PostGIS lives there on the migrated project — a function using geography operators without it fails only at runtime. Only `postgres` can create objects in `extensions`, so it cannot be hijacked.)
+- **Schema changes only through migrations** — never the dashboard table editor, never "enable extension" from the dashboard. Every object of `public`/`private` belongs to `postgres` and no extension lives in `public` (tested in `00_socle`): that is what made the old database unrepairable.
+- **Never write the project host** (`*.supabase.co`) in SQL or tests — use `private.project_url()` (fail-closed when missing) / `pg_temp.host()` in tests.
 - **Column protection** — `users`: true whitelist trigger (`handle_user_update`, 00510): a client can change only `display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language`; every other column, including new ones, keeps its old value unless a SECURITY DEFINER function sets `junto.bypass_lock`. `activities`: no client write grant at all (00480) + `handle_activity_update` pins privileged columns against definer functions.
 - **Generic errors for SENSITIVE failures** (auth, ownership, participant-status, suspension, access) — "Operation not permitted", never reveal implementation details or another user's state. **User-actionable, NON-sensitive failures** (rate limits, input validation, capacity, premium gates) may `RAISE EXCEPTION 'junto.<code>'` — a stable token the client maps to a friendly message (`errors.code.<code>`). These leak nothing exploitable (the user's own limit/input state). See SECURITY.md "Messages d'erreur".
 
@@ -95,7 +97,7 @@
 2. **Present the authorization chain to Scott before coding** — list every check the function will perform. Scott validates. This is mandatory, not optional.
 3. Start with auth check (`auth.uid() IS NULL`) + suspension check (`suspended_at IS NOT NULL`)
 4. Include ALL checks from the authorization chain — there is no RLS backup
-5. Use `SECURITY DEFINER` + `SET search_path = public`
+5. Use `SECURITY DEFINER` + `SET search_path = public, extensions`
 6. Hardcode privileged fields (status, creator_id, created_at) — never accept from client
 7. Generic "Operation not permitted" for sensitive checks; `RAISE EXCEPTION 'junto.<code>'` for user-actionable non-sensitive ones (limits/validation/capacity/premium) + add `errors.code.<code>` i18n (FR+EN)
 8. Use advisory locks where needed for race conditions (rate limiting)
