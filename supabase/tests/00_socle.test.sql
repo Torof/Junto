@@ -232,28 +232,37 @@ BEGIN
     $$SELECT (has_table_privilege('anon', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE')
            OR has_table_privilege('authenticated', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE'))::text$$, 'false', 'PV-4');
   -- TX-2 (00504) : filtre d'API — aucune écriture sur les tables PostGIS par PostgREST.
+  -- Nouveau projet (plan de migration v7, décision 4) : PostGIS hors de public, filtre non recréé.
+  IF to_regprocedure('public.junto_pre_request()') IS NULL THEN
   PERFORM pg_temp.as_('db');
-  PERFORM pg_temp.eq('filtre d''API branché sur PostgREST',
-    $$SELECT (EXISTS (SELECT 1 FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole
-      WHERE r.rolname = 'authenticator' AND array_to_string(s.setconfig, ',') LIKE '%pgrst.db_pre_request=public.junto_pre_request%'))::text$$, 'true');
-  PERFORM pg_temp.as_('anon');
-  PERFORM pg_temp.denied('filtre d''API : DELETE sur spatial_ref_sys refusé',
-    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.denied('filtre d''API : PATCH sur geometry_columns refusé',
-    $$SELECT set_config('request.method', 'PATCH', true), set_config('request.path', '/geometry_columns', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /spatial%5Fref%5Fsys » refusé (00512)',
-    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial%5Fref%5Fsys', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /%73patial_ref_sys » refusé (00512)',
-    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/%73patial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.denied('filtre d''API : DELETE sur « //spatial_ref_sys » refusé (00512)',
-    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '//spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.denied('filtre d''API : DELETE sur « /rpc/../spatial_ref_sys » refusé (00512)',
-    $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/rpc/../spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
-  PERFORM pg_temp.ok('filtre d''API : lecture de spatial_ref_sys permise',
-    $$SELECT set_config('request.method', 'GET', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()::text$$);
-  PERFORM pg_temp.ok('filtre d''API : appel de fonction de l''app permis',
-    $$SELECT set_config('request.method', 'POST', true), set_config('request.path', '/rpc/join_activity', true), public.junto_pre_request()::text$$);
-  PERFORM set_config('request.method', '', true); PERFORM set_config('request.path', '', true);
+  PERFORM pg_temp.eq('après migration : PostGIS hors de public et aucun filtre d''API résiduel',
+    $$SELECT (to_regclass('public.spatial_ref_sys') IS NULL AND to_regclass('public.geometry_columns') IS NULL
+      AND NOT EXISTS (SELECT 1 FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole
+                      WHERE r.rolname = 'authenticator' AND array_to_string(s.setconfig, ',') LIKE '%db_pre_request%'))::text$$, 'true');
+  ELSE
+    PERFORM pg_temp.as_('db');
+    PERFORM pg_temp.eq('filtre d''API branché sur PostgREST',
+      $$SELECT (EXISTS (SELECT 1 FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole
+        WHERE r.rolname = 'authenticator' AND array_to_string(s.setconfig, ',') LIKE '%pgrst.db_pre_request=public.junto_pre_request%'))::text$$, 'true');
+    PERFORM pg_temp.as_('anon');
+    PERFORM pg_temp.denied('filtre d''API : DELETE sur spatial_ref_sys refusé',
+      $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.denied('filtre d''API : PATCH sur geometry_columns refusé',
+      $$SELECT set_config('request.method', 'PATCH', true), set_config('request.path', '/geometry_columns', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.denied('filtre d''API : DELETE sur « /spatial%5Fref%5Fsys » refusé (00512)',
+      $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/spatial%5Fref%5Fsys', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.denied('filtre d''API : DELETE sur « /%73patial_ref_sys » refusé (00512)',
+      $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/%73patial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.denied('filtre d''API : DELETE sur « //spatial_ref_sys » refusé (00512)',
+      $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '//spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.denied('filtre d''API : DELETE sur « /rpc/../spatial_ref_sys » refusé (00512)',
+      $$SELECT set_config('request.method', 'DELETE', true), set_config('request.path', '/rpc/../spatial_ref_sys', true), public.junto_pre_request()$$, 'Operation not permitted');
+    PERFORM pg_temp.ok('filtre d''API : lecture de spatial_ref_sys permise',
+      $$SELECT set_config('request.method', 'GET', true), set_config('request.path', '/spatial_ref_sys', true), public.junto_pre_request()::text$$);
+    PERFORM pg_temp.ok('filtre d''API : appel de fonction de l''app permis',
+      $$SELECT set_config('request.method', 'POST', true), set_config('request.path', '/rpc/join_activity', true), public.junto_pre_request()::text$$);
+    PERFORM set_config('request.method', '', true); PERFORM set_config('request.path', '', true);
+  END IF;
   -- 00510 : une fonction créée plus tard n'est appelable par aucun client sans GRANT explicite.
   PERFORM pg_temp.as_('db');
   EXECUTE 'CREATE FUNCTION public.zz_resecure_probe() RETURNS int LANGUAGE sql AS $f$ SELECT 1 $f$';
