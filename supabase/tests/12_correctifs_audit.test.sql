@@ -255,3 +255,16 @@ PERFORM pg_temp.ok('C11 retour au nom du matin', $$SELECT public.update_pro_prof
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C11 revenu au nom du matin : plus rien à signaler',
   format($$SELECT count(*)::text FROM public.notifications WHERE user_id = %L AND type = 'pro_renamed' AND data->>'pro_id' = %L$$, pg_temp.id('c11_adm'), pg_temp.get('c11_pro')), '0');
+
+-- ═════ C12 — Déplacer sa sortie retire ses demandes qui chevauchent (00539) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c12_x', 'tos'); PERFORM pg_temp.user('c12_bob', 'tos');
+PERFORM pg_temp.as_('c12_bob');
+PERFORM pg_temp.put('c12_b', pg_temp.ok('C12 Bob publie une sortie sur demande à J+30', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie Bob', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '30 days', '3 hours', 'approval')::text$q$));
+PERFORM pg_temp.as_('c12_x');
+PERFORM pg_temp.put('c12_a', pg_temp.ok('C12 X publie sa sortie à J+35', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie X', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '35 days', '3 hours', 'public')::text$q$));
+PERFORM pg_temp.eq('C12 X demande à rejoindre Bob', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c12_b')), 'pending');
+PERFORM pg_temp.ok('C12 X déplace sa sortie sur le créneau de Bob', format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '30 days 1 hour')::text$$, pg_temp.get('c12_a')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C12 la demande de X chez Bob est retirée',
+  format($$SELECT status FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.get('c12_b'), pg_temp.id('c12_x')), 'withdrawn');
