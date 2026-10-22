@@ -160,7 +160,11 @@ type PinType = 'activity' | 'pro' | 'offering';
 // `u` = universe key (sport_category / pro pin_icon, '' when none) — summed
 // per cluster by Supercluster's map/reduce into `u` counts for the ring.
 type PinPointProps = { type: PinType; id: string; u: string };
-type ClusterAgg = { u: Record<string, number> };
+// u = pins per universe (ring segments); k = a stable name for the cluster:
+// the smallest pin key it contains. Supercluster's numeric cluster_id changes
+// whenever the index is rebuilt with new data; k does not, so a cluster that
+// survives a refetch keeps its marker (updated in place, no blink).
+type ClusterAgg = { u: Record<string, number>; k: string };
 type PinPoint = Supercluster.PointFeature<PinPointProps>;
 // Fixed slice order so a cluster's ring reads the same everywhere.
 const UNIVERSE_ORDER = ['mountain', 'water', 'air', 'cycling', 'on-foot', 'wellness', ''];
@@ -326,9 +330,10 @@ export function JuntoMapView({
       // clean. Dial down (44/40) for more declustering, up (56) if busy.
       radius: 48,
       maxZoom: 20,
-      map: (p) => ({ u: { [p.u]: 1 } }),
+      map: (p) => ({ u: { [p.u]: 1 }, k: `${p.type}:${p.id}` }),
       reduce: (acc, p) => {
         for (const k in p.u) acc.u[k] = (acc.u[k] ?? 0) + (p.u[k] ?? 0);
+        if (p.k < acc.k) acc.k = p.k;
       },
     });
     const points: PinPoint[] = [
@@ -762,13 +767,17 @@ export function JuntoMapView({
           type; tap zooms to expansion so typed individual pins emerge. */}
       {[...clusters]
         .sort((a, b) => {
-          // Selected activity rendered last so its popup sits on top of other pins
-          const aProps = a.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
-          const bProps = b.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
-          const aSel = !('cluster' in aProps && aProps.cluster) && 'type' in aProps && aProps.type === 'activity' && aProps.id === selectedActivity?.id;
-          const bSel = !('cluster' in bProps && bProps.cluster) && 'type' in bProps && bProps.type === 'activity' && bProps.id === selectedActivity?.id;
-          if (aSel === bSel) return 0;
-          return aSel ? 1 : -1;
+          // Draw order (last = on top): plain pins, then clusters — a nearby
+          // pin's enlarged hit area must not catch a tap meant for a cluster
+          // (Scott 2026-10-22) — then the selected activity, so its popup
+          // stays above everything.
+          const rank = (f: typeof a) => {
+            const pr = f.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
+            if ('cluster' in pr && pr.cluster) return 1;
+            if ('type' in pr && pr.type === 'activity' && pr.id === selectedActivity?.id) return 2;
+            return 0;
+          };
+          return rank(a) - rank(b);
         })
         .map((feature) => {
         const lng = feature.geometry.coordinates[0] ?? 0;
@@ -778,15 +787,17 @@ export function JuntoMapView({
         if ('cluster' in props && props.cluster) {
           const clusterId = (props.cluster_id ?? 0) as number;
           const count = (props.point_count ?? 0) as number;
-          const agg = (props as unknown as Partial<ClusterAgg>).u ?? {};
+          const aggProps = props as unknown as Partial<ClusterAgg>;
+          const agg = aggProps.u ?? {};
+          const stableKey = aggProps.k ?? String(clusterId);
           const segments: ClusterSegment[] = UNIVERSE_ORDER
             .filter((k) => (agg[k] ?? 0) > 0)
             .map((k) => ({ color: SPORT_CATEGORY_COLORS[k] ?? colors.pinProBackground, count: agg[k] ?? 0 }));
 
           return (
             <Mapbox.MarkerView
-              key={`cluster-${clusterId}`}
-              id={`cluster-${clusterId}`}
+              key={`cluster-${stableKey}`}
+              id={`cluster-${stableKey}`}
               coordinate={[lng, lat]}
               allowOverlap
             >
