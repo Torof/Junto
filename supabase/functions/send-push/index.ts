@@ -115,7 +115,12 @@ function compose(
   for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
     if (v === null || v === undefined) continue;
     // Control characters (newline spoofing) never reach a push.
-    vars[k] = String(v).replace(/[\u0000-\u001F\u007F]/g, ' ');
+    // Control characters → space; invisible / direction-changing format
+    // characters (zero-width, bidi overrides, BOM) removed — they could
+    // reverse or disguise a name in the push text (audit 2026-10-23, mig 00532).
+    vars[k] = String(v)
+      .replace(/[\u0000-\u001F\u007F]/g, ' ')
+      .replace(/[\u00AD\u200B\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g, '');
   }
   if (vars.date) vars.date = formatDay(vars.date, lang);
   if (vars.period === 'am' || vars.period === 'pm') vars.period = bundle.period[vars.period];

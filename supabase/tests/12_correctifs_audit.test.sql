@@ -97,3 +97,18 @@ PERFORM pg_temp.eq('C5 un compte actif bloque toujours', format($$INSERT INTO pu
 PERFORM pg_temp.eq('C5 un compte actif envoie toujours son avatar',
   format($$INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('avatars', %L, %L)$$, pg_temp.get('c5_ok') || '/a.jpg', pg_temp.id('c5_ok')), '1');
 PERFORM pg_temp.eq('C5 un compte actif modifie toujours son profil', format($$UPDATE public.users SET bio = 'ok' WHERE id = %L$$, pg_temp.id('c5_ok')), '1');
+
+-- ═════ C6 — Les caractères invisibles et d'inversion du sens disparaissent (00532) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c6_u', 'tos');
+PERFORM pg_temp.as_('c6_u');
+PERFORM pg_temp.ok('C6 un nom avec inversion du sens et espaces invisibles est accepté…',
+  format($$UPDATE public.users SET display_name = %L WHERE id = %L$$, E'Ol‮ga​ (orga)﻿', pg_temp.id('c6_u')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C6 … mais enregistré sans aucun caractère invisible',
+  format($$SELECT display_name FROM public.users WHERE id = %L$$, pg_temp.id('c6_u')), 'Olga (orga)');
+PERFORM pg_temp.eq('C6 le texte des notifications est nettoyé aussi',
+  $$SELECT public.sanitize_notif_text(E'Ad​min ‮eton')$$, 'Admin eton');
+PERFORM pg_temp.eq('C6 un texte normal (accents, emoji) est intact',
+  $$SELECT private.strip_invisible('Élodie 🏔️ – sortie à l''Alpe')$$, 'Élodie 🏔️ – sortie à l''Alpe');
+PERFORM pg_temp.eq('C6 un emoji composé (liant U+200D) reste intact', $$SELECT (private.strip_invisible(E'famille \U0001F468‍\U0001F469‍\U0001F467') = E'famille \U0001F468‍\U0001F469‍\U0001F467')::text$$, 'true');
