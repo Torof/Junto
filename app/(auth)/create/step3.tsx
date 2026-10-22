@@ -61,6 +61,9 @@ export default function CreateStep3() {
         <View style={{ flex: 1, marginRight: spacing.md }}>
           <Text style={styles.toggleTitle}>{t('create.presenceTitle')}</Text>
           <Text style={styles.toggleDesc}>{t('create.presenceDesc')}</Text>
+          {form.requires_presence === false && (
+            <Text style={styles.toggleNote}>{t('create.presenceOffNote')}</Text>
+          )}
         </View>
         <View style={[styles.toggleSwitch, (form.requires_presence ?? true) && styles.toggleSwitchOn]}>
           <View style={[styles.toggleKnob, (form.requires_presence ?? true) && styles.toggleKnobOn]} />
@@ -105,6 +108,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   toggleTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', marginBottom: 2 },
   toggleDesc: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16 },
+  toggleNote: { color: colors.warning, fontSize: fontSizes.xs, lineHeight: 16, marginTop: spacing.xs, fontWeight: '600' },
   toggleSwitch: {
     width: 44, height: 26, borderRadius: radius.full,
     backgroundColor: colors.borderMuted, padding: 3, justifyContent: 'center',
