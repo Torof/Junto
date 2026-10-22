@@ -1778,7 +1778,7 @@
     "step3Title": "Visibilità",
     "presenceTitle": "Verifica della presenza",
     "presenceDesc": "Attiva di default. Disattivala per le uscite molto informali (palestra, slackline, caffè…).",
-    "presenceOffNote": "Senza convalida, l’uscita non conta per livelli e trofei.",
+    "presenceOffNote": "Senza convalida della presenza, l’uscita non conta per il punteggio di affidabilità.",
     "step4Title": "Riepilogo",
     "sport": "Sport",
     "title": "Titolo",

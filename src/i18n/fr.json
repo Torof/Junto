@@ -1778,7 +1778,7 @@
     "step3Title": "Visibilité",
     "presenceTitle": "Vérification de présence",
     "presenceDesc": "Activée par défaut. Désactive pour les sorties très informelles (gym, slackline, café…).",
-    "presenceOffNote": "Sans validation, la sortie ne compte pas dans les niveaux et trophées.",
+    "presenceOffNote": "Sans validation de présence, la sortie ne compte pas dans le score de fiabilité.",
     "step4Title": "Récapitulatif",
     "sport": "Sport",
     "title": "Titre",

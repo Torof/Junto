@@ -1778,7 +1778,7 @@
     "step3Title": "Visibility",
     "presenceTitle": "Presence verification",
     "presenceDesc": "Enabled by default. Turn off for very casual outings (gym, slackline, coffee…).",
-    "presenceOffNote": "Without validation, the outing does not count toward levels and trophies.",
+    "presenceOffNote": "Without presence validation, the outing does not count toward the reliability score.",
     "step4Title": "Summary",
     "sport": "Sport",
     "title": "Title",

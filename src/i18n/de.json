@@ -1778,7 +1778,7 @@
     "step3Title": "Sichtbarkeit",
     "presenceTitle": "Anwesenheitsprüfung",
     "presenceDesc": "Standardmäßig aktiv. Deaktiviere sie für sehr lockere Treffen (Gym, Slackline, Café…).",
-    "presenceOffNote": "Ohne Bestätigung zählt die Tour nicht für Stufen und Trophäen.",
+    "presenceOffNote": "Ohne Anwesenheitsbestätigung zählt die Tour nicht für den Zuverlässigkeitswert.",
     "step4Title": "Zusammenfassung",
     "sport": "Sportart",
     "title": "Titel",
