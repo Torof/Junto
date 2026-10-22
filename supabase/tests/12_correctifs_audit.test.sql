@@ -188,3 +188,48 @@ PERFORM pg_temp.as_('c9_eve');
 PERFORM pg_temp.eq('C9 organisateur suspendu : plus aucun participant visible pour une inconnue', format($$SELECT count(*)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('c9_act')), '0');
 PERFORM pg_temp.as_('c9_p');
 PERFORM pg_temp.denied('C9 organisateur suspendu : affectations de places refusées (sortie gelée)', format($$SELECT count(*)::text FROM public.get_activity_seat_assignments(%L)$$, pg_temp.id('c9_act')), '^Operation not permitted$');
+
+-- ═════ C10 — La modération des discussions tient (00537) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c10_a', 'tos'); PERFORM pg_temp.user('c10_b', 'tos'); PERFORM pg_temp.user('c10_c', 'tos'); PERFORM pg_temp.user('c10_adm', 'tos,admin');
+-- Discussion ouverte 1 : le créateur la quitte.
+PERFORM pg_temp.as_('c10_a');
+PERFORM pg_temp.put('c10_ch', pg_temp.ok('C10 a crée une discussion ouverte', $$SELECT conversation_id::text FROM public.create_channel('Canal C10', -133, -40, 'Océan', 35, NULL, NULL, NULL, true)$$));
+PERFORM pg_temp.as_('c10_b');
+PERFORM pg_temp.ok('C10 b rejoint', format($$SELECT public.join_channel(%L)::text$$, pg_temp.get('c10_ch')));
+PERFORM pg_temp.put('c10_m1', pg_temp.ok('C10 b écrit', format($$SELECT public.send_message(%L, 'message de b')::text$$, pg_temp.get('c10_ch'))));
+PERFORM pg_temp.put('c10_m2', pg_temp.ok('C10 b écrit encore', format($$SELECT public.send_message(%L, 'second message de b')::text$$, pg_temp.get('c10_ch'))));
+PERFORM pg_temp.as_('c10_a');
+PERFORM pg_temp.ok('C10 le créateur, membre, efface un message (modération normale)', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_m1')));
+PERFORM pg_temp.ok('C10 le créateur quitte sa discussion', format($$SELECT public.leave_channel(%L)::text$$, pg_temp.get('c10_ch')));
+PERFORM pg_temp.denied('C10 parti, il n''efface plus les messages des autres', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_m2')), '^Operation not permitted$');
+PERFORM pg_temp.denied('C10 parti, il ne bannit plus personne', format($$SELECT public.remove_channel_member(%L, %L)::text$$, pg_temp.get('c10_ch'), pg_temp.id('c10_b')), '^Operation not permitted$');
+PERFORM pg_temp.denied('C10 parti, il ne renomme plus', format($$SELECT public.rename_channel(%L, 'Renommé')::text$$, pg_temp.get('c10_ch')), '^Operation not permitted$');
+PERFORM pg_temp.denied('C10 parti, il ne ferme plus', format($$SELECT public.close_channel(%L)::text$$, pg_temp.get('c10_ch')), '^Operation not permitted$');
+-- Discussion ouverte 2 : fermée par un admin, le créateur (toujours membre) n'efface plus rien.
+PERFORM pg_temp.as_('c10_a');
+PERFORM pg_temp.put('c10_ch2', pg_temp.ok('C10 a crée une seconde discussion', $$SELECT conversation_id::text FROM public.create_channel('Canal C10 bis', -132, -40, 'Océan', 35, NULL, NULL, NULL, true)$$));
+PERFORM pg_temp.as_('c10_b');
+PERFORM pg_temp.ok('C10 b rejoint la seconde', format($$SELECT public.join_channel(%L)::text$$, pg_temp.get('c10_ch2')));
+PERFORM pg_temp.put('c10_m3', pg_temp.ok('C10 b y écrit', format($$SELECT public.send_message(%L, 'message signalé')::text$$, pg_temp.get('c10_ch2'))));
+PERFORM pg_temp.as_('c10_adm');
+PERFORM pg_temp.ok('C10 un admin ferme la discussion signalée', format($$SELECT public.admin_remove_content('channel', %L, 'signalement confirmé')::text$$, pg_temp.get('c10_ch2')));
+PERFORM pg_temp.as_('c10_a');
+PERFORM pg_temp.denied('C10 fermée par l''admin : le créateur n''efface plus les messages', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_m3')), '^Operation not permitted$');
+PERFORM pg_temp.as_('c10_b');
+PERFORM pg_temp.denied('C10 fermée par l''admin : l''auteur n''efface plus son propre message', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_m3')), '^Operation not permitted$');
+-- Groupe retiré par la modération : l'auteur signalé ne fait pas disparaître ses messages.
+PERFORM pg_temp.as_('db');
+INSERT INTO public.conversations (type, user_1, user_2, initiated_by, status, initiated_from, created_at, last_message_at) VALUES
+  ('dm', LEAST(pg_temp.id('c10_a'), pg_temp.id('c10_b')), GREATEST(pg_temp.id('c10_a'), pg_temp.id('c10_b')), pg_temp.id('c10_a'), 'active', 'profile', now(), now()),
+  ('dm', LEAST(pg_temp.id('c10_a'), pg_temp.id('c10_c')), GREATEST(pg_temp.id('c10_a'), pg_temp.id('c10_c')), pg_temp.id('c10_a'), 'active', 'profile', now(), now());
+PERFORM pg_temp.as_('c10_a');
+PERFORM pg_temp.put('c10_g', pg_temp.ok('C10 a crée un groupe', format($$SELECT public.create_group('Groupe C10', NULL, ARRAY[%L, %L]::uuid[])::text$$, pg_temp.id('c10_b'), pg_temp.id('c10_c'))));
+PERFORM pg_temp.as_('c10_b');
+PERFORM pg_temp.put('c10_gm', pg_temp.ok('C10 b écrit dans le groupe', format($$SELECT public.send_message(%L, 'contenu abusif')::text$$, pg_temp.get('c10_g'))));
+PERFORM pg_temp.put('c10_gm2', pg_temp.ok('C10 b écrit un autre message', format($$SELECT public.send_message(%L, 'message ordinaire')::text$$, pg_temp.get('c10_g'))));
+PERFORM pg_temp.ok('C10 dans un groupe normal, b efface son propre message', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_gm2')));
+PERFORM pg_temp.as_('c10_adm');
+PERFORM pg_temp.ok('C10 un admin retire le groupe', format($$SELECT public.admin_remove_content('group', %L, 'signalement confirmé')::text$$, pg_temp.get('c10_g')));
+PERFORM pg_temp.as_('c10_b');
+PERFORM pg_temp.denied('C10 groupe retiré : l''auteur ne fait plus disparaître ses messages', format($$SELECT public.delete_message(%L)::text$$, pg_temp.get('c10_gm')), '^Operation not permitted$');
