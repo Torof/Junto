@@ -100,7 +100,7 @@ export const userService = {
   isBlocked: async (userId: string): Promise<boolean> => {
     const { count, error } = await supabase
       .from('blocked_users')
-      .select('id', { count: 'exact', head: true })
+      .select('blocker_id', { count: 'exact', head: true })
       .eq('blocked_id', userId);
     if (error) return false;
     return (count ?? 0) > 0;
