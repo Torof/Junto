@@ -139,9 +139,9 @@ def main():
     # Accounts: auth row (its trigger creates a default profile), then the exact profile.
     # Token columns as empty strings (NULL breaks the auth service's user listing).
     lines += ["  INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at,",
-              "                          confirmation_token, recovery_token, email_change_token_new, email_change)",
+              "                          confirmation_token, recovery_token, email_change_token_new, email_change, banned_until)",
               "  SELECT '00000000-0000-0000-0000-000000000000', (u->>'id')::uuid, 'authenticated', 'authenticated', u->>'email', '', (u->>'email_confirmed_at')::timestamptz,",
-              "         '{\"provider\":\"email\",\"providers\":[\"email\"]}'::jsonb, coalesce(u->'raw_user_meta_data', '{}'::jsonb), (u->>'created_at')::timestamptz, (u->>'created_at')::timestamptz, '', '', '', ''",
+              "         '{\"provider\":\"email\",\"providers\":[\"email\"]}'::jsonb, coalesce(u->'raw_user_meta_data', '{}'::jsonb), (u->>'created_at')::timestamptz, (u->>'created_at')::timestamptz, '', '', '', '', 'infinity'",  # demo accounts never sign in
               "  FROM jsonb_array_elements(d->'auth.users') u;",
               "  DELETE FROM public.users WHERE id IN (SELECT (u->>'id')::uuid FROM jsonb_array_elements(d->'auth.users') u);"]
     for t in tables:
