@@ -295,7 +295,20 @@ export function JuntoMapView({
   // Single Supercluster instance covering all three entity types. A
   // cluster pin at low zoom shows the total count regardless of type;
   // tapping zooms to expansion so the typed individual pins emerge.
+  //
+  // Rebuilt ONLY when the pins themselves change (Scott 2026-10-22): every
+  // refetch (pan, zoom end, server « outing changed » ping) hands new arrays
+  // with often identical content. A rebuild renumbers every cluster, so their
+  // markers were torn down and redrawn — a tenth-of-a-second blink during
+  // which a tap was lost, or landed on the activity pin redrawn underneath.
+  const clusterCache = useRef<{ sig: string; sc: Supercluster<PinPointProps, ClusterAgg> } | null>(null);
   const cluster = useMemo(() => {
+    const sig = [
+      activities.map((a) => `a${a.id}:${a.lng}:${a.lat}:${a.sport_category ?? ''}`).join('|'),
+      pros.map((p) => `p${p.user_id}:${p.primary_lng}:${p.primary_lat}:${p.pin_icon ?? ''}`).join('|'),
+      proOfferings.map((o) => `o${o.id}:${o.lng}:${o.lat}:${o.sport_category ?? ''}`).join('|'),
+    ].join('#');
+    if (clusterCache.current?.sig === sig) return clusterCache.current.sc;
     const sc = new Supercluster<PinPointProps, ClusterAgg>({
       // "See what's around at a glance" is the product. History: 60px
       // merged pins long before they'd overlap; 38 (≈ one pin width) let
@@ -328,6 +341,7 @@ export function JuntoMapView({
       })),
     ];
     sc.load(points);
+    clusterCache.current = { sig, sc };
     return sc;
   }, [activities, pros, proOfferings]);
 
