@@ -47,6 +47,11 @@ for k, v in d.items():
     if SECRET.search(k):
         if v not in (None, '', False) and k != 'smtp_pass': secrets.append(k)
         continue
+    # Auth hooks: never copied (some are plan-gated and refused even when off);
+    # an ENABLED one is reported to be redone by hand.
+    if k.startswith('hook_'):
+        if k.endswith('_enabled') and v is True: secrets.append(k + ' (hook actif)')
+        continue
     if v is None: continue
     keep[k] = v
 json.dump(keep, open(out, 'w'))  # what is compared afterwards (no secret)
