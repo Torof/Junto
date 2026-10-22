@@ -100,6 +100,8 @@ export function ActivityDetail({
   const { data: transportSummary } = useQuery({
     queryKey: ['transport-summary', activity.id],
     queryFn: () => transportService.getSummary(activity.id),
+    // Signed-in only: the RPC is not granted to visitors (00316/00399).
+    enabled: isAuthenticated,
   });
   // Org-tab transport list and wall messages are only consumed by
   // participants/creator (the org tab is gated, the unread badge sits
@@ -157,6 +159,8 @@ export function ActivityDetail({
   //   Surfaced when the chat tab became a deep-link target (child effects
   //   run before the parent's).
   useEffect(() => {
+    // Visitors are not allowed on the private topic (realtime policy).
+    if (!isAuthenticated) return;
     const channel = supabase
       .channel(`activity:${activity.id}`, { config: { private: true } })
       .on('broadcast', { event: 'wall' }, () => {
@@ -199,7 +203,7 @@ export function ActivityDetail({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activity.id, queryClient]);
+  }, [activity.id, queryClient, isAuthenticated]);
 
   // Reconcile shared caches whenever the screen regains focus — covers
   // the gap where the realtime channel was disconnected (background,
@@ -1287,6 +1291,7 @@ export function ActivityDetail({
                 creatorAvatar={activity.creator_avatar}
                 maxParticipants={activity.max_participants}
                 onOpenAll={() => setShowParticipantsModal(true)}
+                isAuthenticated={isAuthenticated}
               />
             </View>
 

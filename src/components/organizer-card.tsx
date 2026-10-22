@@ -15,13 +15,15 @@ interface Props {
   creatorAvatar: string | null;
   maxParticipants: number | null;
   onOpenAll: () => void;
+  /** Visitors cannot read participants (00316/00399): skip the queries. */
+  isAuthenticated?: boolean;
 }
 
 // Total avatars shown before collapsing into a +N badge. The organizer
 // always takes the first slot, so AVATAR_STACK_SIZE - 1 others are shown.
 const AVATAR_STACK_SIZE = 5;
 
-export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvatar, maxParticipants, onOpenAll }: Props) {
+export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvatar, maxParticipants, onOpenAll, isAuthenticated = true }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -30,6 +32,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
     queryKey: ['participants', activityId],
     queryFn: () => participationService.getForActivity(activityId),
     staleTime: 0,
+    enabled: isAuthenticated,
   });
 
   // Pending join requests — the view is creator-gated server-side, so this
@@ -40,6 +43,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
     queryKey: ['participants-pending', activityId],
     queryFn: () => participationService.getPendingForActivity(activityId),
     staleTime: 0,
+    enabled: isAuthenticated,
   });
   const pendingCount = (pending ?? []).length;
 

@@ -134,6 +134,9 @@ export const proOfferingService = {
     if (error) throw error;
     const offerings = (data ?? []) as unknown as ProOffering[];
     if (offerings.length === 0) return offerings;
+    // Review aggregates are not readable by visitors (00287): no ★ for them.
+    const { data: auth } = await supabase.auth.getSession();
+    if (!auth.session) return offerings;
     // Attach review aggregate (for map labels). No reviews → undefined → no ★.
     const { data: stats } = await supabase
       .from('offering_review_stats')
