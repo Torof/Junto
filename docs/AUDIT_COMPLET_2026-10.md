@@ -229,6 +229,13 @@ Contrat app ↔ base vérifié mécaniquement (173 appels de fonctions, 73 lectu
 
 Suite (à blanc avec 00523-00524) : 2 060 pass, 0 fail, 12 failles connues (migration : PostGIS, droits de supabase_admin, pg_net).
 
+## Audit après migration — nouveau projet `fajfigpwfdwmchhzecwe` (2026-10-22)
+
+- **Objectifs atteints** : PostGIS hors de `public` et hors d'atteinte de l'API (404/406) ; tous nos objets à `postgres` ; aucune extension dans `public` ; structure identique (0 écart inattendu) ; adresse du projet dans `app_config` seulement ; tâches actives (268 exécutions, 0 échec) ; démo fidèle ; clé des empreintes identique ; suite 2 079 pass / 0 fail (10_migration : 16 gardes, prouvés en cassant 8 choses).
+- **Failles visées** : TX-2, PV-1/PV-2 fermées côté API ; filtre d'API retiré sans dépendance ; TX-4 et PV-4 = réglages de la plateforme, inatteignables par un client.
+- **Corrigé dans la foulée** : historique du dépôt (F.6) ; garde-fou de publication preview (le cache Metro garde les adresses insérées d'une construction à l'autre — prouvé) ; 24 comptes de démo bloqués à vie.
+- **Restent (décisions / actions)** : adresse de retour `https://getjunto.app/**` à retirer (tableau de bord) ; captcha et réauthentification au changement de mot de passe = fonctionnalités app à prévoir ; mots de passe divulgués (offre Pro) ; `graphql_public` encore exposé sans l'extension (identique à l'ancien, sans effet) ; clés d'API classiques (nouveau modèle à décider avant F) ; contrainte `reputation_votes_check` NOT VALID (préexistante) ; fichiers de travail locaux à détruire après F (la clé des empreintes y figure en clair, accès réservé).
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).
