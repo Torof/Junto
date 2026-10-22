@@ -24,13 +24,9 @@ SELECT concat_ws(E'\n\n',
   -- Realtime publication membership
   (SELECT string_agg(format('ALTER PUBLICATION supabase_realtime ADD TABLE %I.%I;', pt.schemaname, pt.tablename), E'\n' ORDER BY pt.tablename)
    FROM pg_publication_tables pt WHERE pt.pubname = 'supabase_realtime'),
-  -- Role settings we chose (timeouts). NOT copied: the API pre-request hook
-  -- (plan v7 decision 4) and session_preload_libraries (platform-owned,
-  -- superuser-only — a fresh project ships it).
-  (SELECT string_agg(format('ALTER ROLE %I SET %s = %L;', r.rolname, split_part(c, '=', 1), substr(c, strpos(c, '=') + 1)), E'\n' ORDER BY r.rolname, c)
-   FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole CROSS JOIN unnest(s.setconfig) c
-   WHERE r.rolname IN ('authenticator', 'anon', 'authenticated', 'service_role')
-     AND split_part(c, '=', 1) IN ('statement_timeout', 'lock_timeout', 'idle_in_transaction_session_timeout')),
+  -- Role settings: none copied. The timeouts are Supabase's own defaults (a fresh
+  -- project ships them; the catalog diff proves they match), the API hook is
+  -- dropped (plan decision 4), session_preload_libraries is platform-owned.
   -- Scheduled jobs, created INACTIVE (activated in phase D)
   (SELECT string_agg(format('SELECT cron.schedule(%L, %L, %L);', j.jobname, j.schedule, j.command)
             || E'\n' || format('SELECT cron.alter_job((SELECT jobid FROM cron.job WHERE jobname = %L), active := false);', j.jobname), E'\n' ORDER BY j.jobname)
