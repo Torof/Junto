@@ -236,6 +236,13 @@ Suite (à blanc avec 00523-00524) : 2 060 pass, 0 fail, 12 failles connues (migr
 - **Corrigé dans la foulée** : historique du dépôt (F.6) ; garde-fou de publication preview (le cache Metro garde les adresses insérées d'une construction à l'autre — prouvé) ; 24 comptes de démo bloqués à vie.
 - **Restent (décisions / actions)** : adresse de retour `https://getjunto.app/**` à retirer (tableau de bord) ; captcha et réauthentification au changement de mot de passe = fonctionnalités app à prévoir ; mots de passe divulgués (offre Pro) ; `graphql_public` encore exposé sans l'extension (identique à l'ancien, sans effet) ; clés d'API classiques (nouveau modèle à décider avant F) ; contrainte `reputation_votes_check` NOT VALID (préexistante) ; fichiers de travail locaux à détruire après F (la clé des empreintes y figure en clair, accès réservé).
 
+## Correctifs de l'audit par attaques réelles — livrés (mig 00527-00542, 2026-10-22/23)
+
+Cinq attaquants indépendants sur le nouveau projet : 0 critique, 0 haute, 2 moyennes, 13 petites — toutes corrigées, une par une, chacune avec son test dans `12_correctifs_audit` (échec prouvé avant, réussite après). Suite complète : 2 359 pass / 0 fail / 5 xfail (réglages de plateforme).
+
+- **Moyennes** : un admin suspendu gardait ses lectures et écritures directes (00527, `is_active_admin`, policy UPDATE de `reports` retirée) ; compteurs publics (décision Scott : toute sortie terminée compte, la présence validée ne sert plus qu'à la fiabilité — 00528).
+- **Petites** : présence puis départ comptait comme présence (00529) ; le signaleur lisait la sanction (00530) ; un compte suspendu bloquait, téléversait, modifiait son profil (00531) ; caractères invisibles et de direction dans les textes et les notifications (00532 + `send-push`) ; adresses de prise en charge conservées après la demande (00533), blocage ignoré dans un sens (00534) ; oracles sur une sortie invisible — présence géo, transition, signalement (00535) ; participants d'un organisateur suspendu visibles (00536) ; pouvoirs d'un créateur de canal parti, effacement dans une discussion close ou retirée (00537) ; second renommage de vitrine invisible pour l'admin (00538) ; agenda deviné en déplaçant sa sortie (00539) ; HTML dans les offres pro, FIN2-1 (00540) ; bloquer l'organisateur inscrivait un refus (00541) ; reprise d'un jeton push par un autre appareil (00542).
+
 ## Plan de correction proposé (validation Scott par phase)
 
 1. **Urgence** : TX-2 (filtre d'API), TX-4 (privilèges par défaut), CL-2 (Next.js).

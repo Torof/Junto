@@ -467,6 +467,7 @@ Conversations ouvertes thématiques (`conversations.type='channel'`) + table `ch
 **`register_push_token(p_token, p_device_id)`** (mig 00121) :
 - Auth + non suspendu
 - UPSERT dans `push_tokens` keyed sur `(user_id, device_id)` — multi-device aware
+- 00542 : un jeton déjà lié à un autre compte ne change de compte que si le **même `device_id`** le présente (changement de compte sur un téléphone) ; sinon l'appel est ignoré en silence — un jeton connu ne permet pas de détourner les notifications de quelqu'un
 
 **`ensure_user_row()`** :
 - Crée la ligne `public.users` si elle manque (self-heal)
@@ -519,7 +520,7 @@ Rattrapage 2026-10-12 (audit DB) : ces chaînes n'existaient que dans les commen
 - `add_pro_offering_photo(offering, url)` (00418) / `remove_` / `reorder_` (00252) : idem via JOIN ownership de l'offre. (`set_pro_offering_photo_url` supprimée en 00508.)
 - `add_pro_community_photo(pro, url, review?, offering?)` (00443, base 00418) : auth → non suspendu → cible **approuvée ET non démo** → URL ancrée au dossier du **contributeur** → avis lié = le sien sur ce pro → offre liée appartient au pro → lock → **cap 5 / contributeur / pro** (`junto.photo_limit`) → INSERT. `remove_pro_community_photo(id)` (00283) : contributeur OU pro propriétaire.
 
-**Internes** (REVOKE anon + authenticated) : `private.assert_approved_pro(uid)` (tier pro ∧ profil approved ∧ non suspendu), `private.pro_photo_url_ok(url, uid)` (IMMUTABLE — **hôte du projet codé en dur**, audit B16), triggers `pro_offerings_require_approved`, `pro_reviews_require_approved` (INSERT, pro_reviews seulement), `pro_*_whitelist_columns`, `pro_*_touch_updated_at`, `strip_html_reviews`.
+**Internes** (REVOKE anon + authenticated) : `private.assert_approved_pro(uid)` (tier pro ∧ profil approved ∧ non suspendu), `private.pro_photo_url_ok(url, uid)` (IMMUTABLE — **hôte du projet codé en dur**, audit B16), triggers `pro_offerings_require_approved`, `pro_reviews_require_approved` (INSERT, pro_reviews seulement), `pro_*_whitelist_columns`, `pro_*_touch_updated_at`, `strip_html_reviews`, `strip_html_offerings` (00540 : titre, description, niveau, lieu, horaires d'une offre).
 
 **Gate `approved` — défense en profondeur incomplète (audit B8)** : seul le trigger INSERT des offres le vérifie ; la policy `pro_offerings_select`, la vue `pro_offerings_with_coords` et les RPC d'édition s'appuient sur `tier='pro'`. Non exploitable tant qu'`approved` est terminal ; à fermer avant tout chemin admin « révoquer un pro ».
 
@@ -596,6 +597,7 @@ Supabase/PostgREST expose automatiquement toutes les fonctions du schema `public
 
 - **Notifications** : `create_notification`, `notify_participant_joined`, `notify_presence_confirmed`, `notify_presence_pre_warning`, `notify_presence_pre_warning_10min`, `notify_presence_validate_warning`, `notify_presence_validate_overdue`, `notify_creator_qr_reminder`, `notify_rate_participants`, `notify_review_received`, `notify_review_reply`
 - **Statuts / présence / fiabilité** : `transition_statuses_only`, `close_due_presence_windows`, `close_presence_window_for`, `check_alerts_for_activity`, `award_badge_progression`, `recalculate_reliability_score`, `get_active_negative_count`, `expire_stale_contact_requests`, `expire_idle_seat_requests`
+- **Aides `private` (00527-00535)** : `is_active_admin(uid)` (admin non suspendu ; EXECUTE `authenticated` car lue par les policies), `strip_invisible(text)` (retire les caractères invisibles et de direction, garde les liants d'émoji U+200C/U+200D — appliquée par tous les `strip_html_*` et `sanitize_notif_text`), `blocked_either_way(a, b)` (une sous-requête de policy sur `blocked_users` ne voit pas le blocage de l'autre personne : passer par cette aide), `can_see_activity(activity, uid)` (même règle de visibilité qu'une page de sortie : créateur, participation acceptée/en attente/invitée, sortie publique vivante non masquée par la démo dont l'organisateur n'est pas suspendu, lien privé avec accès), `seat_request_purge_details` (trigger : une demande de place qui se termine perd adresse, message et heure)
 - **Divers** : `generate_random_name`, `map_ping` (signal carte, 1 / 15 s / sortie), `log_admin_action`, `trace_distance_km`, `trace_elevation_gain_m` (00452 — calculs sur une trace), `trace_geojson_ok` (INVOKER, 00484)
 - **Cron (pg_cron)** : `check_activity_transitions` (job `junto-presence-sweep`, chaque minute — EXECUTE retiré aux clients en 00491), `purge_old_notifications` (`junto-notif-purge`), `purge_booking_participant_info` (`junto-booking-participant-purge`, 00467), `purge_contact_removal_archive` (`junto-contact-archive-purge`, 00469), `purge_throttle_tables` (`junto-throttle-purge`, 00480 : `rate_events` > 2 j, `map_broadcasts` > 1 j) ; `junto-cron-log-purge` (00508) est un DELETE SQL direct sur `cron.job_run_details` (> 7 j)
 - **Schéma `private`** (hors PostgREST) : `assert_approved_pro`, `assert_can_send`, `insert_rich_message`, `private_activity_access` (00486/00489), `rate_hit` (00480), `email_hash` / `email_is_banned` (00506), `pro_photo_url_ok` (INVOKER, STABLE, lit `project_url` — 00524), `project_url` (00524 : adresse du projet depuis `app_config`, NULL si absente ou mal formée → toute vérification d'adresse de photo échoue et aucun push ne part), `today_paris` (00523 : jour calendaire de Paris pour réservations, disponibilités, alertes, purges), `level_tier` (00525 : palier simple d'un niveau de sortie pour les points du profil, échelles de `src/constants/sport-levels.ts`)
@@ -609,10 +611,10 @@ Une fonction `RETURNS trigger` n'est pas appelable via PostgREST ni hors d'un d�
 
 - **`users`** : `handle_user_update`, `strip_html_users`, `check_avatar_url` (00499), `clear_push_token_on_suspension`, `broadcast_map_creator`, `private.ban_email_on_suspended_delete` (00506) ; `handle_new_user` (sur `auth.users`)
 - **`activities`** : `handle_activity_update`, `strip_html_tags`, `create_activity_conversation`, `expire_invited_on_activity_end`, `on_activity_completed_award_badges`, `on_activity_finished_expire_seat_requests`, `broadcast_map_activity`
-- **`participations`** : `sync_activity_membership`, `recalc_creator_on_participant_change`, `broadcast_activity_change`, `broadcast_map_participation`, `private.check_schedule_conflict` (00497/00498/00503), `private.stamp_accepted_at` (00516), `private.check_shared_outing_block` (00521), `private.seat_cleanup_on_participation_loss` (00523 : qui n'est plus accepté perd ses liens de covoiturage, conducteur ou passagers prévenus), `private.clear_stale_join_request` (00523 : une demande retirée, expirée ou refusée emporte sa notification non lue), `private.award_on_late_presence` (00523 : présence validée après la fin → trophées)
+- **`participations`** : `sync_activity_membership`, `recalc_creator_on_participant_change`, `broadcast_activity_change`, `broadcast_map_participation`, `private.check_schedule_conflict` (00497/00498/00503), `private.stamp_accepted_at` (00516), `private.check_shared_outing_block` (00521), `private.seat_cleanup_on_participation_loss` (00523 : qui n'est plus accepté perd ses liens de covoiturage, conducteur ou passagers prévenus), `private.clear_stale_join_request` (00523 : une demande retirée, expirée ou refusée emporte sa notification non lue) (`private.award_on_late_presence` supprimée en 00528 : les compteurs publics ne dépendent plus de la présence)
 - **Messagerie** : `messages_whitelist_columns`, `conversations_whitelist_columns`, `conversation_members_whitelist_columns`, `strip_html_messages`, `broadcast_and_push_message`, `messages_block_closed_channel`, `create_dm_member_rows`, `cleanup_notifications_on_conversation_delete`, `channels_whitelist_columns`
 - **Blocage** : `cascade_block_cleanup`, `cascade_block_invited`, `cascade_block_to_requests`
-- **Autres** : `handle_notification_update`, `push_notification_to_device` (notifications) · `broadcast_activity_change`, `private.seat_release_on_end` (seat_requests ; 00523 : toute place acceptée qui se termine revient au conducteur, plafonnée à 8) · `private.broadcast_message_update` (messages, 00523 : modification / suppression diffusée en direct) · `broadcast_activity_change_stmt` (activity_gear / activity_gear_missing, 00480) · `clear_missing_on_shared_gear` (INVOKER) · `discovery_availabilities_whitelist_columns` · `bookings_whitelist_columns`, `bookings_clear_participant_info` (00467) · `pro_*_whitelist_columns` (profiles, offerings, photos ×3, reviews, offering_reviews, availabilities), `pro_offerings_require_approved`, `pro_reviews_require_approved`, `pro_profiles_touch_updated_at`, `pro_offerings_touch_updated_at`, `reviews_touch_updated_at`, `strip_html_reviews`
+- **Autres** : `handle_notification_update`, `push_notification_to_device` (notifications) · `broadcast_activity_change`, `private.seat_release_on_end` (seat_requests ; 00523 : toute place acceptée qui se termine revient au conducteur, plafonnée à 8) · `private.broadcast_message_update` (messages, 00523 : modification / suppression diffusée en direct) · `broadcast_activity_change_stmt` (activity_gear / activity_gear_missing, 00480) · `clear_missing_on_shared_gear` (INVOKER) · `discovery_availabilities_whitelist_columns` · `bookings_whitelist_columns`, `bookings_clear_participant_info` (00467) · `pro_*_whitelist_columns` (profiles, offerings, photos ×3, reviews, offering_reviews, availabilities), `pro_offerings_require_approved`, `pro_reviews_require_approved`, `pro_profiles_touch_updated_at`, `pro_offerings_touch_updated_at`, `reviews_touch_updated_at`, `strip_html_reviews`, `strip_html_offerings` (00540)
 - **Garde d'onboarding** : `private.require_onboarded_actor` (00494/00496) sur `activities`, `participations`, `messages`, `conversations`, `conversation_members`, `seat_requests`, `reputation_votes`, `bookings`, `pro_profiles`, `discovery_availabilities`, `gpx_traces`, `contact_qr_tokens`
 
 ### Fonctions privilégiées admin
@@ -625,7 +627,7 @@ Toutes EXECUTE `authenticated` ; chacune commence par `auth.uid()` admin **non s
 - `admin_resolve_user(p_user_id)`, `admin_pro_owner(p_pro_id)` — lecture d'identité (e-mail) pour la modération, journalisée
 - `admin_get_pending_pro_applications()`, `approve_pro(p_user_id)`, `reject_pro(p_user_id, p_reason)` — file et décision des candidatures pro
 - `admin_set_demo_mode(p_on)` — bascule `app_config.demo_mode`
-- Écritures directes admin (policies, pas de fonction) : `reports` UPDATE, `sports` INSERT/UPDATE/DELETE
+- Écritures directes admin (policies, pas de fonction) : `sports` INSERT/UPDATE/DELETE. Depuis 00527, toute policy admin exige un admin **non suspendu** (`private.is_active_admin(uid)`) et `reports` n'a plus de policy UPDATE : un signalement se classe uniquement par `moderate_report` (journalisé)
 - Voir `docs/ADMIN.md` (charte du rôle admin) pour l'inventaire complet, les frontières, et la feuille de route.
 
 > Note : `admin_suspend_user` / `admin_unsuspend_user` existent (créées en 00321, durcies jusqu'en 00447). `admin_resolve_report` n'a jamais existé — le classement d'un report passe par `moderate_report`.
@@ -684,7 +686,7 @@ AS $$ ... $$;
 | `gpx_traces` / `favorites` | INSERT, UPDATE, DELETE | Quotas, validation | `create/rename/delete_gpx_trace` ; `add_favorite`/`remove_favorite` |
 | Tables internes (`rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`) | Tout (aucun grant client, RLS forcée sans policy) | Compteurs, journaux, preuves | Leurs fonctions propriétaires uniquement |
 
-**Écritures client directes délibérées** (grant + policy, live 2026-10-21) : `users` UPDATE de sa ligne (colonnes non gelées par `handle_user_update`) · `blocked_users` INSERT/DELETE (`blocker_id = auth.uid()`) · `notifications` UPDATE de ses lignes (`handle_notification_update` ne laisse passer que `read_at`) · `activity_alerts` DELETE de ses alertes · `reports` UPDATE (admins) · `sports` INSERT/UPDATE/DELETE (admins).
+**Écritures client directes délibérées** (grant + policy, live 2026-10-21) : `users` UPDATE de sa ligne (colonnes non gelées par `handle_user_update`) · `blocked_users` INSERT/DELETE (`blocker_id = auth.uid()`) · `notifications` UPDATE de ses lignes (`handle_notification_update` ne laisse passer que `read_at`) · `activity_alerts` DELETE de ses alertes · `sports` INSERT/UPDATE/DELETE (admins actifs, 00527).
 
 Sans ces restrictions, un client peut contourner les fonctions et opérer directement via l'API REST.
 
@@ -895,7 +897,7 @@ Triggers whitelist `*_lock_privileged` (BEFORE UPDATE) — forcent les colonnes 
 #### `reports`
 | SELECT | INSERT | UPDATE | DELETE |
 |--------|--------|--------|--------|
-| Reporter voit les siens + admins voient tout | 🔧 `create_report` (rate-limited, dup-check) | ✅ Admins (status) | ❌ |
+| Admins actifs seulement (00530 : le signaleur ne lit plus l'issue) | 🔧 `create_report` (rate-limited, dup-check) | 🔧 `moderate_report` (policy UPDATE retirée en 00527) | ❌ |
 
 #### `reputation_votes` (nouveau)
 | SELECT | INSERT | UPDATE | DELETE |
@@ -1287,7 +1289,7 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 
 ### Tables
 - `blocked_users` — affecte RLS sur toutes tables
-- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT par reporter+admin, UPDATE admin only. Cibles (CHECK live, 00500/00508) : `user`, `activity`, `message`, `group`, `channel`, `pro_review`, `offering_review` — les cibles legacy `wall_message`/`private_message` sont retirées en 00508
+- `reports` — INSERT via `create_report` (rate-limited 10/h, no dup, target must exist), SELECT admins actifs seulement (00530), UPDATE uniquement via `moderate_report` (00527). Cibles (CHECK live, 00500/00508) : `user`, `activity`, `message`, `group`, `channel`, `pro_review`, `offering_review` — les cibles legacy `wall_message`/`private_message` sont retirées en 00508
 - `admin_remove_content` (00362) — soft-delete sur `messages` / masquage `conversations` (repointé du legacy wall/private vers le store unifié ; le type `wall_message` reste accepté en entrée et vise `messages`, l'id étant partagé)
 
 ---
@@ -1411,6 +1413,8 @@ Status `removed` est final. `join_activity` rejette si participation existante =
 | Rejoindre activité | Unidirectionnel (B ne peut pas rejoindre les activités de A) |
 | Découverte | Unidirectionnel |
 | Liste participants | Unidirectionnel (compteur reste exact) |
+| Demandes de place (covoiturage) | Bidirectionnel (00534, via `blocked_either_way`) |
+| Demande en attente chez l'autre | L'organisateur qui bloque refuse la demande ; la personne qui bloque l'organisateur **retire** la sienne (00541, pas de refus inscrit à son nom) |
 | Reviews / reputation_votes | Unidirectionnel à l'affichage, comptent dans la moyenne globale |
 
 ### Account enumeration
