@@ -167,3 +167,24 @@ PERFORM pg_temp.eq('C8 statut : la participante obtient le statut', format($$SEL
 PERFORM pg_temp.denied('C8 géo : des coordonnées hors limites sont refusées (plus de bouclage)',
   format($$SELECT public.confirm_presence_via_geo(%L, 330, 400)::text$$, pg_temp.id('c8_priv')), '^junto\.presence_too_far$');
 PERFORM pg_temp.ok('C8 signalement : la participante peut signaler la sortie', format($$SELECT public.create_report('activity', %L, 'contenu inapproprié dans cette sortie')::text$$, pg_temp.id('c8_priv')));
+
+-- ═════ C9 — La sortie d'un organisateur suspendu ne montre plus ses participants aux inconnus (00536) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c9_org', 'tos'); PERFORM pg_temp.user('c9_p', 'tos'); PERFORM pg_temp.user('c9_eve', 'tos');
+PERFORM pg_temp.put('c9_act', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C9', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-134.5, -41.5), 4326)::geography, now() + interval '170 days', interval '3 hours', 'public', 'published')
+  RETURNING id::text$q$, pg_temp.id('c9_org'))));
+INSERT INTO public.participations (activity_id, user_id, status, created_at) VALUES
+  (pg_temp.id('c9_act'), pg_temp.id('c9_org'), 'accepted', now() - interval '1 day'),
+  (pg_temp.id('c9_act'), pg_temp.id('c9_p'), 'accepted', now() - interval '1 day');
+PERFORM pg_temp.as_('c9_eve');
+PERFORM pg_temp.eq('C9 avant : une inconnue voit les participants d''une sortie publique', format($$SELECT count(*)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('c9_act')), '2');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('c9_org');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c9_eve');
+PERFORM pg_temp.eq('C9 organisateur suspendu : plus aucun participant visible pour une inconnue', format($$SELECT count(*)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('c9_act')), '0');
+PERFORM pg_temp.as_('c9_p');
+PERFORM pg_temp.denied('C9 organisateur suspendu : affectations de places refusées (sortie gelée)', format($$SELECT count(*)::text FROM public.get_activity_seat_assignments(%L)$$, pg_temp.id('c9_act')), '^Operation not permitted$');
