@@ -112,3 +112,33 @@ PERFORM pg_temp.eq('C6 le texte des notifications est nettoyé aussi',
 PERFORM pg_temp.eq('C6 un texte normal (accents, emoji) est intact',
   $$SELECT private.strip_invisible('Élodie 🏔️ – sortie à l''Alpe')$$, 'Élodie 🏔️ – sortie à l''Alpe');
 PERFORM pg_temp.eq('C6 un emoji composé (liant U+200D) reste intact', $$SELECT (private.strip_invisible(E'famille \U0001F468‍\U0001F469‍\U0001F467') = E'famille \U0001F468‍\U0001F469‍\U0001F467')::text$$, 'true');
+
+-- ═════ C7 — Les adresses de prise en charge ne survivent pas à la demande (00533) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c7_org', 'tos'); PERFORM pg_temp.user('c7_d', 'tos'); PERFORM pg_temp.user('c7_p', 'tos'); PERFORM pg_temp.user('c7_q', 'tos');
+PERFORM pg_temp.put('c7_act', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C7', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-136.5, -43.5), 4326)::geography, now() + interval '160 days', interval '3 hours', 'public', 'published')
+  RETURNING id::text$q$, pg_temp.id('c7_org'))));
+INSERT INTO public.participations (activity_id, user_id, status, created_at)
+SELECT pg_temp.id('c7_act'), pg_temp.id(u), 'accepted', now() - interval '1 day' FROM unnest(ARRAY['c7_org', 'c7_d', 'c7_p', 'c7_q']) u;
+PERFORM pg_temp.as_('c7_d');
+PERFORM pg_temp.ok('C7 le conducteur propose 3 places', format($$SELECT public.set_participation_transport(%L, 'car', 3::smallint, 'Gap', NULL, 44.56, 6.08, 'Gap')::text$$, pg_temp.id('c7_act')));
+PERFORM pg_temp.as_('c7_p');
+PERFORM pg_temp.ok('C7 p demande une place depuis chez elle', format($$SELECT public.request_seat(%L, %L, '7 impasse des Lilas')::text$$, pg_temp.id('c7_act'), pg_temp.id('c7_d')));
+PERFORM pg_temp.as_('c7_q');
+PERFORM pg_temp.ok('C7 q demande une place depuis chez lui', format($$SELECT public.request_seat(%L, %L, '9 chemin du Moulin')::text$$, pg_temp.id('c7_act'), pg_temp.id('c7_d')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('c7_srp', (SELECT id::text FROM public.seat_requests WHERE requester_id = pg_temp.id('c7_p')));
+PERFORM pg_temp.put('c7_srq', (SELECT id::text FROM public.seat_requests WHERE requester_id = pg_temp.id('c7_q')));
+PERFORM pg_temp.as_('c7_d');
+PERFORM pg_temp.ok('C7 le conducteur refuse p', format($$SELECT public.decline_seat_request(%L)::text$$, pg_temp.get('c7_srp')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C7 la demande refusée ne garde pas l''adresse', format($$SELECT coalesce(pickup_from, 'effacée') FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srp')), 'effacée');
+PERFORM pg_temp.eq('C7 la demande en cours garde la sienne', format($$SELECT pickup_from FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srq')), '9 chemin du Moulin');
+PERFORM pg_temp.as_('c7_q');
+PERFORM pg_temp.ok('C7 q bloque le conducteur', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c7_q'), pg_temp.id('c7_d')));
+PERFORM pg_temp.as_('c7_d');
+PERFORM pg_temp.eq('C7 bloqué par le passager, le conducteur ne lit plus sa demande', format($$SELECT count(*)::text FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srq')), '0');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C7 et l''adresse est effacée de la demande annulée par le blocage', format($$SELECT coalesce(pickup_from, 'effacée') FROM public.seat_requests WHERE id = %L$$, pg_temp.get('c7_srq')), 'effacée');
