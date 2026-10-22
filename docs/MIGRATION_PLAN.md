@@ -1,5 +1,7 @@
 # Migration vers un nouveau projet Supabase — plan v7
 
+> **Répétition générale d'abord** sur un projet jetable, avec le kit `scripts/migration/` (mode d'emploi : `scripts/migration/REPETITION.md`). Les mots de passe restent chez Scott : il lance `export.sh` et `build.sh` ; préparation, preuves et tests se font sans mot de passe.
+
 > v7 du 2026-10-22, après la répétition à blanc du plan v6 contre la base réelle. Elle a trouvé des étapes qui auraient échoué ou cassé sans bruit ; elles sont corrigées ici (§13 liste les changements). Remplace `docs/REBUILD_PLAN.md` (v5).
 
 ## 0. Décisions et principes
@@ -70,13 +72,13 @@
 Chaque étape est appliquée avec `psql -v ON_ERROR_STOP=1 --single-transaction -f …`, **dans sa propre session** (l'export règle `search_path` et `check_function_bodies` pour la session).
 
 1. **Extensions** dans leurs schémas : `pg_cron`, `pg_net`, `pgcrypto`, `uuid-ossp`, `pg_stat_statements` ; **PostGIS dans `extensions`**. Désactiver `pg_graphql` s'il est présent.
-2. **Droits par défaut fermés pendant la restauration** : pour `postgres`, aucun droit par défaut (global et `public` ; tables, séquences, fonctions) pour `anon`, `authenticated`, `service_role` ni `PUBLIC`. Raison : les droits de l'export sont écrits par rapport aux droits d'origine de Postgres, pas aux droits par défaut — une table restaurée sous des droits par défaut ouverts gagnerait une lecture de table entière et **contournerait les droits par colonne** (ex. `invite_token`).
+2. **Droits par défaut d'origine de Postgres pendant la restauration** (ni ouverts, ni vides) : pour `postgres`, aucun droit par défaut vers `anon`, `authenticated`, `service_role` (global et `public`), et l'exécution des fonctions rendue à `PUBLIC` comme à l'origine. Raison : l'export écrit chaque droit **par rapport aux droits d'origine de Postgres**. Sous des droits ouverts, une table gagnerait une lecture complète et **contournerait les droits par colonne** (ex. `invite_token`) ; sous des droits vides, les ~200 fonctions qui gardent l'exécution `PUBLIC` la perdraient sans bruit (corrigé le 2026-10-22 : la v7 disait « vides »).
 3. **Restauration de la structure** transformée :
    - retirer les lignes `\restrict` / `\unrestrict` et toutes les lignes `ALTER DEFAULT PRIVILEGES` ; vérifier l'absence de `CREATE EXTENSION` ;
    - requalifier les références PostGIS vers `extensions`, à partir de la **liste des objets membres de l'extension** (types, fonctions, opérateurs), formes sans **et** avec guillemets ;
    - contrôles après transformation : zéro référence `public.` à un objet PostGIS sous aucune forme (`public\.("?)(st_|geograph|geometr|postgis|box[23]d|spatial_ref_sys)`), 9 colonnes `extensions.geography`, 5 vues de carte qui compilent.
 4. **Droits exacts** : `REVOKE ALL` (droits de colonne compris) pour `anon`, `authenticated`, `service_role`, `PUBLIC` sur tout `public` et `private`, puis les droits de l'ancien projet, objet par objet. Droits d'exécution PostGIS nécessaires aux vues de carte (`st_x`, `st_y`, `geometry(geography)`, usage du schéma `extensions`).
-5. **Droits par défaut définitifs**, `private` compris (le schéma existe maintenant).
+5. **Droits par défaut définitifs** = ceux de l'ancien projet pour `postgres` (global : fonctions sans `PUBLIC` ; `public` : tables en lecture pour les clients, tout pour `service_role`, fonctions pour `service_role`, séquences).
 6. **Ce que l'export ne contient pas** : les 2 déclencheurs sur `auth.users` ; le déclencheur de quota sur `storage.objects` ; les 3 espaces de stockage et leurs 12 policies ; les 4 policies de `realtime.messages` ; la publication temps réel (2 tables) si elle n'est pas dans l'export, et `REPLICA IDENTITY FULL` sur `notifications` ; les réglages de rôles **sauf** `pgrst.db_pre_request` (décision 4 : la fonction `junto_pre_request` est supprimée sur le nouveau projet et ses tests retirés dans le même temps) ; les 6 tâches planifiées, créées puis **désactivées dans la même transaction** (`cron.alter_job(…, active := false)`).
 7. **Données de référence** : `sports` (48), `gear_catalog` (63), `app_config` : `demo_mode` = false, `project_url` = adresse du **nouveau** projet, `email_ban_pepper` régénéré, `push_webhook_secret` provisoire (remplacé en D).
 8. **Historique** : les migrations sont archivées dans `supabase/migrations_archive/` ; le nouveau projet démarre avec la migration de base.

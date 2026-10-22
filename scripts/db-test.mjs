@@ -25,11 +25,14 @@ const filter = process.argv[2] ?? '';
 const prelude = readFileSync(join(testsDir, '_prelude.sql'), 'utf8');
 const files = readdirSync(testsDir).filter((f) => f.endsWith('.test.sql') && f.includes(filter)).sort();
 const work = mkdtempSync(join(tmpdir(), 'junto-dbtest-'));
+// JUNTO_DB_WORKDIR: a folder whose supabase/.temp/project-ref names ANOTHER project
+// (migration rehearsal) — the suite then runs there, the repo stays linked to the old one.
+const dbDir = process.env.JUNTO_DB_WORKDIR ?? root;
 
 // The suite runs against whatever project the repo is LINKED to. Say which one,
 // and refuse when JUNTO_DB_REF names another (migration: never prove the wrong base).
 let linkedRef = '?';
-try { linkedRef = readFileSync(join(root, 'supabase', '.temp', 'project-ref'), 'utf8').trim(); } catch { /* not linked */ }
+try { linkedRef = readFileSync(join(dbDir, 'supabase', '.temp', 'project-ref'), 'utf8').trim(); } catch { /* not linked */ }
 console.log(`target project: ${linkedRef}`);
 if (process.env.JUNTO_DB_REF && process.env.JUNTO_DB_REF !== linkedRef) {
   console.error(`refusing: JUNTO_DB_REF=${process.env.JUNTO_DB_REF} but the repo is linked to ${linkedRef}`);
@@ -41,7 +44,7 @@ function runSql(sql) {
   writeFileSync(file, sql);
   try {
     return execFileSync('npx', ['supabase', 'db', 'query', '--experimental', '--linked', '-f', file], {
-      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
+      cwd: dbDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
     });
   } catch (e) {
     return `${e.stdout ?? ''}${e.stderr ?? ''}`;

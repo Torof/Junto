@@ -11,13 +11,16 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+// JUNTO_DB_WORKDIR: folder linked to another project (migration rehearsal).
+const dbDir = process.env.JUNTO_DB_WORKDIR ?? root;
+try { console.error(`target project: ${readFileSync(join(dbDir, 'supabase', '.temp', 'project-ref'), 'utf8').trim()}`); } catch { /* not linked */ }
 
 function snapshot(extraSqlBefore = '') {
   const sql = readFileSync(join(root, 'scripts', 'catalog-snapshot.sql'), 'utf8');
   const file = join(mkdtempSync(join(tmpdir(), 'junto-cat-')), 'q.sql');
   writeFileSync(file, extraSqlBefore + sql);
   const out = execFileSync('npx', ['supabase', 'db', 'query', '--experimental', '--linked', '-f', file],
-    { cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    { cwd: dbDir, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   const json = JSON.parse(out.slice(out.indexOf('{')));
   const rows = json.rows[json.rows.length - 1].snapshot;
   return typeof rows === 'string' ? JSON.parse(rows) : rows;
@@ -42,7 +45,7 @@ END $selftest$;`;
   let out;
   try {
     out = execFileSync('npx', ['supabase', 'db', 'query', '--experimental', '--linked', '-f', file],
-      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 256 * 1024 * 1024 });
+      { cwd: dbDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 256 * 1024 * 1024 });
   } catch (e) { out = `${e.stdout ?? ''}${e.stderr ?? ''}`; }
   const m = out.match(/JUNTO_SNAPSHOT ([A-Za-z0-9+/=]+)/);
   if (!m) { console.error(out.slice(0, 800)); process.exit(3); }
