@@ -15,8 +15,19 @@ echo "Jeton d'accès Supabase : tableau de bord → ton avatar → Account prefe
 read -rsp "Jeton (ne s'affiche pas) : " SUPABASE_TOKEN; echo
 export SUPABASE_TOKEN
 API=https://api.supabase.com/v1/projects
-get() { curl -sf -H "Authorization: Bearer $SUPABASE_TOKEN" "$API/$1"; }
-patch() { curl -sf -X PATCH -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" --data-binary @"$2" "$API/$1" > /dev/null; }
+# On failure, show the HTTP status and Supabase's message (never contains a secret).
+call() {  # call METHOD PATH [BODYFILE] → body on stdout; non-zero + message on failure
+  local out="$WORK/.resp" code
+  if [ -n "${3:-}" ]; then
+    code=$(curl -s -o "$out" -w '%{http_code}' -X "$1" -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" --data-binary @"$3" "$API/$2")
+  else
+    code=$(curl -s -o "$out" -w '%{http_code}' -X "$1" -H "Authorization: Bearer $SUPABASE_TOKEN" "$API/$2")
+  fi
+  if [ "${code:0:1}" != 2 ]; then echo "  → $1 $2 : HTTP $code $(head -c 300 "$out")" >&2; rm -f "$out"; return 1; fi
+  cat "$out"; rm -f "$out"
+}
+get() { call GET "$1"; }
+patch() { call PATCH "$1" "$2" > /dev/null; }
 
 for part in config/auth postgrest; do
   name=${part//\//-}
