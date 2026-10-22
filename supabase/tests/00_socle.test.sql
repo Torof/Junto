@@ -57,7 +57,7 @@ BEGIN
     $$SELECT coalesce(string_agg(DISTINCT p.proname, ', '), '') FROM pg_proc p
       WHERE p.pronamespace = 'public'::regnamespace AND p.prosecdef AND has_function_privilege('anon', p.oid, 'EXECUTE')
         AND EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid AND d.deptype = 'e')$$,
-    '', 'PV-1');
+    '', CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis' AND extnamespace = 'public'::regnamespace) THEN 'PV-1' END);
 
   -- ───── 3b. Tout ce qui est à nous appartient à postgres ─────
   -- Ce qui a rendu l'ancienne base irréparable : des objets dans public possédés par le rôle

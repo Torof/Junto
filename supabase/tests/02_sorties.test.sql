@@ -808,12 +808,32 @@ PERFORM pg_temp.put('sc5', pg_temp.ok('créneau : sc_a crée une sortie à J+40'
 PERFORM pg_temp.denied('créneau : déplacer sa sortie sur son autre sortie est refusé',
   format($$SELECT public.update_activity(%L, p_starts_at => now() + interval '40 days 1 hour')::text$$, pg_temp.id('sc1')), 'junto\.schedule_conflict');
 
--- 00508 : les messages de covoiturage arrivent directement dans la messagerie unifiée.
+-- 00508 : les messages de covoiturage arrivent directement dans la messagerie unifiée
+-- (00514 : la demande n'écrit que dans un fil déjà actif). Scénario propre au test :
+-- il ne compte rien d'autre que ses propres lignes (passait avant grâce aux données réelles).
 PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('cv_o', 'tos'); PERFORM pg_temp.user('cv_d', 'tos'); PERFORM pg_temp.user('cv_p', 'tos');
+PERFORM pg_temp.put('cv_act', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Covoiturage messagerie', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-139.5, -46.5), 4326)::geography, now() + interval '150 days', interval '3 hours', 'public', 'published')
+  RETURNING id::text$q$, pg_temp.id('cv_o'))));
+INSERT INTO public.participations (activity_id, user_id, status, created_at)
+SELECT pg_temp.id('cv_act'), pg_temp.id(u), 'accepted', now() - interval '1 day' FROM unnest(ARRAY['cv_o', 'cv_d', 'cv_p']) u;
+INSERT INTO public.conversations (type, user_1, user_2, initiated_by, status, initiated_from, created_at, last_message_at)
+VALUES ('dm', LEAST(pg_temp.id('cv_d'), pg_temp.id('cv_p')), GREATEST(pg_temp.id('cv_d'), pg_temp.id('cv_p')), pg_temp.id('cv_p'), 'active', 'profile', now(), now());
+PERFORM pg_temp.as_('cv_d');
+PERFORM pg_temp.ok('covoiturage : le conducteur propose 2 places', format($$SELECT public.set_participation_transport(%L, 'car', 2::smallint, 'Gap', NULL, 44.56, 6.08, 'Gap')::text$$, pg_temp.id('cv_act')));
+PERFORM pg_temp.as_('cv_p');
+PERFORM pg_temp.ok('covoiturage : la passagère demande une place', format($$SELECT public.request_seat(%L, %L)::text$$, pg_temp.id('cv_act'), pg_temp.id('cv_d')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.put('cv_sr', (SELECT id::text FROM public.seat_requests WHERE activity_id = pg_temp.id('cv_act') AND requester_id = pg_temp.id('cv_p')));
 PERFORM pg_temp.eq('demande de place : le message de demande est dans la messagerie',
-  $$SELECT (count(*) > 0)::text FROM public.messages WHERE metadata->>'type' = 'seat_request_pending'$$, 'true');
+  format($$SELECT count(*)::text FROM public.messages WHERE metadata->>'type' = 'seat_request_pending' AND metadata->>'seat_request_id' = %L$$, pg_temp.get('cv_sr')), '1');
+PERFORM pg_temp.as_('cv_d');
+PERFORM pg_temp.ok('covoiturage : le conducteur accepte', format($$SELECT public.accept_seat_request(%L)::text$$, pg_temp.get('cv_sr')));
+PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('place acceptée : le message de confirmation est dans la messagerie',
-  $$SELECT (count(*) > 0)::text FROM public.messages WHERE metadata->>'type' = 'seat_accepted'$$, 'true');
+  format($$SELECT count(*)::text FROM public.messages WHERE metadata->>'type' = 'seat_accepted' AND metadata->>'activity_id' = %L$$, pg_temp.get('cv_act')), '1');
 
 -- 00509 : les vues « mes sorties » ont toutes les colonnes que l'app leur demande (sélection copiée
 -- de activity-service.ts) — une colonne manquante cassait les listes sans bruit.
