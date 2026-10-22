@@ -1,12 +1,12 @@
 import QRCode from 'qrcode';
-import IosWaitlistForm from './ios-waitlist-form';
 
 async function qrFor(url: string): Promise<string> {
   return QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: '#0F1A14', light: '#FFFFFF' } });
 }
 
 // « Télécharger » — the closing band, map echo behind. Play link when the
-// listing is public, the direct Android build meanwhile; iOS = waitlist.
+// listing is public, the direct Android build meanwhile; iOS = announced only
+// (the waitlist form called an RPC that never existed — removed 2026-10-22).
 export default async function Download({ playUrl, isPlayStore }: { playUrl: string; isPlayStore: boolean }) {
   const qr = await qrFor(playUrl);
   return (
@@ -20,7 +20,7 @@ export default async function Download({ playUrl, isPlayStore }: { playUrl: stri
             <a href={playUrl} className="l-btn-play">{isPlayStore ? 'Télécharger sur Google Play' : 'Télécharger l’app Android'}</a>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Android 9 et plus</span>
           </div>
-          <IosWaitlistForm />
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Version iPhone en préparation.</span>
         </div>
         <div className="l-qr">
           <img src={qr} alt="QR code vers le téléchargement Android" />
