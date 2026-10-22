@@ -43,3 +43,27 @@ PERFORM pg_temp.eq('C2 la sortie de l''organisateur compte même sans présence 
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C2 plus de déclencheur de trophée à la présence tardive',
   $$SELECT count(*)::text FROM pg_trigger WHERE tgname = 'trg_participations_late_presence_award'$$, '0');
+
+-- ═════ C3 — Valider sa présence puis partir ne compte plus comme présent (00529) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c3_org', 'tos'); PERFORM pg_temp.user('c3_u', 'tos');
+PERFORM pg_temp.put('c3_act', pg_temp.run(format($q$INSERT INTO public.activities (creator_id, sport_id, title, level, max_participants, location_meeting, starts_at, duration, visibility, status, requires_presence)
+  VALUES (%L, (SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C3', 'Tous niveaux', 8,
+          ST_SetSRID(ST_MakePoint(-137.5, -44.5), 4326)::geography, now() + interval '2 hours', interval '3 hours', 'public', 'published', true)
+  RETURNING id::text$q$, pg_temp.id('c3_org'))));
+INSERT INTO public.participations (activity_id, user_id, status, created_at) VALUES (pg_temp.id('c3_act'), pg_temp.id('c3_org'), 'accepted', now() - interval '1 day');
+PERFORM pg_temp.as_('c3_u');
+PERFORM pg_temp.eq('C3 la participante rejoint la sortie', format($$SELECT public.join_activity(%L)$$, pg_temp.id('c3_act')), 'accepted');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = now() - interval '10 minutes', status = 'in_progress' WHERE id = pg_temp.id('c3_act');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c3_org');
+PERFORM pg_temp.put('c3_tok', pg_temp.ok('C3 l''organisatrice affiche son QR', format($$SELECT public.create_presence_token(%L)::text$$, pg_temp.id('c3_act'))));
+PERFORM pg_temp.as_('c3_u');
+PERFORM pg_temp.ok('C3 la participante scanne le QR', format($$SELECT public.confirm_presence_via_token(%L)::text$$, pg_temp.get('c3_tok')));
+PERFORM pg_temp.ok('C3 puis elle quitte la sortie', format($$SELECT public.leave_activity(%L)::text$$, pg_temp.id('c3_act')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C3 le départ tardif est enregistré', format($$SELECT count(*)::text FROM public.late_cancels WHERE user_id = %L$$, pg_temp.id('c3_u')), '1');
+PERFORM pg_temp.eq('C3 sa fiabilité baisse : la présence validée avant de partir ne compte plus',
+  format($$SELECT (reliability_score < 100)::text FROM public.users WHERE id = %L$$, pg_temp.id('c3_u')), 'true');
