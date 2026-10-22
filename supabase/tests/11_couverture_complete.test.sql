@@ -511,17 +511,14 @@ PERFORM pg_temp.ok('update_pro_offering : le pro modifie titre et prix', format(
 PERFORM pg_temp.fc_lock(false);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('update_pro_offering : titre et prix enregistrés', format($$SELECT (title LIKE 'Rando %%modifiée%%')::text || '|' || price_eur::int FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off')), 'true|60');
--- FIN2-1 : le titre et la description d'une offre pro gardent leur HTML (ni create_pro_offering ni
--- update_pro_offering ne nettoient, et pro_offerings n'a pas de trigger strip_html) alors que tout
--- autre texte public l'est (sorties, messages, avis, vitrine, matériel de l'offre) ; la vue
--- pro_offerings_with_coords est lue par le site sans compte.
-PERFORM pg_temp.eq('update_pro_offering : le titre d''une offre est nettoyé du HTML', format($$SELECT title FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off')), 'Rando modifiée', 'FIN2-1');
+-- FIN2-1 (corrigé 00540) : les textes d'une offre pro sont nettoyés du HTML comme tout autre texte public.
+PERFORM pg_temp.eq('update_pro_offering : le titre d''une offre est nettoyé du HTML', format($$SELECT title FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off')), 'Rando modifiée');
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.put('off_html', pg_temp.ok('create_pro_offering : offre créée avec du HTML dans le titre et la description', format($$SELECT public.create_pro_offering(p_sport_id := %L, p_title := '<b>Offre</b> balisée', p_description := '<i>Desc</i>',
   p_level := 'x', p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'B')::text$$, pg_temp.id('sport'))));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('create_pro_offering : titre et description d''une offre nettoyés du HTML',
-  format($$SELECT title || '|' || description FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off_html')), 'Offre balisée|Desc', 'FIN2-1');
+  format($$SELECT title || '|' || description FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('off_html')), 'Offre balisée|Desc');
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.ok('delete_pro_offering : le pro supprime une offre sans réservation', format($$SELECT public.delete_pro_offering(%L)::text$$, pg_temp.id('off_del')));
 PERFORM pg_temp.as_('db');
