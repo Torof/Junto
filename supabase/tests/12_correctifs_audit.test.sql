@@ -78,3 +78,22 @@ PERFORM pg_temp.ok('C4 l''admin sanctionne avec une note privée', format($$SELE
 PERFORM pg_temp.eq('C4 l''admin relit le signalement', format($$SELECT status FROM public.reports WHERE id = %L$$, pg_temp.get('c4_r')), 'actioned');
 PERFORM pg_temp.as_('c4_rep');
 PERFORM pg_temp.eq('C4 celui qui a signalé ne voit ni l''issue ni la note', format($$SELECT count(*)::text FROM public.reports WHERE id = %L$$, pg_temp.get('c4_r')), '0');
+
+-- ═════ C5 — Un compte suspendu ne bloque plus, n'envoie plus de fichiers, ne modifie plus son profil (00531) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c5_sus', 'tos,suspended'); PERFORM pg_temp.user('c5_ok', 'tos'); PERFORM pg_temp.user('c5_autre', 'tos');
+PERFORM pg_temp.as_('c5_sus');
+PERFORM pg_temp.denied('C5 un suspendu ne bloque plus personne',
+  format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c5_sus'), pg_temp.id('c5_autre')), 'row-level security');
+PERFORM pg_temp.denied('C5 un suspendu n''envoie plus d''avatar',
+  format($$INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('avatars', %L, %L)$$, pg_temp.get('c5_sus') || '/a.jpg', pg_temp.id('c5_sus')), 'row-level security');
+PERFORM pg_temp.denied('C5 un suspendu n''envoie plus de photo pro',
+  format($$INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('pro-photos', %L, %L)$$, pg_temp.get('c5_sus') || '/p.jpg', pg_temp.id('c5_sus')), 'row-level security');
+PERFORM pg_temp.denied('C5 un suspendu n''envoie plus de photo de discussion',
+  format($$INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('channel-photos', %L, %L)$$, pg_temp.get('c5_sus') || '/channels/c.jpg', pg_temp.id('c5_sus')), 'row-level security');
+PERFORM pg_temp.eq('C5 un suspendu ne modifie plus son profil', format($$UPDATE public.users SET bio = 'encore là' WHERE id = %L$$, pg_temp.id('c5_sus')), '0');
+PERFORM pg_temp.as_('c5_ok');
+PERFORM pg_temp.eq('C5 un compte actif bloque toujours', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c5_ok'), pg_temp.id('c5_autre')), '1');
+PERFORM pg_temp.eq('C5 un compte actif envoie toujours son avatar',
+  format($$INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('avatars', %L, %L)$$, pg_temp.get('c5_ok') || '/a.jpg', pg_temp.id('c5_ok')), '1');
+PERFORM pg_temp.eq('C5 un compte actif modifie toujours son profil', format($$UPDATE public.users SET bio = 'ok' WHERE id = %L$$, pg_temp.id('c5_ok')), '1');
