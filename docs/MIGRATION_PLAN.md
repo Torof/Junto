@@ -27,7 +27,7 @@ L'ancienne base est irréparable pour deux raisons : **PostGIS installé dans `p
 
 | Choix figé | Décision | Garde |
 |---|---|---|
-| Région | **Francfort (eu-central-1)**, comme l'ancien projet | Création du projet (P3) |
+| Région | **Irlande (eu-west-1)** — choix de Scott le 2026-10-22 (UE, RGPD ; l'ancien est à Francfort, écart de latence imperceptible). Projet `fajfigpwfdwmchhzecwe`, Postgres 17.11 | Création du projet (P3) |
 | Version, locale, fuseau | Postgres 17, ICU en-US, UTC — identiques à l'ancien | Vérifications précoces (A.2) |
 | Emplacement des extensions | Toutes dans `extensions` (`pg_cron` dans son schéma propre), **jamais** activées depuis le tableau de bord | Étape 10 du kit ; test « aucune extension dans public » |
 | Propriétaire de nos objets | `postgres` seulement — tout changement de structure passe par une migration, jamais par l'éditeur de tables | Test « aucun objet de public/private à un autre rôle » (00_socle) |
