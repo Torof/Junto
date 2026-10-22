@@ -77,14 +77,17 @@ PY
   fi
   fi
   unset BODY
-  get "$NEW/$part" | python3 - "$WORK/patch-$name.json" "$part" "$WORK/secrets-$name.txt" "$WORK/new-$name.json" <<'PY'
+  # The service reloads after a change: re-read until a real answer comes back.
+  AFTER=""; for i in 1 2 3 4 5 6; do AFTER=$(get "$NEW/$part" 2>/dev/null || true); [ -n "$AFTER" ] && break; sleep 5; done
+  [ -n "$AFTER" ] || { echo "$part : écrit, mais la relecture ne répond pas — relance le script dans une minute."; unset SUPABASE_TOKEN; exit 1; }
+  printf '%s' "$AFTER" | python3 - "$WORK/patch-$name.json" "$part" "$WORK/secrets-$name.txt" "$WORK/new-$name.json" <<'PY'
 import json, re, sys
 want, part, sec, newfile = json.load(open(sys.argv[1])), sys.argv[2], sys.argv[3], sys.argv[4]
 got = json.load(sys.stdin)
 SECRET = re.compile(r'(smtp_pass|secret|auth_token|api_key|private_key|_key$|^jwt_secret)')
 json.dump({k: ('<retiré>' if SECRET.search(k) and v not in (None, '', False) else v) for k, v in got.items()}, open(newfile, 'w'))
 diff = sorted(k for k, v in want.items() if got.get(k) != v)
-print(f"{part} : {len(want)} réglages copiés, {len(diff)} différent(s) après copie" + (f" : {', '.join(diff)}" if diff else ""))
+print(f"{part} : {len(want)} réglages vérifiés, {len(diff)} différent(s) de l'ancien projet" + (f" : {', '.join(diff)}" if diff else ""))
 if part == 'config/auth': print(f"  mot de passe SMTP repris de l'ancien projet : {'oui' if got.get('smtp_pass') else 'non'}")
 s = open(sec).read().split()
 if s: print(f"  secrets NON copiés (à saisir à la main dans le tableau de bord) : {', '.join(s)}")
