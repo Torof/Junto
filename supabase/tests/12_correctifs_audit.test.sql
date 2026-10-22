@@ -268,3 +268,15 @@ PERFORM pg_temp.ok('C12 X déplace sa sortie sur le créneau de Bob', format($$S
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('C12 la demande de X chez Bob est retirée',
   format($$SELECT status FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.get('c12_b'), pg_temp.id('c12_x')), 'withdrawn');
+
+-- ═════ C13 — Bloquer l'organisateur retire sa propre demande, pas un refus (00541) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c13_org', 'tos'); PERFORM pg_temp.user('c13_req', 'tos');
+PERFORM pg_temp.as_('c13_org');
+PERFORM pg_temp.put('c13_a', pg_temp.ok('C13 l''organisatrice publie une sortie sur demande', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C13', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '50 days', '3 hours', 'approval')::text$q$));
+PERFORM pg_temp.as_('c13_req');
+PERFORM pg_temp.eq('C13 la personne demande à rejoindre', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c13_a')), 'pending');
+PERFORM pg_temp.ok('C13 la personne bloque l''organisatrice', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L) RETURNING 'ok'$$, pg_temp.id('c13_req'), pg_temp.id('c13_org')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C13 sa demande est retirée, pas refusée',
+  format($$SELECT status || '|' || (refused_at IS NULL)::text FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.get('c13_a'), pg_temp.id('c13_req')), 'withdrawn|true');
