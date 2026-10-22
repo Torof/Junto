@@ -10,7 +10,8 @@ rows AS (
   -- relations (tables, views, matviews, sequences), RLS flags, replica identity
   SELECT 'relation' AS kind, n.nspname || '.' || c.relname AS name,
          c.relkind::text || '|rls=' || c.relrowsecurity || '|force=' || c.relforcerowsecurity || '|ri=' || c.relreplident::text
-         || CASE WHEN c.relkind IN ('v', 'm') THEN '|def=' || md5(pg_get_viewdef(c.oid)) ELSE '' END
+         -- full text (not a hash): the diff normalises PostGIS schema prefixes first
+         || CASE WHEN c.relkind IN ('v', 'm') THEN '|def=' || pg_get_viewdef(c.oid) ELSE '' END
          || '|opts=' || coalesce(array_to_string(c.reloptions, ','), '') AS fp
   FROM pg_class c JOIN ours n ON n.oid = c.relnamespace
   WHERE c.relkind IN ('r', 'p', 'v', 'm', 'S') AND c.oid NOT IN (SELECT objid FROM ext_member)

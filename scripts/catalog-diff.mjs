@@ -74,8 +74,13 @@ if (cmd === 'snapshot') {
   process.exit(0);
 }
 const load = (p) => JSON.parse(readFileSync(p, 'utf8'));
-const left = load(cmd);
-const right = load(a);
+// PostGIS moves from public to extensions: catalog printing (types, view and
+// policy text, signatures) qualifies its objects differently depending on where
+// it lives. That prefix is the one allowed difference — strip it on both sides.
+const POSTGIS = /\b(?:public|extensions)\.(?="?(?:geography|geometry|box2d|box3d|spatial_ref_sys|geometry_columns|geography_columns|st_[a-z0-9_]+|postgis_[a-z0-9_]+)\b)/g;
+const norm = (r) => ({ k: r.k, n: r.n.replace(POSTGIS, ''), f: String(r.f).replace(POSTGIS, '') });
+const left = load(cmd).map(norm);
+const right = load(a).map(norm);
 const allowedPath = join(root, 'scripts', 'catalog-allowed.json');
 const allowed = new Set((existsSync(allowedPath) ? load(allowedPath) : []).map((x) => `${x.k}\u0000${x.n}`));
 const key = (r) => `${r.k}\u0000${r.n}`;
