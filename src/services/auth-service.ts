@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { pushTokenService } from './push-token-service';
+import { clearOfflineGeoQueueOnSignOut } from '@/lib/presence-offline-cache';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
 
@@ -35,6 +36,7 @@ export const authService = {
     // session is already gone, the revoke silently no-ops inside the
     // service.
     await pushTokenService.revokeForCurrentDevice();
+    await clearOfflineGeoQueueOnSignOut();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },

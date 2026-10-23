@@ -115,6 +115,26 @@ async function mutateQueue(
   return { outcome: 'unchanged', items: [] };
 }
 
+/**
+ * Sign-out: the queue holds exact positions and is not tied to an account
+ * (audit CL-6). Last chance to send them while the session is still open,
+ * then the device keeps nothing — whatever could not be sent is dropped.
+ */
+export async function clearOfflineGeoQueueOnSignOut(): Promise<void> {
+  try {
+    await flushOfflineGeoQueue();
+  } catch {
+    // best-effort: dropping is the point
+  }
+  await withQueueLock(async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // best-effort
+    }
+  });
+}
+
 export function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
   return withQueueLock(async () => {
     const result = await mutateQueue((items) => {
