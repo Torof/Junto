@@ -89,7 +89,6 @@ export default function ChannelsTrust() {
               </div>
               <Msg who="Karim D." initials="KD">Je débute en falaise, c&apos;est ok ?</Msg>
               <Msg who="Thomas B." initials="TB">Oui, il y a du 5b au soleil. Casque obligatoire.</Msg>
-              <Msg who="Léa M." initials="LM">J&apos;ai un casque en rab si besoin !</Msg>
             </div>
             <div className="l-chan-compose">
               <label htmlFor="canal-compose" className="sr-only">Écrire dans le canal</label>
