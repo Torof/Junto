@@ -648,7 +648,7 @@ PERFORM pg_temp.eq('alice ne voit pas les notifications de bob',
 PERFORM pg_temp.eq('alice ne modifie pas les notifications de bob',
   format($$UPDATE public.notifications SET read_at = NULL WHERE user_id = %L$$, pg_temp.id('bob')), '0');
 PERFORM pg_temp.as_('anon');
-PERFORM pg_temp.eq('anon ne lit aucune notification', $$SELECT count(*)::text FROM public.notifications$$, '0');
+PERFORM pg_temp.denied('anon ne lit aucune notification (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.notifications$$);
 
 -- ═════ Jetons push ═════
 PERFORM pg_temp.as_('anon');

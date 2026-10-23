@@ -140,11 +140,11 @@ PERFORM pg_temp.eq('anon ne voit pas une sortie supprimée',
   format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_del')), '0');
 PERFORM pg_temp.eq('anon : aucune ligne dans la table activities',
   format($$SELECT count(*)::text FROM public.activities WHERE id = %L$$, pg_temp.id('a_pub')), '0');
-PERFORM pg_temp.eq('anon : my_activities vide', $$SELECT count(*)::text FROM public.my_activities$$, '0');
-PERFORM pg_temp.eq('anon : my_joined_activities vide', $$SELECT count(*)::text FROM public.my_joined_activities$$, '0');
-PERFORM pg_temp.eq('anon : my_pending_activities vide', $$SELECT count(*)::text FROM public.my_pending_activities$$, '0');
-PERFORM pg_temp.eq('anon : aucune participation lisible',
-  format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L$$, pg_temp.id('a_pub')), '0');
+PERFORM pg_temp.denied('anon : my_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_activities$$);
+PERFORM pg_temp.denied('anon : my_joined_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_joined_activities$$);
+PERFORM pg_temp.denied('anon : my_pending_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_pending_activities$$);
+PERFORM pg_temp.denied('anon : aucune participation lisible (00547 : aucun droit sans compte)',
+  format($$SELECT count(*)::text FROM public.participations WHERE activity_id = %L$$, pg_temp.id('a_pub')));
 PERFORM pg_temp.denied('anon ne lit pas activity_participants', $$SELECT count(*)::text FROM public.activity_participants$$);
 PERFORM pg_temp.denied('anon ne lit pas offering_reviews_with_profiles', $$SELECT count(*)::text FROM public.offering_reviews_with_profiles$$);
 PERFORM pg_temp.denied('anon ne lit pas offering_review_stats', $$SELECT count(*)::text FROM public.offering_review_stats$$);
@@ -156,14 +156,14 @@ PERFORM pg_temp.eq('anon ne voit pas une offre démo',
   format($$SELECT count(*)::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('o_demo')), '0');
 PERFORM pg_temp.eq('anon ne voit pas l''offre d''un pro suspendu',
   format($$SELECT count(*)::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('o_sus')), '0');
-PERFORM pg_temp.eq('anon : table pro_offerings vide',
-  format($$SELECT count(*)::text FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('o_pub')), '0');
-PERFORM pg_temp.eq('anon : avis d''offre démo invisibles (table)',
-  format($$SELECT count(*)::text FROM public.offering_reviews WHERE offering_id = %L$$, pg_temp.id('o_demo')), '0');
+PERFORM pg_temp.denied('anon : table pro_offerings refusée (00547 : aucun droit sans compte)',
+  format($$SELECT count(*)::text FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('o_pub')));
+PERFORM pg_temp.denied('anon : avis d''offre démo invisibles (table) (00547 : aucun droit sans compte)',
+  format($$SELECT count(*)::text FROM public.offering_reviews WHERE offering_id = %L$$, pg_temp.id('o_demo')));
 PERFORM pg_temp.denied('anon ne lit pas les dispos', $$SELECT count(*)::text FROM public.discovery_availabilities$$);
 PERFORM pg_temp.denied('anon ne lit pas les traces GPX', $$SELECT count(*)::text FROM public.gpx_traces$$);
 PERFORM pg_temp.denied('anon ne lit pas les favoris', $$SELECT count(*)::text FROM public.favorites$$);
-PERFORM pg_temp.eq('anon : aucune alerte lisible', $$SELECT count(*)::text FROM public.activity_alerts$$, '0');
+PERFORM pg_temp.denied('anon : aucune alerte lisible (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.activity_alerts$$);
 PERFORM pg_temp.denied('anon ne peut pas poser de dispo',
   $$SELECT public.upsert_dispo(ARRAY['hiking'], NULL, 6.08, 44.56, 'Gap', 15, ARRAY['car'], now() + interval '1 hour', now() + interval '2 days')::text$$);
 PERFORM pg_temp.denied('anon ne lit pas les cartes découverte', $$SELECT count(*)::text FROM public.get_discovery_cards()$$);

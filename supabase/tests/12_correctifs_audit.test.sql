@@ -18,8 +18,8 @@ PERFORM pg_temp.as_('c1_adm');
 PERFORM pg_temp.eq('C1 un admin actif lit les signalements', format($$SELECT count(*)::text FROM public.reports WHERE reporter_id = %L$$, pg_temp.id('c1_alice')), '1');
 PERFORM pg_temp.eq('C1 un admin actif lit les blocages (modération)', format($$SELECT count(*)::text FROM public.blocked_users WHERE blocker_id = %L$$, pg_temp.id('c1_alice')), '1');
 PERFORM pg_temp.eq('C1 un admin actif modifie le catalogue des sports', $$UPDATE public.sports SET icon = icon WHERE key = 'hiking'$$, '1');
-PERFORM pg_temp.eq('C1 même un admin actif ne réécrit pas un signalement directement (seulement par moderate_report)',
-  format($$UPDATE public.reports SET status = 'dismissed', reason = 'réécrit' WHERE reporter_id = %L$$, pg_temp.id('c1_alice')), '0');
+PERFORM pg_temp.denied('C1 même un admin actif ne réécrit pas un signalement directement (seulement par moderate_report)',
+  format($$UPDATE public.reports SET status = 'dismissed', reason = 'réécrit' WHERE reporter_id = %L$$, pg_temp.id('c1_alice')));
 
 -- ═════ C2 — Les compteurs publics comptent toutes les sorties terminées (00528, Scott) ═════
 -- Une absence ne se devine plus en comparant les compteurs avant / après une sortie.
@@ -440,3 +440,13 @@ PERFORM pg_temp.eq('C19 bob ne voit plus le troll dans la liste', format($$SELEC
 PERFORM pg_temp.as_('c19_own');
 PERFORM pg_temp.ok('C19 l''animatrice bloque aussi le troll', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c19_own'), pg_temp.id('c19_troll')));
 PERFORM pg_temp.eq('C19 l''animatrice le voit toujours, pour pouvoir l''exclure', format($$SELECT count(*)::text FROM public.get_channel_members(%L) WHERE user_id = %L$$, pg_temp.get('c19_ch'), pg_temp.id('c19_troll')), '1');
+
+-- ═════ C20 — Un visiteur sans compte ne garde que les objets publics (00547) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C20 objets lisibles sans compte',
+  $q$SELECT string_agg(DISTINCT table_name, ',' ORDER BY table_name) FROM information_schema.role_table_grants WHERE grantee = 'anon' AND table_schema = 'public'$q$,
+  'activities_with_coords,gear_catalog,pro_offerings_with_coords,sports');
+PERFORM pg_temp.eq('C20 plus de droit de modification direct sur les signalements', $q$SELECT has_table_privilege('authenticated', 'public.reports', 'UPDATE')::text$q$, 'false');
+PERFORM pg_temp.as_('anon');
+PERFORM pg_temp.ok('C20 témoin : la carte reste lisible sans compte', $$SELECT count(*)::text FROM public.activities_with_coords$$);
+PERFORM pg_temp.ok('C20 témoin : la carte des offres reste lisible sans compte', $$SELECT count(*)::text FROM public.pro_offerings_with_coords$$);
