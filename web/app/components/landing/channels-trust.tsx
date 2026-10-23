@@ -6,6 +6,41 @@ import { RELIABILITY_BLUE } from './tokens';
 // profile that lets you say yes to a stranger (right). Illustrative content
 // built on the app's demo personas.
 
+// Lucide icons as the app draws them (stroke 2.2).
+const HELP = ['circle:12,12,10', 'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3', 'M12 17h.01'];
+const MOUNTAIN = ['m8 3 4 8 5-5 5 15H2L8 3z'];
+const USERS = ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'circle:9,7,4', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'];
+const CLOCK = ['circle:12,12,10', 'M12 6v6l4 2'];
+const PACKAGE = ['M16.5 9.4 7.55 4.24', 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z', 'M3.27 6.96 12 12.01l8.73-5.05', 'M12 22.08V12'];
+const SHIELD = ['M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'];
+
+function Lucide({ d, size, color }: { d: string[]; size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {d.map((x) => {
+        if (x.startsWith('circle:')) { const [cx, cy, r] = x.slice(7).split(','); return <circle key={x} cx={cx} cy={cy} r={r} />; }
+        return <path key={x} d={x} />;
+      })}
+    </svg>
+  );
+}
+
+// « Sports pratiqués » pill: glyph in its universe colour · ×outings · declared
+// level · green triangle when partners confirmed it (grey dot when not yet judged).
+function SportChip({ sportKey, color, count, level, up }: { sportKey: string; color: string; count: number; level: string; up?: boolean }) {
+  return (
+    <span className="l-pf-sport">
+      <SportGlyph sportKey={sportKey} size={16} color={color} />
+      <b>×{count}</b>
+      <i />
+      <span>{level}</span>
+      {up
+        ? <svg width="10" height="10" viewBox="0 0 24 24" aria-label="confirmé par ses partenaires"><path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" fill="#2ECC71" /></svg>
+        : <span className="dot" />}
+    </span>
+  );
+}
+
 function Msg({ who, initials, children }: { who: string; initials: string; children: React.ReactNode }) {
   return (
     <div className="l-chan-msg">
@@ -68,48 +103,48 @@ export default function ChannelsTrust() {
         <div className="l-col">
           <div className="l-eyebrow">Partir en confiance</div>
           <h3 className="l-h3">Des inconnus, oui. Des inconnus fiables.</h3>
-          <div className="l-profile">
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-              <div className="l-avatar" style={{ width: 56, height: 56, fontSize: 18 }}>ML</div>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <div className="l-display" style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.3 }}>Marie L.</div>
-                <div style={{ fontSize: 13, color: '#6B6259' }}>Membre depuis mars 2026 · Briançon</div>
+          {/* The app's public profile, top to bottom: name, the hero card
+              (reliability ring around the avatar, tier, member line, three
+              counts), « Sports pratiqués », « Ses partenaires disent… ». */}
+          <div className="l-pf">
+            <div className="l-pf-name">Marie L.</div>
+            <div className="l-pf-card l-pf-hero">
+              <div className="l-pf-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80" role="img" aria-label="Fiabilité 96 %">
+                  <circle cx="40" cy="40" r="38" fill="none" stroke="#F1EFEA" strokeWidth="4" />
+                  <circle cx="40" cy="40" r="38" fill="none" stroke={RELIABILITY_BLUE} strokeWidth="3.5" strokeLinecap="round" strokeDasharray="229 239" transform="rotate(-90 40 40)" />
+                </svg>
+                <div className="l-pf-disc">ML</div>
+                <span className="l-pf-pct" style={{ background: RELIABILITY_BLUE }}>96%</span>
+              </div>
+              <div className="l-pf-hero-main">
+                <div className="l-pf-label">Fiabilité <Lucide d={HELP} size={13} color="#A0968A" /></div>
+                <div className="l-pf-tier" style={{ color: RELIABILITY_BLUE }}>Excellente</div>
+                <div className="l-pf-member">Membre depuis mars 2026 · Briançon</div>
+                <div className="l-pf-stats">
+                  <div><b>20</b><small style={{ color: '#2ECC71' }}>Terminées</small></div>
+                  <i />
+                  <div><b>12</b><small style={{ color: '#2FA46A' }}>Créées</small></div>
+                  <i />
+                  <div><b>14</b><small style={{ color: '#4B7CB8' }}>Rejointes</small></div>
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
-                <svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="Fiabilité 96 %"><circle cx="42" cy="42" r="36" fill="none" stroke="rgba(31,26,21,0.08)" strokeWidth="8" /><circle cx="42" cy="42" r="36" fill="none" stroke={RELIABILITY_BLUE} strokeWidth="8" strokeLinecap="round" strokeDasharray="217 226" transform="rotate(-90 42 42)" /></svg>
-                <div className="l-display" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18 }}>96 %</div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#6B6259' }}>Fiabilité</div>
-                <div className="l-display" style={{ fontWeight: 800, fontSize: 20, color: RELIABILITY_BLUE }}>Excellente</div>
-                <div style={{ fontSize: 13, lineHeight: 1.4, color: '#6B6259' }}>20 présences vérifiées sur place, par QR ou géolocalisation.</div>
+            <div className="l-pf-card">
+              <div className="l-pf-section"><Lucide d={MOUNTAIN} size={11} color="#A0968A" />Sports pratiqués</div>
+              <div className="l-pf-chips">
+                <SportChip sportKey="hiking" color="#E11D48" count={14} level="Avancé" up />
+                <SportChip sportKey="trail-running" color="#E11D48" count={8} level="Intermédiaire" up />
+                <SportChip sportKey="climbing-sport" color="#4A7C59" count={5} level="6b" />
               </div>
             </div>
-            <div className="l-stats3">
-              <div><b>12</b><small>sorties créées</small></div>
-              <div><b>20</b><small>rejointes</small></div>
-              <div><b>0</b><small>absence</small></div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#6B6259' }}>Niveaux confirmés par ses partenaires</div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}><SportGlyph sportKey="hiking" size={14} />Rando · avancée</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 5 fois par la commu.</span></div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#E11D48', background: '#E11D481A' }}><SportGlyph sportKey="trail-running" size={14} />Trail · intermédiaire</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 3 fois par la commu.</span></div>
-              <div className="l-kv"><span className="l-spill" style={{ color: '#4A7C59', background: '#4A7C591A' }}><SportGlyph sportKey="climbing-sport" size={14} />Escalade · 6b</span><span style={{ fontSize: 12, color: '#6B6259' }}>Validé 2 fois par la commu.</span></div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#6B6259' }}>Ce que disent ceux qui sont sortis avec elle</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <span className="l-trait">Ponctuelle <b>· 9</b></span>
-                <span className="l-trait">Préparée <b>· 6</b></span>
-                <span className="l-trait">Prudente <b>· 4</b></span>
+            <div className="l-pf-card">
+              <div className="l-pf-section"><Lucide d={USERS} size={11} color="#A0968A" />Ses partenaires disent…</div>
+              <div className="l-pf-chips">
+                <span className="l-pf-trait"><Lucide d={CLOCK} size={13} color="#9DA9B5" />Ponctuel<b style={{ color: '#9DA9B5' }}>12</b></span>
+                <span className="l-pf-trait"><Lucide d={PACKAGE} size={13} color="#B87333" />Préparé<b style={{ color: '#B87333' }}>7</b></span>
+                <span className="l-pf-trait"><Lucide d={SHIELD} size={13} color="#B87333" />Prudent<b style={{ color: '#B87333' }}>5</b></span>
               </div>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-              <span className="l-award" style={{ background: '#B8860B' }}>Pilier</span>
-              <span className="l-award" style={{ background: '#8A8F98' }}>Animatrice</span>
-              <span style={{ fontSize: 12, color: '#6B6259' }}>· gagnés sortie après sortie</span>
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#6B6259' }}>Pas de notes, pas d&apos;étoiles. Une seule chose vérifiée sur place : est-ce que tu viens quand tu l&apos;as dit. Le reste, ce sont tes partenaires qui le confirment, sortie après sortie.</p>

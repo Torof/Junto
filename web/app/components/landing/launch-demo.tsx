@@ -33,6 +33,34 @@ function nextDays(): string[] {
   return out;
 }
 
+// The app's map pin (src/components/pin-body.tsx + pin-style.ts): rounded-tip
+// drop in the universe colour, white outline, two-layer shadow, white glyph.
+// Same 54-wide design space, drawn 40 px wide.
+const PIN_PATH = 'M 27 3 C 15.4 3 6 12.2 6 23.5 C 6 33.5 18.5 43.5 24.6 50.2 C 25.9 51.6 28.1 51.6 29.4 50.2 C 35.5 43.5 48 33.5 48 23.5 C 48 12.2 38.6 3 27 3 Z';
+const PIN_S = 40 / 54;
+function AppPin({ color, sportKey }: { color: string; sportKey?: string }) {
+  return (
+    <div className="l-app-pin" style={{ width: 78 * PIN_S, height: 82 * PIN_S }}>
+      <svg width={78 * PIN_S} height={82 * PIN_S} viewBox="-12 -14 78 82" aria-hidden>
+        <defs>
+          <filter id="lp-far" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" /></filter>
+          <filter id="lp-near" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2" /></filter>
+        </defs>
+        <path d={PIN_PATH} fill="#0A0F1A" stroke="#0A0F1A" strokeWidth="4" strokeLinejoin="round" opacity="0.3" transform="translate(0 5)" filter="url(#lp-far)" />
+        <path d={PIN_PATH} fill="#0A0F1A" stroke="#0A0F1A" strokeWidth="4" strokeLinejoin="round" opacity="0.45" transform="translate(0 2)" filter="url(#lp-near)" />
+        <path d={PIN_PATH} fill="#FFFFFF" stroke="#FFFFFF" strokeWidth="4" strokeLinejoin="round" />
+        <path d={PIN_PATH} fill={color} />
+        {!sportKey && <circle cx="27" cy="23" r="6" fill="#FFFFFF" />}
+      </svg>
+      {sportKey && (
+        <span className="l-app-pin-glyph" style={{ left: 39 * PIN_S, top: 37 * PIN_S }}>
+          <SportGlyph sportKey={sportKey} size={24} color="#FFFFFF" />
+        </span>
+      )}
+    </div>
+  );
+}
+
 function Chev() { return <IconChevron size={16} color="#6B6259" className="l-chev" />; }
 
 export default function LaunchDemo() {
@@ -50,6 +78,8 @@ export default function LaunchDemo() {
   const pvTitle = title.trim() || (sport ? `${sport} — ta sortie` : 'Ta sortie');
   const pvPlace = place.trim() || 'Rendez-vous à poser sur la carte';
   const when = `${day} · ${time}`;
+  const whenLabel = `${day} à ${time}`;
+  const levelLabel = level.charAt(0).toUpperCase() + level.slice(1);
 
   return (
     <section id="lancer" style={{ background: '#FFFFFF' }}>
@@ -105,15 +135,13 @@ export default function LaunchDemo() {
             <div className="l-map">
               <img src="/hero-map-ecrins.jpg" alt="" />
               <div className="l-map-pin">
+                <AppPin color={color} sportKey={sportKey} />
+                {/* The app's on-map label: no box — the title in the universe
+                    colour, then 📅 when and 📊 level, haloed in white. */}
                 <div className="l-map-label">
-                  <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color }}>{pvTitle}</div>
-                  <div style={{ fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{when} · {seats} places</div>
-                </div>
-                {/* The app's pin: universe-colour body, the sport glyph in white
-                    once a sport is chosen (a white dot before). */}
-                <div className="l-pin-shape">
-                  <svg width="40" height="50" viewBox="0 0 40 52" aria-hidden><path d="M20 2 C10 2 3 9.5 3 19 C3 31 20 50 20 50 C20 50 37 31 37 19 C37 9.5 30 2 20 2 Z" fill={color} stroke="#FFFFFF" strokeWidth="2" />{!sportKey && <circle cx="20" cy="19" r="6" fill="#FFFFFF" />}</svg>
-                  {sportKey && <SportGlyph sportKey={sportKey} size={20} color="#FFFFFF" />}
+                  <span className="t" style={{ color }}>{pvTitle}</span>
+                  <span className="s"><img src="/label-cal.png" alt="" />{whenLabel}</span>
+                  <span className="s"><img src="/label-level.png" alt="" />{levelLabel}</span>
                 </div>
               </div>
             </div>
