@@ -15,7 +15,7 @@ export default function VisitorMapScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
-  const { center, isLoading: locationLoading } = useInitialLocation();
+  const { center, zoom: initialZoom, isLoading: locationLoading } = useInitialLocation();
 
   // Mapbox (Android SurfaceView) latches its native height at mount and clips
   // MarkerView pins in a bottom band if it mounts before the <Stack> screen
@@ -144,6 +144,7 @@ export default function VisitorMapScreen() {
         {mapMounted && (
           <JuntoMapView
             center={center}
+            zoom={initialZoom}
             activities={activities ?? []}
             proOfferings={proOfferings ?? []}
             onBoundsChange={handleBoundsChange}

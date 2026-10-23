@@ -75,6 +75,7 @@ export default function PrivacyScreen() {
         • Supabase (hébergement, base de données, authentification — serveurs UE){'\n'}
         • Mapbox (affichage cartographique — reçoit des coordonnées de requête){'\n'}
         • Expo / Google Firebase Cloud Messaging (notifications push — reçoit le token d'appareil){'\n'}
+        • GeoJS (zone approximative à partir de l'adresse IP, seulement si la localisation n'est pas autorisée — reçoit l'adresse IP){'\n'}
         • Photon / komoot (recherche de lieux et nom du lieu à partir d'une position — reçoit le texte recherché ou les coordonnées ; Allemagne){'\n'}
         • OpenRouteService / HeiGIT (calage d'un tracé dessiné sur les sentiers — reçoit les points du tracé, via nos serveurs ; Allemagne){'\n'}
         • IGN Géoplateforme (calcul du dénivelé d'un tracé — reçoit les points du tracé, via nos serveurs ; France){'\n'}

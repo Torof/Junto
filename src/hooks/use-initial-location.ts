@@ -2,8 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import { geolocationService } from '@/services/geolocation-service';
 
-// Default center: Briançon, France
-const DEFAULT_CENTER: [number, number] = [6.6323, 44.8967];
+// GPS gives a local view; the IP address only gives the area, so it opens a
+// little wider; with neither (or while waiting), the whole of France.
+const FRANCE_CENTER: [number, number] = [2.35, 46.6];
+const FRANCE_ZOOM = 5;
+const GPS_ZOOM = 10;
+const IP_ZOOM = 9;
 
 // Cache freshness gate. Anything older than 60s or coarser than 100m gets
 // rejected — those thresholds bypass the "stale cache shown for 17h"
@@ -13,7 +17,8 @@ const CACHE_MAX_AGE_MS = 60_000;
 const CACHE_REQUIRED_ACCURACY_M = 100;
 
 export function useInitialLocation() {
-  const [center, setCenter] = useState<[number, number]>(DEFAULT_CENTER);
+  const [center, setCenter] = useState<[number, number]>(FRANCE_CENTER);
+  const [zoom, setZoom] = useState(FRANCE_ZOOM);
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const watcherRef = useRef<Location.LocationSubscription | null>(null);
@@ -21,14 +26,21 @@ export function useInitialLocation() {
   useEffect(() => {
     let cancelled = false;
 
+    const applyIpCenter = async () => {
+      const ipCenter = await geolocationService.getIpCenter();
+      if (cancelled) return;
+      if (ipCenter) {
+        setCenter(ipCenter);
+        setZoom(IP_ZOOM);
+      }
+      setIsLoading(false);
+    };
+
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          const ipCenter = await geolocationService.getInitialCenter();
-          if (cancelled) return;
-          setCenter(ipCenter);
-          setIsLoading(false);
+          await applyIpCenter();
           return;
         }
 
@@ -42,6 +54,7 @@ export function useInitialLocation() {
         if (cached && !cancelled) {
           const initial: [number, number] = [cached.coords.longitude, cached.coords.latitude];
           setCenter(initial);
+          setZoom(GPS_ZOOM);
           setCurrentLocation(initial);
           setIsLoading(false);
         }
@@ -59,6 +72,7 @@ export function useInitialLocation() {
           fresh.coords.latitude,
         ];
         setCenter(freshCoords);
+        setZoom(GPS_ZOOM);
         setCurrentLocation(freshCoords);
         setIsLoading(false);
 
@@ -76,10 +90,7 @@ export function useInitialLocation() {
           },
         );
       } catch {
-        const ipCenter = await geolocationService.getInitialCenter();
-        if (cancelled) return;
-        setCenter(ipCenter);
-        setIsLoading(false);
+        await applyIpCenter();
       }
     })();
 
@@ -90,5 +101,5 @@ export function useInitialLocation() {
     };
   }, []);
 
-  return { center, currentLocation, isLoading };
+  return { center, zoom, currentLocation, isLoading };
 }

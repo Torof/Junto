@@ -78,7 +78,7 @@ export default function CarteScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { center, currentLocation } = useInitialLocation();
+  const { center, zoom: initialZoom, currentLocation } = useInitialLocation();
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   // Preview selection for pro / offering pins — first tap shows the
   // PinPreviewCard at the bottom of the screen; second tap on the
@@ -361,6 +361,7 @@ export default function CarteScreen() {
 
             <JuntoMapView
               center={center}
+              zoom={initialZoom}
               activities={filteredActivitiesByType}
               pros={filteredProsByType}
               onProPress={(pro) => {
