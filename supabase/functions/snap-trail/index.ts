@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
         instructions: false,
         elevation: false,
       }),
+      // A hung upstream must not hold the function until the platform kills it.
+      signal: AbortSignal.timeout(10_000),
     });
   } catch (e) {
     console.error(`[snap-trail] ORS fetch threw: ${e}`);
