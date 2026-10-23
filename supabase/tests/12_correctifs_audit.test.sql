@@ -368,3 +368,24 @@ PERFORM pg_temp.eq('C16 motif de départ nettoyé', format($$SELECT left_reason 
 PERFORM pg_temp.eq('C16 le nettoyage couvre toutes les tables de textes saisis',
   $q$SELECT string_agg(DISTINCT tgrelid::regclass::text, ',' ORDER BY tgrelid::regclass::text) FROM pg_trigger WHERE tgfoid = to_regproc('private.strip_invisible_columns')$q$,
   'activities,bookings,channels,conversations,discovery_availabilities,gpx_traces,participations,pro_profiles,reports,seat_requests');
+
+-- ═════ C17 — Un rappel cassé n'annule plus les transitions de statut (00545) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c17_o', 'tos'); PERFORM pg_temp.user('c17_p', 'tos');
+PERFORM pg_temp.as_('c17_o');
+PERFORM pg_temp.put('c17_a', pg_temp.ok('C17 une sortie avec validation', $q$SELECT public.create_activity((SELECT id FROM public.sports WHERE key = 'hiking'), 'Sortie C17', 'x', 'Tous niveaux', 8, 6.6, 44.9, NULL, NULL, now() + interval '80 days', '2 hours', 'public')::text$q$));
+PERFORM pg_temp.as_('c17_p');
+PERFORM pg_temp.eq('C17 un participant', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c17_a')), 'accepted');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.activities SET starts_at = now() - interval '1 minute' WHERE id = pg_temp.get('c17_a')::uuid;
+PERFORM set_config('junto.bypass_lock', 'false', true);
+-- Panne simulée (annulée avec le reste du bloc) : un rappel lève une erreur d'exécution.
+CREATE OR REPLACE FUNCTION public.notify_presence_validate_warning(p_activity_id uuid) RETURNS void
+  LANGUAGE plpgsql AS $m$ BEGIN RAISE EXCEPTION 'colonne disparue (simulation)'; END $m$;
+PERFORM pg_temp.ok('C17 le balayage passe malgré le rappel cassé', $$SELECT public.transition_statuses_only()::text$$);
+PERFORM pg_temp.eq('C17 la sortie est bien passée « en cours »', format($$SELECT status FROM public.activities WHERE id = %L$$, pg_temp.get('c17_a')), 'in_progress');
+PERFORM pg_temp.eq('C17 santé de la base réelle : aucune sortie en retard de transition (> 5 min)',
+  $q$SELECT count(*)::text FROM public.activities WHERE deleted_at IS NULL AND id <> pg_temp.get('c17_a')::uuid
+     AND ((status = 'published' AND starts_at < now() - interval '5 minutes')
+       OR (status = 'in_progress' AND starts_at + duration < now() - interval '5 minutes'))$q$, '0');
