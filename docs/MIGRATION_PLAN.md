@@ -36,7 +36,8 @@
   - site : `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` à changer dans Vercel par Scott (valeurs dans `~/junto-migration/vercel-values.txt`), puis redéploiement ;
   - ancien projet coupé **sans rien supprimer** : 6 tâches planifiées désactivées (`cron.alter_job(…, active := false)`), réglage `push_webhook_secret` renommé `push_webhook_secret_disabled` (les fonctions ne trouvent plus le secret → aucun envoi). Retour arrière : `active := true` et renommer le réglage ;
   - modèles d'e-mail du nouveau projet (inscription, mot de passe) passés au code à usage unique (`{{ .TokenHash }}`) ; le site relaie encore les deux formes, l'app retirera la forme « clés brutes » après le test de Scott.
-- **Reste après F** : parcours de validation complet (§9) sur l'app Google Play ; variables Sentry à retirer d'EAS ; ancien projet mis en pause après quelques semaines (décision Scott).
+- **Phase F terminée le 2026-10-23** : version 14 (versionCode 14) publiée en tests internes Google Play et installée par Scott ; inscription confirmée par e-mail et « mot de passe oublié » validés sur l'app Google Play ; site relié au nouveau projet (il n'avait **jamais** été relié : Vercel portait `EXPO_PUBLIC_SUPABASE_*`, que le site ne lit pas — remplacé par `NEXT_PUBLIC_SUPABASE_*`, type « Config ») ; l'app et le site n'acceptent plus que le code à usage unique dans les liens d'e-mail.
+- **Reste après F** : finir le parcours de validation (§9) sur l'app Google Play, dont une sortie publique partagée ouverte dans un navigateur (preuve que le site lit le nouveau projet) ; variables Sentry à retirer d'EAS ; ancien projet mis en pause après quelques semaines (décision Scott).
 
 ## 0 bis. Ce qui se fige — à ne pas rater une seconde fois
 
