@@ -69,7 +69,6 @@ Les mesures de sécurité sont implémentées au moment de la création de chaqu
 ### API Keys
 - **Google Places** : restreinte par package Android + signature SHA-1
 - **Mapbox** : scopée par nom de package
-- **Sentry** : DSN public, OK dans le client (Sentry filtre côté serveur)
 
 ### .gitignore
 Fichiers interdits de commit :

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { captureWarning } from '@/lib/sentry';
 
 interface Props {
   children: React.ReactNode;
@@ -22,12 +21,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   static getDerivedStateFromError(): State {
     return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    captureWarning('react.boundary', error.message, {
-      componentStack: info.componentStack?.slice(0, 1000),
-    });
   }
 
   handleReset = () => {

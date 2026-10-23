@@ -4,7 +4,6 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/services/supabase';
 import { enqueueGeoEvent, isTerminalPresenceRejection } from './presence-offline-cache';
-import { trace, captureInfo } from './sentry';
 import { isMockedFix } from '@/utils/mock-location';
 
 // Post-window Enters can repeat all day (GPS flicker at a 300m radius in
@@ -111,18 +110,7 @@ interface GeofenceEvent {
 const WINDOW_BEFORE_MS = 15 * 60_000;
 const WINDOW_AFTER_MS = 15 * 60_000;
 TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
-  // Diagnostic: surface every task fire as a Sentry event so we can confirm
-  // the OS is actually delivering geofence wakes when the app is closed.
-  // Closed-app reliability on Android is OEM-dependent (Samsung/Xiaomi
-  // aggressive kill, Doze throttling) — without this we have no way to
-  // tell "OS never fired" from "fired but our code failed".
-  captureInfo('presence.geofence', 'task fired', {
-    has_error: !!error,
-    has_data: !!data,
-  });
-
   if (error) {
-    trace('presence.geofence', 'task fired with error', { message: String(error) });
     return;
   }
   const { eventType, region } = (data ?? {}) as GeofenceEvent;
@@ -133,7 +121,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   const activityId = id.split(':')[1];
   if (!activityId) return;
 
-  trace('presence.geofence', 'task: Enter event');
 
   const slotId = `presence-${activityId}`;
 
@@ -149,7 +136,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // user opens the app right when the initial-state check can actually
   // confirm them.
   if (Number.isFinite(startsAtMs) && Date.now() < startsAtMs - WINDOW_BEFORE_MS) {
-    trace('presence.geofence', 'task: Enter before window, deferring notif to window open');
     Notifications.scheduleNotificationAsync({
       identifier: slotId,
       content: {
@@ -188,7 +174,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
         trigger: null,
       }).catch(() => {});
     }
-    trace('presence.geofence', 'task: Enter after geo window, notif only (QR path remains)');
     return;
   }
 
@@ -223,16 +208,12 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
   // budget → no replayable evidence; the user still has the notif, the
   // initial-state check, the foreground service and QR.
   if (!fix) {
-    trace('presence.geofence', 'task: no fresh fix, nothing replayable — notif only');
     return;
   }
 
   // A coarse fix is still a real measurement — enqueue THAT and let the
   // server compute the true distance at replay time.
   if (fix.coords.accuracy != null && fix.coords.accuracy > ACCURACY_THRESHOLD_M) {
-    trace('presence.geofence', 'task: fix too coarse for live RPC, enqueue real fix for replay', {
-      accuracy_m: Math.round(fix.coords.accuracy),
-    });
     await enqueueGeoEvent({
       activity_id: activityId,
       lng: fix.coords.longitude,
@@ -248,7 +229,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     // session from SecureStore. Explicitly await so the RPC carries a token.
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
-      trace('presence.geofence', 'task: no session, enqueue for replay');
       await enqueueGeoEvent({
         activity_id: activityId,
         lng: fix.coords.longitude,
@@ -267,7 +247,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
     });
 
     if (!error) {
-      trace('presence.geofence', 'task: RPC succeeded, replacing détectée with confirmée');
       // Dismiss the détectée notif and schedule confirmée under a DISTINCT
       // identifier. Re-scheduling on the same identifier is treated as an
       // update on Android — silent, no sound, sometimes invisible if the
@@ -301,10 +280,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       // the region. Only clear it when the rejection means the user has no
       // business validating at all (left/removed, activity cancelled).
       const stillRelevant = msg.includes('junto.presence_too_far') || msg.includes('junto.presence_window_closed');
-      trace('presence.geofence', 'task: RPC rejected (terminal)', {
-        reason: error.message,
-        notif_kept: stillRelevant,
-      });
       if (!stillRelevant) {
         await Notifications.cancelScheduledNotificationAsync(slotId).catch(() => {});
         await Notifications.dismissNotificationAsync(slotId).catch(() => {});
@@ -312,9 +287,6 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       return;
     }
 
-    trace('presence.geofence', 'task: RPC failed (non-terminal), enqueue for replay', {
-      reason: error.message,
-    });
     await enqueueGeoEvent({
       activity_id: activityId,
       lng: fix.coords.longitude,
@@ -322,10 +294,7 @@ TaskManager.defineTask(PRESENCE_GEOFENCE_TASK, async ({ data, error }) => {
       captured_at: capturedAt,
     });
     await markPendingReplay(activityId, slotId);
-  } catch (err) {
-    trace('presence.geofence', 'task: RPC threw, enqueue for replay', {
-      message: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
     await enqueueGeoEvent({
       activity_id: activityId,
       lng: fix.coords.longitude,

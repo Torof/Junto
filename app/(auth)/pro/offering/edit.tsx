@@ -17,7 +17,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import { Check, Trash2, MapPin, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
-import { trace } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, shadows, glow } from '@/constants/theme';
@@ -331,12 +330,11 @@ export default function ProOfferingEditScreen() {
       const saveDetails = async (id: string) => {
         try {
           await proOfferingService.setDetails(id, finalProvided, finalRequired, pStd, finalCustom);
-        } catch (err) {
+        } catch {
           Burnt.toast({
             title: t('proOffering.detailsNotSaved', { defaultValue: 'Offre enregistrée, mais pas le matériel / la fiche — réessaie depuis Modifier.' }),
             preset: 'error',
           });
-          trace('pro', 'set_offering_details failed after save', { id, err: String(err) });
         }
       };
       if (isEdit && offeringId) {

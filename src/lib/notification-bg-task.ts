@@ -1,6 +1,5 @@
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
-import { trace, captureInfo } from './sentry';
 import { startPresenceForegroundService } from './presence-foreground-service';
 
 // Headless task that fires when a data-carrying push lands while the app
@@ -46,18 +45,15 @@ function readNotificationData(payload: unknown): Record<string, unknown> | null 
 
 TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => {
   if (error) {
-    trace('notif.bg', 'task fired with error', { reason: String(error) });
     return;
   }
 
   const payload = readNotificationData(data);
   if (!payload) {
-    trace('notif.bg', 'task fired without parseable data');
     return;
   }
 
   const type = typeof payload.type === 'string' ? payload.type : null;
-  captureInfo('notif.bg', 'task fired', { type });
 
   // Only one type triggers the foreground service today: the in-window
   // T-10min pre-warning. Other notification types still wake this handler
@@ -71,7 +67,4 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
 // Register at module load so the OS knows about the task before any
 // push lands. Idempotent — Expo handles redundant registers.
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch((err) => {
-  trace('notif.bg', 'registerTaskAsync failed', {
-    message: err instanceof Error ? err.message : String(err),
-  });
 });

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
-  Pencil, Mail, AtSign, Star, MapPin, Bell, Activity, Palette, Paintbrush, BellRing,
+  Pencil, Mail, AtSign, Star, MapPin, Bell, Palette, Paintbrush, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
   ShieldAlert, ChevronDown, Globe, type LucideIcon, PieChart } from 'lucide-react-native';
 import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference, type LanguagePreference } from '@/i18n';
@@ -17,7 +17,6 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { useThemeStore, type ThemePreference } from '@/store/theme-store';
 import { useClusterStyleStore, CLUSTER_RING_WIDTHS } from '@/store/cluster-style-store';
 import { useIntroStore } from '@/store/intro-store';
-import { getSentryConsent, setSentryConsent } from '@/lib/sentry';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { AccentPicker } from '@/components/accent-picker';
@@ -88,7 +87,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   const [showTheme, setShowTheme] = useState(false);
   const [showAccent, setShowAccent] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
-  const [sentryConsent, setSentryConsentState] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -96,16 +94,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     (async () => {
       const bg = await Location.getBackgroundPermissionsAsync();
       if (!cancelled) setBgLocationGranted(bg.status === 'granted');
-      const consent = await getSentryConsent();
-      if (!cancelled) setSentryConsentState(consent);
     })();
     return () => { cancelled = true; };
   }, [visible]);
-
-  const handleToggleSentryConsent = async (granted: boolean) => {
-    setSentryConsentState(granted);
-    await setSentryConsent(granted);
-  };
 
   const handleToggleBgLocation = async () => {
     if (bgLocationGranted) {
@@ -370,9 +361,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   ))}
                 </View>
               )}
-              <Row icon={Activity} label={t('drawer.crashReports')} right={
-                <Switch value={sentryConsent} onValueChange={handleToggleSentryConsent} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
-              } />
               <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
               } />

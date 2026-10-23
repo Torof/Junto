@@ -2,7 +2,6 @@ import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
-import { trace, captureInfo } from './sentry';
 import { distanceMeters } from '@/utils/geo';
 import { isTerminalPresenceRejection } from './presence-offline-cache';
 import { isMockedFix } from '@/utils/mock-location';
@@ -81,18 +80,13 @@ async function stopSelf(reason: string): Promise<void> {
   try {
     const running = await Location.hasStartedLocationUpdatesAsync(PRESENCE_LOCATION_TASK);
     if (running) await Location.stopLocationUpdatesAsync(PRESENCE_LOCATION_TASK);
-  } catch (err) {
-    trace('presence.location', 'stopSelf threw', {
-      message: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
   }
   clearLocationTaskCandidates();
-  trace('presence.location', 'stopped self', { reason });
 }
 
 TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
   if (error) {
-    trace('presence.location', 'task fired with error', { reason: String(error) });
     return;
   }
 
@@ -125,19 +119,14 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
   const fix = locations[locations.length - 1];
   if (!fix) return;
   if (isMockedFix(fix)) {
-    trace('presence.location', 'mocked location, skipping');
     return;
   }
   if (fix.coords.accuracy != null && fix.coords.accuracy > ACCURACY_THRESHOLD_M) {
-    trace('presence.location', 'sample too coarse, skipping', {
-      accuracy_m: Math.round(fix.coords.accuracy),
-    });
     return;
   }
 
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData?.session) {
-    trace('presence.location', 'no session, skipping');
     return;
   }
 
@@ -152,10 +141,6 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
     );
     if (d > RADIUS_M) continue;
 
-    captureInfo('presence.location', 'in zone, calling RPC', {
-      distance_m: Math.round(d),
-      accuracy_m: fix.coords.accuracy != null ? Math.round(fix.coords.accuracy) : null,
-    });
 
     try {
       const { error: rpcError } = await supabase.rpc('confirm_presence_via_geo', {
@@ -197,23 +182,11 @@ TaskManager.defineTask(PRESENCE_LOCATION_TASK, async ({ data, error }) => {
       // with the app killed) and stop the service mid-window.
       const rejectionMsg = rpcError.message ?? '';
       if (rejectionMsg.includes('junto.presence_too_far')) {
-        trace('presence.location', 'too far per server (150m gate), retrying as user approaches', {
-          distance_m: Math.round(d),
-        });
       } else if (isTerminalPresenceRejection(rejectionMsg)) {
         validated.add(candidate.activity_id);
-        trace('presence.location', 'RPC rejected (terminal), skipping further checks', {
-          reason: rpcError.message,
-        });
       } else {
-        trace('presence.location', 'RPC failed (transient), will retry on next sample', {
-          reason: rpcError.message,
-        });
       }
-    } catch (err) {
-      trace('presence.location', 'RPC threw, will retry on next sample', {
-        message: err instanceof Error ? err.message : String(err),
-      });
+    } catch {
     }
   }
 

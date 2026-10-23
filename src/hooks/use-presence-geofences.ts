@@ -8,7 +8,6 @@ import {
   startPresenceForegroundService,
   stopPresenceForegroundService,
 } from '@/lib/presence-foreground-service';
-import { trace, captureWarning } from '@/lib/sentry';
 import { distanceMeters } from '@/utils/geo';
 import { isMockedFix } from '@/utils/mock-location';
 
@@ -57,9 +56,6 @@ let registeredRegionIds = new Set<string>();
 async function fetchCandidates(): Promise<ActiveActivity[] | null> {
   const { data, error } = await supabase.rpc('get_my_active_presence_activities');
   if (error) {
-    trace('presence.geofence', 'candidate fetch failed, keeping current regions', {
-      reason: error.message ?? 'unknown',
-    });
     return null;
   }
   const candidates = data ?? [];
@@ -123,7 +119,6 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
 
   const fg = await Location.getForegroundPermissionsAsync();
   if (fg.status !== 'granted') {
-    trace('presence.geofence', 'initial-state skipped: no foreground permission');
     return;
   }
 
@@ -138,22 +133,16 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 8_000)),
     ]);
   } catch {
-    trace('presence.geofence', 'initial-state skipped: getCurrentPositionAsync threw');
     return;
   }
   if (!pos) {
-    trace('presence.geofence', 'initial-state skipped: GPS lock timed out');
     return;
   }
   if (isMockedFix(pos)) {
-    trace('presence.geofence', 'initial-state skipped: mocked location');
     return;
   }
 
   if (pos.coords.accuracy != null && pos.coords.accuracy > ACCURACY_THRESHOLD_M) {
-    trace('presence.geofence', 'initial-state skipped: accuracy too low', {
-      accuracy_m: Math.round(pos.coords.accuracy),
-    });
     return;
   }
 
@@ -173,9 +162,6 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
     const activityId = String(region.identifier ?? '').split(':')[1];
     if (!activityId) continue;
 
-    trace('presence.geofence', 'initial-state in zone, calling RPC', {
-      distance_m: Math.round(d),
-    });
 
     try {
       const { error } = await supabase.rpc('confirm_presence_via_geo', {
@@ -184,14 +170,9 @@ async function initialStateCheck(regions: Location.LocationRegion[]): Promise<vo
         p_lat: pos.coords.latitude,
       });
       if (error) {
-        trace('presence.geofence', 'initial-state RPC rejected', { reason: error.message });
       } else {
-        trace('presence.geofence', 'initial-state RPC succeeded');
       }
-    } catch (err) {
-      trace('presence.geofence', 'initial-state RPC threw', {
-        message: err instanceof Error ? err.message : String(err),
-      });
+    } catch {
     }
   }
 }
@@ -233,7 +214,6 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
     const fg = await Location.getForegroundPermissionsAsync();
     if (fg.status !== 'granted') return;
 
-    trace('presence.geofence', 'foreground watcher started', { regions: activeRegions.length });
 
     const confirmed = new Set<string>();
     let timedOut = false;
@@ -257,10 +237,6 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
         if (d > region.radius) continue;
 
         confirmed.add(activityId);
-        trace('presence.geofence', 'foreground watcher in zone, calling RPC', {
-          distance_m: Math.round(d),
-          accuracy_m: pos.coords.accuracy != null ? Math.round(pos.coords.accuracy) : null,
-        });
 
         try {
           const { error } = await supabase.rpc('confirm_presence_via_geo', {
@@ -269,21 +245,15 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
             p_lat: pos.coords.latitude,
           });
           if (error) {
-            trace('presence.geofence', 'foreground watcher RPC rejected', { reason: error.message });
           } else {
-            trace('presence.geofence', 'foreground watcher RPC succeeded');
           }
-        } catch (err) {
-          trace('presence.geofence', 'foreground watcher RPC threw', {
-            message: err instanceof Error ? err.message : String(err),
-          });
+        } catch {
         }
       }
 
       if (confirmed.size >= activeRegions.length) {
         sub.remove();
         activeWatcher = null;
-        trace('presence.geofence', 'foreground watcher stopped: all confirmed');
       }
     }
     );
@@ -293,7 +263,6 @@ async function runForegroundWatcher(candidates: ActiveActivity[], regions: Locat
       timedOut = true;
       sub.remove();
       if (activeWatcher === sub) activeWatcher = null;
-      trace('presence.geofence', 'foreground watcher stopped: timeout');
     }, WATCHER_DURATION_MS);
   } finally {
     watcherStarting = false;
@@ -363,7 +332,6 @@ async function doRefreshGeofences(): Promise<void> {
       // re-granted later in the same JS session, the "unchanged" check
       // would skip re-registration while the OS is monitoring nothing.
       registeredRegionIds.clear();
-      trace('presence.geofence', 'stopped: no background permission');
     }
     return;
   }
@@ -373,7 +341,6 @@ async function doRefreshGeofences(): Promise<void> {
     if (running) {
       await Location.stopGeofencingAsync(PRESENCE_GEOFENCE_TASK).catch(() => {});
       registeredRegionIds.clear();
-      trace('presence.geofence', 'stopped: no candidate activities');
     }
     return;
   }
@@ -389,25 +356,14 @@ async function doRefreshGeofences(): Promise<void> {
     newIds.size === registeredRegionIds.size &&
     [...newIds].every((id) => registeredRegionIds.has(id));
   if (unchanged) {
-    trace('presence.geofence', 'regions unchanged, skip re-register', {
-      count: regions.length,
-    });
     return;
   }
 
   try {
     await Location.startGeofencingAsync(PRESENCE_GEOFENCE_TASK, regions);
     registeredRegionIds = newIds;
-    trace('presence.geofence', 'registered regions', { count: regions.length });
-  } catch (err) {
-    // Surface as a Sentry event, not just a breadcrumb. Registration failure
-    // means the user gets no auto-confirmation at all when the app is closed —
-    // we need to know about it without waiting for an unrelated crash to
-    // attach the breadcrumbs to.
-    captureWarning('presence.geofence', 'registration failed', {
-      reason: err instanceof Error ? err.message : String(err),
-      region_count: regions.length,
-    });
+  } catch {
+    // Best-effort: on failure, closed-app auto-confirmation is unavailable.
   }
 }
 
@@ -442,7 +398,6 @@ export function usePresenceGeofences(enabled: boolean) {
       registeredRegionIds.clear();
       void cleanupDeferredPresenceNotifs(null);
       void stopPresenceForegroundService('hook unmounted');
-      trace('presence.geofence', 'stopped: hook unmounted');
     };
   }, [enabled]);
 }

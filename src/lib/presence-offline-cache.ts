@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '@/services/supabase';
-import { trace } from '@/lib/sentry';
 
 const STORAGE_KEY = '@junto/presence-offline-queue';
 
@@ -102,7 +101,6 @@ async function mutateQueue(
       const check = await readQueueDoc();
       if (check.v !== doc.v) continue;
     } else {
-      trace('presence.offline', 'queue CAS exhausted, writing last-writer-wins');
     }
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ v: doc.v + 1, items: next }));
@@ -152,7 +150,6 @@ export function enqueueGeoEvent(event: CachedGeoEvent): Promise<void> {
       return items;
     });
     if (result.outcome === 'written') {
-      trace('presence.offline', 'enqueued geo event', { queue_size: result.items.length });
     }
   });
 }
@@ -208,14 +205,12 @@ export async function flushOfflineGeoQueue(): Promise<void> {
       const result = await mutateQueue((items) => {
         const fresh = items.filter((e) => new Date(e.captured_at).getTime() >= cutoff);
         if (fresh.length === items.length) return null;
-        trace('presence.offline', 'purged stale events', { purged: items.length - fresh.length });
         return fresh;
       });
       return result.items;
     });
     if (queue.length === 0) return;
 
-    trace('presence.offline', 'flush starting', { queue_size: queue.length });
 
     const confirmedActivities = new Set<string>();
     for (const event of queue) {
@@ -230,7 +225,6 @@ export async function flushOfflineGeoQueue(): Promise<void> {
         });
 
         if (!error) {
-          trace('presence.offline', 'replay succeeded, flipping slot to confirmée');
           confirmedActivities.add(event.activity_id);
           // Replay succeeded → dismiss the "détectée" notif and post
           // "confirmée" under a DISTINCT identifier — same rationale as the
@@ -254,9 +248,6 @@ export async function flushOfflineGeoQueue(): Promise<void> {
           }).catch(() => {});
           await dropForActivity(event.activity_id);
         } else if (isTerminalPresenceRejection(error.message)) {
-          trace('presence.offline', 'replay rejected (terminal), dropping event', {
-            reason: error.message,
-          });
           // Terminal server-side rejection — drop THIS event only: another
           // episode for the same activity (captured inside the window) may
           // still succeed.
@@ -295,14 +286,8 @@ export async function flushOfflineGeoQueue(): Promise<void> {
             }).catch(() => {});
           }
         } else {
-          trace('presence.offline', 'replay failed (non-terminal), keeping in queue', {
-            reason: error.message,
-          });
         }
-      } catch (err) {
-        trace('presence.offline', 'replay threw, keeping in queue', {
-          message: err instanceof Error ? err.message : String(err),
-        });
+      } catch {
       }
     }
   } finally {

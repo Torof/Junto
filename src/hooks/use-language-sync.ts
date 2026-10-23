@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
-import { trace } from '@/lib/sentry';
 
 // Mirrors the EFFECTIVE app language to users.language (00445) — once per
 // session and per language, so the server knows which language to speak to
@@ -23,7 +22,6 @@ export function useLanguageSync(): void {
     synced.current = key;
     userService.setLanguage(language).catch((err: unknown) => {
       synced.current = null;
-      trace('i18n', 'users.language sync failed', { err: String(err) });
     });
   }, [userId, language]);
 }

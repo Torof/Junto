@@ -62,7 +62,7 @@
 - Supabase (Postgres + PostGIS + Auth + Realtime + Storage + Edge Functions)
 - Mapbox Outdoors + Google Places API
 - day.js (dates) + expo-image (images)
-- Sentry (`@sentry/react-native`) — preview-only auto-consent ; use `trace(category, message, data)` from `lib/sentry` for diagnostic breadcrumbs (lat/lng auto-redacted)
+- No crash-reporting SDK (Sentry removed 2026-10-23: never consulted, opt-in left it blind in production) — crashes and ANRs come from the Google Play console (Android vitals)
 - AsyncStorage + NetInfo for offline presence cache (see `lib/presence-offline-cache`)
 - TaskManager for background geofencing (see `lib/presence-geofence-task`)
 - i18n: react-native-i18next (FR + EN, pluralization via `_one`/`_other` suffixes)

@@ -106,16 +106,9 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 
 ## Diagnostic
 
-### Sentry
-- `@sentry/react-native` — auto-consent en preview channel uniquement
-- DSN via `EXPO_PUBLIC_SENTRY_DSN`
-- Lat/lng exclus côté serveur (filtre `SENSITIVE_KEYS` dans `lib/sentry.ts`)
-- Helper `trace(category, message, data)` pour breadcrumbs (no-op en dev)
-- Catégories utilisées : `presence.geofence`, `presence.watcher`, `presence.offline`
-
----
-
-## Dates
+### Rapports de plantage
+- Pas de SDK (Sentry retiré le 2026-10-23 : jamais consulté, et sans consentement il ne voyait rien en production)
+- Plantages et blocages : console Google Play (Android vitals)
 
 ### day.js
 - 2KB, timezone-safe
@@ -221,7 +214,6 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 | Notifs | `expo-notifications@~0.32.16` |
 | Storage | `@react-native-async-storage/async-storage@2.2.0`, `expo-secure-store@~15.0.8` |
 | Network | `@react-native-community/netinfo@11.4.1` |
-| Diagnostic | `@sentry/react-native@^8.10.0` |
 | Camera (QR) | `expo-camera@~17.0.10` |
 | Files | `expo-file-system`, `expo-document-picker`, `expo-sharing`, `expo-image-manipulator`, `expo-image-picker` |
 | UI primitives | `@gorhom/bottom-sheet`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-reanimated`, `react-native-gesture-handler`, `lucide-react-native` |
@@ -244,7 +236,6 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 | Backend | Supabase | Postgres + PostGIS + Auth + Storage + Edge Functions |
 | Maps | Mapbox Outdoors + Google Places | Outdoor visuel, POI search |
 | Présence | TaskManager + AsyncStorage offline cache | Geofence headless + replay |
-| Diagnostic | Sentry | Breadcrumbs, error tracking, opt-in PII filter |
 | Push | Expo Push (FCM + APNs) | Multi-device tokens table |
 | Dates | day.js | Timezone-safe, léger |
 | i18n | react-native-i18next | FR + EN |

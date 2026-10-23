@@ -85,7 +85,6 @@ const LICENSES: { group: string; items: License[] }[] = [
   {
     group: 'Monitoring',
     items: [
-      { name: '@sentry/react-native', license: 'MIT', url: 'https://github.com/getsentry/sentry-react-native' },
     ],
   },
 ];

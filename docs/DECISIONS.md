@@ -487,3 +487,9 @@ Règles verrouillées :
 
 **Hors périmètre :** aucune sortie démo bien-être ; traduction des sept noms faite par modèle dans les cinq langues, à relire avec les autres.
 
+
+## 2026-10-23 — Sentry retiré
+
+**Contexte :** ajouté en avril sur recommandation, utilisé surtout en mai pour déboguer la présence en arrière-plan. Scott ne l'a jamais consulté. En production il était éteint sans consentement explicite, donc quasi aveugle ; il laissait pourtant partir des positions dans les fils d'Ariane réseau et ajoutait un prestataire, un réglage de consentement et du code natif.
+
+**Décision :** retrait complet (module, plugin de build, 73 appels de diagnostic, réglage « rapports de plantage », mentions de la politique de confidentialité). Les plantages et blocages viennent de la console Google Play (Android vitals). À reconsidérer seulement si des plantages JavaScript inexpliqués apparaissent après le lancement.

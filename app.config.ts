@@ -101,13 +101,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-task-manager',
-    [
-      '@sentry/react-native/expo',
-      {
-        organization: 'junto-pn',
-        project: 'react-native',
-      },
-    ],
   ],
   extra: {
     router: {},

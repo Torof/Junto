@@ -88,7 +88,6 @@ export default function PrivacyPage() {
         <li>Supabase (hébergement, base de données, authentification — serveurs UE)</li>
         <li>Mapbox (affichage cartographique — reçoit des coordonnées de requête ; États-Unis)</li>
         <li>Expo / Google Firebase Cloud Messaging (livraison des notifications push — reçoit le token d'appareil ; États-Unis)</li>
-        <li>Sentry (rapports de plantage, si activés — données ingérées en Allemagne, PII filtrées avant envoi)</li>
         <li>Photon / komoot (recherche de lieux et nom du lieu à partir d'une position — reçoit le texte recherché ou les coordonnées ; Allemagne)</li>
         <li>OpenRouteService / HeiGIT (calage d'un tracé dessiné sur les sentiers — reçoit les points du tracé, via nos serveurs ; Allemagne)</li>
         <li>IGN Géoplateforme (calcul du dénivelé d'un tracé — reçoit les points du tracé, via nos serveurs ; France)</li>

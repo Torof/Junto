@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/auth-service';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
-import { setSentryUser } from '@/lib/sentry';
 
 interface AuthState {
   session: Session | null;
@@ -55,7 +54,6 @@ export function useAuth(): AuthState {
         const s = await authService.getSession();
         setSession(s);
         if (s) {
-          setSentryUser(s.user.id);
           // Block initial render on the status check so AuthGate never
           // routes the user into an authenticated screen before we know
           // whether they're suspended or unfinished. AUDIT_SECURITY_2 M3.
@@ -91,7 +89,6 @@ export function useAuth(): AuthState {
         setNeedsOnboarding(false);
         setIsSuspended(false);
         setSession(null);
-        setSentryUser(null);
         return;
       }
 
@@ -109,7 +106,6 @@ export function useAuth(): AuthState {
         // immediately. Status check runs in the background and may flip
         // needsOnboarding/isSuspended, triggering another route evaluation.
         setSession(s);
-        setSentryUser(s.user.id);
         checkUserStatus(s.user.id).catch(() => {});
       }
       // else: transient null session (e.g. offline refresh failure) — keep the

@@ -1,6 +1,5 @@
 import * as Location from 'expo-location';
 import { supabase } from '@/services/supabase';
-import { trace, captureInfo, captureWarning } from './sentry';
 import {
   PRESENCE_LOCATION_TASK,
   setLocationTaskCandidates,
@@ -82,22 +81,17 @@ export async function startPresenceForegroundService(): Promise<boolean> {
       setLocationTaskCandidates(fresh);
       scheduleStopTimer(fresh);
     }
-    trace('presence.fgservice', 'already running, candidates refreshed', {
-      candidate_count: fresh.length,
-    });
     return true;
   }
 
   const bg = await Location.getBackgroundPermissionsAsync();
   if (bg.status !== 'granted') {
-    trace('presence.fgservice', 'no background permission, skipping');
     if (osRunning) await stopOsService('no background permission (orphan)');
     return false;
   }
 
   const candidates = await fetchInWindowCandidates();
   if (candidates.length === 0) {
-    trace('presence.fgservice', 'no in-window candidates, skipping');
     // An OS-level service with zero in-window candidates is an orphan
     // (killed process, stale window) — reap it instead of leaving a
     // persistent notif + GPS polling until reboot.
@@ -125,13 +119,9 @@ export async function startPresenceForegroundService(): Promise<boolean> {
       },
     });
     serviceRunning = true;
-    captureInfo('presence.fgservice', 'started', { candidate_count: candidates.length });
     scheduleStopTimer(candidates);
     return true;
-  } catch (err) {
-    captureWarning('presence.fgservice', 'failed to start', {
-      reason: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
     clearLocationTaskCandidates();
     return false;
   }
@@ -140,13 +130,9 @@ export async function startPresenceForegroundService(): Promise<boolean> {
 async function stopOsService(reason: string): Promise<void> {
   try {
     await Location.stopLocationUpdatesAsync(PRESENCE_LOCATION_TASK);
-  } catch (err) {
-    trace('presence.fgservice', 'orphan stop threw', {
-      message: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
   }
   clearLocationTaskCandidates();
-  trace('presence.fgservice', 'orphan service stopped', { reason });
 }
 
 export async function stopPresenceForegroundService(reason: string): Promise<void> {
@@ -163,13 +149,9 @@ export async function stopPresenceForegroundService(reason: string): Promise<voi
     if (isRunning) {
       await Location.stopLocationUpdatesAsync(PRESENCE_LOCATION_TASK);
     }
-  } catch (err) {
-    trace('presence.fgservice', 'stop threw', {
-      message: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
   }
   setOnAllValidated(null);
   clearLocationTaskCandidates();
   serviceRunning = false;
-  trace('presence.fgservice', 'stopped', { reason });
 }
