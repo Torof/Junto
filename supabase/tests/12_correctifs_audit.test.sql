@@ -347,3 +347,24 @@ PERFORM pg_temp.as_('c15_p');
 PERFORM pg_temp.denied('C15 après 48 h, la réponse est figée', format($$SELECT public.declare_my_presence(%L, false)::text$$, pg_temp.get('c15_a')), 'junto\.presence_declare_closed');
 PERFORM pg_temp.denied('C15 les votes restent fermés sur une sortie sans validation',
   format($$SELECT public.give_reputation_badge(%L, %L, 'punctual')::text$$, pg_temp.id('c15_org'), pg_temp.get('c15_a')), 'junto\.votes_need_presence|Operation not permitted');
+
+-- ═════ C16 — Plus aucun caractère d'inversion dans les textes montrés aux autres (00544) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c16_pro', 'tos'); PERFORM pg_temp.user('c16_u', 'tos'); PERFORM pg_temp.user('c16_org', 'tos');
+PERFORM pg_temp.as_('c16_pro');
+PERFORM pg_temp.ok('C16 un pro s''inscrit avec un nom piégé', format($$SELECT public.register_as_pro(p_display_name := %L, p_company_name := 'SARL Test', p_real_name := 'Jean Test', p_primary_lng := -131.5, p_primary_lat := -39.5, p_primary_location_name := 'Océan')::text$$, 'Guide' || chr(8238) || 'lanoissef'));
+PERFORM pg_temp.as_('c16_u');
+PERFORM pg_temp.put('c16_ch', pg_temp.ok('C16 une discussion au nom piégé', format($$SELECT conversation_id::text FROM public.create_channel(%L, -144, -44, 'Océan', 35, NULL, NULL, NULL, true)$$, 'Canal' || chr(8238) || 'x' || chr(8203))));
+PERFORM pg_temp.as_('c16_org');
+PERFORM pg_temp.put('c16_a', pg_temp.ok('C16 une sortie au lieu de rendez-vous piégé', format($q$SELECT public.create_activity(p_sport_id := (SELECT id FROM public.sports WHERE key = 'hiking'), p_title := 'Sortie C16', p_description := 'x', p_level := 'Tous niveaux', p_max_participants := 8, p_meeting_lng := 6.6, p_meeting_lat := 44.9, p_end_lng := NULL, p_end_lat := NULL, p_starts_at := now() + interval '70 days', p_duration := '2 hours', p_visibility := 'public', p_meeting_name := %L)::text$q$, 'Parking' || chr(8238) || 'x')));
+PERFORM pg_temp.as_('c16_u');
+PERFORM pg_temp.eq('C16 la personne rejoint', format($$SELECT public.join_activity(%L)$$, pg_temp.get('c16_a')), 'accepted');
+PERFORM pg_temp.ok('C16 et part avec un motif piégé', format($$SELECT public.leave_activity(%L, %L)::text$$, pg_temp.get('c16_a'), 'Motif' || chr(8238) || 'x'));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('C16 nom du pro nettoyé', format($$SELECT display_name FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('c16_pro')), 'Guidelanoissef');
+PERFORM pg_temp.eq('C16 nom de la discussion nettoyé', format($$SELECT name FROM public.conversations WHERE id = %L$$, pg_temp.get('c16_ch')), 'Canalx');
+PERFORM pg_temp.eq('C16 lieu de rendez-vous nettoyé', format($$SELECT meeting_name FROM public.activities WHERE id = %L$$, pg_temp.get('c16_a')), 'Parkingx');
+PERFORM pg_temp.eq('C16 motif de départ nettoyé', format($$SELECT left_reason FROM public.participations WHERE activity_id = %L AND user_id = %L$$, pg_temp.get('c16_a'), pg_temp.id('c16_u')), 'Motifx');
+PERFORM pg_temp.eq('C16 le nettoyage couvre toutes les tables de textes saisis',
+  $q$SELECT string_agg(DISTINCT tgrelid::regclass::text, ',' ORDER BY tgrelid::regclass::text) FROM pg_trigger WHERE tgfoid = to_regproc('private.strip_invisible_columns')$q$,
+  'activities,bookings,channels,conversations,discovery_availabilities,gpx_traces,participations,pro_profiles,reports,seat_requests');
