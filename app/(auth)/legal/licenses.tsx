@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ScrollView, Text, View, StyleSheet, Linking, Pressable } from 'react-native';
+import { ScrollView, View, StyleSheet, Linking, Pressable } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
@@ -97,14 +98,14 @@ export default function LicensesScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
-      <Text style={styles.title}>{t('legal.licensesTitle')}</Text>
-      <Text style={styles.intro}>
+      <AppText style={styles.title}>{t('legal.licensesTitle')}</AppText>
+      <AppText style={styles.intro}>
         {t('legal.licensesIntro')}
-      </Text>
+      </AppText>
 
       {LICENSES.map((group) => (
         <View key={group.group} style={styles.group}>
-          <Text style={styles.groupTitle}>{group.group}</Text>
+          <AppText style={styles.groupTitle}>{group.group}</AppText>
           {group.items.map((item) => (
             <Pressable
               key={item.name}
@@ -112,18 +113,18 @@ export default function LicensesScreen() {
               onPress={() => Linking.openURL(item.url)}
             >
               <View style={{ flex: 1 }}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.license}>{item.license}</Text>
+                <AppText style={styles.name}>{item.name}</AppText>
+                <AppText style={styles.license}>{item.license}</AppText>
               </View>
-              <Text style={styles.arrow}>›</Text>
+              <AppText style={styles.arrow}>›</AppText>
             </Pressable>
           ))}
         </View>
       ))}
 
-      <Text style={styles.footer}>
+      <AppText style={styles.footer}>
         © Mapbox — © OpenStreetMap contributors
-      </Text>
+      </AppText>
     </ScrollView>
   );
 }

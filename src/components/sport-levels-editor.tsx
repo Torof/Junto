@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Pressable, StyleSheet, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -85,7 +86,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
       <View style={styles.backdrop}>
         <SafeAreaView style={styles.sheet} edges={['bottom']}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('profil.sportsManageTitle', { defaultValue: 'Gérer mes sports' })}</Text>
+            <AppText style={styles.title}>{t('profil.sportsManageTitle', { defaultValue: 'Gérer mes sports' })}</AppText>
             <Pressable onPress={onClose} hitSlop={8}>
               <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
@@ -94,26 +95,26 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
             {declared.length > 0 && (
               <>
-                <Text style={styles.groupLabel}>{t('profil.sportsDeclared', { defaultValue: 'Déjà déclarés' })}</Text>
+                <AppText style={styles.groupLabel}>{t('profil.sportsDeclared', { defaultValue: 'Déjà déclarés' })}</AppText>
                 {declared.map((s) => {
                   const lvl = levels[s.key] ?? '';
                   return (
                     <View key={s.key} style={styles.declaredRow}>
                       <SportIcon sportKey={s.key} size={19} />
-                      <Text style={styles.declaredName} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
-                      <Text style={styles.declaredLevel}>{SHORT[lvl] ?? CAP(lvl)}</Text>
+                      <AppText style={styles.declaredName} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</AppText>
+                      <AppText style={styles.declaredLevel}>{SHORT[lvl] ?? CAP(lvl)}</AppText>
                     </View>
                   );
                 })}
-                <Text style={styles.manageHint}>
+                <AppText style={styles.manageHint}>
                   {t('profil.sportsManageHint', { defaultValue: 'Fais évoluer un niveau depuis la fiche du sport, sur ton profil.' })}
-                </Text>
+                </AppText>
               </>
             )}
 
             {undeclared.length > 0 && (
               <>
-                <Text style={styles.groupLabel}>{t('profil.sportsAdd', { defaultValue: 'Ajouter un sport — choisis ton niveau de départ' })}</Text>
+                <AppText style={styles.groupLabel}>{t('profil.sportsAdd', { defaultValue: 'Ajouter un sport — choisis ton niveau de départ' })}</AppText>
                 {undeclared.map((s) => {
                   const sportName = t(`sports.${s.key}`, { defaultValue: s.key });
                   const open = openAdd === s.key;
@@ -125,7 +126,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
                         disabled={!!busy}
                       >
                         <SportIcon sportKey={s.key} size={19} />
-                        <Text style={styles.addName} numberOfLines={1}>{sportName}</Text>
+                        <AppText style={styles.addName} numberOfLines={1}>{sportName}</AppText>
                         {busy === s.key ? (
                           <ActivityIndicator color={colors.cta} />
                         ) : (
@@ -146,7 +147,7 @@ export function SportLevelsEditor({ visible, onClose, initialLevels }: Props) {
                               style={styles.tierChip}
                               disabled={!!busy}
                             >
-                              <Text style={styles.tierChipText}>{SHORT[tier] ?? tier}</Text>
+                              <AppText style={styles.tierChipText}>{SHORT[tier] ?? tier}</AppText>
                             </Pressable>
                           ))}
                         </View>

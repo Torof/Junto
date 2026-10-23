@@ -20,6 +20,7 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useMessageStore } from '@/store/message-store';
 import { useMapStyleStore } from '@/store/map-style-store';
 import { useClusterStyleStore } from '@/store/cluster-style-store';
+import { useFontStore } from '@/store/font-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -49,12 +50,15 @@ function AuthGate() {
   const { loadReadState } = useMessageStore();
   const loadMapStyle = useMapStyleStore((s) => s.load);
   const loadClusterStyle = useClusterStyleStore((s) => s.load);
+  const initFont = useFontStore((s) => s.init);
+  const fontReady = useFontStore((s) => s.ready);
 
   useEffect(() => {
     loadReadState();
     loadMapStyle();
     loadClusterStyle();
-  }, [loadReadState, loadMapStyle, loadClusterStyle]);
+    initFont();
+  }, [loadReadState, loadMapStyle, loadClusterStyle, initFont]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -126,7 +130,8 @@ function AuthGate() {
     <>
       <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Slot />
-      {(isLoading || !isReady) && (
+      {/* The font gate keeps the first screen from flashing in the system font. */}
+      {(isLoading || !isReady || !fontReady) && (
         <View style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: themeColors.background,

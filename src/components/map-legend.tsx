@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { radius } from '@/constants/theme';
@@ -24,7 +25,7 @@ export function MapLegend({ items }: Props) {
       {items.map((item) => (
         <View key={item.label} style={styles.row}>
           <View style={[styles.dot, { backgroundColor: item.color }]} />
-          <Text style={styles.label}>{item.label}</Text>
+          <AppText style={styles.label}>{item.label}</AppText>
         </View>
       ))}
     </View>

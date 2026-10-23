@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useFocusEffect , useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Trophy } from 'lucide-react-native';
@@ -397,7 +398,7 @@ export default function CarteScreen() {
                 <View style={styles.tapMarkerContent}>
                   <X size={22} color={colors.error} strokeWidth={3} />
                   <View style={styles.createTooltipCard}>
-                    <Text style={styles.createTooltipHeader}>{t('map.createHere')}</Text>
+                    <AppText style={styles.createTooltipHeader}>{t('map.createHere')}</AppText>
                     <Pressable
                       style={[styles.createTooltipRow, { borderLeftColor: colors.pinMeeting }]}
                       onPress={() => {
@@ -408,7 +409,7 @@ export default function CarteScreen() {
                       }}
                     >
                       <MapPin size={18} color={colors.pinMeeting} strokeWidth={2.4} />
-                      <Text style={styles.createTooltipRowText}>{t('create.meetingPoint')}</Text>
+                      <AppText style={styles.createTooltipRowText}>{t('create.meetingPoint')}</AppText>
                     </Pressable>
                     <Pressable
                       style={[styles.createTooltipRow, { borderLeftColor: colors.pinObjective }]}
@@ -420,7 +421,7 @@ export default function CarteScreen() {
                       }}
                     >
                       <Trophy size={18} color={colors.pinObjective} strokeWidth={2.4} />
-                      <Text style={styles.createTooltipRowText}>{t('create.objectiveSet')}</Text>
+                      <AppText style={styles.createTooltipRowText}>{t('create.objectiveSet')}</AppText>
                     </Pressable>
                   </View>
                 </View>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
+import { View, Pressable, Modal, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import {
@@ -455,17 +456,17 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
               />
               {sports.length > SPORTS_LIMIT && (
                 <Pressable onPress={() => setShowAllSports(!showAllSports)} hitSlop={6} style={styles.seeAllBtn}>
-                  <Text style={styles.seeAllText}>
+                  <AppText style={styles.seeAllText}>
                     {showAllSports
                       ? t('profil.sportsSeeLess', { defaultValue: 'Voir moins' })
                       : t('profil.sportsSeeAll', { defaultValue: 'Voir tout ({{count}})', count: sports.length })}
-                  </Text>
+                  </AppText>
                   <ChevronRight size={15} color={colors.cta} strokeWidth={2.6} style={{ transform: [{ rotate: showAllSports ? '-90deg' : '90deg' }] }} />
                 </Pressable>
               )}
             </>
           ) : (
-            <Text style={styles.emptyHint}>{t('profil.badgeEmptySports')}</Text>
+            <AppText style={styles.emptyHint}>{t('profil.badgeEmptySports')}</AppText>
           )}
         </View>
       </View>
@@ -508,7 +509,7 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
               )}
             </>
           ) : (
-            <Text style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</Text>
+            <AppText style={styles.emptyHint}>{t('profil.badgeEmptyPeer')}</AppText>
           )}
         </View>
       </View>
@@ -528,38 +529,38 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
       <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
         <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.helpTitle}>{t('profil.badgeSectionPeer')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.peerIntro')}</Text>
+            <AppText style={styles.helpTitle}>{t('profil.badgeSectionPeer')}</AppText>
+            <AppText style={styles.helpBody}>{t('profil.badgeHelp.peerIntro')}</AppText>
 
-            <Text style={styles.helpHeading}>{t('profil.badgeHelp.peerPositives')}</Text>
+            <AppText style={styles.helpHeading}>{t('profil.badgeHelp.peerPositives')}</AppText>
             <View style={styles.helpLabelRow}>
               {POSITIVE_BADGES.map((b) => {
                 const I = POSITIVE_TRAIT_ICON[b.key];
                 return (
                   <View key={b.key} style={styles.helpLabelChip}>
                     {I && <I size={14} color={COLOR_SUCCESS} strokeWidth={2.2} />}
-                    <Text style={styles.helpLabelText}>{t(`badges.${b.key}`)}</Text>
+                    <AppText style={styles.helpLabelText}>{t(`badges.${b.key}`)}</AppText>
                   </View>
                 );
               })}
             </View>
 
-            <Text style={styles.helpHeading}>{t('profil.badgeHelp.peerNegatives')}</Text>
+            <AppText style={styles.helpHeading}>{t('profil.badgeHelp.peerNegatives')}</AppText>
             <View style={styles.helpLabelRow}>
               {NEGATIVE_BADGES.map((b) => {
                 const I = NEGATIVE_TRAIT_ICON[b.key];
                 return (
                   <View key={b.key} style={styles.helpLabelChip}>
                     {I && <I size={14} color={COLOR_RED} strokeWidth={2.2} />}
-                    <Text style={styles.helpLabelText}>{t(`badges.${b.key}`)}</Text>
+                    <AppText style={styles.helpLabelText}>{t(`badges.${b.key}`)}</AppText>
                   </View>
                 );
               })}
             </View>
 
-            <Text style={[styles.helpBody, { marginTop: 8 }]}>{t('profil.badgeHelp.peerNegativeExplain')}</Text>
+            <AppText style={[styles.helpBody, { marginTop: 8 }]}>{t('profil.badgeHelp.peerNegativeExplain')}</AppText>
             <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
-              <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+              <AppText style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</AppText>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -570,34 +571,34 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
       <Modal visible={showSportsHelp} animationType="fade" transparent onRequestClose={() => setShowSportsHelp(false)}>
         <Pressable style={styles.helpBackdrop} onPress={() => setShowSportsHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.intro')}</Text>
+            <AppText style={styles.helpTitle}>{t('profil.sportsHelpTitle', { defaultValue: 'Comment ça marche' })}</AppText>
+            <AppText style={styles.helpBody}>{t('profil.badgeHelp.intro')}</AppText>
 
             {/* How to read a sport pill: outings · declared level · peer verdict.
                 Same chip treatment as the "Ses partenaires disent" modal so the
                 section breathes instead of stacking prose. */}
-            <Text style={styles.helpHeading}>{t('profil.badgeHelp.sportsPillHeading')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.sportsPillIntro')}</Text>
+            <AppText style={styles.helpHeading}>{t('profil.badgeHelp.sportsPillHeading')}</AppText>
+            <AppText style={styles.helpBody}>{t('profil.badgeHelp.sportsPillIntro')}</AppText>
             <View style={styles.helpLabelRow}>
               <View style={styles.helpLabelChip}>
                 <Triangle size={11} color={colors.success} fill={colors.success} strokeWidth={0} />
-                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictConfirmed')}</Text>
+                <AppText style={styles.helpLabelText}>{t('profil.badgeHelp.verdictConfirmed')}</AppText>
               </View>
               <View style={styles.helpLabelChip}>
                 <Triangle size={11} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
-                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictOverstated')}</Text>
+                <AppText style={styles.helpLabelText}>{t('profil.badgeHelp.verdictOverstated')}</AppText>
               </View>
               <View style={styles.helpLabelChip}>
                 <View style={styles.sportEvenDot} />
-                <Text style={styles.helpLabelText}>{t('profil.badgeHelp.verdictPending')}</Text>
+                <AppText style={styles.helpLabelText}>{t('profil.badgeHelp.verdictPending')}</AppText>
               </View>
             </View>
 
             {/* The self-declared / peer-confirmed mechanic. */}
-            <Text style={styles.helpHeading}>{t('profil.badgeHelp.sportsLevelHeading')}</Text>
-            <Text style={styles.helpBody}>{t('profil.badgeHelp.sportsLevelBody')}</Text>
+            <AppText style={styles.helpHeading}>{t('profil.badgeHelp.sportsLevelHeading')}</AppText>
+            <AppText style={styles.helpBody}>{t('profil.badgeHelp.sportsLevelBody')}</AppText>
             <Pressable style={styles.helpDismiss} onPress={() => setShowSportsHelp(false)}>
-              <Text style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+              <AppText style={styles.helpDismissText}>{t('common.close', { defaultValue: 'OK' })}</AppText>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -620,7 +621,7 @@ function SectionHeader({
   return (
     <View style={styles.sectionHeader}>
       <Icon size={11} color={colors.textMuted} strokeWidth={2.2} />
-      <Text style={styles.sectionLabel}>{label}</Text>
+      <AppText style={styles.sectionLabel}>{label}</AppText>
     </View>
   );
 }
@@ -653,8 +654,8 @@ function VouchedRow({
             style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
           >
             {Icon && <Icon size={13} color={tierColor} strokeWidth={2.2} />}
-            <Text style={styles.lineTraitText}>{it.label}</Text>
-            <Text style={[styles.lineCountText, { color: tierColor }]}>{it.count}</Text>
+            <AppText style={styles.lineTraitText}>{it.label}</AppText>
+            <AppText style={[styles.lineCountText, { color: tierColor }]}>{it.count}</AppText>
           </Pressable>
         );
       })}
@@ -692,9 +693,9 @@ function WarningRow({
             style={({ pressed }) => [styles.lineItem, pressed && styles.tappedDim]}
           >
             <Icon size={13} color={color} strokeWidth={2.4} />
-            <Text style={[styles.lineTraitText, { color }]}>
+            <AppText style={[styles.lineTraitText, { color }]}>
               {it.label} {suffix}
-            </Text>
+            </AppText>
           </Pressable>
         );
       })}
@@ -739,9 +740,9 @@ function SportRow({
             style={({ pressed }) => [styles.sportChipPill, pressed && styles.tappedDim]}
           >
             <SportIcon sportKey={it.sportKey} size={16} />
-            {it.count > 0 && <Text style={styles.sportCountInline}>×{it.count}</Text>}
+            {it.count > 0 && <AppText style={styles.sportCountInline}>×{it.count}</AppText>}
             {lvl && it.count > 0 && <View style={styles.sportSep} />}
-            {lvl && <Text style={styles.sportLevelText}>{lvl}</Text>}
+            {lvl && <AppText style={styles.sportLevelText}>{lvl}</AppText>}
             {lvl && (tri && tri.kind !== 'even' ? (
               <Triangle
                 size={tri.size}
@@ -765,7 +766,7 @@ function SportRow({
           style={({ pressed }) => [styles.sportAddChip, pressed && styles.tappedDim]}
         >
           <Pencil size={13} color={colors.cta} strokeWidth={2.6} />
-          <Text style={styles.sportAddText}>{t('profil.manageSports', { defaultValue: 'Gérer' })}</Text>
+          <AppText style={styles.sportAddText}>{t('profil.manageSports', { defaultValue: 'Gérer' })}</AppText>
         </Pressable>
       )}
     </View>
@@ -913,19 +914,19 @@ function VouchedDetail({
 
   return (
     <>
-      <Text style={styles.popupCaption}>{t('badges.vouchedCaption', { defaultValue: 'Décerné par les pairs' })}</Text>
+      <AppText style={styles.popupCaption}>{t('badges.vouchedCaption', { defaultValue: 'Décerné par les pairs' })}</AppText>
 
       <View style={styles.vouchedTitleRow}>
         {Icon && <Icon size={20} color={accent} strokeWidth={2} />}
-        <Text style={styles.vouchedTitle} numberOfLines={1}>{item.label}</Text>
-        <Text style={styles.vouchedCountMono}>×{item.count}</Text>
+        <AppText style={styles.vouchedTitle} numberOfLines={1}>{item.label}</AppText>
+        <AppText style={styles.vouchedCountMono}>×{item.count}</AppText>
         <View style={styles.vouchedTitleSpacer} />
         <Trophy size={trophySize} color={tierColor} fill={tierColor + '2E'} strokeWidth={1.7} />
       </View>
 
       {/* Description first — Scott's call: text precedes the voter card so
           the reader sees what the trait MEANS before seeing who agrees. */}
-      {description !== '' && <Text style={styles.vouchedDescription}>{description}</Text>}
+      {description !== '' && <AppText style={styles.vouchedDescription}>{description}</AppText>}
 
       <View style={[styles.pullQuoteCard, { borderLeftColor: tierColor }]}>
         <View style={styles.pullQuoteAvatars}>
@@ -937,16 +938,16 @@ function VouchedDetail({
             {/* "..." rendered whenever ≥1 avatar exists — Scott's call:
                 visual separator regardless of overflow state. */}
             {visibleVoters.length > 0 && (
-              <Text style={styles.pullQuoteEllipsis}>...</Text>
+              <AppText style={styles.pullQuoteEllipsis}>...</AppText>
             )}
             {uniqueOverflow > 0 && (
-              <Text style={styles.pullQuoteOverflow}>+{uniqueOverflow}</Text>
+              <AppText style={styles.pullQuoteOverflow}>+{uniqueOverflow}</AppText>
             )}
           </View>
-          <Text style={styles.pullQuotePeersLabel}>
-            <Text style={[styles.pullQuotePeersCount, { color: tierColor }]}>{item.count}</Text>
+          <AppText style={styles.pullQuotePeersLabel}>
+            <AppText style={[styles.pullQuotePeersCount, { color: tierColor }]}>{item.count}</AppText>
             {' '}{t('badges.vouchedVotesLabel', { count: item.count, defaultValue: "partenaires l'ont noté" })}
-          </Text>
+          </AppText>
         </View>
       </View>
     </>
@@ -980,16 +981,16 @@ function WarningDetail({
         </View>
         <View style={styles.warningHeaderRight}>
           <View style={styles.warningHeaderTitleRow}>
-            <Text style={styles.warningHeaderTitle}>{item.label}</Text>
-            <Text style={styles.warningHeaderCountMono}>×{item.count}</Text>
+            <AppText style={styles.warningHeaderTitle}>{item.label}</AppText>
+            <AppText style={styles.warningHeaderCountMono}>×{item.count}</AppText>
           </View>
-          <Text style={[styles.warningHeaderCaption, { color: accent }]}>{caption}</Text>
+          <AppText style={[styles.warningHeaderCaption, { color: accent }]}>{caption}</AppText>
         </View>
       </View>
 
-      {description !== '' && <Text style={styles.warningDescription}>{description}</Text>}
+      {description !== '' && <AppText style={styles.warningDescription}>{description}</AppText>}
 
-      <Text style={styles.warningDecayNote}>{t('badges.peerNegativeHint')}</Text>
+      <AppText style={styles.warningDecayNote}>{t('badges.peerNegativeHint')}</AppText>
     </>
   );
 }
@@ -1035,22 +1036,22 @@ function AwardDetail({
             <Icon size={18} color={tierColor} strokeWidth={1.8} />
           </View>
           <View style={styles.awardHeroTopRight}>
-            <Text style={styles.popupCaption}>
+            <AppText style={styles.popupCaption}>
               {t('badges.awardCaption', { defaultValue: 'Décerné par Junto' })}
-            </Text>
-            <Text style={[styles.awardHeroLabel, { color: tierColor }]}>{awardLabel}</Text>
+            </AppText>
+            <AppText style={[styles.awardHeroLabel, { color: tierColor }]}>{awardLabel}</AppText>
           </View>
         </View>
-        <Text style={styles.awardSentence}>
+        <AppText style={styles.awardSentence}>
           {nounAction}{' '}
-          <Text style={[styles.awardSentenceCount, { color: tierColor }]}>{item.count}</Text>
+          <AppText style={[styles.awardSentenceCount, { color: tierColor }]}>{item.count}</AppText>
           {' '}{nounObject}.
-        </Text>
+        </AppText>
       </View>
 
-      <Text style={[styles.popupCaption, styles.awardProgressionCaption]}>
+      <AppText style={[styles.popupCaption, styles.awardProgressionCaption]}>
         {t('badges.awardProgression', { defaultValue: 'Progression' })}
-      </Text>
+      </AppText>
       <View style={styles.awardProgressionRow}>
         {tierKeys.map((tk, i) => {
           const reached = i <= currentIndex;
@@ -1071,10 +1072,10 @@ function AwardDetail({
           const rightBarColor = rightBarReached ? colors.textSecondary : colors.line;
           return (
             <View key={tk} style={styles.awardProgressionColumn}>
-              <Text style={[
+              <AppText style={[
                 styles.awardProgressionThreshold,
                 { color: reached ? tcolor : colors.textMuted },
-              ]}>+{threshold}</Text>
+              ]}>+{threshold}</AppText>
               <View style={styles.awardProgressionDotRow}>
                 <View
                   style={[
@@ -1099,10 +1100,10 @@ function AwardDetail({
                   ]}
                 />
               </View>
-              <Text style={[
+              <AppText style={[
                 styles.awardProgressionLabel,
                 { color: reached ? tcolor : colors.textSecondary },
-              ]}>{tlabel}</Text>
+              ]}>{tlabel}</AppText>
             </View>
           );
         })}
@@ -1193,14 +1194,14 @@ function SportDetail({
           <SportIcon sportKey={item.sportKey} size={26} color={accent} />
         </View>
         <View style={styles.sportIdentityText}>
-          <Text style={styles.sportName}>{item.label}</Text>
+          <AppText style={styles.sportName}>{item.label}</AppText>
           {item.count > 0 && (
-            <Text style={styles.sportOutingsSub}>
+            <AppText style={styles.sportOutingsSub}>
               {t('badges.sportOutingsHeadline', {
                 count: item.count,
                 defaultValue: item.count > 1 ? '{{count}} sorties terminées' : '{{count}} sortie terminée',
               })}
-            </Text>
+            </AppText>
           )}
         </View>
       </View>
@@ -1210,36 +1211,36 @@ function SportDetail({
           declared: the level the user gives THEMSELVES, then the peers' verdict. */}
       {declaredLabel && (
         <>
-          <Text style={styles.sportSelfDeclare}>
+          <AppText style={styles.sportSelfDeclare}>
             {t('badges.sportDeclaredPre', { defaultValue: 'Se déclare de niveau ' })}
-            <Text style={[styles.sportDeclaredLevelHl, { color: accent }]}>{declaredLabel.toLowerCase()}</Text>
+            <AppText style={[styles.sportDeclaredLevelHl, { color: accent }]}>{declaredLabel.toLowerCase()}</AppText>
             {t('badges.sportDeclaredPost', { defaultValue: '' })}
-          </Text>
+          </AppText>
 
-          <Text style={styles.sportPeerSentence}>
+          <AppText style={styles.sportPeerSentence}>
             {editable
               ? t('badges.peerJudgeSelf', { defaultValue: 'Tes partenaires jugent si ce niveau est juste :' })
               : t('badges.peerJudgeOther', { defaultValue: 'Ses partenaires jugent si ce niveau est juste :' })}
-          </Text>
+          </AppText>
 
           {/* Triangle carries the color; the number is bold, the word plain black. */}
           <View style={styles.sportVoteRow}>
             <View style={styles.sportVoteItem}>
               <Triangle size={13} color={colors.success} fill={colors.success} strokeWidth={0} />
-              <Text style={styles.sportVoteNum}>{fiable}</Text>
-              <Text style={styles.sportVoteWord}>{t('badges.levelJuste', { defaultValue: 'juste' })}</Text>
+              <AppText style={styles.sportVoteNum}>{fiable}</AppText>
+              <AppText style={styles.sportVoteWord}>{t('badges.levelJuste', { defaultValue: 'juste' })}</AppText>
             </View>
             <View style={styles.sportVoteItem}>
               <Triangle size={13} color={colors.error} fill={colors.error} strokeWidth={0} style={styles.triDown} />
-              <Text style={styles.sportVoteNum}>{gonfle}</Text>
-              <Text style={styles.sportVoteWord}>{t('badges.levelSurestime', { defaultValue: 'surestimé' })}</Text>
+              <AppText style={styles.sportVoteNum}>{gonfle}</AppText>
+              <AppText style={styles.sportVoteWord}>{t('badges.levelSurestime', { defaultValue: 'surestimé' })}</AppText>
             </View>
           </View>
 
           {editable && curIdx >= 0 && (
             <>
               <View style={styles.sportOwnerDivider} />
-              <Text style={styles.sportOwnerLabel}>{t('badges.changeLevelLabel', { defaultValue: 'Change ton niveau' })}</Text>
+              <AppText style={styles.sportOwnerLabel}>{t('badges.changeLevelLabel', { defaultValue: 'Change ton niveau' })}</AppText>
               <View style={styles.sportOwnerRow}>
                 {downTarget && (
                   <Pressable
@@ -1248,7 +1249,7 @@ function SportDetail({
                     onPress={() => changeLevel(-1)}
                   >
                     <ArrowDown size={15} color={colors.textSecondary} strokeWidth={2.4} />
-                    <Text style={styles.sportOwnerBtnText}>{levelLabel(downTarget)}</Text>
+                    <AppText style={styles.sportOwnerBtnText}>{levelLabel(downTarget)}</AppText>
                   </Pressable>
                 )}
                 {upTarget && (
@@ -1258,18 +1259,18 @@ function SportDetail({
                     onPress={() => changeLevel(1)}
                   >
                     <ArrowUp size={15} color={canUp ? colors.success : colors.textMuted} strokeWidth={2.4} />
-                    <Text style={[styles.sportOwnerBtnUpText, !canUp && styles.sportOwnerBtnTextOff]}>
+                    <AppText style={[styles.sportOwnerBtnUpText, !canUp && styles.sportOwnerBtnTextOff]}>
                       {levelLabel(upTarget)}
-                    </Text>
+                    </AppText>
                   </Pressable>
                 )}
               </View>
               {upTarget && (
-                <Text style={styles.sportOwnerHint}>
+                <AppText style={styles.sportOwnerHint}>
                   {canUp
                     ? t('badges.levelUpReady', { defaultValue: 'Ton niveau actuel est confirmé par tes partenaires. Tu peux monter si tu as progressé.' })
                     : t('badges.levelUpHint', { defaultValue: "Tes partenaires n'ont pas encore assez confirmé ton niveau actuel." })}
-                </Text>
+                </AppText>
               )}
             </>
           )}
@@ -1327,12 +1328,12 @@ function VoterAvatarStack({
             key={v.voter_id}
             style={[ring, { backgroundColor: hashHue(v.voter_id) }]}
           >
-            <Text style={{
+            <AppText style={{
               color: '#FFFFFF',
               fontSize: size * 0.42,
               fontWeight: '700',
               letterSpacing: -0.4,
-            }}>{initial}</Text>
+            }}>{initial}</AppText>
           </View>
         );
       })}

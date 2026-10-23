@@ -1,5 +1,6 @@
 import { useMemo, useLayoutEffect, useState, useRef, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -191,13 +192,13 @@ export default function PeerReviewScreen() {
     navigation.setOptions({
       headerTitle: () => (
         <View style={{ paddingLeft: spacing.md, gap: 1 }}>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' }}>
+          <AppText style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' }}>
             {t('peerReview.headerTitle', { defaultValue: 'Peer review' })}
-          </Text>
+          </AppText>
           {activity && (
-            <Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: '600' }} numberOfLines={1}>
+            <AppText style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: '600' }} numberOfLines={1}>
               {activity.title} · {urgencyLabel}
-            </Text>
+            </AppText>
           )}
         </View>
       ),
@@ -219,26 +220,26 @@ export default function PeerReviewScreen() {
   }
 
   if (!state || state.length === 0) {
-    return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.empty')}</Text></View>;
+    return <View style={styles.center}><AppText style={styles.empty}>{t('peerReview.empty')}</AppText></View>;
   }
 
   // Votes only exist on outings with a presence check (Scott 2026-10-21,
   // mig 00497): the server refuses them elsewhere, so say so up front.
   if (activity && activity.requires_presence === false) {
-    return <View style={styles.center}><Text style={styles.empty}>{t('peerReview.noPresenceNoVotes')}</Text></View>;
+    return <View style={styles.center}><AppText style={styles.empty}>{t('peerReview.noPresenceNoVotes')}</AppText></View>;
   }
 
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.subtitle}>{t('peerReview.subtitle')}</Text>
-      <Text style={styles.deferNote}>
+      <AppText style={styles.subtitle}>{t('peerReview.subtitle')}</AppText>
+      <AppText style={styles.deferNote}>
         {t('peerReview.deferNote', { defaultValue: 'Tes évaluations sont prises en compte 24 h après la fin de la sortie, une fois les présences confirmées.' })}
-      </Text>
+      </AppText>
 
       {windowState !== 'open' && (
         <View style={[styles.banner, windowState === 'closed' ? styles.bannerClosed : styles.bannerInfo]}>
-          <Text style={styles.bannerText}>
+          <AppText style={styles.bannerText}>
             {windowState === 'closed'
               ? t('peerReview.bannerClosedAt', {
                   date: expiresAt?.format('DD/MM'),
@@ -249,7 +250,7 @@ export default function PeerReviewScreen() {
                   time: opensAt?.format('HH:mm'),
                   countdown: countdownLabel,
                 })}
-          </Text>
+          </AppText>
         </View>
       )}
 
@@ -274,9 +275,9 @@ export default function PeerReviewScreen() {
                   size={44}
                   confirmedPresent={presenceConfirmed}
                 />
-                <Text style={styles.cardName} numberOfLines={1}>{p.display_name}</Text>
+                <AppText style={styles.cardName} numberOfLines={1}>{p.display_name}</AppText>
                 {voteCount > 0 && isCollapsed && (
-                  <Text style={styles.cardVoteCount}>·{voteCount}</Text>
+                  <AppText style={styles.cardVoteCount}>·{voteCount}</AppText>
                 )}
                 {isCollapsed
                   ? <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />
@@ -286,7 +287,7 @@ export default function PeerReviewScreen() {
               {!isCollapsed && (
                 <>
               {/* Positives — own row so cell widths are uniform. */}
-              <Text style={styles.sectionLabel}>{t('peerReview.sectionPositives')}</Text>
+              <AppText style={styles.sectionLabel}>{t('peerReview.sectionPositives')}</AppText>
               <View style={styles.metroPill}>
                 {POSITIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
@@ -308,21 +309,21 @@ export default function PeerReviewScreen() {
                           strokeWidth={2.2}
                         />
                       )}
-                      <Text
+                      <AppText
                         style={[styles.metroLabel, voted && styles.metroLabelVotedPositive]}
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}
                       >
                         {t(`badges.short.${badge.key}`)}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   );
                 })}
               </View>
 
               {/* Negatives — separate row, equal cell widths within. */}
-              <Text style={styles.sectionLabel}>{t('peerReview.sectionNegatives')}</Text>
+              <AppText style={styles.sectionLabel}>{t('peerReview.sectionNegatives')}</AppText>
               <View style={styles.metroPill}>
                 {NEGATIVE_BADGES.map((badge) => {
                   const voted = p.my_badge_votes.includes(badge.key);
@@ -344,30 +345,30 @@ export default function PeerReviewScreen() {
                           strokeWidth={2.2}
                         />
                       )}
-                      <Text
+                      <AppText
                         style={[styles.metroLabel, voted && styles.metroLabelVotedNegative]}
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}
                       >
                         {t(`badges.short.${badge.key}`)}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   );
                 })}
               </View>
 
               {activity.sport_key && p.declared_level && (
-                <Text style={styles.sectionLabel}>{t('peerReview.sectionLevel')}</Text>
+                <AppText style={styles.sectionLabel}>{t('peerReview.sectionLevel')}</AppText>
               )}
               {activity.sport_key && p.declared_level && (
-                <Text style={styles.selfLevelLine}>
+                <AppText style={styles.selfLevelLine}>
                   {t('peerReview.selfLevel', {
                     name: p.display_name,
                     level: p.declared_level,
                     defaultValue: '{{name}} se dit de niveau {{level}}',
                   })}
-                </Text>
+                </AppText>
               )}
               {activity.sport_key && p.declared_level && (
                 <View style={styles.levelPill}>
@@ -385,14 +386,14 @@ export default function PeerReviewScreen() {
                         ]}
                         onPress={() => handleLevelTap(p, levelKey)}
                       >
-                        <Text
+                        <AppText
                           style={[styles.levelLabel, voted && styles.levelLabelActive]}
                           numberOfLines={1}
                           adjustsFontSizeToFit
                           minimumFontScale={0.7}
                         >
                           {t(`badges.short.${levelKey}`)}
-                        </Text>
+                        </AppText>
                       </Pressable>
                     );
                   })}
@@ -409,7 +410,7 @@ export default function PeerReviewScreen() {
         style={({ pressed }) => [styles.submitButton, pressed && styles.tappedDim]}
         onPress={() => router.back()}
       >
-        <Text style={styles.submitText}>{t('peerReview.close', { defaultValue: 'Fermer' })}</Text>
+        <AppText style={styles.submitText}>{t('peerReview.close', { defaultValue: 'Fermer' })}</AppText>
       </Pressable>
     </ScrollView>
   );

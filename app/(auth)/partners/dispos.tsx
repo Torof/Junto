@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, FlatList, ScrollView, StyleSheet, Modal, Pressable, RefreshControl, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { View, FlatList, ScrollView, StyleSheet, Modal, Pressable, RefreshControl, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -103,7 +104,7 @@ export default function PartnersDiscoveryScreen() {
         <PressableScale style={styles.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('common.back', { defaultValue: 'Retour' })}>
           <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.6} />
         </PressableScale>
-        <Text style={styles.title} numberOfLines={1}>{t('partenaires.discovery', { defaultValue: 'Découverte' })}</Text>
+        <AppText style={styles.title} numberOfLines={1}>{t('partenaires.discovery', { defaultValue: 'Découverte' })}</AppText>
       </View>
 
       <ScrollView
@@ -115,42 +116,42 @@ export default function PartnersDiscoveryScreen() {
 
         {/* Dispos qui collent */}
         <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle} numberOfLines={1}>
+          <AppText style={styles.sectionTitle} numberOfLines={1}>
             {t('partenaires.dispos', { defaultValue: 'Dispos qui collent' })}
-            {active ? <Text style={styles.sectionCount}>{`  ${filtered.length}`}</Text> : null}
-          </Text>
+            {active ? <AppText style={styles.sectionCount}>{`  ${filtered.length}`}</AppText> : null}
+          </AppText>
           {active ? (
             <PressableScale style={[styles.vibesBtn, vibes.size > 0 && styles.vibesBtnOn]} onPress={() => setVibesOpen(true)} accessibilityRole="button">
               <SlidersHorizontal size={13} color={vibes.size > 0 ? '#FFFFFF' : colors.textPrimary} strokeWidth={2.4} />
-              <Text style={[styles.vibesBtnText, vibes.size > 0 && styles.vibesBtnTextOn]}>
+              <AppText style={[styles.vibesBtnText, vibes.size > 0 && styles.vibesBtnTextOn]}>
                 {t('partenaires.vibes', { defaultValue: 'Vibes' })}{vibes.size > 0 ? ` · ${vibes.size}` : ''}
-              </Text>
+              </AppText>
             </PressableScale>
           ) : null}
         </View>
         {universe ? (
           <View style={styles.activeRow}>
             <PressableScale style={[styles.activeChip, { backgroundColor: sportCategoryColor(universe, colors.cta) }]} onPress={() => setUniverse(null)}>
-              <Text style={styles.activeChipText}>{t(`partenaires.universe.${universe}`)}</Text>
+              <AppText style={styles.activeChipText}>{t(`partenaires.universe.${universe}`)}</AppText>
               <X size={13} color="#FFFFFF" strokeWidth={2.8} />
             </PressableScale>
           </View>
         ) : null}
 
         {!active ? (
-          <Text style={styles.note}>{t('partenaires.disposLocked', { defaultValue: 'Pose ta dispo pour voir qui cherche la même chose que toi.' })}</Text>
+          <AppText style={styles.note}>{t('partenaires.disposLocked', { defaultValue: 'Pose ta dispo pour voir qui cherche la même chose que toi.' })}</AppText>
         ) : isLoading ? (
           <View style={styles.center}><LogoSpinner size={36} /></View>
         ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.note}>
+            <AppText style={styles.note}>
               {filterOn
                 ? t('discovery.filterEmptyTitle', { defaultValue: 'Aucun avec ces filtres' })
                 : t('partenaires.disposEmpty', { defaultValue: 'Personne pour l’instant. Élargis ta zone ou tes dates pour croiser plus de monde.' })}
-            </Text>
+            </AppText>
             {filterOn ? (
               <PressableScale onPress={clearAll} hitSlop={8}>
-                <Text style={styles.clear}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</Text>
+                <AppText style={styles.clear}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</AppText>
               </PressableScale>
             ) : null}
           </View>
@@ -177,7 +178,7 @@ export default function PartnersDiscoveryScreen() {
         )}
 
         {/* Qui est dispo, par sport — a tile filters the carousel above */}
-        <Text style={[styles.sectionTitle, styles.gridTitle]}>{t('partenaires.byUniverse', { defaultValue: 'Qui est dispo, par sport' })}</Text>
+        <AppText style={[styles.sectionTitle, styles.gridTitle]}>{t('partenaires.byUniverse', { defaultValue: 'Qui est dispo, par sport' })}</AppText>
         <View style={styles.grid}>
           {UNIVERSES.map((u) => {
             const n = universeCounts.get(u) ?? 0;
@@ -192,10 +193,10 @@ export default function PartnersDiscoveryScreen() {
               >
                 <ContourLines width={tileW} height={96} opacity={0.2} />
                 <View style={styles.tileGlyph}><SportIcon sportKey={UNIVERSE_GLYPH[u]} size={30} color="#FFFFFF" /></View>
-                <Text style={styles.tileName}>{t(`partenaires.universe.${u}`)}</Text>
-                <Text style={styles.tileCount} numberOfLines={1}>
+                <AppText style={styles.tileName}>{t(`partenaires.universe.${u}`)}</AppText>
+                <AppText style={styles.tileCount} numberOfLines={1}>
                   {n > 0 ? t('partenaires.universeDispos', { count: n, defaultValue: '{{count}} dispos' }) : t('partenaires.universeNone', { defaultValue: 'Rien pour l’instant' })}
-                </Text>
+                </AppText>
               </PressableScale>
             );
           })}
@@ -208,19 +209,19 @@ export default function PartnersDiscoveryScreen() {
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.grab} />
             <View style={styles.sheetHead}>
-              <Text style={styles.sheetTitle}>{t('partenaires.vibes', { defaultValue: 'Vibes' })}</Text>
+              <AppText style={styles.sheetTitle}>{t('partenaires.vibes', { defaultValue: 'Vibes' })}</AppText>
               <Pressable onPress={() => setVibesOpen(false)} hitSlop={8}><X size={20} color={colors.textSecondary} strokeWidth={2.4} /></Pressable>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               {VIBE_FILTER_GROUPS.map((g) => (
                 <View key={g.key} style={styles.group}>
-                  <Text style={styles.groupLabel}>{t(`discovery.vibeGroup.${g.key}`, { defaultValue: g.key })}</Text>
+                  <AppText style={styles.groupLabel}>{t(`discovery.vibeGroup.${g.key}`, { defaultValue: g.key })}</AppText>
                   <View style={styles.groupChips}>
                     {g.items.map((it) => {
                       const on = vibes.has(it);
                       return (
                         <PressableScale key={it} style={[styles.vibe, on && styles.vibeOn]} onPress={() => toggleVibe(it)}>
-                          <Text style={[styles.vibeText, on && styles.vibeTextOn]}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+                          <AppText style={[styles.vibeText, on && styles.vibeTextOn]}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</AppText>
                         </PressableScale>
                       );
                     })}
@@ -230,10 +231,10 @@ export default function PartnersDiscoveryScreen() {
             </ScrollView>
             <View style={styles.sheetFoot}>
               <PressableScale style={styles.sheetClear} onPress={() => setVibes(new Set())}>
-                <Text style={styles.sheetClearText}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</Text>
+                <AppText style={styles.sheetClearText}>{t('discovery.filterClear', { defaultValue: 'Effacer' })}</AppText>
               </PressableScale>
               <PressableScale style={styles.sheetApply} onPress={() => { setVibesOpen(false); setPage(0); }}>
-                <Text style={styles.sheetApplyText}>{t('discovery.filterResults', { defaultValue: 'Voir les {{count}} résultats', count: filtered.length })}</Text>
+                <AppText style={styles.sheetApplyText}>{t('discovery.filterResults', { defaultValue: 'Voir les {{count}} résultats', count: filtered.length })}</AppText>
               </PressableScale>
             </View>
           </Pressable>

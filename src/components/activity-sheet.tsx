@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -114,33 +115,33 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
 
             <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
               <SportIcon sportKey={activity.sport_key} size={15} color={accent} />
-              <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
+              <AppText style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
                 {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
-              </Text>
+              </AppText>
             </View>
             <View style={styles.kindRow}>
               {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
                 <Lock size={12} color="#B45309" strokeWidth={2.6} />
               )}
-              <Text style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
+              <AppText style={[styles.kindLine, { color: accent }]} numberOfLines={1}>
                 {t('map.peerOuting', { defaultValue: 'Sortie entre passionnés' })}
-              </Text>
+              </AppText>
             </View>
 
-            <Text style={styles.title} numberOfLines={2}>{activity.title}</Text>
+            <AppText style={styles.title} numberOfLines={2}>{activity.title}</AppText>
 
             {/* One fact per line, icons in the universe color. */}
             <View style={styles.infoRow}>
               <Calendar size={15} color={accent} strokeWidth={2.2} />
-              <Text style={styles.infoText}>
+              <AppText style={styles.infoText}>
                 {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
-              </Text>
+              </AppText>
             </View>
 
             {formatDuration(activity.duration) ? (
               <View style={styles.infoRow}>
                 <Clock size={15} color={accent} strokeWidth={2.2} />
-                <Text style={styles.infoText}>{formatDuration(activity.duration)}</Text>
+                <AppText style={styles.infoText}>{formatDuration(activity.duration)}</AppText>
               </View>
             ) : null}
 
@@ -148,14 +149,14 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               <View style={styles.infoRow}>
                 <BarChart2 size={15} color={accent} strokeWidth={2.2} />
                 {signal ? (
-                  <Text style={styles.infoText} numberOfLines={1}>{signal}</Text>
+                  <AppText style={styles.infoText} numberOfLines={1}>{signal}</AppText>
                 ) : (
                   <View style={{ flex: 1 }} />
                 )}
                 {hasTrace ? (
                   <View style={[styles.gpxPill, { borderColor: accent, backgroundColor: accent + '18' }]}>
                     <Route size={11} color={accent} strokeWidth={2.6} />
-                    <Text style={[styles.gpxPillText, { color: accent }]}>GPX</Text>
+                    <AppText style={[styles.gpxPillText, { color: accent }]}>GPX</AppText>
                   </View>
                 ) : null}
               </View>
@@ -163,19 +164,19 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
 
             <View style={styles.infoRow}>
               <Users size={15} color={accent} strokeWidth={2.2} />
-              <Text style={[styles.infoText, isFull && { color: colors.error }]} numberOfLines={1}>
+              <AppText style={[styles.infoText, isFull && { color: colors.error }]} numberOfLines={1}>
                 {isOpenCount
                   ? `${activity.participant_count} ${t('map.participantsOpen', { defaultValue: 'participants · ouverte à tous' })}`
                   : isFull
                     ? t('map.full', { defaultValue: 'Complet' })
                     : t('map.spotsLeft', { defaultValue: '{{n}} places restantes', n: remaining, count: remaining })}
-              </Text>
+              </AppText>
             </View>
 
             {activity.objective_name ? (
               <View style={styles.infoRow}>
                 <MapPin size={15} color={accent} strokeWidth={2.2} />
-                <Text style={styles.infoText} numberOfLines={1}>{activity.objective_name}</Text>
+                <AppText style={styles.infoText} numberOfLines={1}>{activity.objective_name}</AppText>
               </View>
             ) : null}
 
@@ -183,10 +184,10 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             {carSeats > 0 ? (
               <View style={styles.infoRow}>
                 <Car size={15} color={accent} strokeWidth={2.2} />
-                <Text style={styles.infoText} numberOfLines={1}>
+                <AppText style={styles.infoText} numberOfLines={1}>
                   {t('map.carpoolSeats', { defaultValue: '{{n}} places en covoit', n: carSeats, count: carSeats })}
                   {carCities.length > 0 ? ` · ${t('map.carpoolFrom', { defaultValue: 'dép.' })} ${carCities.slice(0, 2).join(', ')}${carCities.length > 2 ? '…' : ''}` : ''}
-                </Text>
+                </AppText>
               </View>
             ) : null}
 
@@ -195,7 +196,7 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
               onPress={() => onOpen(activity)}
               hitSlop={8}
             >
-              <Text style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })} →</Text>
+              <AppText style={styles.ctaText}>{t('map.seeActivity', { defaultValue: 'Voir la sortie' })} →</AppText>
             </Pressable>
           </>
         ) : null}

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react';
-import { View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
+import { View, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -272,10 +273,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
           <View style={[styles.rowIconSquare, danger && styles.rowIconSquareDanger]}>
             <Icon size={16} color={danger ? colors.error : colors.textSecondary} strokeWidth={2} />
           </View>
-          <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]} numberOfLines={1}>{label}</Text>
+          <AppText style={[styles.rowLabel, danger && styles.rowLabelDanger]} numberOfLines={1}>{label}</AppText>
         </View>
         {right ?? (value !== undefined
-          ? <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
+          ? <AppText style={styles.rowValue} numberOfLines={1}>{value}</AppText>
           : onPress ? <ChevronRight size={16} color={colors.textMuted} strokeWidth={2} /> : null)}
       </View>
     );
@@ -297,7 +298,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             </Pressable>
 
             {/* === COMPTE === */}
-            <Text style={styles.sectionTitle}>{t('drawer.account')}</Text>
+            <AppText style={styles.sectionTitle}>{t('drawer.account')}</AppText>
             <View style={styles.sectionCard}>
               <Row icon={Mail} label={t('drawer.email')} value={user?.email ?? ''} />
               <View style={styles.row}>
@@ -305,11 +306,11 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   <View style={styles.rowIconSquare}>
                     <AtSign size={16} color={colors.textSecondary} strokeWidth={2} />
                   </View>
-                  <Text style={styles.rowLabel}>{t('drawer.pseudo')}</Text>
+                  <AppText style={styles.rowLabel}>{t('drawer.pseudo')}</AppText>
                 </View>
                 {editingName ? (
                   <View style={styles.editNameRow}>
-                    <TextInput
+                    <AppTextInput
                       style={styles.nameInput}
                       value={newName}
                       onChangeText={setNewName}
@@ -325,12 +326,12 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   </View>
                 ) : (
                   <Pressable onPress={handleEditName} style={styles.editPseudoRow}>
-                    <Text style={styles.rowValueEditable}>{user?.display_name ?? '...'}</Text>
+                    <AppText style={styles.rowValueEditable}>{user?.display_name ?? '...'}</AppText>
                     <Pencil size={14} color={colors.cta} strokeWidth={2.4} />
                   </Pressable>
                 )}
               </View>
-              <Row icon={Star} label={t('drawer.subscription')} right={<Text style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</Text>} />
+              <Row icon={Star} label={t('drawer.subscription')} right={<AppText style={[styles.rowValue, styles.tierBadge]}>{tierLabel}</AppText>} />
               {/* « Devenir pro » and the application status moved to the Menu
                   sheet (lot 2 pro, 2026-10-15) — next to « Supprimer mon
                   compte » was the wrong neighbourhood. */}
@@ -338,7 +339,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             </View>
 
             {/* === PRÉFÉRENCES === */}
-            <Text style={styles.sectionTitle}>{t('drawer.preferences')}</Text>
+            <AppText style={styles.sectionTitle}>{t('drawer.preferences')}</AppText>
             <View style={styles.sectionCard}>
               <Row icon={MapPin} label={t('drawer.myLocation')} right={
                 <Switch value={bgLocationGranted ?? false} onValueChange={handleToggleBgLocation} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
@@ -351,9 +352,9 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   {NOTIFICATION_TYPES.map((type) => (
                     <View key={type} style={styles.prefRow}>
                       <View style={{ flex: 1, marginRight: spacing.md }}>
-                        <Text style={[styles.prefLabel, { marginRight: 0 }]}>{t(`profil.notifType.${type}`)}</Text>
+                        <AppText style={[styles.prefLabel, { marginRight: 0 }]}>{t(`profil.notifType.${type}`)}</AppText>
                         {PRESENCE_DRIVING_TYPES.has(type) && (
-                          <Text style={styles.prefHint}>{t('drawer.notifPresenceHint')}</Text>
+                          <AppText style={styles.prefHint}>{t('drawer.notifPresenceHint')}</AppText>
                         )}
                       </View>
                       <Switch value={prefs[type] !== false} onValueChange={() => togglePref(type)} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
@@ -371,7 +372,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       const active = languagePref === opt;
                       return (
                         <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => handlePickLanguage(opt)}>
-                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.languageOption.${opt}`)}</Text>
+                          <AppText style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.languageOption.${opt}`)}</AppText>
                         </Pressable>
                       );
                     })}
@@ -381,12 +382,12 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
               {(user?.tier === 'premium' || user?.tier === 'pro') ? (
                 <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
               ) : (
-                <Row icon={BellRing} label={t('alerts.manage')} right={<Text style={styles.premiumLabel}>Premium</Text>} last />
+                <Row icon={BellRing} label={t('alerts.manage')} right={<AppText style={styles.premiumLabel}>Premium</AppText>} last />
               )}
             </View>
 
             {/* === PERSONNALISATION === */}
-            <Text style={styles.sectionTitle}>{t('drawer.personalisation')}</Text>
+            <AppText style={styles.sectionTitle}>{t('drawer.personalisation')}</AppText>
             <View style={styles.sectionCard}>
               <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
@@ -398,7 +399,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       const active = themePreference === opt;
                       return (
                         <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
-                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
+                          <AppText style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</AppText>
                         </Pressable>
                       );
                     })}
@@ -419,7 +420,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                       const active = clusterRingWidth === w;
                       return (
                         <Pressable key={w} style={[styles.segment, active && styles.segmentActive]} onPress={() => setClusterRingWidth(w)}>
-                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{`${w} px`}</Text>
+                          <AppText style={[styles.segmentText, active && styles.segmentTextActive]}>{`${w} px`}</AppText>
                         </Pressable>
                       );
                     })}
@@ -436,7 +437,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             )}
 
             {/* === AIDE & LÉGAL === */}
-            <Text style={styles.sectionTitle}>{t('drawer.legal')}</Text>
+            <AppText style={styles.sectionTitle}>{t('drawer.legal')}</AppText>
             <View style={styles.sectionCard}>
               <Row icon={PlayCircle} label={t('intro.replay')} onPress={() => { onClose(); requestReplay(); }} />
               <Row icon={HelpCircle} label={t('legal.faq')} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }} />
@@ -447,7 +448,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
             {/* Logout (delete account now lives in the Compte card) */}
             <Pressable style={styles.logoutButton} onPress={handleLogout}>
-              <Text style={styles.logoutText}>{t('profil.logout')}</Text>
+              <AppText style={styles.logoutText}>{t('profil.logout')}</AppText>
             </Pressable>
           </ScrollView>
         </View>

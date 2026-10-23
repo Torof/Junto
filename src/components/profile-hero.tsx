@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
+import { View, Pressable, StyleSheet, Modal } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -128,21 +129,21 @@ export function ProfileHero({
                 </View>
               </View>
             ) : (
-              <Text style={styles.avatarFallback}>🏔️</Text>
+              <AppText style={styles.avatarFallback}>🏔️</AppText>
             )}
           </View>
 
           {/* % pill at bottom */}
           {hasScore && (
             <View style={[styles.pctPill, { backgroundColor: color, shadowColor: color }]}>
-              <Text style={styles.pctPillText}>{showRawPct ? `${pct}%` : tierLabel}</Text>
+              <AppText style={styles.pctPillText}>{showRawPct ? `${pct}%` : tierLabel}</AppText>
             </View>
           )}
         </Pressable>
         {/* Explicit affordance — the tap target used to be invisible. */}
         {onAvatarPress && (
           <Pressable onPress={onAvatarPress} disabled={isUploading} hitSlop={6} style={styles.editPhotoBtn}>
-            <Text style={styles.editPhotoText}>{t('profil.editPhotoShort', { defaultValue: 'Modifier' })}</Text>
+            <AppText style={styles.editPhotoText}>{t('profil.editPhotoShort', { defaultValue: 'Modifier' })}</AppText>
           </Pressable>
         )}
         </View>
@@ -151,7 +152,7 @@ export function ProfileHero({
         <View style={{ flex: 1, minWidth: 0 }}>
           {/* Label on its own line, the reliability value on the next. */}
           <View style={styles.scoreLabelRow}>
-            <Text style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</Text>
+            <AppText style={styles.scoreLabel}>{t('reliability.label').toUpperCase()}</AppText>
             <Pressable onPress={() => setShowHelp(true)} hitSlop={8} style={styles.helpButton}>
               <HelpCircle size={14} color={colors.textMuted} strokeWidth={2} />
             </Pressable>
@@ -159,13 +160,13 @@ export function ProfileHero({
           {hasScore ? (
             // Big label = tier name when available, else fall back to %.
             // The pctPill on the avatar ring keeps the raw % when available.
-            <Text style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</Text>
+            <AppText style={[styles.scoreBig, { color }]}>{tierLabel ?? `${pct}%`}</AppText>
           ) : (
-            <Text style={[styles.scoreBig, { color: colors.textMuted }]}>—</Text>
+            <AppText style={[styles.scoreBig, { color: colors.textMuted }]}>—</AppText>
           )}
 
           {memberLine !== '' && (
-            <Text style={styles.memberLine}>{memberLine}</Text>
+            <AppText style={styles.memberLine}>{memberLine}</AppText>
           )}
 
           <View style={styles.statsRow}>
@@ -181,12 +182,12 @@ export function ProfileHero({
       <Modal visible={showHelp} animationType="fade" transparent onRequestClose={() => setShowHelp(false)}>
         <Pressable style={styles.helpBackdrop} onPress={() => setShowHelp(false)}>
           <Pressable style={styles.helpCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.helpTitle}>{t('reliability.helpTitle')}</Text>
-            <Text style={styles.helpBody}>{t('reliability.helpIntro')}</Text>
-            <Text style={styles.helpHeading}>{t('reliability.helpHowHeading')}</Text>
-            <Text style={styles.helpBody}>{t('reliability.helpHow')}</Text>
+            <AppText style={styles.helpTitle}>{t('reliability.helpTitle')}</AppText>
+            <AppText style={styles.helpBody}>{t('reliability.helpIntro')}</AppText>
+            <AppText style={styles.helpHeading}>{t('reliability.helpHowHeading')}</AppText>
+            <AppText style={styles.helpBody}>{t('reliability.helpHow')}</AppText>
             <Pressable style={styles.helpDismiss} onPress={() => setShowHelp(false)}>
-              <Text style={styles.helpDismissText}>{t('reliability.helpDismiss')}</Text>
+              <AppText style={styles.helpDismissText}>{t('reliability.helpDismiss')}</AppText>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -206,10 +207,10 @@ function StatCell({
 }) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={[styles.statLabel, { color: accent }]} numberOfLines={1}>
+      <AppText style={styles.statValue}>{value}</AppText>
+      <AppText style={[styles.statLabel, { color: accent }]} numberOfLines={1}>
         {t(labelKey)}
-      </Text>
+      </AppText>
     </View>
   );
 }

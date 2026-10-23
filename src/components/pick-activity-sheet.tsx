@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -50,16 +51,16 @@ export function PickActivitySheet({ visible, onClose, onPick, sportFilterKey }: 
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</Text>
+          <AppText style={styles.title}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</AppText>
 
           {l1 || l2 ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : activities.length === 0 ? (
-            <Text style={styles.empty}>
+            <AppText style={styles.empty}>
               {sportFilterKey
                 ? t('messagerie.shareOutingEmptySport', { defaultValue: 'Aucune sortie de ce sport à partager.' })
                 : t('messagerie.shareOutingEmpty', { defaultValue: 'Aucune sortie à venir à partager.' })}
-            </Text>
+            </AppText>
           ) : (
             <FlatList
               data={activities}
@@ -71,10 +72,10 @@ export function PickActivitySheet({ visible, onClose, onPick, sportFilterKey }: 
                     <SportIcon sportKey={item.sport_key} size={24} color="#FFFFFF" />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.name} numberOfLines={1}>{item.title}</Text>
-                    <Text style={styles.sub} numberOfLines={1}>
+                    <AppText style={styles.name} numberOfLines={1}>{item.title}</AppText>
+                    <AppText style={styles.sub} numberOfLines={1}>
                       {dayjs(item.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
-                    </Text>
+                    </AppText>
                   </View>
                 </Pressable>
               )}

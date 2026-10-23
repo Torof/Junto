@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
+import { useFontStyle } from '@/components/app-text';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { notificationService } from '@/services/notification-service';
@@ -81,6 +82,7 @@ export default function TabsLayout() {
   const colors = useColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const font = useFontStyle();
   const queryClient = useQueryClient();
 
   // Needed to scope the realtime subscriptions below to this user.
@@ -166,7 +168,7 @@ export default function TabsLayout() {
           paddingTop: 8,
         },
         tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarLabelStyle: font({ fontSize: 11, fontWeight: '700' }),
         tabBarActiveTintColor: colors.textPrimary,
         tabBarInactiveTintColor: colors.textSecondary,
         headerStyle: {

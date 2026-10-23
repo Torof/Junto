@@ -1,4 +1,5 @@
-import { View, Text, Pressable, FlatList, Modal, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { View, Pressable, FlatList, Modal, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
@@ -68,9 +69,9 @@ export function PhotoLightbox({ photos, index, onIndexChange }: PhotoLightboxPro
 
         {photos.length > 1 && index !== null && (
           <View style={styles.viewerCounter} pointerEvents="none">
-            <Text style={styles.viewerCounterText}>
+            <AppText style={styles.viewerCounterText}>
               {index + 1} / {photos.length}
-            </Text>
+            </AppText>
           </View>
         )}
       </View>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking, Platform } from 'react-native';
+import { View, Pressable, StyleSheet, Linking, Platform } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
@@ -366,12 +367,12 @@ export function GroupCard({
             treatment as my-outing-card so the two cards read as
             siblings. Title on the left, people count on the right. */}
         <View style={styles.headerBand}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
+          <AppText style={styles.cardTitle} numberOfLines={1}>
             {t('group.cardTitle', { defaultValue: 'Préparatifs de groupe' })}
-          </Text>
+          </AppText>
           <View style={styles.headerRight}>
             <Users size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.peopleCount}>{participants.length}</Text>
+            <AppText style={styles.peopleCount}>{participants.length}</AppText>
           </View>
         </View>
 
@@ -389,24 +390,24 @@ export function GroupCard({
               style={[styles.folderTab, activeSubTab === 'transport' && styles.folderTabActive]}
               hitSlop={4}
             >
-              <Text style={[
+              <AppText style={[
                 styles.folderTabLabel,
                 activeSubTab === 'transport' && styles.folderTabLabelActive,
               ]}>
                 {t('group.transport', { defaultValue: 'Transport' })}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               onPress={() => onActiveSubTabChange('gear')}
               style={[styles.folderTab, activeSubTab === 'gear' && styles.folderTabActive]}
               hitSlop={4}
             >
-              <Text style={[
+              <AppText style={[
                 styles.folderTabLabel,
                 activeSubTab === 'gear' && styles.folderTabLabelActive,
               ]}>
                 {t('group.gear', { defaultValue: 'Matériel' })}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         )}
@@ -420,12 +421,12 @@ export function GroupCard({
                 surface for an active driver. */}
             {myDriverPending.length > 0 && (
               <View style={styles.incomingRequests}>
-                <Text style={styles.incomingRequestsLabel}>
+                <AppText style={styles.incomingRequestsLabel}>
                   {t('group.incomingRequests', {
                     count: myDriverPending.length,
                     defaultValue: myDriverPending.length === 1 ? '1 demande reçue' : `${myDriverPending.length} demandes reçues`,
                   })}
-                </Text>
+                </AppText>
                 {myDriverPending.map((req) => {
                   const subtitleParts = [
                     req.pickup_from,
@@ -440,14 +441,14 @@ export function GroupCard({
                         avatarUrl={req.requester_avatar}
                       />
                       <View style={styles.incomingRequestInfo}>
-                        <Text style={styles.incomingRequestName} numberOfLines={1}>
+                        <AppText style={styles.incomingRequestName} numberOfLines={1}>
                           {req.requester_name}
                           {subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
-                        </Text>
+                        </AppText>
                         {req.message && (
-                          <Text style={styles.incomingRequestMessage} numberOfLines={2}>
+                          <AppText style={styles.incomingRequestMessage} numberOfLines={2}>
                             {req.message}
-                          </Text>
+                          </AppText>
                         )}
                       </View>
                       <View style={styles.incomingRequestActions}>
@@ -478,17 +479,17 @@ export function GroupCard({
               <View style={styles.transportCategory}>
                 <View style={styles.transportCategoryHeader}>
                   <Car size={13} color={colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.transportCategoryLabel}>
+                  <AppText style={styles.transportCategoryLabel}>
                     {t('group.transportCategory.car', { defaultValue: 'Voitures' })}
-                  </Text>
-                  <Text style={styles.transportCategoryCount}>· {drivers.length}</Text>
+                  </AppText>
+                  <AppText style={styles.transportCategoryCount}>· {drivers.length}</AppText>
                   {totalFreeSeats > 0 && (
-                    <Text style={styles.freeSeatsInline}>
+                    <AppText style={styles.freeSeatsInline}>
                       {' · '}{t('group.freeSeatsCount', {
                         count: totalFreeSeats,
                         defaultValue: totalFreeSeats === 1 ? '1 place libre' : `${totalFreeSeats} places libres`,
                       })}
-                    </Text>
+                    </AppText>
                   )}
                 </View>
                 {drivers.map((d) => {
@@ -519,20 +520,20 @@ export function GroupCard({
                       </ReliabilityRing>
                     </Pressable>
                     <View style={styles.ncNameWrap}>
-                      <Text style={styles.driverName} numberOfLines={1}>{d.display_name}</Text>
+                      <AppText style={styles.driverName} numberOfLines={1}>{d.display_name}</AppText>
                       {isSelf && (
                         <View style={styles.youTag}>
-                          <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                          <AppText style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</AppText>
                         </View>
                       )}
                     </View>
                     <View style={[styles.seatBadge, isFull && styles.seatBadgeFull]}>
                       <UserRound size={13} color={isFull ? colors.error : colors.cta} strokeWidth={2.4} />
-                      <Text style={[styles.seatBadgeText, isFull && styles.seatBadgeTextFull]}>
+                      <AppText style={[styles.seatBadgeText, isFull && styles.seatBadgeTextFull]}>
                         {isFull
                           ? t('group.full', { defaultValue: 'Complet' })
                           : t('group.freeSeatsShort', { count: d.free, defaultValue: d.free === 1 ? '1 libre' : `${d.free} libres` })}
-                      </Text>
+                      </AppText>
                     </View>
                   </View>
 
@@ -549,7 +550,7 @@ export function GroupCard({
                           hitSlop={4}
                         >
                           <MapPin size={13} color={colors.cta} strokeWidth={2.4} />
-                          <Text style={[styles.jFrom, d.transport_from_lat != null && styles.jFromLink]} numberOfLines={2}>{d.transport_from_name ?? d.transport_from_locality}</Text>
+                          <AppText style={[styles.jFrom, d.transport_from_lat != null && styles.jFromLink]} numberOfLines={2}>{d.transport_from_name ?? d.transport_from_locality}</AppText>
                           {d.transport_from_lat != null && d.transport_from_lng != null ? (
                             <Navigation size={12} color={colors.cta} strokeWidth={2.4} />
                           ) : null}
@@ -558,8 +559,8 @@ export function GroupCard({
                       {d.transport_departs_at ? (
                         <View style={styles.jTime}>
                           <Clock size={12} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.jTimeLabel}>{t('group.departLabel', { defaultValue: 'départ' })}</Text>
-                          <Text style={styles.jTimeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</Text>
+                          <AppText style={styles.jTimeLabel}>{t('group.departLabel', { defaultValue: 'départ' })}</AppText>
+                          <AppText style={styles.jTimeText}>{dayjs(d.transport_departs_at).format('H[h]mm')}</AppText>
                         </View>
                       ) : null}
                     </View>
@@ -582,11 +583,11 @@ export function GroupCard({
                           ))}
                         </View>
                       )}
-                      <Text style={styles.paxLbl} numberOfLines={1}>
+                      <AppText style={styles.paxLbl} numberOfLines={1}>
                         {driverPassengers.length > 0
                           ? t('group.aboardCount', { count: d.accepted, defaultValue: `${d.accepted} à bord` })
                           : t('group.noPassengers', { defaultValue: 'Aucun passager' })}
-                      </Text>
+                      </AppText>
                       {driverPassengers.length > 0 && (
                         <ChevronDown
                           size={13} color={colors.textSecondary} strokeWidth={2.4}
@@ -599,15 +600,15 @@ export function GroupCard({
                       : isMyDriver ? (
                         <View style={styles.statusPillSet}>
                           <Check size={10} color={colors.cta} strokeWidth={3} />
-                          <Text style={[styles.statusPillText, { color: colors.cta }]}>
+                          <AppText style={[styles.statusPillText, { color: colors.cta }]}>
                             {t('group.youAreAboard', { defaultValue: 'À bord' })}
-                          </Text>
+                          </AppText>
                         </View>
                       ) : isPendingFromMe ? (
                         <View style={styles.statusPillPending}>
-                          <Text style={[styles.statusPillText, { color: colors.textMuted }]}>
+                          <AppText style={[styles.statusPillText, { color: colors.textMuted }]}>
                             {t('group.pendingRequest', { defaultValue: 'En attente' })}
-                          </Text>
+                          </AppText>
                         </View>
                       ) : (!isFull && canReserve) ? (
                         <Pressable
@@ -615,7 +616,7 @@ export function GroupCard({
                           onPress={(e) => { e.stopPropagation(); onReserveSeat(d.user_id); }}
                           hitSlop={4}
                         >
-                          <Text style={styles.reserveBtnText}>{t('group.reserve', { defaultValue: 'Réserver' })}</Text>
+                          <AppText style={styles.reserveBtnText}>{t('group.reserve', { defaultValue: 'Réserver' })}</AppText>
                         </Pressable>
                       ) : null}
                   </View>
@@ -632,23 +633,23 @@ export function GroupCard({
                         >
                           <View style={styles.passengerHeader}>
                             <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={18} />
-                            <Text style={styles.passengerName} numberOfLines={1}>{p.display_name}</Text>
+                            <AppText style={styles.passengerName} numberOfLines={1}>{p.display_name}</AppText>
                           </View>
                           {(p.pickup_from || p.requested_pickup_at) && (
                             <View style={styles.passengerMetaRow}>
                               {p.pickup_from && (
                                 <>
                                   <MapPin size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                  <Text style={styles.passengerMetaText} numberOfLines={1}>{p.pickup_from}</Text>
+                                  <AppText style={styles.passengerMetaText} numberOfLines={1}>{p.pickup_from}</AppText>
                                 </>
                               )}
                               {p.pickup_from && p.requested_pickup_at && (
-                                <Text style={styles.passengerMetaText}>·</Text>
+                                <AppText style={styles.passengerMetaText}>·</AppText>
                               )}
                               {p.requested_pickup_at && (
                                 <>
                                   <Clock size={10} color={colors.textMuted} strokeWidth={2.2} />
-                                  <Text style={styles.passengerMetaText}>{dayjs(p.requested_pickup_at).format('H[h]mm')}</Text>
+                                  <AppText style={styles.passengerMetaText}>{dayjs(p.requested_pickup_at).format('H[h]mm')}</AppText>
                                 </>
                               )}
                             </View>
@@ -679,10 +680,10 @@ export function GroupCard({
                 <View key={bucket} style={styles.transportCategory}>
                   <View style={styles.transportCategoryHeader}>
                     <Icon size={13} color={colors.textPrimary} strokeWidth={2.4} />
-                    <Text style={styles.transportCategoryLabel}>
+                    <AppText style={styles.transportCategoryLabel}>
                       {t(`group.transportCategory.${bucket}`, { defaultValue: bucket })}
-                    </Text>
-                    <Text style={styles.transportCategoryCount}>· {list.length}</Text>
+                    </AppText>
+                    <AppText style={styles.transportCategoryCount}>· {list.length}</AppText>
                   </View>
                   <View style={styles.selfMoversList}>
                     {list.map((p) => {
@@ -706,12 +707,12 @@ export function GroupCard({
                           />
                           <View style={styles.selfMoverInfo}>
                             <View style={styles.selfMoverNameRow}>
-                              <Text style={styles.selfMoverName} numberOfLines={1}>
+                              <AppText style={styles.selfMoverName} numberOfLines={1}>
                                 {p.display_name}
-                              </Text>
+                              </AppText>
                               {isSelf && (
                                 <View style={styles.youTag}>
-                                  <Text style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                                  <AppText style={styles.youTagText}>{t('group.youTag', { defaultValue: 'Toi' })}</AppText>
                                 </View>
                               )}
                             </View>
@@ -720,18 +721,18 @@ export function GroupCard({
                                 {place && (
                                   <>
                                     <MapPin size={10} color={colors.textSecondary} strokeWidth={2.2} />
-                                    <Text style={styles.selfMoverMetaText} numberOfLines={1}>
+                                    <AppText style={styles.selfMoverMetaText} numberOfLines={1}>
                                       {place}
-                                    </Text>
+                                    </AppText>
                                   </>
                                 )}
                                 {place && time && (
-                                  <Text style={styles.selfMoverMetaText}>·</Text>
+                                  <AppText style={styles.selfMoverMetaText}>·</AppText>
                                 )}
                                 {time && (
                                   <>
                                     <Clock size={10} color={colors.textSecondary} strokeWidth={2.2} />
-                                    <Text style={styles.selfMoverMetaText}>{time}</Text>
+                                    <AppText style={styles.selfMoverMetaText}>{time}</AppText>
                                   </>
                                 )}
                               </View>
@@ -746,11 +747,11 @@ export function GroupCard({
             })}
 
             {drivers.length === 0 && selfMovers.length === 0 && (
-              <Text style={styles.emptyHint}>
+              <AppText style={styles.emptyHint}>
                 {t('group.noTransportYet', {
                   defaultValue: 'Personne n\'a encore dit comment il y va',
                 })}
-              </Text>
+              </AppText>
             )}
           </View>
         )}
@@ -762,11 +763,11 @@ export function GroupCard({
                 dashed tile adds. */}
             <View style={styles.gearSection}>
               <View style={styles.collapsibleHeader}>
-                <Text style={styles.gearSecTitle}>
+                <AppText style={styles.gearSecTitle}>
                   {t('group.gearSection.groupBag', { defaultValue: 'Le sac du groupe' })}
-                </Text>
+                </AppText>
                 {groupItems.length > 0 && (
-                  <Text style={styles.transportCategoryCount}>· {groupItems.length}</Text>
+                  <AppText style={styles.transportCategoryCount}>· {groupItems.length}</AppText>
                 )}
               </View>
               {(groupItems.length > 0 || isActive) && (
@@ -781,9 +782,9 @@ export function GroupCard({
                         disabled={!isActive}
                         hitSlop={4}
                       >
-                        <Text style={styles.gearTileName} numberOfLines={2}>{g.name}</Text>
+                        <AppText style={styles.gearTileName} numberOfLines={2}>{g.name}</AppText>
                         <View style={styles.gearTileFoot}>
-                          <Text style={[styles.gearTileQty, total <= 1 && styles.gearTileQtyOne]}>×{total}</Text>
+                          <AppText style={[styles.gearTileQty, total <= 1 && styles.gearTileQtyOne]}>×{total}</AppText>
                           <View style={styles.gearTileAvatars}>
                             {g.bringers.slice(0, 4).map((b, i) => (
                               <View key={b.user_id} style={[styles.gearTileAvatar, i > 0 && styles.gearTileAvatarOverlap]}>
@@ -791,7 +792,7 @@ export function GroupCard({
                               </View>
                             ))}
                             {g.bringers.length > 4 && (
-                              <Text style={styles.gearTileMore}>+{g.bringers.length - 4}</Text>
+                              <AppText style={styles.gearTileMore}>+{g.bringers.length - 4}</AppText>
                             )}
                           </View>
                         </View>
@@ -803,9 +804,9 @@ export function GroupCard({
                       <View style={styles.gearTileAddPlus}>
                         <Plus size={14} color="#FFFFFF" strokeWidth={3} />
                       </View>
-                      <Text style={styles.gearTileAddText}>
+                      <AppText style={styles.gearTileAddText}>
                         {t('group.addGearShort', { defaultValue: 'Ajouter' })}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   )}
                 </View>
@@ -819,11 +820,11 @@ export function GroupCard({
             {(missingItems.length > 0 || isActive) && (
               <View style={[styles.gearSection, styles.gearSectionSpacer]}>
                 <View style={styles.collapsibleHeader}>
-                  <Text style={styles.gearSecTitle}>
+                  <AppText style={styles.gearSecTitle}>
                     {t('group.gearSection.missing', { defaultValue: 'Manquant' })}
-                  </Text>
+                  </AppText>
                   {missingItems.length > 0 && (
-                    <Text style={styles.transportCategoryCount}>· {missingItems.length}</Text>
+                    <AppText style={styles.transportCategoryCount}>· {missingItems.length}</AppText>
                   )}
                 </View>
                 <View style={styles.tileBoard}>
@@ -834,10 +835,10 @@ export function GroupCard({
                           <X size={13} color={colors.textMuted} strokeWidth={2.4} />
                         </Pressable>
                       )}
-                      <Text style={styles.gearTileName} numberOfLines={2}>
+                      <AppText style={styles.gearTileName} numberOfLines={2}>
                         {m.name}
-                        {m.quantity > 1 && <Text style={styles.missQty}>{'  ×' + m.quantity}</Text>}
-                      </Text>
+                        {m.quantity > 1 && <AppText style={styles.missQty}>{'  ×' + m.quantity}</AppText>}
+                      </AppText>
                       <View style={styles.gearTileFoot}>
                         {isActive ? (
                           <Pressable
@@ -853,9 +854,9 @@ export function GroupCard({
                             }}
                             hitSlop={4}
                           >
-                            <Text style={styles.missBringText}>
+                            <AppText style={styles.missBringText}>
                               {t('group.iBringIt', { defaultValue: "Je l'apporte" })}
-                            </Text>
+                            </AppText>
                           </Pressable>
                         ) : <View />}
                       </View>
@@ -870,9 +871,9 @@ export function GroupCard({
                       <View style={[styles.gearTileAddPlus, styles.missAddPlus]}>
                         <Plus size={14} color="#FFFFFF" strokeWidth={3} />
                       </View>
-                      <Text style={styles.missAddText}>
+                      <AppText style={styles.missAddText}>
                         {t('group.reportMissing', { defaultValue: 'Signaler un manque' })}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   )}
                 </View>
@@ -888,9 +889,9 @@ export function GroupCard({
               return (
                 <View style={[styles.gearSection, styles.gearSectionSpacer]}>
                   <View style={styles.collapsibleHeader}>
-                    <Text style={styles.gearSecTitle}>
+                    <AppText style={styles.gearSecTitle}>
                       {t('group.gearSection.ownBag', { defaultValue: 'Chacun son sac' })}
-                    </Text>
+                    </AppText>
                   </View>
                   <View style={styles.persList}>
                     {personal.map((b) => {
@@ -904,14 +905,14 @@ export function GroupCard({
                         >
                           <UserAvatar name={b.display_name} avatarUrl={b.avatar_url} size={30} />
                           <View style={styles.persNameWrap}>
-                            <Text style={styles.persName} numberOfLines={1}>{b.display_name}</Text>
+                            <AppText style={styles.persName} numberOfLines={1}>{b.display_name}</AppText>
                             {isSelf && (
-                              <Text style={styles.persToi}>{t('group.youTag', { defaultValue: 'Toi' })}</Text>
+                              <AppText style={styles.persToi}>{t('group.youTag', { defaultValue: 'Toi' })}</AppText>
                             )}
                           </View>
-                          <Text style={styles.persItems}>
+                          <AppText style={styles.persItems}>
                             {b.items.map((it) => (it.quantity > 1 ? `${it.name} ×${it.quantity}` : it.name)).join(' · ')}
-                          </Text>
+                          </AppText>
                         </Pressable>
                       );
                     })}
@@ -921,11 +922,11 @@ export function GroupCard({
             })()}
 
             {groupItems.length === 0 && bringers.length === 0 && !isActive && (
-              <Text style={styles.emptyHint}>
+              <AppText style={styles.emptyHint}>
                 {t('group.noGearYet', {
                   defaultValue: 'Personne n\'a encore listé de matériel',
                 })}
-              </Text>
+              </AppText>
             )}
           </View>
         )}

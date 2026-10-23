@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import Svg, { Path, Circle, G } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
@@ -110,7 +111,7 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
           {isBike ? (
             <Image source={bikeGlyph} tintColor={white} style={styles.bike} contentFit="contain" />
           ) : (
-            <Text style={styles.letter}>{initial}</Text>
+            <AppText style={styles.letter}>{initial}</AppText>
           )}
         </View>
       )}

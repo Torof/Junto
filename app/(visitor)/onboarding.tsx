@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -45,29 +46,29 @@ export default function OnboardingScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>{t('onboarding.welcome')}</Text>
-        <Text style={styles.subtitle}>{t('onboarding.completeProfile')}</Text>
+        <AppText style={styles.title}>{t('onboarding.welcome')}</AppText>
+        <AppText style={styles.subtitle}>{t('onboarding.completeProfile')}</AppText>
 
         <View style={styles.privacyCard}>
           <ShieldCheck size={22} color={colors.cta} strokeWidth={2.2} style={styles.privacyIcon} />
           <View style={styles.privacyTextWrap}>
-            <Text style={styles.privacyTitle}>{t('onboarding.privacyTitle')}</Text>
-            <Text style={styles.privacyBody}>{t('onboarding.privacyBody')}</Text>
+            <AppText style={styles.privacyTitle}>{t('onboarding.privacyTitle')}</AppText>
+            <AppText style={styles.privacyBody}>{t('onboarding.privacyBody')}</AppText>
           </View>
         </View>
 
         <Pressable style={styles.checkbox} onPress={() => setAgeConfirmed(!ageConfirmed)}>
           <View style={[styles.checkboxBox, ageConfirmed && styles.checkboxChecked]}>
-            {ageConfirmed && <Text style={styles.checkmark}>✓</Text>}
+            {ageConfirmed && <AppText style={styles.checkmark}>✓</AppText>}
           </View>
-          <Text style={styles.checkboxLabel}>{t('onboarding.confirmAdult')}</Text>
+          <AppText style={styles.checkboxLabel}>{t('onboarding.confirmAdult')}</AppText>
         </Pressable>
 
         <Pressable style={styles.checkbox} onPress={() => setTosAccepted(!tosAccepted)}>
           <View style={[styles.checkboxBox, tosAccepted && styles.checkboxChecked]}>
-            {tosAccepted && <Text style={styles.checkmark}>✓</Text>}
+            {tosAccepted && <AppText style={styles.checkmark}>✓</AppText>}
           </View>
-          <Text style={styles.checkboxLabel}>{t('onboarding.acceptTos')}</Text>
+          <AppText style={styles.checkboxLabel}>{t('onboarding.acceptTos')}</AppText>
         </Pressable>
 
         <Pressable
@@ -78,7 +79,7 @@ export default function OnboardingScreen() {
           {isLoading ? (
             <LogoSpinner size={20} />
           ) : (
-            <Text style={styles.buttonText}>{t('onboarding.continue')}</Text>
+            <AppText style={styles.buttonText}>{t('onboarding.continue')}</AppText>
           )}
         </Pressable>
       </ScrollView>

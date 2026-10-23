@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Text, StyleSheet } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -32,7 +33,7 @@ export function MapToast() {
   if (!visible || !message) return null;
   return (
     <Animated.View style={[styles.pill, { opacity }]} pointerEvents="none">
-      <Text style={styles.text} numberOfLines={1}>{message}</Text>
+      <AppText style={styles.text} numberOfLines={1}>{message}</AppText>
     </Animated.View>
   );
 }

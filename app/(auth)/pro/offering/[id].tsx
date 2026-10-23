@@ -1,6 +1,7 @@
 import { Redirect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useLayoutEffect } from 'react';
 import { useColors } from '@/hooks/use-theme';
@@ -44,7 +45,7 @@ export default function ProOfferingDetailScreen() {
   if (!offering) {
     return (
       <View style={styles.center}>
-        <Text style={styles.notFound}>{t('proOffering.notFound')}</Text>
+        <AppText style={styles.notFound}>{t('proOffering.notFound')}</AppText>
       </View>
     );
   }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -49,7 +50,7 @@ export function KeyboardDoneBar() {
     <Animated.View style={[styles.bar, barStyle]}>
       <View style={styles.spacer} />
       <Pressable onPress={() => Keyboard.dismiss()} hitSlop={8} style={styles.btn}>
-        <Text style={styles.btnText}>{t('common.done', { defaultValue: 'Terminé' })}</Text>
+        <AppText style={styles.btnText}>{t('common.done', { defaultValue: 'Terminé' })}</AppText>
         <Check size={16} color={colors.cta} strokeWidth={2.6} />
       </Pressable>
     </Animated.View>

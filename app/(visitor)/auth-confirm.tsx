@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -68,10 +69,10 @@ export default function AuthConfirmScreen() {
   if (phase === 'signedIn') {
     return (
       <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <Text style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</Text>
-        <Text style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</Text>
+        <AppText style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</AppText>
+        <AppText style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</AppText>
         <Pressable style={styles.primaryButton} onPress={() => router.replace('/')}>
-          <Text style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</Text>
+          <AppText style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</AppText>
         </Pressable>
       </View>
     );
@@ -80,12 +81,12 @@ export default function AuthConfirmScreen() {
   if (phase === 'invalid') {
     return (
       <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <Text style={styles.title}>{t('auth.confirmInvalidTitle', { defaultValue: 'Lien expiré' })}</Text>
-        <Text style={styles.subtitle}>
+        <AppText style={styles.title}>{t('auth.confirmInvalidTitle', { defaultValue: 'Lien expiré' })}</AppText>
+        <AppText style={styles.subtitle}>
           {t('auth.confirmInvalidBody', { defaultValue: 'Ce lien de confirmation n\'est plus valide. Connecte-toi avec ton email et ton mot de passe.' })}
-        </Text>
+        </AppText>
         <Pressable style={styles.primaryButton} onPress={() => router.replace('/(visitor)/login')}>
-          <Text style={styles.primaryButtonText}>{t('auth.backToLogin', { defaultValue: 'Retour à la connexion' })}</Text>
+          <AppText style={styles.primaryButtonText}>{t('auth.backToLogin', { defaultValue: 'Retour à la connexion' })}</AppText>
         </Pressable>
       </View>
     );
@@ -94,7 +95,7 @@ export default function AuthConfirmScreen() {
   return (
     <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <LogoSpinner />
-      <Text style={styles.subtitle}>{t('auth.confirmVerifying', { defaultValue: 'Connexion en cours…' })}</Text>
+      <AppText style={styles.subtitle}>{t('auth.confirmVerifying', { defaultValue: 'Connexion en cours…' })}</AppText>
     </View>
   );
 }

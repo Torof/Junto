@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, ScrollView, TextInput, StyleSheet, Modal, Pressable } from 'react-native';
+import { View, FlatList, ScrollView, StyleSheet, Modal, Pressable } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -67,7 +68,7 @@ export default function PartnersDiscussionsScreen() {
         <PressableScale style={styles.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('common.back', { defaultValue: 'Retour' })}>
           <ChevronLeft size={20} color={colors.textPrimary} strokeWidth={2.6} />
         </PressableScale>
-        <Text style={styles.title}>{t('partenaires.channels', { defaultValue: 'Discussions' })}</Text>
+        <AppText style={styles.title}>{t('partenaires.channels', { defaultValue: 'Discussions' })}</AppText>
         <PressableScale style={styles.add} onPress={() => router.push('/(auth)/create-channel')} accessibilityRole="button" accessibilityLabel={t('partenaires.openDiscussion', { defaultValue: 'Ouvrir une discussion' })}>
           <Plus size={20} color="#FFFFFF" strokeWidth={2.8} />
         </PressableScale>
@@ -78,7 +79,7 @@ export default function PartnersDiscussionsScreen() {
       <View style={styles.searchBlock}>
         <View style={styles.search}>
           <Search size={18} color={colors.textPrimary} strokeWidth={2.4} />
-          <TextInput
+          <AppTextInput
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
@@ -88,13 +89,13 @@ export default function PartnersDiscussionsScreen() {
           />
         </View>
         <View style={styles.whereRow}>
-          <Text style={styles.whereLabel}>{t('partenaires.where', { defaultValue: 'Où ?' })}</Text>
+          <AppText style={styles.whereLabel}>{t('partenaires.where', { defaultValue: 'Où ?' })}</AppText>
           <PressableScale style={styles.wherePill} onPress={() => setShowFilters(true)} accessibilityRole="button">
             {near ? <MapPin size={14} color={colors.cta} strokeWidth={2.6} /> : <Globe size={14} color={colors.cta} strokeWidth={2.4} />}
-            <Text style={styles.wherePillText} numberOfLines={1}>
+            <AppText style={styles.wherePillText} numberOfLines={1}>
               {near ? near.label : t('partenaires.everywhere', { defaultValue: 'Partout' })}
               {sportKey ? ` · ${t(`sports.${sportKey}`, { defaultValue: sportKey })}` : ''}
-            </Text>
+            </AppText>
             <ChevronDown size={14} color={colors.textPrimary} strokeWidth={2.6} />
           </PressableScale>
           {near ? (
@@ -106,12 +107,12 @@ export default function PartnersDiscussionsScreen() {
         <View style={styles.shortcuts}>
           {currentLocation ? (
             <PressableScale style={styles.shortcut} onPress={useMyLocation}>
-              <Text style={styles.shortcutText}>{t('partenaires.aroundMe', { defaultValue: 'Autour de moi' })}</Text>
+              <AppText style={styles.shortcutText}>{t('partenaires.aroundMe', { defaultValue: 'Autour de moi' })}</AppText>
             </PressableScale>
           ) : null}
           {mine ? (
             <PressableScale style={styles.shortcut} onPress={() => setNear({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label })}>
-              <Text style={styles.shortcutText}>{t('partenaires.aroundMyDispo', { defaultValue: 'Autour de ma dispo' })}</Text>
+              <AppText style={styles.shortcutText}>{t('partenaires.aroundMyDispo', { defaultValue: 'Autour de ma dispo' })}</AppText>
             </PressableScale>
           ) : null}
         </View>
@@ -120,24 +121,24 @@ export default function PartnersDiscussionsScreen() {
       <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills} keyboardShouldPersistTaps="handled">
           <PressableScale style={[styles.pill, !universe ? styles.pillOn : styles.pillOff]} onPress={() => setUniverse(null)}>
-            <Text style={[styles.pillText, !universe && styles.pillTextOn]}>{t('partenaires.all', { defaultValue: 'Tous' })}</Text>
+            <AppText style={[styles.pillText, !universe && styles.pillTextOn]}>{t('partenaires.all', { defaultValue: 'Tous' })}</AppText>
           </PressableScale>
           {UNIVERSES.map((u) => {
             const c = sportCategoryColor(u, colors.cta);
             const on = universe === u;
             return (
               <PressableScale key={u} style={[styles.pill, { backgroundColor: on ? c : c + '1A' }]} onPress={() => setUniverse(on ? null : u)}>
-                <Text style={[styles.pillText, { color: on ? '#FFFFFF' : c }]}>{t(`partenaires.universe.${u}`)}</Text>
+                <AppText style={[styles.pillText, { color: on ? '#FFFFFF' : c }]}>{t(`partenaires.universe.${u}`)}</AppText>
               </PressableScale>
             );
           })}
         </ScrollView>
       </View>
-      <Text style={styles.sortLine}>
+      <AppText style={styles.sortLine}>
         {near
           ? t('partenaires.sortNear', { defaultValue: 'Autour de {{place}} · les plus proches d’abord', place: near.label })
           : t('partenaires.sortActive', { defaultValue: 'Partout · les plus suivies d’abord' })}
-      </Text>
+      </AppText>
 
       {isLoading ? (
         <View style={styles.center}><LogoSpinner size={40} /></View>
@@ -151,7 +152,7 @@ export default function PartnersDiscussionsScreen() {
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={<Text style={styles.empty}>{t('channels.none', { defaultValue: 'Aucune discussion ici pour l’instant. Crée le premier !' })}</Text>}
+          ListEmptyComponent={<AppText style={styles.empty}>{t('channels.none', { defaultValue: 'Aucune discussion ici pour l’instant. Crée le premier !' })}</AppText>}
         />
       )}
 
@@ -160,22 +161,22 @@ export default function PartnersDiscussionsScreen() {
         <Pressable style={styles.backdrop} onPress={() => setShowFilters(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.sheetHead}>
-              <Text style={styles.sheetTitle}>{t('channels.filters', { defaultValue: 'Filtres' })}</Text>
+              <AppText style={styles.sheetTitle}>{t('channels.filters', { defaultValue: 'Filtres' })}</AppText>
               <Pressable onPress={() => setShowFilters(false)} hitSlop={8}><X size={22} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
             </View>
             <CollapsibleSection title={t('channels.filterLocation', { defaultValue: 'Localisation' })} summary={near?.label ?? null} defaultExpanded={!!near}>
               {near && (
                 <View style={styles.chosenRow}>
                   <MapPin size={14} color={colors.cta} strokeWidth={2.4} />
-                  <Text style={styles.chosen} numberOfLines={1}>{near.label}</Text>
-                  <Text style={styles.clear} onPress={() => setNear(null)}>{t('channels.clear', { defaultValue: 'retirer' })}</Text>
+                  <AppText style={styles.chosen} numberOfLines={1}>{near.label}</AppText>
+                  <AppText style={styles.clear} onPress={() => setNear(null)}>{t('channels.clear', { defaultValue: 'retirer' })}</AppText>
                 </View>
               )}
               <PlaceSearchBar onSelect={(p) => setNear({ lng: p.lng, lat: p.lat, label: p.label })} />
               {currentLocation && (
                 <Pressable style={styles.myPos} onPress={useMyLocation}>
                   <MapPin size={15} color={colors.cta} strokeWidth={2.4} />
-                  <Text style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</Text>
+                  <AppText style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</AppText>
                 </Pressable>
               )}
             </CollapsibleSection>
@@ -183,7 +184,7 @@ export default function PartnersDiscussionsScreen() {
               <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))} label={t('map.sportLabel')} />
             </CollapsibleSection>
             <PressableScale style={styles.apply} onPress={() => setShowFilters(false)}>
-              <Text style={styles.applyText}>{t('channels.applyFilters', { defaultValue: 'Voir les discussions' })}</Text>
+              <AppText style={styles.applyText}>{t('channels.applyFilters', { defaultValue: 'Voir les discussions' })}</AppText>
             </PressableScale>
           </Pressable>
         </Pressable>

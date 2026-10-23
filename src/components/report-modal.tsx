@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useTranslation } from 'react-i18next';
@@ -50,10 +51,10 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
         <Animated.View style={imePadding}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>{t('report.title')}</Text>
-          <Text style={styles.subtitle}>{t('report.subtitle')}</Text>
+          <AppText style={styles.title}>{t('report.title')}</AppText>
+          <AppText style={styles.subtitle}>{t('report.subtitle')}</AppText>
 
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={reason}
             onChangeText={setReason}
@@ -63,14 +64,14 @@ export function ReportModal({ visible, targetType, targetId, onClose }: ReportMo
             maxLength={1000}
           />
 
-          <Text style={styles.charCount}>{reason.length}/1000</Text>
+          <AppText style={styles.charCount}>{reason.length}/1000</AppText>
 
           <Pressable
             style={[styles.submitButton, (reason.trim().length < 10 || isSending) && styles.disabled]}
             onPress={handleSubmit}
             disabled={reason.trim().length < 10 || isSending}
           >
-            <Text style={styles.submitText}>{isSending ? '...' : t('report.submit')}</Text>
+            <AppText style={styles.submitText}>{isSending ? '...' : t('report.submit')}</AppText>
           </Pressable>
         </Pressable>
         </Animated.View>

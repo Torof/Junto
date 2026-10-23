@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
@@ -29,34 +30,34 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {/* Title */}
-      <Text style={styles.title} numberOfLines={2}>
+      <AppText style={styles.title} numberOfLines={2}>
         {activity.title}
-      </Text>
+      </AppText>
 
       {/* Sport + places chips on same row */}
       <View style={styles.chipsRow}>
         <View style={[styles.sportChip, { backgroundColor: sportAccent + '40', borderColor: sportAccent }]}>
-          <Text style={[styles.sportChipText, { color: sportAccent }]} numberOfLines={1}>
+          <AppText style={[styles.sportChipText, { color: sportAccent }]} numberOfLines={1}>
             {t(`sports.${activity.sport_key}`, activity.sport_key)}
-          </Text>
+          </AppText>
         </View>
         <View style={[styles.placesChip, isFull && styles.placesChipFull]}>
-          <Text style={[styles.placesChipText, isFull && styles.placesChipTextFull]}>
+          <AppText style={[styles.placesChipText, isFull && styles.placesChipTextFull]}>
             {isOpen ? `${activity.participant_count} · ${t('create.openActivityValue')}` : `${activity.participant_count}/${activity.max_participants}`}
-          </Text>
+          </AppText>
         </View>
       </View>
 
       {activity.objective_name && (
-        <Text style={styles.objectiveName} numberOfLines={1}>📍 {activity.objective_name}</Text>
+        <AppText style={styles.objectiveName} numberOfLines={1}>📍 {activity.objective_name}</AppText>
       )}
 
       {/* Date */}
       <View style={styles.row}>
         <Calendar size={12} color={colors.textPrimary} strokeWidth={2} />
-        <Text style={styles.value}>
+        <AppText style={styles.value}>
           {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
-        </Text>
+        </AppText>
       </View>
 
       {/* Difficulty signal — sport-adaptive */}
@@ -68,7 +69,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
             <View style={styles.divider} />
             <View style={styles.row}>
               <BarChart2 size={12} color={colors.textPrimary} strokeWidth={2} />
-              <Text style={styles.value}>{signal}</Text>
+              <AppText style={styles.value}>{signal}</AppText>
             </View>
           </>
         );
@@ -77,7 +78,7 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
       {/* Affordance — testers tapped pins but not the open popup; this
           makes "tap to open the full activity" explicit. */}
       <View style={styles.seeMore}>
-        <Text style={styles.seeMoreText}>{t('map.seeMore')}</Text>
+        <AppText style={styles.seeMoreText}>{t('map.seeMore')}</AppText>
         <ChevronRight size={12} color={colors.cta} strokeWidth={2.5} />
       </View>
     </Pressable>

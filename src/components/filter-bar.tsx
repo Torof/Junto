@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Animated, View, Text, Pressable, StyleSheet } from 'react-native';
+import { Animated, View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { SlidersHorizontal, Users, BadgeCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { showMapToast } from '@/store/map-toast-store';
@@ -70,7 +71,7 @@ export function FilterButton({ onPress, blink = false }: Props) {
           <SlidersHorizontal size={18} color={hasActive ? colors.cta : colors.textPrimary} strokeWidth={2.4} />
           {hasActive && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{activeCount}</Text>
+              <AppText style={styles.badgeText}>{activeCount}</AppText>
             </View>
           )}
         </View>

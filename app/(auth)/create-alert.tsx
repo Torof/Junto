@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Slider from '@react-native-community/slider';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
@@ -100,7 +101,7 @@ export default function CreateAlertScreen() {
       <Stack.Screen options={{ headerTitle: t('alerts.title') }} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerBlock}>
-          <Text style={styles.screenSubtitle}>{t('alerts.subtitle')}</Text>
+          <AppText style={styles.screenSubtitle}>{t('alerts.subtitle')}</AppText>
         </View>
 
         <Pressable style={styles.mapPreview} onPress={() => setShowMap(true)}>
@@ -110,15 +111,15 @@ export default function CreateAlertScreen() {
             pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}
           />
           <View style={styles.mapPreviewOverlay}>
-            <Text style={styles.mapHintText}>
+            <AppText style={styles.mapHintText}>
               {location ? '✓ ' + t('alerts.locationSet') : t('alerts.tapMap')}
-            </Text>
+            </AppText>
           </View>
         </Pressable>
 
         <View style={styles.radiusHeader}>
-          <Text style={styles.labelInline}>{t('alerts.radius')}</Text>
-          <Text style={styles.radiusValue}>{radiusKm} km</Text>
+          <AppText style={styles.labelInline}>{t('alerts.radius')}</AppText>
+          <AppText style={styles.radiusValue}>{radiusKm} km</AppText>
         </View>
         <View style={styles.sliderWrap}>
           <Slider
@@ -132,12 +133,12 @@ export default function CreateAlertScreen() {
             thumbTintColor={colors.cta}
           />
           <View style={styles.sliderBounds}>
-            <Text style={styles.sliderBoundText}>5 km</Text>
-            <Text style={styles.sliderBoundText}>200 km</Text>
+            <AppText style={styles.sliderBoundText}>5 km</AppText>
+            <AppText style={styles.sliderBoundText}>200 km</AppText>
           </View>
         </View>
 
-        <Text style={styles.label}>{t('alerts.sport')}</Text>
+        <AppText style={styles.label}>{t('alerts.sport')}</AppText>
         <View style={styles.fieldPad}>
           <SportDropdown
             selected={sportKeys}
@@ -147,7 +148,7 @@ export default function CreateAlertScreen() {
           />
         </View>
 
-        <Text style={styles.label}>{t('alerts.level')}</Text>
+        <AppText style={styles.label}>{t('alerts.level')}</AppText>
         <View style={styles.chipRow}>
           {LEVELS.map((l) => {
             const active = levels.includes(l);
@@ -157,27 +158,27 @@ export default function CreateAlertScreen() {
                 style={[styles.chip, active && styles.chipActive]}
                 onPress={() => toggleLevel(l)}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{l}</Text>
+                <AppText style={[styles.chipText, active && styles.chipTextActive]}>{l}</AppText>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.label}>{t('alerts.period')}</Text>
+        <AppText style={styles.label}>{t('alerts.period')}</AppText>
         <View style={styles.chipRow}>
           <Pressable style={[styles.chip, startsOn && styles.chipActive]} onPress={() => setShowStartsPicker(true)}>
-            <Text style={[styles.chipText, startsOn && styles.chipTextActive]}>
+            <AppText style={[styles.chipText, startsOn && styles.chipTextActive]}>
               {startsOn ? dayjs(startsOn).format('D MMM YYYY') : t('alerts.from')}
-            </Text>
+            </AppText>
           </Pressable>
           <Pressable style={[styles.chip, endsOn && styles.chipActive]} onPress={() => setShowEndsPicker(true)}>
-            <Text style={[styles.chipText, endsOn && styles.chipTextActive]}>
+            <AppText style={[styles.chipText, endsOn && styles.chipTextActive]}>
               {endsOn ? dayjs(endsOn).format('D MMM YYYY') : t('alerts.to')}
-            </Text>
+            </AppText>
           </Pressable>
           {(startsOn || endsOn) && (
             <Pressable style={styles.chip} onPress={() => { setStartsOn(null); setEndsOn(null); }}>
-              <Text style={styles.chipText}>{t('alerts.clearPeriod')}</Text>
+              <AppText style={styles.chipText}>{t('alerts.clearPeriod')}</AppText>
             </Pressable>
           )}
         </View>
@@ -199,23 +200,23 @@ export default function CreateAlertScreen() {
           onPress={handleCreate}
           disabled={!location || isSaving}
         >
-          <Text style={styles.createText}>{isSaving ? '...' : t('alerts.create')}</Text>
+          <AppText style={styles.createText}>{isSaving ? '...' : t('alerts.create')}</AppText>
         </Pressable>
 
         {(alerts ?? []).length > 0 && (
           <View style={styles.alertsList}>
-            <Text style={styles.label}>{t('alerts.existing')}</Text>
+            <AppText style={styles.label}>{t('alerts.existing')}</AppText>
             {(alerts ?? []).map((alert) => (
               <View key={alert.id} style={styles.alertRow}>
                 <View style={styles.alertInfo}>
-                  <Text style={styles.alertText} numberOfLines={2}>
+                  <AppText style={styles.alertText} numberOfLines={2}>
                     {alert.sport_key ? t(`sports.${alert.sport_key}`, alert.sport_key) : t('alerts.anySport')}
                     {' · '}{alert.radius_km} km
                     {alert.levels && alert.levels.length > 0 ? ` · ${alert.levels.join(', ')}` : ''}
                     {alert.starts_on || alert.ends_on
                       ? ` · ${alert.starts_on ? dayjs(alert.starts_on).format('D MMM') : '…'}→${alert.ends_on ? dayjs(alert.ends_on).format('D MMM') : '…'}`
                       : ''}
-                  </Text>
+                  </AppText>
                 </View>
                 <Pressable onPress={() => handleDelete(alert.id)} hitSlop={6} style={styles.alertDeleteBtn}>
                   <X size={16} color={colors.error} strokeWidth={2.4} />
@@ -237,11 +238,11 @@ export default function CreateAlertScreen() {
 
           {location ? (
             <Pressable style={styles.mapHintBar} onPress={() => setShowMap(false)}>
-              <Text style={styles.mapHintBarText}>✓ {t('alerts.locationSet')}</Text>
+              <AppText style={styles.mapHintBarText}>✓ {t('alerts.locationSet')}</AppText>
             </Pressable>
           ) : (
             <View style={styles.mapHintBar} pointerEvents="none">
-              <Text style={styles.mapHintBarText}>{t('alerts.tapMap')}</Text>
+              <AppText style={styles.mapHintBarText}>{t('alerts.tapMap')}</AppText>
             </View>
           )}
 

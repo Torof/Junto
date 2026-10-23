@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -44,9 +44,9 @@ export function PhotoGallery({ photos, emptyText, onDelete, canDelete }: PhotoGa
   if (photos.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>
+        <AppText style={styles.emptyText}>
           {emptyText ?? t('photoGallery.empty', { defaultValue: 'Aucune photo pour le moment.' })}
-        </Text>
+        </AppText>
       </View>
     );
   }

@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +9,7 @@ import {
   Platform,
   Modal,
 } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -393,8 +392,8 @@ export default function ProOfferingEditScreen() {
 
   const DetailRow = ({ k, label, summary }: { k: DetailKey; label: string; summary: string }) => (
     <Pressable style={styles.detailRow} onPress={() => toggleDetail(k)} accessibilityRole="button">
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailSummary} numberOfLines={1}>{summary}</Text>
+      <AppText style={styles.detailLabel}>{label}</AppText>
+      <AppText style={styles.detailSummary} numberOfLines={1}>{summary}</AppText>
       {openDetails[k]
         ? <ChevronUp size={18} color={colors.textMuted} strokeWidth={2.2} />
         : <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />}
@@ -405,8 +404,8 @@ export default function ProOfferingEditScreen() {
     <View style={styles.tagsWrap}>
       {items.map((it, i) => (
         <Pressable key={`${it}${i}`} style={[styles.tag, tint && styles.tagTint]} onPress={() => onRemove(i)}>
-          <Text style={styles.tagText}>{it}</Text>
-          <Text style={styles.tagX}>✕</Text>
+          <AppText style={styles.tagText}>{it}</AppText>
+          <AppText style={styles.tagX}>✕</AppText>
         </Pressable>
       ))}
     </View>
@@ -418,7 +417,7 @@ export default function ProOfferingEditScreen() {
     value: string; onChange: (v: string) => void; onCommit: () => void; placeholder: string; label: string; primary: boolean;
   }) => (
     <View style={styles.tagInputRow}>
-      <TextInput
+      <AppTextInput
         style={[styles.input, { flex: 1 }]}
         value={value}
         onChangeText={onChange}
@@ -458,14 +457,14 @@ export default function ProOfferingEditScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>
+        <AppText style={styles.title}>
           {isEdit
             ? t('proOffering.editOutingTitle', { defaultValue: 'Modifier la sortie' })
             : t('proOffering.newOutingTitle', { defaultValue: 'Nouvelle sortie' })}
-        </Text>
-        <Text style={styles.subtitle}>
+        </AppText>
+        <AppText style={styles.subtitle}>
           {t('proOffering.essentialsHint', { defaultValue: 'L’essentiel suffit pour publier. Les détails sont optionnels.' })}
-        </Text>
+        </AppText>
 
         {/* ---------- L'essentiel ---------- */}
         <Field label={t('proOffering.sport')} styles={styles}>
@@ -480,7 +479,7 @@ export default function ProOfferingEditScreen() {
         </Field>
 
         <Field label={t('proOffering.title')} styles={styles}>
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={title}
             onChangeText={setTitle}
@@ -491,7 +490,7 @@ export default function ProOfferingEditScreen() {
         </Field>
 
         <Field label={t('proOffering.descShort', { defaultValue: 'En deux lignes' })} styles={styles}>
-          <TextInput
+          <AppTextInput
             style={[styles.input, styles.textarea]}
             value={description}
             onChangeText={setDescription}
@@ -513,7 +512,7 @@ export default function ProOfferingEditScreen() {
           />
           <View style={styles.placeRow}>
             <MapPin size={16} color={locationLng !== null ? colors.cta : colors.textMuted} strokeWidth={2.4} />
-            <TextInput
+            <AppTextInput
               style={[styles.input, { flex: 1 }]}
               value={locationName}
               onChangeText={setLocationName}
@@ -522,14 +521,14 @@ export default function ProOfferingEditScreen() {
               maxLength={100}
             />
             <Pressable style={styles.adjustBtn} onPress={openMapPicker} hitSlop={6}>
-              <Text style={styles.adjustBtnText}>{t('proOffering.adjustOnMap', { defaultValue: 'Carte' })}</Text>
+              <AppText style={styles.adjustBtnText}>{t('proOffering.adjustOnMap', { defaultValue: 'Carte' })}</AppText>
             </Pressable>
           </View>
-          <Text style={styles.helper}>
+          <AppText style={styles.helper}>
             {isEdit
               ? t('proOffering.meetingPlaceHintEdit', { defaultValue: 'Tape un lieu pour changer, ou ajuste sur la carte.' })
               : t('proOffering.meetingPlaceHint', { defaultValue: 'Ton adresse, par défaut. Tape pour changer, ou ajuste sur la carte.' })}
-          </Text>
+          </AppText>
         </Field>
 
         <Field label={t('proOffering.duration', { defaultValue: 'Durée' })} styles={styles}>
@@ -538,14 +537,14 @@ export default function ProOfferingEditScreen() {
               const on = durationPreset === c.key;
               return (
                 <Pressable key={c.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setDurationPreset(on ? null : c.key)}>
-                  <Text style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</Text>
+                  <AppText style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</AppText>
                 </Pressable>
               );
             })}
           </View>
           {durationPreset === 'other' && (
             <View style={[styles.row2, { marginTop: spacing.sm }]}>
-              <TextInput
+              <AppTextInput
                 style={[styles.input, { flex: 1 }]}
                 value={durationHours}
                 onChangeText={setDurationHours}
@@ -554,7 +553,7 @@ export default function ProOfferingEditScreen() {
                 keyboardType="number-pad"
                 maxLength={2}
               />
-              <TextInput
+              <AppTextInput
                 style={[styles.input, { flex: 1 }]}
                 value={durationMinutes}
                 onChangeText={setDurationMinutes}
@@ -569,7 +568,7 @@ export default function ProOfferingEditScreen() {
 
         <Field label={`${t('proOffering.price', { defaultValue: 'Prix indicatif (€)' })} ${t('proOffering.optionalMark', { defaultValue: '· optionnel' })}`} styles={styles}>
           <View style={styles.priceRow}>
-            <TextInput
+            <AppTextInput
               style={[styles.input, styles.priceInput]}
               value={priceEur}
               onChangeText={setPriceEur}
@@ -585,19 +584,19 @@ export default function ProOfferingEditScreen() {
                 onPress={() => setPriceUnit(unit)}
                 disabled={priceEur === ''}
               >
-                <Text style={[styles.chipText, priceEur !== '' && priceUnit === unit && styles.chipTextOn]}>
+                <AppText style={[styles.chipText, priceEur !== '' && priceUnit === unit && styles.chipTextOn]}>
                   {unit === 'person'
                     ? t('proOffering.pricePerPerson', { defaultValue: 'par pers.' })
                     : t('proOffering.pricePerGroup', { defaultValue: 'par groupe' })}
-                </Text>
+                </AppText>
               </Pressable>
             ))}
           </View>
         </Field>
 
         {/* ---------- Détails (repliés) ---------- */}
-        <Text style={styles.section}>{t('proOffering.detailsTitle', { defaultValue: 'Détails' })}</Text>
-        <Text style={styles.helper}>{t('proOffering.detailsHint', { defaultValue: 'Tout est optionnel · ouvre ce qui te sert' })}</Text>
+        <AppText style={styles.section}>{t('proOffering.detailsTitle', { defaultValue: 'Détails' })}</AppText>
+        <AppText style={styles.helper}>{t('proOffering.detailsHint', { defaultValue: 'Tout est optionnel · ouvre ce qui te sert' })}</AppText>
 
         <DetailRow k="level" label={t('proOffering.level')} summary={levelSummary} />
         {openDetails.level && (
@@ -605,7 +604,7 @@ export default function ProOfferingEditScreen() {
             <View style={styles.chipRow}>
               {OFFERING_LEVELS.map((lvl) => (
                 <Pressable key={lvl} style={[styles.chip, level === lvl && styles.chipOn]} onPress={() => setLevel(lvl)}>
-                  <Text style={[styles.chipText, level === lvl && styles.chipTextOn]}>{lvl}</Text>
+                  <AppText style={[styles.chipText, level === lvl && styles.chipTextOn]}>{lvl}</AppText>
                 </Pressable>
               ))}
             </View>
@@ -617,10 +616,10 @@ export default function ProOfferingEditScreen() {
           <View style={styles.detailBody}>
             <View style={styles.row2}>
               <Field label={t('proOffering.minParticipants', { defaultValue: 'Participants min' })} styles={styles}>
-                <TextInput style={styles.input} value={minParticipants} onChangeText={setMinParticipants} placeholder="4" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
+                <AppTextInput style={styles.input} value={minParticipants} onChangeText={setMinParticipants} placeholder="4" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
               </Field>
               <Field label={t('proOffering.maxParticipants')} styles={styles}>
-                <TextInput style={styles.input} value={maxParticipants} onChangeText={setMaxParticipants} placeholder={t('proOffering.maxParticipantsPlaceholder')} placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
+                <AppTextInput style={styles.input} value={maxParticipants} onChangeText={setMaxParticipants} placeholder={t('proOffering.maxParticipantsPlaceholder')} placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
               </Field>
             </View>
           </View>
@@ -629,22 +628,22 @@ export default function ProOfferingEditScreen() {
         <DetailRow k="gear" label={t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })} summary={gearSummary} />
         {openDetails.gear && (
           <View style={styles.detailBody}>
-            <Text style={styles.fieldLabel}>{t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' })}</Text>
+            <AppText style={styles.fieldLabel}>{t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' })}</AppText>
             <TagList items={equipProvided} onRemove={(i) => setEquipProvided(equipProvided.filter((_, j) => j !== i))} tint />
             {renderTagInput({ value: equipProvidedDraft, onChange: setEquipProvidedDraft, onCommit: commitProvided, placeholder: t('proOffering.equipAddPlaceholderShort', { defaultValue: 'Ex. : baudrier' }), label: t('proOffering.equipProvided', { defaultValue: 'Fourni par toi' }), primary: true })}
-            <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>{t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' })}</Text>
+            <AppText style={[styles.fieldLabel, { marginTop: spacing.md }]}>{t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' })}</AppText>
             <TagList items={equipRequired} onRemove={(i) => setEquipRequired(equipRequired.filter((_, j) => j !== i))} tint={false} />
             {renderTagInput({ value: equipRequiredDraft, onChange: setEquipRequiredDraft, onCommit: commitRequired, placeholder: t('proOffering.equipAddPlaceholderReq', { defaultValue: 'Ex. : gants' }), label: t('proOffering.equipRequired', { defaultValue: 'À apporter par le client' }), primary: false })}
-            <Text style={styles.helper}>{t('proOffering.equipHelper', { defaultValue: 'Affiché sur l’offre et rappelé au client sur sa réservation.' })}</Text>
+            <AppText style={styles.helper}>{t('proOffering.equipHelper', { defaultValue: 'Affiché sur l’offre et rappelé au client sur sa réservation.' })}</AppText>
           </View>
         )}
 
         <DetailRow k="form" label={t('proOffering.sectionParticipantForm', { defaultValue: 'Fiche participant' })} summary={formSummary} />
         {openDetails.form && (
           <View style={styles.detailBody}>
-            <Text style={styles.helper}>
+            <AppText style={styles.helper}>
               {t('proOffering.participantFormHelper', { defaultValue: 'Ce que tu dois savoir sur chaque participant. Le client remplit après confirmation.' })}
-            </Text>
+            </AppText>
             {([['shoe_size', t('booking.fShoe', { defaultValue: 'Pointure' })],
                ['height', t('booking.fHeight', { defaultValue: 'Taille' })],
                ['weight', t('booking.fWeight', { defaultValue: 'Poids' })],
@@ -660,17 +659,17 @@ export default function ProOfferingEditScreen() {
                   accessibilityState={{ checked: on }}
                 >
                   <View style={[styles.checkBox, on && styles.checkBoxOn]}>
-                    {on ? <Text style={styles.checkMark}>✓</Text> : null}
+                    {on ? <AppText style={styles.checkMark}>✓</AppText> : null}
                   </View>
-                  <Text style={styles.checkLabel}>{label}</Text>
+                  <AppText style={styles.checkLabel}>{label}</AppText>
                 </Pressable>
               );
             })}
             {pCustom.map((q, i) => (
               <Pressable key={`${q}${i}`} style={styles.checkRow} onPress={() => setPCustom(pCustom.filter((_, j) => j !== i))}>
-                <View style={[styles.checkBox, styles.checkBoxOn]}><Text style={styles.checkMark}>✓</Text></View>
-                <Text style={styles.checkLabel} numberOfLines={1}>{q}</Text>
-                <Text style={styles.tagX}>✕</Text>
+                <View style={[styles.checkBox, styles.checkBoxOn]}><AppText style={styles.checkMark}>✓</AppText></View>
+                <AppText style={styles.checkLabel} numberOfLines={1}>{q}</AppText>
+                <AppText style={styles.tagX}>✕</AppText>
               </Pressable>
             ))}
             {pCustom.length < 3 ? (
@@ -684,15 +683,15 @@ export default function ProOfferingEditScreen() {
           <View style={styles.detailBody}>
             <View style={styles.row2}>
               <Field label={t('proOffering.distance')} styles={styles}>
-                <TextInput style={styles.input} value={distanceKm} onChangeText={setDistanceKm} placeholder="10" placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" maxLength={6} />
+                <AppTextInput style={styles.input} value={distanceKm} onChangeText={setDistanceKm} placeholder="10" placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" maxLength={6} />
               </Field>
               <Field label={t('proOffering.elevation')} styles={styles}>
-                <TextInput style={styles.input} value={elevationGainM} onChangeText={setElevationGainM} placeholder="500" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={5} />
+                <AppTextInput style={styles.input} value={elevationGainM} onChangeText={setElevationGainM} placeholder="500" placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={5} />
               </Field>
             </View>
             <Field label={t('proOffering.schedule')} styles={styles}>
-              <TextInput style={styles.input} value={scheduleText} onChangeText={setScheduleText} placeholder={t('proOffering.schedulePlaceholder')} placeholderTextColor={colors.textMuted} maxLength={100} />
-              <Text style={styles.helper}>{t('proOffering.scheduleHelper')}</Text>
+              <AppTextInput style={styles.input} value={scheduleText} onChangeText={setScheduleText} placeholder={t('proOffering.schedulePlaceholder')} placeholderTextColor={colors.textMuted} maxLength={100} />
+              <AppText style={styles.helper}>{t('proOffering.scheduleHelper')}</AppText>
             </Field>
           </View>
         )}
@@ -700,7 +699,7 @@ export default function ProOfferingEditScreen() {
         {isEdit && (
           <Pressable style={styles.deleteButton} onPress={handleDelete}>
             <Trash2 size={16} color={colors.error} strokeWidth={2} />
-            <Text style={styles.deleteButtonText}>{t('proOffering.delete')}</Text>
+            <AppText style={styles.deleteButtonText}>{t('proOffering.delete')}</AppText>
           </Pressable>
         )}
       </ScrollView>
@@ -712,13 +711,13 @@ export default function ProOfferingEditScreen() {
           onPress={handleSubmit}
           disabled={saving}
         >
-          <Text style={styles.ctaText}>
+          <AppText style={styles.ctaText}>
             {saving
               ? t('proOffering.saving')
               : isEdit
                 ? t('proOffering.save')
                 : t('proOffering.publish', { defaultValue: 'Publier la sortie' })}
-          </Text>
+          </AppText>
         </PressableScale>
       </View>
 
@@ -748,7 +747,7 @@ export default function ProOfferingEditScreen() {
             onPress={() => setShowMapPicker(false)}
             hitSlop={8}
           >
-            <Text style={styles.fullMapCloseText}>✕</Text>
+            <AppText style={styles.fullMapCloseText}>✕</AppText>
           </Pressable>
           <Pressable
             style={[styles.fullMapConfirm, { bottom: insets.bottom + 24 }, pickerPinLng === null && styles.fullMapConfirmDisabled]}
@@ -756,7 +755,7 @@ export default function ProOfferingEditScreen() {
             disabled={pickerPinLng === null}
           >
             <Check size={16} color={colors.onCta} strokeWidth={2.6} />
-            <Text style={styles.fullMapConfirmText}>{t('proOffering.locationConfirm')}</Text>
+            <AppText style={styles.fullMapConfirmText}>{t('proOffering.locationConfirm')}</AppText>
           </Pressable>
         </SafeAreaView>
       </Modal>
@@ -775,7 +774,7 @@ function Field({
 }) {
   return (
     <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <AppText style={styles.fieldLabel}>{label}</AppText>
       {children}
     </View>
   );

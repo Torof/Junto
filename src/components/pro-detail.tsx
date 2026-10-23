@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, type ComponentRef } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -64,28 +65,28 @@ function ReviewMiniCard({
       <View style={styles.reviewMiniHead}>
         <UserAvatar name={review.reviewer_name ?? '?'} avatarUrl={review.reviewer_avatar} size={28} />
         <View style={styles.reviewMiniWho}>
-          <Text style={styles.reviewMiniName} numberOfLines={1}>{review.reviewer_name ?? '?'}</Text>
+          <AppText style={styles.reviewMiniName} numberOfLines={1}>{review.reviewer_name ?? '?'}</AppText>
           <View style={styles.reviewMiniMeta}>
             <StarRating rating={review.rating} size={12} />
-            <Text style={styles.reviewMiniDate}>{dayjs(review.created_at).format('D MMM YYYY')}</Text>
+            <AppText style={styles.reviewMiniDate}>{dayjs(review.created_at).format('D MMM YYYY')}</AppText>
           </View>
         </View>
       </View>
       {review.body ? (
         <>
-          <Text style={styles.reviewMiniBody} numberOfLines={5}>{review.body}</Text>
+          <AppText style={styles.reviewMiniBody} numberOfLines={5}>{review.body}</AppText>
           {/* Invisible measuring copy at the exact content width (an absolute
               copy with left/right:0 would span the padding box and under-count
               lines). Explicit width + opacity:0 guarantees it lays out, so
               onTextLayout reliably reports the true uncapped line count. */}
-          <Text
+          <AppText
             style={[styles.reviewMiniBody, styles.reviewMeasure]}
             pointerEvents="none"
             onTextLayout={(e) => setTruncated(e.nativeEvent.lines.length > 5)}
           >
             {review.body}
-          </Text>
-          {truncated ? <Text style={styles.reviewMiniMore}>{moreLabel}</Text> : null}
+          </AppText>
+          {truncated ? <AppText style={styles.reviewMiniMore}>{moreLabel}</AppText> : null}
         </>
       ) : null}
     </Pressable>
@@ -381,14 +382,14 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
         ) : null}
         <View style={styles.headerRow}>
           <View style={styles.headerInfo}>
-            <Text style={styles.proLabel}>{t('pro.label', { defaultValue: 'Page professionnelle' })}</Text>
-            <Text style={styles.headerName} numberOfLines={1}>{pro.display_name}</Text>
-            {pro.tagline ? <Text style={styles.tagline}>{pro.tagline}</Text> : null}
+            <AppText style={styles.proLabel}>{t('pro.label', { defaultValue: 'Page professionnelle' })}</AppText>
+            <AppText style={styles.headerName} numberOfLines={1}>{pro.display_name}</AppText>
+            {pro.tagline ? <AppText style={styles.tagline}>{pro.tagline}</AppText> : null}
             {reviewStats && reviewStats.review_count > 0 ? (
               <Pressable style={styles.heroStatsRow} onPress={() => setActiveTab('reviews')} hitSlop={6}>
-                <Text style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                <AppText style={styles.heroStatsAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</AppText>
                 {renderHeroStars(Number(reviewStats.avg_rating))}
-                <Text style={styles.heroStatsCount}>({reviewStats.review_count})</Text>
+                <AppText style={styles.heroStatsCount}>({reviewStats.review_count})</AppText>
               </Pressable>
             ) : null}
           </View>
@@ -413,7 +414,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                   <Image source={{ uri: ownerProfile.avatar_url }} style={styles.ownerAvatar} />
                 ) : (
                   <View style={[styles.ownerAvatar, styles.ownerAvatarPlaceholder]}>
-                    <Text style={styles.ownerAvatarInitial}>{ownerProfile.display_name.charAt(0).toUpperCase()}</Text>
+                    <AppText style={styles.ownerAvatarInitial}>{ownerProfile.display_name.charAt(0).toUpperCase()}</AppText>
                   </View>
                 )}
               </Pressable>
@@ -466,7 +467,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
           <View style={styles.photoStackCol}>
             <Pressable onPress={() => setActiveTab('pictures')} style={[styles.photoSmall, styles.photoActionTile]}>
               <LayoutGrid size={16} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.photoActionText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</Text>
+              <AppText style={styles.photoActionText}>{t('pro.seeAll', { defaultValue: 'Voir tout' })}</AppText>
             </Pressable>
             {/* The owner feeds the GALLERY (cap 25); everyone else contributes
                 a community photo (cap 5). Same tile, two destinations — the
@@ -476,7 +477,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                 <Camera size={16} color={colors.cta} strokeWidth={2.4} />
                 <Plus size={12} color={colors.cta} strokeWidth={3} />
               </View>
-              <Text style={styles.photoActionText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+              <AppText style={styles.photoActionText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
             </Pressable>
           </View>
         </GHScrollView>
@@ -508,7 +509,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
               accessibilityState={{ selected: isActiveTab }}
               accessibilityLabel={t(`pro.tab.${tab}`, { defaultValue: tab })}
             >
-              <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
+              <AppText style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                 {t(`pro.tab.${tab}`, {
                   defaultValue:
                     tab === 'info' ? 'Aperçu'
@@ -516,7 +517,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                       : tab === 'catalog' ? 'Catalogue'
                       : 'Avis',
                 })}
-              </Text>
+              </AppText>
             </Pressable>
           );
         })}
@@ -537,9 +538,9 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
             {offerings.length > 0 && (
               <View style={styles.overviewBlock}>
                 <View style={styles.catHeaderRow}>
-                  <Text style={styles.sectionTitleStrong}>{t('pro.tab.catalog', { defaultValue: 'Catalogue' })}</Text>
+                  <AppText style={styles.sectionTitleStrong}>{t('pro.tab.catalog', { defaultValue: 'Catalogue' })}</AppText>
                   <Pressable onPress={() => selectTab('catalog')} hitSlop={6}>
-                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</Text>
+                    <AppText style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</AppText>
                   </Pressable>
                 </View>
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
@@ -555,36 +556,36 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                       >
                         <View style={styles.catMiniTop}>
                           <View style={[styles.catMiniChip, { backgroundColor: accent + '1A' }]}>
-                            <Text style={[styles.catMiniChipText, { color: accent }]} numberOfLines={1}>
+                            <AppText style={[styles.catMiniChipText, { color: accent }]} numberOfLines={1}>
                               {t(`sports.${o.sport_key}`, { defaultValue: o.sport_key })}
-                            </Text>
+                            </AppText>
                           </View>
                           {showRating ? (
                             <View style={styles.catMiniRating}>
-                              <Text style={styles.catMiniRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
+                              <AppText style={styles.catMiniRatingText}>{Number(o.avg_rating).toFixed(1)}</AppText>
                               <Star size={11} color={colors.star} fill={colors.star} strokeWidth={1.8} />
                             </View>
                           ) : null}
                         </View>
-                        <Text style={styles.catMiniTitle} numberOfLines={2}>{o.title}</Text>
+                        <AppText style={styles.catMiniTitle} numberOfLines={2}>{o.title}</AppText>
                         {/* Same tinted-pill model as the catalogue cards. */}
                         <View style={styles.expFacts}>
                           {o.level ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <BarChart3 size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{o.level}</Text>
+                              <AppText style={styles.expPillText}>{o.level}</AppText>
                             </View>
                           ) : null}
                           {duration ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Clock size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{duration}</Text>
+                              <AppText style={styles.expPillText}>{duration}</AppText>
                             </View>
                           ) : null}
                           {o.max_participants ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Users size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</Text>
+                              <AppText style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</AppText>
                             </View>
                           ) : null}
                         </View>
@@ -598,18 +599,18 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
             {/* ===== AVIS — carousel + actions ===== */}
             <View style={styles.overviewBlock}>
               <View style={styles.catHeaderRow}>
-                <Text style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</Text>
+                <AppText style={styles.sectionTitleStrong}>{t('pro.tab.reviews', { defaultValue: 'Avis' })}</AppText>
                 {reviews.length > 0 ? (
                   <Pressable onPress={() => selectTab('reviews')} hitSlop={6}>
-                    <Text style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</Text>
+                    <AppText style={styles.catSeeAll}>{t('pro.seeAll', { defaultValue: 'Voir tout' })} ›</AppText>
                   </Pressable>
                 ) : null}
               </View>
               {reviewStats && reviewStats.review_count > 0 ? (
                 <View style={styles.reviewSummary}>
-                  <Text style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+                  <AppText style={styles.reviewAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</AppText>
                   <Star size={14} color={colors.star} fill={colors.star} strokeWidth={1.8} />
-                  <Text style={styles.reviewCount}>({reviewStats.review_count})</Text>
+                  <AppText style={styles.reviewCount}>({reviewStats.review_count})</AppText>
                 </View>
               ) : null}
 
@@ -626,13 +627,13 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                   ))}
                 </GHScrollView>
               ) : (
-                <Text style={styles.placeholderText}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</Text>
+                <AppText style={styles.placeholderText}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</AppText>
               )}
 
               {!isOwner ? (
                 <View style={styles.overviewButtons}>
                   <Pressable style={styles.primaryBtn} onPress={() => setActiveTab('reviews')}>
-                    <Text style={styles.primaryBtnText}>{t('reviews.writeOne', { defaultValue: 'Donner son avis' })}</Text>
+                    <AppText style={styles.primaryBtnText}>{t('reviews.writeOne', { defaultValue: 'Donner son avis' })}</AppText>
                   </Pressable>
                 </View>
               ) : null}
@@ -640,19 +641,19 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
 
             {/* ===== À PROPOS — flat (Google-style) ===== */}
             <View style={styles.aboutBlock}>
-              <Text style={styles.sectionTitleStrong}>{t('pro.about', { defaultValue: 'À propos' })}</Text>
+              <AppText style={styles.sectionTitleStrong}>{t('pro.about', { defaultValue: 'À propos' })}</AppText>
               {pro.description ? (
                 <View style={styles.aboutDesc}>
-                  <Text style={styles.descriptionBody}>
+                  <AppText style={styles.descriptionBody}>
                     {descExpanded || !descriptionOverflowing
                       ? description
                       : `${description.slice(0, COLLAPSED_DESCRIPTION_CHARS).trimEnd()}…`}
-                  </Text>
+                  </AppText>
                   {descriptionOverflowing ? (
                     <Pressable onPress={() => setDescExpanded((v) => !v)} hitSlop={6}>
-                      <Text style={styles.descriptionToggle}>
+                      <AppText style={styles.descriptionToggle}>
                         {descExpanded ? t('pro.descSeeLess', { defaultValue: 'Voir moins' }) : t('pro.descSeeMore', { defaultValue: 'Voir plus' })}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   ) : null}
                 </View>
@@ -674,7 +675,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                       ]}
                     >
                       <View style={styles.aboutRowIcon}>{item.icon}</View>
-                      <Text style={styles.aboutRowText} numberOfLines={1}>{item.text}</Text>
+                      <AppText style={styles.aboutRowText} numberOfLines={1}>{item.text}</AppText>
                       {item.external ? <ExternalLink size={14} color={colors.textMuted} strokeWidth={2} /> : null}
                     </Pressable>
                   );
@@ -699,7 +700,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                   <Camera size={16} color={colors.cta} strokeWidth={2.4} />
                   <Plus size={12} color={colors.cta} strokeWidth={3} />
                 </View>
-                <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+                <AppText style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
               </Pressable>
               <PhotoManager
                 photos={photos}
@@ -719,7 +720,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                   <Camera size={16} color={colors.cta} strokeWidth={2.4} />
                   <Plus size={12} color={colors.cta} strokeWidth={3} />
                 </View>
-                <Text style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</Text>
+                <AppText style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
               </Pressable>
               {/* One merged grid — owner gallery + community photos rendered
                   indistinguishably. Delete shows only on tiles the viewer can
@@ -751,25 +752,25 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                 onPress={() => router.push('/(auth)/pro/offering/edit')}
               >
                 <Plus size={16} color={colors.cta} strokeWidth={2.5} />
-                <Text style={styles.catalogCreateText}>
+                <AppText style={styles.catalogCreateText}>
                   {t('pro.catalogCreate', { defaultValue: 'Nouvelle activité' })}
-                </Text>
+                </AppText>
               </Pressable>
             )}
 
             {offerings.length === 0 ? (
               <View style={styles.infoCard}>
-                <Text style={styles.placeholderText}>
+                <AppText style={styles.placeholderText}>
                   {isOwner
                     ? t('pro.catalogEmptyOwner', { defaultValue: 'Aucune activité au catalogue. Ajoute-en une pour qu\'elle apparaisse sur la carte.' })
                     : t('pro.catalogEmpty', { defaultValue: 'Le catalogue est encore vide.' })}
-                </Text>
+                </AppText>
               </View>
             ) : (
               <>
-                <Text style={styles.catalogIntro}>
+                <AppText style={styles.catalogIntro}>
                   {t('pro.catalogIntro', { defaultValue: 'Les sorties proposées par {{name}}', name: pro.display_name })}
-                </Text>
+                </AppText>
                 {offerings.map((o) => {
                   const accent = sportCategoryColor(o.sport_category, colors.cta);
                   const duration = formatDuration(o.duration);
@@ -785,19 +786,19 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                           </View>
                         )}
                         <View style={styles.expSportPill}>
-                          <Text style={[styles.expSportPillText, { color: accent }]} numberOfLines={1}>
+                          <AppText style={[styles.expSportPillText, { color: accent }]} numberOfLines={1}>
                             {t(`sports.${o.sport_key}`, { defaultValue: o.sport_key })}
-                          </Text>
+                          </AppText>
                         </View>
                         {showRating ? (
                           <View style={styles.expRating}>
-                            <Text style={styles.expRatingText}>{Number(o.avg_rating).toFixed(1)}</Text>
+                            <AppText style={styles.expRatingText}>{Number(o.avg_rating).toFixed(1)}</AppText>
                             <Star size={11} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.8} />
                           </View>
                         ) : null}
                       </View>
                       <View style={styles.expBody}>
-                        <Text style={styles.expTitle} numberOfLines={2}>{o.title}</Text>
+                        <AppText style={styles.expTitle} numberOfLines={2}>{o.title}</AppText>
 
                         {/* Faits clés as tinted pills — scannable tags with
                             breathing room, not a run-on grey line. The light
@@ -807,31 +808,31 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                           {o.level ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <BarChart3 size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{o.level}</Text>
+                              <AppText style={styles.expPillText}>{o.level}</AppText>
                             </View>
                           ) : null}
                           {duration ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Clock size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{duration}</Text>
+                              <AppText style={styles.expPillText}>{duration}</AppText>
                             </View>
                           ) : null}
                           {o.max_participants ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Users size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</Text>
+                              <AppText style={styles.expPillText}>{t('pro.maxParticipants', { defaultValue: 'max {{count}}', count: o.max_participants })}</AppText>
                             </View>
                           ) : null}
                           {o.distance_km != null ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Route size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{o.distance_km} km</Text>
+                              <AppText style={styles.expPillText}>{o.distance_km} km</AppText>
                             </View>
                           ) : null}
                           {o.elevation_gain_m != null ? (
                             <View style={[styles.expPill, { backgroundColor: accent + '14' }]}>
                               <Mountain size={12} color={accent} strokeWidth={2.2} />
-                              <Text style={styles.expPillText}>{o.elevation_gain_m} m</Text>
+                              <AppText style={styles.expPillText}>{o.elevation_gain_m} m</AppText>
                             </View>
                           ) : null}
                         </View>
@@ -843,16 +844,16 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                           {o.schedule_text ? (
                             <View style={styles.expLineTop}>
                               <Calendar size={13} color={colors.pinMeeting} strokeWidth={2.4} style={styles.expLineIcon} />
-                              <Text style={styles.expLineText}>{o.schedule_text}</Text>
+                              <AppText style={styles.expLineText}>{o.schedule_text}</AppText>
                             </View>
                           ) : null}
                           <View style={styles.expLine}>
                             <MapPin size={13} color={colors.pinEnd} strokeWidth={2.4} />
-                            <Text style={styles.expLineText} numberOfLines={1}>{o.location_name}</Text>
+                            <AppText style={styles.expLineText} numberOfLines={1}>{o.location_name}</AppText>
                           </View>
                         </View>
 
-                        <Text style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail ›' })}</Text>
+                        <AppText style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail ›' })}</AppText>
                       </View>
                     </Pressable>
                   );
@@ -895,10 +896,10 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                 <View style={styles.reviewModalHead}>
                   <UserAvatar name={openReview.reviewer_name ?? '?'} avatarUrl={openReview.reviewer_avatar} size={40} />
                   <View style={styles.reviewMiniWho}>
-                    <Text style={styles.reviewModalName} numberOfLines={1}>{openReview.reviewer_name ?? '?'}</Text>
+                    <AppText style={styles.reviewModalName} numberOfLines={1}>{openReview.reviewer_name ?? '?'}</AppText>
                     <View style={styles.reviewMiniMeta}>
                       <StarRating rating={openReview.rating} size={14} />
-                      <Text style={styles.reviewMiniDate}>{dayjs(openReview.created_at).format('D MMM YYYY')}</Text>
+                      <AppText style={styles.reviewMiniDate}>{dayjs(openReview.created_at).format('D MMM YYYY')}</AppText>
                     </View>
                   </View>
                   <Pressable onPress={() => setOpenReview(null)} hitSlop={8} style={styles.reviewModalClose}>
@@ -906,7 +907,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
                   </Pressable>
                 </View>
                 <ScrollView style={styles.reviewModalBodyScroll} contentContainerStyle={styles.reviewModalBodyContent} showsVerticalScrollIndicator={false}>
-                  <Text style={styles.reviewModalBody}>{openReview.body}</Text>
+                  <AppText style={styles.reviewModalBody}>{openReview.body}</AppText>
                 </ScrollView>
               </>
             ) : null}
@@ -923,7 +924,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
             onPress={() => openLink(`https://www.google.com/maps/dir/?api=1&destination=${pro.primary_lat},${pro.primary_lng}`)}
           >
-            <Text style={styles.navigateText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</Text>
+            <AppText style={styles.navigateText}>{t('activity.navigate', { defaultValue: 'Y aller' })}</AppText>
           </Pressable>
         </SafeAreaView>
       </Modal>
@@ -989,7 +990,7 @@ function ActionButton({
   return (
     <Pressable style={styles.actionBtn} onPress={onPress} hitSlop={4}>
       <View style={styles.actionBtnIcon}>{icon}</View>
-      <Text style={styles.actionBtnLabel} numberOfLines={1}>{label}</Text>
+      <AppText style={styles.actionBtnLabel} numberOfLines={1}>{label}</AppText>
     </Pressable>
   );
 }

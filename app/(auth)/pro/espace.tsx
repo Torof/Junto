@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Linking, RefreshControl } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert, Linking, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -132,25 +133,25 @@ export default function ProSpaceScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
         <Stack.Screen options={{ title: t('booking.proSpace', { defaultValue: 'Espace pro' }) }} />
         <View style={styles.card}>
-          <Text style={styles.headName}>
+          <AppText style={styles.headName}>
             {rejected
               ? t('pro.statusRejectedTitle', { defaultValue: 'Demande refusée' })
               : t('pro.statusPendingTitle', { defaultValue: 'Demande en cours de validation' })}
-          </Text>
-          <Text style={[styles.emptyLine, { marginTop: spacing.xs }]}>
+          </AppText>
+          <AppText style={[styles.emptyLine, { marginTop: spacing.xs }]}>
             {rejected
               ? (proProfile.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' }))
               : t('pro.pendingBody', { defaultValue: 'Notre équipe vérifie ta demande. Tu reçois une notification dès qu’elle est validée, et ton espace s’ouvre ici.' })}
-          </Text>
+          </AppText>
           <Pressable
             style={({ pressed }) => [styles.btnPrimary, { marginTop: spacing.md }, pressed && styles.pressed]}
             onPress={() => router.push('/(auth)/pro/edit')}
           >
-            <Text style={styles.btnPrimaryText}>
+            <AppText style={styles.btnPrimaryText}>
               {rejected
                 ? t('pro.fixApplication', { defaultValue: 'Corriger ma demande' })
                 : t('pro.editApplication', { defaultValue: 'Modifier ma demande' })}
-            </Text>
+            </AppText>
           </Pressable>
         </View>
       </ScrollView>
@@ -173,10 +174,10 @@ export default function ProSpaceScreen() {
           <UserAvatar name={proProfile?.display_name ?? proProfile?.company_name ?? '?'} avatarUrl={null} size={48} />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.headName} numberOfLines={1}>{proProfile?.display_name ?? proProfile?.company_name ?? '…'}</Text>
-          <Text style={styles.headSub} numberOfLines={1}>
+          <AppText style={styles.headName} numberOfLines={1}>{proProfile?.display_name ?? proProfile?.company_name ?? '…'}</AppText>
+          <AppText style={styles.headSub} numberOfLines={1}>
             {t('booking.pagePublic', { defaultValue: 'Page publique active' })}
-          </Text>
+          </AppText>
         </View>
       </View>
 
@@ -184,29 +185,29 @@ export default function ProSpaceScreen() {
           Mes offres → Catalogue → Nouvelle activité (3 taps, audit 2026-10-08). */}
       <PressableScale style={[styles.newOutingBtn, glow(colors.cta)]} onPress={() => router.push('/(auth)/pro/offering/edit')}>
         <Plus size={18} color={colors.onCta} strokeWidth={2.6} />
-        <Text style={styles.newOutingText}>{t('booking.newOuting', { defaultValue: 'Nouvelle sortie' })}</Text>
+        <AppText style={styles.newOutingText}>{t('booking.newOuting', { defaultValue: 'Nouvelle sortie' })}</AppText>
       </PressableScale>
 
-      <Text style={styles.eyebrow}>
+      <AppText style={styles.eyebrow}>
         {t('booking.today', { defaultValue: 'Aujourd’hui' })} · {dayjs().format('ddd D MMM')}
-      </Text>
+      </AppText>
       <View style={styles.card}>
         {todayBookings.length === 0 ? (
-          <Text style={styles.emptyLine}>{t('booking.todayNone', { defaultValue: 'Aucune sortie aujourd’hui.' })}</Text>
+          <AppText style={styles.emptyLine}>{t('booking.todayNone', { defaultValue: 'Aucune sortie aujourd’hui.' })}</AppText>
         ) : todayBookings.map((b, i) => {
           const sc = sportCategoryColor(b.sport_category, colors.cta);
           return (
             <View key={b.id} style={[styles.todayLine, i > 0 && styles.todaySep]}>
               <View style={[styles.slotChip, { backgroundColor: sc + '1F' }]}>
-                <Text style={[styles.slotChipText, { color: sc }]}>{periodTag(b.period)}</Text>
+                <AppText style={[styles.slotChipText, { color: sc }]}>{periodTag(b.period)}</AppText>
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.todayName} numberOfLines={1}>{b.client_name ?? '—'} · {b.party_size} pers.</Text>
-                <Text style={styles.todaySub} numberOfLines={1}>
+                <AppText style={styles.todayName} numberOfLines={1}>{b.client_name ?? '—'} · {b.party_size} pers.</AppText>
+                <AppText style={styles.todaySub} numberOfLines={1}>
                   {b.offering_title} · {b.is_manual
                     ? t('booking.manualTag', { defaultValue: 'manuel' })
                     : t('booking.viaJunto', { defaultValue: 'via l’app' })}
-                </Text>
+                </AppText>
               </View>
               {b.is_manual && b.manual_phone ? (
                 <PressableScale style={styles.roundBtn} onPress={() => Linking.openURL(`tel:${b.manual_phone}`)} accessibilityLabel={t('booking.call', { defaultValue: 'Appeler' })}>
@@ -224,12 +225,12 @@ export default function ProSpaceScreen() {
 
       {pendings.length > 0 && firstPending && (
         <>
-          <Text style={styles.eyebrow}>
+          <AppText style={styles.eyebrow}>
             {t('booking.requests', { defaultValue: 'Demandes' })} · {pendings.length}{' '}
             {pendings.length > 1
               ? t('booking.requestsWaitingPlural', { defaultValue: 'en attente' })
               : t('booking.requestsWaiting', { defaultValue: 'en attente' })}
-          </Text>
+          </AppText>
           <View style={styles.card}>
             <PressableScale
               style={styles.reqHead}
@@ -238,35 +239,35 @@ export default function ProSpaceScreen() {
             >
               <UserAvatar name={firstPending.client_name ?? '?'} avatarUrl={null} size={36} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.reqName} numberOfLines={1}>
+                <AppText style={styles.reqName} numberOfLines={1}>
                   {firstPending.client_name ?? '—'} · {firstPending.party_size} pers.
-                </Text>
-                <Text style={[styles.reqMeta, { color: sportCategoryColor(firstPending.sport_category, colors.textSecondary) }]} numberOfLines={1}>
+                </AppText>
+                <AppText style={[styles.reqMeta, { color: sportCategoryColor(firstPending.sport_category, colors.textSecondary) }]} numberOfLines={1}>
                   {firstPending.offering_title} — {dayjs(firstPending.day).format('ddd D MMM')}, {firstPending.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
-                </Text>
+                </AppText>
               </View>
             </PressableScale>
-            {firstPending.message ? <Text style={styles.reqMsg} numberOfLines={2}>« {firstPending.message} »</Text> : null}
+            {firstPending.message ? <AppText style={styles.reqMsg} numberOfLines={2}>« {firstPending.message} »</AppText> : null}
             <View style={styles.reqActs}>
               <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => handleDecline(firstPending)}>
-                <Text style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</Text>
+                <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
               </Pressable>
               <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressed]} onPress={() => handleAccept(firstPending)}>
-                <Text style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</Text>
+                <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
               </Pressable>
             </View>
           </View>
           {pendings.length > 1 && (
             <PressableScale onPress={() => router.push('/(auth)/pro/agenda')}>
-              <Text style={styles.seeAll}>
+              <AppText style={styles.seeAll}>
                 {t('booking.seeAllRequests', { defaultValue: 'Voir les {{count}} demandes ›', count: pendings.length })}
-              </Text>
+              </AppText>
             </PressableScale>
           )}
         </>
       )}
 
-      <Text style={styles.eyebrow}>{t('booking.manage', { defaultValue: 'Gérer' })}</Text>
+      <AppText style={styles.eyebrow}>{t('booking.manage', { defaultValue: 'Gérer' })}</AppText>
       <View style={styles.tiles}>
         <Tile
           styles={styles}
@@ -318,10 +319,10 @@ function Tile({ icon, title, sub, badge, onPress, styles }: {
     <PressableScale style={styles.tile} onPress={onPress} accessibilityLabel={title}>
       <View style={styles.tileTop}>
         <View style={styles.ico}>{icon}</View>
-        {badge ? <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View> : null}
+        {badge ? <View style={styles.badge}><AppText style={styles.badgeText}>{badge}</AppText></View> : null}
       </View>
-      <Text style={styles.tileTitle}>{title}</Text>
-      <Text style={styles.tileSub} numberOfLines={1}>{sub}</Text>
+      <AppText style={styles.tileTitle}>{title}</AppText>
+      <AppText style={styles.tileSub} numberOfLines={1}>{sub}</AppText>
     </PressableScale>
   );
 }

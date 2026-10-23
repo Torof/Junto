@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, TextInput, Modal } from 'react-native';
+import { View, Pressable, StyleSheet, Modal } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Search, X, Check } from 'lucide-react-native';
@@ -61,8 +62,8 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
   return (
     <>
       <Pressable style={[styles.trigger, selectedCount > 0 && styles.triggerActive]} onPress={() => setOpen(true)}>
-        <Text style={[styles.triggerText, selectedCount > 0 && styles.triggerTextActive]}>{displayLabel}</Text>
-        <Text style={styles.arrow}>▼</Text>
+        <AppText style={[styles.triggerText, selectedCount > 0 && styles.triggerTextActive]}>{displayLabel}</AppText>
+        <AppText style={styles.arrow}>▼</AppText>
       </Pressable>
 
       {/* Full-screen top-anchored search: field pinned at the top, results fill
@@ -72,7 +73,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
       <Modal visible={open} animationType="slide" onRequestClose={closeSheet}>
         <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
           <View style={styles.header}>
-            <Text style={styles.title}>{label ?? t('sportDropdown.select')}</Text>
+            <AppText style={styles.title}>{label ?? t('sportDropdown.select')}</AppText>
             <Pressable onPress={closeSheet} hitSlop={10} accessibilityLabel={t('common.close', { defaultValue: 'Fermer' })}>
               <X size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
@@ -80,7 +81,7 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
 
           <View style={styles.searchBar}>
             <Search size={18} color={colors.textSecondary} strokeWidth={2.2} />
-            <TextInput
+            <AppTextInput
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
@@ -102,9 +103,9 @@ export function SportDropdown({ selected, onSelect, multiSelect = false, label }
                   onPress={() => handleSelect(sport.key)}
                 >
                   <View style={styles.itemIconBox}><SportIcon sportKey={sport.key} size={20} /></View>
-                  <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
+                  <AppText style={[styles.itemText, isSelected && styles.itemTextSelected]}>
                     {t(`sports.${sport.key}`, sport.key)}
-                  </Text>
+                  </AppText>
                   {isSelected && <Check size={18} color={colors.cta} strokeWidth={2.6} />}
                 </Pressable>
               );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Modal, Pressable, SectionList, StyleSheet, TextInput } from 'react-native';
+import { View, Modal, Pressable, SectionList, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -98,27 +99,27 @@ export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, i
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</Text>
+          <AppText style={styles.title}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</AppText>
 
           {loading ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : sections.length === 0 ? (
-            <Text style={styles.empty}>
+            <AppText style={styles.empty}>
               {t('contacts.inviteEmpty', { defaultValue: 'Ajoute des contacts, ou fais des sorties pour retrouver tes partenaires ici.' })}
-            </Text>
+            </AppText>
           ) : (
             <SectionList
               sections={sections}
               keyExtractor={(item) => item.id}
               stickySectionHeadersEnabled={false}
               style={styles.list}
-              renderSectionHeader={({ section }) => <Text style={styles.section}>{section.title}</Text>}
+              renderSectionHeader={({ section }) => <AppText style={styles.section}>{section.title}</AppText>}
               renderItem={({ item }) => {
                 const on = selected.has(item.id);
                 return (
                   <Pressable style={styles.row} onPress={() => toggle(item.id)}>
                     <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={40} />
-                    <Text style={styles.name} numberOfLines={1}>{item.display_name}</Text>
+                    <AppText style={styles.name} numberOfLines={1}>{item.display_name}</AppText>
                     <View style={[styles.check, on && styles.checkOn]}>
                       {on && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
                     </View>
@@ -129,7 +130,7 @@ export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, i
           )}
 
           {!selectMode && sections.length > 0 && (
-            <TextInput
+            <AppTextInput
               style={styles.messageInput}
               value={message}
               onChangeText={setMessage}
@@ -145,13 +146,13 @@ export function InvitePartnersSheet({ visible, activityId, onClose, onConfirm, i
             disabled={selected.size === 0 || sending}
             onPress={handleInvite}
           >
-            <Text style={styles.ctaText}>
+            <AppText style={styles.ctaText}>
               {sending
                 ? t('contacts.inviting', { defaultValue: 'Envoi…' })
                 : selectMode
                   ? t('contacts.selectCta', { defaultValue: 'Ajouter ({{count}})', count: selected.size })
                   : t('contacts.inviteCta', { defaultValue: 'Inviter ({{count}})', count: selected.size })}
-            </Text>
+            </AppText>
           </Pressable>
         </Pressable>
       </Pressable>

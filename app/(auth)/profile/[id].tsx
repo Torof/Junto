@@ -1,4 +1,5 @@
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Modal, TextInput } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -136,9 +137,9 @@ export default function PublicProfileScreen() {
     navigation.setOptions({
       headerTitle: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: spacing.md }}>
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.2 }}>
+          <AppText style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', letterSpacing: -0.2 }}>
             {profile?.display_name ?? '...'}
-          </Text>
+          </AppText>
         </View>
       ),
       headerTitleAlign: 'left' as const,
@@ -261,26 +262,26 @@ export default function PublicProfileScreen() {
         <View style={styles.actions}>
           {existingConversationId ? (
             <PressableScale style={styles.messageButton} onPress={() => router.push(`/(auth)/conversation/${existingConversationId}`)}>
-              <Text style={styles.messageText}>{t('publicProfile.sendMessage')}</Text>
+              <AppText style={styles.messageText}>{t('publicProfile.sendMessage')}</AppText>
             </PressableScale>
           ) : requestReceived ? (
             <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
-              <Text style={styles.messageText}>{t('publicProfile.respondToRequest')}</Text>
+              <AppText style={styles.messageText}>{t('publicProfile.respondToRequest')}</AppText>
             </PressableScale>
           ) : requestAlreadySent ? (
             <View style={[styles.messageButton, { opacity: 0.4 }]}>
-              <Text style={styles.messageText}>{t('publicProfile.requestPending')}</Text>
+              <AppText style={styles.messageText}>{t('publicProfile.requestPending')}</AppText>
             </View>
           ) : profile.is_demo ? (
             <View style={[styles.messageButton, { opacity: 0.4 }]}>
-              <Text style={styles.messageText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</Text>
+              <AppText style={styles.messageText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</AppText>
             </View>
           ) : (
             <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => {
               setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));
               setShowRequestModal(true);
             }}>
-              <Text style={styles.messageText}>{t('publicProfile.requestContact')}</Text>
+              <AppText style={styles.messageText}>{t('publicProfile.requestContact')}</AppText>
             </PressableScale>
           )}
         </View>
@@ -292,16 +293,16 @@ export default function PublicProfileScreen() {
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             {isBlocked ? (
               <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); void handleUnblock(); }}>
-                <Text style={styles.menuItemText}>{t('publicProfile.unblock')}</Text>
+                <AppText style={styles.menuItemText}>{t('publicProfile.unblock')}</AppText>
               </PressableScale>
             ) : (
               <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); handleBlock(); }}>
-                <Text style={[styles.menuItemText, { color: colors.error }]}>{t('publicProfile.block')}</Text>
+                <AppText style={[styles.menuItemText, { color: colors.error }]}>{t('publicProfile.block')}</AppText>
               </PressableScale>
             )}
             <View style={styles.menuDivider} />
             <PressableScale style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReport(true); }}>
-              <Text style={[styles.menuItemText, { color: colors.error }]}>{t('report.reportUser')}</Text>
+              <AppText style={[styles.menuItemText, { color: colors.error }]}>{t('report.reportUser')}</AppText>
             </PressableScale>
           </Pressable>
         </Pressable>
@@ -322,8 +323,8 @@ export default function PublicProfileScreen() {
         <Animated.View style={imePadding}>
         <Pressable style={styles.modalSheet} onPress={() => {}}>
           <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>{t('publicProfile.requestModalTitle')}</Text>
-          <TextInput
+          <AppText style={styles.modalTitle}>{t('publicProfile.requestModalTitle')}</AppText>
+          <AppTextInput
             style={styles.requestInput}
             value={requestMessage}
             onChangeText={setRequestMessage}
@@ -352,7 +353,7 @@ export default function PublicProfileScreen() {
             }}
             disabled={requestSending || !requestMessage.trim()}
           >
-            <Text style={styles.modalSendText}>{t('publicProfile.sendRequest')}</Text>
+            <AppText style={styles.modalSendText}>{t('publicProfile.sendRequest')}</AppText>
           </PressableScale>
         </Pressable>
         </Animated.View>
@@ -361,23 +362,23 @@ export default function PublicProfileScreen() {
 
     {participationId && requestTitle && !requestHandled && (
       <View style={[styles.requestCard, { bottom: insets.bottom + spacing.md }]}>
-        <Text style={styles.requestContext} numberOfLines={2}>
+        <AppText style={styles.requestContext} numberOfLines={2}>
           {t('participants.requestFor', { title: requestTitle })}
-        </Text>
+        </AppText>
         <View style={styles.requestButtons}>
           <PressableScale
             style={[styles.requestAccept, requestLoading && styles.requestDisabled]}
             onPress={() => handleParticipation('accept')}
             disabled={requestLoading}
           >
-            <Text style={styles.requestAcceptText}>{t('participants.accept')}</Text>
+            <AppText style={styles.requestAcceptText}>{t('participants.accept')}</AppText>
           </PressableScale>
           <PressableScale
             style={[styles.requestRefuse, requestLoading && styles.requestDisabled]}
             onPress={() => handleParticipation('refuse')}
             disabled={requestLoading}
           >
-            <Text style={styles.requestRefuseText}>{t('participants.refuse')}</Text>
+            <AppText style={styles.requestRefuseText}>{t('participants.refuse')}</AppText>
           </PressableScale>
         </View>
       </View>

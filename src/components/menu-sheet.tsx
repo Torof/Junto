@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop, type BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -121,8 +122,8 @@ export function MenuSheet({ open, onClose }: Props) {
           <Pressable style={styles.identityRow} onPress={() => go('/(auth)/(tabs)/profil')}>
             <UserAvatar name={profile?.display_name ?? '?'} avatarUrl={profile?.avatar_url ?? null} size={44} />
             <View style={styles.identityInfo}>
-              <Text style={styles.identityName} numberOfLines={1}>{profile?.display_name ?? '…'}</Text>
-              <Text style={styles.identityHint}>{t('menu.seeProfile', { defaultValue: 'Voir mon profil' })}</Text>
+              <AppText style={styles.identityName} numberOfLines={1}>{profile?.display_name ?? '…'}</AppText>
+              <AppText style={styles.identityHint}>{t('menu.seeProfile', { defaultValue: 'Voir mon profil' })}</AppText>
             </View>
             <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} />
           </Pressable>
@@ -227,9 +228,9 @@ export function MenuSheet({ open, onClose }: Props) {
             <View style={styles.itemIcon}>
               <LogOut size={20} color={colors.error} strokeWidth={2.2} />
             </View>
-            <Text style={[styles.itemLabel, { color: colors.error }]}>
+            <AppText style={[styles.itemLabel, { color: colors.error }]}>
               {t('menu.signOut', { defaultValue: 'Se déconnecter' })}
-            </Text>
+            </AppText>
           </Pressable>
         </BottomSheetView>
       </BottomSheetModal>
@@ -260,12 +261,12 @@ function MenuItem({
     <Pressable style={styles.item} onPress={onPress}>
       <View style={styles.itemIcon}>{icon}</View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={styles.itemLabel}>{label}</Text>
-        {sub ? <Text style={styles.itemSub} numberOfLines={1}>{sub}</Text> : null}
+        <AppText style={styles.itemLabel}>{label}</AppText>
+        {sub ? <AppText style={styles.itemSub} numberOfLines={1}>{sub}</AppText> : null}
       </View>
       {badge ? (
         <View style={styles.itemBadge}>
-          <Text style={styles.itemBadgeText}>{badge}</Text>
+          <AppText style={styles.itemBadgeText}>{badge}</AppText>
         </View>
       ) : null}
       <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2.2} />

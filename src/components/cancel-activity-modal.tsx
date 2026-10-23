@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
@@ -40,8 +41,8 @@ export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>{t('cancel.cancelTitle')}</Text>
-          <Text style={styles.body}>{t('cancel.cancelSubtitle')}</Text>
+          <AppText style={styles.title}>{t('cancel.cancelTitle')}</AppText>
+          <AppText style={styles.body}>{t('cancel.cancelSubtitle')}</AppText>
 
           <View style={styles.categoryRow}>
             {CATEGORIES.map((c) => (
@@ -50,15 +51,15 @@ export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm
                 style={[styles.categoryPill, category === c.key && styles.categoryPillActive]}
                 onPress={() => setCategory(category === c.key ? null : c.key)}
               >
-                <Text style={styles.categoryIcon}>{c.icon}</Text>
-                <Text style={[styles.categoryLabel, category === c.key && styles.categoryLabelActive]}>
+                <AppText style={styles.categoryIcon}>{c.icon}</AppText>
+                <AppText style={[styles.categoryLabel, category === c.key && styles.categoryLabelActive]}>
                   {t(`cancel.cat.${c.key}`)}
-                </Text>
+                </AppText>
               </Pressable>
             ))}
           </View>
 
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={details}
             onChangeText={setDetails}
@@ -70,28 +71,28 @@ export function CancelActivityModal({ visible, isSubmitting, onCancel, onConfirm
 
           <View style={styles.actions}>
             <Pressable style={styles.secondaryButton} onPress={onCancel}>
-              <Text
+              <AppText
                 style={styles.secondaryText}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.85}
               >
                 {t('cancel.keep')}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.primaryButton, !canSubmit && styles.disabled]}
               onPress={() => canSubmit && onConfirm(finalReason)}
               disabled={!canSubmit}
             >
-              <Text
+              <AppText
                 style={styles.primaryText}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.85}
               >
                 {isSubmitting ? '...' : t('cancel.cancelConfirm')}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         </View>

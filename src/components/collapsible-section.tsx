@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { ChevronDown } from 'lucide-react-native';
 import { fontSizes, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -37,15 +38,15 @@ export function CollapsibleSection({ title, summary, defaultExpanded = false, bo
       <Pressable style={[styles.header, stacked && styles.headerStacked]} onPress={() => setExpanded((e) => !e)}>
         <View style={stacked ? styles.stackedCol : styles.titleRow}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{title}</Text>
+            <AppText style={styles.title}>{title}</AppText>
             {badge}
           </View>
           {stacked && !expanded && !!summary && (
-            <Text style={styles.summaryStacked} numberOfLines={1}>{summary}</Text>
+            <AppText style={styles.summaryStacked} numberOfLines={1}>{summary}</AppText>
           )}
         </View>
         <View style={styles.right}>
-          {!stacked && !expanded && !!summary && <Text style={styles.summary} numberOfLines={1}>{summary}</Text>}
+          {!stacked && !expanded && !!summary && <AppText style={styles.summary} numberOfLines={1}>{summary}</AppText>}
           <View style={[chevronBoxed && styles.chevBtn, { transform: [{ rotate: expanded ? '180deg' : '0deg' }] }]}>
             <ChevronDown size={18} color={chevronBoxed ? colors.cta : colors.textSecondary} strokeWidth={chevronBoxed ? 2.6 : 2.4} />
           </View>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -43,9 +44,9 @@ export default function ProMessagesScreen() {
       ) : clients.length === 0 ? (
         <View style={styles.center}>
           <MessagesSquare size={28} color={colors.textMuted} strokeWidth={2} />
-          <Text style={styles.emptyText}>
+          <AppText style={styles.emptyText}>
             {t('booking.clientMessagesEmpty', { defaultValue: 'Aucune conversation client pour l’instant. Elles s’ouvrent quand tu confirmes une réservation.' })}
-          </Text>
+          </AppText>
         </View>
       ) : (
         <FlatList
@@ -75,12 +76,12 @@ export default function ProMessagesScreen() {
                 </Pressable>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={styles.rowHeader}>
-                    <Text style={[styles.name, item.is_unread && styles.nameUnread]} numberOfLines={1}>{name}</Text>
-                    {time ? <Text style={styles.time}>{time}</Text> : null}
+                    <AppText style={[styles.name, item.is_unread && styles.nameUnread]} numberOfLines={1}>{name}</AppText>
+                    {time ? <AppText style={styles.time}>{time}</AppText> : null}
                     {item.is_unread ? <View style={styles.unreadDot} /> : null}
                   </View>
                   {preview ? (
-                    <Text style={[styles.preview, item.is_unread && styles.previewUnread]} numberOfLines={1}>{preview}</Text>
+                    <AppText style={[styles.preview, item.is_unread && styles.previewUnread]} numberOfLines={1}>{preview}</AppText>
                   ) : null}
                 </View>
               </Pressable>

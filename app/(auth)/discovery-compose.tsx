@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Platform, TextInput } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -211,26 +212,26 @@ export default function DiscoveryComposeScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle}>{t('discovery.composeTitle', { defaultValue: 'Ma dispo' })}</Text>
+        <AppText style={styles.headerTitle}>{t('discovery.composeTitle', { defaultValue: 'Ma dispo' })}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.section}>{t('discovery.sportsLabel', { defaultValue: 'Sport(s) — 1 à 3' })}</Text>
+        <AppText style={styles.section}>{t('discovery.sportsLabel', { defaultValue: 'Sport(s) — 1 à 3' })}</AppText>
         <SportDropdown selected={sportKeys} onSelect={toggleSport} multiSelect label={t('map.sportLabel')} />
 
         {sportKeys.length > 0 && (
           <>
-            <Text style={styles.section}>{t('discovery.levelLabel', { defaultValue: 'Niveau par sport (optionnel)' })}</Text>
+            <AppText style={styles.section}>{t('discovery.levelLabel', { defaultValue: 'Niveau par sport (optionnel)' })}</AppText>
             {sportKeys.map((sk) => (
               <View key={sk} style={styles.levelBlock}>
-                <View style={styles.levelSportRow}><SportIcon sportKey={sk} size={14} /><Text style={styles.levelSport}>{t(`sports.${sk}`, { defaultValue: sk })}</Text></View>
+                <View style={styles.levelSportRow}><SportIcon sportKey={sk} size={14} /><AppText style={styles.levelSport}>{t(`sports.${sk}`, { defaultValue: sk })}</AppText></View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.levelChips}>
                   {getLevelScale(sk).map((opt) => {
                     const sel = (levels[sk] ?? OPEN_LEVEL) === opt.label;
                     return (
                       <Pressable key={opt.label} style={[styles.levelChip, sel && styles.chipActive]} onPress={() => setSportLevel(sk, opt.label)}>
-                        <Text style={[styles.levelChipText, sel && styles.chipTextActive]}>{opt.label}</Text>
+                        <AppText style={[styles.levelChipText, sel && styles.chipTextActive]}>{opt.label}</AppText>
                       </Pressable>
                     );
                   })}
@@ -240,29 +241,29 @@ export default function DiscoveryComposeScreen() {
           </>
         )}
 
-        <Text style={styles.section}>{t('discovery.placeLabel', { defaultValue: 'Autour de quel lieu ?' })}</Text>
-        {base && <Text style={styles.chosenPlace}>{base.label}</Text>}
+        <AppText style={styles.section}>{t('discovery.placeLabel', { defaultValue: 'Autour de quel lieu ?' })}</AppText>
+        {base && <AppText style={styles.chosenPlace}>{base.label}</AppText>}
         <PlaceSearchBar onSelect={(p) => setBase({ lng: p.lng, lat: p.lat, label: p.label })} />
 
-        <Text style={styles.section}>{t('discovery.radiusLabel', { defaultValue: 'Rayon' })}</Text>
+        <AppText style={styles.section}>{t('discovery.radiusLabel', { defaultValue: 'Rayon' })}</AppText>
         <View style={styles.chipRow}>
           {RADII.map((r) => (
             <Pressable key={String(r)} style={[styles.chip, radiusKm === r && styles.chipActive]} onPress={() => setRadiusKm(r)}>
-              <Text style={[styles.chipText, radiusKm === r && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, radiusKm === r && styles.chipTextActive]}>
                 {r === null ? t('discovery.radiusAny', { defaultValue: 'Peu importe' }) : `${r} km`}
-              </Text>
+              </AppText>
             </Pressable>
           ))}
         </View>
 
-        <Text style={styles.section}>{t('discovery.whenLabel', { defaultValue: 'Quand ?' })}</Text>
+        <AppText style={styles.section}>{t('discovery.whenLabel', { defaultValue: 'Quand ?' })}</AppText>
         <View style={styles.chipRow}>
           <Pressable style={styles.dateChip} onPress={() => setShowStart(true)}>
-            <Text style={styles.dateChipText}>{fmt(windowStart)}</Text>
+            <AppText style={styles.dateChipText}>{fmt(windowStart)}</AppText>
           </Pressable>
-          <Text style={styles.dateArrow}>→</Text>
+          <AppText style={styles.dateArrow}>→</AppText>
           <Pressable style={styles.dateChip} onPress={() => setShowEnd(true)}>
-            <Text style={styles.dateChipText}>{fmt(windowEnd)}</Text>
+            <AppText style={styles.dateChipText}>{fmt(windowEnd)}</AppText>
           </Pressable>
         </View>
         {showStart && (
@@ -274,29 +275,29 @@ export default function DiscoveryComposeScreen() {
             onChange={(_e, d) => { setShowEnd(Platform.OS === 'ios'); if (d) setWindowEnd(d); }} />
         )}
 
-        <Text style={styles.section}>{t('discovery.transportLabel', { defaultValue: 'Comment tu te déplaces' })}</Text>
+        <AppText style={styles.section}>{t('discovery.transportLabel', { defaultValue: 'Comment tu te déplaces' })}</AppText>
         <View style={styles.chipRow}>
           {MODES.map(({ key, icon: Icon, label }) => {
             const on = modes.includes(key);
             return (
               <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleMode(key)}>
                 <Icon size={14} color={on ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.2} />
-                <Text style={[styles.chipText, on && styles.chipTextActive]}>{label}</Text>
+                <AppText style={[styles.chipText, on && styles.chipTextActive]}>{label}</AppText>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.section}>{t('discovery.vibesLabel', { defaultValue: 'Toi & ta sortie (optionnel)' })}</Text>
+        <AppText style={styles.section}>{t('discovery.vibesLabel', { defaultValue: 'Toi & ta sortie (optionnel)' })}</AppText>
         {VIBE_GROUPS.map(({ group, groupKey, items }) => (
           <View key={groupKey} style={styles.vibeGroup}>
-            <Text style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</Text>
+            <AppText style={styles.vibeGroupLabel}>{t(`discovery.vibeGroup.${groupKey}`, { defaultValue: group })}</AppText>
             <View style={styles.chipRow}>
               {items.map(({ key, label }) => {
                 const on = intent.includes(key);
                 return (
                   <Pressable key={key} style={[styles.chip, on && styles.chipActive]} onPress={() => toggleIntent(key)}>
-                    <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</Text>
+                    <AppText style={[styles.chipText, on && styles.chipTextActive]}>{t(`discovery.intent.${key}`, { defaultValue: label })}</AppText>
                   </Pressable>
                 );
               })}
@@ -304,8 +305,8 @@ export default function DiscoveryComposeScreen() {
           </View>
         ))}
 
-        <Text style={styles.section}>{t('discovery.aboutLabel', { defaultValue: 'Présentation (optionnel)' })}</Text>
-        <TextInput
+        <AppText style={styles.section}>{t('discovery.aboutLabel', { defaultValue: 'Présentation (optionnel)' })}</AppText>
+        <AppTextInput
           style={styles.aboutInput}
           value={about}
           onChangeText={setAbout}
@@ -315,28 +316,28 @@ export default function DiscoveryComposeScreen() {
           placeholderTextColor={colors.textMuted}
           maxLength={1600}
         />
-        <Text style={[styles.aboutCounter, !aboutOk && styles.aboutCounterOver]}>
+        <AppText style={[styles.aboutCounter, !aboutOk && styles.aboutCounterOver]}>
           {t('discovery.aboutCounter', { defaultValue: '{{count}}/250 mots', count: aboutWords })}
-        </Text>
+        </AppText>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <Text style={styles.counter}>{counterText()}</Text>
+        <AppText style={styles.counter}>{counterText()}</AppText>
         <Pressable style={[styles.cta, (!ready || !aboutOk) && styles.ctaDisabled]} disabled={!ready || !aboutOk || saving} onPress={handleActivate}>
-          <Text style={styles.ctaText}>
+          <AppText style={styles.ctaText}>
             {saving
               ? t('discovery.activating', { defaultValue: 'Activation…' })
               : live
                 ? t('partenaires.save', { defaultValue: 'Enregistrer' })
                 : t('discovery.activateCta', { defaultValue: 'Activer ma dispo' })}
-          </Text>
+          </AppText>
         </Pressable>
         {live ? (
           <>
             <Pressable style={({ pressed }) => [styles.pauseBtn, pressed && { opacity: 0.7 }]} disabled={saving} onPress={handlePause}>
-              <Text style={styles.pauseText}>{t('partenaires.pauseMine', { defaultValue: 'Mettre ma dispo en pause' })}</Text>
+              <AppText style={styles.pauseText}>{t('partenaires.pauseMine', { defaultValue: 'Mettre ma dispo en pause' })}</AppText>
             </Pressable>
-            <Text style={styles.pauseHint}>{t('partenaires.pauseHint', { defaultValue: 'En pause, tu n’apparais plus et tu ne vois plus les dispos des autres. Tu la remets en ligne quand tu veux.' })}</Text>
+            <AppText style={styles.pauseHint}>{t('partenaires.pauseHint', { defaultValue: 'En pause, tu n’apparais plus et tu ne vois plus les dispos des autres. Tu la remets en ligne quand tu veux.' })}</AppText>
           </>
         ) : null}
       </View>

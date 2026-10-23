@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { fontSizes, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -46,7 +47,7 @@ export function PageTypeBadge({ type, name }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={[styles.sphere, { backgroundColor: sphereColor }]} />
-      <Text style={styles.label} numberOfLines={1}>{text}</Text>
+      <AppText style={styles.label} numberOfLines={1}>{text}</AppText>
     </View>
   );
 }

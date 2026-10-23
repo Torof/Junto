@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -94,7 +95,7 @@ export default function BookingFormScreen() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: t('booking.formTitle', { defaultValue: 'Fiche du groupe' }) }} />
-        {isLoading ? <LogoSpinner size={36} /> : <Text style={styles.intro}>{t('booking.bookingGone', { defaultValue: 'Réservation introuvable.' })}</Text>}
+        {isLoading ? <LogoSpinner size={36} /> : <AppText style={styles.intro}>{t('booking.bookingGone', { defaultValue: 'Réservation introuvable.' })}</AppText>}
       </View>
     );
   }
@@ -103,29 +104,29 @@ export default function BookingFormScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: t('booking.formTitle', { defaultValue: 'Fiche du groupe' }) }} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.intro}>
+        <AppText style={styles.intro}>
           {t('booking.formIntro', {
             defaultValue: '{{pro}} a besoin de quelques infos pour préparer le matériel de ton groupe ({{count}} pers.).',
             pro: booking.pro_name ?? t('booking.thePro', { defaultValue: 'Le professionnel' }),
             count,
           })}
-        </Text>
+        </AppText>
 
         {entries.map((entry, idx) => (
           <View key={idx} style={styles.card}>
-            <Text style={styles.pTitle}>
+            <AppText style={styles.pTitle}>
               {idx === 0
                 ? t('booking.participantYou', { defaultValue: 'Participant 1 · toi' })
                 : t('booking.participantN', { defaultValue: 'Participant {{n}}', n: idx + 1 })}
-            </Text>
+            </AppText>
             <View style={styles.fieldsRow}>
               {stdFields.map((f) => {
                 const meta = STD_LABELS[f];
                 if (!meta) return null;
                 return (
                   <View key={f} style={styles.fieldBox}>
-                    <Text style={styles.fieldLabel}>{t(meta.key, { defaultValue: meta.fallback })}</Text>
-                    <TextInput
+                    <AppText style={styles.fieldLabel}>{t(meta.key, { defaultValue: meta.fallback })}</AppText>
+                    <AppTextInput
                       style={styles.fieldInput}
                       value={entry[f] ?? ''}
                       onChangeText={(v) => setField(idx, f, v)}
@@ -140,8 +141,8 @@ export default function BookingFormScreen() {
             </View>
             {customQs.map((q) => (
               <View key={q} style={{ marginTop: spacing.sm }}>
-                <Text style={styles.fieldLabel}>{q}</Text>
-                <TextInput
+                <AppText style={styles.fieldLabel}>{q}</AppText>
+                <AppTextInput
                   style={[styles.fieldInput, styles.customInput]}
                   value={entry.custom?.[q] ?? ''}
                   onChangeText={(v) => setCustom(idx, q, v)}
@@ -156,11 +157,11 @@ export default function BookingFormScreen() {
 
         <PressableScale style={[styles.submit, glow(colors.cta), sending && styles.disabled]} onPress={submit} disabled={sending}>
           <Send size={15} color={colors.onCta} strokeWidth={2.4} />
-          <Text style={styles.submitText}>{sending ? '…' : t('booking.formSubmit', { defaultValue: 'Envoyer la fiche' })}</Text>
+          <AppText style={styles.submitText}>{sending ? '…' : t('booking.formSubmit', { defaultValue: 'Envoyer la fiche' })}</AppText>
         </PressableScale>
-        <Text style={styles.fine}>
+        <AppText style={styles.fine}>
           {t('booking.formPrivacy', { defaultValue: 'Ces infos ne sont visibles que du professionnel, pour cette sortie.' })}
-        </Text>
+        </AppText>
       </ScrollView>
     </View>
   );

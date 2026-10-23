@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { useTranslation } from 'react-i18next';
@@ -62,53 +63,53 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
           {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
             <Lock size={13} color={colors.textSecondary} strokeWidth={2.6} />
           )}
-          <Text style={styles.title} numberOfLines={1}>{activity.title}</Text>
+          <AppText style={styles.title} numberOfLines={1}>{activity.title}</AppText>
         </View>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: sportAccent }]}>
             <SportIcon sportKey={activity.sport_key} size={12} color={sportAccent} />
-            <Text style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
+            <AppText style={[styles.sport, { color: sportAccent }]} numberOfLines={1}>
               {t(`sports.${activity.sport_key}`, activity.sport_key)}
-            </Text>
+            </AppText>
             {(() => {
               const signal = formatDifficultySignal(activity.sport_key, activity.level, activity.distance_km, activity.elevation_gain_m, activity.level_max);
               if (!signal) return null;
               return (
                 <>
-                  <Text style={[styles.levelSep, { color: sportAccent }]}> · </Text>
-                  <Text style={[styles.level, { color: sportAccent }]} numberOfLines={1}>{signal}</Text>
+                  <AppText style={[styles.levelSep, { color: sportAccent }]}> · </AppText>
+                  <AppText style={[styles.level, { color: sportAccent }]} numberOfLines={1}>{signal}</AppText>
                 </>
               );
             })()}
           </View>
           {isFull && (
             <View style={styles.fullPill}>
-              <Text style={styles.fullPillText}>{t('activity.full')}</Text>
+              <AppText style={styles.fullPillText}>{t('activity.full')}</AppText>
             </View>
           )}
         </View>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Calendar size={11} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.metaText} numberOfLines={1}>{datePart}</Text>
+            <AppText style={styles.metaText} numberOfLines={1}>{datePart}</AppText>
           </View>
           {distanceKm !== undefined && (
             <View style={styles.metaItem}>
               <MapPin size={11} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{distanceKm.toFixed(1)} km</Text>
+              <AppText style={styles.metaText} numberOfLines={1}>{distanceKm.toFixed(1)} km</AppText>
             </View>
           )}
           {showCreator && (
             <View style={[styles.metaItem, { flexShrink: 1 }]}>
               <User size={11} color={isMine ? colors.cta : colors.textSecondary} strokeWidth={2.4} />
               {isMine ? (
-                <Text style={styles.organizerTag} numberOfLines={1}>
+                <AppText style={styles.organizerTag} numberOfLines={1}>
                   {t('myActivities.organizer', { defaultValue: 'Organisateur' })}
-                </Text>
+                </AppText>
               ) : (
-                <Text style={styles.metaText} numberOfLines={1}>
+                <AppText style={styles.metaText} numberOfLines={1}>
                   {t('activity.by', { defaultValue: 'par' })} {activity.creator_name}
-                </Text>
+                </AppText>
               )}
             </View>
           )}
@@ -117,9 +118,9 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
 
       <View style={styles.countPill}>
         <Users size={14} color={colors.textPrimary} strokeWidth={2.4} />
-        <Text style={styles.countValue}>
-          {joined}{activity.max_participants !== null && (<Text style={styles.countMax}>/{activity.max_participants}</Text>)}
-        </Text>
+        <AppText style={styles.countValue}>
+          {joined}{activity.max_participants !== null && (<AppText style={styles.countMax}>/{activity.max_participants}</AppText>)}
+        </AppText>
       </View>
     </Pressable>
   );

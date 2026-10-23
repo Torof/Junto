@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, Linking, Platform } from 'react-native';
+import { View, Modal, Pressable, StyleSheet, Linking, Platform } from 'react-native';
+import { AppText } from '@/components/app-text';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import { useTranslation } from 'react-i18next';
@@ -83,14 +84,14 @@ export function BackgroundLocationPrompt({ visible, onClose }: Props) {
           <View style={styles.iconWrap}>
             <MapPinCheck size={28} color={colors.cta} strokeWidth={2.4} />
           </View>
-          <Text style={styles.title}>{t('bgLocation.title')}</Text>
-          <Text style={styles.body}>{t('bgLocation.body')}</Text>
+          <AppText style={styles.title}>{t('bgLocation.title')}</AppText>
+          <AppText style={styles.body}>{t('bgLocation.body')}</AppText>
 
           <Pressable style={[styles.primary, requesting && styles.primaryDisabled]} onPress={handleEnable} disabled={requesting}>
-            <Text style={styles.primaryText}>{requesting ? '…' : t('bgLocation.enable')}</Text>
+            <AppText style={styles.primaryText}>{requesting ? '…' : t('bgLocation.enable')}</AppText>
           </Pressable>
           <Pressable style={styles.secondary} onPress={handleSkip}>
-            <Text style={styles.secondaryText}>{t('bgLocation.skip')}</Text>
+            <AppText style={styles.secondaryText}>{t('bgLocation.skip')}</AppText>
           </Pressable>
         </View>
       </View>

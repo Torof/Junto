@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -37,22 +38,22 @@ export default function FavoritesScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {empty && (
-        <Text style={styles.empty}>
+        <AppText style={styles.empty}>
           {t('favorites.empty', { defaultValue: 'Aucun favori pour l’instant. Touche le cœur sur une sortie, une prestation ou un pro pour l’enregistrer ici.' })}
-        </Text>
+        </AppText>
       )}
 
       {data && data.activities.length > 0 && (
         <>
-          <Text style={styles.section}>{t('favorites.activities', { defaultValue: 'Sorties' })}</Text>
+          <AppText style={styles.section}>{t('favorites.activities', { defaultValue: 'Sorties' })}</AppText>
           {data.activities.map((a) => (
             <Pressable key={a.id} style={styles.row} onPress={() => router.push(`/(auth)/activity/${a.id}`)}>
               <View style={styles.thumbFallback}><SportIcon sportKey={a.sport_key} size={22} /></View>
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle} numberOfLines={1}>{a.title}</Text>
-                <Text style={styles.rowSub} numberOfLines={1}>
+                <AppText style={styles.rowTitle} numberOfLines={1}>{a.title}</AppText>
+                <AppText style={styles.rowSub} numberOfLines={1}>
                   {dayjs(a.starts_at).locale(i18n.language).format('ddd D MMM [·] H[h]mm')}
-                </Text>
+                </AppText>
               </View>
               <FavoriteButton kind="activity" id={a.id} size={20} />
             </Pressable>
@@ -62,17 +63,17 @@ export default function FavoritesScreen() {
 
       {data && data.offerings.length > 0 && (
         <>
-          <Text style={styles.section}>{t('favorites.offerings', { defaultValue: 'Prestations' })}</Text>
+          <AppText style={styles.section}>{t('favorites.offerings', { defaultValue: 'Prestations' })}</AppText>
           {data.offerings.map((o) => (
             <Pressable key={o.id} style={styles.row} onPress={() => router.push(`/(auth)/pro/offering/${o.id}`)}>
               {o.image_url
                 ? <Image source={{ uri: o.image_url }} style={styles.thumb} contentFit="cover" />
                 : <View style={styles.thumbFallback}><SportIcon sportKey={o.sport_key} size={22} /></View>}
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle} numberOfLines={1}>{o.title}</Text>
-                <Text style={styles.rowSub} numberOfLines={1}>
+                <AppText style={styles.rowTitle} numberOfLines={1}>{o.title}</AppText>
+                <AppText style={styles.rowSub} numberOfLines={1}>
                   {o.pro_name}{o.price_eur != null ? ` · ${o.price_eur} €` : ''}
-                </Text>
+                </AppText>
               </View>
               <FavoriteButton kind="offering" id={o.id} size={20} />
             </Pressable>
@@ -82,13 +83,13 @@ export default function FavoritesScreen() {
 
       {data && data.pros.length > 0 && (
         <>
-          <Text style={styles.section}>{t('favorites.pros', { defaultValue: 'Pros' })}</Text>
+          <AppText style={styles.section}>{t('favorites.pros', { defaultValue: 'Pros' })}</AppText>
           {data.pros.map((p) => (
             <Pressable key={p.user_id} style={styles.row} onPress={() => router.push(`/(auth)/pro/${p.user_id}`)}>
               <UserAvatar name={p.display_name} avatarUrl={p.pin_image_url} size={44} />
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle} numberOfLines={1}>{p.display_name}</Text>
-                {p.tagline ? <Text style={styles.rowSub} numberOfLines={1}>{p.tagline}</Text> : null}
+                <AppText style={styles.rowTitle} numberOfLines={1}>{p.display_name}</AppText>
+                {p.tagline ? <AppText style={styles.rowSub} numberOfLines={1}>{p.tagline}</AppText> : null}
               </View>
               <FavoriteButton kind="pro" id={p.user_id} size={20} />
             </Pressable>

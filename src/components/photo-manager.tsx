@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   Alert,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { ImagePlus, Trash2, ChevronUp, ChevronDown } from 'lucide-react-native';
@@ -125,13 +125,13 @@ export function PhotoManager({
       {/* Header row — count + add button. Always visible so the user
           always knows how many slots remain. */}
       <View style={styles.header}>
-        <Text style={styles.countText}>
+        <AppText style={styles.countText}>
           {t('photoManager.count', {
             defaultValue: '{{n}} / {{max}} photos',
             n: photos.length,
             max: maxCount,
           })}
-        </Text>
+        </AppText>
         {!hideAddButton && (
           <Pressable
             style={[styles.addBtn, !canAdd && styles.addBtnDisabled]}
@@ -143,9 +143,9 @@ export function PhotoManager({
             ) : (
               <>
                 <ImagePlus size={14} color={colors.cta} strokeWidth={2.4} />
-                <Text style={styles.addBtnText}>
+                <AppText style={styles.addBtnText}>
                   {t('photoManager.add', { defaultValue: 'Ajouter' })}
-                </Text>
+                </AppText>
               </>
             )}
           </Pressable>
@@ -154,11 +154,11 @@ export function PhotoManager({
 
       {/* Helper sits with the header — NOT after the grid, where it would
           visually split this grid from anything the parent renders below. */}
-      <Text style={styles.helper}>
+      <AppText style={styles.helper}>
         {t('photoManager.helper', {
           defaultValue: 'La première photo sert d\'image principale.',
         })}
-      </Text>
+      </AppText>
 
       {photos.length === 0 && extraPhotos.length === 0 ? (
         <Pressable
@@ -167,9 +167,9 @@ export function PhotoManager({
           disabled={busy}
         >
           <ImagePlus size={28} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.emptyText}>
+          <AppText style={styles.emptyText}>
             {emptyCta ?? t('photoManager.emptyCta', { defaultValue: 'Tape pour ajouter tes premières photos.' })}
-          </Text>
+          </AppText>
         </Pressable>
       ) : (
         <View style={styles.grid}>
@@ -195,7 +195,7 @@ export function PhotoManager({
               {/* Position chip — top-left. Makes the order explicit so
                   the user knows what they're rearranging. */}
               <View style={styles.positionChip} pointerEvents="none">
-                <Text style={styles.positionText}>{index + 1}</Text>
+                <AppText style={styles.positionText}>{index + 1}</AppText>
               </View>
 
               {/* Delete — top-right, with confirm. */}

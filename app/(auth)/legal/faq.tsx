@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
@@ -33,8 +34,8 @@ export default function FaqScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
-      <Text style={styles.title}>{t('faq.title')}</Text>
-      <Text style={styles.intro}>{t('faq.intro')}</Text>
+      <AppText style={styles.title}>{t('faq.title')}</AppText>
+      <AppText style={styles.intro}>{t('faq.intro')}</AppText>
 
       {FAQ_KEYS.map((key) => {
         const isOpen = expanded === key;
@@ -45,11 +46,11 @@ export default function FaqScreen() {
             onPress={() => setExpanded(isOpen ? null : key)}
           >
             <View style={styles.questionRow}>
-              <Text style={styles.question}>{t(`faq.${key}.q`)}</Text>
-              <Text style={styles.arrow}>{isOpen ? '−' : '+'}</Text>
+              <AppText style={styles.question}>{t(`faq.${key}.q`)}</AppText>
+              <AppText style={styles.arrow}>{isOpen ? '−' : '+'}</AppText>
             </View>
             {isOpen && (
-              <Text style={styles.answer}>{t(`faq.${key}.a`)}</Text>
+              <AppText style={styles.answer}>{t(`faq.${key}.a`)}</AppText>
             )}
           </Pressable>
         );

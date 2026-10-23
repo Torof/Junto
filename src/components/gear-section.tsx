@@ -1,5 +1,6 @@
 import { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
-import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Pressable, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Plus, Minus, ChevronDown, Check } from 'lucide-react-native';
@@ -223,13 +224,13 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {selectedItemName && (
                   <>
-                    <Text style={styles.sheetTitle}>{selectedItemName}</Text>
+                    <AppText style={styles.sheetTitle}>{selectedItemName}</AppText>
 
                     {isParticipant && (
                       <>
-                        <Text style={styles.sheetSectionLabel}>
+                        <AppText style={styles.sheetSectionLabel}>
                           {t('gear.itemSheetMyContribution')}
-                        </Text>
+                        </AppText>
                         <View style={styles.myContribRow}>
                           <Pressable
                             onPress={() => setMyQtyDraft(Math.max(0, myQtyDraft - 1))}
@@ -238,7 +239,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                           >
                             <Minus size={18} color={colors.textPrimary} strokeWidth={2.5} />
                           </Pressable>
-                          <Text style={styles.qtyValue}>{myQtyDraft}</Text>
+                          <AppText style={styles.qtyValue}>{myQtyDraft}</AppText>
                           <Pressable
                             onPress={() => setMyQtyDraft(Math.min(99, myQtyDraft + 1))}
                             style={styles.qtyBtn}
@@ -255,7 +256,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                               onPress={removeMyContribution}
                               disabled={isSavingItem}
                             >
-                              <Text style={styles.removeBtnText}>{t('gear.remove')}</Text>
+                              <AppText style={styles.removeBtnText}>{t('gear.remove')}</AppText>
                             </Pressable>
                           )}
                           <Pressable
@@ -263,9 +264,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                             onPress={saveMyContribution}
                             disabled={isSavingItem || !myDraftIsBringing}
                           >
-                            <Text style={styles.saveBtnText}>
+                            <AppText style={styles.saveBtnText}>
                               {iAlreadyBring ? t('profil.save') : t('gear.iBringThis')}
-                            </Text>
+                            </AppText>
                           </Pressable>
                         </View>
                       </>
@@ -290,7 +291,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
           <Pressable style={styles.backdrop} onPress={() => setShowCustomSheet(false)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.sheetTitle}>{missingMode ? t('group.reportMissing', { defaultValue: 'Signaler un manque' }) : t('gear.customSheetTitle')}</Text>
+                <AppText style={styles.sheetTitle}>{missingMode ? t('group.reportMissing', { defaultValue: 'Signaler un manque' }) : t('gear.customSheetTitle')}</AppText>
 
                 {catalog.length > 0 && (
                   <View style={styles.dropdownWrapper}>
@@ -299,9 +300,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                       onPress={() => setCatalogOpen((v) => !v)}
                       hitSlop={4}
                     >
-                      <Text style={styles.dropdownHeaderText}>
+                      <AppText style={styles.dropdownHeaderText}>
                         {t('gear.pickFromList')}
-                      </Text>
+                      </AppText>
                       <ChevronDown
                         size={16}
                         color={colors.textSecondary}
@@ -325,7 +326,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                                 pressed && { backgroundColor: colors.surfaceAlt },
                               ]}
                             >
-                              <Text style={styles.dropdownRowText}>{item.name_key}</Text>
+                              <AppText style={styles.dropdownRowText}>{item.name_key}</AppText>
                               {selected && (
                                 <Check size={16} color={colors.cta} strokeWidth={2.5} />
                               )}
@@ -338,8 +339,8 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                 )}
 
                 <View style={styles.fieldBox}>
-                  <Text style={styles.fieldLabel}>{t('gear.customSheetNameLabel')}</Text>
-                  <TextInput
+                  <AppText style={styles.fieldLabel}>{t('gear.customSheetNameLabel')}</AppText>
+                  <AppTextInput
                     style={styles.fieldInput}
                     value={customName}
                     onChangeText={setCustomName}
@@ -360,7 +361,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                   const sharedValue = locked ? catalogMatch.is_shared : customIsShared;
                   return (
                     <View style={styles.fieldBoxRow}>
-                      <Text style={styles.fieldLabel}>{t('gear.customSheetTypeLabel', { defaultValue: 'Type' })}</Text>
+                      <AppText style={styles.fieldLabel}>{t('gear.customSheetTypeLabel', { defaultValue: 'Type' })}</AppText>
                       <View style={styles.typeToggleRow}>
                         <Pressable
                           onPress={() => !locked && setCustomIsShared(false)}
@@ -372,9 +373,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                           disabled={locked}
                           hitSlop={4}
                         >
-                          <Text style={[styles.typeToggleText, !sharedValue && styles.typeToggleTextActive]}>
+                          <AppText style={[styles.typeToggleText, !sharedValue && styles.typeToggleTextActive]}>
                             {t('gear.typePersonal', { defaultValue: 'Personnel' })}
-                          </Text>
+                          </AppText>
                         </Pressable>
                         <Pressable
                           onPress={() => !locked && setCustomIsShared(true)}
@@ -386,9 +387,9 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                           disabled={locked}
                           hitSlop={4}
                         >
-                          <Text style={[styles.typeToggleText, sharedValue && styles.typeToggleTextActive]}>
+                          <AppText style={[styles.typeToggleText, sharedValue && styles.typeToggleTextActive]}>
                             {t('gear.typeShared', { defaultValue: 'Partagé' })}
-                          </Text>
+                          </AppText>
                         </Pressable>
                       </View>
                     </View>
@@ -396,7 +397,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                 })()}
 
                 <View style={styles.fieldBoxRow}>
-                  <Text style={styles.fieldLabel}>{t('gear.customSheetQtyLabel')}</Text>
+                  <AppText style={styles.fieldLabel}>{t('gear.customSheetQtyLabel')}</AppText>
                   <View style={styles.myContribRow}>
                     <Pressable
                       onPress={() => setCustomQty(Math.max(1, customQty - 1))}
@@ -405,7 +406,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                     >
                       <Minus size={18} color={colors.textPrimary} strokeWidth={2.5} />
                     </Pressable>
-                    <Text style={styles.qtyValue}>{customQty}</Text>
+                    <AppText style={styles.qtyValue}>{customQty}</AppText>
                     <Pressable
                       onPress={() => setCustomQty(Math.min(99, customQty + 1))}
                       style={styles.qtyBtn}
@@ -421,7 +422,7 @@ export const GearSection = forwardRef<GearSectionHandle, Props>(function GearSec
                   onPress={submitCustomSheet}
                   disabled={isSavingItem || !customName.trim()}
                 >
-                  <Text style={styles.saveBtnText}>{missingMode ? t('group.reportMissingCta', { defaultValue: 'Signaler' }) : t('profil.save')}</Text>
+                  <AppText style={styles.saveBtnText}>{missingMode ? t('group.reportMissingCta', { defaultValue: 'Signaler' }) : t('profil.save')}</AppText>
                 </Pressable>
               </ScrollView>
             </Pressable>

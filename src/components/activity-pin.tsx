@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Svg from 'react-native-svg';
 import { Lock } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
@@ -65,7 +66,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
         {hasSportIcon(activity.sport_key) ? (
           <SportIcon sportKey={activity.sport_key} size={GLYPH_SIZE} color={colors.onCta} />
         ) : (
-          <Text style={styles.icon}>{getSportIcon(activity.sport_key)}</Text>
+          <AppText style={styles.icon}>{getSportIcon(activity.sport_key)}</AppText>
         )}
       </View>
       {/* Private outing — only its members ever see this pin (view 00315). */}

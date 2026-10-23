@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
@@ -221,7 +222,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
         <View style={styles.chipRatingRow}>
           <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-            <Text style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</Text>
+            <AppText style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>{sportLabel}</AppText>
           </View>
           {isOwner && onEdit ? (
             <Pressable onPress={onEdit} hitSlop={10} style={styles.editBtn} accessibilityLabel={t('proOffering.edit', { defaultValue: 'Modifier l\'activité' })}>
@@ -230,37 +231,37 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           ) : null}
           {!inSheet && <FavoriteButton kind="offering" id={offering.id} size={22} style={{ marginLeft: 'auto' }} />}
         </View>
-        <Text style={styles.proLine} numberOfLines={1}>
+        <AppText style={styles.proLine} numberOfLines={1}>
           {t('proOffering.ledByPro', { defaultValue: 'Sortie encadrée par un pro' })}
-        </Text>
+        </AppText>
 
-        <Text style={styles.title}>{offering.title}</Text>
+        <AppText style={styles.title}>{offering.title}</AppText>
         {showRating ? (
           <View style={styles.ratingRow}>
-            <Text style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</Text>
+            <AppText style={styles.ratingAvg}>{Number(reviewStats.avg_rating).toFixed(1)}</AppText>
             {renderStars(Number(reviewStats.avg_rating))}
-            <Text style={styles.ratingCount}>({reviewStats.review_count})</Text>
+            <AppText style={styles.ratingCount}>({reviewStats.review_count})</AppText>
           </View>
         ) : null}
 
         <View style={styles.factRow}>
           <MapPin size={15} color={accent} strokeWidth={2.2} />
-          <Text style={styles.factText} numberOfLines={2}>{offering.location_name}</Text>
+          <AppText style={styles.factText} numberOfLines={2}>{offering.location_name}</AppText>
         </View>
         {offering.schedule_text ? (
           <View style={styles.factRow}>
             <Calendar size={15} color={accent} strokeWidth={2.2} />
-            <Text style={styles.factText}>{offering.schedule_text}</Text>
+            <AppText style={styles.factText}>{offering.schedule_text}</AppText>
           </View>
         ) : null}
         {offering.price_eur != null ? (
           <View style={styles.factRow}>
             <Euro size={15} color={accent} strokeWidth={2.2} />
-            <Text style={styles.priceText}>
+            <AppText style={styles.priceText}>
               {offering.price_unit === 'group'
                 ? t('proOffering.priceFromGroup', { defaultValue: 'À partir de {{price}} € / groupe', price: Number(offering.price_eur) })
                 : t('proOffering.priceFromPerson', { defaultValue: 'À partir de {{price}} € / pers.', price: Number(offering.price_eur) })}
-            </Text>
+            </AppText>
           </View>
         ) : null}
       </View>
@@ -282,7 +283,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           p.kind === 'curated' ? handleGalleryRemove(p.id) : handleCommunityRemove(p.id);
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</Text>
+            <AppText style={styles.sectionTitle}>{t('proOffering.tab.pictures', { defaultValue: 'Photos' })}</AppText>
             <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.hCarousel}>
               {allPhotos.map((p, i) => (
                 <View key={p.id} style={styles.photoThumbWrap}>
@@ -299,13 +300,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               {isOwner && photos.length < GALLERY_MAX ? (
                 <Pressable style={styles.photoAddTile} onPress={handleGalleryAdd}>
                   <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
-                  <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+                  <AppText style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</AppText>
                 </Pressable>
               ) : null}
               {!isOwner ? (
                 <Pressable style={styles.photoAddTile} onPress={handleCommunityAdd}>
                   <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
-                  <Text style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</Text>
+                  <AppText style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</AppText>
                 </Pressable>
               ) : null}
             </GHScrollView>
@@ -319,13 +320,13 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           sticky en sheet : elle s'empilerait avec la tab bar visible dessous. */}
       {(nextSlots.length > 0 || inSheet) && !isOwner && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</Text>
+          <AppText style={styles.sectionTitle}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</AppText>
         {nextSlots.length === 0 && (
           // Say it here rather than one screen later ("n'a pas encore ouvert
           // de disponibilités" used to be the only place the client learnt it).
-          <Text style={{ color: colors.textSecondary, fontSize: fontSizes.sm }}>
+          <AppText style={{ color: colors.textSecondary, fontSize: fontSizes.sm }}>
             {t('booking.noSlotsYet', { defaultValue: 'Pas encore de créneau ouvert — reviens bientôt.' })}
-          </Text>
+          </AppText>
         )}
         {nextSlots.length > 0 && (
           <>
@@ -338,21 +339,21 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                     style={styles.slotChip}
                     onPress={() => goBook(`?day=${sl.day}&period=${sl.period}`)}
                   >
-                    <Text style={styles.slotChipDay}>{dayjs(sl.day).format('ddd D')}</Text>
-                    <Text style={styles.slotChipPeriod}>
+                    <AppText style={styles.slotChipDay}>{dayjs(sl.day).format('ddd D')}</AppText>
+                    <AppText style={styles.slotChipPeriod}>
                       {sl.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
-                    </Text>
+                    </AppText>
                     {free != null && (
-                      <Text style={styles.slotChipFree}>
+                      <AppText style={styles.slotChipFree}>
                         {t('booking.chipFree', { defaultValue: 'reste {{count}} pl.', count: free })}
-                      </Text>
+                      </AppText>
                     )}
                   </PressableScale>
                 );
               })}
               {moreSlots > 0 && (
                 <PressableScale style={styles.slotChipMore} onPress={() => goBook()}>
-                  <Text style={styles.slotChipMoreText}>+ {moreSlots} ›</Text>
+                  <AppText style={styles.slotChipMoreText}>+ {moreSlots} ›</AppText>
                 </PressableScale>
               )}
             </View>
@@ -364,7 +365,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
               style={[styles.bookBtn, glow(colors.cta)]}
               onPress={() => goBook()}
             >
-              <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
+              <AppText style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
             </PressableScale>
           ) : null}
         </View>
@@ -372,40 +373,40 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
       {/* À propos — stats + description */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</Text>
+        <AppText style={styles.sectionTitle}>{t('proOffering.about', { defaultValue: 'À propos' })}</AppText>
         <View style={styles.statsRow}>
           {stats.map((s) => (
             <View key={s.id} style={styles.statItem}>
               <s.icon size={16} color={accent} strokeWidth={2.4} />
-              <Text style={styles.statValue}>{s.value}</Text>
+              <AppText style={styles.statValue}>{s.value}</AppText>
             </View>
           ))}
         </View>
-        {offering.description ? <Text style={styles.descBody}>{offering.description}</Text> : null}
+        {offering.description ? <AppText style={styles.descBody}>{offering.description}</AppText> : null}
 
       </View>
 
       {/* Matériel — vraie section titrée (maquette v2). */}
       {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</Text>
+          <AppText style={styles.sectionTitle}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</AppText>
           <View style={styles.equipBlockSection}>
             {offering.equipment_provided?.length > 0 && (
               <View style={styles.equipLine}>
                 <CheckIcon size={15} color={colors.cta} strokeWidth={2.6} style={styles.equipIcon} />
-                <Text style={styles.equipText}>
-                  <Text style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</Text>
+                <AppText style={styles.equipText}>
+                  <AppText style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</AppText>
                   {' — '}{offering.equipment_provided.join(', ')}.
-                </Text>
+                </AppText>
               </View>
             )}
             {offering.equipment_required?.length > 0 && (
               <View style={styles.equipLine}>
                 <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} style={styles.equipIcon} />
-                <Text style={styles.equipText}>
-                  <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
+                <AppText style={styles.equipText}>
+                  <AppText style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</AppText>
                   {' — '}{offering.equipment_required.join(', ')}.
-                </Text>
+                </AppText>
               </View>
             )}
           </View>
@@ -415,27 +416,27 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       {/* Votre encadrant — avant les avis (maquette v2). */}
       {pro ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('proOffering.yourGuide', { defaultValue: 'Votre encadrant' })}</Text>
+          <AppText style={styles.sectionTitle}>{t('proOffering.yourGuide', { defaultValue: 'Votre encadrant' })}</AppText>
           <Pressable style={styles.hostCard} onPress={openPro}>
             {proThumbUrl ? (
               <Image source={{ uri: proThumbUrl }} style={styles.hostThumb} />
             ) : (
               <View style={[styles.hostThumb, styles.hostThumbPlaceholder]}>
-                <Text style={styles.hostThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</Text>
+                <AppText style={styles.hostThumbInitial}>{pro.display_name.charAt(0).toUpperCase()}</AppText>
               </View>
             )}
             <View style={styles.hostInfo}>
-              <Text style={styles.hostName} numberOfLines={1}>{pro.display_name}</Text>
+              <AppText style={styles.hostName} numberOfLines={1}>{pro.display_name}</AppText>
             </View>
             <Pressable style={styles.contactBtn} onPress={openPro} hitSlop={6}>
-              <Text style={styles.contactBtnText}>{t('proOffering.contact', { defaultValue: 'Contacter' })}</Text>
+              <AppText style={styles.contactBtnText}>{t('proOffering.contact', { defaultValue: 'Contacter' })}</AppText>
             </Pressable>
           </Pressable>
         </View>
       ) : null}
 
       {/* Avis — horizontal carousel (summary + composer live inside) */}
-      <Text style={[styles.sectionTitle, styles.sectionTitleInset]}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</Text>
+      <AppText style={[styles.sectionTitle, styles.sectionTitleInset]}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</AppText>
       <ReviewSection
         targetType="offering"
         targetId={offering.id}
@@ -478,15 +479,15 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       <View style={[styles.stickyBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
         <View style={{ flex: 1 }}>
           {offering.price_eur != null ? (
-            <Text style={styles.stickyPrice}>
+            <AppText style={styles.stickyPrice}>
               {Number(offering.price_eur)} €
-              <Text style={styles.stickyUnit}>{offering.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers.' })}</Text>
-            </Text>
+              <AppText style={styles.stickyUnit}>{offering.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers.' })}</AppText>
+            </AppText>
           ) : null}
-          <Text style={styles.stickyNote}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</Text>
+          <AppText style={styles.stickyNote}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</AppText>
         </View>
         <PressableScale style={[styles.stickyCta, glow(colors.cta)]} onPress={() => goBook()}>
-          <Text style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</Text>
+          <AppText style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
         </PressableScale>
       </View>
     </View>

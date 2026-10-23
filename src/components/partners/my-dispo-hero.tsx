@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -44,10 +45,10 @@ export function MyDispoHero({ mine, categoryOf }: {
   if (!mine) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>{t('partenaires.noDispoTitle', { defaultValue: 'Pose ta dispo' })}</Text>
-        <Text style={styles.emptyBody}>{t('discovery.onbBody', { defaultValue: 'Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.' })}</Text>
+        <AppText style={styles.emptyTitle}>{t('partenaires.noDispoTitle', { defaultValue: 'Pose ta dispo' })}</AppText>
+        <AppText style={styles.emptyBody}>{t('discovery.onbBody', { defaultValue: 'Publie ta dispo — un sport, une zone, des dates — et vois qui cherche la même chose.' })}</AppText>
         <PressableScale style={styles.cta} onPress={edit} accessibilityRole="button">
-          <Text style={styles.ctaText}>{t('discovery.composeDispo', { defaultValue: 'Composer ma dispo' })}</Text>
+          <AppText style={styles.ctaText}>{t('discovery.composeDispo', { defaultValue: 'Composer ma dispo' })}</AppText>
         </PressableScale>
       </View>
     );
@@ -58,21 +59,21 @@ export function MyDispoHero({ mine, categoryOf }: {
     <View style={[styles.hero, !live && styles.paused]}>
       <ContourLines width={heroW} height={180} opacity={0.08} />
       <View style={styles.top}>
-        <Text style={styles.title}>
+        <AppText style={styles.title}>
           {live ? t('discovery.myDispoTitle', { defaultValue: 'Ta dispo' }) : t('partenaires.pausedTitle', { defaultValue: 'Ta dispo est en pause' })}
-        </Text>
+        </AppText>
         {live ? (
-          <View style={styles.livePill}><Text style={styles.livePillText}>{t('discovery.live', { defaultValue: 'En ligne' })}</Text></View>
+          <View style={styles.livePill}><AppText style={styles.livePillText}>{t('discovery.live', { defaultValue: 'En ligne' })}</AppText></View>
         ) : null}
       </View>
-      <Text style={styles.sub} numberOfLines={1}>
+      <AppText style={styles.sub} numberOfLines={1}>
         {formatPeriod(mine.window_start, mine.window_end)} · {mine.base_label} · {radiusLabel(mine.radius_km, t('discovery.radiusAny', { defaultValue: 'Peu importe' }))}
-      </Text>
+      </AppText>
       <View style={styles.sports}>
         {mine.sport_keys.map((k) => (
           <View key={k} style={[styles.sport, { backgroundColor: sportCategoryColor(categoryOf(k), colors.cta) }]}>
             <SportIcon sportKey={k} size={13} color="#FFFFFF" />
-            <Text style={styles.sportText} numberOfLines={1}>{t(`sports.${k}`, { defaultValue: k })}</Text>
+            <AppText style={styles.sportText} numberOfLines={1}>{t(`sports.${k}`, { defaultValue: k })}</AppText>
           </View>
         ))}
       </View>
@@ -80,15 +81,15 @@ export function MyDispoHero({ mine, categoryOf }: {
         {live ? (
           <PressableScale style={[styles.btn, styles.pause]} onPress={() => setActive(false)} accessibilityRole="button">
             <Pause size={14} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
-            <Text style={styles.pauseText}>{t('partenaires.pause', { defaultValue: 'Mettre en pause' })}</Text>
+            <AppText style={styles.pauseText}>{t('partenaires.pause', { defaultValue: 'Mettre en pause' })}</AppText>
           </PressableScale>
         ) : (
           <PressableScale style={[styles.btn, styles.resume]} onPress={() => setActive(true)} accessibilityRole="button">
-            <Text style={styles.resumeText}>{t('partenaires.resume', { defaultValue: 'Remettre en ligne' })}</Text>
+            <AppText style={styles.resumeText}>{t('partenaires.resume', { defaultValue: 'Remettre en ligne' })}</AppText>
           </PressableScale>
         )}
         <PressableScale style={[styles.btn, styles.edit]} onPress={edit} accessibilityRole="button">
-          <Text style={styles.editText}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text>
+          <AppText style={styles.editText}>{t('discovery.edit', { defaultValue: 'Modifier' })}</AppText>
         </PressableScale>
       </View>
     </View>

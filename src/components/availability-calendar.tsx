@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -125,13 +126,13 @@ export function AvailabilityCalendar({
         accessibilityLabel={`${periodWord} ${day.format('D MMMM')}`}
       >
         {st.label && mode !== 'pick' ? (
-          <Text style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>
+          <AppText style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>
             {st.label}
-          </Text>
+          </AppText>
         ) : (
-          <Text style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
+          <AppText style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
             {periodWord}
-          </Text>
+          </AppText>
         )}
       </Pressable>
     );
@@ -143,14 +144,14 @@ export function AvailabilityCalendar({
         <Pressable onPress={() => goMonth(-1)} hitSlop={10} accessibilityLabel={t('calendar.prevMonth', { defaultValue: 'Mois précédent' })}>
           <ChevronLeft size={20} color={colors.textSecondary} strokeWidth={2.2} />
         </Pressable>
-        <Text style={styles.monthLabel}>{month.format('MMMM YYYY')}</Text>
+        <AppText style={styles.monthLabel}>{month.format('MMMM YYYY')}</AppText>
         <Pressable onPress={() => goMonth(1)} hitSlop={10} accessibilityLabel={t('calendar.nextMonth', { defaultValue: 'Mois suivant' })}>
           <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2.2} />
         </Pressable>
       </View>
 
       <View style={styles.dowRow}>
-        {dow.map((d, i) => <Text key={i} style={styles.dow}>{d}</Text>)}
+        {dow.map((d, i) => <AppText key={i} style={styles.dow}>{d}</AppText>)}
       </View>
 
       <View style={styles.grid}>
@@ -165,7 +166,7 @@ export function AvailabilityCalendar({
               key={iso}
               style={[styles.cell, isPast && styles.cellPast, isToday && styles.cellToday, isDaySelected && styles.cellSelected]}
             >
-              <Text style={styles.dayNum}>{day.date()}</Text>
+              <AppText style={styles.dayNum}>{day.date()}</AppText>
               {PERIODS.map((p) => renderHalf(day, p, isPast))}
             </View>
           );
@@ -181,14 +182,14 @@ export function AvailabilityCalendar({
       </View>
 
       <View style={styles.legend}>
-        <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta + '2E' }]} /><Text style={styles.legendText}>{t('booking.legendAvailable', { defaultValue: 'Ouvert' })}</Text></View>
+        <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta + '2E' }]} /><AppText style={styles.legendText}>{t('booking.legendAvailable', { defaultValue: 'Ouvert' })}</AppText></View>
         {mode !== 'pick' && (
           <>
-            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendBooked', { defaultValue: 'Réservé' })}</Text></View>
-            <View style={styles.legendItem}><View style={[styles.legendDot, styles.legendDashed, { backgroundColor: colors.cta + '2E', borderColor: colors.cta }]} /><Text style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</Text></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><AppText style={styles.legendText}>{t('booking.legendBooked', { defaultValue: 'Réservé' })}</AppText></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, styles.legendDashed, { backgroundColor: colors.cta + '2E', borderColor: colors.cta }]} /><AppText style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</AppText></View>
           </>
         )}
-        <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.surfaceAlt }]} /><Text style={styles.legendText}>{t('booking.legendOff', { defaultValue: 'Fermé' })}</Text></View>
+        <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.surfaceAlt }]} /><AppText style={styles.legendText}>{t('booking.legendOff', { defaultValue: 'Fermé' })}</AppText></View>
       </View>
     </View>
   );

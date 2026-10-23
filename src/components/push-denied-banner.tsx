@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking, AppState } from 'react-native';
+import { View, Pressable, StyleSheet, Linking, AppState } from 'react-native';
+import { AppText } from '@/components/app-text';
 import * as Notifications from 'expo-notifications';
 import { useTranslation } from 'react-i18next';
 import { BellOff } from 'lucide-react-native';
@@ -35,10 +36,10 @@ export function PushDeniedBanner() {
     <Pressable style={styles.banner} onPress={() => Linking.openSettings()}>
       <BellOff size={18} color={colors.warning} strokeWidth={2.2} />
       <View style={styles.text}>
-        <Text style={styles.title}>{t('pushDenied.title')}</Text>
-        <Text style={styles.body}>{t('pushDenied.body')}</Text>
+        <AppText style={styles.title}>{t('pushDenied.title')}</AppText>
+        <AppText style={styles.body}>{t('pushDenied.body')}</AppText>
       </View>
-      <Text style={styles.cta}>{t('pushDenied.cta')}</Text>
+      <AppText style={styles.cta}>{t('pushDenied.cta')}</AppText>
     </Pressable>
   );
 }

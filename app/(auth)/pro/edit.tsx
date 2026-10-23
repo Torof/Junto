@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +9,7 @@ import {
   Platform,
   Modal,
 } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -294,9 +293,9 @@ export default function ProEditScreen() {
   const renderFoldRow = (label: string, open: boolean, onToggle: () => void, summary?: string, optional = false) => (
     <Pressable style={styles.foldRow} onPress={onToggle} accessibilityRole="button">
       {!open && !isUpdate ? <Plus size={18} color={colors.textPrimary} strokeWidth={2.2} /> : null}
-      <Text style={styles.foldLabel}>{label}</Text>
-      {summary ? <Text style={styles.foldSummary} numberOfLines={1}>{summary}</Text> : null}
-      {optional && !open ? <Text style={styles.foldOptional}>{t('pro.optional', { defaultValue: 'optionnel' })}</Text> : null}
+      <AppText style={styles.foldLabel}>{label}</AppText>
+      {summary ? <AppText style={styles.foldSummary} numberOfLines={1}>{summary}</AppText> : null}
+      {optional && !open ? <AppText style={styles.foldOptional}>{t('pro.optional', { defaultValue: 'optionnel' })}</AppText> : null}
       {open ? <ChevronUp size={18} color={colors.textMuted} strokeWidth={2.2} /> : <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />}
     </Pressable>
   );
@@ -331,17 +330,17 @@ export default function ProEditScreen() {
         <View style={styles.mapPreviewOverlay} pointerEvents="box-only" />
         {!locationLocked && (
           <View style={styles.mapPreviewHint} pointerEvents="none">
-            <Text style={styles.mapPreviewHintText}>
+            <AppText style={styles.mapPreviewHintText}>
               {pinLng !== null
                 ? t('pro.locationAdjust', { defaultValue: 'Ajuste au doigt si besoin' })
                 : t('pro.locationPickOnMap', { defaultValue: 'Choisir sur la carte' })}
-            </Text>
+            </AppText>
           </View>
         )}
       </Pressable>
       <View style={styles.placeRow}>
         <MapPin size={16} color={pinLng !== null ? colors.cta : colors.textMuted} strokeWidth={2.4} />
-        <TextInput
+        <AppTextInput
           style={[styles.input, { flex: 1 }]}
           value={locationName}
           onChangeText={setLocationName}
@@ -352,30 +351,30 @@ export default function ProEditScreen() {
         />
         {pinLng !== null ? <Check size={18} color={colors.cta} strokeWidth={2.6} /> : null}
       </View>
-      <Text style={styles.helper}>
+      <AppText style={styles.helper}>
         {locationLocked
           ? t('pro.locationLocked', { defaultValue: 'Tu pourras déplacer ton emplacement après 30 jours.' })
           : t('pro.locationHelperSearch', { defaultValue: 'Cherche ta ville ou ton adresse : la carte se place toute seule.' })}
-      </Text>
+      </AppText>
     </View>
   );
 
   const contactBlock = (
     <View style={styles.foldBody}>
       <Field label={t('pro.fieldPhone', { defaultValue: 'Téléphone' })} styles={styles}>
-        <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+33 6 ..." placeholderTextColor={colors.textSecondary} keyboardType="phone-pad" maxLength={30} />
+        <AppTextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+33 6 ..." placeholderTextColor={colors.textSecondary} keyboardType="phone-pad" maxLength={30} />
       </Field>
       <Field label={t('pro.fieldWebsite', { defaultValue: 'Site web' })} styles={styles}>
-        <TextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="url" maxLength={200} />
+        <AppTextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="url" maxLength={200} />
       </Field>
       <Field label={t('pro.fieldEmail', { defaultValue: 'Email' })} styles={styles}>
-        <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="contact@..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="email-address" maxLength={200} />
+        <AppTextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="contact@..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="email-address" maxLength={200} />
       </Field>
       <Field label={t('pro.fieldInstagram', { defaultValue: 'Instagram' })} styles={styles}>
-        <TextInput style={styles.input} value={instagram} onChangeText={setInstagram} placeholder="@junto.alpine" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={100} />
+        <AppTextInput style={styles.input} value={instagram} onChangeText={setInstagram} placeholder="@junto.alpine" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={100} />
       </Field>
       <Field label={t('pro.fieldFacebook', { defaultValue: 'Facebook' })} styles={styles}>
-        <TextInput style={styles.input} value={facebook} onChangeText={setFacebook} placeholder="page-ou-url" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={200} />
+        <AppTextInput style={styles.input} value={facebook} onChangeText={setFacebook} placeholder="page-ou-url" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={200} />
       </Field>
     </View>
   );
@@ -383,10 +382,10 @@ export default function ProEditScreen() {
   const aboutBlock = (
     <View style={isApproved ? undefined : styles.foldBody}>
       <Field label={t('pro.fieldTagline', { defaultValue: 'Slogan' })} styles={styles}>
-        <TextInput style={styles.input} value={tagline} onChangeText={setTagline} placeholder={t('pro.fieldTaglinePlaceholder', { defaultValue: 'Une phrase courte qui te décrit' })} placeholderTextColor={colors.textSecondary} maxLength={120} />
+        <AppTextInput style={styles.input} value={tagline} onChangeText={setTagline} placeholder={t('pro.fieldTaglinePlaceholder', { defaultValue: 'Une phrase courte qui te décrit' })} placeholderTextColor={colors.textSecondary} maxLength={120} />
       </Field>
       <Field label={t('pro.fieldDescription', { defaultValue: 'Description' })} styles={styles}>
-        <TextInput
+        <AppTextInput
           style={[styles.input, styles.textarea]}
           value={description}
           onChangeText={setDescription}
@@ -404,48 +403,48 @@ export default function ProEditScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>
+        <AppText style={styles.title}>
           {isApproved
             ? t('pro.pageTitle', { defaultValue: 'Ma page pro' })
             : isUpdate
               ? t('pro.applicationTitle', { defaultValue: 'Ma demande pro' })
               : t('pro.registerTitle', { defaultValue: 'Devenir pro' })}
-        </Text>
+        </AppText>
         {!isApproved && (
-          <Text style={styles.subtitle}>
+          <AppText style={styles.subtitle}>
             {t('pro.registerSubtitleShort', { defaultValue: 'Quatre infos suffisent. Le reste se complète plus tard, depuis ta page.' })}
-          </Text>
+          </AppText>
         )}
 
         {existing?.status === 'pending' && (
           <View style={[styles.statusBanner, styles.statusPending]}>
-            <Text style={styles.statusBannerText}>
+            <AppText style={styles.statusBannerText}>
               {t('pro.bannerPending', { defaultValue: 'Ta demande est en attente de validation.' })}
-            </Text>
+            </AppText>
           </View>
         )}
         {existing?.status === 'rejected' && (
           <View style={[styles.statusBanner, styles.statusRejected]}>
-            <Text style={styles.statusBannerText}>
+            <AppText style={styles.statusBannerText}>
               {existing.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' })}
-            </Text>
+            </AppText>
           </View>
         )}
 
         {/* Ton pin sur la carte — approved only (the setters refuse before). */}
         {isApproved && (
           <View style={styles.pinCard}>
-            <Text style={styles.fieldLabel}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</Text>
+            <AppText style={styles.fieldLabel}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</AppText>
             <View style={styles.pinIconRow}>
               <View style={styles.pinPreviewWrap}>
                 <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} pinImageUrl={pinImageUrl} />
               </View>
               <View style={{ flex: 1, gap: spacing.sm }}>
-                <Text style={styles.helper}>
+                <AppText style={styles.helper}>
                   {pinImageUrl
                     ? t('pro.pinLogoSet', { defaultValue: 'Logo importé. Ou choisis une icône :' })
                     : t('pro.pinPickHint', { defaultValue: 'Choisis une icône, ou importe ton logo :' })}
-                </Text>
+                </AppText>
                 <View style={styles.pinIconGrid}>
                   {PRO_PIN_ICONS.map((opt) => {
                     const selected = pinIcon === opt.key && !pinImageUrl;
@@ -462,9 +461,9 @@ export default function ProEditScreen() {
                   })}
                   <Pressable style={[styles.pinIconChip, styles.pinLogoChip, !!pinImageUrl && styles.pinIconChipSelected]} onPress={handlePickPinImage} disabled={pinImageBusy}>
                     <ImagePlus size={16} color={colors.textPrimary} strokeWidth={2.2} />
-                    <Text style={styles.pinLogoChipText}>
+                    <AppText style={styles.pinLogoChipText}>
                       {pinImageBusy ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' }) : t('pro.pinLogoShort', { defaultValue: 'Logo…' })}
-                    </Text>
+                    </AppText>
                   </Pressable>
                 </View>
               </View>
@@ -473,7 +472,7 @@ export default function ProEditScreen() {
         )}
 
         <Field label={t('pro.fieldDisplayName', { defaultValue: 'Nom affiché sur ta page' })} styles={styles}>
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={displayName}
             onChangeText={setDisplayName}
@@ -486,7 +485,7 @@ export default function ProEditScreen() {
         {showVerification && (
           <>
             <Field label={t('pro.fieldCompanyPrivate', { defaultValue: 'Raison sociale · non publique' })} styles={styles}>
-              <TextInput
+              <AppTextInput
                 style={styles.input}
                 value={companyName}
                 onChangeText={setCompanyName}
@@ -496,7 +495,7 @@ export default function ProEditScreen() {
               />
             </Field>
             <Field label={t('pro.fieldRealNamePrivate', { defaultValue: 'Ton nom et prénom · non public' })} styles={styles}>
-              <TextInput
+              <AppTextInput
                 style={styles.input}
                 value={realName}
                 onChangeText={setRealName}
@@ -519,7 +518,7 @@ export default function ProEditScreen() {
           </>
         ) : (
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>{t('pro.whereToFind', { defaultValue: 'Où te trouver' })}</Text>
+            <AppText style={styles.fieldLabel}>{t('pro.whereToFind', { defaultValue: 'Où te trouver' })}</AppText>
             {locationBlock}
           </View>
         )}
@@ -543,25 +542,25 @@ export default function ProEditScreen() {
 
         {isApproved && existing && (
           <Pressable style={styles.foldRow} onPress={() => router.push(`/(auth)/pro/${existing.user_id}?tab=pictures`)} accessibilityRole="button">
-            <Text style={styles.foldLabel}>{t('pro.photosRow', { defaultValue: 'Photos de la page' })}</Text>
+            <AppText style={styles.foldLabel}>{t('pro.photosRow', { defaultValue: 'Photos de la page' })}</AppText>
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
           </Pressable>
         )}
 
         {isApproved && (
-          <Text style={styles.frozenNote}>
+          <AppText style={styles.frozenNote}>
             {t('pro.identityFrozen', { defaultValue: 'Raison sociale et identité vérifiées — pour les modifier, écris-nous.' })}
-          </Text>
+          </AppText>
         )}
 
         {isUpdate && (
           <Pressable style={styles.deleteBtn} onPress={handleDelete} disabled={deleting || saving}>
             <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
-            <Text style={styles.deleteBtnText}>
+            <AppText style={styles.deleteBtnText}>
               {deleting
                 ? t('pro.deleting', { defaultValue: 'Suppression…' })
                 : t('pro.deleteAction', { defaultValue: 'Supprimer ma page pro' })}
-            </Text>
+            </AppText>
           </Pressable>
         )}
       </ScrollView>
@@ -573,7 +572,7 @@ export default function ProEditScreen() {
           onPress={handleSubmit}
           disabled={!canSubmit}
         >
-          <Text style={styles.ctaText}>
+          <AppText style={styles.ctaText}>
             {saving
               ? '…'
               : existing?.status === 'rejected'
@@ -581,12 +580,12 @@ export default function ProEditScreen() {
                 : isUpdate
                   ? t('pro.saveChanges', { defaultValue: 'Enregistrer' })
                   : t('pro.sendApplication', { defaultValue: 'Envoyer ma demande' })}
-          </Text>
+          </AppText>
         </PressableScale>
         {!isUpdate && (
-          <Text style={styles.verifyNote}>
+          <AppText style={styles.verifyNote}>
             {t('pro.verifyNoteShort', { defaultValue: 'Vérifiée par notre équipe avant mise en ligne. On te prévient par notification.' })}
-          </Text>
+          </AppText>
         )}
       </View>
 
@@ -620,11 +619,11 @@ export default function ProEditScreen() {
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
           <View style={[styles.fullMapHint, { top: insets.top + spacing.sm + 4 + 44 }]} pointerEvents="none">
-            <Text style={styles.fullMapHintText}>
+            <AppText style={styles.fullMapHintText}>
               {pickerPinLng !== null
                 ? t('pro.locationConfirmHint', { defaultValue: 'Tape pour repositionner, ou confirme.' })
                 : t('pro.locationFirstTapHint', { defaultValue: 'Tape sur la carte pour placer le pin.' })}
-            </Text>
+            </AppText>
           </View>
           <Pressable
             style={[styles.fullMapConfirm, { bottom: insets.bottom + 24 }, pickerPinLng === null && styles.fullMapConfirmDisabled]}
@@ -632,9 +631,9 @@ export default function ProEditScreen() {
             disabled={pickerPinLng === null}
           >
             <Check size={16} color={colors.onCta} strokeWidth={2.6} />
-            <Text style={styles.fullMapConfirmText}>
+            <AppText style={styles.fullMapConfirmText}>
               {t('pro.locationConfirm', { defaultValue: 'Confirmer' })}
-            </Text>
+            </AppText>
           </Pressable>
         </SafeAreaView>
       </Modal>
@@ -653,7 +652,7 @@ function Field({
 }) {
   return (
     <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <AppText style={styles.fieldLabel}>{label}</AppText>
       {children}
     </View>
   );

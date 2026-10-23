@@ -1,4 +1,5 @@
-import { View, Text, FlatList, Pressable, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
+import { View, FlatList, Pressable, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -418,20 +419,20 @@ export default function MessagerieScreen() {
           style={[styles.tab, activeTab === 'messages' && styles.tabActive]}
           onPress={() => setActiveTab('messages')}
         >
-          <Text style={[styles.tabText, activeTab === 'messages' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, activeTab === 'messages' && styles.tabTextActive]}>
             {t('messagerie.messagesTab')}
-          </Text>
+          </AppText>
         </Pressable>
         <Pressable
           style={[styles.tab, activeTab === 'requests' && styles.tabActive]}
           onPress={() => setActiveTab('requests')}
         >
-          <Text style={[styles.tabText, activeTab === 'requests' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, activeTab === 'requests' && styles.tabTextActive]}>
             {t('messagerie.requestsTab')}
-          </Text>
+          </AppText>
           {pendingCount > 0 && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{pendingCount}</Text>
+              <AppText style={styles.badgeText}>{pendingCount}</AppText>
             </View>
           )}
         </Pressable>
@@ -439,12 +440,12 @@ export default function MessagerieScreen() {
           style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
           onPress={() => setActiveTab('notifications')}
         >
-          <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>
             {t('messagerie.notificationsTab', { defaultValue: 'Notifications' })}
-          </Text>
+          </AppText>
           {(notifUnread ?? 0) > 0 && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{notifUnread! > 99 ? '99+' : notifUnread}</Text>
+              <AppText style={styles.badgeText}>{notifUnread! > 99 ? '99+' : notifUnread}</AppText>
             </View>
           )}
         </Pressable>
@@ -458,20 +459,20 @@ export default function MessagerieScreen() {
       {activeTab === 'messages' && (
         (!conversations || conversations.length === 0) ? (
           <View style={styles.center}>
-            <Text style={styles.emptyText}>{t('messagerie.empty')}</Text>
+            <AppText style={styles.emptyText}>{t('messagerie.empty')}</AppText>
           </View>
         ) : (
           <>
           <View style={styles.segments}>
             {SEGMENTS.map((seg) => (
               <Pressable key={seg.key} style={[styles.segment, segment === seg.key && styles.segmentActive]} onPress={() => setSegment(seg.key)}>
-                <Text style={[styles.segmentText, segment === seg.key && styles.segmentTextActive]}>{t(seg.label, { defaultValue: seg.dflt })}</Text>
+                <AppText style={[styles.segmentText, segment === seg.key && styles.segmentTextActive]}>{t(seg.label, { defaultValue: seg.dflt })}</AppText>
               </Pressable>
             ))}
           </View>
           {filteredConversations.length === 0 ? (
             <View style={styles.center}>
-              <Text style={styles.emptyText}>{t('messagerie.emptySegment', { defaultValue: 'Rien dans cette catégorie.' })}</Text>
+              <AppText style={styles.emptyText}>{t('messagerie.emptySegment', { defaultValue: 'Rien dans cette catégorie.' })}</AppText>
             </View>
           ) : (
           <FlatList
@@ -513,7 +514,7 @@ export default function MessagerieScreen() {
                 leading = (
                   <View style={[styles.leadingSquare, styles.groupSquare]}>
                     {item.icon
-                      ? <Text style={styles.squareEmoji}>{item.icon}</Text>
+                      ? <AppText style={styles.squareEmoji}>{item.icon}</AppText>
                       : <Users size={22} color={colors.textSecondary} strokeWidth={2.2} />}
                   </View>
                 );
@@ -569,11 +570,11 @@ export default function MessagerieScreen() {
                   <View style={styles.leadingBox}>{leading}</View>
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
-                      <Text style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</Text>
-                      {time && <Text style={styles.time}>{time}</Text>}
+                      <AppText style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</AppText>
+                      {time && <AppText style={styles.time}>{time}</AppText>}
                       {typeMeta && (
                         <View style={[styles.typePill, { backgroundColor: typeMeta.bg }]}>
-                          <Text style={[styles.typePillText, { color: typeMeta.text }]}>{typeMeta.label}</Text>
+                          <AppText style={[styles.typePillText, { color: typeMeta.text }]}>{typeMeta.label}</AppText>
                         </View>
                       )}
                       {isUnread && <View style={styles.unreadDot} />}
@@ -581,13 +582,13 @@ export default function MessagerieScreen() {
                     {rowSport && (
                       <View style={styles.sportLabelRow}>
                         <SportIcon sportKey={rowSport.key} size={12} />
-                        <Text style={styles.sportLabel} numberOfLines={1}>
+                        <AppText style={styles.sportLabel} numberOfLines={1}>
                           {t(`sports.${rowSport.key}`, { defaultValue: rowSport.key })}
-                        </Text>
+                        </AppText>
                       </View>
                     )}
                     {preview && (
-                      <Text style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{preview}</Text>
+                      <AppText style={[styles.preview, isUnread && styles.previewUnread]} numberOfLines={1}>{preview}</AppText>
                     )}
                   </View>
                 </Pressable>
@@ -634,13 +635,13 @@ export default function MessagerieScreen() {
       {activeTab === 'requests' && (
         pendingCount === 0 ? (
           <View style={styles.center}>
-            <Text style={styles.emptyText}>{t('messagerie.noRequests')}</Text>
+            <AppText style={styles.emptyText}>{t('messagerie.noRequests')}</AppText>
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
             {/* Join requests — same row grammar as the other request kinds. */}
             {(joinRequests ?? []).length > 0 && (
-              <Text style={styles.sectionHeader}>{t('messagerie.sectionJoin')}</Text>
+              <AppText style={styles.sectionHeader}>{t('messagerie.sectionJoin')}</AppText>
             )}
             {(joinRequests ?? []).map((jr) => (
               <Pressable
@@ -650,9 +651,9 @@ export default function MessagerieScreen() {
               >
                 <UserAvatar name={jr.display_name} avatarUrl={jr.avatar_url} size={44} />
                 <View style={styles.requestInfo}>
-                  <Text style={styles.requestActivityTitle} numberOfLines={1}>{jr.activity_title}</Text>
-                  <Text style={styles.requestName} numberOfLines={1}>{jr.display_name}</Text>
-                  <Text style={styles.requestSource}>{t('messagerie.joinRequest', { defaultValue: 'Demande à rejoindre la sortie' })}</Text>
+                  <AppText style={styles.requestActivityTitle} numberOfLines={1}>{jr.activity_title}</AppText>
+                  <AppText style={styles.requestName} numberOfLines={1}>{jr.display_name}</AppText>
+                  <AppText style={styles.requestSource}>{t('messagerie.joinRequest', { defaultValue: 'Demande à rejoindre la sortie' })}</AppText>
                 </View>
                 <View style={styles.requestActions}>
                   <Pressable
@@ -675,7 +676,7 @@ export default function MessagerieScreen() {
 
             {/* Seat requests */}
             {(seatRequests ?? []).length > 0 && (
-              <Text style={styles.sectionHeader}>{t('messagerie.sectionSeat')}</Text>
+              <AppText style={styles.sectionHeader}>{t('messagerie.sectionSeat')}</AppText>
             )}
             {(seatRequests ?? []).map((sr) => {
               const subtitleParts = [
@@ -693,17 +694,17 @@ export default function MessagerieScreen() {
                 </View>
                 <View style={styles.requestInfo}>
                   {sr.activity_title && (
-                    <Text style={styles.requestActivityTitle} numberOfLines={1}>
+                    <AppText style={styles.requestActivityTitle} numberOfLines={1}>
                       {sr.activity_title}
-                    </Text>
+                    </AppText>
                   )}
-                  <Text style={styles.requestName} numberOfLines={1}>
+                  <AppText style={styles.requestName} numberOfLines={1}>
                     {sr.requester_name}{subtitleParts.length > 0 ? ` · ${subtitleParts.join(' · ')}` : ''}
-                  </Text>
+                  </AppText>
                   {sr.message ? (
-                    <Text style={styles.requestSource} numberOfLines={2}>{sr.message}</Text>
+                    <AppText style={styles.requestSource} numberOfLines={2}>{sr.message}</AppText>
                   ) : (
-                    <Text style={styles.requestSource}>{t('messagerie.viaTransport')}</Text>
+                    <AppText style={styles.requestSource}>{t('messagerie.viaTransport')}</AppText>
                   )}
                 </View>
                 <View style={styles.requestActions}>
@@ -728,7 +729,7 @@ export default function MessagerieScreen() {
 
             {/* Contact requests */}
             {(pendingRequests ?? []).length > 0 && (
-              <Text style={styles.sectionHeader}>{t('messagerie.sectionContact')}</Text>
+              <AppText style={styles.sectionHeader}>{t('messagerie.sectionContact')}</AppText>
             )}
             {(pendingRequests ?? []).map((req) => (
               <Pressable
@@ -738,13 +739,13 @@ export default function MessagerieScreen() {
               >
                 <UserAvatar name={req.sender_name} avatarUrl={req.sender_avatar} size={44} />
                 <View style={styles.requestInfo}>
-                  <Text style={styles.requestName} numberOfLines={1}>{req.sender_name}</Text>
-                  <Text style={styles.requestSource}>{sourceLabel(req.initiated_from)}</Text>
+                  <AppText style={styles.requestName} numberOfLines={1}>{req.sender_name}</AppText>
+                  <AppText style={styles.requestSource}>{sourceLabel(req.initiated_from)}</AppText>
                   {req.request_message && (
                     <Pressable onPress={(e) => { e.stopPropagation(); setExpandedMessageId(expandedMessageId === req.id ? null : req.id); }}>
-                      <Text style={styles.requestMessage} numberOfLines={expandedMessageId === req.id ? undefined : 2}>
+                      <AppText style={styles.requestMessage} numberOfLines={expandedMessageId === req.id ? undefined : 2}>
                         {req.request_message}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   )}
                 </View>
@@ -769,7 +770,7 @@ export default function MessagerieScreen() {
 
             {/* Invitations — mirror of join requests (X invites you). */}
             {(invitations ?? []).length > 0 && (
-              <Text style={styles.sectionHeader}>{t('messagerie.sectionInvitations')}</Text>
+              <AppText style={styles.sectionHeader}>{t('messagerie.sectionInvitations')}</AppText>
             )}
             {(invitations ?? []).map((inv) => {
               return (
@@ -780,14 +781,14 @@ export default function MessagerieScreen() {
                 >
                   <UserAvatar name={inv.inviter_name ?? '?'} avatarUrl={inv.inviter_avatar} size={44} />
                   <View style={styles.requestInfo}>
-                    <Text style={styles.requestActivityTitle} numberOfLines={1}>
+                    <AppText style={styles.requestActivityTitle} numberOfLines={1}>
                       {inv.activity_title}
-                    </Text>
-                    <Text style={styles.requestSource} numberOfLines={1}>
+                    </AppText>
+                    <AppText style={styles.requestSource} numberOfLines={1}>
                       {t('messagerie.invitedBy', { name: inv.inviter_name ?? '?' })}
-                    </Text>
+                    </AppText>
                     {inv.invite_message && (
-                      <Text style={styles.requestMessage} numberOfLines={2}>{inv.invite_message}</Text>
+                      <AppText style={styles.requestMessage} numberOfLines={2}>{inv.invite_message}</AppText>
                     )}
                   </View>
                   <View style={styles.requestActions}>

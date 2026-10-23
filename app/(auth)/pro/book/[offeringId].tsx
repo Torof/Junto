@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -114,7 +115,7 @@ export default function BookOfferingScreen() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: t('booking.bookTitle', { defaultValue: 'Réserver' }) }} />
-        {offeringLoading ? <LogoSpinner size={36} /> : <Text style={styles.emptyText}>{t('booking.offeringGone', { defaultValue: 'Offre indisponible.' })}</Text>}
+        {offeringLoading ? <LogoSpinner size={36} /> : <AppText style={styles.emptyText}>{t('booking.offeringGone', { defaultValue: 'Offre indisponible.' })}</AppText>}
       </View>
     );
   }
@@ -146,13 +147,13 @@ export default function BookOfferingScreen() {
         <View style={styles.head}>
           <SportIcon sportKey={offering.sport_key} size={26} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.headTitle} numberOfLines={1}>{offering.title}</Text>
-            <Text style={styles.headSub} numberOfLines={1}>
+            <AppText style={styles.headTitle} numberOfLines={1}>{offering.title}</AppText>
+            <AppText style={styles.headSub} numberOfLines={1}>
               {offering.pro_name}
               {offering.price_eur != null
                 ? ` · ${offering.price_eur} €${offering.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers.' })}`
                 : ''}
-            </Text>
+            </AppText>
           </View>
         </View>
 
@@ -160,13 +161,13 @@ export default function BookOfferingScreen() {
           <View style={styles.centerBlock}><LogoSpinner size={30} /></View>
         ) : (slots ?? []).length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>
+            <AppText style={styles.emptyText}>
               {t('booking.noAvailability', { defaultValue: 'Ce professionnel n’a pas encore ouvert de disponibilités. Contacte-le depuis sa page.' })}
-            </Text>
+            </AppText>
           </View>
         ) : (
           <>
-            <Text style={styles.sectionLabel}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</Text>
+            <AppText style={styles.sectionLabel}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</AppText>
             <View style={styles.slotCard}>
               {nextSlots.map((s, i) => {
                 const isOn = selected?.day === s.day && selected?.period === s.period;
@@ -181,22 +182,22 @@ export default function BookOfferingScreen() {
                   >
                     <View style={[styles.radio, isOn && styles.radioOn]} />
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.slotDay}>{dayjs(s.day).format('ddd D MMMM')}</Text>
-                      <Text style={[styles.slotCap, full && { color: colors.textMuted }]}>{text}</Text>
+                      <AppText style={styles.slotDay}>{dayjs(s.day).format('ddd D MMMM')}</AppText>
+                      <AppText style={[styles.slotCap, full && { color: colors.textMuted }]}>{text}</AppText>
                     </View>
                     <View style={[styles.periodPill, full && styles.periodPillOff]}>
-                      <Text style={[styles.periodPillText, full && { color: colors.textMuted }]}>{periodName(s.period)}</Text>
+                      <AppText style={[styles.periodPillText, full && { color: colors.textMuted }]}>{periodName(s.period)}</AppText>
                     </View>
                   </PressableScale>
                 );
               })}
               <PressableScale style={styles.calToggle} onPress={() => setShowCalendar((v) => !v)}>
                 <CalendarDays size={15} color={colors.cta} strokeWidth={2.2} />
-                <Text style={styles.calToggleText}>
+                <AppText style={styles.calToggleText}>
                   {showCalendar
                     ? t('booking.hideCalendar', { defaultValue: 'Masquer le calendrier' })
                     : t('booking.pickOnCalendar', { defaultValue: 'Choisir sur le calendrier' })}
-                </Text>
+                </AppText>
               </PressableScale>
             </View>
 
@@ -215,18 +216,18 @@ export default function BookOfferingScreen() {
             )}
 
             <View style={styles.pickRow}>
-              <Text style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</Text>
+              <AppText style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</AppText>
               <PressableScale style={styles.stepBtn} onPress={() => setPartySize((s) => Math.max(1, s - 1))}>
                 <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
               </PressableScale>
-              <Text style={styles.stepVal}>{partySize}</Text>
+              <AppText style={styles.stepVal}>{partySize}</AppText>
               <PressableScale style={styles.stepBtn} onPress={() => setPartySize((s) => Math.min(maxParty, s + 1))}>
                 <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
               </PressableScale>
             </View>
 
-            <Text style={styles.fieldLabel}>{t('booking.messageLabel', { defaultValue: 'Message (optionnel)' })}</Text>
-            <TextInput
+            <AppText style={styles.fieldLabel}>{t('booking.messageLabel', { defaultValue: 'Message (optionnel)' })}</AppText>
+            <AppTextInput
               style={styles.input}
               placeholder={t('booking.messagePlaceholder', { defaultValue: 'Niveau, questions, détails utiles…' })}
               placeholderTextColor={colors.textMuted}
@@ -238,33 +239,33 @@ export default function BookOfferingScreen() {
 
             <View style={styles.recap}>
               <View style={styles.recapLine}>
-                <Text style={styles.recapKey}>{t('booking.recapOffering', { defaultValue: 'Sortie' })}</Text>
-                <Text style={styles.recapVal} numberOfLines={1}>{offering.title}</Text>
+                <AppText style={styles.recapKey}>{t('booking.recapOffering', { defaultValue: 'Sortie' })}</AppText>
+                <AppText style={styles.recapVal} numberOfLines={1}>{offering.title}</AppText>
               </View>
               <View style={styles.recapLine}>
-                <Text style={styles.recapKey}>{t('booking.slot', { defaultValue: 'Créneau' })}</Text>
-                <Text style={styles.recapVal}>
+                <AppText style={styles.recapKey}>{t('booking.slot', { defaultValue: 'Créneau' })}</AppText>
+                <AppText style={styles.recapVal}>
                   {selected
                     ? `${dayjs(selected.day).format('ddd D MMM')} · ${periodName(selected.period)}`
                     : t('booking.noSlotSelected', { defaultValue: 'Aucun créneau choisi' })}
-                </Text>
+                </AppText>
               </View>
               <View style={styles.recapLine}>
-                <Text style={styles.recapKey}>{t('booking.recapGroup', { defaultValue: 'Groupe' })}</Text>
-                <Text style={styles.recapVal}>{partySize} {t('booking.people', { defaultValue: 'pers.' })}</Text>
+                <AppText style={styles.recapKey}>{t('booking.recapGroup', { defaultValue: 'Groupe' })}</AppText>
+                <AppText style={styles.recapVal}>{partySize} {t('booking.people', { defaultValue: 'pers.' })}</AppText>
               </View>
               {estimate != null && (
                 <View style={styles.recapLine}>
-                  <Text style={styles.recapKey}>{t('booking.recapPrice', { defaultValue: 'Prix indicatif' })}</Text>
-                  <Text style={styles.recapVal}>{estimate} €</Text>
+                  <AppText style={styles.recapKey}>{t('booking.recapPrice', { defaultValue: 'Prix indicatif' })}</AppText>
+                  <AppText style={styles.recapVal}>{estimate} €</AppText>
                 </View>
               )}
             </View>
             <View style={styles.payNote}>
               <Lock size={13} color={colors.textMuted} strokeWidth={2.2} />
-              <Text style={styles.finePrint}>
+              <AppText style={styles.finePrint}>
                 {t('booking.payOnSite', { defaultValue: 'Le professionnel confirme ta réservation — le paiement se fait sur place.' })}
-              </Text>
+              </AppText>
             </View>
 
             <PressableScale
@@ -273,9 +274,9 @@ export default function BookOfferingScreen() {
               disabled={!selected || sending}
             >
               <Send size={15} color={colors.onCta} strokeWidth={2.4} />
-              <Text style={styles.submitText}>
+              <AppText style={styles.submitText}>
                 {sending ? '…' : t('booking.submit', { defaultValue: 'Envoyer la demande' })}
-              </Text>
+              </AppText>
             </PressableScale>
           </>
         )}

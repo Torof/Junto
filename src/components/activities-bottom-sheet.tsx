@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList, Dimensions, useWindowDimensions } from 'react-native';
+import { View, Pressable, StyleSheet, FlatList, Dimensions, useWindowDimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Svg, { Path } from 'react-native-svg';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -106,7 +107,7 @@ function TabHandle({ count, label, onExpand, filterLabel, onClearFilter }: {
         <View style={styles.tabGrip} />
         <View style={styles.tabRow}>
           <ChevronUpCircle size={15} color={colors.textPrimary} strokeWidth={2.2} />
-          <Text style={styles.tabText}>{filterLabel ?? `${label} · ${count}`}</Text>
+          <AppText style={styles.tabText}>{filterLabel ?? `${label} · ${count}`}</AppText>
           {filterLabel && onClearFilter && (
             <Pressable
               onPress={(e) => { e.stopPropagation(); onClearFilter(); }}
@@ -323,7 +324,7 @@ export const ActivitiesBottomSheet = forwardRef<ActivitiesBottomSheetHandle, Pro
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('search.noResults')}</Text>
+            <AppText style={styles.emptyText}>{t('search.noResults')}</AppText>
           </View>
         }
       />

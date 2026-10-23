@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Share } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -135,8 +136,8 @@ export default function CreateStep4() {
   return (
     <>
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
-      <Text style={styles.stepLabel}>{t('create.step', { current: 4, total: 4 })}</Text>
-      <Text style={styles.title}>{t('create.step4Title')}</Text>
+      <AppText style={styles.stepLabel}>{t('create.step', { current: 4, total: 4 })}</AppText>
+      <AppText style={styles.title}>{t('create.step4Title')}</AppText>
 
       <View style={styles.recap}>
         <RecapRow label={t('create.title')} value={form.title} />
@@ -164,8 +165,8 @@ export default function CreateStep4() {
         />
         {form.description ? (
           <View style={styles.descSection}>
-            <Text style={styles.recapLabel}>{t('activity.description')}</Text>
-            <Text style={styles.recapDesc}>{form.description}</Text>
+            <AppText style={styles.recapLabel}>{t('activity.description')}</AppText>
+            <AppText style={styles.recapDesc}>{form.description}</AppText>
           </View>
         ) : null}
       </View>
@@ -174,12 +175,12 @@ export default function CreateStep4() {
       <PressableScale style={styles.inviteField} onPress={() => setPickerOpen(true)}>
         <UserPlus size={18} color={colors.textPrimary} strokeWidth={2.2} />
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.inviteFieldLabel}>{t('create.invitePartners', { defaultValue: 'Inviter des partenaires' })}</Text>
-          <Text style={styles.inviteFieldSub} numberOfLines={1}>
+          <AppText style={styles.inviteFieldLabel}>{t('create.invitePartners', { defaultValue: 'Inviter des partenaires' })}</AppText>
+          <AppText style={styles.inviteFieldSub} numberOfLines={1}>
             {form.invitees.length > 0
               ? t('create.inviteCount', { defaultValue: '{{count}} sélectionné·es', count: form.invitees.length })
               : t('create.inviteOptional', { defaultValue: 'Optionnel · tes contacts + partenaires récents' })}
-          </Text>
+          </AppText>
         </View>
         <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} />
       </PressableScale>
@@ -192,7 +193,7 @@ export default function CreateStep4() {
         {isLoading ? (
           <LogoSpinner size={20} />
         ) : (
-          <Text style={styles.publishText}>{t('create.publish')}</Text>
+          <AppText style={styles.publishText}>{t('create.publish')}</AppText>
         )}
       </PressableScale>
     </ScrollView>
@@ -212,8 +213,8 @@ function RecapRow({ label, value }: { label: string; value: string }) {
   const rs = useMemo(() => createRecapStyles(colors), [colors]);
   return (
     <View style={rs.row}>
-      <Text style={rs.label}>{label}</Text>
-      <Text style={rs.value}>{value}</Text>
+      <AppText style={rs.label}>{label}</AppText>
+      <AppText style={rs.value}>{value}</AppText>
     </View>
   );
 }

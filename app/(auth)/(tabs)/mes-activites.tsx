@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, Pressable, StyleSheet, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -170,16 +171,16 @@ export default function MesActivitesScreen() {
             style={[styles.mainTab, mainTab === tab && styles.mainTabActive]}
             onPress={() => setMainTab(tab)}
           >
-            <Text style={[styles.mainTabText, mainTab === tab && styles.mainTabTextActive]}>
+            <AppText style={[styles.mainTabText, mainTab === tab && styles.mainTabTextActive]}>
               {tab === 'upcoming'
                 ? t('myActivities.upcoming', { defaultValue: 'À venir' })
                 : tab === 'finished'
                   ? t('myActivities.finished', { defaultValue: 'Terminées' })
                   : t('myActivities.pending', { defaultValue: 'En attente' })}
-            </Text>
+            </AppText>
             {tab === 'pending' && pendingCount > 0 && (
               <View style={styles.pendingBadge}>
-                <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
+                <AppText style={styles.pendingBadgeText}>{pendingCount}</AppText>
               </View>
             )}
           </Pressable>
@@ -197,13 +198,13 @@ export default function MesActivitesScreen() {
                 style={[styles.scopeChip, scope === s && styles.scopeChipActive]}
                 onPress={() => setScope(s)}
               >
-                <Text style={[styles.scopeChipText, scope === s && styles.scopeChipTextActive]}>
+                <AppText style={[styles.scopeChipText, scope === s && styles.scopeChipTextActive]}>
                   {s === 'all'
                     ? t('myActivities.all', { defaultValue: 'Toutes' })
                     : s === 'created'
                       ? t('myActivities.created', { defaultValue: 'Créées' })
                       : t('myActivities.joined', { defaultValue: 'Rejointes' })}
-                </Text>
+                </AppText>
               </Pressable>
             ))}
           </View>
@@ -212,9 +213,9 @@ export default function MesActivitesScreen() {
         )}
         <Pressable style={styles.filterChip} onPress={() => setShowFilters(true)}>
           <SlidersHorizontal size={15} color={hasMapFilters ? colors.cta : colors.textPrimary} strokeWidth={2.2} />
-          <Text style={[styles.filterChipText, hasMapFilters && { color: colors.cta }]}>
+          <AppText style={[styles.filterChipText, hasMapFilters && { color: colors.cta }]}>
             {t('myActivities.filters', { defaultValue: 'Filtres' })}
-          </Text>
+          </AppText>
           {hasMapFilters && <View style={styles.filterDot} />}
         </Pressable>
       </View>
@@ -234,11 +235,11 @@ export default function MesActivitesScreen() {
         </View>
       ) : error ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{getFriendlyError(error, 'generic')}</Text>
+          <AppText style={styles.emptyText}>{getFriendlyError(error, 'generic')}</AppText>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{emptyMessage()}</Text>
+          <AppText style={styles.emptyText}>{emptyMessage()}</AppText>
         </View>
       ) : (
         <FlatList

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Alert, Pressable, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, Alert, Pressable, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -107,31 +108,31 @@ export default function MyBookingsScreen() {
       <View style={styles.card}>
         <View style={styles.topRow}>
           <View style={[styles.bigDate, { backgroundColor: sc + '1A' }]}>
-            <Text style={[styles.bigDateDay, { color: sc }]}>{dayjs(item.day).format('D')}</Text>
-            <Text style={[styles.bigDateMonth, { color: sc }]}>{dayjs(item.day).format('MMM')}</Text>
+            <AppText style={[styles.bigDateDay, { color: sc }]}>{dayjs(item.day).format('D')}</AppText>
+            <AppText style={[styles.bigDateMonth, { color: sc }]}>{dayjs(item.day).format('MMM')}</AppText>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.title} numberOfLines={1}>{item.offering_title}</Text>
-            <Text style={styles.sub} numberOfLines={1}>
+            <AppText style={styles.title} numberOfLines={1}>{item.offering_title}</AppText>
+            <AppText style={styles.sub} numberOfLines={1}>
               {item.pro_name ?? '—'} ·{' '}
               {item.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
               {' · '}{item.party_size} {t('booking.people', { defaultValue: 'pers.' })}
-            </Text>
+            </AppText>
           </View>
           <View style={[styles.statusPill, { backgroundColor: c + '1A' }]}>
-            <Text style={[styles.statusText, { color: c }]}>
+            <AppText style={[styles.statusText, { color: c }]}>
               {t(STATUS_META[item.status].key, { defaultValue: STATUS_META[item.status].fallback })}
-            </Text>
+            </AppText>
           </View>
         </View>
 
         {showTicket && (item.equipment_required?.length ?? 0) > 0 && (
           <View style={styles.equipRow}>
             <Backpack size={13} color={colors.textSecondary} strokeWidth={2.2} style={{ marginTop: 2 }} />
-            <Text style={styles.equipText}>
-              <Text style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</Text>
+            <AppText style={styles.equipText}>
+              <AppText style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</AppText>
               {' — '}{item.equipment_required!.join(', ')}.
-            </Text>
+            </AppText>
           </View>
         )}
         {showTicket && needsForm(item) && (
@@ -140,11 +141,11 @@ export default function MyBookingsScreen() {
             onPress={() => router.push(`/(auth)/booking-form/${item.id}`)}
           >
             <ClipboardList size={14} color={formComplete(item) ? colors.cta : colors.onCta} strokeWidth={2.4} />
-            <Text style={[styles.formBtnText, formComplete(item) && { color: colors.cta }]}>
+            <AppText style={[styles.formBtnText, formComplete(item) && { color: colors.cta }]}>
               {formComplete(item)
                 ? t('booking.formDone', { defaultValue: 'Fiche du groupe ✓' })
                 : t('booking.formTodo', { defaultValue: 'Compléter la fiche du groupe' })}
-            </Text>
+            </AppText>
           </PressableScale>
         )}
         {showTicket && (item.location_name || price != null) && (
@@ -152,15 +153,15 @@ export default function MyBookingsScreen() {
             {item.location_name ? (
               <View style={styles.ticketItem}>
                 <MapPin size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.ticketText} numberOfLines={1}>{item.location_name}</Text>
+                <AppText style={styles.ticketText} numberOfLines={1}>{item.location_name}</AppText>
               </View>
             ) : null}
             {price != null ? (
               <View style={styles.ticketItem}>
                 <Banknote size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.ticketText}>
+                <AppText style={styles.ticketText}>
                   {price} € {t('booking.onSite', { defaultValue: 'sur place' })}
-                </Text>
+                </AppText>
               </View>
             ) : null}
           </View>
@@ -171,19 +172,19 @@ export default function MyBookingsScreen() {
             {item.conversation_id ? (
               <PressableScale style={styles.link} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)} hitSlop={6}>
                 <MessageCircle size={15} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.linkText}>{t('booking.openChat', { defaultValue: 'Discuter' })}</Text>
+                <AppText style={styles.linkText}>{t('booking.openChat', { defaultValue: 'Discuter' })}</AppText>
               </PressableScale>
             ) : null}
             {item.status === 'pending' ? (
-              <Text style={styles.pendingHint}>
+              <AppText style={styles.pendingHint}>
                 {t('booking.sentAgo', { defaultValue: 'Envoyée {{ago}}', ago: dayjs(item.created_at).fromNow() })}
-              </Text>
+              </AppText>
             ) : null}
             <View style={{ flex: 1 }} />
             {cancellable ? (
               <PressableScale style={styles.link} onPress={() => handleCancel(item)} hitSlop={6}>
                 <X size={15} color={colors.error} strokeWidth={2.4} />
-                <Text style={[styles.linkText, { color: colors.error }]}>{t('booking.cancel', { defaultValue: 'Annuler' })}</Text>
+                <AppText style={[styles.linkText, { color: colors.error }]}>{t('booking.cancel', { defaultValue: 'Annuler' })}</AppText>
               </PressableScale>
             ) : null}
           </View>
@@ -216,12 +217,12 @@ export default function MyBookingsScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ selected: tab === k }}
                 >
-                  <Text style={[styles.segText, tab === k && styles.segTextOn]}>
+                  <AppText style={[styles.segText, tab === k && styles.segTextOn]}>
                     {k === 'upcoming'
                       ? t('booking.tabUpcoming', { defaultValue: 'À venir' })
                       : t('booking.tabPast', { defaultValue: 'Passées' })}
                     {k === 'upcoming' && upcoming.length > 0 ? ` · ${upcoming.length}` : ''}
-                  </Text>
+                  </AppText>
                 </Pressable>
               ))}
             </View>
@@ -229,15 +230,15 @@ export default function MyBookingsScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <View style={styles.emptyIc}><CalendarX2 size={30} color={colors.textMuted} strokeWidth={2} /></View>
-              <Text style={styles.emptyTitle}>
+              <AppText style={styles.emptyTitle}>
                 {tab === 'upcoming'
                   ? t('booking.emptyTitle', { defaultValue: 'Aucune réservation' })
                   : t('booking.emptyPastTitle', { defaultValue: 'Aucune réservation passée' })}
-              </Text>
+              </AppText>
               {tab === 'upcoming' ? (
-                <Text style={styles.emptyBody}>
+                <AppText style={styles.emptyBody}>
                   {t('booking.emptyBody', { defaultValue: 'Réserve une sortie encadrée depuis la page d’un professionnel sur la carte.' })}
-                </Text>
+                </AppText>
               ) : null}
             </View>
           }

@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Svg, { Circle } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -99,7 +100,7 @@ export const ClusterPin = memo(function ClusterPin({ count, segments = [] }: Clu
             return el;
           })}
       </Svg>
-      <Text style={[styles.count, { fontSize }]}>{label}</Text>
+      <AppText style={[styles.count, { fontSize }]}>{label}</AppText>
     </View>
   );
 });

@@ -1,6 +1,7 @@
 import { Redirect, useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useMemo, useLayoutEffect } from 'react';
 import { useColors } from '@/hooks/use-theme';
@@ -47,7 +48,7 @@ export default function ProPageScreen() {
   if (!pro) {
     return (
       <View style={styles.center}>
-        <Text style={styles.notFound}>{t('pro.notFound', { defaultValue: 'Page introuvable' })}</Text>
+        <AppText style={styles.notFound}>{t('pro.notFound', { defaultValue: 'Page introuvable' })}</AppText>
       </View>
     );
   }

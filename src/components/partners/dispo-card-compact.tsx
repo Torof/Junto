@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { useColors } from '@/hooks/use-theme';
@@ -49,21 +50,21 @@ export const DispoCardCompact = memo(function DispoCardCompact({ card, categoryO
           <UserAvatar name={card.display_name} avatarUrl={card.avatar_url} size={48} />
         </ReliabilityRing>
         <View style={styles.headText}>
-          <Text style={styles.name} numberOfLines={1}>{card.display_name}</Text>
+          <AppText style={styles.name} numberOfLines={1}>{card.display_name}</AppText>
           {card.reliability_tier ? (
-            <Text style={[styles.tier, { color: relColor }]} numberOfLines={1}>{t(`reliability.tier.${card.reliability_tier}`)}</Text>
+            <AppText style={[styles.tier, { color: relColor }]} numberOfLines={1}>{t(`reliability.tier.${card.reliability_tier}`)}</AppText>
           ) : null}
         </View>
         {stateLabel ? (
-          <View style={styles.state}><Text style={styles.stateText}>{stateLabel}</Text></View>
+          <View style={styles.state}><AppText style={styles.stateText}>{stateLabel}</AppText></View>
         ) : null}
       </View>
 
-      <Text style={styles.meta} numberOfLines={1}>
+      <AppText style={styles.meta} numberOfLines={1}>
         {t('discovery.atKm', { defaultValue: 'à {{km}} km', km: Math.round(card.distance_km) })}
         {' · '}
         {formatPeriod(card.window_start, card.window_end)}
-      </Text>
+      </AppText>
 
       <View style={styles.pills}>
         {card.sport_keys.slice(0, 3).map((k) => {
@@ -71,19 +72,19 @@ export const DispoCardCompact = memo(function DispoCardCompact({ card, categoryO
           return (
             <View key={k} style={[styles.pill, { backgroundColor: c + '1A' }]}>
               <SportIcon sportKey={k} size={13} color={c} />
-              <Text style={[styles.pillText, { color: c }]} numberOfLines={1}>{t(`sports.${k}`, { defaultValue: k })}</Text>
+              <AppText style={[styles.pillText, { color: c }]} numberOfLines={1}>{t(`sports.${k}`, { defaultValue: k })}</AppText>
             </View>
           );
         })}
       </View>
 
       {card.about ? (
-        <Text style={styles.about} numberOfLines={2}>« {card.about} »</Text>
+        <AppText style={styles.about} numberOfLines={2}>« {card.about} »</AppText>
       ) : null}
       {(showVibes || !card.about) && card.intent && card.intent.length > 0 ? (
-        <Text style={styles.about} numberOfLines={1}>
+        <AppText style={styles.about} numberOfLines={1}>
           {card.intent.slice(0, 3).map((it) => t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })).join('   ')}
-        </Text>
+        </AppText>
       ) : null}
     </PressableScale>
   );

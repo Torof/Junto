@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, StyleSheet, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -92,14 +93,14 @@ export default function CreateChannelScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle}>{t('channels.createTitle', { defaultValue: 'Nouvelle discussion' })}</Text>
+        <AppText style={styles.headerTitle}>{t('channels.createTitle', { defaultValue: 'Nouvelle discussion' })}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom de la discussion' })}</Text>
-        <TextInput
+        <AppText style={styles.section}>{t('channels.nameLabel', { defaultValue: 'Nom de la discussion' })}</AppText>
+        <AppTextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
@@ -108,51 +109,51 @@ export default function CreateChannelScreen() {
           maxLength={60}
         />
 
-        <Text style={styles.section}>{t('channels.zoneLabel', { defaultValue: 'Zone — lieu central' })}</Text>
+        <AppText style={styles.section}>{t('channels.zoneLabel', { defaultValue: 'Zone — lieu central' })}</AppText>
         {base && (
           <View style={styles.chosenPlaceRow}>
-            <Text style={styles.chosenPlace}>{base.label}</Text>
-            <Text style={styles.placeClear} onPress={() => setBase(null)}>{t('channels.clearPlace', { defaultValue: 'retirer' })}</Text>
+            <AppText style={styles.chosenPlace}>{base.label}</AppText>
+            <AppText style={styles.placeClear} onPress={() => setBase(null)}>{t('channels.clearPlace', { defaultValue: 'retirer' })}</AppText>
           </View>
         )}
         <PlaceSearchBar onSelect={(p) => setBase({ lng: p.lng, lat: p.lat, label: p.label })} />
 
-        <Text style={styles.section}>{t('channels.radiusLabel', { defaultValue: 'Rayon de la zone' })}</Text>
+        <AppText style={styles.section}>{t('channels.radiusLabel', { defaultValue: 'Rayon de la zone' })}</AppText>
         <View style={styles.radiusRow}>
           {CHANNEL_RADII.map((r) => (
             <Pressable key={r} style={[styles.radiusChip, radiusKm === r && styles.radiusChipActive]} onPress={() => setRadiusKm(r)}>
-              <Text style={[styles.radiusChipText, radiusKm === r && styles.radiusChipTextActive]}>{r} km</Text>
+              <AppText style={[styles.radiusChipText, radiusKm === r && styles.radiusChipTextActive]}>{r} km</AppText>
             </Pressable>
           ))}
         </View>
 
-        <Text style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport (optionnel)' })}</Text>
+        <AppText style={styles.section}>{t('channels.sportLabel', { defaultValue: 'Sport (optionnel)' })}</AppText>
         <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={toggleSport} label={t('map.sportLabel')} />
 
-        <Text style={styles.section}>{t('channels.photoLabel', { defaultValue: 'Photo (optionnel)' })}</Text>
+        <AppText style={styles.section}>{t('channels.photoLabel', { defaultValue: 'Photo (optionnel)' })}</AppText>
         {photoUrl ? (
           <View style={styles.photoWrap}>
             <Image source={{ uri: photoUrl }} style={styles.photoPreview} contentFit="cover" />
             <View style={styles.photoActions}>
               <Pressable style={styles.photoBtn} onPress={addPhoto} disabled={photoBusy}>
-                <Text style={styles.photoBtnText}>{t('channels.changePhoto', { defaultValue: 'Changer' })}</Text>
+                <AppText style={styles.photoBtnText}>{t('channels.changePhoto', { defaultValue: 'Changer' })}</AppText>
               </Pressable>
               <Pressable style={styles.photoBtn} onPress={() => setPhotoUrl(null)} disabled={photoBusy}>
-                <Text style={[styles.photoBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer' })}</Text>
+                <AppText style={[styles.photoBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer' })}</AppText>
               </Pressable>
             </View>
           </View>
         ) : (
           <Pressable style={styles.photoAdd} onPress={addPhoto} disabled={photoBusy}>
             <ImagePlus size={18} color={colors.cta} strokeWidth={2.2} />
-            <Text style={styles.photoAddText}>
+            <AppText style={styles.photoAddText}>
               {photoBusy ? t('channels.photoUploading', { defaultValue: 'Envoi…' }) : t('channels.addPhoto', { defaultValue: 'Ajouter une photo' })}
-            </Text>
+            </AppText>
           </Pressable>
         )}
 
-        <Text style={styles.section}>{t('channels.descLabel', { defaultValue: 'Description (optionnel)' })}</Text>
-        <TextInput
+        <AppText style={styles.section}>{t('channels.descLabel', { defaultValue: 'Description (optionnel)' })}</AppText>
+        <AppTextInput
           style={[styles.input, styles.inputMulti]}
           value={description}
           onChangeText={setDescription}
@@ -166,7 +167,7 @@ export default function CreateChannelScreen() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Pressable style={[styles.cta, !ready && styles.ctaDisabled]} disabled={!ready || saving} onPress={() => submit(false)}>
-          <Text style={styles.ctaText}>{saving ? t('channels.creating', { defaultValue: 'Création…' }) : t('channels.createCta', { defaultValue: 'Créer la discussion' })}</Text>
+          <AppText style={styles.ctaText}>{saving ? t('channels.creating', { defaultValue: 'Création…' }) : t('channels.createCta', { defaultValue: 'Créer la discussion' })}</AppText>
         </Pressable>
       </View>
 
@@ -174,13 +175,13 @@ export default function CreateChannelScreen() {
       <Modal visible={!!dupId} transparent animationType="fade" onRequestClose={() => setDupId(null)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setDupId(null)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>{t('channels.dupTitle', { defaultValue: 'Une discussion existe déjà' })}</Text>
-            <Text style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Une discussion couvre déjà cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</Text>
+            <AppText style={styles.modalTitle}>{t('channels.dupTitle', { defaultValue: 'Une discussion existe déjà' })}</AppText>
+            <AppText style={styles.modalBody}>{t('channels.dupBody', { defaultValue: 'Une discussion couvre déjà cette zone. Rejoins-le plutôt que d’en créer un doublon.' })}</AppText>
             <Pressable style={styles.modalPrimary} onPress={joinExisting}>
-              <Text style={styles.modalPrimaryText}>{t('channels.dupJoin', { defaultValue: 'Rejoindre l’existant' })}</Text>
+              <AppText style={styles.modalPrimaryText}>{t('channels.dupJoin', { defaultValue: 'Rejoindre l’existant' })}</AppText>
             </Pressable>
             <Pressable style={styles.modalSecondary} onPress={() => { setDupId(null); submit(true); }}>
-              <Text style={styles.modalSecondaryText}>{t('channels.dupCreate', { defaultValue: 'Créer quand même' })}</Text>
+              <AppText style={styles.modalSecondaryText}>{t('channels.dupCreate', { defaultValue: 'Créer quand même' })}</AppText>
             </Pressable>
           </Pressable>
         </Pressable>

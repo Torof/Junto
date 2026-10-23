@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fontSizes } from '@/constants/theme';
@@ -95,11 +96,11 @@ export function ReliabilityRing({ score, tier, size, strokeWidth = 10, showLabel
       {showLabel && (
         <View style={styles.scoreBadge}>
           {score != null ? (
-            <Text style={[styles.scoreText, { color: ringColor }]}>{clamped}%</Text>
+            <AppText style={[styles.scoreText, { color: ringColor }]}>{clamped}%</AppText>
           ) : tier ? (
-            <Text style={[styles.scoreText, { color: ringColor }]}>{t(`reliability.tier.${tier}`)}</Text>
+            <AppText style={[styles.scoreText, { color: ringColor }]}>{t(`reliability.tier.${tier}`)}</AppText>
           ) : null}
-          <Text style={styles.scoreLabel}>{t('reliability.label')}</Text>
+          <AppText style={styles.scoreLabel}>{t('reliability.label')}</AppText>
         </View>
       )}
     </View>

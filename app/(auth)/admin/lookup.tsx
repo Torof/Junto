@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, ScrollView, Modal, ActivityIndicator, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Stack, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Search, User, Briefcase, Ban, ShieldCheck, Mail, Clock } from 'lucide-react-native';
@@ -73,17 +74,17 @@ export default function AdminLookupScreen() {
       <View style={styles.toggle}>
         <Pressable style={[styles.toggleBtn, mode === 'user' && styles.toggleActive]} onPress={() => setMode('user')}>
           <User size={16} color={mode === 'user' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.2} />
-          <Text style={[styles.toggleText, mode === 'user' && styles.toggleTextActive]}>{t('admin.lookupUser', { defaultValue: 'Utilisateur' })}</Text>
+          <AppText style={[styles.toggleText, mode === 'user' && styles.toggleTextActive]}>{t('admin.lookupUser', { defaultValue: 'Utilisateur' })}</AppText>
         </Pressable>
         <Pressable style={[styles.toggleBtn, mode === 'pro' && styles.toggleActive]} onPress={() => setMode('pro')}>
           <Briefcase size={16} color={mode === 'pro' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.2} />
-          <Text style={[styles.toggleText, mode === 'pro' && styles.toggleTextActive]}>{t('admin.lookupPro', { defaultValue: 'Page pro' })}</Text>
+          <AppText style={[styles.toggleText, mode === 'pro' && styles.toggleTextActive]}>{t('admin.lookupPro', { defaultValue: 'Page pro' })}</AppText>
         </Pressable>
       </View>
 
-      <Text style={styles.hint}>{t('admin.lookupHint', { defaultValue: "Colle l'identifiant (UUID) à résoudre." })}</Text>
+      <AppText style={styles.hint}>{t('admin.lookupHint', { defaultValue: "Colle l'identifiant (UUID) à résoudre." })}</AppText>
       <View style={styles.searchRow}>
-        <TextInput
+        <AppTextInput
           style={styles.input}
           value={idInput}
           onChangeText={setIdInput}
@@ -98,48 +99,48 @@ export default function AdminLookupScreen() {
       </View>
 
       {loading ? <ActivityIndicator color={colors.cta} style={{ marginTop: spacing.lg }} /> : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
       {userResult ? (
         <View style={styles.card}>
-          <Text style={styles.cardName}>{userResult.display_name}{userResult.is_admin ? ' · admin' : ''}</Text>
-          <View style={styles.line}><Mail size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText} selectable>{userResult.email}</Text></View>
-          <View style={styles.line}><Clock size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText}>{t('admin.tier', { defaultValue: 'Tier' })}: {userResult.tier} · {t('admin.since', { defaultValue: 'inscrit le' })} {dayjs(userResult.created_at).format('D MMM YYYY')}</Text></View>
+          <AppText style={styles.cardName}>{userResult.display_name}{userResult.is_admin ? ' · admin' : ''}</AppText>
+          <View style={styles.line}><Mail size={14} color={colors.textSecondary} strokeWidth={2} /><AppText style={styles.lineText} selectable>{userResult.email}</AppText></View>
+          <View style={styles.line}><Clock size={14} color={colors.textSecondary} strokeWidth={2} /><AppText style={styles.lineText}>{t('admin.tier', { defaultValue: 'Tier' })}: {userResult.tier} · {t('admin.since', { defaultValue: 'inscrit le' })} {dayjs(userResult.created_at).format('D MMM YYYY')}</AppText></View>
           <View style={[styles.statusPill, { backgroundColor: (userResult.suspended_at ? colors.error : colors.success) + '18' }]}>
-            <Text style={[styles.statusText, { color: userResult.suspended_at ? colors.error : colors.success }]}>
+            <AppText style={[styles.statusText, { color: userResult.suspended_at ? colors.error : colors.success }]}>
               {userResult.suspended_at ? t('admin.suspended', { defaultValue: 'Suspendu' }) : t('admin.active', { defaultValue: 'Actif' })}
-            </Text>
+            </AppText>
           </View>
           {!userResult.is_admin ? (
             userResult.suspended_at ? (
               <Pressable style={[styles.actionBtn, { backgroundColor: colors.success }]} onPress={() => { setReason(''); setReasonFor({ kind: 'unsuspend', userId: userResult.id }); }}>
                 <ShieldCheck size={16} color="#FFFFFF" strokeWidth={2.2} />
-                <Text style={styles.actionText}>{t('admin.unsuspend', { defaultValue: 'Lever la suspension' })}</Text>
+                <AppText style={styles.actionText}>{t('admin.unsuspend', { defaultValue: 'Lever la suspension' })}</AppText>
               </Pressable>
             ) : (
               <Pressable style={[styles.actionBtn, { backgroundColor: colors.error }]} onPress={() => { setReason(''); setReasonFor({ kind: 'suspend', userId: userResult.id }); }}>
                 <Ban size={16} color="#FFFFFF" strokeWidth={2.2} />
-                <Text style={styles.actionText}>{t('admin.suspend', { defaultValue: 'Suspendre' })}</Text>
+                <AppText style={styles.actionText}>{t('admin.suspend', { defaultValue: 'Suspendre' })}</AppText>
               </Pressable>
             )
           ) : (
-            <Text style={styles.adminNote}>{t('admin.cantActAdmin', { defaultValue: 'Un admin ne se gère pas depuis l’app.' })}</Text>
+            <AppText style={styles.adminNote}>{t('admin.cantActAdmin', { defaultValue: 'Un admin ne se gère pas depuis l’app.' })}</AppText>
           )}
         </View>
       ) : null}
 
       {proResult ? (
         <View style={styles.card}>
-          <Text style={styles.cardName}>{proResult.pro_name}</Text>
+          <AppText style={styles.cardName}>{proResult.pro_name}</AppText>
           <View style={[styles.statusPill, { backgroundColor: colors.surfaceAlt }]}>
-            <Text style={[styles.statusText, { color: colors.textSecondary }]}>{t('admin.proStatus', { defaultValue: 'Statut PP' })}: {proResult.status}</Text>
+            <AppText style={[styles.statusText, { color: colors.textSecondary }]}>{t('admin.proStatus', { defaultValue: 'Statut PP' })}: {proResult.status}</AppText>
           </View>
-          <Text style={styles.ownerLabel}>{t('admin.owner', { defaultValue: 'Propriétaire' })}</Text>
-          <Text style={styles.cardName}>{proResult.owner_display_name}</Text>
-          <View style={styles.line}><Mail size={14} color={colors.textSecondary} strokeWidth={2} /><Text style={styles.lineText} selectable>{proResult.owner_email}</Text></View>
+          <AppText style={styles.ownerLabel}>{t('admin.owner', { defaultValue: 'Propriétaire' })}</AppText>
+          <AppText style={styles.cardName}>{proResult.owner_display_name}</AppText>
+          <View style={styles.line}><Mail size={14} color={colors.textSecondary} strokeWidth={2} /><AppText style={styles.lineText} selectable>{proResult.owner_email}</AppText></View>
           <Pressable style={[styles.actionBtn, { backgroundColor: colors.cta }]} onPress={() => { setMode('user'); setIdInput(proResult.pro_id); runUserLookup(proResult.pro_id); }}>
             <User size={16} color="#FFFFFF" strokeWidth={2.2} />
-            <Text style={styles.actionText}>{t('admin.manageOwner', { defaultValue: 'Gérer ce compte' })}</Text>
+            <AppText style={styles.actionText}>{t('admin.manageOwner', { defaultValue: 'Gérer ce compte' })}</AppText>
           </Pressable>
         </View>
       ) : null}
@@ -147,10 +148,10 @@ export default function AdminLookupScreen() {
       <Modal visible={reasonFor !== null} transparent animationType="fade" onRequestClose={() => setReasonFor(null)}>
         <View style={styles.overlay}>
           <View style={styles.reasonCard}>
-            <Text style={styles.reasonTitle}>
+            <AppText style={styles.reasonTitle}>
               {reasonFor?.kind === 'suspend' ? t('admin.suspendReason', { defaultValue: 'Raison de la suspension' }) : t('admin.unsuspendReason', { defaultValue: 'Raison de la levée' })}
-            </Text>
-            <TextInput
+            </AppText>
+            <AppTextInput
               style={styles.reasonInput}
               value={reason}
               onChangeText={setReason}
@@ -162,14 +163,14 @@ export default function AdminLookupScreen() {
             />
             <View style={styles.reasonActions}>
               <Pressable style={styles.reasonCancel} onPress={() => setReasonFor(null)}>
-                <Text style={styles.reasonCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
+                <AppText style={styles.reasonCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</AppText>
               </Pressable>
               <Pressable
                 style={[styles.reasonConfirm, (reason.trim().length < 1 || acting) && styles.disabled]}
                 disabled={reason.trim().length < 1 || acting}
                 onPress={submitReason}
               >
-                <Text style={styles.reasonConfirmText}>{t('common.confirm', { defaultValue: 'Confirmer' })}</Text>
+                <AppText style={styles.reasonConfirmText}>{t('common.confirm', { defaultValue: 'Confirmer' })}</AppText>
               </Pressable>
             </View>
           </View>

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useState, useMemo, useCallback } from 'react';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import 'dayjs/locale/fr';
@@ -66,9 +67,9 @@ export default function ProfilScreen() {
           {badgeColor && (
             <BadgeCheck size={22} color={badgeColor} fill={badgeColor + '50'} strokeWidth={1.5} />
           )}
-          <Text style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
+          <AppText style={{ color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: 'bold' }}>
             {user?.display_name ?? '...'}
-          </Text>
+          </AppText>
           <Pressable
             onPress={() => setDrawerOpen(true)}
             hitSlop={10}
@@ -96,7 +97,7 @@ export default function ProfilScreen() {
               accessibilityLabel={t('drawer.myProPage', { defaultValue: 'Ma page pro' })}
             >
               <BadgeCheck size={14} color={colors.pinMeeting} fill={colors.pinMeeting + '40'} strokeWidth={2} />
-              <Text style={styles.proHeaderText}>{t('drawer.myProPage', { defaultValue: 'Ma page pro' })}</Text>
+              <AppText style={styles.proHeaderText}>{t('drawer.myProPage', { defaultValue: 'Ma page pro' })}</AppText>
             </Pressable>
           )}
         </View>

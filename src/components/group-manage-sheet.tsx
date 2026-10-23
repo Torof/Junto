@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Modal, Pressable, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -80,8 +81,8 @@ export function GroupManageSheet({ visible, conversationId, group, onClose }: Pr
           <View style={styles.handle} />
 
           <View style={styles.nameRow}>
-            <TextInput style={styles.iconInput} value={icon} onChangeText={setIcon} placeholder="🏔️" placeholderTextColor={colors.textSecondary} maxLength={8} />
-            <TextInput style={styles.nameInput} value={name} onChangeText={setName} placeholder={t('group.namePlaceholder', { defaultValue: 'Nom du groupe' })} placeholderTextColor={colors.textSecondary} maxLength={60} />
+            <AppTextInput style={styles.iconInput} value={icon} onChangeText={setIcon} placeholder="🏔️" placeholderTextColor={colors.textSecondary} maxLength={8} />
+            <AppTextInput style={styles.nameInput} value={name} onChangeText={setName} placeholder={t('group.namePlaceholder', { defaultValue: 'Nom du groupe' })} placeholderTextColor={colors.textSecondary} maxLength={60} />
             {dirty && (
               <Pressable style={[styles.saveBtn, saving && styles.disabled]} onPress={handleRename} disabled={saving}>
                 <Check size={18} color="#FFFFFF" strokeWidth={3} />
@@ -90,10 +91,10 @@ export function GroupManageSheet({ visible, conversationId, group, onClose }: Pr
           </View>
 
           <View style={styles.membersHeader}>
-            <Text style={styles.section}>{t('group.membersSection', { defaultValue: 'Membres' })} · {group.members.length}</Text>
+            <AppText style={styles.section}>{t('group.membersSection', { defaultValue: 'Membres' })} · {group.members.length}</AppText>
             <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)} hitSlop={6}>
               <UserPlus size={16} color={colors.cta} strokeWidth={2.4} />
-              <Text style={styles.addLabel}>{t('group.addMembers', { defaultValue: 'Ajouter' })}</Text>
+              <AppText style={styles.addLabel}>{t('group.addMembers', { defaultValue: 'Ajouter' })}</AppText>
             </Pressable>
           </View>
 
@@ -101,7 +102,7 @@ export function GroupManageSheet({ visible, conversationId, group, onClose }: Pr
             {group.members.map((m) => (
               <View key={m.id} style={styles.row}>
                 <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size={36} />
-                <Text style={styles.memberName} numberOfLines={1}>{m.display_name}</Text>
+                <AppText style={styles.memberName} numberOfLines={1}>{m.display_name}</AppText>
               </View>
             ))}
           </ScrollView>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,10 +39,10 @@ export default function AdminHubScreen() {
     <Pressable style={[styles.row, last && styles.rowLast]} onPress={onPress}>
       <View style={styles.iconWrap}><Icon size={20} color={colors.cta} strokeWidth={2.2} /></View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowSub} numberOfLines={1}>{sublabel}</Text>
+        <AppText style={styles.rowLabel}>{label}</AppText>
+        <AppText style={styles.rowSub} numberOfLines={1}>{sublabel}</AppText>
       </View>
-      {count > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{count}</Text></View>}
+      {count > 0 && <View style={styles.badge}><AppText style={styles.badgeText}>{count}</AppText></View>}
       <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2.2} />
     </Pressable>
   );
@@ -80,10 +81,10 @@ export default function AdminHubScreen() {
         <View style={[styles.row, styles.rowLast]}>
           <View style={styles.iconWrap}><Sparkles size={20} color={colors.cta} strokeWidth={2.2} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.rowLabel}>{t('admin.demoMode', { defaultValue: 'Mode démo' })}</Text>
-            <Text style={styles.rowSub} numberOfLines={2}>
+            <AppText style={styles.rowLabel}>{t('admin.demoMode', { defaultValue: 'Mode démo' })}</AppText>
+            <AppText style={styles.rowSub} numberOfLines={2}>
               {t('admin.demoModeSub', { defaultValue: 'Affiche des sorties de démonstration sur ta carte — visibles par toi seul.' })}
-            </Text>
+            </AppText>
           </View>
           <Switch
             value={demoOn === true}

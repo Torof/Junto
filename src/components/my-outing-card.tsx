@@ -1,5 +1,6 @@
 import { useMemo, useState, forwardRef, useImperativeHandle } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
@@ -494,23 +495,23 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
         <View style={styles.headerBand}>
           {/* Row 1: title + small Prêt seal (when ready). */}
           <View style={styles.headerTopRow}>
-            <Text style={styles.cardTitle} numberOfLines={1}>
+            <AppText style={styles.cardTitle} numberOfLines={1}>
               {t('myOuting.cardTitle', { defaultValue: 'Tes préparatifs' })}
-            </Text>
+            </AppText>
             {isReady && (
               <View style={[styles.seal, { borderColor: colors.cta }]}>
                 <Check size={10} color={colors.cta} strokeWidth={3} />
-                <Text style={[styles.sealText, { color: colors.cta }]}>
+                <AppText style={[styles.sealText, { color: colors.cta }]}>
                   {t('myOuting.ready', { defaultValue: 'Prêt' })}
-                </Text>
+                </AppText>
               </View>
             )}
           </View>
           {/* Row 2: countdown caption — its own line so the title isn't
               compressed when the caption gets long ("Dans 14 jours"). */}
-          <Text style={[styles.caption, { color: captionColor }]} numberOfLines={1}>
+          <AppText style={[styles.caption, { color: captionColor }]} numberOfLines={1}>
             {caption.text}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.body}>
           <View style={styles.stampsRow}>
@@ -535,21 +536,21 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                     disabled={!isActive}
                     hitSlop={4}
                   >
-                    <Text style={styles.myGearChipText} numberOfLines={1}>
+                    <AppText style={styles.myGearChipText} numberOfLines={1}>
                       {g.name}
-                      {g.quantity > 1 && <Text style={styles.myGearChipQty}>{'  ×' + g.quantity}</Text>}
-                    </Text>
+                      {g.quantity > 1 && <AppText style={styles.myGearChipQty}>{'  ×' + g.quantity}</AppText>}
+                    </AppText>
                   </Pressable>
                 ))}
                 {myGearItems.length === 0 && (
-                  <Text style={styles.myGearEmptyText}>
+                  <AppText style={styles.myGearEmptyText}>
                     {t('myOuting.stamp.materialNothing', { defaultValue: "Tu n'apportes rien pour le moment" })}
-                  </Text>
+                  </AppText>
                 )}
                 {isActive && (
                   <Pressable style={[styles.myGearChip, styles.myGearChipAdd]} onPress={() => onAddMaterial?.()} hitSlop={4}>
                     <Plus size={12} color={colors.cta} strokeWidth={2.6} />
-                    <Text style={styles.myGearChipAddText}>{t('gear.addShort', { defaultValue: 'Ajouter' })}</Text>
+                    <AppText style={styles.myGearChipAddText}>{t('gear.addShort', { defaultValue: 'Ajouter' })}</AppText>
                   </Pressable>
                 )}
               </View>
@@ -578,16 +579,16 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       >
         <Pressable style={styles.backdrop} onPress={() => setShowMyGear(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.sheetTitle}>
+            <AppText style={styles.sheetTitle}>
               {t('myOuting.gearListTitle', { defaultValue: 'Ton matériel' })}
-            </Text>
+            </AppText>
 
             {myGearItems.length === 0 ? (
-              <Text style={styles.sheetEmpty}>
+              <AppText style={styles.sheetEmpty}>
                 {t('myOuting.gearListEmpty', {
                   defaultValue: 'Tu n\'apportes rien pour le moment.',
                 })}
-              </Text>
+              </AppText>
             ) : (
               <ScrollView style={styles.gearList} showsVerticalScrollIndicator={false}>
                 {myGearItems.map((g, i) => (
@@ -605,11 +606,11 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                     <View style={styles.gearListIconWrap}>
                       <Backpack size={14} color={colors.cta} strokeWidth={2.2} />
                     </View>
-                    <Text style={styles.gearListName} numberOfLines={1}>
+                    <AppText style={styles.gearListName} numberOfLines={1}>
                       {g.name}
-                    </Text>
+                    </AppText>
                     {g.quantity > 1 && (
-                      <Text style={styles.gearListQty}>×{g.quantity}</Text>
+                      <AppText style={styles.gearListQty}>×{g.quantity}</AppText>
                     )}
                     <ChevronRight size={14} color={colors.textMuted} strokeWidth={2} />
                   </Pressable>
@@ -627,9 +628,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                 hitSlop={4}
               >
                 <Plus size={14} color={colors.cta} strokeWidth={2.6} />
-                <Text style={styles.addBtnText}>
+                <AppText style={styles.addBtnText}>
                   {t('myOuting.addMaterial', { defaultValue: 'Ajouter du matériel' })}
-                </Text>
+                </AppText>
               </Pressable>
             )}
           </Pressable>
@@ -650,28 +651,28 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
       >
         <Pressable style={styles.backdrop} onPress={() => setShowCancelPending(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.sheetTitle}>
+            <AppText style={styles.sheetTitle}>
               {t(`myOuting.cancelTransport.title.${cancelState}`, {
                 mode: cancelModalModeLabel ?? '',
                 defaultValue: 'Annuler ton transport',
               })}
-            </Text>
-            <Text style={styles.pendingCancelBody}>
+            </AppText>
+            <AppText style={styles.pendingCancelBody}>
               {t(`myOuting.cancelTransport.body.${cancelState}`, {
                 driver: cancelModalDriverName ?? '?',
                 mode: cancelModalModeLabel ?? '',
                 defaultValue: 'Annule ton transport actuel pour pouvoir en choisir un autre.',
               })}
-            </Text>
+            </AppText>
             <View style={styles.pendingCancelActions}>
               <Pressable
                 style={styles.pendingCancelKeep}
                 onPress={() => setShowCancelPending(false)}
                 hitSlop={4}
               >
-                <Text style={styles.pendingCancelKeepText}>
+                <AppText style={styles.pendingCancelKeepText}>
                   {t('myOuting.cancelTransport.keep', { defaultValue: 'Garder' })}
-                </Text>
+                </AppText>
               </Pressable>
               <Pressable
                 style={[styles.pendingCancelConfirm, cancellingPending && { opacity: 0.5 }]}
@@ -679,9 +680,9 @@ export const MyOutingCard = forwardRef<MyOutingCardHandle, Props>(function MyOut
                 disabled={cancellingPending}
                 hitSlop={4}
               >
-                <Text style={styles.pendingCancelConfirmText}>
+                <AppText style={styles.pendingCancelConfirmText}>
                   {t(`myOuting.cancelTransport.confirm.${cancelState}`, { defaultValue: 'Annuler' })}
-                </Text>
+                </AppText>
               </Pressable>
             </View>
           </Pressable>
@@ -730,38 +731,38 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
           color={isFilledLook ? accent : colors.textMuted}
           strokeWidth={2.2}
         />
-        <Text
+        <AppText
           style={[
             styles.stampCaption,
             { color: isFilledLook ? accent : colors.textMuted },
           ]}
         >
           {stamp.caption}
-        </Text>
+        </AppText>
       </View>
 
       {hasItemsList ? (
         <View style={styles.stampItemsList}>
           {stamp.itemsList!.map((item, i) => (
             <View key={`${item.name}-${i}`} style={styles.stampItemRow}>
-              <Text style={[styles.stampItemBullet, { color: accent }]}>•</Text>
-              <Text style={styles.stampItemName} numberOfLines={1}>
+              <AppText style={[styles.stampItemBullet, { color: accent }]}>•</AppText>
+              <AppText style={styles.stampItemName} numberOfLines={1}>
                 {item.name}
                 {item.quantity > 1 ? ` ×${item.quantity}` : ''}
-              </Text>
+              </AppText>
             </View>
           ))}
           {stamp.overflowCount && stamp.overflowCount > 0 && (
-            <Text style={styles.stampItemOverflow} numberOfLines={1}>
+            <AppText style={styles.stampItemOverflow} numberOfLines={1}>
               {t('myOuting.stamp.itemsOverflow', {
                 count: stamp.overflowCount,
                 defaultValue: `+ ${stamp.overflowCount} autres`,
               })}
-            </Text>
+            </AppText>
           )}
         </View>
       ) : (
-        <Text
+        <AppText
           style={[
             styles.stampContent,
             mutedContent ? { color: colors.textSecondary } : { color: colors.textPrimary },
@@ -769,7 +770,7 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
           numberOfLines={2}
         >
           {stamp.content}
-        </Text>
+        </AppText>
       )}
 
       {stamp.subRows && stamp.subRows.length > 0 && (
@@ -777,9 +778,9 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
           {stamp.subRows.map((row, i) => (
             <View key={i} style={styles.stampSubRow}>
               <row.Icon size={11} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.stampSubText} numberOfLines={1}>
+              <AppText style={styles.stampSubText} numberOfLines={1}>
                 {row.text}
-              </Text>
+              </AppText>
             </View>
           ))}
         </View>
@@ -794,9 +795,9 @@ function Stamp({ stamp, onPress, colors, styles, t }: StampProps) {
         {(stamp.state === 'todo' || stamp.state === 'neutral') && (
           <View style={styles.addStampChip}>
             <Plus size={12} color={colors.cta} strokeWidth={2.6} />
-            <Text style={styles.addStampChipText}>
+            <AppText style={styles.addStampChipText}>
               {t('myOuting.addChip', { defaultValue: 'Ajouter' })}
-            </Text>
+            </AppText>
           </View>
         )}
       </View>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 
 interface Props {
   children: React.ReactNode;
@@ -31,12 +32,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Oups.</Text>
-          <Text style={styles.body}>
+          <AppText style={styles.title}>Oups.</AppText>
+          <AppText style={styles.body}>
             Une erreur inattendue est survenue. Si le problème persiste, redémarre l&apos;application.
-          </Text>
+          </AppText>
           <Pressable style={styles.button} onPress={this.handleReset}>
-            <Text style={styles.buttonText}>Réessayer</Text>
+            <AppText style={styles.buttonText}>Réessayer</AppText>
           </Pressable>
         </View>
       );

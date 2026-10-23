@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
+import { View, Pressable, StyleSheet, Modal } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
@@ -68,26 +69,26 @@ export function useDiscoveryActions() {
     <Modal visible={!!inviteTargetId} transparent animationType="slide" onRequestClose={() => setInviteTargetId(null)}>
       <Pressable style={styles.backdrop} onPress={() => setInviteTargetId(null)}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          <Text style={styles.title}>{t('discovery.inviteTitle', { defaultValue: 'Inviter à une sortie' })}</Text>
+          <AppText style={styles.title}>{t('discovery.inviteTitle', { defaultValue: 'Inviter à une sortie' })}</AppText>
           {invitableLoading ? (
             <View style={styles.center}><LogoSpinner size={32} /></View>
           ) : (invitable ?? []).length === 0 ? (
-            <Text style={styles.empty}>
+            <AppText style={styles.empty}>
               {t('discovery.inviteEmpty', { defaultValue: 'Aucune de tes sorties ne correspond à sa dispo. Crée une sortie qui matche son sport et ses dates.' })}
-            </Text>
+            </AppText>
           ) : (
             (invitable ?? []).map((a) => (
               <Pressable key={a.id} style={[styles.row, sendingTo ? styles.faded : null]} onPress={() => invite(a.id)} disabled={!!sendingTo} accessibilityRole="button">
                 <SportIcon sportKey={a.sport_key} size={20} />
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.rowTitle} numberOfLines={1}>{a.title}</Text>
-                  <Text style={styles.rowMeta}>{dayjs(a.starts_at).format('ddd D MMM · H[h]mm')}</Text>
+                  <AppText style={styles.rowTitle} numberOfLines={1}>{a.title}</AppText>
+                  <AppText style={styles.rowMeta}>{dayjs(a.starts_at).format('ddd D MMM · H[h]mm')}</AppText>
                 </View>
               </Pressable>
             ))
           )}
           <Pressable style={styles.cancel} onPress={() => setInviteTargetId(null)}>
-            <Text style={styles.cancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
+            <AppText style={styles.cancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</AppText>
           </Pressable>
         </Pressable>
       </Pressable>

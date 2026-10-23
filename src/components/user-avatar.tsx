@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { Check, Crown } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
@@ -38,9 +39,9 @@ export function UserAvatar({ name, avatarUrl, size = 40, confirmedPresent = fals
     />
   ) : (
     <View style={[styles.fallback, { width: size, height: size, borderRadius }]}>
-      <Text style={[styles.initial, { fontSize }]}>
+      <AppText style={[styles.initial, { fontSize }]}>
         {(name || '?').charAt(0).toUpperCase()}
-      </Text>
+      </AppText>
     </View>
   );
 

@@ -1,4 +1,5 @@
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -97,7 +98,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>{t('participants.title')}</Text>
+      <AppText style={styles.sectionTitle}>{t('participants.title')}</AppText>
 
       <View style={styles.avatarRow}>
         {/* Creator — always first, marked with the ink crown. */}
@@ -122,7 +123,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
       {/* Pending requests (creator only) — separate section */}
       {isCreator && (pending ?? []).length > 0 && (
         <View style={styles.pendingBlock}>
-          <Text style={styles.subTitle}>{t('participants.pending', { count: (pending ?? []).length })}</Text>
+          <AppText style={styles.subTitle}>{t('participants.pending', { count: (pending ?? []).length })}</AppText>
           {(pending ?? []).map((p) => (
             <Pressable
               key={p.participation_id}
@@ -137,11 +138,11 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                   exact spot where the organiser accepts or refuses. Name the
                   tier in words (audit 2026-10-01). */}
               <View style={{ flex: 1 }}>
-                <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
+                <AppText style={styles.pendingName} numberOfLines={1}>{p.display_name}</AppText>
                 {p.reliability_tier != null && (
-                  <Text style={[styles.pendingTier, { color: reliabilityColorForTier(p.reliability_tier, colors) }]} numberOfLines={1}>
+                  <AppText style={[styles.pendingTier, { color: reliabilityColorForTier(p.reliability_tier, colors) }]} numberOfLines={1}>
                     {t('reliability.label')} : {t(`reliability.tier.${p.reliability_tier}`)}
-                  </Text>
+                  </AppText>
                 )}
               </View>
               <View style={styles.actions}>
@@ -151,7 +152,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.accept')}
                 >
-                  <Text style={styles.btnText}>✓</Text>
+                  <AppText style={styles.btnText}>✓</AppText>
                 </Pressable>
                 <Pressable
                   style={[styles.refuseBtn, loadingId === p.participation_id && styles.disabled]}
@@ -159,7 +160,7 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
                   disabled={loadingId === p.participation_id}
                   accessibilityLabel={t('participants.refuse')}
                 >
-                  <Text style={styles.btnText}>✕</Text>
+                  <AppText style={styles.btnText}>✕</AppText>
                 </Pressable>
               </View>
             </Pressable>
@@ -170,25 +171,25 @@ export function ParticipantList({ activityId, isCreator, creatorId, creatorName,
       {/* Late leavers (creator only) — separate section */}
       {isCreator && (lateLeavers ?? []).length > 0 && (
         <View style={styles.lateLeaversBlock}>
-          <Text style={styles.subTitle}>{t('participants.lateLeavers')}</Text>
+          <AppText style={styles.subTitle}>{t('participants.lateLeavers')}</AppText>
           {(lateLeavers ?? []).map((p) => (
             <View key={p.participation_id} style={styles.pendingRow}>
               <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={32} />
               <View style={styles.lateLeaverInfo}>
-                <Text style={styles.pendingName} numberOfLines={1}>{p.display_name}</Text>
+                <AppText style={styles.pendingName} numberOfLines={1}>{p.display_name}</AppText>
                 {p.left_reason && (
-                  <Text style={styles.lateLeaverReason} numberOfLines={2}>{p.left_reason}</Text>
+                  <AppText style={styles.lateLeaverReason} numberOfLines={2}>{p.left_reason}</AppText>
                 )}
               </View>
               {p.penalty_waived ? (
-                <Text style={styles.waivedTag}>{t('participants.penaltyWaivedTag')}</Text>
+                <AppText style={styles.waivedTag}>{t('participants.penaltyWaivedTag')}</AppText>
               ) : (
                 <Pressable
                   style={[styles.waiveBtn, loadingId === p.participation_id && styles.disabled]}
                   onPress={() => handleWaive(p.participation_id)}
                   disabled={loadingId === p.participation_id}
                 >
-                  <Text style={styles.waiveBtnText}>{t('participants.waive')}</Text>
+                  <AppText style={styles.waiveBtnText}>{t('participants.waive')}</AppText>
                 </Pressable>
               )}
             </View>

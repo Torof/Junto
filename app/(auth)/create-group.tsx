@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, SectionList, StyleSheet } from 'react-native';
+import { View, Pressable, SectionList, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -70,12 +71,12 @@ export default function CreateGroupScreen() {
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <X size={24} color={colors.textPrimary} strokeWidth={2.2} />
         </Pressable>
-        <Text style={styles.headerTitle}>{t('group.createTitle', { defaultValue: 'Nouveau groupe' })}</Text>
+        <AppText style={styles.headerTitle}>{t('group.createTitle', { defaultValue: 'Nouveau groupe' })}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.nameRow}>
-        <TextInput
+        <AppTextInput
           style={styles.iconInput}
           value={icon}
           onChangeText={setIcon}
@@ -83,7 +84,7 @@ export default function CreateGroupScreen() {
           placeholderTextColor={colors.textSecondary}
           maxLength={8}
         />
-        <TextInput
+        <AppTextInput
           style={styles.nameInput}
           value={name}
           onChangeText={setName}
@@ -93,25 +94,25 @@ export default function CreateGroupScreen() {
         />
       </View>
 
-      <Text style={styles.hint}>{t('group.pickHint', { defaultValue: 'Choisis au moins 2 partenaires (contacts + partenaires récents).' })}</Text>
+      <AppText style={styles.hint}>{t('group.pickHint', { defaultValue: 'Choisis au moins 2 partenaires (contacts + partenaires récents).' })}</AppText>
 
       {l1 || l2 ? (
         <View style={styles.center}><LogoSpinner /></View>
       ) : sections.length === 0 ? (
-        <Text style={styles.empty}>{t('contacts.inviteEmpty', { defaultValue: 'Ajoute des contacts, ou fais des sorties pour retrouver tes partenaires ici.' })}</Text>
+        <AppText style={styles.empty}>{t('contacts.inviteEmpty', { defaultValue: 'Ajoute des contacts, ou fais des sorties pour retrouver tes partenaires ici.' })}</AppText>
       ) : (
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.list}
-          renderSectionHeader={({ section }) => <Text style={styles.section}>{section.title}</Text>}
+          renderSectionHeader={({ section }) => <AppText style={styles.section}>{section.title}</AppText>}
           renderItem={({ item }) => {
             const on = selected.has(item.id);
             return (
               <Pressable style={styles.row} onPress={() => toggle(item.id)}>
                 <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={40} />
-                <Text style={styles.rowName} numberOfLines={1}>{item.display_name}</Text>
+                <AppText style={styles.rowName} numberOfLines={1}>{item.display_name}</AppText>
                 <View style={[styles.check, on && styles.checkOn]}>
                   {on && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
                 </View>
@@ -126,11 +127,11 @@ export default function CreateGroupScreen() {
         disabled={!canCreate}
         onPress={handleCreate}
       >
-        <Text style={styles.ctaText}>
+        <AppText style={styles.ctaText}>
           {creating
             ? t('group.creating', { defaultValue: 'Création…' })
             : t('group.createCta', { defaultValue: 'Créer le groupe ({{count}})', count: selected.size })}
-        </Text>
+        </AppText>
       </Pressable>
     </View>
   );

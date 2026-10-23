@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, ScrollView, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -115,10 +116,10 @@ export default function PartenairesScreen() {
     >
       {/* Title + zone on one line */}
       <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>{t('partenaires.title', { defaultValue: 'Partenaires' })}</Text>
+        <AppText style={styles.title} numberOfLines={1}>{t('partenaires.title', { defaultValue: 'Partenaires' })}</AppText>
         <PressableScale style={styles.zonePill} onPress={() => router.push('/(auth)/discovery-compose')} accessibilityRole="button">
           <MapPin size={14} color={colors.cta} strokeWidth={2.4} />
-          <Text style={styles.zonePillText} numberOfLines={1}>{zoneLabel}</Text>
+          <AppText style={styles.zonePillText} numberOfLines={1}>{zoneLabel}</AppText>
         </PressableScale>
       </View>
 
@@ -126,18 +127,18 @@ export default function PartenairesScreen() {
       <PressableScale style={[styles.dispoLine, !mine && styles.dispoLineEmpty]} onPress={openDiscovery} accessibilityRole="button">
         <View style={[styles.dot, { backgroundColor: active ? colors.cta : mine ? colors.textMuted : colors.cta }]} />
         <View style={styles.dispoLineText}>
-          <Text style={[styles.dispoLineTitle, !mine && styles.dispoLineTitleEmpty]} numberOfLines={1}>
+          <AppText style={[styles.dispoLineTitle, !mine && styles.dispoLineTitleEmpty]} numberOfLines={1}>
             {!mine
               ? t('partenaires.noDispoTitle', { defaultValue: 'Pose ta dispo' })
               : active
                 ? t('partenaires.lineLive', { defaultValue: 'Ta dispo · en ligne' })
                 : t('partenaires.linePaused', { defaultValue: 'Ta dispo · en pause' })}
-          </Text>
-          <Text style={[styles.dispoLineSub, !mine && styles.dispoLineSubEmpty]} numberOfLines={1}>
+          </AppText>
+          <AppText style={[styles.dispoLineSub, !mine && styles.dispoLineSubEmpty]} numberOfLines={1}>
             {mine
               ? `${formatPeriod(mine.window_start, mine.window_end)} · ${sportNames}`
               : t('partenaires.lineEmptySub', { defaultValue: 'Un sport, une zone, des dates — et vois qui cherche la même chose.' })}
-          </Text>
+          </AppText>
         </View>
         <ChevronRight size={18} color={mine ? '#FFFFFF' : colors.cta} strokeWidth={2.6} />
       </PressableScale>
@@ -152,9 +153,9 @@ export default function PartenairesScreen() {
         seeAllLabel={t('partenaires.seeAll', { defaultValue: 'Tout voir' })}
       />
       {!active ? (
-        <Text style={styles.note}>{t('partenaires.disposLocked', { defaultValue: 'Pose ta dispo pour voir qui cherche la même chose que toi.' })}</Text>
+        <AppText style={styles.note}>{t('partenaires.disposLocked', { defaultValue: 'Pose ta dispo pour voir qui cherche la même chose que toi.' })}</AppText>
       ) : carouselCards.length === 0 ? (
-        <Text style={styles.note}>{t('partenaires.disposEmpty', { defaultValue: 'Personne pour l’instant. Élargis ta zone ou tes dates pour croiser plus de monde.' })}</Text>
+        <AppText style={styles.note}>{t('partenaires.disposEmpty', { defaultValue: 'Personne pour l’instant. Élargis ta zone ou tes dates pour croiser plus de monde.' })}</AppText>
       ) : (
         <FlatList
           horizontal
@@ -180,7 +181,7 @@ export default function PartenairesScreen() {
         seeAllLabel={t('partenaires.seeAll', { defaultValue: 'Tout voir' })}
       />
       {discussionItems.length === 0 ? (
-        <Text style={styles.note}>{t('partenaires.discussionsEmpty', { defaultValue: 'Aucune discussion pour l’instant. Ouvre la première !' })}</Text>
+        <AppText style={styles.note}>{t('partenaires.discussionsEmpty', { defaultValue: 'Aucune discussion pour l’instant. Ouvre la première !' })}</AppText>
       ) : (
         <FlatList
           horizontal
@@ -208,7 +209,7 @@ export default function PartenairesScreen() {
       )}
       <PressableScale style={styles.linkRow} onPress={() => router.push('/(auth)/create-channel')} accessibilityRole="button">
         <Plus size={16} color={colors.textSecondary} strokeWidth={2.6} />
-        <Text style={styles.linkRowText}>{t('partenaires.openDiscussion', { defaultValue: 'Ouvrir une discussion' })}</Text>
+        <AppText style={styles.linkRowText}>{t('partenaires.openDiscussion', { defaultValue: 'Ouvrir une discussion' })}</AppText>
       </PressableScale>
     </ScrollView>
   );
@@ -224,12 +225,12 @@ function SectionHead({ styles, accent, title, count, onSeeAll, seeAllLabel }: {
 }) {
   return (
     <View style={styles.sectionHead}>
-      <Text style={styles.sectionTitle}>
-        {title}{count !== undefined ? <Text style={styles.sectionCount}>{`  ${count}`}</Text> : null}
-      </Text>
+      <AppText style={styles.sectionTitle}>
+        {title}{count !== undefined ? <AppText style={styles.sectionCount}>{`  ${count}`}</AppText> : null}
+      </AppText>
       {onSeeAll ? (
         <PressableScale style={styles.seeAll} onPress={onSeeAll} hitSlop={8} accessibilityRole="button">
-          <Text style={styles.seeAllText}>{seeAllLabel}</Text>
+          <AppText style={styles.seeAllText}>{seeAllLabel}</AppText>
           <ChevronRight size={15} color={accent} strokeWidth={2.6} />
         </PressableScale>
       ) : null}

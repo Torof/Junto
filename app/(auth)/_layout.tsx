@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { Redirect, Stack } from 'expo-router';
+import type { TextStyle } from 'react-native';
 import { useColors } from '@/hooks/use-theme';
+import { useFontStyle } from '@/components/app-text';
 import { useAuth } from '@/hooks/use-auth';
 import { usePresenceGeofences } from '@/hooks/use-presence-geofences';
 import { usePresenceOfflineFlusher } from '@/hooks/use-presence-offline-flusher';
@@ -16,16 +18,23 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+// The native-stack header title takes only family / size / weight.
+function headerTitleFont(s: TextStyle) {
+  return { fontFamily: s.fontFamily, fontSize: s.fontSize, fontWeight: s.fontWeight };
+}
+
 export default function AuthLayout() {
   const colors = useColors();
+  const font = useFontStyle();
   const { isSuspended } = useAuth();
 
   const screenOptions = useMemo(() => ({
     headerStyle: { backgroundColor: colors.background },
     headerShadowVisible: false,
     headerTintColor: colors.textPrimary,
+    headerTitleStyle: headerTitleFont(font({ fontSize: 20, fontWeight: '500' })),
     contentStyle: { backgroundColor: colors.background },
-  }), [colors]);
+  }), [colors, font]);
 
   usePresenceGeofences(!isSuspended);
   usePresenceOfflineFlusher();

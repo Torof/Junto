@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import Animated from 'react-native-reanimated';
@@ -206,10 +207,10 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
         <View style={styles.reviewHeader}>
           <UserAvatar name={review.reviewer_name ?? '?'} avatarUrl={review.reviewer_avatar} size={32} />
           <View style={styles.reviewHeaderText}>
-            <Text style={styles.reviewerName} numberOfLines={1}>{review.reviewer_name ?? '?'}</Text>
+            <AppText style={styles.reviewerName} numberOfLines={1}>{review.reviewer_name ?? '?'}</AppText>
             <View style={styles.reviewMeta}>
               <StarRating rating={review.rating} size={12} />
-              <Text style={styles.reviewDate}>{dayjs(review.created_at).format('D MMM YYYY')}</Text>
+              <AppText style={styles.reviewDate}>{dayjs(review.created_at).format('D MMM YYYY')}</AppText>
             </View>
           </View>
           <View style={styles.actionsRow}>
@@ -236,7 +237,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
           </View>
         </View>
 
-        {review.body ? <Text style={styles.reviewBody} numberOfLines={horizontal ? 5 : undefined}>{review.body}</Text> : null}
+        {review.body ? <AppText style={styles.reviewBody} numberOfLines={horizontal ? 5 : undefined}>{review.body}</AppText> : null}
 
         {reviewPhotos.length > 0 && (
           <View style={styles.reviewPhotos}>
@@ -248,11 +249,11 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
 
         {review.pro_reply && (
           <View style={styles.replyBlock}>
-            <Text style={styles.replyLabel}>
+            <AppText style={styles.replyLabel}>
               {t('reviews.proReply')}
               {review.pro_reply_at ? ` — ${dayjs(review.pro_reply_at).format('D MMM YYYY')}` : ''}
-            </Text>
-            <Text style={styles.replyBody}>{review.pro_reply}</Text>
+            </AppText>
+            <AppText style={styles.replyBody}>{review.pro_reply}</AppText>
           </View>
         )}
       </View>
@@ -265,16 +266,16 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
       {stats && stats.review_count > 0 && (
         <View style={styles.summary}>
           <View style={styles.summaryLeft}>
-            <Text style={styles.summaryAvg}>{Number(stats.avg_rating).toFixed(1)}</Text>
+            <AppText style={styles.summaryAvg}>{Number(stats.avg_rating).toFixed(1)}</AppText>
             <StarRating rating={Number(stats.avg_rating)} size={15} />
-            <Text style={styles.summaryCount}>{t('reviews.count', { count: stats.review_count })}</Text>
+            <AppText style={styles.summaryCount}>{t('reviews.count', { count: stats.review_count })}</AppText>
           </View>
           <View style={styles.summaryBars}>
             {[5, 4, 3, 2, 1].map((star) => {
               const pct = reviews.length > 0 ? (dist[star - 1] ?? 0) / reviews.length : 0;
               return (
                 <View key={star} style={styles.barRow}>
-                  <Text style={styles.barStar}>{star}</Text>
+                  <AppText style={styles.barStar}>{star}</AppText>
                   <View style={styles.barTrack}>
                     <View style={[styles.barFill, { width: `${Math.round(pct * 100)}%` }]} />
                   </View>
@@ -287,15 +288,15 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
 
       {!isOwner && currentUserId && (
         <Pressable style={styles.ctaButton} onPress={openComposer}>
-          <Text style={styles.ctaText}>
+          <AppText style={styles.ctaText}>
             {ownReview ? t('reviews.editMine') : t('reviews.writeOne')}
-          </Text>
+          </AppText>
         </Pressable>
       )}
 
       {reviews.length === 0 && (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>{t('reviews.empty')}</Text>
+          <AppText style={styles.emptyText}>{t('reviews.empty')}</AppText>
         </View>
       )}
 
@@ -313,11 +314,11 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
           <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>
+            <AppText style={styles.sheetTitle}>
               {ownReview ? t('reviews.editMine') : t('reviews.writeOne')}
-            </Text>
+            </AppText>
             <StarPicker value={draftRating} onChange={setDraftRating} />
-            <TextInput
+            <AppTextInput
               style={styles.input}
               value={draftBody}
               onChangeText={setDraftBody}
@@ -349,14 +350,14 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
             )}
             <View style={styles.sheetButtons}>
               <Pressable style={styles.cancelButton} onPress={() => setComposerOpen(false)}>
-                <Text style={styles.cancelButtonText}>{t('reviews.cancel')}</Text>
+                <AppText style={styles.cancelButtonText}>{t('reviews.cancel')}</AppText>
               </Pressable>
               <Pressable
                 style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
-                <Text style={styles.submitButtonText}>{t('reviews.submit')}</Text>
+                <AppText style={styles.submitButtonText}>{t('reviews.submit')}</AppText>
               </Pressable>
             </View>
           </Pressable>
@@ -375,8 +376,8 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
           <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>{t('reviews.reply')}</Text>
-            <TextInput
+            <AppText style={styles.sheetTitle}>{t('reviews.reply')}</AppText>
+            <AppTextInput
               style={styles.input}
               value={draftReply}
               onChangeText={setDraftReply}
@@ -388,13 +389,13 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
             <View style={styles.sheetButtons}>
               {replyTarget?.pro_reply ? (
                 <Pressable style={styles.cancelButton} onPress={() => handleReplySubmit(true)} disabled={isSubmitting}>
-                  <Text style={[styles.cancelButtonText, { color: colors.error }]}>
+                  <AppText style={[styles.cancelButtonText, { color: colors.error }]}>
                     {t('reviews.removeReply')}
-                  </Text>
+                  </AppText>
                 </Pressable>
               ) : (
                 <Pressable style={styles.cancelButton} onPress={() => setReplyTarget(null)}>
-                  <Text style={styles.cancelButtonText}>{t('reviews.cancel')}</Text>
+                  <AppText style={styles.cancelButtonText}>{t('reviews.cancel')}</AppText>
                 </Pressable>
               )}
               <Pressable
@@ -402,7 +403,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
                 onPress={() => handleReplySubmit(false)}
                 disabled={isSubmitting}
               >
-                <Text style={styles.submitButtonText}>{t('reviews.submit')}</Text>
+                <AppText style={styles.submitButtonText}>{t('reviews.submit')}</AppText>
               </Pressable>
             </View>
           </Pressable>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -98,10 +99,10 @@ export default function ResetPasswordScreen() {
   if (phase === 'signedIn') {
     return (
       <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <Text style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</Text>
-        <Text style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</Text>
+        <AppText style={styles.title}>{t('auth.linkSignedInTitle', { defaultValue: 'Déjà connecté' })}</AppText>
+        <AppText style={styles.subtitle}>{t('auth.linkSignedInBody', { defaultValue: 'Tu es déjà connecté. Déconnecte-toi avant d\'utiliser ce lien.' })}</AppText>
         <Pressable style={styles.primaryButton} onPress={() => router.replace('/')}>
-          <Text style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</Text>
+          <AppText style={styles.primaryButtonText}>{t('auth.linkSignedInBack', { defaultValue: 'Retour à l\'app' })}</AppText>
         </Pressable>
       </View>
     );
@@ -110,10 +111,10 @@ export default function ResetPasswordScreen() {
   if (phase === 'invalid') {
     return (
       <View style={[styles.center, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <Text style={styles.title}>{t('auth.resetInvalidTitle')}</Text>
-        <Text style={styles.subtitle}>{t('auth.resetInvalidBody')}</Text>
+        <AppText style={styles.title}>{t('auth.resetInvalidTitle')}</AppText>
+        <AppText style={styles.subtitle}>{t('auth.resetInvalidBody')}</AppText>
         <Pressable style={styles.primaryButton} onPress={() => router.replace('/(visitor)/login')}>
-          <Text style={styles.primaryButtonText}>{t('auth.backToLogin')}</Text>
+          <AppText style={styles.primaryButtonText}>{t('auth.backToLogin')}</AppText>
         </Pressable>
       </View>
     );
@@ -125,11 +126,11 @@ export default function ResetPasswordScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
       restBottom={insets.bottom}
     >
-        <Text style={styles.title}>{t('auth.resetTitle')}</Text>
-        <Text style={styles.subtitle}>{t('auth.resetSubtitle')}</Text>
+        <AppText style={styles.title}>{t('auth.resetTitle')}</AppText>
+        <AppText style={styles.subtitle}>{t('auth.resetSubtitle')}</AppText>
 
         <View style={styles.passwordRow}>
-          <TextInput
+          <AppTextInput
             style={[styles.input, styles.inputFlex]}
             placeholder={t('auth.newPassword')}
             placeholderTextColor={colors.textSecondary}
@@ -145,7 +146,7 @@ export default function ResetPasswordScreen() {
           </Pressable>
         </View>
 
-        <TextInput
+        <AppTextInput
           style={styles.input}
           placeholder={t('auth.confirmPassword')}
           placeholderTextColor={colors.textSecondary}
@@ -158,16 +159,16 @@ export default function ResetPasswordScreen() {
           onSubmitEditing={handleSubmit}
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <AppText style={styles.errorText}>{error}</AppText>}
 
         <Pressable
           style={[styles.primaryButton, phase === 'submitting' && styles.buttonDisabled]}
           onPress={handleSubmit}
           disabled={phase === 'submitting'}
         >
-          <Text style={styles.primaryButtonText}>
+          <AppText style={styles.primaryButtonText}>
             {phase === 'submitting' ? '...' : t('auth.updatePassword')}
-          </Text>
+          </AppText>
         </Pressable>
     </KeyboardAwareScrollView>
   );

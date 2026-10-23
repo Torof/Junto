@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -23,12 +24,12 @@ export function LeaveActivityModal({ visible, isLate, isSubmitting, onCancel, on
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>{t('cancel.leaveTitle')}</Text>
-          <Text style={[styles.body, isLate && styles.bodyWarning]}>
+          <AppText style={styles.title}>{t('cancel.leaveTitle')}</AppText>
+          <AppText style={[styles.body, isLate && styles.bodyWarning]}>
             {isLate ? `⚠️ ${t('cancel.leaveLateWarning')}` : t('cancel.leaveSafe')}
-          </Text>
+          </AppText>
 
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={reason}
             onChangeText={setReason}
@@ -40,14 +41,14 @@ export function LeaveActivityModal({ visible, isLate, isSubmitting, onCancel, on
 
           <View style={styles.actions}>
             <Pressable style={styles.secondaryButton} onPress={onCancel}>
-              <Text style={styles.secondaryText}>{t('cancel.keep')}</Text>
+              <AppText style={styles.secondaryText}>{t('cancel.keep')}</AppText>
             </Pressable>
             <Pressable
               style={[styles.primaryButton, isSubmitting && styles.disabled]}
               onPress={() => onConfirm(reason.trim() || undefined)}
               disabled={isSubmitting}
             >
-              <Text style={styles.primaryText}>{isSubmitting ? '...' : t('cancel.leaveConfirm')}</Text>
+              <AppText style={styles.primaryText}>{isSubmitting ? '...' : t('cancel.leaveConfirm')}</AppText>
             </Pressable>
           </View>
         </View>

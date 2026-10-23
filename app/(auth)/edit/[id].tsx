@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -128,18 +129,18 @@ export default function EditActivityScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.pageTitle}>{t('edit.title')}</Text>
+      <AppText style={styles.pageTitle}>{t('edit.title')}</AppText>
 
-      <Text style={styles.label}>{t('create.title')}</Text>
-      <TextInput
+      <AppText style={styles.label}>{t('create.title')}</AppText>
+      <AppTextInput
         style={styles.input}
         value={title}
         onChangeText={setTitle}
         maxLength={100}
       />
 
-      <Text style={styles.label}>{t('create.description')}</Text>
-      <TextInput
+      <AppText style={styles.label}>{t('create.description')}</AppText>
+      <AppTextInput
         style={[styles.input, styles.textArea]}
         value={description}
         onChangeText={setDescription}
@@ -147,7 +148,7 @@ export default function EditActivityScreen() {
         maxLength={2000}
       />
 
-      <Text style={styles.label}>{t('create.level')}</Text>
+      <AppText style={styles.label}>{t('create.level')}</AppText>
       <View style={[styles.chipRow, hasParticipants && styles.locked]}>
         {levelScale.map((opt, idx) => {
           const active = lowIdx !== -1 && idx >= lowIdx && idx <= highIdx;
@@ -158,16 +159,16 @@ export default function EditActivityScreen() {
               onPress={() => handleLevelTap(opt.label, idx)}
               disabled={hasParticipants}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{opt.label}</Text>
+              <AppText style={[styles.chipText, active && styles.chipTextActive]}>{opt.label}</AppText>
             </Pressable>
           );
         })}
       </View>
       {hasParticipants
-        ? <Text style={styles.lockedHint}>{t('edit.lockedHint')}</Text>
-        : <Text style={styles.rangeHint}>{rangeLabel || t('create.levelRangeHint')}</Text>}
+        ? <AppText style={styles.lockedHint}>{t('edit.lockedHint')}</AppText>
+        : <AppText style={styles.rangeHint}>{rangeLabel || t('create.levelRangeHint')}</AppText>}
 
-      <Text style={styles.label}>{t('create.maxParticipants')}</Text>
+      <AppText style={styles.label}>{t('create.maxParticipants')}</AppText>
       <Pressable
         style={[styles.openToggle, hasParticipants && styles.locked]}
         onPress={() => !hasParticipants && setMaxParticipants(maxParticipants === null ? 4 : null)}
@@ -176,7 +177,7 @@ export default function EditActivityScreen() {
         <View style={[styles.openCheckbox, maxParticipants === null && styles.openCheckboxOn]}>
           {maxParticipants === null && <Check size={15} color={colors.onCta} strokeWidth={3} />}
         </View>
-        <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
+        <AppText style={styles.openLabel}>{t('create.openActivity')}</AppText>
       </Pressable>
       {maxParticipants !== null && (
         <View style={[styles.counterRow, hasParticipants && styles.locked]}>
@@ -187,7 +188,7 @@ export default function EditActivityScreen() {
           >
             <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
-          <Text style={styles.counterValue}>{maxParticipants}</Text>
+          <AppText style={styles.counterValue}>{maxParticipants}</AppText>
           <Pressable
             style={styles.counterButton}
             onPress={() => !hasParticipants && setMaxParticipants(Math.min(50, (maxParticipants ?? 4) + 1))}
@@ -198,15 +199,15 @@ export default function EditActivityScreen() {
         </View>
       )}
 
-      <Text style={styles.label}>{t('create.dateTime')}</Text>
+      <AppText style={styles.label}>{t('create.dateTime')}</AppText>
       <Pressable
         style={[styles.dateButton, hasParticipants && styles.locked]}
         onPress={() => !hasParticipants && setShowDatePicker(true)}
         disabled={hasParticipants}
       >
-        <Text style={styles.dateValue}>
+        <AppText style={styles.dateValue}>
           {startsAt ? dayjs(startsAt).format('ddd D MMM · H[h]mm') : '-'}
-        </Text>
+        </AppText>
       </Pressable>
 
       {showDatePicker && (
@@ -245,7 +246,7 @@ export default function EditActivityScreen() {
         />
       )}
 
-      <Text style={styles.label}>{t('create.duration')}</Text>
+      <AppText style={styles.label}>{t('create.duration')}</AppText>
       {/* Locked once started (00467) and once people joined (00516: their
           schedules depend on it — the server ignores a change). */}
       <View style={[styles.durationRow, (hasStarted || hasParticipants) && styles.locked]} pointerEvents={hasStarted || hasParticipants ? 'none' : 'auto'}>
@@ -259,13 +260,13 @@ export default function EditActivityScreen() {
         >
           <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
-        <Text style={styles.counterValue}>{durationHours}h{durationMinutes > 0 ? durationMinutes : ''}</Text>
+        <AppText style={styles.counterValue}>{durationHours}h{durationMinutes > 0 ? durationMinutes : ''}</AppText>
         <Pressable style={styles.counterButton} onPress={() => setDurationHours(Math.min(24, durationHours + 1))}>
           <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
       </View>
 
-      <Text style={styles.label}>{t('create.step3Title')}</Text>
+      <AppText style={styles.label}>{t('create.step3Title')}</AppText>
       <View style={[styles.chipRow, hasParticipants && styles.locked]}>
         {VISIBILITIES.map((v) => (
           <Pressable
@@ -274,9 +275,9 @@ export default function EditActivityScreen() {
             onPress={() => { if (!hasParticipants) setVisibility(v); }}
             disabled={hasParticipants}
           >
-            <Text style={[styles.chipText, visibility === v && styles.chipTextActive]}>
+            <AppText style={[styles.chipText, visibility === v && styles.chipTextActive]}>
               {t(`create.visibility.${v}`)}
-            </Text>
+            </AppText>
           </Pressable>
         ))}
       </View>
@@ -286,7 +287,7 @@ export default function EditActivityScreen() {
         onPress={handleSave}
         disabled={isSaving}
       >
-        <Text style={styles.saveText}>{isSaving ? '...' : t('edit.save')}</Text>
+        <AppText style={styles.saveText}>{isSaving ? '...' : t('edit.save')}</AppText>
       </PressableScale>
     </ScrollView>
   );

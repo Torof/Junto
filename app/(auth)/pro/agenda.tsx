@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput, Platform, Alert, RefreshControl } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Modal, Platform, Alert, RefreshControl } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { Stack, useRouter } from 'expo-router';
@@ -331,7 +332,7 @@ export default function ProAgendaScreen() {
           headerRight: () => (
             <PressableScale onPress={() => openManualSheet()} hitSlop={8} style={styles.headerBtn} accessibilityLabel={t('booking.addManual', { defaultValue: 'Ajouter une résa' })}>
               <Plus size={14} color={colors.textPrimary} strokeWidth={2.6} />
-              <Text style={styles.headerBtnText}>{t('booking.addManualShort', { defaultValue: 'Résa' })}</Text>
+              <AppText style={styles.headerBtnText}>{t('booking.addManualShort', { defaultValue: 'Résa' })}</AppText>
             </PressableScale>
           ),
         }}
@@ -345,20 +346,20 @@ export default function ProAgendaScreen() {
             header toggle nobody found (audit 2026-10-08). */}
         <View style={styles.segmented}>
           <Pressable style={[styles.segment, !editMode && styles.segmentOn]} onPress={() => setEditMode(false)}>
-            <Text style={[styles.segmentText, !editMode && styles.segmentTextOn]}>{t('booking.modeView', { defaultValue: 'Consulter' })}</Text>
+            <AppText style={[styles.segmentText, !editMode && styles.segmentTextOn]}>{t('booking.modeView', { defaultValue: 'Consulter' })}</AppText>
           </Pressable>
           <Pressable style={[styles.segment, editMode && styles.segmentOn]} onPress={() => setEditMode(true)}>
-            <Text style={[styles.segmentText, editMode && styles.segmentTextOn]}>{t('booking.modeEdit', { defaultValue: 'Modifier mes dispos' })}</Text>
+            <AppText style={[styles.segmentText, editMode && styles.segmentTextOn]}>{t('booking.modeEdit', { defaultValue: 'Modifier mes dispos' })}</AppText>
           </Pressable>
         </View>
 
         {editMode && (
           <View style={styles.editBanner}>
-            <Text style={styles.editBannerText}>
+            <AppText style={styles.editBannerText}>
               {t('booking.editHint', { defaultValue: 'Tape une demi-journée pour l’ouvrir ou la fermer. Les réservations ne bougent pas.' })}
-            </Text>
+            </AppText>
             <PressableScale style={styles.shortcutsBtn} onPress={() => setShortcutsOpen(true)}>
-              <Text style={styles.shortcutsBtnText}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</Text>
+              <AppText style={styles.shortcutsBtnText}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</AppText>
             </PressableScale>
           </View>
         )}
@@ -373,16 +374,16 @@ export default function ProAgendaScreen() {
         />
 
         {!editMode && (
-          <Text style={styles.hint}>{t('booking.viewHint', { defaultValue: 'Tape un jour pour voir qui vient et gérer ses créneaux.' })}</Text>
+          <AppText style={styles.hint}>{t('booking.viewHint', { defaultValue: 'Tape un jour pour voir qui vient et gérer ses créneaux.' })}</AppText>
         )}
 
         {isLoading ? <View style={styles.center}><LogoSpinner size={32} /></View> : (
           <>
             {pendings.length > 0 && (
               <>
-                <Text style={styles.sectionLabel}>
+                <AppText style={styles.sectionLabel}>
                   {t('booking.requests', { defaultValue: 'Demandes' })} · {pendings.length}
-                </Text>
+                </AppText>
                 {pendings.map((b) => (
                   <View key={b.id} style={styles.reqCard}>
                     <PressableScale
@@ -392,22 +393,22 @@ export default function ProAgendaScreen() {
                     >
                       <UserAvatar name={b.client_name ?? '?'} avatarUrl={null} size={38} />
                       <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text style={styles.reqName}>
+                        <AppText style={styles.reqName}>
                           {b.client_name ?? '—'}
-                          <Text style={styles.reqSize}>  · {b.party_size} pers.</Text>
-                        </Text>
-                        <Text style={[styles.reqMeta, { color: sportCategoryColor(b.sport_category, colors.textPrimary) }]} numberOfLines={1}>
+                          <AppText style={styles.reqSize}>  · {b.party_size} pers.</AppText>
+                        </AppText>
+                        <AppText style={[styles.reqMeta, { color: sportCategoryColor(b.sport_category, colors.textPrimary) }]} numberOfLines={1}>
                           {b.offering_title} — {dayjs(b.day).format('ddd D MMM')}, {periodLabel(b.period, t)}
-                        </Text>
-                        {b.message ? <Text style={styles.reqMsg} numberOfLines={2}>« {b.message} »</Text> : null}
+                        </AppText>
+                        {b.message ? <AppText style={styles.reqMsg} numberOfLines={2}>« {b.message} »</AppText> : null}
                       </View>
                     </PressableScale>
                     <View style={styles.reqActs}>
                       <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => handleDecline(b)}>
-                        <Text style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</Text>
+                        <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
                       </Pressable>
                       <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => handleAccept(b)}>
-                        <Text style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</Text>
+                        <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
                       </Pressable>
                     </View>
                   </View>
@@ -415,25 +416,25 @@ export default function ProAgendaScreen() {
               </>
             )}
 
-            <Text style={styles.sectionLabel}>{t('booking.upcoming', { defaultValue: 'À venir' })}</Text>
+            <AppText style={styles.sectionLabel}>{t('booking.upcoming', { defaultValue: 'À venir' })}</AppText>
             {upcoming.length === 0 ? (
-              <Text style={styles.empty}>{t('booking.noUpcoming', { defaultValue: 'Aucune réservation confirmée à venir.' })}</Text>
+              <AppText style={styles.empty}>{t('booking.noUpcoming', { defaultValue: 'Aucune réservation confirmée à venir.' })}</AppText>
             ) : upcoming.map((b) => (
               <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setSheetDay(b.day)}>
                 <View style={[styles.bkPeriod, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) + '22' }]}>
-                  <Text style={[styles.bkPeriodText, { color: sportCategoryColor(b.sport_category, colors.cta) }]}>
+                  <AppText style={[styles.bkPeriodText, { color: sportCategoryColor(b.sport_category, colors.cta) }]}>
                     {dayjs(b.day).format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}
-                  </Text>
+                  </AppText>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.bkName} numberOfLines={1}>
+                  <AppText style={styles.bkName} numberOfLines={1}>
                     {b.client_name ?? '—'} ({b.party_size}) · {b.offering_title}
-                  </Text>
-                  <Text style={styles.bkSub} numberOfLines={1}>
+                  </AppText>
+                  <AppText style={styles.bkSub} numberOfLines={1}>
                     {b.is_manual
                       ? `${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
                       : t('booking.viaJunto', { defaultValue: 'via l’app' })}
-                  </Text>
+                  </AppText>
                 </View>
                 {b.is_manual && b.manual_phone ? <Phone size={15} color={colors.textMuted} strokeWidth={2.2} /> : null}
               </Pressable>
@@ -449,8 +450,8 @@ export default function ProAgendaScreen() {
         <Pressable style={styles.backdrop} onPress={() => setShortcutsOpen(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.grab} />
-            <Text style={styles.sheetTitle}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</Text>
-            <Text style={styles.hint}>{t('booking.shortcutsHint', { defaultValue: 'Sur le mois affiché. Les créneaux déjà réservés ne bougent pas.' })}</Text>
+            <AppText style={styles.sheetTitle}>{t('booking.shortcuts', { defaultValue: 'Raccourcis' })}</AppText>
+            <AppText style={styles.hint}>{t('booking.shortcutsHint', { defaultValue: 'Sur le mois affiché. Les créneaux déjà réservés ne bougent pas.' })}</AppText>
             {([
               [t('booking.bulkWeekends', { defaultValue: 'Ouvrir les week-ends' }), openWeekends, false],
               [t('booking.bulkMonth', { defaultValue: 'Ouvrir tout le mois' }), openWholeMonth, false],
@@ -458,7 +459,7 @@ export default function ProAgendaScreen() {
               [t('booking.bulkClose', { defaultValue: 'Tout fermer' }), closeMonth, true],
             ] as const).map(([label, run, danger]) => (
               <PressableScale key={label} style={styles.shortcutRow} onPress={() => { setShortcutsOpen(false); run(); }}>
-                <Text style={[styles.shortcutRowText, danger && { color: colors.error }]}>{label}</Text>
+                <AppText style={[styles.shortcutRowText, danger && { color: colors.error }]}>{label}</AppText>
               </PressableScale>
             ))}
           </Pressable>
@@ -470,9 +471,9 @@ export default function ProAgendaScreen() {
         <Pressable style={styles.backdrop} onPress={() => setSheetDay(null)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.grab} />
-            <Text style={styles.sheetTitle}>
+            <AppText style={styles.sheetTitle}>
               {sheetDay ? dayjs(sheetDay).format('dddd D MMMM') : ''}
-            </Text>
+            </AppText>
 
             {(['am', 'pm'] as BookingPeriod[]).map((period) => {
               const bks = dayBookings(period);
@@ -480,19 +481,19 @@ export default function ProAgendaScreen() {
               return (
                 <View key={period} style={styles.slotBlock}>
                   <View style={styles.slotHead}>
-                    <Text style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</Text>
+                    <AppText style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</AppText>
                     {bks.length === 0 && (
                       <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
-                        <Text style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
+                        <AppText style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
                           {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
-                        </Text>
+                        </AppText>
                       </View>
                     )}
                     {!sheetIsPast && bks.length === 0 && (
                       <PressableScale hitSlop={6} onPress={() => sheetDay && handleToggle(sheetDay, period, !open)}>
-                        <Text style={styles.slotToggle}>
+                        <AppText style={styles.slotToggle}>
                           {open ? t('booking.closeSlot', { defaultValue: 'Fermer' }) : t('booking.openSlot', { defaultValue: 'Ouvrir' })}
-                        </Text>
+                        </AppText>
                       </PressableScale>
                     )}
                   </View>
@@ -500,31 +501,31 @@ export default function ProAgendaScreen() {
                     <View key={b.id} style={styles.sheetBk}>
                       <View style={[styles.sportDot, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) }]} />
                       <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text style={styles.sheetBkName} numberOfLines={1}>
+                        <AppText style={styles.sheetBkName} numberOfLines={1}>
                           {b.client_name ?? '—'} · {b.party_size} pers.
                           {b.status === 'pending' ? `  (${t('booking.status.pending', { defaultValue: 'En attente' }).toLowerCase()})` : ''}
-                        </Text>
-                        <Text style={styles.sheetBkSub} numberOfLines={1}>
+                        </AppText>
+                        <AppText style={styles.sheetBkSub} numberOfLines={1}>
                           {b.offering_title}
                           {b.is_manual
                             ? ` · ${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
                             : ` · ${t('booking.viaJunto', { defaultValue: 'via l’app' })}`}
-                        </Text>
+                        </AppText>
                         {b.status === 'accepted'
                           && ((b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0)) > 0 ? (
                           <View style={styles.pInfoBlock}>
                             {(b.participant_info ?? []).map((e, i) => (
-                              <Text key={i} style={styles.pInfoLine} numberOfLines={2}>
-                                <Text style={styles.pInfoNum}>{i + 1}  </Text>{formatEntry(e)}
-                              </Text>
+                              <AppText key={i} style={styles.pInfoLine} numberOfLines={2}>
+                                <AppText style={styles.pInfoNum}>{i + 1}  </AppText>{formatEntry(e)}
+                              </AppText>
                             ))}
                             {(b.participant_info?.length ?? 0) < (b.party_size ?? 0) ? (
-                              <Text style={[styles.pInfoLine, { color: colors.warning }]}>
+                              <AppText style={[styles.pInfoLine, { color: colors.warning }]}>
                                 {t('booking.formMissing', {
                                   defaultValue: '{{count}} fiche(s) manquante(s)',
                                   count: (b.party_size ?? 0) - (b.participant_info?.length ?? 0),
                                 })}
-                              </Text>
+                              </AppText>
                             ) : null}
                           </View>
                         ) : null}
@@ -551,7 +552,7 @@ export default function ProAgendaScreen() {
                 onPress={() => sheetDay && openManualSheet(sheetDay, dayOpen('am') || dayBookings('am').length === 0 ? 'am' : 'pm')}
               >
                 <Plus size={15} color={colors.onCta} strokeWidth={2.4} />
-                <Text style={styles.btnPrimaryText}>{t('booking.addManualHere', { defaultValue: 'Ajouter une résa ce jour' })}</Text>
+                <AppText style={styles.btnPrimaryText}>{t('booking.addManualHere', { defaultValue: 'Ajouter une résa ce jour' })}</AppText>
               </Pressable>
             )}
           </Pressable>
@@ -565,25 +566,25 @@ export default function ProAgendaScreen() {
               the keyboard used to cover Nom / Téléphone / Ajouter. */}
           <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.sheetTitle}>{t('booking.manualTitle', { defaultValue: 'Ajouter une réservation' })}</Text>
+            <AppText style={styles.sheetTitle}>{t('booking.manualTitle', { defaultValue: 'Ajouter une réservation' })}</AppText>
 
-            <Text style={styles.fieldLabel}>{t('booking.manualOffering', { defaultValue: 'Offre' })}</Text>
+            <AppText style={styles.fieldLabel}>{t('booking.manualOffering', { defaultValue: 'Offre' })}</AppText>
             <View style={styles.chipsWrap}>
               {(offerings ?? []).map((o) => (
                 <Pressable key={o.id} style={[styles.chip, mOffering === o.id && styles.chipOn]} onPress={() => setMOffering(o.id)}>
-                  <Text style={[styles.chipText, mOffering === o.id && styles.chipTextOn]} numberOfLines={1}>{o.title}</Text>
+                  <AppText style={[styles.chipText, mOffering === o.id && styles.chipTextOn]} numberOfLines={1}>{o.title}</AppText>
                 </Pressable>
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>{t('booking.manualWhen', { defaultValue: 'Date & créneau' })}</Text>
+            <AppText style={styles.fieldLabel}>{t('booking.manualWhen', { defaultValue: 'Date & créneau' })}</AppText>
             <View style={styles.rowWrap}>
               <Pressable style={styles.chip} onPress={() => setMShowPicker(true)}>
-                <Text style={styles.chipText}>{dayjs(mDay).format('ddd D MMM')}</Text>
+                <AppText style={styles.chipText}>{dayjs(mDay).format('ddd D MMM')}</AppText>
               </Pressable>
               {(['am', 'pm'] as BookingPeriod[]).map((p) => (
                 <Pressable key={p} style={[styles.chip, mPeriod === p && styles.chipOn]} onPress={() => setMPeriod(p)}>
-                  <Text style={[styles.chipText, mPeriod === p && styles.chipTextOn]}>{periodLabel(p, t)}</Text>
+                  <AppText style={[styles.chipText, mPeriod === p && styles.chipTextOn]}>{periodLabel(p, t)}</AppText>
                 </Pressable>
               ))}
             </View>
@@ -598,8 +599,8 @@ export default function ProAgendaScreen() {
               />
             )}
 
-            <Text style={styles.fieldLabel}>{t('booking.manualWho', { defaultValue: 'Client' })}</Text>
-            <TextInput
+            <AppText style={styles.fieldLabel}>{t('booking.manualWho', { defaultValue: 'Client' })}</AppText>
+            <AppTextInput
               style={styles.input}
               placeholder={t('booking.manualName', { defaultValue: 'Nom (ex. Famille Perrin)' })}
               placeholderTextColor={colors.textMuted}
@@ -607,7 +608,7 @@ export default function ProAgendaScreen() {
               onChangeText={setMName}
               maxLength={80}
             />
-            <TextInput
+            <AppTextInput
               style={styles.input}
               placeholder={t('booking.manualPhone', { defaultValue: 'Téléphone (optionnel)' })}
               placeholderTextColor={colors.textMuted}
@@ -618,15 +619,15 @@ export default function ProAgendaScreen() {
             />
 
             <View style={styles.rowWrap}>
-              <Text style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</Text>
-              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.max(1, s - 1))}><Text style={styles.stepBtnText}>−</Text></Pressable>
-              <Text style={styles.stepVal}>{mSize}</Text>
-              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.min(50, s + 1))}><Text style={styles.stepBtnText}>+</Text></Pressable>
+              <AppText style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</AppText>
+              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.max(1, s - 1))}><AppText style={styles.stepBtnText}>−</AppText></Pressable>
+              <AppText style={styles.stepVal}>{mSize}</AppText>
+              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.min(50, s + 1))}><AppText style={styles.stepBtnText}>+</AppText></Pressable>
             </View>
 
             <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, pressed && styles.pressed]} onPress={submitManual}>
               <Send size={15} color={colors.onCta} strokeWidth={2.4} />
-              <Text style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</Text>
+              <AppText style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</AppText>
             </Pressable>
           </Pressable>
           </Animated.View>

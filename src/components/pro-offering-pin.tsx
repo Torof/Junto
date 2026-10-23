@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Svg, { Rect, G, Text as SvgText } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -72,7 +73,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
         {hasSportIcon(offering.sport_key) ? (
           <SportIcon sportKey={offering.sport_key} size={24} color={colors.onCta} />
         ) : (
-          <Text style={styles.icon}>{getSportIcon(offering.sport_key)}</Text>
+          <AppText style={styles.icon}>{getSportIcon(offering.sport_key)}</AppText>
         )}
       </View>
     </View>

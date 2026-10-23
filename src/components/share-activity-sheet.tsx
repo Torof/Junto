@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Share2, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -59,7 +60,7 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>{t('activity.shareTitle')}</Text>
+          <AppText style={styles.title}>{t('activity.shareTitle')}</AppText>
 
           {isCreator && (
             <>
@@ -68,19 +69,19 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
                   <UserPlus size={18} color="#FFFFFF" strokeWidth={2.4} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.inviteLabel}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</Text>
-                  <Text style={styles.inviteSub} numberOfLines={1}>{t('contacts.inviteSub', { defaultValue: 'Tes contacts + partenaires récents' })}</Text>
+                  <AppText style={styles.inviteLabel}>{t('contacts.inviteTitle', { defaultValue: 'Inviter des partenaires' })}</AppText>
+                  <AppText style={styles.inviteSub} numberOfLines={1}>{t('contacts.inviteSub', { defaultValue: 'Tes contacts + partenaires récents' })}</AppText>
                 </View>
               </Pressable>
 
-              <Text style={styles.orLabel}>{t('activity.shareToConversation', { defaultValue: 'Ou partager dans une conversation' })}</Text>
+              <AppText style={styles.orLabel}>{t('activity.shareToConversation', { defaultValue: 'Ou partager dans une conversation' })}</AppText>
             </>
           )}
 
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : dmConversations.length === 0 ? (
-            <Text style={styles.empty}>{t('activity.shareNoConversations')}</Text>
+            <AppText style={styles.empty}>{t('activity.shareNoConversations')}</AppText>
           ) : (
             <FlatList
               data={dmConversations}
@@ -92,7 +93,7 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
                   disabled={sendingTo !== null}
                 >
                   <UserAvatar name={item.other_user_name ?? '?'} avatarUrl={item.other_user_avatar} size={40} />
-                  <Text style={styles.name} numberOfLines={1}>{item.other_user_name ?? '?'}</Text>
+                  <AppText style={styles.name} numberOfLines={1}>{item.other_user_name ?? '?'}</AppText>
                 </Pressable>
               )}
             />
@@ -106,7 +107,7 @@ export function ShareActivitySheet({ visible, activityId, onClose, onExternalSha
               <View style={styles.externalIconWrap}>
                 <Share2 size={18} color={colors.textPrimary} strokeWidth={2.2} />
               </View>
-              <Text style={styles.externalLabel}>{t('activity.shareExternal')}</Text>
+              <AppText style={styles.externalLabel}>{t('activity.shareExternal')}</AppText>
             </Pressable>
           )}
         </Pressable>

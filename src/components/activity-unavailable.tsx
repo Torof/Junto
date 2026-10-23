@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CalendarX2, type LucideIcon } from 'lucide-react-native';
@@ -42,10 +43,10 @@ export function ActivityUnavailable({ fallbackHref, icon, title, body, ctaLabel 
       <View style={styles.iconWrap}>
         <Icon size={40} color={colors.textSecondary} strokeWidth={1.8} />
       </View>
-      <Text style={styles.title}>{title ?? t('activity.notFound')}</Text>
-      <Text style={styles.body}>{body ?? t('activity.notFoundBody')}</Text>
+      <AppText style={styles.title}>{title ?? t('activity.notFound')}</AppText>
+      <AppText style={styles.body}>{body ?? t('activity.notFoundBody')}</AppText>
       <Pressable style={styles.cta} onPress={goHome}>
-        <Text style={styles.ctaText}>{ctaLabel ?? t('activity.notFoundCta')}</Text>
+        <AppText style={styles.ctaText}>{ctaLabel ?? t('activity.notFoundCta')}</AppText>
       </Pressable>
     </View>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
+import { View, Pressable, FlatList, Modal, StyleSheet, Alert, Platform, Share, ScrollView } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ExternalLink, MapPin, Route as RouteIcon, X as XIcon, Download, Plus, Check, MoreHorizontal, Send, Users, Share2 , MessageCircleOff, Hash, Lock, Pencil, LogOut as LogOutIcon, UserMinus, ImagePlus, ImageOff, Flag } from 'lucide-react-native';
 import { UserAvatar } from '@/components/user-avatar';
@@ -250,23 +251,23 @@ export default function ConversationScreen() {
               <Hash size={16} color={colors.textPrimary} strokeWidth={2.2} />
             </View>
             <View style={{ minWidth: 0 }}>
-              <Text style={styles.headerName} numberOfLines={1}>{channelInfo.name}</Text>
-              <Text style={styles.headerGroupSub}>
+              <AppText style={styles.headerName} numberOfLines={1}>{channelInfo.name}</AppText>
+              <AppText style={styles.headerGroupSub}>
                 {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
                 {channelInfo.is_closed ? ` · ${t('channels.closed', { defaultValue: 'fermé' })}` : ''}
-              </Text>
+              </AppText>
             </View>
           </Pressable>
         ) : isGroup && groupInfo ? (
           <Pressable style={styles.headerRow} onPress={() => setShowGroupManage(true)} hitSlop={6}>
             <View style={styles.headerGroupIcon}>
               {groupInfo.icon
-                ? <Text style={{ fontSize: 16 }}>{groupInfo.icon}</Text>
+                ? <AppText style={{ fontSize: 16 }}>{groupInfo.icon}</AppText>
                 : <Users size={16} color={colors.textPrimary} strokeWidth={2.2} />}
             </View>
             <View style={{ minWidth: 0 }}>
-              <Text style={styles.headerName} numberOfLines={1}>{groupInfo.name}</Text>
-              <Text style={styles.headerGroupSub}>{t('group.memberCount', { defaultValue: '{{count}} membres', count: groupInfo.members.length })}</Text>
+              <AppText style={styles.headerName} numberOfLines={1}>{groupInfo.name}</AppText>
+              <AppText style={styles.headerGroupSub}>{t('group.memberCount', { defaultValue: '{{count}} membres', count: groupInfo.members.length })}</AppText>
             </View>
           </Pressable>
         ) : otherUser?.id ? (
@@ -276,9 +277,9 @@ export default function ConversationScreen() {
             hitSlop={6}
           >
             <UserAvatar name={otherUser.display_name ?? '?'} avatarUrl={otherUser.avatar_url} size={28} />
-            <Text style={styles.headerName} numberOfLines={1}>
+            <AppText style={styles.headerName} numberOfLines={1}>
               {otherUser.display_name ?? '?'}
-            </Text>
+            </AppText>
           </Pressable>
         ) : null
       ),
@@ -754,7 +755,7 @@ export default function ConversationScreen() {
         </View>
       ) : !messages || messages.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('messagerie.noMessages')}</Text>
+          <AppText style={styles.emptyText}>{t('messagerie.noMessages')}</AppText>
         </View>
       ) : (
         <FlatList
@@ -833,17 +834,17 @@ export default function ConversationScreen() {
           <View style={styles.replyPreview}>
             <View style={styles.replyPreviewBar} />
             <View style={styles.replyPreviewBody}>
-              <Text style={styles.replyPreviewLabel} numberOfLines={1}>
+              <AppText style={styles.replyPreviewLabel} numberOfLines={1}>
                 {replyingTo.sender_id === currentUser
                   ? t('messagerie.replyToSelf', { defaultValue: 'Réponse à toi-même' })
                   : t('messagerie.replyTo', {
                       name: otherUser?.display_name ?? '',
                       defaultValue: `Réponse à ${otherUser?.display_name ?? ''}`,
                     })}
-              </Text>
-              <Text style={styles.replyPreviewContent} numberOfLines={1}>
+              </AppText>
+              <AppText style={styles.replyPreviewContent} numberOfLines={1}>
                 {replyingTo.content}
-              </Text>
+              </AppText>
             </View>
             <Pressable onPress={() => setReplyingTo(null)} hitSlop={8} style={styles.replyPreviewClose}>
               <XIcon size={16} color={colors.textSecondary} strokeWidth={2.4} />
@@ -853,12 +854,12 @@ export default function ConversationScreen() {
 
         {isChannel && !channelIsMember ? (
           <Pressable style={styles.channelJoinBar} onPress={handleJoinChannel}>
-            <Text style={styles.channelJoinText}>{t('channels.joinToPost', { defaultValue: 'Rejoindre pour participer' })}</Text>
+            <AppText style={styles.channelJoinText}>{t('channels.joinToPost', { defaultValue: 'Rejoindre pour participer' })}</AppText>
           </Pressable>
         ) : isChannel && channelClosed ? (
           <View style={styles.channelClosedBar}>
             <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Discussion fermé — lecture seule' })}</Text>
+            <AppText style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Discussion fermé — lecture seule' })}</AppText>
           </View>
         ) : (
           <View style={styles.inputRow}>
@@ -870,7 +871,7 @@ export default function ConversationScreen() {
             >
               <Plus size={22} color={colors.textSecondary} strokeWidth={2.2} />
             </Pressable>
-            <TextInput
+            <AppTextInput
               style={styles.input}
               value={message}
               onChangeText={setMessage}
@@ -897,11 +898,11 @@ export default function ConversationScreen() {
             <View style={styles.menuHandle} />
             <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); setPickActivityOpen(true); }}>
               <MapPin size={20} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.menuLabel}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</Text>
+              <AppText style={styles.menuLabel}>{t('messagerie.shareOutingTitle', { defaultValue: 'Partager une sortie' })}</AppText>
             </Pressable>
             <Pressable style={styles.menuRow} onPress={() => { setAttachMenuOpen(false); setPickTraceOpen(true); }}>
               <RouteIcon size={20} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.menuLabel}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</Text>
+              <AppText style={styles.menuLabel}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</AppText>
             </Pressable>
             {/* Create an outing from the chat. Channels: prefill the sport + post
                 the card back into the channel on publish. DM/group: prefill the
@@ -922,11 +923,11 @@ export default function ConversationScreen() {
               router.push('/(auth)/create/step1');
             }}>
               <Plus size={20} color={colors.textPrimary} strokeWidth={2.2} />
-              <Text style={styles.menuLabel}>
+              <AppText style={styles.menuLabel}>
                 {isChannel
                   ? t('messagerie.proposeOutingFromChannel', { defaultValue: 'Proposer une sortie' })
                   : t('messagerie.createOutingFromChat', { defaultValue: 'Créer une sortie' })}
-              </Text>
+              </AppText>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -959,15 +960,15 @@ export default function ConversationScreen() {
         <Modal visible={showChannelManage} transparent animationType="slide" onRequestClose={() => setShowChannelManage(false)}>
           <Pressable style={styles.menuBackdrop} onPress={() => setShowChannelManage(false)}>
             <Pressable style={styles.channelSheet} onPress={(e) => e.stopPropagation()}>
-              <Text style={styles.channelSheetTitle}>{channelInfo.name}</Text>
-              <Text style={styles.channelSheetSub}>
+              <AppText style={styles.channelSheetTitle}>{channelInfo.name}</AppText>
+              <AppText style={styles.channelSheetSub}>
                 {channelInfo.sport_key ? `${t(`sports.${channelInfo.sport_key}`, { defaultValue: channelInfo.sport_key })} · ` : ''}{channelInfo.base_label} · {channelInfo.radius_km} km · {t('group.memberCount', { defaultValue: '{{count}} membres', count: channelInfo.member_count })}
-              </Text>
-              {channelInfo.description ? <Text style={styles.channelSheetDesc}>{channelInfo.description}</Text> : null}
+              </AppText>
+              {channelInfo.description ? <AppText style={styles.channelSheetDesc}>{channelInfo.description}</AppText> : null}
 
               {channelIsCreator && !channelClosed && (
                 <>
-                  <TextInput
+                  <AppTextInput
                     style={styles.channelRenameInput}
                     value={channelRename}
                     onChangeText={setChannelRename}
@@ -977,39 +978,39 @@ export default function ConversationScreen() {
                   />
                   <Pressable style={styles.channelRowBtn} onPress={handleRenameChannel} disabled={!channelRename.trim()}>
                     <Pencil size={18} color={colors.textPrimary} strokeWidth={2.2} />
-                    <Text style={styles.channelRowBtnText}>{t('channels.rename', { defaultValue: 'Renommer' })}</Text>
+                    <AppText style={styles.channelRowBtnText}>{t('channels.rename', { defaultValue: 'Renommer' })}</AppText>
                   </Pressable>
                   <Pressable style={styles.channelRowBtn} onPress={handleChangeChannelPhoto} disabled={channelPhotoBusy}>
                     <ImagePlus size={18} color={colors.textPrimary} strokeWidth={2.2} />
-                    <Text style={styles.channelRowBtnText}>
+                    <AppText style={styles.channelRowBtnText}>
                       {channelPhotoBusy
                         ? t('channels.photoUploading', { defaultValue: 'Envoi…' })
                         : channelInfo.photo_url
                           ? t('channels.changePhoto', { defaultValue: 'Changer la photo' })
                           : t('channels.addPhoto', { defaultValue: 'Ajouter une photo' })}
-                    </Text>
+                    </AppText>
                   </Pressable>
                   {!!channelInfo.photo_url && (
                     <Pressable style={styles.channelRowBtn} onPress={handleRemoveChannelPhoto} disabled={channelPhotoBusy}>
                       <ImageOff size={18} color={colors.error} strokeWidth={2.2} />
-                      <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer la photo' })}</Text>
+                      <AppText style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.removePhoto', { defaultValue: 'Retirer la photo' })}</AppText>
                     </Pressable>
                   )}
                   <Pressable style={styles.channelRowBtn} onPress={handleCloseChannel}>
                     <Lock size={18} color={colors.error} strokeWidth={2.2} />
-                    <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer la discussion' })}</Text>
+                    <AppText style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.closeChannel', { defaultValue: 'Fermer la discussion' })}</AppText>
                   </Pressable>
 
                   {(channelMembers ?? []).length > 0 && (
                     <>
-                      <Text style={styles.channelMembersLabel}>{t('channels.members', { defaultValue: 'Membres' })}</Text>
+                      <AppText style={styles.channelMembersLabel}>{t('channels.members', { defaultValue: 'Membres' })}</AppText>
                       <ScrollView style={styles.channelMembersList}>
                         {(channelMembers ?? []).map((m) => (
                           <View key={m.user_id} style={styles.channelMemberRow}>
                             <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size={32} />
-                            <Text style={styles.channelMemberName} numberOfLines={1}>{m.display_name}</Text>
+                            <AppText style={styles.channelMemberName} numberOfLines={1}>{m.display_name}</AppText>
                             {m.is_creator ? (
-                              <Text style={styles.channelMemberTag}>{t('channels.creatorTag', { defaultValue: 'Animateur' })}</Text>
+                              <AppText style={styles.channelMemberTag}>{t('channels.creatorTag', { defaultValue: 'Animateur' })}</AppText>
                             ) : (
                               <Pressable onPress={() => handleRemoveMember(m.user_id)} hitSlop={8}>
                                 <UserMinus size={18} color={colors.error} strokeWidth={2.2} />
@@ -1025,13 +1026,13 @@ export default function ConversationScreen() {
               {!channelIsCreator && id && (
                 <Pressable style={styles.channelRowBtn} onPress={() => { setShowChannelManage(false); setReportTarget({ type: 'channel', id }); }}>
                   <Flag size={18} color={colors.error} strokeWidth={2.2} />
-                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('report.reportChannel', { defaultValue: 'Signaler la discussion' })}</Text>
+                  <AppText style={[styles.channelRowBtnText, { color: colors.error }]}>{t('report.reportChannel', { defaultValue: 'Signaler la discussion' })}</AppText>
                 </Pressable>
               )}
               {channelIsMember && !channelIsCreator && (
                 <Pressable style={styles.channelRowBtn} onPress={handleLeaveChannel}>
                   <LogOutIcon size={18} color={colors.error} strokeWidth={2.2} />
-                  <Text style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.leave', { defaultValue: 'Quitter la discussion' })}</Text>
+                  <AppText style={[styles.channelRowBtnText, { color: colors.error }]}>{t('channels.leave', { defaultValue: 'Quitter la discussion' })}</AppText>
                 </Pressable>
               )}
             </Pressable>
@@ -1063,23 +1064,23 @@ export default function ConversationScreen() {
                     <XIcon size={20} color={colors.textPrimary} strokeWidth={2.4} />
                   </Pressable>
                   <View style={styles.tracePreviewTitleWrap}>
-                    <Text style={styles.tracePreviewTitle} numberOfLines={1}>{tracePreview.name}</Text>
+                    <AppText style={styles.tracePreviewTitle} numberOfLines={1}>{tracePreview.name}</AppText>
                   </View>
                 </View>
                 <View style={[styles.tracePreviewActions, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
                   <View style={styles.traceActionRow}>
                     <Pressable style={styles.traceActionButton} onPress={handleDownloadTrace}>
                       <Download size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                      <Text style={styles.traceActionText}>{t('messagerie.traceDownload')}</Text>
+                      <AppText style={styles.traceActionText}>{t('messagerie.traceDownload')}</AppText>
                     </Pressable>
                     <Pressable style={[styles.traceActionButton, createGpxTrace.isPending && { opacity: 0.5 }]} onPress={handleSaveToLibrary} disabled={createGpxTrace.isPending}>
                       <RouteIcon size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                      <Text style={styles.traceActionText}>{t('messagerie.traceSaveToLibrary', { defaultValue: 'Ma bibliothèque' })}</Text>
+                      <AppText style={styles.traceActionText}>{t('messagerie.traceSaveToLibrary', { defaultValue: 'Ma bibliothèque' })}</AppText>
                     </Pressable>
                   </View>
                   <Pressable style={[styles.traceActionButton, styles.traceActionButtonPrimary]} onPress={handleUseInActivity}>
                     <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                    <Text style={styles.traceActionText}>{t('messagerie.traceUseInActivity')}</Text>
+                    <AppText style={styles.traceActionText}>{t('messagerie.traceUseInActivity')}</AppText>
                   </Pressable>
                 </View>
               </>
@@ -1101,31 +1102,31 @@ export default function ConversationScreen() {
             {/* Soft → hard: hide (me only) · remove contact (both sides, social
                 DM only) · block. */}
             <Pressable style={styles.menuItem} onPress={handleHideConversation}>
-              <Text style={styles.menuTextDanger}>
+              <AppText style={styles.menuTextDanger}>
                 {t('messagerie.hideConversation', { defaultValue: 'Masquer la conversation' })}
-              </Text>
+              </AppText>
             </Pressable>
             {!isGroup && isSocialDm && otherUser && (
               <Pressable style={styles.menuItem} onPress={handleRemoveContact}>
-                <Text style={styles.menuTextDanger}>
+                <AppText style={styles.menuTextDanger}>
                   {t('messagerie.removeContact', { defaultValue: 'Retirer de mes contacts' })}
-                </Text>
+                </AppText>
               </Pressable>
             )}
             {isGroup && id && (
               <Pressable style={styles.menuItem} onPress={() => { setShowHeaderMenu(false); setReportTarget({ type: 'group', id }); }}>
-                <Text style={styles.menuTextDanger}>{t('report.reportGroup', { defaultValue: 'Signaler le groupe' })}</Text>
+                <AppText style={styles.menuTextDanger}>{t('report.reportGroup', { defaultValue: 'Signaler le groupe' })}</AppText>
               </Pressable>
             )}
             {isGroup ? (
               <Pressable style={styles.menuItem} onPress={handleLeaveGroup}>
-                <Text style={styles.menuTextDanger}>{t('group.leave', { defaultValue: 'Quitter le groupe' })}</Text>
+                <AppText style={styles.menuTextDanger}>{t('group.leave', { defaultValue: 'Quitter le groupe' })}</AppText>
               </Pressable>
             ) : (
               <Pressable style={styles.menuItem} onPress={handleBlockUser}>
-                <Text style={styles.menuTextDanger}>
+                <AppText style={styles.menuTextDanger}>
                   {t('messagerie.blockUser', { defaultValue: 'Bloquer le passionné' })}
-                </Text>
+                </AppText>
               </Pressable>
             )}
           </Pressable>
@@ -1139,23 +1140,23 @@ export default function ConversationScreen() {
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             <View style={styles.menuHandle} />
             <Pressable style={styles.menuItem} onPress={handleReplyTo}>
-              <Text style={styles.menuText}>{t('messagerie.reply', { defaultValue: 'Répondre' })}</Text>
+              <AppText style={styles.menuText}>{t('messagerie.reply', { defaultValue: 'Répondre' })}</AppText>
             </Pressable>
             {selectedMessage && selectedMessage.sender_id && selectedMessage.sender_id !== currentUser && (
               <Pressable
                 style={styles.menuItem}
                 onPress={() => { setReportTarget({ type: 'message', id: selectedMessage.id }); setSelectedMessage(null); }}
               >
-                <Text style={styles.menuTextDanger}>{t('report.reportMessage', { defaultValue: 'Signaler le message' })}</Text>
+                <AppText style={styles.menuTextDanger}>{t('report.reportMessage', { defaultValue: 'Signaler le message' })}</AppText>
               </Pressable>
             )}
             {selectedMessage && selectedMessage.sender_id === currentUser && (
               <>
                 <Pressable style={styles.menuItem} onPress={handleEdit}>
-                  <Text style={styles.menuText}>{t('messagerie.editMessage')}</Text>
+                  <AppText style={styles.menuText}>{t('messagerie.editMessage')}</AppText>
                 </Pressable>
                 <Pressable style={styles.menuItem} onPress={handleDelete}>
-                  <Text style={styles.menuTextDanger}>{t('messagerie.deleteMessage')}</Text>
+                  <AppText style={styles.menuTextDanger}>{t('messagerie.deleteMessage')}</AppText>
                 </Pressable>
               </>
             )}
@@ -1166,7 +1167,7 @@ export default function ConversationScreen() {
       {/* Edit mode */}
       {isEditMode && (
         <View style={[styles.editBar, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-          <TextInput
+          <AppTextInput
             style={styles.editInput}
             value={editContent}
             onChangeText={setEditContent}
@@ -1178,7 +1179,7 @@ export default function ConversationScreen() {
             <Check size={20} color={colors.onCta} strokeWidth={2.8} />
           </Pressable>
           <Pressable onPress={() => { setIsEditMode(false); setEditingMessage(null); setEditContent(''); }}>
-            <Text style={styles.cancelText}>✕</Text>
+            <AppText style={styles.cancelText}>✕</AppText>
           </Pressable>
         </View>
       )}
@@ -1304,9 +1305,9 @@ function MessageBubble({
           <Animated.View style={[animatedStyle, styles.sharedActivityCol]}>
             <View style={styles.shareCaption}>
               <Share2 size={12} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.shareCaptionText} numberOfLines={1}>
+              <AppText style={styles.shareCaptionText} numberOfLines={1}>
                 {t('messagerie.sharedActivityCaption', { name: captionName, defaultValue: '{{name}} a partagé une sortie' })}
-              </Text>
+              </AppText>
             </View>
             <SharedActivityCard
               activityId={item.metadata!.activity_id!}
@@ -1350,26 +1351,26 @@ function MessageBubble({
           onLongPress={() => onLongPress(item)}
         >
           {showAuthor && (
-            <Text style={styles.bubbleAuthor} numberOfLines={1}>{otherUserName ?? '?'}</Text>
+            <AppText style={styles.bubbleAuthor} numberOfLines={1}>{otherUserName ?? '?'}</AppText>
           )}
           {item.reply_to && (
             <View style={[styles.bubbleReplyQuote, isOwn && styles.bubbleReplyQuoteOwn]}>
               <View style={[styles.bubbleReplyBar, isOwn && styles.bubbleReplyBarOwn]} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.bubbleReplyAuthor, isOwn && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
+                <AppText style={[styles.bubbleReplyAuthor, isOwn && styles.bubbleReplyAuthorOwn]} numberOfLines={1}>
                   {item.reply_to.sender_id === currentUser
                     ? t('messagerie.you', { defaultValue: 'Toi' })
                     : replyToName ?? '?'}
-                </Text>
-                <Text style={[styles.bubbleReplyContent, isOwn && styles.bubbleReplyContentOwn]} numberOfLines={2}>
+                </AppText>
+                <AppText style={[styles.bubbleReplyContent, isOwn && styles.bubbleReplyContentOwn]} numberOfLines={2}>
                   {item.reply_to.deleted_at
                     ? t('messagerie.replyDeleted', { defaultValue: 'Message supprimé' })
                     : item.reply_to.content}
-                </Text>
+                </AppText>
               </View>
             </View>
           )}
-          <Text style={[styles.bubbleText, isOwn && styles.bubbleTextOwn]}>{item.content}</Text>
+          <AppText style={[styles.bubbleText, isOwn && styles.bubbleTextOwn]}>{item.content}</AppText>
           {isTrace && (
             <Pressable
               style={styles.activityLink}
@@ -1381,9 +1382,9 @@ function MessageBubble({
               hitSlop={4}
             >
               <RouteIcon size={12} color={isOwn ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
-              <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
+              <AppText style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
                 {t('messagerie.viewTrace')}
-              </Text>
+              </AppText>
             </Pressable>
           )}
           {item.metadata?.activity_id && !isTrace && (
@@ -1393,9 +1394,9 @@ function MessageBubble({
               hitSlop={4}
             >
               <ExternalLink size={12} color={isOwn ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
-              <Text style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
+              <AppText style={[styles.activityLinkText, !isOwn && styles.activityLinkTextOther]}>
                 {t('messagerie.viewActivity')}
-              </Text>
+              </AppText>
             </Pressable>
           )}
           {seatReqId && seatReqStatus === 'pending' && isDriver && (
@@ -1407,9 +1408,9 @@ function MessageBubble({
                 hitSlop={8}
               >
                 <Check size={14} color={colors.textPrimary} strokeWidth={3} />
-                <Text style={styles.seatAcceptText}>
+                <AppText style={styles.seatAcceptText}>
                   {t('messagerie.seatAccept', { defaultValue: 'Accepter' })}
-                </Text>
+                </AppText>
               </Pressable>
               <Pressable
                 style={[styles.seatDeclineBtn, isActing && styles.seatActionDisabled]}
@@ -1417,15 +1418,15 @@ function MessageBubble({
                 disabled={isActing}
                 hitSlop={8}
               >
-                <Text style={styles.seatDeclineText}>
+                <AppText style={styles.seatDeclineText}>
                   {t('messagerie.seatDecline', { defaultValue: 'Refuser' })}
-                </Text>
+                </AppText>
               </Pressable>
             </View>
           )}
           {seatReqId && seatReqStatus && seatReqStatus !== 'pending' && (
             <View style={[styles.seatStatusBadge, isOwn && styles.seatStatusBadgeOwn]}>
-              <Text style={[styles.seatStatusText, isOwn && styles.onAccentMuted]}>
+              <AppText style={[styles.seatStatusText, isOwn && styles.onAccentMuted]}>
                 {t(`messagerie.seatStatus.${seatReqStatus}`, {
                   defaultValue:
                     seatReqStatus === 'accepted' ? 'Place confirmée'
@@ -1434,18 +1435,18 @@ function MessageBubble({
                     : seatReqStatus === 'expired' ? 'Demande expirée'
                     : seatReqStatus,
                 })}
-              </Text>
+              </AppText>
             </View>
           )}
           {(isLastInGroup || item.edited_at) && (
             <View style={styles.bubbleFooter}>
               {item.edited_at && (
-                <Text style={[styles.editedTag, isOwn && styles.onAccentMuted]}>{t('messagerie.edited')}</Text>
+                <AppText style={[styles.editedTag, isOwn && styles.onAccentMuted]}>{t('messagerie.edited')}</AppText>
               )}
               {isLastInGroup && (
-                <Text style={[styles.bubbleTime, isOwn && styles.onAccentMuted]}>
+                <AppText style={[styles.bubbleTime, isOwn && styles.onAccentMuted]}>
                   {dayjs(item.created_at).format('H[h]mm')}
-                </Text>
+                </AppText>
               )}
             </View>
           )}

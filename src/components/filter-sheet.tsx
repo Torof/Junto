@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, Alert, TextInput } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -110,18 +111,18 @@ export function FilterSheet({
               style={[styles.tab, tab === 'filters' && styles.tabActive]}
               onPress={() => setTab('filters')}
             >
-              <Text style={[styles.tabText, tab === 'filters' && styles.tabTextActive]}>
+              <AppText style={[styles.tabText, tab === 'filters' && styles.tabTextActive]}>
                 {t('map.tabs.filters')}
-              </Text>
+              </AppText>
             </Pressable>
             {showSortTab && (
               <Pressable
                 style={[styles.tab, tab === 'sort' && styles.tabActive]}
                 onPress={() => setTab('sort')}
               >
-                <Text style={[styles.tabText, tab === 'sort' && styles.tabTextActive]}>
+                <AppText style={[styles.tabText, tab === 'sort' && styles.tabTextActive]}>
                   {t('map.tabs.sort')}
-                </Text>
+                </AppText>
               </Pressable>
             )}
             {!hideAlertsTab && (
@@ -129,14 +130,14 @@ export function FilterSheet({
                 style={[styles.tab, tab === 'alerts' && styles.tabActive]}
                 onPress={() => setTab('alerts')}
               >
-                <Text style={[styles.tabText, tab === 'alerts' && styles.tabTextActive]}>
+                <AppText style={[styles.tabText, tab === 'alerts' && styles.tabTextActive]}>
                   {t('map.tabs.alerts')}
-                </Text>
+                </AppText>
               </Pressable>
             )}
             {hasActiveFilters && (
               <Pressable onPress={resetFilters} style={styles.resetSlot} hitSlop={6}>
-                <Text style={styles.reset}>{t('map.resetFilters')}</Text>
+                <AppText style={styles.reset}>{t('map.resetFilters')}</AppText>
               </Pressable>
             )}
           </View>
@@ -318,7 +319,7 @@ function FiltersTab({
         <View style={styles.activePillsWrap}>
           {activePills.map((pill) => (
             <View key={pill.id} style={styles.activePill}>
-              <Text style={styles.activePillLabel} numberOfLines={1}>{pill.label}</Text>
+              <AppText style={styles.activePillLabel} numberOfLines={1}>{pill.label}</AppText>
               <Pressable onPress={pill.clear} hitSlop={6} style={styles.activePillClear}>
                 <X size={12} color={colors.textPrimary} strokeWidth={2.4} />
               </Pressable>
@@ -341,7 +342,7 @@ function FiltersTab({
             {locationLabel && onResetLocation && (
               <Pressable style={styles.optRow} onPress={onResetLocation}>
                 <LocateFixed size={16} color={colors.cta} strokeWidth={2.2} />
-                <Text style={[styles.optLabel, { color: colors.cta }]}>{t('map.backToMyPosition', { defaultValue: 'Revenir à ma position' })}</Text>
+                <AppText style={[styles.optLabel, { color: colors.cta }]}>{t('map.backToMyPosition', { defaultValue: 'Revenir à ma position' })}</AppText>
               </Pressable>
             )}
           </CollapsibleSection>
@@ -371,9 +372,9 @@ function FiltersTab({
               <View style={[styles.typeCheckbox, filters.showActivities && styles.typeCheckboxOn]}>
                 {filters.showActivities && <Check size={13} color={colors.onCta} strokeWidth={3} />}
               </View>
-              <Text style={[styles.typeChipText, filters.showActivities && styles.typeChipTextActive]}>
+              <AppText style={[styles.typeChipText, filters.showActivities && styles.typeChipTextActive]}>
                 {t('map.typeActivities', { defaultValue: 'Passionnés' })}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.typeChip, filters.showProOfferings && styles.typeChipActive]}
@@ -384,9 +385,9 @@ function FiltersTab({
               <View style={[styles.typeCheckbox, filters.showProOfferings && styles.typeCheckboxOn]}>
                 {filters.showProOfferings && <Check size={13} color={colors.onCta} strokeWidth={3} />}
               </View>
-              <Text style={[styles.typeChipText, filters.showProOfferings && styles.typeChipTextActive]}>
+              <AppText style={[styles.typeChipText, filters.showProOfferings && styles.typeChipTextActive]}>
                 {t('map.typePros', { defaultValue: 'Pros' })}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         </CollapsibleSection>
@@ -407,8 +408,8 @@ function FiltersTab({
             thumbTintColor={colors.cta}
           />
           <View style={styles.sliderBounds}>
-            <Text style={styles.sliderBoundText}>{t('map.radiusOff')}</Text>
-            <Text style={styles.sliderBoundText}>200 km</Text>
+            <AppText style={styles.sliderBoundText}>{t('map.radiusOff')}</AppText>
+            <AppText style={styles.sliderBoundText}>200 km</AppText>
           </View>
         </CollapsibleSection>
 
@@ -420,31 +421,31 @@ function FiltersTab({
                 style={[styles.chip, filters.dateMode === mode && styles.chipActive]}
                 onPress={() => setDateMode(mode)}
               >
-                <Text style={[styles.chipText, filters.dateMode === mode && styles.chipTextActive]}>
+                <AppText style={[styles.chipText, filters.dateMode === mode && styles.chipTextActive]}>
                   {mode === 'all' ? t('map.date.all', { defaultValue: 'Toutes' })
                     : mode === 'today' ? t('map.date.today')
                     : t('map.date.week')}
-                </Text>
+                </AppText>
               </Pressable>
             ))}
             <Pressable
               style={[styles.chip, filters.dateMode === 'range' && styles.chipActive]}
               onPress={() => setShowRangeFrom(true)}
             >
-              <Text style={[styles.chipText, filters.dateMode === 'range' && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, filters.dateMode === 'range' && styles.chipTextActive]}>
                 {filters.dateMode === 'range' && filters.rangeFrom && filters.rangeTo
                   ? (dayjs(filters.rangeFrom).isSame(filters.rangeTo, 'day')
                       ? dayjs(filters.rangeFrom).locale(lang).format('D MMM')
                       : `${dayjs(filters.rangeFrom).locale(lang).format('D MMM')} → ${dayjs(filters.rangeTo).locale(lang).format('D MMM')}`)
                   : t('map.date.pickRange')}
-              </Text>
+              </AppText>
               <ChevronDown size={12} color={filters.dateMode === 'range' ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
             </Pressable>
           </View>
         </CollapsibleSection>
 
         <CollapsibleSection title={t('map.sportLabel')} summary={sportActive ? sportLabel : null}>
-          <TextInput
+          <AppTextInput
             style={styles.sportSearch}
             value={sportSearch}
             onChangeText={setSportSearch}
@@ -457,7 +458,7 @@ function FiltersTab({
             return (
               <Pressable key={s.key} style={styles.optRow} onPress={() => toggleSportFilter(s.key)}>
                 <View style={styles.optIconBox}><SportIcon sportKey={s.key} size={19} /></View>
-                <Text style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</Text>
+                <AppText style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`sports.${s.key}`, { defaultValue: s.key })}</AppText>
                 {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
               </Pressable>
             );
@@ -469,7 +470,7 @@ function FiltersTab({
             const on = filters.levelTiers.includes(tier);
             return (
               <Pressable key={tier} style={styles.optRow} onPress={() => toggleLevelTier(tier)}>
-                <Text style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`map.levelTier.${LEVEL_KEY[tier]}`)}</Text>
+                <AppText style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`map.levelTier.${LEVEL_KEY[tier]}`)}</AppText>
                 {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
               </Pressable>
             );
@@ -507,7 +508,7 @@ function FiltersTab({
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
-          <Text style={styles.applyText}>{t('map.apply')}</Text>
+          <AppText style={styles.applyText}>{t('map.apply')}</AppText>
         </Pressable>
       </View>
     </>
@@ -568,9 +569,9 @@ function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }:
                 style={[styles.chip, active && styles.chipActive, styles.dirChip]}
                 onPress={() => onPress(opt)}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                <AppText style={[styles.chipText, active && styles.chipTextActive]}>
                   {t(`map.sortBy.${opt}`)}
-                </Text>
+                </AppText>
                 {active && <Chevron size={14} color={chevronColor} strokeWidth={2.4} />}
               </Pressable>
             );
@@ -580,7 +581,7 @@ function SortTab({ sortBy, sortDir, setSortBy, setSortDir, onClose, t, styles }:
 
       <View style={styles.applyContainer}>
         <Pressable style={styles.applyButton} onPress={onClose}>
-          <Text style={styles.applyText}>{t('map.apply')}</Text>
+          <AppText style={styles.applyText}>{t('map.apply')}</AppText>
         </Pressable>
       </View>
     </>
@@ -635,7 +636,7 @@ function AlertsTab({ onNewAlert, t, styles, colors }: AlertsTabProps) {
       keyboardShouldPersistTaps="handled"
     >
       {isLoading ? null : !alerts || alerts.length === 0 ? (
-        <Text style={styles.emptyText}>{t('map.alerts.none')}</Text>
+        <AppText style={styles.emptyText}>{t('map.alerts.none')}</AppText>
       ) : (
         alerts.map((a) => (
           <View key={a.id} style={styles.alertRow}>
@@ -643,13 +644,13 @@ function AlertsTab({ onNewAlert, t, styles, colors }: AlertsTabProps) {
               <Radar size={18} color={colors.cta} strokeWidth={2.2} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.alertSport} numberOfLines={1}>
+              <AppText style={styles.alertSport} numberOfLines={1}>
                 {a.sport_key ? t(`sports.${a.sport_key}`, { defaultValue: a.sport_key }) : t('map.alerts.allSports')}
-              </Text>
-              <Text style={styles.alertMeta}>
+              </AppText>
+              <AppText style={styles.alertMeta}>
                 {t('map.alerts.radius', { km: a.radius_km })}
                 {a.levels && a.levels.length > 0 ? ` · ${a.levels.join(', ')}` : ''}
-              </Text>
+              </AppText>
             </View>
             <Pressable onPress={() => handleDelete(a.id)} hitSlop={8} style={styles.alertDeleteBtn}>
               <Trash2 size={18} color={colors.error} strokeWidth={2} />
@@ -659,7 +660,7 @@ function AlertsTab({ onNewAlert, t, styles, colors }: AlertsTabProps) {
       )}
 
       <Pressable style={styles.newAlertBtn} onPress={onNewAlert}>
-        <Text style={styles.newAlertText}>{t('map.alerts.new')}</Text>
+        <AppText style={styles.newAlertText}>{t('map.alerts.new')}</AppText>
       </Pressable>
     </ScrollView>
   );

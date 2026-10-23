@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { useRouter } from 'expo-router';
@@ -192,18 +193,18 @@ export default function CreateStep2() {
                   colors.pinObjective
               },
             ]}>
-              <Text style={styles.mapHintText}>
+              <AppText style={styles.mapHintText}>
                 {placingPin === 'meeting' ? t('create.tapMeeting') : placingPin === 'end' ? t('create.tapEnd') : t('create.tapObjective')}
-              </Text>
+              </AppText>
             </View>
           </View>
         )}
       </View>
 
       <KeyboardAwareScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
-        <Text style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</Text>
+        <AppText style={styles.stepLabel}>{t('create.step', { current: 2, total: 4 })}</AppText>
 
-        <Text style={styles.sectionLabel}>{t('create.sectionLocations')}</Text>
+        <AppText style={styles.sectionLabel}>{t('create.sectionLocations')}</AppText>
 
         <View style={styles.pinButtons}>
           <PinButton
@@ -243,10 +244,10 @@ export default function CreateStep2() {
           />
         </View>
         {form.location_meeting && form.meeting_locality && (
-          <Text style={styles.localityHint}>{t('create.meetingLocality', { place: form.meeting_locality })}</Text>
+          <AppText style={styles.localityHint}>{t('create.meetingLocality', { place: form.meeting_locality })}</AppText>
         )}
         {(placingPin === 'meeting' || form.location_meeting || (form.meeting_name?.length ?? 0) > 0) && (
-          <TextInput
+          <AppTextInput
             style={styles.objectiveNameInput}
             placeholder={t('create.meetingName')}
             placeholderTextColor={colors.textSecondary}
@@ -276,17 +277,17 @@ export default function CreateStep2() {
             color={placingPin === 'objective' ? colors.background : colors.pinObjective}
             strokeWidth={2.2}
           />
-          <Text style={[
+          <AppText style={[
             styles.objectiveText,
             placingPin === 'objective' && { color: colors.background },
           ]}>
             {form.location_objective ? t('create.objectiveSet') : t('create.setObjective')}
-          </Text>
+          </AppText>
           {form.location_objective && placingPin !== 'objective' && (
             <Check size={14} color={colors.pinObjective} strokeWidth={2.4} />
           )}
         </Pressable>
-        <TextInput
+        <AppTextInput
           style={styles.objectiveNameInput}
           placeholder={t('create.objectiveName')}
           placeholderTextColor={colors.textSecondary}
@@ -298,23 +299,23 @@ export default function CreateStep2() {
             even without a pin on the map — keep the input always visible.
             The Trophy button above adds an optional pin location for it. */}
 
-        <Text style={styles.sectionLabel}>{t('create.sectionRoute')}</Text>
+        <AppText style={styles.sectionLabel}>{t('create.sectionRoute')}</AppText>
 
         {form.trace_geojson ? (
           <View style={styles.traceSetRow}>
             <Route size={16} color={colors.cta} strokeWidth={2.2} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.traceSetText}>
+              <AppText style={styles.traceSetText}>
                 {t('create.traceSet', { count: form.trace_geojson.coordinates.length })}
-              </Text>
+              </AppText>
               {(traceStatsLabel || traceStatsPending) && (
-                <Text style={styles.traceStatsText}>
+                <AppText style={styles.traceStatsText}>
                   {traceStatsLabel ?? t('create.traceStatsPending')}
-                </Text>
+                </AppText>
               )}
             </View>
             <Pressable onPress={handleClearTrace} hitSlop={8}>
-              <Text style={styles.traceClearText}>{t('create.traceRemove')}</Text>
+              <AppText style={styles.traceClearText}>{t('create.traceRemove')}</AppText>
             </Pressable>
           </View>
         ) : (
@@ -325,23 +326,23 @@ export default function CreateStep2() {
               disabled={isLoadingTrace}
             >
               <Upload size={16} color={colors.cta} strokeWidth={2.2} />
-              <Text style={styles.traceButtonText}>
+              <AppText style={styles.traceButtonText}>
                 {isLoadingTrace ? t('create.traceLoading') : t('create.traceImport')}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.traceButton, { marginBottom: 0 }]}
               onPress={() => setPickerOpen(true)}
             >
               <Library size={16} color={colors.cta} strokeWidth={2.2} />
-              <Text style={styles.traceButtonText}>{t('create.traceFromLibrary', { defaultValue: 'Ma bibliothèque' })}</Text>
+              <AppText style={styles.traceButtonText}>{t('create.traceFromLibrary', { defaultValue: 'Ma bibliothèque' })}</AppText>
             </Pressable>
             <Pressable
               style={[styles.traceButton, { marginBottom: 0 }]}
               onPress={() => setDrawOpen(true)}
             >
               <Pencil size={16} color={colors.cta} strokeWidth={2.2} />
-              <Text style={styles.traceButtonText}>{t('create.traceDraw', { defaultValue: 'Dessiner' })}</Text>
+              <AppText style={styles.traceButtonText}>{t('create.traceDraw', { defaultValue: 'Dessiner' })}</AppText>
             </Pressable>
           </View>
         )}
@@ -369,8 +370,8 @@ export default function CreateStep2() {
           <View style={styles.metricRow}>
             {showDistance && (
               <View style={styles.metricField}>
-                <Text style={styles.metricLabel}>{t('create.distance')}</Text>
-                <TextInput
+                <AppText style={styles.metricLabel}>{t('create.distance')}</AppText>
+                <AppTextInput
                   style={styles.metricInput}
                   placeholder="25"
                   placeholderTextColor={colors.textSecondary}
@@ -387,8 +388,8 @@ export default function CreateStep2() {
             )}
             {showElevation && (
               <View style={styles.metricField}>
-                <Text style={styles.metricLabel}>{t('create.elevation')}</Text>
-                <TextInput
+                <AppText style={styles.metricLabel}>{t('create.elevation')}</AppText>
+                <AppTextInput
                   style={styles.metricInput}
                   placeholder="1400"
                   placeholderTextColor={colors.textSecondary}
@@ -406,23 +407,23 @@ export default function CreateStep2() {
           </View>
         )}
 
-        <Text style={styles.sectionLabel}>{t('create.sectionTiming')}</Text>
+        <AppText style={styles.sectionLabel}>{t('create.sectionTiming')}</AppText>
 
         <View style={styles.timingRow}>
           <Pressable style={[styles.dateButton, styles.timingItem]} onPress={() => setShowDatePicker(true)}>
             <Calendar size={18} color={colors.textSecondary} strokeWidth={2.2} />
             <View style={styles.dateContent}>
-              <Text style={styles.dateLabel}>{t('create.dateTime')}</Text>
-              <Text style={styles.dateValue} numberOfLines={1}>
+              <AppText style={styles.dateLabel}>{t('create.dateTime')}</AppText>
+              <AppText style={styles.dateValue} numberOfLines={1}>
                 {form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : t('create.selectDateTime')}
-              </Text>
+              </AppText>
             </View>
           </Pressable>
 
           <View style={[styles.durationRow, styles.timingItem]}>
             <View style={styles.durationHeader}>
               <Clock size={18} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.dateLabel}>{t('create.duration')}</Text>
+              <AppText style={styles.dateLabel}>{t('create.duration')}</AppText>
             </View>
             <View style={styles.durationPickers}>
               <Pressable
@@ -432,7 +433,7 @@ export default function CreateStep2() {
               >
                 <Minus size={16} color={colors.textPrimary} strokeWidth={2.4} />
               </Pressable>
-              <Text style={styles.durationValue}>{form.duration_hours}h{form.duration_minutes > 0 ? form.duration_minutes : ''}</Text>
+              <AppText style={styles.durationValue}>{form.duration_hours}h{form.duration_minutes > 0 ? form.duration_minutes : ''}</AppText>
               <Pressable
                 style={styles.durationButton}
                 onPress={() => updateForm({ duration_hours: Math.min(24, form.duration_hours + 1) })}
@@ -444,7 +445,7 @@ export default function CreateStep2() {
           </View>
         </View>
         {startsAtInPast && (
-          <Text style={styles.dateError}>{t('create.startsAtPast')}</Text>
+          <AppText style={styles.dateError}>{t('create.startsAtPast')}</AppText>
         )}
 
         {showDatePicker && (
@@ -489,7 +490,7 @@ export default function CreateStep2() {
           onPress={() => isValid && router.push('/(auth)/create/step3')}
           disabled={!isValid}
         >
-          <Text style={styles.nextText}>{t('create.next')}</Text>
+          <AppText style={styles.nextText}>{t('create.next')}</AppText>
         </Pressable>
       </KeyboardAwareScrollView>
       <KeyboardDoneBar />
@@ -515,9 +516,9 @@ function PinButton({ icon: Icon, label, isPlacing, isSet, tint, colors, onPress 
   return (
     <Pressable style={styles.button} onPress={onPress}>
       <Icon size={18} color={iconColor} strokeWidth={2.2} />
-      <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
+      <AppText style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
-      </Text>
+      </AppText>
       {isSet && !isPlacing && <Check size={12} color={tint} strokeWidth={2.6} />}
     </Pressable>
   );

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Pressable, Modal, StyleSheet, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Route as RouteIcon, X } from 'lucide-react-native';
@@ -32,7 +33,7 @@ export function TracePickerModal({ visible, onClose, onSelect }: Props) {
       <Pressable style={styles.backdrop} onPress={onClose} />
       <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('gpx.pickTitle', { defaultValue: 'Choisir une trace' })}</Text>
+          <AppText style={styles.title}>{t('gpx.pickTitle', { defaultValue: 'Choisir une trace' })}</AppText>
           <Pressable onPress={onClose} hitSlop={8}>
             <X size={20} color={colors.textSecondary} strokeWidth={2.2} />
           </Pressable>
@@ -41,19 +42,19 @@ export function TracePickerModal({ visible, onClose, onSelect }: Props) {
         {isLoading ? (
           <ActivityIndicator color={colors.cta} style={{ marginVertical: spacing.lg }} />
         ) : list.length === 0 ? (
-          <Text style={styles.empty}>
+          <AppText style={styles.empty}>
             {t('gpx.pickEmpty', { defaultValue: 'Ta bibliothèque est vide. Crée une trace depuis le menu « Mes traces GPX ».' })}
-          </Text>
+          </AppText>
         ) : (
           <ScrollView style={{ maxHeight: Dimensions.get('window').height * 0.5 }}>
             {list.map((tr) => (
               <Pressable key={tr.id} style={styles.row} onPress={() => onSelect(tr.geojson, tr.name)}>
                 <RouteIcon size={20} color={colors.cta} strokeWidth={2.2} />
                 <View style={styles.info}>
-                  <Text style={styles.name} numberOfLines={1}>{tr.name}</Text>
-                  <Text style={styles.meta}>
+                  <AppText style={styles.name} numberOfLines={1}>{tr.name}</AppText>
+                  <AppText style={styles.meta}>
                     {formatTraceStats(tr.distance_km, tr.elevation_gain_m, i18n.language) ?? `${Number(tr.distance_km).toFixed(1)} km`}
-                  </Text>
+                  </AppText>
                 </View>
               </Pressable>
             ))}

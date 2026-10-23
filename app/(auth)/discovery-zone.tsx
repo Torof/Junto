@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -44,7 +45,7 @@ export default function DiscoveryZoneScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+        <AppText style={styles.headerTitle} numberOfLines={1}>{title}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -52,7 +53,7 @@ export default function DiscoveryZoneScreen() {
         <View style={styles.center}><LogoSpinner size={40} /></View>
       ) : !coords ? (
         <View style={styles.center}>
-          <Text style={styles.unavailable}>{t('discovery.zoneUnavailable', { defaultValue: 'Zone indisponible.' })}</Text>
+          <AppText style={styles.unavailable}>{t('discovery.zoneUnavailable', { defaultValue: 'Zone indisponible.' })}</AppText>
         </View>
       ) : (
         <View style={styles.mapWrap}>
@@ -67,11 +68,11 @@ export default function DiscoveryZoneScreen() {
             pitchEnabled={false}
           />
           <View style={[styles.caption, { bottom: insets.bottom + spacing.md }]} pointerEvents="none">
-            <Text style={styles.captionText}>
+            <AppText style={styles.captionText}>
               {coords.radius
                 ? t('discovery.zoneRadius', { defaultValue: 'Dispo dans un rayon de {{km}} km', km: coords.radius })
                 : t('discovery.zoneAny', { defaultValue: 'Dispo peu importe la distance' })}
-            </Text>
+            </AppText>
           </View>
         </View>
       )}

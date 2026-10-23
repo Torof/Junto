@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
+import { View, ScrollView, Pressable, Modal, StyleSheet, Alert, Share, Linking } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -275,7 +276,7 @@ export function ActivityDetail({
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 3 }}>
           <View style={[styles.headerStatus, { backgroundColor: statusColor }]}>
-            <Text style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</Text>
+            <AppText style={styles.headerStatusText}>{t(`activity.status.${timeStatus}`)}</AppText>
           </View>
           <View style={styles.headerVisPill}>
             {activity.visibility === 'public' ? (
@@ -285,9 +286,9 @@ export function ActivityDetail({
             ) : (
               <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
             )}
-            <Text style={styles.headerVisText} numberOfLines={1}>
+            <AppText style={styles.headerVisText} numberOfLines={1}>
               {t(`create.visibility.${activity.visibility}`)}
-            </Text>
+            </AppText>
           </View>
           <View style={{ width: spacing.lg }} />
           {!isCreator && (
@@ -870,15 +871,15 @@ export function ActivityDetail({
                 accessibilityLabel={t(`activity.tab.${tab}`)}
               >
                 <View style={styles.tabInner}>
-                  <Text style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
+                  <AppText style={[styles.tabText, isActiveTab && styles.tabTextActive]}>
                     {t(`activity.tab.${tab}`)}
-                  </Text>
+                  </AppText>
                   {tab === 'info' && (canCheckIn || (isCreator && isQrAvailable)) && (
                     <View style={styles.tabDot} />
                   )}
                   {tab === 'chat' && wallUnreadCount > 0 && !isActiveTab && (
                     <View style={styles.tabBadge}>
-                      <Text style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</Text>
+                      <AppText style={styles.tabBadgeText}>{wallUnreadCount > 99 ? '99+' : wallUnreadCount}</AppText>
                     </View>
                   )}
                 </View>
@@ -913,9 +914,9 @@ export function ActivityDetail({
                     sport glyph), on a solid base for map legibility. */}
                 <View style={[styles.heroSportChip, { borderColor: sportAccent, backgroundColor: sportChipBg }]}>
                   <SportIcon sportKey={activity.sport_key} size={15} color={sportAccent} />
-                  <Text style={[styles.heroSportChipText, { color: sportAccent }]} numberOfLines={1}>
+                  <AppText style={[styles.heroSportChipText, { color: sportAccent }]} numberOfLines={1}>
                     {t(`sports.${activity.sport_key}`, activity.sport_key)}
-                  </Text>
+                  </AppText>
                 </View>
               </View>
               <Svg style={styles.heroScrim} pointerEvents="none" width="100%" height="130">
@@ -935,20 +936,20 @@ export function ActivityDetail({
                       no extra hues on the map. */}
                   <View style={styles.heroMetaPill}>
                     <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
-                    <Text style={styles.heroMetaText} numberOfLines={1}>
+                    <AppText style={styles.heroMetaText} numberOfLines={1}>
                       {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
-                    </Text>
+                    </AppText>
                   </View>
                   <View style={styles.heroMetaPill}>
                     <Users size={12} color="#FFFFFF" strokeWidth={2.6} />
-                    <Text style={styles.heroMetaText} numberOfLines={1}>
+                    <AppText style={styles.heroMetaText} numberOfLines={1}>
                       {activity.max_participants === null
                         ? `${activity.participant_count}`
                         : t('activity.placesShort', { defaultValue: '{{n}} places', n: `${remaining}/${activity.max_participants}` })}
-                    </Text>
+                    </AppText>
                   </View>
                 </View>
-                <Text style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</Text>
+                <AppText style={styles.heroTitleOnMap} numberOfLines={3}>{activity.title}</AppText>
               </View>
               {/* Single ⋯ button — the secondary map actions live in a small
                   anchored menu. Tapping the map itself is the fullscreen
@@ -975,34 +976,34 @@ export function ActivityDetail({
                         }}
                       >
                         <Navigation size={15} color={colors.textPrimary} strokeWidth={2.2} />
-                        <Text style={styles.mapMenuItemText}>{t('activity.navigate')}</Text>
+                        <AppText style={styles.mapMenuItemText}>{t('activity.navigate')}</AppText>
                       </Pressable>
                       <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setShowFullMap(true); }}>
                         <Maximize2 size={15} color={colors.textPrimary} strokeWidth={2.2} />
-                        <Text style={styles.mapMenuItemText}>{t('activity.fullscreen', { defaultValue: 'Plein écran' })}</Text>
+                        <AppText style={styles.mapMenuItemText}>{t('activity.fullscreen', { defaultValue: 'Plein écran' })}</AppText>
                       </Pressable>
                       {isCreator && (
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handlePickTrace(); }}>
                           <Route size={15} color={colors.cta} strokeWidth={2.2} />
-                          <Text style={styles.mapMenuItemText}>{activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}</Text>
+                          <AppText style={styles.mapMenuItemText}>{activity.trace_geojson ? t('activity.traceReplace') : t('activity.traceImport')}</AppText>
                         </Pressable>
                       )}
                       {isCreator && (
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setShowTracePicker(true); }}>
                           <List size={15} color={colors.cta} strokeWidth={2.2} />
-                          <Text style={styles.mapMenuItemText}>{t('activity.traceFromLibrary', { defaultValue: 'Depuis ma bibliothèque' })}</Text>
+                          <AppText style={styles.mapMenuItemText}>{t('activity.traceFromLibrary', { defaultValue: 'Depuis ma bibliothèque' })}</AppText>
                         </Pressable>
                       )}
                       {isCreator && (
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setDrawTraceOpen(true); }}>
                           <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
-                          <Text style={styles.mapMenuItemText}>{t('activity.traceDraw', { defaultValue: 'Dessiner une trace' })}</Text>
+                          <AppText style={styles.mapMenuItemText}>{t('activity.traceDraw', { defaultValue: 'Dessiner une trace' })}</AppText>
                         </Pressable>
                       )}
                       {isCreator && activity.trace_geojson && (
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); handleClearTrace(); }}>
                           <Trash2 size={15} color={colors.error} strokeWidth={2.2} />
-                          <Text style={[styles.mapMenuItemText, { color: colors.error }]}>{t('activity.traceRemove')}</Text>
+                          <AppText style={[styles.mapMenuItemText, { color: colors.error }]}>{t('activity.traceRemove')}</AppText>
                         </Pressable>
                       )}
                     </View>
@@ -1017,23 +1018,23 @@ export function ActivityDetail({
                 never overlaps them. Only render when there's a state. */}
             {!isActive && (
               <View style={styles.statusBannerTop}>
-                <Text style={styles.statusBannerText}>{t(`activity.statusBanner.${activity.status}`)}</Text>
+                <AppText style={styles.statusBannerText}>{t(`activity.statusBanner.${activity.status}`)}</AppText>
               </View>
             )}
             {isPending && isActive && (
               <View style={[styles.statusBannerTop, styles.statusBannerPending]}>
-                <Text style={styles.statusBannerText}>{t('activity.pendingRequest')}</Text>
+                <AppText style={styles.statusBannerText}>{t('activity.pendingRequest')}</AppText>
               </View>
             )}
             {isAccepted && !isCreator && isActive && (
               <View style={[styles.statusBannerTop, styles.statusBannerAccepted]}>
-                <Text style={styles.statusBannerText}>{t('activity.youAreIn')}</Text>
+                <AppText style={styles.statusBannerText}>{t('activity.youAreIn')}</AppText>
               </View>
             )}
             {alreadyConfirmed && (
               <View style={[styles.statusBannerTop, styles.statusBannerConfirmed]}>
                 <MapPinCheck size={14} color={colors.success} strokeWidth={2.4} />
-                <Text style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</Text>
+                <AppText style={[styles.statusBannerText, { color: colors.success }]}>{t('presence.alreadyConfirmed')}</AppText>
               </View>
             )}
             {/* Peer-review backstop — surfaced when the auto/QR windows
@@ -1045,36 +1046,36 @@ export function ActivityDetail({
                 trace was a notification 23h earlier that said the opposite. */}
             {markedAbsent && (
               <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.error }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.error }]}>
                   {t('presence.markedAbsent', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs), ago: relPast(absentAtMs) })}
-                </Text>
+                </AppText>
               </View>
             )}
             {/* Before the window opens — the T-2h notification used to land on
                 a page with no mention of presence at all. */}
             {presenceNotYetOpen && (
               <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
                   {t('presence.opensAt', {
                     time: fmtTime(geoOpenMs),
                     countdown: relFuture(geoOpenMs),
                     qrClose: fmtTime(qrCloseMs),
                   })}
-                </Text>
+                </AppText>
                 {/* Don't claim "geolocation validates you automatically" when it
                     can't: that needs the always-on location permission. This is
                     the last moment it's still fixable before the outing. */}
-                <Text style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, color: bgLocationDenied ? colors.warning : colors.success }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, color: bgLocationDenied ? colors.warning : colors.success }]}>
                   {bgLocationDenied ? t('presence.autoArmedNo') : t('presence.autoArmedYes')}
-                </Text>
+                </AppText>
                 {bgLocationDenied && (
                   <Pressable
                     style={{ alignSelf: 'flex-start', marginTop: spacing.sm, backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
                     onPress={() => { Linking.openSettings().catch(() => {}); }}
                   >
-                    <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                    <AppText style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
                       {t('presence.openSettings')}
-                    </Text>
+                    </AppText>
                   </Pressable>
                 )}
               </View>
@@ -1083,33 +1084,33 @@ export function ActivityDetail({
                 either — the old UI said nothing at all. */}
             {duoNoPathLeft && (
               <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
                   {t('presence.duoNoPathLeft', { ago: relPast(qrCloseMs) })}
-                </Text>
+                </AppText>
               </View>
             )}
             {/* Foreground location denied — explain and offer Settings instead
                 of freezing on "be at the spot" with no distance. */}
             {fgLocationDenied && (isInGeoWindow || presenceNotYetOpen) && (
               <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
                   {t('presence.locationOffExplain')}
-                </Text>
+                </AppText>
                 <Pressable
                   style={{ backgroundColor: colors.cta, paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, borderRadius: radius.md }}
                   onPress={() => { Linking.openSettings().catch(() => {}); }}
                 >
-                  <Text style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
+                  <AppText style={{ color: colors.background, fontWeight: '700', fontSize: fontSizes.sm }}>
                     {t('presence.openSettings')}
-                  </Text>
+                  </AppText>
                 </Pressable>
               </View>
             )}
             {showNoRecourseLeft && (
               <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.warning }]}>
                   {t('presence.noRecourseLeft', { date: fmtDate(absentAtMs), time: fmtTime(absentAtMs) })}
-                </Text>
+                </AppText>
               </View>
             )}
             {/* Presence widget — moved back to the Info tab so the
@@ -1118,48 +1119,48 @@ export function ActivityDetail({
                 banner that linked to Organization. */}
             {showBgLocationHint && (
               <View style={[styles.statusBannerTop, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
                   {t('presence.bgLocationHint')}
-                </Text>
+                </AppText>
               </View>
             )}
             {canSelfDeclare && (
               <View style={styles.presenceBlock}>
                 <View style={styles.presenceHeader}>
                   <MapPinCheck size={18} color={colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.presenceTitle}>{t('presence.selfDeclareQuestion')}</Text>
+                  <AppText style={styles.presenceTitle}>{t('presence.selfDeclareQuestion')}</AppText>
                 </View>
                 {selfPresence && !editingSelfPresence ? (
                   <>
-                    <Text style={styles.presenceSubtitle}>
+                    <AppText style={styles.presenceSubtitle}>
                       {t(selfPresence === 'yes' ? 'presence.selfDeclareAnsweredYes' : 'presence.selfDeclareAnsweredNo',
                         { date: fmtDate(selfDeclareCloseMs), time: fmtTime(selfDeclareCloseMs) })}
-                    </Text>
+                    </AppText>
                     <View style={styles.presenceActions}>
                       <PressableScale style={styles.presenceSecondaryButton} onPress={() => setEditingSelfPresence(true)}>
-                        <Text style={styles.presenceSecondaryText}>{t('presence.selfDeclareChange')}</Text>
+                        <AppText style={styles.presenceSecondaryText}>{t('presence.selfDeclareChange')}</AppText>
                       </PressableScale>
                     </View>
                   </>
                 ) : (
                   <>
-                    <Text style={styles.presenceSubtitle}>
+                    <AppText style={styles.presenceSubtitle}>
                       {t('presence.selfDeclareSubtitle', { date: fmtDate(selfDeclareCloseMs), time: fmtTime(selfDeclareCloseMs) })}
-                    </Text>
+                    </AppText>
                     <View style={styles.presenceActions}>
                       <PressableScale
                         style={[styles.presenceButton, isDeclaring && styles.buttonDisabled]}
                         onPress={() => handleDeclarePresence(true)}
                         disabled={isDeclaring}
                       >
-                        <Text style={styles.presenceButtonText} numberOfLines={1}>{t('presence.selfDeclareYes')}</Text>
+                        <AppText style={styles.presenceButtonText} numberOfLines={1}>{t('presence.selfDeclareYes')}</AppText>
                       </PressableScale>
                       <PressableScale
                         style={[styles.presenceSecondaryButton, isDeclaring && styles.buttonDisabled]}
                         onPress={() => handleDeclarePresence(false)}
                         disabled={isDeclaring}
                       >
-                        <Text style={styles.presenceSecondaryText} numberOfLines={1}>{t('presence.selfDeclareNo')}</Text>
+                        <AppText style={styles.presenceSecondaryText} numberOfLines={1}>{t('presence.selfDeclareNo')}</AppText>
                       </PressableScale>
                     </View>
                   </>
@@ -1170,11 +1171,11 @@ export function ActivityDetail({
               <View style={[styles.presenceBlock, isAtActivity && styles.presenceBlockActive]}>
                 <View style={styles.presenceHeader}>
                   <MapPinCheck size={18} color={isAtActivity ? colors.success : colors.textPrimary} strokeWidth={2.4} />
-                  <Text style={styles.presenceTitle}>
+                  <AppText style={styles.presenceTitle}>
                     {isAtActivity ? t('presence.atActivity') : t('presence.confirmMyPresence')}
-                  </Text>
+                  </AppText>
                 </View>
-                <Text style={styles.presenceSubtitle}>
+                <AppText style={styles.presenceSubtitle}>
                   {/* QR-only phase: telling someone to get closer is useless
                       once the geo window has shut — only the scan still acts. */}
                   {geoClosedQrOpen
@@ -1192,7 +1193,7 @@ export function ActivityDetail({
                           defaultValue: `À ${distanceToActivityM < 1000 ? `${distanceToActivityM} m` : `${(distanceToActivityM / 1000).toFixed(1)} km`} du point de rendez-vous`,
                         })
                       : t('presence.mustBeAtLocation')}
-                </Text>
+                </AppText>
                 <View style={styles.presenceActions}>
                   {canConfirmGeo && (
                     <PressableScale
@@ -1200,14 +1201,14 @@ export function ActivityDetail({
                       onPress={handleCheckIn}
                       disabled={isConfirming}
                     >
-                      <Text style={styles.presenceButtonText} numberOfLines={1}>
+                      <AppText style={styles.presenceButtonText} numberOfLines={1}>
                         {isConfirming ? '...' : t('presence.confirm')}
-                      </Text>
+                      </AppText>
                     </PressableScale>
                   )}
                   {canScanQr && (
                     <PressableScale style={styles.presenceSecondaryButton} onPress={() => setShowScanner(true)}>
-                      <Text style={styles.presenceSecondaryText}>{t('presence.scanQr')}</Text>
+                      <AppText style={styles.presenceSecondaryText}>{t('presence.scanQr')}</AppText>
                     </PressableScale>
                   )}
                 </View>
@@ -1217,51 +1218,51 @@ export function ActivityDetail({
                 opens: he gets no presence banner at all (they're gated on
                 !isCreator) so the page said nothing about presence for him. */}
             {isCreator && requiresPresence && !isQrAvailable && nowMs < startsAtMs && (
-              <Text style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
+              <AppText style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
                 {t('presence.creatorAutoNote')}
-              </Text>
+              </AppText>
             )}
             {isCreator && isQrAvailable && (
               <>
                 <PressableScale style={styles.presenceCreatorButton} onPress={() => setShowQrModal(true)}>
-                  <Text style={styles.presenceCreatorText}>{t('presence.showQr')}</Text>
+                  <AppText style={styles.presenceCreatorText}>{t('presence.showQr')}</AppText>
                 </PressableScale>
                 {/* The creator has no self-validation path by design (mig 00292):
                     their presence comes from the first participant who confirms.
                     Nothing said so, so a diligent creator hunted for a button
                     that doesn't exist. */}
                 {requiresPresence && (
-                  <Text style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
+                  <AppText style={[styles.presenceSubtitle, { marginTop: spacing.xs }]}>
                     {t('presence.creatorAutoNote')}
-                  </Text>
+                  </AppText>
                 )}
               </>
             )}
 
-            <Text style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</Text>
+            <AppText style={styles.secTitle}>{t('activity.factsSection', { defaultValue: 'En bref' })}</AppText>
             <View style={styles.factsGrid}>
               <View style={styles.factCell}>
                 <BarChart3 size={15} color={colors.cta} strokeWidth={2.4} />
-                <Text style={styles.factLabel}>{t('meta.level')} :</Text>
-                <Text style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</Text>
+                <AppText style={styles.factLabel}>{t('meta.level')} :</AppText>
+                <AppText style={styles.factValue} numberOfLines={1}>{formatLevelRange(activity.level, activity.level_max)}</AppText>
               </View>
               <View style={styles.factCell}>
                 <Clock size={15} color={colors.cta} strokeWidth={2.4} />
-                <Text style={styles.factLabel}>{t('meta.duration')} :</Text>
-                <Text style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</Text>
+                <AppText style={styles.factLabel}>{t('meta.duration')} :</AppText>
+                <AppText style={styles.factValue} numberOfLines={1}>{formatDuration(activity.duration)}</AppText>
               </View>
               {activity.distance_km != null && activity.distance_km > 0 && (
                 <View style={styles.factCell}>
                   <Route size={15} color={colors.cta} strokeWidth={2.4} />
-                  <Text style={styles.factLabel}>{t('meta.distance')} :</Text>
-                  <Text style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</Text>
+                  <AppText style={styles.factLabel}>{t('meta.distance')} :</AppText>
+                  <AppText style={styles.factValue} numberOfLines={1}>{`${Number(activity.distance_km).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} km`}</AppText>
                 </View>
               )}
               {activity.elevation_gain_m != null && activity.elevation_gain_m > 0 && (
                 <View style={styles.factCell}>
                   <Mountain size={15} color={colors.cta} strokeWidth={2.4} />
-                  <Text style={styles.factLabel}>{t('meta.elevation')} :</Text>
-                  <Text style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</Text>
+                  <AppText style={styles.factLabel}>{t('meta.elevation')} :</AppText>
+                  <AppText style={styles.factValue} numberOfLines={1}>{`${activity.elevation_gain_m.toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')} m`}</AppText>
                 </View>
               )}
               {/* Carpool teaser — a decision fact ("can I get a ride?"), so it
@@ -1285,8 +1286,8 @@ export function ActivityDetail({
                     hitSlop={6}
                   >
                     <Car size={15} color={colors.cta} strokeWidth={2.4} />
-                    <Text style={styles.factLabel}>{t('meta.carpool', { defaultValue: 'Covoit' })} :</Text>
-                    <Text style={styles.factValue} numberOfLines={1}>{value}</Text>
+                    <AppText style={styles.factLabel}>{t('meta.carpool', { defaultValue: 'Covoit' })} :</AppText>
+                    <AppText style={styles.factValue} numberOfLines={1}>{value}</AppText>
                   </Pressable>
                 );
               })()}
@@ -1298,7 +1299,7 @@ export function ActivityDetail({
             {showTabs && (activity.meeting_lat != null || activity.objective_name) && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secDivider} />
-                <Text style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</Text>
+                <AppText style={styles.secTitle}>{t('activity.routeSection', { defaultValue: 'Le parcours' })}</AppText>
                 {/* Always shown once there is a pin (00441): « Puy-Chalvin ·
                     parking de la ferme », locality first, the creator's free
                     text as precision. Tap → full-screen map, where « Y aller »
@@ -1317,11 +1318,11 @@ export function ActivityDetail({
                     >
                       <View style={styles.locHead}>
                         <MapPinIcon size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                        <Text style={styles.locLabelInline}>{t('meta.meetingPoint')} :</Text>
-                        {stacked && <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>}
+                        <AppText style={styles.locLabelInline}>{t('meta.meetingPoint')} :</AppText>
+                        {stacked && <AppText style={styles.locMapLink}>{t('activity.meetingMapLink')}</AppText>}
                       </View>
-                      <Text style={[styles.locValue, stacked && styles.locValueStacked]}>{label}</Text>
-                      {!stacked && <Text style={styles.locMapLink}>{t('activity.meetingMapLink')}</Text>}
+                      <AppText style={[styles.locValue, stacked && styles.locValueStacked]}>{label}</AppText>
+                      {!stacked && <AppText style={styles.locMapLink}>{t('activity.meetingMapLink')}</AppText>}
                     </Pressable>
                   );
                 })()}
@@ -1331,9 +1332,9 @@ export function ActivityDetail({
                     <View style={[styles.locRow, stacked && styles.locRowStacked]}>
                       <View style={styles.locHead}>
                         <Flag size={16} color={colors.textSecondary} strokeWidth={2.2} />
-                        <Text style={styles.locLabelInline}>{t('meta.objective')} :</Text>
+                        <AppText style={styles.locLabelInline}>{t('meta.objective')} :</AppText>
                       </View>
-                      <Text style={[styles.locValue, stacked && styles.locValueStacked]}>{activity.objective_name}</Text>
+                      <AppText style={[styles.locValue, stacked && styles.locValueStacked]}>{activity.objective_name}</AppText>
                     </View>
                   );
                 })()}
@@ -1343,7 +1344,7 @@ export function ActivityDetail({
             {activity.description != null && activity.description !== '' && (
               <View style={styles.parcoursSection}>
                 <View style={styles.secDivider} />
-                <Text style={styles.secTitle}>{t('activity.description')}</Text>
+                <AppText style={styles.secTitle}>{t('activity.description')}</AppText>
                 <ActivityDescription description={activity.description} />
               </View>
             )}
@@ -1352,7 +1353,7 @@ export function ActivityDetail({
                 (last on purpose: the social-proof recall right above the CTA). */}
             <View style={styles.parcoursSection}>
               <View style={styles.secDivider} />
-              <Text style={styles.secTitle}>{t('activity.participantsSection', { defaultValue: 'Participants' })}</Text>
+              <AppText style={styles.secTitle}>{t('activity.participantsSection', { defaultValue: 'Participants' })}</AppText>
               <OrganizerCard
                 activityId={activity.id}
                 creatorId={activity.creator_id}
@@ -1366,7 +1367,7 @@ export function ActivityDetail({
 
             {!isCreator && isAuthenticated && (
               <PressableScale style={styles.reportLink} onPress={() => setShowReport(true)}>
-                <Text style={styles.reportLinkText}>{t('report.reportActivity')}</Text>
+                <AppText style={styles.reportLinkText}>{t('report.reportActivity')}</AppText>
               </PressableScale>
             )}
           </ScrollView>
@@ -1381,13 +1382,13 @@ export function ActivityDetail({
                   onPress={handleJoin}
                   disabled={isLoading}
                 >
-                  <Text style={styles.joinButtonText}>{isLoading ? '...' : joinLabel}</Text>
+                  <AppText style={styles.joinButtonText}>{isLoading ? '...' : joinLabel}</AppText>
                 </PressableScale>
               )}
               {showFullButton && (
                 <View style={styles.fullButton}>
                   <Lock size={16} color={colors.error} strokeWidth={2.5} />
-                  <Text style={styles.fullButtonText}>{t('activity.activityFull')}</Text>
+                  <AppText style={styles.fullButtonText}>{t('activity.activityFull')}</AppText>
                 </View>
               )}
               {showLeaveButton && (
@@ -1396,7 +1397,7 @@ export function ActivityDetail({
                   onPress={() => setShowLeaveModal(true)}
                   disabled={isLoading}
                 >
-                  <Text style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</Text>
+                  <AppText style={styles.buttonText}>{isLoading ? '...' : t('activity.leave')}</AppText>
                 </PressableScale>
               )}
             </View>
@@ -1553,7 +1554,7 @@ export function ActivityDetail({
               Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navLat},${navLng}`);
             }}
           >
-            <Text style={styles.navigateText}>{t('activity.navigate')}</Text>
+            <AppText style={styles.navigateText}>{t('activity.navigate')}</AppText>
           </Pressable>
         </View>
       </Modal>
@@ -1616,7 +1617,7 @@ export function ActivityDetail({
       >
         <SafeAreaView style={styles.participantsModalRoot}>
           <View style={styles.participantsModalHeader}>
-            <Text style={styles.participantsModalTitle}>{t('organizer.modalTitle')}</Text>
+            <AppText style={styles.participantsModalTitle}>{t('organizer.modalTitle')}</AppText>
             <Pressable onPress={() => setShowParticipantsModal(false)} hitSlop={10}>
               <XIcon size={22} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
 import { spacing } from '@/constants/theme';
@@ -26,10 +27,10 @@ export function DrawerFilterBar() {
 
         <View style={styles.sliderWrap}>
           <View style={styles.sliderLabelsRow}>
-            <Text style={styles.sliderValue}>
+            <AppText style={styles.sliderValue}>
               {filters.radiusKm !== null ? `${filters.radiusKm} km` : t('map.radiusOff')}
-            </Text>
-            <Text style={styles.sliderBound}>200 km</Text>
+            </AppText>
+            <AppText style={styles.sliderBound}>200 km</AppText>
           </View>
           <Slider
             style={styles.slider}

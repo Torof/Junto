@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -161,7 +162,7 @@ export function NotificationsView() {
       {hasUnread && (
         <View style={styles.actionsRow}>
           <Pressable onPress={handleMarkAllRead} hitSlop={8}>
-            <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
+            <AppText style={styles.markAllText}>{t('notifications.markAllRead')}</AppText>
           </Pressable>
         </View>
       )}
@@ -172,7 +173,7 @@ export function NotificationsView() {
         </View>
       ) : (notifications ?? []).length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('notifications.emptyUpdates')}</Text>
+          <AppText style={styles.emptyText}>{t('notifications.emptyUpdates')}</AppText>
         </View>
       ) : (
         <FlatList
@@ -197,11 +198,11 @@ export function NotificationsView() {
                 </View>
                 <View style={styles.rowContent}>
                   <View style={styles.rowHeader}>
-                    <Text style={[styles.rowTitle, isUnread && styles.rowTitleUnread]} numberOfLines={1}>{title}</Text>
-                    <Text style={styles.rowTime}>{dayjs(item.created_at).locale(i18n.language).fromNow(true)}</Text>
+                    <AppText style={[styles.rowTitle, isUnread && styles.rowTitleUnread]} numberOfLines={1}>{title}</AppText>
+                    <AppText style={styles.rowTime}>{dayjs(item.created_at).locale(i18n.language).fromNow(true)}</AppText>
                     {isUnread && <View style={styles.unreadDot} />}
                   </View>
-                  <Text style={styles.rowBody} numberOfLines={1}>{body}</Text>
+                  <AppText style={styles.rowBody} numberOfLines={1}>{body}</AppText>
                 </View>
               </Pressable>
             );

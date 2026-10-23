@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Calendar, Star } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -43,15 +44,15 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
       <View style={styles.statusBar} />
 
       <View style={styles.middleCol}>
-        <Text style={styles.title} numberOfLines={1}>{offering.title}</Text>
+        <AppText style={styles.title} numberOfLines={1}>{offering.title}</AppText>
         <View style={styles.sportRow}>
           <View style={[styles.sportPill, { borderColor: accent }]}>
             <SportIcon sportKey={offering.sport_key} size={12} color={accent} />
-            <Text style={[styles.sport, { color: accent }]} numberOfLines={1}>
+            <AppText style={[styles.sport, { color: accent }]} numberOfLines={1}>
               {t(`sports.${offering.sport_key}`, offering.sport_key)}
-            </Text>
-            <Text style={[styles.levelSep, { color: accent }]}> · </Text>
-            <Text style={[styles.level, { color: accent }]} numberOfLines={1}>{offering.level}</Text>
+            </AppText>
+            <AppText style={[styles.levelSep, { color: accent }]}> · </AppText>
+            <AppText style={[styles.level, { color: accent }]} numberOfLines={1}>{offering.level}</AppText>
           </View>
         </View>
         {/* Meta stacked vertically — each piece on its own row so the
@@ -61,15 +62,15 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         <View style={styles.metaList}>
           <View style={styles.metaItem}>
             <MapPin size={11} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.metaText} numberOfLines={1}>
+            <AppText style={styles.metaText} numberOfLines={1}>
               {offering.location_name}
               {distanceKm !== undefined ? ` · ${distanceKm.toFixed(1)} km` : ''}
-            </Text>
+            </AppText>
           </View>
           {offering.schedule_text && (
             <View style={styles.metaItem}>
               <Calendar size={11} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{offering.schedule_text}</Text>
+              <AppText style={styles.metaText} numberOfLines={1}>{offering.schedule_text}</AppText>
             </View>
           )}
         </View>
@@ -79,12 +80,12 @@ export function ProOfferingCard({ offering, onPress, distanceKm, isHighlighted =
         {offering.avg_rating != null && (offering.review_count ?? 0) > 0 ? (
           <View style={styles.ratingRow}>
             <Star size={11} color={colors.star} fill={colors.star} strokeWidth={0} />
-            <Text style={styles.ratingText}>{Number(offering.avg_rating).toFixed(1)}</Text>
-            <Text style={styles.ratingCount}>({offering.review_count})</Text>
+            <AppText style={styles.ratingText}>{Number(offering.avg_rating).toFixed(1)}</AppText>
+            <AppText style={styles.ratingCount}>({offering.review_count})</AppText>
           </View>
         ) : null}
         <View style={styles.proBadge}>
-          <Text style={styles.proBadgeText}>PRO</Text>
+          <AppText style={styles.proBadgeText}>PRO</AppText>
         </View>
       </View>
     </Pressable>

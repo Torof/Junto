@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -184,9 +185,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
         keyboardDismissMode="interactive"
       >
         {isLoading ? (
-          <Text style={styles.loadingText}>...</Text>
+          <AppText style={styles.loadingText}>...</AppText>
         ) : !messages || messages.length === 0 ? (
-          <Text style={styles.emptyText}>{t('wall.empty')}</Text>
+          <AppText style={styles.emptyText}>{t('wall.empty')}</AppText>
         ) : (
           messages.map((item, index) => {
             const prev = messages[index - 1];
@@ -204,7 +205,7 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                 {isFirstOfDay && (
                   <View style={styles.dateSeparator}>
                     <View style={styles.dateLine} />
-                    <Text style={styles.dateLabel}>{dateSeparatorLabel(item.created_at)}</Text>
+                    <AppText style={styles.dateLabel}>{dateSeparatorLabel(item.created_at)}</AppText>
                     <View style={styles.dateLine} />
                   </View>
                 )}
@@ -238,9 +239,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                   )}
                   <View style={styles.bubbleCol}>
                     {isFirstInGroup && !isMine && (
-                      <Text style={styles.authorName} numberOfLines={1}>
+                      <AppText style={styles.authorName} numberOfLines={1}>
                         {item.display_name ?? t('wall.deletedUser')}
-                      </Text>
+                      </AppText>
                     )}
                     <Pressable
                       onLongPress={item.user_id ? () => openActionMenu(item) : undefined}
@@ -253,17 +254,17 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                           : { borderTopLeftRadius: isFirstInGroup ? 18 : 5, borderBottomLeftRadius: isLastInGroup ? 18 : 5 },
                       ]}
                     >
-                      <Text style={[styles.messageContent, isMine && styles.messageContentMine]}>{item.content}</Text>
+                      <AppText style={[styles.messageContent, isMine && styles.messageContentMine]}>{item.content}</AppText>
                       <View style={styles.messageFooter}>
                         {item.edited_at && (
-                          <Text style={[styles.editedTag, isMine && styles.onAccentMuted]}>
+                          <AppText style={[styles.editedTag, isMine && styles.onAccentMuted]}>
                             {t('wall.editedTag', { defaultValue: 'modifié' })}
-                          </Text>
+                          </AppText>
                         )}
                         {isLastInGroup && (
-                          <Text style={[styles.messageTime, isMine && styles.onAccentMuted]}>
+                          <AppText style={[styles.messageTime, isMine && styles.onAccentMuted]}>
                             {dayjs(item.created_at).format('H[h]mm')}
-                          </Text>
+                          </AppText>
                         )}
                       </View>
                     </Pressable>
@@ -277,7 +278,7 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
 
       {isActive && (
         <View style={styles.inputRow}>
-          <TextInput
+          <AppTextInput
             style={styles.input}
             value={message}
             onChangeText={setMessage}
@@ -310,15 +311,15 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
             {actionMenuMessage && actionMenuMessage.user_id === currentUserId ? (
               <>
                 <Pressable style={styles.actionMenuItem} onPress={handleStartEdit}>
-                  <Text style={styles.actionMenuItemText}>
+                  <AppText style={styles.actionMenuItemText}>
                     {t('wall.actionEdit', { defaultValue: 'Modifier' })}
-                  </Text>
+                  </AppText>
                 </Pressable>
                 <View style={styles.actionMenuDivider} />
                 <Pressable style={styles.actionMenuItem} onPress={handleDelete}>
-                  <Text style={[styles.actionMenuItemText, { color: colors.error }]}>
+                  <AppText style={[styles.actionMenuItemText, { color: colors.error }]}>
                     {t('wall.actionDelete', { defaultValue: 'Supprimer' })}
-                  </Text>
+                  </AppText>
                 </Pressable>
               </>
             ) : (
@@ -326,9 +327,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                 style={styles.actionMenuItem}
                 onPress={() => { setReportMessageId(actionMenuMessage?.id ?? null); setActionMenuMessage(null); }}
               >
-                <Text style={[styles.actionMenuItemText, { color: colors.error }]}>
+                <AppText style={[styles.actionMenuItemText, { color: colors.error }]}>
                   {t('report.reportMessage', { defaultValue: 'Signaler le message' })}
-                </Text>
+                </AppText>
               </Pressable>
             )}
           </Pressable>
@@ -357,10 +358,10 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
         >
           <Pressable style={styles.modalBackdrop} onPress={() => setEditingMessage(null)}>
             <Pressable style={styles.editCard} onPress={(e) => e.stopPropagation()}>
-              <Text style={styles.editTitle}>
+              <AppText style={styles.editTitle}>
                 {t('wall.editTitle', { defaultValue: 'Modifier le message' })}
-              </Text>
-              <TextInput
+              </AppText>
+              <AppTextInput
                 style={styles.editInput}
                 value={editDraft}
                 onChangeText={setEditDraft}
@@ -374,9 +375,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                   onPress={() => setEditingMessage(null)}
                   hitSlop={4}
                 >
-                  <Text style={styles.editCancelText}>
+                  <AppText style={styles.editCancelText}>
                     {t('common.cancel', { defaultValue: 'Annuler' })}
-                  </Text>
+                  </AppText>
                 </Pressable>
                 <Pressable
                   style={[styles.editSaveBtn, (!editDraft.trim() || isSavingEdit) && { opacity: 0.5 }]}
@@ -384,9 +385,9 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                   disabled={!editDraft.trim() || isSavingEdit}
                   hitSlop={4}
                 >
-                  <Text style={styles.editSaveText}>
+                  <AppText style={styles.editSaveText}>
                     {t('common.save', { defaultValue: 'Enregistrer' })}
-                  </Text>
+                  </AppText>
                 </Pressable>
               </View>
             </Pressable>

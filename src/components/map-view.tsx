@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect, type ComponentRef, type RefObject } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -694,7 +695,7 @@ export function JuntoMapView({
 
       {tapMarker && (
         <Mapbox.MarkerView id="tap-marker" coordinate={tapMarker} anchor={{ x: 0.5, y: 0 }} allowOverlap>
-          <View>{tapMarkerContent ?? <Text style={styles.tapMarker}>✕</Text>}</View>
+          <View>{tapMarkerContent ?? <AppText style={styles.tapMarker}>✕</AppText>}</View>
         </Mapbox.MarkerView>
       )}
 
@@ -998,7 +999,7 @@ export function JuntoMapView({
       <View style={styles.mapWrapper}>
         {mapView}
         <View style={styles.attributionPill} pointerEvents="none">
-          <Text style={styles.attributionText}>{attribution}</Text>
+          <AppText style={styles.attributionText}>{attribution}</AppText>
         </View>
       </View>
     );

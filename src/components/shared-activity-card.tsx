@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -44,7 +45,7 @@ export function SharedActivityCard({ activityId, onPress, fallbackTitle }: Share
         <View style={styles.loadingBox}>
           <ActivityIndicator color={colors.textSecondary} />
           {!!fallbackTitle && (
-            <Text style={styles.loadingTitle} numberOfLines={2}>{fallbackTitle}</Text>
+            <AppText style={styles.loadingTitle} numberOfLines={2}>{fallbackTitle}</AppText>
           )}
         </View>
       </Pressable>
@@ -57,11 +58,11 @@ export function SharedActivityCard({ activityId, onPress, fallbackTitle }: Share
     return (
       <Pressable style={styles.card} onPress={() => onPress(activityId)}>
         <View style={styles.body}>
-          <Text style={styles.title} numberOfLines={2}>
+          <AppText style={styles.title} numberOfLines={2}>
             {fallbackTitle ?? t('messagerie.previewActivity')}
-          </Text>
+          </AppText>
           <View style={styles.ctaRow}>
-            <Text style={styles.ctaText}>{t('messagerie.viewActivity')}</Text>
+            <AppText style={styles.ctaText}>{t('messagerie.viewActivity')}</AppText>
             <ArrowRight size={15} color={colors.cta} strokeWidth={2.6} />
           </View>
         </View>
@@ -102,41 +103,41 @@ export function SharedActivityCard({ activityId, onPress, fallbackTitle }: Share
         </View>
         <View style={styles.heroPills}>
           <View style={[styles.pill, { backgroundColor: sportAccent }]}>
-            <Text style={styles.pillSportText} numberOfLines={1}>
+            <AppText style={styles.pillSportText} numberOfLines={1}>
               {t(`sports.${activity.sport_key}`, activity.sport_key)}
-            </Text>
+            </AppText>
           </View>
           {!!signal && (
             <View style={[styles.pill, styles.pillLevel]}>
-              <Text style={[styles.pillLevelText, { color: sportAccent }]} numberOfLines={1}>{signal}</Text>
+              <AppText style={[styles.pillLevelText, { color: sportAccent }]} numberOfLines={1}>{signal}</AppText>
             </View>
           )}
         </View>
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.title} numberOfLines={2}>{activity.title}</Text>
+        <AppText style={styles.title} numberOfLines={2}>{activity.title}</AppText>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Calendar size={12} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.metaText} numberOfLines={1}>{datePart}</Text>
+            <AppText style={styles.metaText} numberOfLines={1}>{datePart}</AppText>
           </View>
           {!!place && (
             <View style={[styles.metaItem, { flexShrink: 1 }]}>
               <MapPin size={12} color={colors.textSecondary} strokeWidth={2.4} />
-              <Text style={styles.metaText} numberOfLines={1}>{place}</Text>
+              <AppText style={styles.metaText} numberOfLines={1}>{place}</AppText>
             </View>
           )}
           <View style={styles.metaItem}>
             <Users size={12} color={colors.textSecondary} strokeWidth={2.4} />
-            <Text style={styles.metaText} numberOfLines={1}>
+            <AppText style={styles.metaText} numberOfLines={1}>
               {activity.participant_count}
               {activity.max_participants !== null ? `/${activity.max_participants}` : ''}
-            </Text>
+            </AppText>
           </View>
         </View>
         <View style={styles.ctaRow}>
-          <Text style={styles.ctaText}>{t('messagerie.viewActivity')}</Text>
+          <AppText style={styles.ctaText}>{t('messagerie.viewActivity')}</AppText>
           <ArrowRight size={15} color={colors.cta} strokeWidth={2.6} />
         </View>
       </View>

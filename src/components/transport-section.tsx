@@ -1,4 +1,5 @@
-import { View, Text, Pressable, Modal, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Pressable, Modal, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useState, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -221,7 +222,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
           <Pressable style={styles.backdrop} onPress={() => setShowEditor(false)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</Text>
+                <AppText style={styles.sheetTitle}>{t('transport.howAreYouGoing')}</AppText>
 
                 <View style={styles.typeGrid}>
                   {TRANSPORT_TYPES.map((type) => {
@@ -234,9 +235,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                         onPress={() => setSelectedType(type)}
                       >
                         <IconComp size={18} color={isSelected ? colors.textPrimary : colors.textSecondary} strokeWidth={2} />
-                        <Text style={[styles.typeChipText, isSelected && styles.typeChipTextActive]}>
+                        <AppText style={[styles.typeChipText, isSelected && styles.typeChipTextActive]}>
                           {t(`transport.type.${type}`)}
-                        </Text>
+                        </AppText>
                       </Pressable>
                     );
                   })}
@@ -244,22 +245,22 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
 
                 {selectedType === 'car' && (
                   <View style={styles.seatsRow}>
-                    <Text style={styles.seatsLabel}>{t('transport.freeSeats')}</Text>
+                    <AppText style={styles.seatsLabel}>{t('transport.freeSeats')}</AppText>
                     <View style={styles.seatsPicker}>
                       <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.max(0, seats - 1))}>
-                        <Text style={styles.seatsBtnText}>-</Text>
+                        <AppText style={styles.seatsBtnText}>-</AppText>
                       </Pressable>
-                      <Text style={styles.seatsValue}>{seats}</Text>
+                      <AppText style={styles.seatsValue}>{seats}</AppText>
                       <Pressable style={styles.seatsBtn} onPress={() => setSeats(Math.min(8, seats + 1))}>
-                        <Text style={styles.seatsBtnText}>+</Text>
+                        <AppText style={styles.seatsBtnText}>+</AppText>
                       </Pressable>
                     </View>
                   </View>
                 )}
 
                 <View style={styles.fromPlaceWrap}>
-                  <Text style={styles.fromLabel}>{t('transport.from')}</Text>
-                  {fromName ? <Text style={styles.fromChosen}>{fromName}</Text> : null}
+                  <AppText style={styles.fromLabel}>{t('transport.from')}</AppText>
+                  {fromName ? <AppText style={styles.fromChosen}>{fromName}</AppText> : null}
                   <PlaceSearchBar
                     onSelect={(p) => { setFromName(p.label); setFromLat(p.lat); setFromLng(p.lng); }}
                     onFreeText={(txt) => { setFromName(txt); setFromLat(null); setFromLng(null); }}
@@ -272,7 +273,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                     }}
                   >
                     <MapPin size={15} color={colors.cta} strokeWidth={2.2} />
-                    <Text style={styles.placeOnMapText}>{t('transport.placeOnMap', { defaultValue: 'Placer sur la carte' })}</Text>
+                    <AppText style={styles.placeOnMapText}>{t('transport.placeOnMap', { defaultValue: 'Placer sur la carte' })}</AppText>
                   </Pressable>
                 </View>
 
@@ -281,12 +282,12 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                     the group a useful coordination signal too. */}
                 {selectedType && (
                   <View style={styles.fromRow}>
-                    <Text style={styles.fromLabel}>{t('transport.departsAt')}</Text>
+                    <AppText style={styles.fromLabel}>{t('transport.departsAt')}</AppText>
                     <Pressable style={styles.timeButton} onPress={() => setShowDepartsPicker(true)}>
                       <Clock size={14} color={colors.cta} strokeWidth={2.4} />
-                      <Text style={styles.timeButtonText}>
+                      <AppText style={styles.timeButtonText}>
                         {departsAt ? dayjs(departsAt).format('H[h]mm') : t('transport.pickTime')}
-                      </Text>
+                      </AppText>
                     </Pressable>
                   </View>
                 )}
@@ -312,7 +313,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   onPress={handleSave}
                   disabled={!selectedType || isSaving}
                 >
-                  <Text style={styles.saveText}>{t('profil.save')}</Text>
+                  <AppText style={styles.saveText}>{t('profil.save')}</AppText>
                 </Pressable>
               </ScrollView>
             </Pressable>
@@ -326,11 +327,11 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
           <Pressable style={styles.backdrop} onPress={() => setRequestingFromDriver(null)}>
             <Pressable style={styles.sheet} onPress={() => {}}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.sheetTitle}>{t('transport.requestSeatTitle')}</Text>
+                <AppText style={styles.sheetTitle}>{t('transport.requestSeatTitle')}</AppText>
 
                 <View style={styles.fromRow}>
-                  <Text style={styles.fromLabel}>{t('transport.pickupFrom')}</Text>
-                  <TextInput
+                  <AppText style={styles.fromLabel}>{t('transport.pickupFrom')}</AppText>
+                  <AppTextInput
                     style={styles.fromInput}
                     value={requestPickup}
                     onChangeText={setRequestPickup}
@@ -341,12 +342,12 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 </View>
 
                 <View style={styles.fromRow}>
-                  <Text style={styles.fromLabel}>{t('transport.pickupAt')}</Text>
+                  <AppText style={styles.fromLabel}>{t('transport.pickupAt')}</AppText>
                   <Pressable style={styles.timeButton} onPress={() => setShowPickupPicker(true)}>
                     <Clock size={14} color={colors.cta} strokeWidth={2.4} />
-                    <Text style={styles.timeButtonText}>
+                    <AppText style={styles.timeButtonText}>
                       {requestedPickupAt ? dayjs(requestedPickupAt).format('H[h]mm') : t('transport.pickTime')}
-                    </Text>
+                    </AppText>
                   </Pressable>
                 </View>
                 {showPickupPicker && (
@@ -367,8 +368,8 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                 )}
 
                 <View style={styles.fromRow}>
-                  <Text style={styles.fromLabel}>{t('transport.messageOptional')}</Text>
-                  <TextInput
+                  <AppText style={styles.fromLabel}>{t('transport.messageOptional')}</AppText>
+                  <AppTextInput
                     style={[styles.fromInput, { minHeight: 60, textAlignVertical: 'top' }]}
                     value={requestMessage}
                     onChangeText={setRequestMessage}
@@ -384,7 +385,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
                   disabled={requestSending}
                   onPress={handleRequestSeat}
                 >
-                  <Text style={styles.saveText}>{t('transport.requestSeat')}</Text>
+                  <AppText style={styles.saveText}>{t('transport.requestSeat')}</AppText>
                 </Pressable>
               </ScrollView>
             </Pressable>
@@ -405,9 +406,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
             <Pressable style={styles.mapPickerClose} onPress={() => setShowMapPicker(false)} hitSlop={8}>
               <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
             </Pressable>
-            <Text style={styles.mapPickerHint} numberOfLines={1}>
+            <AppText style={styles.mapPickerHint} numberOfLines={1}>
               {t('transport.mapPickHint', { defaultValue: 'Touche la carte pour placer ton départ' })}
-            </Text>
+            </AppText>
           </View>
           <View style={[styles.mapPickerFooter, { paddingBottom: insets.bottom + spacing.md }]}>
             <Pressable
@@ -415,11 +416,11 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
               disabled={!mapPickedPoint || picking}
               onPress={confirmMapPoint}
             >
-              <Text style={styles.saveText}>
+              <AppText style={styles.saveText}>
                 {picking
                   ? t('transport.mapPicking', { defaultValue: 'Localisation…' })
                   : t('transport.mapPickConfirm', { defaultValue: 'Valider ce point' })}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         </View>

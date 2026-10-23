@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Modal, Pressable, StyleSheet, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -72,8 +73,8 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
         <Pressable style={styles.close} onPress={onClose}>
           <X size={24} color={colors.textPrimary} strokeWidth={2.2} />
         </Pressable>
-        <Text style={styles.title}>{t('presence.scanTitle')}</Text>
-        <Text style={styles.subtitle}>{t('presence.scanSubtitle')}</Text>
+        <AppText style={styles.title}>{t('presence.scanTitle')}</AppText>
+        <AppText style={styles.subtitle}>{t('presence.scanSubtitle')}</AppText>
         <View style={styles.cameraWrap}>
           {permission?.granted ? (
             <CameraView
@@ -84,9 +85,9 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
             />
           ) : (
             <View style={styles.permWrap}>
-              <Text style={styles.permText}>{t('presence.cameraPermission')}</Text>
+              <AppText style={styles.permText}>{t('presence.cameraPermission')}</AppText>
               <Pressable style={styles.permButton} onPress={requestPermission}>
-                <Text style={styles.permButtonText}>{t('presence.grantCamera')}</Text>
+                <AppText style={styles.permButtonText}>{t('presence.grantCamera')}</AppText>
               </Pressable>
             </View>
           )}

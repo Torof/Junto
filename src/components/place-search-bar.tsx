@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Pressable, ActivityIndicator, StyleSheet, type TextInput } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, MapPin, Pencil } from 'lucide-react-native';
@@ -66,7 +67,7 @@ export function PlaceSearchBar({ onSelect, bias, onFreeText }: Props) {
     <View style={styles.wrap}>
       <View style={styles.bar}>
         <Search size={18} color={colors.textSecondary} strokeWidth={2.2} />
-        <TextInput
+        <AppTextInput
           ref={inputRef}
           style={styles.input}
           value={query}
@@ -91,17 +92,17 @@ export function PlaceSearchBar({ onSelect, bias, onFreeText }: Props) {
           {showFreeRow && (
             <Pressable style={styles.row} onPress={useFree}>
               <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
-              <Text style={styles.freeRowText} numberOfLines={1}>
+              <AppText style={styles.freeRowText} numberOfLines={1}>
                 {t('map.useFreeText', { defaultValue: 'Utiliser « {{text}} »', text: freeText })}
-              </Text>
+              </AppText>
             </Pressable>
           )}
           {showResults && (results ?? []).map((item) => (
             <Pressable key={item.id} style={styles.row} onPress={() => pick(item)}>
               <MapPin size={16} color={colors.textSecondary} strokeWidth={2.2} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.rowLabel} numberOfLines={1}>{item.label}</Text>
-                {!!item.sublabel && <Text style={styles.rowSub} numberOfLines={1}>{item.sublabel}</Text>}
+                <AppText style={styles.rowLabel} numberOfLines={1}>{item.label}</AppText>
+                {!!item.sublabel && <AppText style={styles.rowSub} numberOfLines={1}>{item.sublabel}</AppText>}
               </View>
             </Pressable>
           ))}

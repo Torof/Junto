@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Linking, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -54,20 +55,20 @@ export default function SuspendedScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>🚫</Text>
-      <Text style={styles.title}>{t('suspended.title')}</Text>
-      <Text style={styles.message}>{t('suspended.message')}</Text>
+      <AppText style={styles.icon}>🚫</AppText>
+      <AppText style={styles.title}>{t('suspended.title')}</AppText>
+      <AppText style={styles.message}>{t('suspended.message')}</AppText>
 
       <Pressable style={styles.contactButton} onPress={handleContact}>
-        <Text style={styles.contactText}>{t('suspended.contact')}</Text>
+        <AppText style={styles.contactText}>{t('suspended.contact')}</AppText>
       </Pressable>
 
       <Pressable style={styles.deleteButton} onPress={handleDeleteAccount}>
-        <Text style={styles.deleteText}>{t('suspended.deleteAccount')}</Text>
+        <AppText style={styles.deleteText}>{t('suspended.deleteAccount')}</AppText>
       </Pressable>
 
       <Pressable style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>{t('profil.logout')}</Text>
+        <AppText style={styles.logoutText}>{t('profil.logout')}</AppText>
       </Pressable>
     </View>
   );

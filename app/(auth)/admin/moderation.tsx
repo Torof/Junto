@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Text, Pressable, FlatList, TextInput, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, FlatList, Modal, StyleSheet, Alert } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams , Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -170,28 +171,28 @@ export default function ModerationScreen() {
       {/* Tabs */}
       <View style={styles.tabs}>
         <Pressable style={[styles.tab, tab === 'pending' && styles.tabActive]} onPress={() => setTab('pending')}>
-          <Text style={[styles.tabText, tab === 'pending' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, tab === 'pending' && styles.tabTextActive]}>
             {t('admin.pending')} ({(reports ?? []).filter((r) => r.status === 'pending').length})
-          </Text>
+          </AppText>
         </Pressable>
         <Pressable style={[styles.tab, tab === 'resolved' && styles.tabActive]} onPress={() => setTab('resolved')}>
-          <Text style={[styles.tabText, tab === 'resolved' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, tab === 'resolved' && styles.tabTextActive]}>
             {t('admin.resolved')}
-          </Text>
+          </AppText>
         </Pressable>
         <Pressable style={[styles.tab, tab === 'pros' && styles.tabActive]} onPress={() => setTab('pros')}>
-          <Text style={[styles.tabText, tab === 'pros' && styles.tabTextActive]}>
+          <AppText style={[styles.tabText, tab === 'pros' && styles.tabTextActive]}>
             {t('admin.prosTab', { defaultValue: 'Pros' })} ({(pendingPros ?? []).length})
-          </Text>
+          </AppText>
         </Pressable>
       </View>
 
       {/* List */}
       {tab === 'pros' ? (
         prosLoading ? (
-          <View style={styles.center}><Text style={styles.loadingText}>...</Text></View>
+          <View style={styles.center}><AppText style={styles.loadingText}>...</AppText></View>
         ) : (pendingPros ?? []).length === 0 ? (
-          <View style={styles.center}><Text style={styles.emptyText}>{t('admin.noPendingPros', { defaultValue: 'Aucune demande en attente' })}</Text></View>
+          <View style={styles.center}><AppText style={styles.emptyText}>{t('admin.noPendingPros', { defaultValue: 'Aucune demande en attente' })}</AppText></View>
         ) : (
           <FlatList
             data={pendingPros}
@@ -201,32 +202,32 @@ export default function ModerationScreen() {
                 <View style={styles.cardHeader}>
                   <View style={styles.proTitleRow}>
                     <BadgeCheck size={16} color={colors.cta} strokeWidth={2.4} />
-                    <Text style={styles.targetType} numberOfLines={1}>{item.company_name ?? item.display_name}</Text>
+                    <AppText style={styles.targetType} numberOfLines={1}>{item.company_name ?? item.display_name}</AppText>
                   </View>
-                  <Text style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</Text>
+                  <AppText style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</AppText>
                 </View>
-                <Text style={styles.proLine}>Page : {item.display_name}</Text>
-                {item.real_name && <Text style={styles.proLine}>Responsable : {item.real_name}</Text>}
+                <AppText style={styles.proLine}>Page : {item.display_name}</AppText>
+                {item.real_name && <AppText style={styles.proLine}>Responsable : {item.real_name}</AppText>}
                 {item.prior_review_count > 0 && (
-                  <Text style={styles.proHistoryWarning}>
+                  <AppText style={styles.proHistoryWarning}>
                     ⚠️ Déjà passé en revue ×{item.prior_review_count} — dernier :{' '}
                     {item.last_review_action === 'approve_pro' ? 'approuvé' : 'refusé'}
                     {item.last_review_at ? ` le ${dayjs(item.last_review_at).format('DD/MM/YYYY')}` : ''}.
                     {item.last_review_action === 'approve_pro' ? ' Désinscrit depuis — les avis/photos sont repartis avec (vérifier le passif avant de re-valider).' : ''}
-                  </Text>
+                  </AppText>
                 )}
-                <Text style={styles.proLineMuted}>{item.primary_location_name}</Text>
+                <AppText style={styles.proLineMuted}>{item.primary_location_name}</AppText>
                 {(item.email || item.phone || item.website) && (
-                  <Text style={styles.proLineMuted} numberOfLines={1}>{[item.email, item.phone, item.website].filter(Boolean).join(' · ')}</Text>
+                  <AppText style={styles.proLineMuted} numberOfLines={1}>{[item.email, item.phone, item.website].filter(Boolean).join(' · ')}</AppText>
                 )}
                 <View style={styles.actionRow}>
                   <Pressable style={[styles.dismissButton, proBusyId === item.user_id && styles.disabled]} onPress={() => handleRejectPro(item)} disabled={proBusyId === item.user_id}>
                     <X size={15} color={colors.error} strokeWidth={2.6} />
-                    <Text style={styles.dismissText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</Text>
+                    <AppText style={styles.dismissText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</AppText>
                   </Pressable>
                   <Pressable style={[styles.approveButton, proBusyId === item.user_id && styles.disabled]} onPress={() => handleApprovePro(item)} disabled={proBusyId === item.user_id}>
                     <Check size={15} color="#FFFFFF" strokeWidth={2.6} />
-                    <Text style={styles.approveText}>{t('admin.proApprove', { defaultValue: 'Valider' })}</Text>
+                    <AppText style={styles.approveText}>{t('admin.proApprove', { defaultValue: 'Valider' })}</AppText>
                   </Pressable>
                 </View>
               </View>
@@ -236,11 +237,11 @@ export default function ModerationScreen() {
         )
       ) : isLoading ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>...</Text>
+          <AppText style={styles.loadingText}>...</AppText>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('admin.noReports')}</Text>
+          <AppText style={styles.emptyText}>{t('admin.noReports')}</AppText>
         </View>
       ) : (
         <FlatList
@@ -249,13 +250,13 @@ export default function ModerationScreen() {
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => { setSelectedReport(item); setAdminNote(''); }}>
               <View style={styles.cardHeader}>
-                <Text style={styles.targetType}>{getTargetLabel(item)}</Text>
-                <Text style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</Text>
+                <AppText style={styles.targetType}>{getTargetLabel(item)}</AppText>
+                <AppText style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</AppText>
               </View>
-              <Text style={styles.reason} numberOfLines={2}>{item.reason}</Text>
+              <AppText style={styles.reason} numberOfLines={2}>{item.reason}</AppText>
               {item.status !== 'pending' && (
                 <View style={[styles.statusBadge, item.status === 'dismissed' ? styles.dismissedBadge : styles.actionedBadge]}>
-                  <Text style={styles.statusText}>{item.status === 'dismissed' ? t('admin.dismissed') : t('admin.actioned')}</Text>
+                  <AppText style={styles.statusText}>{item.status === 'dismissed' ? t('admin.dismissed') : t('admin.actioned')}</AppText>
                 </View>
               )}
             </Pressable>
@@ -272,35 +273,35 @@ export default function ModerationScreen() {
 
             {selectedReport && (
               <>
-                <Text style={styles.sheetTitle}>{getTargetLabel(selectedReport)}</Text>
-                <Text style={styles.sheetTime}>{dayjs(selectedReport.created_at).locale(i18n.language).format('D MMM YYYY · H[h]mm')}</Text>
+                <AppText style={styles.sheetTitle}>{getTargetLabel(selectedReport)}</AppText>
+                <AppText style={styles.sheetTime}>{dayjs(selectedReport.created_at).locale(i18n.language).format('D MMM YYYY · H[h]mm')}</AppText>
 
-                <Text style={styles.sectionLabel}>{t('admin.reason')}</Text>
-                <Text style={styles.reasonFull}>{selectedReport.reason}</Text>
+                <AppText style={styles.sectionLabel}>{t('admin.reason')}</AppText>
+                <AppText style={styles.reasonFull}>{selectedReport.reason}</AppText>
 
-                <Text style={styles.sectionLabel}>{t('admin.targetId')}</Text>
-                <Text style={styles.targetId}>{selectedReport.target_id}</Text>
+                <AppText style={styles.sectionLabel}>{t('admin.targetId')}</AppText>
+                <AppText style={styles.targetId}>{selectedReport.target_id}</AppText>
 
                 {selectedReport.target_type === 'user' && (
                   resolvedUser ? (
                     <View style={styles.identityCard}>
-                      <Text style={styles.identityName}>{resolvedUser.display_name}{resolvedUser.is_admin ? ' · admin' : ''}</Text>
-                      <Text style={styles.identityLine} selectable>{resolvedUser.email}</Text>
-                      <Text style={styles.identityLine}>
+                      <AppText style={styles.identityName}>{resolvedUser.display_name}{resolvedUser.is_admin ? ' · admin' : ''}</AppText>
+                      <AppText style={styles.identityLine} selectable>{resolvedUser.email}</AppText>
+                      <AppText style={styles.identityLine}>
                         {resolvedUser.tier} · {resolvedUser.suspended_at ? t('admin.suspended', { defaultValue: 'Suspendu' }) : t('admin.active', { defaultValue: 'Actif' })}
-                      </Text>
+                      </AppText>
                     </View>
                   ) : (
                     <Pressable style={[styles.resolveBtn, resolving && styles.disabled]} onPress={handleResolveIdentity} disabled={resolving}>
-                      <Text style={styles.resolveBtnText}>{resolving ? '…' : t('admin.resolveIdentity', { defaultValue: "Voir l'identité" })}</Text>
+                      <AppText style={styles.resolveBtnText}>{resolving ? '…' : t('admin.resolveIdentity', { defaultValue: "Voir l'identité" })}</AppText>
                     </Pressable>
                   )
                 )}
 
                 {selectedReport.status === 'pending' ? (
                   <>
-                    <Text style={styles.sectionLabel}>{t('admin.note')}</Text>
-                    <TextInput
+                    <AppText style={styles.sectionLabel}>{t('admin.note')}</AppText>
+                    <AppTextInput
                       style={styles.noteInput}
                       value={adminNote}
                       onChangeText={setAdminNote}
@@ -317,7 +318,7 @@ export default function ModerationScreen() {
                         disabled={isProcessing}
                       >
                         <Trash2 size={16} color="#FFFFFF" strokeWidth={2.2} />
-                        <Text style={styles.removeText}>{t('admin.removeContent', { defaultValue: 'Retirer le contenu' })}</Text>
+                        <AppText style={styles.removeText}>{t('admin.removeContent', { defaultValue: 'Retirer le contenu' })}</AppText>
                       </Pressable>
                     )}
 
@@ -327,7 +328,7 @@ export default function ModerationScreen() {
                         onPress={() => handleAction('dismissed')}
                         disabled={isProcessing}
                       >
-                        <Text style={styles.dismissText}>{t('admin.dismiss')}</Text>
+                        <AppText style={styles.dismissText}>{t('admin.dismiss')}</AppText>
                       </Pressable>
                       <Pressable
                         style={[styles.actionButton, isProcessing && styles.disabled]}
@@ -343,7 +344,7 @@ export default function ModerationScreen() {
                         }}
                         disabled={isProcessing}
                       >
-                        <Text style={styles.actionText}>{t('admin.action')}</Text>
+                        <AppText style={styles.actionText}>{t('admin.action')}</AppText>
                       </Pressable>
                     </View>
                   </>
@@ -351,14 +352,14 @@ export default function ModerationScreen() {
                   <>
                     {selectedReport.admin_note && (
                       <>
-                        <Text style={styles.sectionLabel}>{t('admin.note')}</Text>
-                        <Text style={styles.reasonFull}>{selectedReport.admin_note}</Text>
+                        <AppText style={styles.sectionLabel}>{t('admin.note')}</AppText>
+                        <AppText style={styles.reasonFull}>{selectedReport.admin_note}</AppText>
                       </>
                     )}
                     <View style={[styles.statusBadge, selectedReport.status === 'dismissed' ? styles.dismissedBadge : styles.actionedBadge]}>
-                      <Text style={styles.statusText}>
+                      <AppText style={styles.statusText}>
                         {selectedReport.status === 'dismissed' ? t('admin.dismissed') : t('admin.actioned')}
-                      </Text>
+                      </AppText>
                     </View>
                   </>
                 )}
@@ -373,10 +374,10 @@ export default function ModerationScreen() {
         <Pressable style={styles.backdrop} onPress={() => setRejectApp(null)}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>{t('admin.proRejectTitle', { defaultValue: 'Refuser la demande' })}</Text>
-            <Text style={styles.sheetTime}>{rejectApp?.company_name ?? rejectApp?.display_name}</Text>
-            <Text style={styles.sectionLabel}>{t('admin.proRejectReason', { defaultValue: 'Motif (optionnel, envoyé au demandeur)' })}</Text>
-            <TextInput
+            <AppText style={styles.sheetTitle}>{t('admin.proRejectTitle', { defaultValue: 'Refuser la demande' })}</AppText>
+            <AppText style={styles.sheetTime}>{rejectApp?.company_name ?? rejectApp?.display_name}</AppText>
+            <AppText style={styles.sectionLabel}>{t('admin.proRejectReason', { defaultValue: 'Motif (optionnel, envoyé au demandeur)' })}</AppText>
+            <AppTextInput
               style={styles.noteInput}
               value={rejectReason}
               onChangeText={setRejectReason}
@@ -387,14 +388,14 @@ export default function ModerationScreen() {
             />
             <View style={styles.actionRow}>
               <Pressable style={styles.dismissButton} onPress={() => setRejectApp(null)}>
-                <Text style={styles.dismissText}>{t('activity.no', { defaultValue: 'Annuler' })}</Text>
+                <AppText style={styles.dismissText}>{t('activity.no', { defaultValue: 'Annuler' })}</AppText>
               </Pressable>
               <Pressable
                 style={[styles.actionButton, proBusyId === rejectApp?.user_id && styles.disabled]}
                 onPress={confirmRejectPro}
                 disabled={proBusyId === rejectApp?.user_id}
               >
-                <Text style={styles.actionText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</Text>
+                <AppText style={styles.actionText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</AppText>
               </Pressable>
             </View>
           </Pressable>

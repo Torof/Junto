@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +44,7 @@ export default function InviteScreen() {
   if (error || !activity) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>{t('invite.invalid')}</Text>
+        <AppText style={styles.errorText}>{t('invite.invalid')}</AppText>
       </View>
     );
   }

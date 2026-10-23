@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -74,7 +75,7 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
         ))}
         {extra > 0 && (
           <View style={[styles.extraBadge, { marginLeft: -10 }]}>
-            <Text style={styles.extraBadgeText}>+{extra}</Text>
+            <AppText style={styles.extraBadgeText}>+{extra}</AppText>
           </View>
         )}
       </View>
@@ -82,28 +83,28 @@ export function OrganizerCard({ activityId, creatorId, creatorName, creatorAvata
       <View style={styles.countBlock}>
         {pendingCount > 0 && (
           <View style={styles.pendingPill}>
-            <Text style={styles.pendingPillText} numberOfLines={1}>
+            <AppText style={styles.pendingPillText} numberOfLines={1}>
               {t('organizer.pendingRequests', {
                 count: pendingCount,
                 defaultValue: pendingCount > 1 ? '{{count}} demandes en attente' : '{{count}} demande en attente',
               })}
-            </Text>
+            </AppText>
           </View>
         )}
-        <Text style={styles.participantsCountText} numberOfLines={1}>
+        <AppText style={styles.participantsCountText} numberOfLines={1}>
           {t('organizer.participantsCount', { count: totalParticipants })}
-        </Text>
-        <Text style={[styles.freeSlotsText, isFull && styles.freeSlotsTextFull]} numberOfLines={1}>
+        </AppText>
+        <AppText style={[styles.freeSlotsText, isFull && styles.freeSlotsTextFull]} numberOfLines={1}>
           {isOpen
             ? t('create.openActivityValue')
             : isFull
               ? t('organizer.full')
               : t('organizer.freeSlots', { count: freeSlots })}
-        </Text>
+        </AppText>
       </View>
 
       <View style={styles.viewAllBtn}>
-        <Text style={styles.viewAllText}>{t('organizer.viewAll')}</Text>
+        <AppText style={styles.viewAllText}>{t('organizer.viewAll')}</AppText>
       </View>
     </Pressable>
   );

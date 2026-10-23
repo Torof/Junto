@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { Pressable, Modal, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react-native';
@@ -29,7 +30,7 @@ export function MapStyleButton() {
       <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable style={styles.panel} onPress={() => {}}>
-            <Text style={styles.panelTitle}>{t('drawer.mapStyle')}</Text>
+            <AppText style={styles.panelTitle}>{t('drawer.mapStyle')}</AppText>
             {MAP_STYLE_ORDER.map((key: MapStyleKey) => {
               const isActive = current === key;
               return (
@@ -38,9 +39,9 @@ export function MapStyleButton() {
                   style={[styles.chip, isActive && styles.chipActive]}
                   onPress={() => { setStyle(key); setOpen(false); }}
                 >
-                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                  <AppText style={[styles.chipText, isActive && styles.chipTextActive]}>
                     {t(`drawer.mapStyleOption.${key}`)}
-                  </Text>
+                  </AppText>
                 </Pressable>
               );
             })}

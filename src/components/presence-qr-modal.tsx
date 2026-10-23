@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, Alert, AppState } from 'react-native';
+import { View, Modal, Pressable, StyleSheet, Alert, AppState } from 'react-native';
+import { AppText } from '@/components/app-text';
 import QRCode from 'react-native-qrcode-svg';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -101,24 +102,24 @@ export function PresenceQrModal({ visible, activityId, onClose }: Props) {
           <Pressable style={styles.close} onPress={onClose}>
             <X size={22} color={colors.textPrimary} strokeWidth={2.2} />
           </Pressable>
-          <Text style={styles.title}>{t('presence.qrTitle')}</Text>
-          <Text style={styles.subtitle}>{t('presence.qrSubtitle')}</Text>
+          <AppText style={styles.title}>{t('presence.qrTitle')}</AppText>
+          <AppText style={styles.subtitle}>{t('presence.qrSubtitle')}</AppText>
           <View style={styles.qrWrap}>
             {token ? (
               <QRCode value={`junto://confirm-presence?token=${token}`} size={240} />
             ) : (
               <View style={styles.qrPlaceholder}>
-                <Text style={styles.loadingText}>{loading ? '...' : ''}</Text>
+                <AppText style={styles.loadingText}>{loading ? '...' : ''}</AppText>
               </View>
             )}
           </View>
-          <Text style={styles.hint}>
+          <AppText style={styles.hint}>
             {expired
               ? t('presence.qrExpired')
               : mintedAt != null
                 ? t('presence.qrExpiresAt', { time: dayjs(mintedAt + 30 * 60 * 1000).format('HH:mm') })
                 : t('presence.qrHint')}
-          </Text>
+          </AppText>
         </View>
       </View>
     </Modal>

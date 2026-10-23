@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, type ReactNode } from 'react';
 import {
   View,
-  Text,
   Image,
   Pressable,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   useWindowDimensions,
   type ListRenderItemInfo,
 } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -101,7 +101,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         title: t('intro.pins.title'),
         body: (
           <View style={styles.pinsBody}>
-            <Text style={styles.pinsLead}>{t('intro.pins.ua')}</Text>
+            <AppText style={styles.pinsLead}>{t('intro.pins.ua')}</AppText>
             <View style={styles.stateRow}>
               <StatePin activity={stateDemos.regular} label={t('intro.pins.upcoming')} styles={styles} />
               <StatePin activity={stateDemos.soon} label={t('intro.pins.soon')} styles={styles} />
@@ -109,11 +109,11 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
             </View>
             <View style={styles.pinTypeRow}>
               <View style={styles.pinTypeVisual}><ProOfferingPin offering={DEMO_RA} /></View>
-              <Text style={styles.pinTypeText}>{t('intro.pins.ra')}</Text>
+              <AppText style={styles.pinTypeText}>{t('intro.pins.ra')}</AppText>
             </View>
             <View style={styles.pinTypeRow}>
               <View style={styles.pinTypeVisual}><ProPin displayName="M" pinIcon={null} /></View>
-              <Text style={styles.pinTypeText}>{t('intro.pins.pp')}</Text>
+              <AppText style={styles.pinTypeText}>{t('intro.pins.pp')}</AppText>
             </View>
           </View>
         ),
@@ -124,7 +124,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
           <View style={styles.joinHero}>
             <ActivityPopup activity={DEMO_POPUP} onPress={() => {}} />
             <View style={styles.rejoindreBtn}>
-              <Text style={styles.rejoindreBtnText}>{t('activity.join')}</Text>
+              <AppText style={styles.rejoindreBtnText}>{t('activity.join')}</AppText>
             </View>
           </View>
         ),
@@ -139,10 +139,10 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
             </View>
             <View style={styles.sportsEmojiRow}>
               {SPORT_EMOJIS.map((e, i) => (
-                <Text key={i} style={styles.sportsEmoji}>{e}</Text>
+                <AppText key={i} style={styles.sportsEmoji}>{e}</AppText>
               ))}
             </View>
-            <Text style={styles.sportsCount}>{t('intro.create.sports')}</Text>
+            <AppText style={styles.sportsCount}>{t('intro.create.sports')}</AppText>
           </View>
         ),
         caption: t('intro.create.body'),
@@ -155,7 +155,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
               <BellRing size={20} color={colors.cta} strokeWidth={2.2} />
             </View>
             <View style={styles.alertChip}>
-              <Text style={styles.alertChipText}>Escalade · 30 km</Text>
+              <AppText style={styles.alertChipText}>Escalade · 30 km</AppText>
             </View>
           </View>
         ),
@@ -201,24 +201,24 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       return (
         <ScrollView style={{ width }} contentContainerStyle={[styles.pageScroll, styles.welcomePage]} showsVerticalScrollIndicator={false}>
           <Image source={require('../../assets/junto_icon_round.png')} style={styles.welcomeLogo} />
-          <Text style={styles.welcomeTagline}>{item.welcome.tagline}</Text>
-          <Text style={styles.welcomeBody}>{item.welcome.body}</Text>
+          <AppText style={styles.welcomeTagline}>{item.welcome.tagline}</AppText>
+          <AppText style={styles.welcomeBody}>{item.welcome.body}</AppText>
         </ScrollView>
       );
     }
     if (item.body) {
       return (
         <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
-          <Text style={styles.pageTitle}>{item.title}</Text>
+          <AppText style={styles.pageTitle}>{item.title}</AppText>
           <View style={styles.bodyStage} pointerEvents="none">{item.body}</View>
         </ScrollView>
       );
     }
     return (
       <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.pageTitle}>{item.title}</Text>
+        <AppText style={styles.pageTitle}>{item.title}</AppText>
         <View style={styles.heroStage} pointerEvents="none">{item.hero}</View>
-        {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
+        {item.caption && <AppText style={styles.caption}>{item.caption}</AppText>}
       </ScrollView>
     );
   };
@@ -228,7 +228,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
           <Pressable onPress={onDone} hitSlop={8} style={styles.skipBtn}>
-            <Text style={styles.skipText}>{t('intro.skip')}</Text>
+            <AppText style={styles.skipText}>{t('intro.skip')}</AppText>
           </Pressable>
         </View>
 
@@ -253,7 +253,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         </View>
 
         <Pressable style={styles.nextBtn} onPress={goNext}>
-          <Text style={styles.nextText}>{isLast ? t('intro.start') : t('intro.next')}</Text>
+          <AppText style={styles.nextText}>{isLast ? t('intro.start') : t('intro.next')}</AppText>
         </Pressable>
       </SafeAreaView>
     </View>
@@ -272,7 +272,7 @@ function StatePin({
   return (
     <View style={styles.statePinCol}>
       <ActivityPin activity={activity} />
-      <Text style={styles.statePinLabel}>{label}</Text>
+      <AppText style={styles.statePinLabel}>{label}</AppText>
     </View>
   );
 }
@@ -293,7 +293,7 @@ function SampleBadge({
       <View style={[styles.badgeMedal, { backgroundColor: color + '22', borderColor: color }]}>
         <Icon size={16} color={color} strokeWidth={2.2} />
       </View>
-      <Text style={styles.badgeLabel} numberOfLines={1}>{label}</Text>
+      <AppText style={styles.badgeLabel} numberOfLines={1}>{label}</AppText>
     </View>
   );
 }

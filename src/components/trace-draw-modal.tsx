@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { View, Text, Pressable, Modal, TextInput, StyleSheet, PanResponder } from 'react-native';
+import { View, Pressable, Modal, StyleSheet, PanResponder } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -301,7 +302,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
         </Pressable>
 
         <View style={[styles.topBanner, { top: insets.top + spacing.sm + 44 }]} pointerEvents="none">
-          <Text style={styles.topBannerText}>
+          <AppText style={styles.topBannerText}>
             {mode === 'draw'
               ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
               : anchors.length === 0
@@ -310,7 +311,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
                   + (gainM != null && gainM > 0 ? ` · D+ ${gainM} m` : '')
                   + (snapping ? ` · ${t('gpx.snapping', { defaultValue: 'snap…' })}` : '')
                   + (fallbackCount > 0 ? ` · ${t('gpx.offTrail', { defaultValue: '{{n}} hors sentier', n: fallbackCount, count: fallbackCount })}` : '')}
-          </Text>
+          </AppText>
         </View>
 
         <View style={[styles.toolbar, { bottom: insets.bottom + spacing.sm }]}>
@@ -323,18 +324,18 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               onPress={() => setMode('nav')}
             >
               <Waypoints size={17} color={mode === 'nav' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
-              <Text style={[styles.segmentText, mode === 'nav' && styles.segmentTextActive]}>
+              <AppText style={[styles.segmentText, mode === 'nav' && styles.segmentTextActive]}>
                 {t('gpx.modePoints', { defaultValue: 'Points' })}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.segment, mode === 'draw' && styles.segmentActive]}
               onPress={() => setMode('draw')}
             >
               <Pencil size={17} color={mode === 'draw' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
-              <Text style={[styles.segmentText, mode === 'draw' && styles.segmentTextActive]}>
+              <AppText style={[styles.segmentText, mode === 'draw' && styles.segmentTextActive]}>
                 {t('gpx.modeFreehand', { defaultValue: 'Main levée' })}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
 
@@ -348,9 +349,9 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               accessibilityLabel={t('gpx.snapLabel', { defaultValue: 'Coller au sentier' })}
             >
               <Magnet size={16} color={snapVisualOn ? '#FFFFFF' : colors.textSecondary} strokeWidth={2.4} />
-              <Text style={[styles.snapChipText, snapVisualOn && styles.snapChipTextOn]}>
+              <AppText style={[styles.snapChipText, snapVisualOn && styles.snapChipTextOn]}>
                 {t('gpx.snapChip', { defaultValue: 'Sentier' })}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.iconBtn, chunks.length === 0 && styles.disabled]}
@@ -376,11 +377,11 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
                 else onSave('', { type: 'LineString', coordinates: flatCoords });
               }}
             >
-              <Text style={styles.saveText} numberOfLines={1}>
+              <AppText style={styles.saveText} numberOfLines={1}>
                 {snapping
                   ? t('gpx.snappingWait', { defaultValue: 'Sentier…' })
                   : t('gpx.validate', { defaultValue: 'Valider' })}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         </View>
@@ -388,8 +389,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
         {naming ? (
           <View style={styles.nameOverlay}>
             <View style={styles.nameCard}>
-              <Text style={styles.nameTitle}>{t('gpx.nameTitle', { defaultValue: 'Nom de la trace' })}</Text>
-              <TextInput
+              <AppText style={styles.nameTitle}>{t('gpx.nameTitle', { defaultValue: 'Nom de la trace' })}</AppText>
+              <AppTextInput
                 style={styles.nameInput}
                 value={name}
                 onChangeText={setName}
@@ -400,16 +401,16 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               />
               <View style={styles.nameActions}>
                 <Pressable style={styles.nameCancel} onPress={() => setNaming(false)}>
-                  <Text style={styles.nameCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
+                  <AppText style={styles.nameCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</AppText>
                 </Pressable>
                 <Pressable
                   style={[styles.nameSave, (name.trim().length < 1 || saving) && styles.saveDisabled]}
                   disabled={name.trim().length < 1 || saving}
                   onPress={confirmSave}
                 >
-                  <Text style={styles.nameSaveText}>
+                  <AppText style={styles.nameSaveText}>
                     {saving ? t('gpx.saving', { defaultValue: 'Enregistrement…' }) : t('gpx.save', { defaultValue: 'Enregistrer' })}
-                  </Text>
+                  </AppText>
                 </Pressable>
               </View>
             </View>

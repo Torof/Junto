@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -28,8 +29,8 @@ export default function CreateStep3() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.md }]}>
-      <Text style={styles.stepLabel}>{t('create.step', { current: 3, total: 4 })}</Text>
-      <Text style={styles.title}>{t('create.step3Title')}</Text>
+      <AppText style={styles.stepLabel}>{t('create.step', { current: 3, total: 4 })}</AppText>
+      <AppText style={styles.title}>{t('create.step3Title')}</AppText>
 
       <View style={styles.options}>
         {VISIBILITY_OPTIONS.map((option) => (
@@ -42,13 +43,13 @@ export default function CreateStep3() {
             onPress={() => updateForm({ visibility: option.key })}
           >
             <View style={styles.optionHeader}>
-              <Text style={[styles.optionTitle, form.visibility === option.key && styles.optionTitleActive]}>
+              <AppText style={[styles.optionTitle, form.visibility === option.key && styles.optionTitleActive]}>
                 {t(`create.visibility.${option.key}`)}
-              </Text>
+              </AppText>
             </View>
-            <Text style={styles.optionDesc}>
+            <AppText style={styles.optionDesc}>
               {t(`create.visibility.${option.key}Desc`)}
-            </Text>
+            </AppText>
           </PressableScale>
         ))}
       </View>
@@ -59,10 +60,10 @@ export default function CreateStep3() {
         onPress={() => updateForm({ requires_presence: !(form.requires_presence ?? true) })}
       >
         <View style={{ flex: 1, marginRight: spacing.md }}>
-          <Text style={styles.toggleTitle}>{t('create.presenceTitle')}</Text>
-          <Text style={styles.toggleDesc}>{t('create.presenceDesc')}</Text>
+          <AppText style={styles.toggleTitle}>{t('create.presenceTitle')}</AppText>
+          <AppText style={styles.toggleDesc}>{t('create.presenceDesc')}</AppText>
           {form.requires_presence === false && (
-            <Text style={styles.toggleNote}>{t('create.presenceOffNote')}</Text>
+            <AppText style={styles.toggleNote}>{t('create.presenceOffNote')}</AppText>
           )}
         </View>
         <View style={[styles.toggleSwitch, (form.requires_presence ?? true) && styles.toggleSwitchOn]}>
@@ -74,7 +75,7 @@ export default function CreateStep3() {
         style={[styles.nextButton, glow(colors.cta)]}
         onPress={() => router.push('/(auth)/create/step4')}
       >
-        <Text style={styles.nextText}>{t('create.next')}</Text>
+        <AppText style={styles.nextText}>{t('create.next')}</AppText>
       </PressableScale>
     </View>
   );

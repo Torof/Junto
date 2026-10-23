@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, FlatList, ScrollView, StyleSheet, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { View, FlatList, ScrollView, StyleSheet, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -82,19 +83,19 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
               <UserAvatar name={item.display_name} avatarUrl={item.avatar_url} size={92} />
             </ReliabilityRing>
             <View style={styles.heroText}>
-              <Text style={styles.name} numberOfLines={2}>{item.display_name}</Text>
+              <AppText style={styles.name} numberOfLines={2}>{item.display_name}</AppText>
               {item.reliability_tier ? (
                 <View style={[styles.tierPill, { backgroundColor: relColor }]}>
-                  <Text style={styles.tierPillText}>{t(`reliability.tier.${item.reliability_tier}`)}</Text>
+                  <AppText style={styles.tierPillText}>{t(`reliability.tier.${item.reliability_tier}`)}</AppText>
                 </View>
               ) : null}
-              <Text style={styles.heroSub}>
+              <AppText style={styles.heroSub}>
                 {t('partenaires.fromYourZone', { defaultValue: 'à {{km}} km de ta zone', km: Math.round(item.distance_km) })}
                 {' · '}
                 {item.sorties_count > 0
                   ? t('discovery.sortiesCount', { defaultValue: '{{count}} sorties', count: item.sorties_count })
                   : t('discovery.newcomer', { defaultValue: 'nouveau' })}
-              </Text>
+              </AppText>
             </View>
           </View>
         </View>
@@ -102,41 +103,41 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
         <View style={styles.body}>
           <View style={styles.blocks}>
             <View style={styles.block}>
-              <Text style={styles.blockLabel}>{t('partenaires.when', { defaultValue: 'Quand' })}</Text>
-              <Text style={styles.blockValue}>{formatPeriod(item.window_start, item.window_end)}</Text>
+              <AppText style={styles.blockLabel}>{t('partenaires.when', { defaultValue: 'Quand' })}</AppText>
+              <AppText style={styles.blockValue}>{formatPeriod(item.window_start, item.window_end)}</AppText>
             </View>
             <View style={styles.block}>
-              <Text style={styles.blockLabel}>{t('partenaires.moves', { defaultValue: 'Se déplace' })}</Text>
-              <Text style={styles.blockValue} numberOfLines={2}>
+              <AppText style={styles.blockLabel}>{t('partenaires.moves', { defaultValue: 'Se déplace' })}</AppText>
+              <AppText style={styles.blockValue} numberOfLines={2}>
                 {item.transport_modes.map((m) => t(`transport.type.${m}`, { defaultValue: m })).join(', ')}
-              </Text>
+              </AppText>
             </View>
             <View style={[styles.block, styles.blockWide]}>
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={styles.blockLabel}>{t('partenaires.theirZone', { defaultValue: 'Sa zone' })}</Text>
-                <Text style={styles.blockValue}>
+                <AppText style={styles.blockLabel}>{t('partenaires.theirZone', { defaultValue: 'Sa zone' })}</AppText>
+                <AppText style={styles.blockValue}>
                   {item.radius_km
                     ? t('partenaires.radiusValue', { defaultValue: 'Rayon de {{km}} km', km: item.radius_km })
                     : t('discovery.radiusAny', { defaultValue: 'Peu importe' })}
-                </Text>
+                </AppText>
               </View>
               <PressableScale style={styles.zoneBtn} onPress={() => router.push({ pathname: '/(auth)/discovery-zone', params: { userId: item.user_id, name: item.display_name } })}>
-                <Text style={styles.zoneBtnText}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</Text>
+                <AppText style={styles.zoneBtnText}>{t('discovery.seeZone', { defaultValue: 'Voir la zone' })}</AppText>
               </PressableScale>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t('partenaires.theirSports', { defaultValue: 'Ses sports' })}</Text>
+            <AppText style={styles.sectionLabel}>{t('partenaires.theirSports', { defaultValue: 'Ses sports' })}</AppText>
             <View style={styles.chips}>
               {item.sport_keys.map((k) => {
                 const level = item.levels?.[k];
                 return (
                   <View key={k} style={[styles.sportChip, { backgroundColor: sportCategoryColor(categoryOf(k), colors.cta) }]}>
                     <SportIcon sportKey={k} size={14} color="#FFFFFF" />
-                    <Text style={styles.sportChipText}>
+                    <AppText style={styles.sportChipText}>
                       {t(`sports.${k}`, { defaultValue: k })}{level && level !== OPEN_LEVEL ? ` · ${level}` : ''}
-                    </Text>
+                    </AppText>
                   </View>
                 );
               })}
@@ -145,11 +146,11 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
 
           {item.intent && item.intent.length > 0 ? (
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('partenaires.vibes', { defaultValue: 'Vibes' })}</Text>
+              <AppText style={styles.sectionLabel}>{t('partenaires.vibes', { defaultValue: 'Vibes' })}</AppText>
               <View style={styles.chips}>
                 {item.intent.map((it) => (
                   <View key={it} style={styles.vibe}>
-                    <Text style={styles.vibeText}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</Text>
+                    <AppText style={styles.vibeText}>{t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })}</AppText>
                   </View>
                 ))}
               </View>
@@ -158,14 +159,14 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
 
           {item.about ? (
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('partenaires.about', { defaultValue: 'En quelques mots' })}</Text>
-              <Text style={styles.about}>{item.about}</Text>
+              <AppText style={styles.sectionLabel}>{t('partenaires.about', { defaultValue: 'En quelques mots' })}</AppText>
+              <AppText style={styles.about}>{item.about}</AppText>
             </View>
           ) : null}
 
           <PressableScale style={styles.profileLink} onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} accessibilityRole="button">
             <User size={16} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.profileLinkText}>{t('partenaires.viewProfile', { defaultValue: 'Voir son profil' })}</Text>
+            <AppText style={styles.profileLinkText}>{t('partenaires.viewProfile', { defaultValue: 'Voir son profil' })}</AppText>
           </PressableScale>
         </View>
       </ScrollView>
@@ -198,7 +199,7 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
               {pages.map((p, i) => <View key={p.user_id} style={[styles.dot, i === index && styles.dotOn]} />)}
             </View>
           ) : (
-            <Text style={styles.counter}>{`${index + 1} / ${pages.length}`}</Text>
+            <AppText style={styles.counter}>{`${index + 1} / ${pages.length}`}</AppText>
           )
         ) : <View />}
         <View style={{ width: 36 }} />
@@ -209,26 +210,26 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
         <View style={[styles.actions, { paddingBottom: insets.bottom + spacing.md }]}>
           {current.is_demo ? (
             <View style={[styles.btn, styles.btnMuted]}>
-              <Text style={styles.btnMutedText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</Text>
+              <AppText style={styles.btnMutedText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</AppText>
             </View>
           ) : current.contact_state === 'connected' && current.conversation_id ? (
             <PressableScale style={[styles.btn, styles.btnPrimary]} onPress={() => router.push(`/(auth)/conversation/${current.conversation_id}`)}>
               <Send size={16} color="#FFFFFF" strokeWidth={2.4} />
-              <Text style={styles.btnPrimaryText}>{t('discovery.chat', { defaultValue: 'Discuter' })}</Text>
+              <AppText style={styles.btnPrimaryText}>{t('discovery.chat', { defaultValue: 'Discuter' })}</AppText>
             </PressableScale>
           ) : current.contact_state === 'pending' ? (
             <View style={[styles.btn, styles.btnMuted]}>
-              <Text style={styles.btnMutedText}>{t('partenaires.requestSent', { defaultValue: 'Demande envoyée' })}</Text>
+              <AppText style={styles.btnMutedText}>{t('partenaires.requestSent', { defaultValue: 'Demande envoyée' })}</AppText>
             </View>
           ) : current.contact_state === 'pending_received' ? (
             <PressableScale style={[styles.btn, styles.btnPrimary]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
               <MessageCircle size={16} color="#FFFFFF" strokeWidth={2.4} />
-              <Text style={styles.btnPrimaryText}>{t('discovery.respond', { defaultValue: 'Répondre' })}</Text>
+              <AppText style={styles.btnPrimaryText}>{t('discovery.respond', { defaultValue: 'Répondre' })}</AppText>
             </PressableScale>
           ) : (
             <>
               <PressableScale style={[styles.btn, styles.btnSecondary]} onPress={() => actions.openInvite(current.user_id)} disabled={!!actions.sendingTo}>
-                <Text style={styles.btnSecondaryText}>{t('discovery.inviteTitle', { defaultValue: 'Inviter à une sortie' })}</Text>
+                <AppText style={styles.btnSecondaryText}>{t('discovery.inviteTitle', { defaultValue: 'Inviter à une sortie' })}</AppText>
               </PressableScale>
               <PressableScale
                 style={[styles.btn, styles.btnPrimary, actions.sendingTo === current.user_id && styles.faded]}
@@ -236,7 +237,7 @@ function Pager({ pages, startIndex }: { pages: DiscoveryCard[]; startIndex: numb
                 disabled={actions.sendingTo === current.user_id}
               >
                 <Send size={16} color="#FFFFFF" strokeWidth={2.4} />
-                <Text style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</Text>
+                <AppText style={styles.btnPrimaryText}>{t('discovery.contact', { defaultValue: 'Contacter' })}</AppText>
               </PressableScale>
             </>
           )}

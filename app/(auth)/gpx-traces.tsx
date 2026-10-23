@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
+import { View, Pressable, StyleSheet, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -99,18 +100,18 @@ export default function GpxTracesScreen() {
       <Stack.Screen options={{ headerTitle: t('gpx.title', { defaultValue: 'Mes traces GPX' }) }} />
 
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 96 }]}>
-        <Text style={styles.subtitle}>
+        <AppText style={styles.subtitle}>
           {t('gpx.subtitle', { defaultValue: 'Dessine tes itinéraires et réutilise-les sur tes sorties.' })}
-        </Text>
+        </AppText>
 
         {isLoading ? (
           <ActivityIndicator color={colors.cta} style={{ marginTop: spacing.xl }} />
         ) : list.length === 0 ? (
           <View style={styles.empty}>
             <RouteIcon size={40} color={colors.textMuted} strokeWidth={1.6} />
-            <Text style={styles.emptyText}>
+            <AppText style={styles.emptyText}>
               {t('gpx.empty', { defaultValue: 'Aucune trace pour le moment. Crée ta première trace !' })}
-            </Text>
+            </AppText>
           </View>
         ) : (
           list.map((trace) => (
@@ -120,12 +121,12 @@ export default function GpxTracesScreen() {
                   <RouteIcon size={20} color={colors.cta} strokeWidth={2.2} />
                 </View>
                 <View style={styles.rowInfo}>
-                  <Text style={styles.rowName} numberOfLines={1}>{trace.name}</Text>
-                  <Text style={styles.rowMeta}>
+                  <AppText style={styles.rowName} numberOfLines={1}>{trace.name}</AppText>
+                  <AppText style={styles.rowMeta}>
                     {formatTraceStats(trace.distance_km, trace.elevation_gain_m, i18n.language) ?? `${Number(trace.distance_km).toFixed(1)} km`}
                     {' · '}
                     {dayjs(trace.created_at).format('D MMM YYYY')}
-                  </Text>
+                  </AppText>
                 </View>
               </Pressable>
               <View style={styles.rowActions}>
@@ -149,7 +150,7 @@ export default function GpxTracesScreen() {
         onPress={() => setDrawOpen(true)}
       >
         <Plus size={20} color="#FFFFFF" strokeWidth={2.6} />
-        <Text style={styles.fabText}>{t('gpx.create', { defaultValue: 'Créer une trace' })}</Text>
+        <AppText style={styles.fabText}>{t('gpx.create', { defaultValue: 'Créer une trace' })}</AppText>
       </Pressable>
 
       <TraceDrawModal
@@ -183,10 +184,10 @@ export default function GpxTracesScreen() {
           </Pressable>
           {preview ? (
             <View style={[styles.previewBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
-              <Text style={styles.previewName} numberOfLines={1}>{preview.name}</Text>
-              <Text style={styles.previewMeta}>
+              <AppText style={styles.previewName} numberOfLines={1}>{preview.name}</AppText>
+              <AppText style={styles.previewMeta}>
                 {formatTraceStats(preview.distance_km, preview.elevation_gain_m, i18n.language) ?? `${Number(preview.distance_km).toFixed(1)} km`}
-              </Text>
+              </AppText>
             </View>
           ) : null}
         </View>
@@ -196,8 +197,8 @@ export default function GpxTracesScreen() {
       <Modal visible={renaming !== null} transparent animationType="fade" onRequestClose={() => setRenaming(null)}>
         <View style={styles.nameOverlay}>
           <View style={styles.nameCard}>
-            <Text style={styles.nameTitle}>{t('gpx.renameTitle', { defaultValue: 'Renommer la trace' })}</Text>
-            <TextInput
+            <AppText style={styles.nameTitle}>{t('gpx.renameTitle', { defaultValue: 'Renommer la trace' })}</AppText>
+            <AppTextInput
               style={styles.nameInput}
               value={renaming?.name ?? ''}
               onChangeText={(v) => setRenaming((r) => (r ? { ...r, name: v } : r))}
@@ -208,14 +209,14 @@ export default function GpxTracesScreen() {
             />
             <View style={styles.nameActions}>
               <Pressable style={styles.nameCancel} onPress={() => setRenaming(null)}>
-                <Text style={styles.nameCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</Text>
+                <AppText style={styles.nameCancelText}>{t('common.cancel', { defaultValue: 'Annuler' })}</AppText>
               </Pressable>
               <Pressable
                 style={[styles.nameSave, ((renaming?.name.trim().length ?? 0) < 1 || renameMutation.isPending) && styles.disabled]}
                 disabled={(renaming?.name.trim().length ?? 0) < 1 || renameMutation.isPending}
                 onPress={submitRename}
               >
-                <Text style={styles.nameSaveText}>{t('gpx.save', { defaultValue: 'Enregistrer' })}</Text>
+                <AppText style={styles.nameSaveText}>{t('gpx.save', { defaultValue: 'Enregistrer' })}</AppText>
               </Pressable>
             </View>
           </View>

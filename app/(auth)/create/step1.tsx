@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { Check, Plus, Minus } from 'lucide-react-native';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
@@ -58,10 +59,10 @@ export default function CreateStep1() {
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
     >
-      <Text style={styles.stepLabel}>{t('create.step', { current: 1, total: 4 })}</Text>
-      <Text style={styles.title}>{t('create.step1Title')}</Text>
+      <AppText style={styles.stepLabel}>{t('create.step', { current: 1, total: 4 })}</AppText>
+      <AppText style={styles.title}>{t('create.step1Title')}</AppText>
 
-      <Text style={styles.label}>{t('create.sport')}</Text>
+      <AppText style={styles.label}>{t('create.sport')}</AppText>
       <SportDropdown
         selected={selectedSportKey}
         onSelect={(key) => {
@@ -71,8 +72,8 @@ export default function CreateStep1() {
         label={t('create.sport')}
       />
 
-      <Text style={styles.label}>{t('create.title')}</Text>
-      <TextInput
+      <AppText style={styles.label}>{t('create.title')}</AppText>
+      <AppTextInput
         style={styles.input}
         placeholder={t('create.titlePlaceholder')}
         placeholderTextColor={colors.textSecondary}
@@ -81,8 +82,8 @@ export default function CreateStep1() {
         maxLength={100}
       />
 
-      <Text style={styles.label}>{t('create.description')}</Text>
-      <TextInput
+      <AppText style={styles.label}>{t('create.description')}</AppText>
+      <AppTextInput
         style={[styles.input, styles.textArea]}
         placeholder={t('create.descriptionPlaceholder')}
         placeholderTextColor={colors.textSecondary}
@@ -92,7 +93,7 @@ export default function CreateStep1() {
         maxLength={2000}
       />
 
-      <Text style={styles.label}>{t('create.level')}</Text>
+      <AppText style={styles.label}>{t('create.level')}</AppText>
       <View style={styles.chipRow}>
         {levelScale.map((opt, idx) => {
           const active = lowIdx !== -1 && idx >= lowIdx && idx <= highIdx;
@@ -102,26 +103,26 @@ export default function CreateStep1() {
               style={[styles.chip, active && styles.chipActive]}
               onPress={() => handleLevelTap(opt.label, idx)}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, active && styles.chipTextActive]}>
                 {opt.label}
-              </Text>
+              </AppText>
               {opt.description && (
-                <Text style={[styles.chipHint, active && styles.chipHintActive]}>
+                <AppText style={[styles.chipHint, active && styles.chipHintActive]}>
                   {opt.description}
-                </Text>
+                </AppText>
               )}
             </PressableScale>
           );
         })}
       </View>
-      <Text style={styles.rangeHint}>
+      <AppText style={styles.rangeHint}>
         {rangeLabel || t('create.levelRangeHint', { defaultValue: 'Touchez un niveau — ou deux pour définir une plage' })}
-      </Text>
+      </AppText>
 
       {/* Distance / D+ live in step 2, under the trace that produces them
           (Scott 2026-10-16). */}
 
-      <Text style={styles.label}>{t('create.maxParticipants')}</Text>
+      <AppText style={styles.label}>{t('create.maxParticipants')}</AppText>
       <PressableScale
         style={styles.openToggle}
         onPress={() => updateForm({ max_participants: form.max_participants === null ? 4 : null })}
@@ -129,7 +130,7 @@ export default function CreateStep1() {
         <View style={[styles.openCheckbox, form.max_participants === null && styles.openCheckboxOn]}>
           {form.max_participants === null && <Check size={15} color={colors.onCta} strokeWidth={3} />}
         </View>
-        <Text style={styles.openLabel}>{t('create.openActivity')}</Text>
+        <AppText style={styles.openLabel}>{t('create.openActivity')}</AppText>
       </PressableScale>
       {form.max_participants !== null && (
         <View style={styles.counterRow}>
@@ -139,7 +140,7 @@ export default function CreateStep1() {
           >
             <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </PressableScale>
-          <Text style={styles.counterValue}>{form.max_participants}</Text>
+          <AppText style={styles.counterValue}>{form.max_participants}</AppText>
           <PressableScale
             style={styles.counterButton}
             onPress={() => updateForm({ max_participants: Math.min(50, (form.max_participants ?? 4) + 1) })}
@@ -154,7 +155,7 @@ export default function CreateStep1() {
         onPress={() => isValid && router.push('/(auth)/create/step2')}
         disabled={!isValid}
       >
-        <Text style={styles.nextText}>{t('create.next')}</Text>
+        <AppText style={styles.nextText}>{t('create.next')}</AppText>
       </PressableScale>
     </KeyboardAwareScrollView>
     <KeyboardDoneBar />

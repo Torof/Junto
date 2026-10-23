@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { View, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Route as RouteIcon, Upload } from 'lucide-react-native';
@@ -33,17 +34,17 @@ export function PickTraceSheet({ visible, onClose, onPick, onImportFile }: Props
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</Text>
+          <AppText style={styles.title}>{t('messagerie.shareTraceTitle', { defaultValue: 'Partager une trace GPX' })}</AppText>
 
           <Pressable style={styles.importRow} onPress={() => { onClose(); onImportFile(); }}>
             <View style={styles.importIcon}><Upload size={18} color={colors.cta} strokeWidth={2.2} /></View>
-            <Text style={styles.importText}>{t('messagerie.traceImportFile', { defaultValue: 'Importer un fichier .gpx' })}</Text>
+            <AppText style={styles.importText}>{t('messagerie.traceImportFile', { defaultValue: 'Importer un fichier .gpx' })}</AppText>
           </Pressable>
 
           {isLoading ? (
             <View style={styles.center}><LogoSpinner /></View>
           ) : (traces ?? []).length === 0 ? (
-            <Text style={styles.empty}>{t('messagerie.traceLibraryEmpty', { defaultValue: 'Aucune trace enregistrée. Importe un fichier .gpx pour commencer.' })}</Text>
+            <AppText style={styles.empty}>{t('messagerie.traceLibraryEmpty', { defaultValue: 'Aucune trace enregistrée. Importe un fichier .gpx pour commencer.' })}</AppText>
           ) : (
             <FlatList
               data={traces}
@@ -53,11 +54,11 @@ export function PickTraceSheet({ visible, onClose, onPick, onImportFile }: Props
                 <Pressable style={styles.row} onPress={() => { onPick(item); onClose(); }}>
                   <View style={styles.square}><RouteIcon size={20} color={colors.cta} strokeWidth={2.2} /></View>
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+                    <AppText style={styles.name} numberOfLines={1}>{item.name}</AppText>
                     {formatTraceStats(item.distance_km, item.elevation_gain_m, i18n.language) != null && (
-                      <Text style={styles.sub} numberOfLines={1}>
+                      <AppText style={styles.sub} numberOfLines={1}>
                         {formatTraceStats(item.distance_km, item.elevation_gain_m, i18n.language)}
-                      </Text>
+                      </AppText>
                     )}
                   </View>
                 </Pressable>

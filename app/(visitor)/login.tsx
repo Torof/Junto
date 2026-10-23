@@ -1,8 +1,13 @@
 import { useState, useMemo, useRef } from 'react';
 import {
-  View, Text, TextInput, Pressable, StyleSheet,
-  Image, ActivityIndicator,
+  View,
+  Pressable,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  type TextInput,
 } from 'react-native';
+import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -129,8 +134,8 @@ export default function LoginScreen() {
         <View style={styles.content}>
         <View style={styles.header}>
           <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
-          <Text style={styles.brand}>{t('app.name')}</Text>
-          <Text style={styles.tagline}>{t('auth.tagline')}</Text>
+          <AppText style={styles.brand}>{t('app.name')}</AppText>
+          <AppText style={styles.tagline}>{t('auth.tagline')}</AppText>
         </View>
 
         {mode !== 'forgot' && (
@@ -139,29 +144,29 @@ export default function LoginScreen() {
               style={[styles.tab, mode === 'login' && styles.tabActive]}
               onPress={() => switchMode('login')}
             >
-              <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>
+              <AppText style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>
                 {t('auth.signIn')}
-              </Text>
+              </AppText>
             </Pressable>
             <Pressable
               style={[styles.tab, mode === 'register' && styles.tabActive]}
               onPress={() => switchMode('register')}
             >
-              <Text style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
+              <AppText style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
                 {t('auth.createAccount')}
-              </Text>
+              </AppText>
             </Pressable>
           </View>
         )}
 
         {mode === 'forgot' && (
           <View style={styles.forgotHeader}>
-            <Text style={styles.forgotTitle}>{t('auth.forgotTitle')}</Text>
-            <Text style={styles.forgotSubtitle}>{t('auth.forgotSubtitle')}</Text>
+            <AppText style={styles.forgotTitle}>{t('auth.forgotTitle')}</AppText>
+            <AppText style={styles.forgotSubtitle}>{t('auth.forgotSubtitle')}</AppText>
           </View>
         )}
 
-        <TextInput
+        <AppTextInput
           style={styles.input}
           placeholder={t('auth.email')}
           placeholderTextColor={colors.textSecondary}
@@ -176,7 +181,7 @@ export default function LoginScreen() {
 
         {mode !== 'forgot' && (
           <View style={styles.passwordRow}>
-            <TextInput
+            <AppTextInput
               style={[styles.input, styles.inputFlex]}
               placeholder={t('auth.password')}
               placeholderTextColor={colors.textSecondary}
@@ -197,7 +202,7 @@ export default function LoginScreen() {
         )}
 
         {mode === 'register' && (
-          <TextInput
+          <AppTextInput
             ref={confirmRef}
             style={styles.input}
             placeholder={t('auth.confirmPassword')}
@@ -217,20 +222,20 @@ export default function LoginScreen() {
             <View style={[styles.checkbox, tosAccepted && styles.checkboxChecked]}>
               {tosAccepted && <Check size={14} color={colors.textPrimary} strokeWidth={3} />}
             </View>
-            <Text style={styles.tosText}>
+            <AppText style={styles.tosText}>
               {t('auth.tosPrefix')}{' '}
-              <Text style={styles.link} onPress={() => router.push('/(visitor)/legal/terms')}>
+              <AppText style={styles.link} onPress={() => router.push('/(visitor)/legal/terms')}>
                 {t('auth.tosTerms')}
-              </Text>
+              </AppText>
               {t('auth.tosAnd')}
-              <Text style={styles.link} onPress={() => router.push('/(visitor)/legal/privacy')}>
+              <AppText style={styles.link} onPress={() => router.push('/(visitor)/legal/privacy')}>
                 {t('auth.tosPrivacy')}
-              </Text>
-            </Text>
+              </AppText>
+            </AppText>
           </Pressable>
         )}
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <AppText style={styles.errorText}>{error}</AppText>}
 
         <Pressable
           style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
@@ -240,19 +245,19 @@ export default function LoginScreen() {
           {isLoading ? (
             <ActivityIndicator color={colors.textPrimary} />
           ) : (
-            <Text style={styles.primaryButtonText}>{ctaLabel}</Text>
+            <AppText style={styles.primaryButtonText}>{ctaLabel}</AppText>
           )}
         </Pressable>
 
         {mode === 'login' && (
           <Pressable onPress={() => switchMode('forgot')} style={styles.linkRow}>
-            <Text style={styles.linkText}>{t('auth.forgotPassword')}</Text>
+            <AppText style={styles.linkText}>{t('auth.forgotPassword')}</AppText>
           </Pressable>
         )}
 
         {mode === 'forgot' && (
           <Pressable onPress={() => switchMode('login')} style={styles.linkRow}>
-            <Text style={styles.linkText}>{t('auth.backToLogin')}</Text>
+            <AppText style={styles.linkText}>{t('auth.backToLogin')}</AppText>
           </Pressable>
         )}
         </View>

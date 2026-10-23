@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { fontSizes, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
@@ -28,17 +29,17 @@ export function ActivityDescription({ description }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text
+      <AppText
         style={styles.body}
         numberOfLines={expanded ? undefined : COLLAPSED_LINES}
       >
         {description}
-      </Text>
+      </AppText>
       {overflowing && (
         <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={6}>
-          <Text style={styles.toggle}>
+          <AppText style={styles.toggle}>
             {expanded ? t('activity.descSeeLess', { defaultValue: 'Voir moins' }) : t('activity.descSeeMore', { defaultValue: 'Voir plus' })}
-          </Text>
+          </AppText>
         </Pressable>
       )}
     </View>

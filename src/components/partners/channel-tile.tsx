@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
@@ -50,19 +51,19 @@ export const ChannelTile = memo(function ChannelTile({ item, categoryOf, width, 
           </>
         )}
         {!full && (badge || item.is_member) ? (
-          <View style={styles.memberBadge}><Text style={styles.memberBadgeText}>{badge ?? t('channels.member', { defaultValue: 'Membre' })}</Text></View>
+          <View style={styles.memberBadge}><AppText style={styles.memberBadgeText}>{badge ?? t('channels.member', { defaultValue: 'Membre' })}</AppText></View>
         ) : null}
       </View>
       <View style={[styles.body, full && styles.bodyFull]}>
         <View style={styles.bodyText}>
-          <Text style={styles.name} numberOfLines={full ? 2 : 1}>{item.name}</Text>
-          <Text style={styles.meta} numberOfLines={1}>{meta}</Text>
+          <AppText style={styles.name} numberOfLines={full ? 2 : 1}>{item.name}</AppText>
+          <AppText style={styles.meta} numberOfLines={1}>{meta}</AppText>
         </View>
         {full ? (
           <View style={[styles.tag, item.is_member ? styles.tagMember : styles.tagJoin]}>
-            <Text style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
+            <AppText style={item.is_member ? styles.tagMemberText : styles.tagJoinText}>
               {item.is_member ? t('channels.member', { defaultValue: 'Membre' }) : t('channels.join', { defaultValue: 'Rejoindre' })}
-            </Text>
+            </AppText>
           </View>
         ) : null}
       </View>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Share, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Share, Alert } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -137,7 +138,7 @@ export default function MyContactScreen() {
         />
         <View style={[styles.scannerFrame, { top: insets.top + spacing.xl }]} pointerEvents="none">
           <View style={styles.reticle} />
-          <Text style={styles.scanHint}>{t('contactShare.scanHint', { defaultValue: 'Vise le QR code de ton partenaire' })}</Text>
+          <AppText style={styles.scanHint}>{t('contactShare.scanHint', { defaultValue: 'Vise le QR code de ton partenaire' })}</AppText>
         </View>
         <Pressable style={[styles.scannerClose, { top: insets.top + spacing.sm }]} onPress={() => setScanning(false)} hitSlop={8}>
           <X size={26} color="#FFFFFF" strokeWidth={2.4} />
@@ -150,11 +151,11 @@ export default function MyContactScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <Text style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon QR Junto' })}</Text>
+        <AppText style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon QR Junto' })}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
-      <Text style={styles.intro}>{t('contactShare.intro', { defaultValue: 'Fais scanner ce QR par un partenaire : vous êtes connectés aussitôt.' })}</Text>
+      <AppText style={styles.intro}>{t('contactShare.intro', { defaultValue: 'Fais scanner ce QR par un partenaire : vous êtes connectés aussitôt.' })}</AppText>
 
       <View style={styles.qrCard}>
         {userId ? (
@@ -166,18 +167,18 @@ export default function MyContactScreen() {
 
       <Pressable style={styles.primaryBtn} onPress={handleShare} disabled={!link}>
         <Share2 size={18} color="#FFFFFF" strokeWidth={2.4} />
-        <Text style={styles.primaryText}>{t('contactShare.shareLink', { defaultValue: 'Partager le lien' })}</Text>
+        <AppText style={styles.primaryText}>{t('contactShare.shareLink', { defaultValue: 'Partager le lien' })}</AppText>
       </Pressable>
 
       <Pressable style={styles.secondaryBtn} onPress={openScanner}>
         <ScanLine size={18} color={colors.textPrimary} strokeWidth={2.4} />
-        <Text style={styles.secondaryText}>{t('contactShare.scanContact', { defaultValue: 'Scanner un QR' })}</Text>
+        <AppText style={styles.secondaryText}>{t('contactShare.scanContact', { defaultValue: 'Scanner un QR' })}</AppText>
       </Pressable>
 
       <View style={{ flex: 1 }} />
-      <Text style={[styles.footnote, { marginBottom: insets.bottom + spacing.md }]}>
+      <AppText style={[styles.footnote, { marginBottom: insets.bottom + spacing.md }]}>
         {t('contactShare.footnote', { defaultValue: 'Le QR change toutes les 10 minutes. Un lien envoyé reste une demande à accepter.' })}
-      </Text>
+      </AppText>
     </View>
   );
 }

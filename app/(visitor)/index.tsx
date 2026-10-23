@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
@@ -154,9 +155,9 @@ export default function VisitorMapScreen() {
       </View>
 
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>{t('visitor.explore')}</Text>
+        <AppText style={styles.bannerText}>{t('visitor.explore')}</AppText>
         <Pressable style={styles.signInButton} onPress={() => router.push('/(visitor)/login')}>
-          <Text style={styles.signInText}>{t('auth.signIn')}</Text>
+          <AppText style={styles.signInText}>{t('auth.signIn')}</AppText>
         </Pressable>
       </View>
     </View>
