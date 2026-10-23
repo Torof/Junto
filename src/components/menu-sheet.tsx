@@ -197,8 +197,9 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           ) : (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
               label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
+              labelColor={colors.pinProBackground}
               sub={t('menu.becomeProSub', { defaultValue: 'Ta page, tes sorties, tes réservations' })}
               onPress={() => go('/(auth)/pro/edit')}
               styles={styles}
@@ -246,6 +247,7 @@ function MenuItem({
   sub,
   badge,
   accent,
+  labelColor,
   onPress,
   styles,
   colors,
@@ -255,6 +257,7 @@ function MenuItem({
   sub?: string;
   badge?: string | null;
   accent?: boolean;
+  labelColor?: string;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
@@ -263,7 +266,7 @@ function MenuItem({
     <Pressable style={styles.item} onPress={onPress}>
       <View style={[styles.itemIcon, accent && styles.itemIconAccent]}>{icon}</View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <AppText style={styles.itemLabel}>{label}</AppText>
+        <AppText style={[styles.itemLabel, labelColor ? { color: labelColor } : null]}>{label}</AppText>
         {sub ? <AppText style={styles.itemSub} numberOfLines={1}>{sub}</AppText> : null}
       </View>
       {badge ? (
