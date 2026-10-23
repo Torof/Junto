@@ -16,7 +16,6 @@ import type { AppColors } from '@/constants/colors';
 
 interface ParticipantListProps {
   activityId: string;
-  activityTitle?: string;
   isCreator: boolean;
   creatorId: string;
   creatorName: string;
@@ -24,7 +23,7 @@ interface ParticipantListProps {
   onProfilePress?: (userId: string) => void;
 }
 
-export function ParticipantList({ activityId, activityTitle, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
+export function ParticipantList({ activityId, isCreator, creatorId, creatorName, creatorAvatar, onProfilePress }: ParticipantListProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const router = useRouter();
@@ -128,7 +127,7 @@ export function ParticipantList({ activityId, activityTitle, isCreator, creatorI
             <Pressable
               key={p.participation_id}
               style={styles.pendingRow}
-              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}&activityTitle=${encodeURIComponent(activityTitle ?? '')}`)}
+              onPress={() => onProfilePress ? onProfilePress(p.user_id) : router.push(`/(auth)/profile/${p.user_id}?participation=${p.participation_id}&activity=${activityId}`)}
             >
               <ReliabilityRing tier={p.reliability_tier ?? null} size={36} strokeWidth={3} showLabel={false}>
                 <UserAvatar name={p.display_name} avatarUrl={p.avatar_url} size={36} />

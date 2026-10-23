@@ -15,6 +15,7 @@ import { userService } from '@/services/user-service';
 import { ProfileSkeleton } from '@/components/profile-skeleton';
 import { badgeService } from '@/services/badge-service';
 import { participationService } from '@/services/participation-service';
+import { activityService } from '@/services/activity-service';
 import { conversationService } from '@/services/conversation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useLayoutEffect, useState, useMemo } from 'react';
@@ -25,20 +26,11 @@ import { ReportModal } from '@/components/report-modal';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
 
-// A malformed '%' in the route param throws URIError and would crash the
-// screen — decode defensively (audit 2026-07-13).
-function safeDecode(s: string): string {
-  try {
-    return decodeURIComponent(s);
-  } catch {
-    return s;
-  }
-}
 
 export default function PublicProfileScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { id, participation: participationId, activityTitle } = useLocalSearchParams<{ id: string; participation?: string; activityTitle?: string }>();
+  const { id, participation: participationId, activity: requestActivityId } = useLocalSearchParams<{ id: string; participation?: string; activity?: string }>();
   const { t } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
@@ -54,6 +46,22 @@ export default function PublicProfileScreen() {
   // Same IME handling as the report modal: the sheet rides the keyboard
   // inset (reanimated) — never a KeyboardAvoidingView (house rule, 2026-06).
   const imePadding = useKeyboardDockPadding(0);
+
+  // Accept / refuse banner: shown only for a REAL pending request of this
+  // person on one of the viewer's outings, with the title read from the
+  // database — a crafted link cannot put its own words in it (audit L1).
+  const { data: requestTitle } = useQuery({
+    queryKey: ['pending-request-title', requestActivityId, participationId, id],
+    queryFn: async () => {
+      const [activity, pending] = await Promise.all([
+        activityService.getById(requestActivityId ?? ''),
+        participationService.getPendingForActivity(requestActivityId ?? ''),
+      ]);
+      const isRealRequest = pending.some((p) => p.participation_id === participationId && p.user_id === id);
+      return isRealRequest && activity ? activity.title : null;
+    },
+    enabled: !!participationId && !!requestActivityId && !!id,
+  });
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser-id'],
@@ -172,7 +180,7 @@ export default function PublicProfileScreen() {
   };
 
   const handleParticipation = async (action: 'accept' | 'refuse') => {
-    if (!participationId) return;
+    if (!participationId || !requestTitle) return;
     setRequestLoading(true);
     try {
       if (action === 'accept') {
@@ -351,10 +359,10 @@ export default function PublicProfileScreen() {
       </Pressable>
     </Modal>
 
-    {participationId && !requestHandled && (
+    {participationId && requestTitle && !requestHandled && (
       <View style={[styles.requestCard, { bottom: insets.bottom + spacing.md }]}>
         <Text style={styles.requestContext} numberOfLines={2}>
-          {t('participants.requestFor', { title: activityTitle ? safeDecode(activityTitle) : '...' })}
+          {t('participants.requestFor', { title: requestTitle })}
         </Text>
         <View style={styles.requestButtons}>
           <PressableScale

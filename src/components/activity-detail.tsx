@@ -1624,7 +1624,6 @@ export function ActivityDetail({
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.lg }}>
             <ParticipantList
               activityId={activity.id}
-              activityTitle={activity.title}
               isCreator={isCreator}
               creatorId={activity.creator_id}
               creatorName={activity.creator_name}
