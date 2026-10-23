@@ -10,6 +10,7 @@ export const darkColors = {
   textPrimary: '#F5F5F0',
   textSecondary: '#8A9BB0',
   textMuted: '#5B6B85',
+  heroInk: '#1F2A22', // Partenaires hero cards (« Ta dispo », full card) — same deep green-black in both themes (2026-10-23)
 
   success: '#2ECC71',
   error: '#E74C3C',
@@ -95,6 +96,7 @@ export const lightColors = {
   textPrimary: '#1F1A15',
   textSecondary: '#6F665A',
   textMuted: '#A0968A',
+  heroInk: '#1F2A22', // Partenaires hero cards (« Ta dispo », full card) — same deep green-black in both themes (2026-10-23)
 
   success: '#2ECC71',
   error: '#E74C3C',

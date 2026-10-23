@@ -174,11 +174,8 @@ export default function TabsLayout() {
         name="partenaires"
         options={{
           title: t('tabs.partenaires', { defaultValue: 'Partenaires' }),
-          headerLeft: () => (
-            <Pressable onPress={() => router.navigate('/(auth)/(tabs)/carte')} hitSlop={8} style={{ paddingLeft: 14, paddingRight: 8 }}>
-              <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
-            </Pressable>
-          ),
+          // The page draws its own large title (refonte 2026-10-23) — no header, no back arrow on a root tab.
+          headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon icon={UserSearch} focused={focused} />,
         }}
       />

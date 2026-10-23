@@ -74,6 +74,9 @@ export default function AuthLayout() {
         <Stack.Screen name="discovery-compose" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="discovery-zone" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="create-channel" options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="partners/dispos" options={{ headerShown: false }} />
+        <Stack.Screen name="partners/discussions" options={{ headerShown: false }} />
+        <Stack.Screen name="partners/dispo" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="legal/terms" options={{ title: '' }} />
         <Stack.Screen name="legal/privacy" options={{ title: '' }} />
         <Stack.Screen name="peer-review/[id]" options={{ title: '' }} />
