@@ -96,7 +96,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: 18,
     padding: spacing.md - 2,
     gap: spacing.sm + 2,
-    ...shadows.card,
+    ...shadows.cardFirm,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
   headText: { flex: 1, minWidth: 0, gap: 2 },

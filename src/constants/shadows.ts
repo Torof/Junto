@@ -15,6 +15,17 @@ export const shadows = {
     },
     default: { elevation: 2, shadowColor: '#1F1A15' },
   }),
+  // Cards that sit on the white page with nothing around them (Découverte
+  // dispo cards): a notch firmer than `card` so the edge reads (Scott 2026-10-23).
+  cardFirm: Platform.select({
+    ios: {
+      shadowColor: '#1F1A15',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.13,
+      shadowRadius: 6,
+    },
+    default: { elevation: 3, shadowColor: '#1F1A15' },
+  }),
   // Hero cards that should clearly pop (catalogue experience cards).
   raised: Platform.select({
     ios: {
