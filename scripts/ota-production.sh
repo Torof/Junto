@@ -19,7 +19,8 @@ HEAD_SHA=$(git rev-parse HEAD)
 python3 - "$HEAD_SHA" <<'PY' || { echo "ARRÊT : ce commit ($HEAD_SHA) ne correspond à aucune publication preview récente — preview d'abord."; exit 1; }
 import json, subprocess, sys
 def eas_json(*args):
-    out = subprocess.run(['npx', 'eas', *args, '--json', '--non-interactive'], capture_output=True, text=True).stdout
+    extra = ['--non-interactive'] if args[0] == 'update:list' else []  # update:view has no such flag
+    out = subprocess.run(['npx', 'eas', *args, '--json', *extra], capture_output=True, text=True).stdout
     # eas prints an upgrade banner before the JSON: start at the first line opening it.
     start = next(i for i, line in enumerate(out.splitlines()) if line[:1] in '[{')
     return json.loads('\n'.join(out.splitlines()[start:]))
