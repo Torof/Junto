@@ -53,10 +53,11 @@ Tokens `colors.pin*` : vert `pinStart` #22c55e (départ) / bleu `pinMeeting` #3b
 
 ---
 
-## Typographie (`src/constants/typography.ts`)
+## Typographie (`src/constants/typography.ts`, `font-families.ts`)
 
-- **Titres :** Montserrat Bold
-- **Corps :** Inter Regular
+- **Police au choix de l'utilisateur** (Paramètres → Personnalisation → Police) : Outfit (défaut), Plus Jakarta Sans, Manrope, Inter, DM Sans, Archivo, Système. Une seule famille pour toute l'app.
+- **Tout texte passe par `<AppText>` / `<AppTextInput>`** (`@/components/app-text`) — ESLint interdit `Text` de react-native. On écrit le style comme d'habitude (`fontWeight` numérique, `fontSize`) ; le composant choisit le fichier de la graisse et corrige la taille pour que chaque police occupe la largeur de Roboto (rien ne passe à la ligne ni ne se coupe en changeant de police). Une hauteur de ligne imposée est relevée au minimum qui garde les majuscules accentuées entières.
+- `fonts.title` = la voix titre (graisse 800 par défaut) ; `fonts.body` = texte courant.
 - **Tailles** (`fontSizes`) : `xs: 12, sm: 14, md: 16, lg: 18, xl: 24, xxl: 32`
 
 ---

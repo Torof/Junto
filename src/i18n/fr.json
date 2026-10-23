@@ -1483,6 +1483,10 @@
     },
     "accent": "Couleur d'accent",
     "clusterRing": "Grappes colorées",
+    "font": "Police",
+    "fontDefault": "par défaut",
+    "fontOption": { "system": "Système" },
+    "fontLoadError": "Impossible de charger cette police",
     "accentOption": {
       "orange": "Orange",
       "mountain": "Vert montagne",

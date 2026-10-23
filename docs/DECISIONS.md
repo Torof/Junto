@@ -499,3 +499,9 @@ Règles verrouillées :
 **Contexte :** le pin du 16 octobre (plein couleur, ombre douce, sans bord) se fondait dans la carte : pin vert montagne sur la forêt du fond Outdoors, couleurs sombres sur le satellite. Maquette comparative (canevas « Pins », tableau « Contraste ») : A liseré blanc fin, B liseré marqué + ombre nette, C halo, D liseré sombre.
 
 **Décision (Scott) :** A + l'ombre de B — liseré blanc ≈ 1,5 px à l'écran, ombre courte et nette sous le pin + ombre large et légère. Appliqué aux trois pins (sortie, sortie pro, page pro) par un composant commun `PinBody` ; réglages dans `constants/pin-style.ts`. Scott : « la meilleure version qu'on a jamais eue », visible partout sans prendre toute la place, l'air posé sur la carte. **C'est la référence : ne pas la retoucher sans demande explicite.** Les petites cartes secondaires (pin GL simplifié) n'ont pas été alignées.
+
+## 2026-10-23 — Police au choix, Outfit par défaut
+
+**Contexte :** l'app s'affichait dans la police du système (Montserrat et Inter étaient déclarées mais jamais chargées). Scott veut une vraie police par défaut et pouvoir en changer facilement, à condition qu'un changement de police ne casse aucune mise en page.
+
+**Décision :** six familles Google (Outfit, Plus Jakarta Sans, Manrope, Inter, DM Sans, Archivo) + Système, au choix dans Personnalisation, rangé sur l'appareil. Chaque famille est ramenée à la largeur de Roboto, graisse par graisse (mesuré sur du vrai texte d'interface français), et ses hauteurs de ligne imposées sont relevées au minimum qui garde les accents entiers. **Outfit par défaut** : c'est déjà la largeur de Roboto (aucune correction) et la même hauteur sur une ligne. Ajouter une police = ses cinq fichiers + ses mesures dans `constants/font-families.ts`.

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
-  Pencil, Mail, AtSign, Star, MapPin, Bell, Palette, Paintbrush, BellRing,
+  Pencil, Mail, AtSign, Star, MapPin, Bell, Palette, Paintbrush, Type, BellRing,
   PlayCircle, HelpCircle, FileText, ShieldCheck, Scale, Trash2, ChevronRight,
   ShieldAlert, ChevronDown, Globe, type LucideIcon, PieChart } from 'lucide-react-native';
 import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference, type LanguagePreference } from '@/i18n';
@@ -21,6 +21,7 @@ import { useIntroStore } from '@/store/intro-store';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { AccentPicker } from '@/components/accent-picker';
+import { FontPicker } from '@/components/font-picker';
 import { PressableScale } from '@/components/pressable-scale';
 
 const NOTIFICATION_TYPES = [
@@ -87,6 +88,7 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
   };
   const [showTheme, setShowTheme] = useState(false);
   const [showAccent, setShowAccent] = useState(false);
+  const [showFont, setShowFont] = useState(false);
   const [bgLocationGranted, setBgLocationGranted] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -410,6 +412,10 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showAccent ? '180deg' : '0deg' }] }} />
               } />
               {showAccent && <AccentPicker />}
+              <Row icon={Type} label={t('drawer.font')} onPress={() => setShowFont(!showFont)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showFont ? '180deg' : '0deg' }] }} />
+              } />
+              {showFont && <FontPicker />}
               <Row icon={PieChart} label={t('drawer.clusterRing')} last={!clusterRingOn} right={
                 <Switch value={clusterRingOn} onValueChange={setClusterRingOn} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
               } />

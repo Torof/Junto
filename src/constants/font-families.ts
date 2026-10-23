@@ -53,6 +53,10 @@ interface CustomFamily {
   label: string;
   files: Record<FontWeightKey, number>;
   scale: Record<FontWeightKey, number>;
+  // Smallest line height (× font size) that still holds an accented capital
+  // and the descent: Android cuts the top of a first-line « É » when an
+  // explicit lineHeight is tighter (scratch tool glyphbox, 2026-10-23).
+  minLine: number;
 }
 
 const CUSTOM: Record<Exclude<FontFamilyId, 'system'>, CustomFamily> = {
@@ -60,37 +64,44 @@ const CUSTOM: Record<Exclude<FontFamilyId, 'system'>, CustomFamily> = {
     label: 'Outfit',
     files: { '400': Outfit_400Regular, '500': Outfit_500Medium, '600': Outfit_600SemiBold, '700': Outfit_700Bold, '800': Outfit_800ExtraBold },
     scale: { '400': 1.018, '500': 1.026, '600': 1.013, '700': 1.001, '800': 0.99 },
+    minLine: 1.25,
   },
   'plus-jakarta-sans': {
     label: 'Plus Jakarta Sans',
     files: { '400': PlusJakartaSans_400Regular, '500': PlusJakartaSans_500Medium, '600': PlusJakartaSans_600SemiBold, '700': PlusJakartaSans_700Bold, '800': PlusJakartaSans_800ExtraBold },
     scale: { '400': 0.963, '500': 0.961, '600': 0.956, '700': 0.95, '800': 0.945 },
+    minLine: 1.27,
   },
   manrope: {
     label: 'Manrope',
     files: { '400': Manrope_400Regular, '500': Manrope_500Medium, '600': Manrope_600SemiBold, '700': Manrope_700Bold, '800': Manrope_800ExtraBold },
     scale: { '400': 0.981, '500': 0.973, '600': 0.96, '700': 0.948, '800': 0.936 },
+    minLine: 1.35,
   },
   inter: {
     label: 'Inter',
     files: { '400': Inter_400Regular, '500': Inter_500Medium, '600': Inter_600SemiBold, '700': Inter_700Bold, '800': Inter_800ExtraBold },
     scale: { '400': 0.937, '500': 0.937, '600': 0.933, '700': 0.928, '800': 0.923 },
+    minLine: 1.24,
   },
   'dm-sans': {
     label: 'DM Sans',
     files: { '400': DMSans_400Regular, '500': DMSans_500Medium, '600': DMSans_600SemiBold, '700': DMSans_700Bold, '800': DMSans_800ExtraBold },
     scale: { '400': 0.962, '500': 0.955, '600': 0.941, '700': 0.93, '800': 0.93 },
+    minLine: 1.29,
   },
   archivo: {
     label: 'Archivo',
     files: { '400': Archivo_400Regular, '500': Archivo_500Medium, '600': Archivo_600SemiBold, '700': Archivo_700Bold, '800': Archivo_800ExtraBold },
     scale: { '400': 1.011, '500': 1.004, '600': 0.99, '700': 0.962, '800': 0.923 },
+    minLine: 1.15,
   },
 };
 
 // Picker order; 'system' last.
 export const FONT_FAMILY_IDS: readonly FontFamilyId[] = ['outfit', 'plus-jakarta-sans', 'manrope', 'inter', 'dm-sans', 'archivo', 'system'];
-export const DEFAULT_FONT_FAMILY: FontFamilyId = 'system';
+// Outfit by default (Scott 2026-10-23): already Roboto's width, so no correction.
+export const DEFAULT_FONT_FAMILY: FontFamilyId = 'outfit';
 
 export function isFontFamilyId(v: unknown): v is FontFamilyId {
   return typeof v === 'string' && (FONT_FAMILY_IDS as readonly string[]).includes(v);
@@ -154,8 +165,9 @@ export function resolveTextStyle(
   if (family === 'system') {
     return { style: { ...rest, fontWeight: weight }, inherited };
   }
-  return {
-    style: { ...rest, fontFamily: fontFileName(family, weight), fontSize: Math.round(size * CUSTOM[family].scale[weight] * 100) / 100 },
-    inherited,
-  };
+  const def = CUSTOM[family];
+  const scaled = Math.round(size * def.scale[weight] * 100) / 100;
+  const out: TextStyle = { ...rest, fontFamily: fontFileName(family, weight), fontSize: scaled };
+  if (typeof rest.lineHeight === 'number') out.lineHeight = Math.max(rest.lineHeight, Math.ceil(scaled * def.minLine));
+  return { style: out, inherited };
 }

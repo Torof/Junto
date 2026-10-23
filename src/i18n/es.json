@@ -1483,6 +1483,10 @@
     },
     "accent": "Color de acento",
     "clusterRing": "Grupos de colores",
+    "font": "Fuente",
+    "fontDefault": "predeterminada",
+    "fontOption": { "system": "Sistema" },
+    "fontLoadError": "No se pudo cargar esta fuente",
     "accentOption": {
       "orange": "Naranja",
       "mountain": "Verde montaña",

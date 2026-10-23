@@ -1483,6 +1483,10 @@
     },
     "accent": "Accent color",
     "clusterRing": "Coloured clusters",
+    "font": "Font",
+    "fontDefault": "default",
+    "fontOption": { "system": "System" },
+    "fontLoadError": "Couldn't load this font",
     "accentOption": {
       "orange": "Orange",
       "mountain": "Mountain green",

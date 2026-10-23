@@ -1483,6 +1483,10 @@
     },
     "accent": "Akzentfarbe",
     "clusterRing": "Farbige Cluster",
+    "font": "Schriftart",
+    "fontDefault": "Standard",
+    "fontOption": { "system": "System" },
+    "fontLoadError": "Diese Schriftart konnte nicht geladen werden",
     "accentOption": {
       "orange": "Orange",
       "mountain": "Berggrün",

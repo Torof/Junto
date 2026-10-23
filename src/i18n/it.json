@@ -1483,6 +1483,10 @@
     },
     "accent": "Colore d'accento",
     "clusterRing": "Cluster colorati",
+    "font": "Carattere",
+    "fontDefault": "predefinito",
+    "fontOption": { "system": "Sistema" },
+    "fontLoadError": "Impossibile caricare questo carattere",
     "accentOption": {
       "orange": "Arancione",
       "mountain": "Verde montagna",
