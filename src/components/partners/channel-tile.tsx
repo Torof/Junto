@@ -15,10 +15,12 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 // has one, else its universe colour + contour lines + the sport glyph.
 // `width` = carousel tile; omitted = full width (« Tout voir »), which also
 // shows the Rejoindre / Membre tag.
-export const ChannelTile = memo(function ChannelTile({ item, categoryOf, width, onPress }: {
+export const ChannelTile = memo(function ChannelTile({ item, categoryOf, width, badge, onPress }: {
   item: ChannelListItem;
   categoryOf: (sportKey: string) => string | undefined;
   width?: number;
+  // Why the tile is in a carousel (« Membre », « Près de toi », « Ailleurs »).
+  badge?: string;
   onPress: () => void;
 }) {
   const colors = useColors();
@@ -47,8 +49,8 @@ export const ChannelTile = memo(function ChannelTile({ item, categoryOf, width, 
             ) : null}
           </>
         )}
-        {item.is_member && !full ? (
-          <View style={styles.memberBadge}><Text style={styles.memberBadgeText}>{t('channels.member', { defaultValue: 'Membre' })}</Text></View>
+        {!full && (badge || item.is_member) ? (
+          <View style={styles.memberBadge}><Text style={styles.memberBadgeText}>{badge ?? t('channels.member', { defaultValue: 'Membre' })}</Text></View>
         ) : null}
       </View>
       <View style={[styles.body, full && styles.bodyFull]}>

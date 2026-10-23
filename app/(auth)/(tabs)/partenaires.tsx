@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Burnt from 'burnt';
-import { MapPin, ChevronDown, ChevronRight, Plus } from 'lucide-react-native';
+import { MapPin, ChevronDown, ChevronRight, Plus, Pause } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, fonts, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -31,6 +31,8 @@ const CARD_W = 252;
 const TILE_W = 168;
 const GAP = 12;
 const CAROUSEL_LIMIT = 10;
+const UNIVERSE_W = 132;
+const UNIVERSE_H = 84;
 const UNIVERSE_GLYPH: Record<Universe, string> = {
   mountain: 'mountaineering', 'on-foot': 'hiking', water: 'kayaking',
   air: 'paragliding', cycling: 'cycling', wellness: 'yoga',
@@ -43,7 +45,6 @@ export default function PartenairesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { width: screenW } = useWindowDimensions();
   const setPagerIds = usePartnersPagerStore((s) => s.setUserIds);
 
   const { data: sports } = useSports();
@@ -60,12 +61,22 @@ export default function PartenairesScreen() {
     enabled: active,
   });
 
-  // Discussions are looked up around the dispo's base, else around me.
+  // Discussions: yours first (wherever they are), then those around the
+  // dispo's base (else around me), then the most active elsewhere — one goes
+  // to channels for the places one travels to, not only home (Scott 2026-10-23).
   const { currentLocation } = useInitialLocation();
-  const center = mine ? { lng: mine.base_lng, lat: mine.base_lat } : currentLocation ? { lng: currentLocation[0], lat: currentLocation[1] } : null;
-  const { data: channels } = useQuery({
+  const center = useMemo(
+    () => (mine ? { lng: mine.base_lng, lat: mine.base_lat } : currentLocation ? { lng: currentLocation[0], lat: currentLocation[1] } : null),
+    [mine, currentLocation],
+  );
+  const { data: nearChannels } = useQuery({
     queryKey: ['channels', '', null, center?.lng, center?.lat],
     queryFn: () => channelService.search({ query: null, sportKey: null, nearLng: center?.lng ?? null, nearLat: center?.lat ?? null }),
+    enabled: !!center,
+  });
+  const { data: allChannels } = useQuery({
+    queryKey: ['channels', '', null, undefined, undefined],
+    queryFn: () => channelService.search({ query: null, sportKey: null, nearLng: null, nearLat: null }),
   });
 
   // The list refreshes on focus (« Envoyée » must become « Discuter », audit M1).
@@ -94,29 +105,36 @@ export default function PartenairesScreen() {
 
   const allCards = useMemo(() => cards ?? [], [cards]);
   const carouselCards = allCards.slice(0, CAROUSEL_LIMIT);
-  const nearChannels = (channels ?? []).slice(0, CAROUSEL_LIMIT);
+  const discussionItems = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { item: ChannelListItem; badge: 'member' | 'near' | 'elsewhere' }[] = [];
+    const push = (c: ChannelListItem, badge: 'member' | 'near' | 'elsewhere') => {
+      if (seen.has(c.conversation_id)) return;
+      seen.add(c.conversation_id);
+      out.push({ item: c, badge });
+    };
+    const near = center ? nearChannels ?? [] : [];
+    [...near, ...(allChannels ?? [])].filter((c) => c.is_member).forEach((c) => push(c, 'member'));
+    near.forEach((c) => push(c, 'near'));
+    (allChannels ?? []).forEach((c) => push(c, 'elsewhere'));
+    return out.slice(0, CAROUSEL_LIMIT);
+  }, [center, nearChannels, allChannels]);
 
   const openCard = (list: DiscoveryCard[], userId: string) => {
     setPagerIds(list.map((c) => c.user_id));
     router.push({ pathname: '/(auth)/partners/dispo', params: { userId } });
   };
 
-  // Universe counts: dispos with at least one sport of the universe; discussions nearby by sport.
+  // « Qui est dispo, par sport »: matching dispos with at least one sport of the universe.
   const universeCounts = useMemo(() => {
-    const m = new Map<Universe, { dispos: number; channels: number }>();
-    for (const u of UNIVERSES) m.set(u, { dispos: 0, channels: 0 });
+    const m = new Map<Universe, number>();
+    for (const u of UNIVERSES) m.set(u, 0);
     for (const c of allCards) {
       const seen = new Set(c.sport_keys.map(categoryOf).filter(Boolean));
-      for (const u of UNIVERSES) if (seen.has(u)) m.get(u)!.dispos += 1;
-    }
-    for (const ch of channels ?? []) {
-      const u = ch.sport_key ? categoryOf(ch.sport_key) : undefined;
-      if (u && m.has(u as Universe)) m.get(u as Universe)!.channels += 1;
+      for (const u of UNIVERSES) if (seen.has(u)) m.set(u, (m.get(u) ?? 0) + 1);
     }
     return m;
-  }, [allCards, channels, categoryOf]);
-
-  const universeTileW = (screenW - spacing.md * 2 - GAP) / 2;
+  }, [allCards, categoryOf]);
 
   return (
     <ScrollView
@@ -167,23 +185,65 @@ export default function PartenairesScreen() {
         />
       )}
 
-      {/* Discussions près de toi */}
+      {/* Qui est dispo, par sport — right under the dispos it extends, one scrolling row. */}
       <SectionHead
         styles={styles}
         accent={colors.cta}
-        title={t('partenaires.discussions', { defaultValue: 'Discussions près de toi' })}
+        title={t('partenaires.byUniverse', { defaultValue: 'Qui est dispo, par sport' })}
+        subtitle={t('partenaires.byUniverseSub', { defaultValue: 'Les personnes dispos, sport par sport.' })}
+      />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+        {UNIVERSES.map((u, i) => {
+          const n = universeCounts.get(u) ?? 0;
+          const target = active
+            ? { pathname: '/(auth)/partners/dispos' as const, params: { universe: u } }
+            : { pathname: '/(auth)/discovery-compose' as const };
+          return (
+            <PressableScale
+              key={u}
+              style={[styles.universe, i > 0 && { marginLeft: 10 }, { backgroundColor: sportCategoryColor(u, colors.cta) }]}
+              onPress={() => router.push(target)}
+              accessibilityRole="button"
+            >
+              <ContourLines width={UNIVERSE_W} height={UNIVERSE_H} opacity={0.2} />
+              <View style={styles.universeGlyph}><SportIcon sportKey={UNIVERSE_GLYPH[u]} size={26} color="#FFFFFF" /></View>
+              <Text style={styles.universeName}>{t(`partenaires.universe.${u}`)}</Text>
+              <Text style={styles.universeCount} numberOfLines={1}>
+                {n > 0 ? t('partenaires.universeDispos', { count: n, defaultValue: '{{count}} dispos' }) : t('partenaires.universeNone', { defaultValue: 'Rien pour l’instant' })}
+              </Text>
+            </PressableScale>
+          );
+        })}
+      </ScrollView>
+
+      {/* Discussions — yours, near you, elsewhere. */}
+      <SectionHead
+        styles={styles}
+        accent={colors.cta}
+        title={t('partenaires.discussions', { defaultValue: 'Discussions' })}
+        subtitle={t('partenaires.discussionsSub', { defaultValue: 'Les tiennes, près de chez toi, et ailleurs.' })}
         onSeeAll={() => router.push('/(auth)/partners/discussions')}
         seeAllLabel={t('partenaires.seeAll', { defaultValue: 'Tout voir' })}
       />
-      {nearChannels.length === 0 ? (
-        <Text style={styles.note}>{t('partenaires.discussionsEmpty', { defaultValue: 'Aucune discussion près de toi pour l’instant. Ouvre la première !' })}</Text>
+      {discussionItems.length === 0 ? (
+        <Text style={styles.note}>{t('partenaires.discussionsEmpty', { defaultValue: 'Aucune discussion pour l’instant. Ouvre la première !' })}</Text>
       ) : (
         <FlatList
           horizontal
-          data={nearChannels}
-          keyExtractor={(c) => c.conversation_id}
-          renderItem={({ item }: { item: ChannelListItem }) => (
-            <ChannelTile item={item} categoryOf={categoryOf} width={TILE_W} onPress={() => router.push(`/(auth)/conversation/${item.conversation_id}`)} />
+          data={discussionItems}
+          keyExtractor={(d) => d.item.conversation_id}
+          renderItem={({ item: d }) => (
+            <ChannelTile
+              item={d.item}
+              categoryOf={categoryOf}
+              width={TILE_W}
+              badge={d.badge === 'member'
+                ? t('channels.member', { defaultValue: 'Membre' })
+                : d.badge === 'near'
+                  ? t('partenaires.badgeNear', { defaultValue: 'Près de toi' })
+                  : t('partenaires.badgeElsewhere', { defaultValue: 'Ailleurs' })}
+              onPress={() => router.push(`/(auth)/conversation/${d.item.conversation_id}`)}
+            />
           )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carousel}
@@ -196,46 +256,27 @@ export default function PartenairesScreen() {
         <Plus size={16} color={colors.textSecondary} strokeWidth={2.6} />
         <Text style={styles.linkRowText}>{t('partenaires.openDiscussion', { defaultValue: 'Ouvrir une discussion' })}</Text>
       </PressableScale>
-
-      {/* Explorer par sport */}
-      <SectionHead styles={styles} accent={colors.cta} title={t('partenaires.explore', { defaultValue: 'Explorer par sport' })} />
-      <View style={styles.grid}>
-        {UNIVERSES.map((u) => {
-          const c = universeCounts.get(u) ?? { dispos: 0, channels: 0 };
-          const parts = [
-            c.dispos > 0 ? t('partenaires.universeDispos', { count: c.dispos, defaultValue: '{{count}} dispos' }) : null,
-            c.channels > 0 ? t('partenaires.universeDiscussions', { count: c.channels, defaultValue: '{{count}} discussions' }) : null,
-          ].filter(Boolean);
-          const target = active
-            ? { pathname: '/(auth)/partners/dispos' as const, params: { universe: u } }
-            : { pathname: '/(auth)/partners/discussions' as const, params: { universe: u } };
-          return (
-            <PressableScale key={u} style={[styles.universe, { width: universeTileW, backgroundColor: sportCategoryColor(u, colors.cta) }]} onPress={() => router.push(target)} accessibilityRole="button">
-              <ContourLines width={universeTileW} height={104} opacity={0.2} />
-              <View style={styles.universeGlyph}><SportIcon sportKey={UNIVERSE_GLYPH[u]} size={34} color="#FFFFFF" /></View>
-              <Text style={styles.universeCount} numberOfLines={1}>{parts.length ? parts.join(' · ') : t('partenaires.universeNone', { defaultValue: 'Rien pour l’instant' })}</Text>
-              <Text style={styles.universeName}>{t(`partenaires.universe.${u}`)}</Text>
-            </PressableScale>
-          );
-        })}
-      </View>
     </ScrollView>
   );
 }
 
-function SectionHead({ styles, accent, title, count, onSeeAll, seeAllLabel }: {
+function SectionHead({ styles, accent, title, subtitle, count, onSeeAll, seeAllLabel }: {
   styles: ReturnType<typeof createStyles>;
   accent: string;
   title: string;
+  subtitle?: string;
   count?: number;
   onSeeAll?: () => void;
   seeAllLabel?: string;
 }) {
   return (
     <View style={styles.sectionHead}>
-      <Text style={styles.sectionTitle}>
-        {title}{count !== undefined ? <Text style={styles.sectionCount}>{`  ${count}`}</Text> : null}
-      </Text>
+      <View style={styles.sectionHeadText}>
+        <Text style={styles.sectionTitle}>
+          {title}{count !== undefined ? <Text style={styles.sectionCount}>{`  ${count}`}</Text> : null}
+        </Text>
+        {subtitle ? <Text style={styles.sectionSub}>{subtitle}</Text> : null}
+      </View>
       {onSeeAll ? (
         <PressableScale style={styles.seeAll} onPress={onSeeAll} hitSlop={8} accessibilityRole="button">
           <Text style={styles.seeAllText}>{seeAllLabel}</Text>
@@ -299,16 +340,16 @@ function MyDispoHero({ mine, styles, colors, categoryOf, radiusText, onEdit, onT
       </View>
       <View style={styles.heroActions}>
         {live ? (
-          <PressableScale onPress={() => onToggle(false)} hitSlop={8} accessibilityRole="button">
-            <Text style={styles.heroLink}>{t('partenaires.pause', { defaultValue: 'Mettre en pause' })}</Text>
+          <PressableScale style={[styles.heroBtn, styles.heroPause]} onPress={() => onToggle(false)} accessibilityRole="button">
+            <Pause size={14} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
+            <Text style={styles.heroPauseText}>{t('partenaires.pause', { defaultValue: 'Mettre en pause' })}</Text>
           </PressableScale>
         ) : (
-          <PressableScale style={styles.heroResume} onPress={() => onToggle(true)} accessibilityRole="button">
+          <PressableScale style={[styles.heroBtn, styles.heroResume]} onPress={() => onToggle(true)} accessibilityRole="button">
             <Text style={styles.heroResumeText}>{t('partenaires.resume', { defaultValue: 'Remettre en ligne' })}</Text>
           </PressableScale>
         )}
-        <View style={{ flex: 1 }} />
-        <PressableScale style={styles.heroEdit} onPress={onEdit} accessibilityRole="button">
+        <PressableScale style={[styles.heroBtn, styles.heroEdit]} onPress={onEdit} accessibilityRole="button">
           <Text style={styles.heroEditText}>{t('discovery.edit', { defaultValue: 'Modifier' })}</Text>
         </PressableScale>
       </View>
@@ -340,11 +381,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   heroSports: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, flex: 1 },
   heroSport: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 6 },
   heroSportText: { color: '#FFFFFF', fontSize: fontSizes.xs, fontWeight: '600' },
-  heroActions: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.xs },
-  heroLink: { color: 'rgba(255,255,255,0.75)', fontSize: fontSizes.sm, fontWeight: '600' },
-  heroResume: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  heroActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  heroBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.full, paddingVertical: spacing.sm + 2 },
+  heroPause: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  heroPauseText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
+  heroResume: { backgroundColor: colors.cta },
   heroResumeText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
-  heroEdit: { backgroundColor: '#FFFFFF', borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  heroEdit: { backgroundColor: '#FFFFFF' },
   heroEditText: { color: '#1F1A15', fontSize: fontSizes.sm, fontWeight: '700' },
   heroEmpty: {
     marginHorizontal: spacing.md, marginTop: spacing.md + 2, padding: spacing.md + 2, borderRadius: 18,
@@ -359,7 +402,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.md, marginTop: spacing.lg + 4, marginBottom: spacing.sm + 4,
   },
-  sectionTitle: { color: colors.textPrimary, fontFamily: fonts.title, fontSize: 20, flexShrink: 1 },
+  sectionHeadText: { flexShrink: 1, gap: 3 },
+  sectionTitle: { color: colors.textPrimary, fontFamily: fonts.title, fontSize: 20 },
+  sectionSub: { color: colors.textSecondary, fontSize: fontSizes.sm - 1 },
   sectionCount: { color: colors.cta },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
@@ -368,9 +413,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginLeft: spacing.md, marginTop: spacing.sm, paddingVertical: spacing.xs },
   linkRowText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingHorizontal: spacing.md },
-  universe: { height: 104, borderRadius: 18, overflow: 'hidden', padding: spacing.sm + 6, justifyContent: 'flex-end' },
-  universeGlyph: { position: 'absolute', right: 14, top: 12, opacity: 0.95 },
-  universeCount: { color: 'rgba(255,255,255,0.85)', fontSize: fontSizes.xs, fontWeight: '600' },
-  universeName: { color: '#FFFFFF', fontFamily: fonts.title, fontSize: 17, marginTop: 2 },
+  universe: { width: UNIVERSE_W, height: UNIVERSE_H, borderRadius: 16, overflow: 'hidden', padding: spacing.sm + 4, justifyContent: 'flex-end' },
+  universeGlyph: { position: 'absolute', right: 10, top: 10, opacity: 0.95 },
+  universeName: { color: '#FFFFFF', fontFamily: fonts.title, fontSize: 15 },
+  universeCount: { color: 'rgba(255,255,255,0.88)', fontSize: fontSizes.xs, fontWeight: '600', marginTop: 1 },
 });

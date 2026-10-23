@@ -4,11 +4,12 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, Plus, Search, MapPin, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronDown, Plus, Search, MapPin, X, Globe } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, fonts, spacing, radius, glow } from '@/constants/theme';
+import { fontSizes, fonts, spacing, radius, glow, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { channelService } from '@/services/channel-service';
+import { discoveryService } from '@/services/discovery-service';
 import { useSports } from '@/hooks/use-sports';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { PressableScale } from '@/components/pressable-scale';
@@ -41,6 +42,7 @@ export default function PartnersDiscussionsScreen() {
   );
   const [showFilters, setShowFilters] = useState(false);
 
+  const { data: mine } = useQuery({ queryKey: ['my-dispo'], queryFn: () => discoveryService.getMyDispo() });
   const { data: sports } = useSports();
   const categoryOf = useCallback((key: string) => (sports ?? []).find((s) => s.key === key)?.category, [sports]);
 
@@ -71,26 +73,54 @@ export default function PartnersDiscussionsScreen() {
         </PressableScale>
       </View>
 
-      <View style={styles.search}>
-        <Search size={16} color={colors.textSecondary} strokeWidth={2.2} />
-        <TextInput
-          style={styles.searchInput}
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t('channels.searchPlaceholder', { defaultValue: 'Chercher une discussion…' })}
-          placeholderTextColor={colors.textMuted}
-          returnKeyType="search"
-        />
+      {/* Searching anywhere is the main action (Scott 2026-10-23: one joins
+          channels for the places one goes to, not only home). */}
+      <View style={styles.searchBlock}>
+        <View style={styles.search}>
+          <Search size={18} color={colors.textPrimary} strokeWidth={2.4} />
+          <TextInput
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('partenaires.searchEverywhere', { defaultValue: 'Cherche partout : un lieu, un sport, un nom…' })}
+            placeholderTextColor={colors.textMuted}
+            returnKeyType="search"
+          />
+        </View>
+        <View style={styles.whereRow}>
+          <Text style={styles.whereLabel}>{t('partenaires.where', { defaultValue: 'Où ?' })}</Text>
+          <PressableScale style={styles.wherePill} onPress={() => setShowFilters(true)} accessibilityRole="button">
+            {near ? <MapPin size={14} color={colors.cta} strokeWidth={2.6} /> : <Globe size={14} color={colors.cta} strokeWidth={2.4} />}
+            <Text style={styles.wherePillText} numberOfLines={1}>
+              {near ? near.label : t('partenaires.everywhere', { defaultValue: 'Partout' })}
+              {sportKey ? ` · ${t(`sports.${sportKey}`, { defaultValue: sportKey })}` : ''}
+            </Text>
+            <ChevronDown size={14} color={colors.textPrimary} strokeWidth={2.6} />
+          </PressableScale>
+          {near ? (
+            <PressableScale onPress={() => setNear(null)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('partenaires.everywhere', { defaultValue: 'Partout' })}>
+              <X size={16} color={colors.textSecondary} strokeWidth={2.6} />
+            </PressableScale>
+          ) : null}
+        </View>
+        <View style={styles.shortcuts}>
+          {currentLocation ? (
+            <PressableScale style={styles.shortcut} onPress={useMyLocation}>
+              <Text style={styles.shortcutText}>{t('partenaires.aroundMe', { defaultValue: 'Autour de moi' })}</Text>
+            </PressableScale>
+          ) : null}
+          {mine ? (
+            <PressableScale style={styles.shortcut} onPress={() => setNear({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label })}>
+              <Text style={styles.shortcutText}>{t('partenaires.aroundMyDispo', { defaultValue: 'Autour de ma dispo' })}</Text>
+            </PressableScale>
+          ) : null}
+        </View>
       </View>
 
       <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills} keyboardShouldPersistTaps="handled">
-          <PressableScale style={[styles.pill, styles.placePill]} onPress={() => setShowFilters(true)}>
-            <MapPin size={13} color={colors.cta} strokeWidth={2.6} />
-            <Text style={[styles.pillText, { color: colors.cta }]} numberOfLines={1}>
-              {near ? near.label : t('partenaires.everywhere', { defaultValue: 'Partout' })}
-              {sportKey ? ` · ${t(`sports.${sportKey}`, { defaultValue: sportKey })}` : ''}
-            </Text>
+          <PressableScale style={[styles.pill, !universe ? styles.pillOn : styles.pillOff]} onPress={() => setUniverse(null)}>
+            <Text style={[styles.pillText, !universe && styles.pillTextOn]}>{t('partenaires.all', { defaultValue: 'Tous' })}</Text>
           </PressableScale>
           {UNIVERSES.map((u) => {
             const c = sportCategoryColor(u, colors.cta);
@@ -103,6 +133,11 @@ export default function PartnersDiscussionsScreen() {
           })}
         </ScrollView>
       </View>
+      <Text style={styles.sortLine}>
+        {near
+          ? t('partenaires.sortNear', { defaultValue: 'Autour de {{place}} · les plus proches d’abord', place: near.label })
+          : t('partenaires.sortActive', { defaultValue: 'Partout · les plus suivies d’abord' })}
+      </Text>
 
       {isLoading ? (
         <View style={styles.center}><LogoSpinner size={40} /></View>
@@ -163,15 +198,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   back: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, color: colors.textPrimary, fontFamily: fonts.title, fontSize: 22 },
   add: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center', ...glow(colors.cta) },
+  searchBlock: { marginHorizontal: spacing.md, marginTop: spacing.md, padding: spacing.sm + 6, borderRadius: 18, backgroundColor: colors.surfaceAlt, gap: spacing.sm + 4 },
   search: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginHorizontal: spacing.md, marginTop: spacing.md,
-    backgroundColor: colors.surfaceAlt, borderRadius: 14, paddingHorizontal: spacing.md - 2, height: 46,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
+    borderRadius: 14, paddingHorizontal: spacing.md - 2, height: 50, ...shadows.card,
   },
-  searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, padding: 0 },
-  pills: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, paddingTop: spacing.sm + 4, paddingBottom: spacing.xs },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: radius.full, paddingHorizontal: spacing.sm + 6, paddingVertical: spacing.sm, maxWidth: 260 },
-  placePill: { backgroundColor: colors.cta + '1A' },
+  searchInput: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md - 1, padding: 0 },
+  whereRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  whereLabel: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
+  wherePill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, backgroundColor: colors.surface,
+    borderRadius: radius.full, paddingHorizontal: spacing.sm + 6, paddingVertical: spacing.sm, ...shadows.card,
+  },
+  wherePillText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1 },
+  shortcuts: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  shortcut: { backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: spacing.sm + 4, paddingVertical: 7 },
+  shortcutText: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  pills: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, paddingTop: spacing.sm + 6, paddingBottom: spacing.xs },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: radius.full, paddingHorizontal: spacing.sm + 6, paddingVertical: spacing.sm },
+  pillOn: { backgroundColor: colors.textPrimary },
+  pillOff: { backgroundColor: colors.surfaceAlt },
   pillText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  pillTextOn: { color: colors.background },
+  sortLine: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, paddingBottom: spacing.xl * 2 },
   empty: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', paddingVertical: spacing.xl, lineHeight: 22 },

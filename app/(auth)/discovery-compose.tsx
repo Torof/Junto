@@ -161,6 +161,24 @@ export default function DiscoveryComposeScreen() {
     return t('discovery.counterN', { defaultValue: '{{count}} personnes correspondent dans ta zone.', count });
   };
 
+  // Already online → the main button saves; pausing is offered below it
+  // (Scott 2026-10-23: editing a live dispo only offered « Activer »).
+  const live = mine?.is_active === true;
+  const handlePause = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await discoveryService.deactivate();
+      await queryClient.invalidateQueries({ queryKey: ['my-dispo'] });
+      await queryClient.invalidateQueries({ queryKey: ['discovery-cards'] });
+      Burnt.toast({ title: t('partenaires.pausedToast', { defaultValue: 'Ta dispo est en pause' }), preset: 'done' });
+      router.back();
+    } catch (e) {
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+      setSaving(false);
+    }
+  };
+
   const handleActivate = async () => {
     if (!ready || !aboutOk || saving) return;
     setSaving(true);
@@ -174,7 +192,12 @@ export default function DiscoveryComposeScreen() {
       await discoveryService.activate();
       await queryClient.invalidateQueries({ queryKey: ['my-dispo'] });
       await queryClient.invalidateQueries({ queryKey: ['discovery-cards'] });
-      Burnt.toast({ title: t('discovery.activated', { defaultValue: 'Ta dispo est active' }), preset: 'done' });
+      Burnt.toast({
+        title: live
+          ? t('partenaires.saved', { defaultValue: 'Dispo enregistrée' })
+          : t('discovery.activated', { defaultValue: 'Ta dispo est active' }),
+        preset: 'done',
+      });
       router.replace('/(auth)/(tabs)/partenaires?tab=discovery');
     } catch (e) {
       Burnt.toast({ title: getFriendlyError(e, 'generic') });
@@ -300,8 +323,22 @@ export default function DiscoveryComposeScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
         <Text style={styles.counter}>{counterText()}</Text>
         <Pressable style={[styles.cta, (!ready || !aboutOk) && styles.ctaDisabled]} disabled={!ready || !aboutOk || saving} onPress={handleActivate}>
-          <Text style={styles.ctaText}>{saving ? t('discovery.activating', { defaultValue: 'Activation…' }) : t('discovery.activateCta', { defaultValue: 'Activer ma dispo' })}</Text>
+          <Text style={styles.ctaText}>
+            {saving
+              ? t('discovery.activating', { defaultValue: 'Activation…' })
+              : live
+                ? t('partenaires.save', { defaultValue: 'Enregistrer' })
+                : t('discovery.activateCta', { defaultValue: 'Activer ma dispo' })}
+          </Text>
         </Pressable>
+        {live ? (
+          <>
+            <Pressable style={({ pressed }) => [styles.pauseBtn, pressed && { opacity: 0.7 }]} disabled={saving} onPress={handlePause}>
+              <Text style={styles.pauseText}>{t('partenaires.pauseMine', { defaultValue: 'Mettre ma dispo en pause' })}</Text>
+            </Pressable>
+            <Text style={styles.pauseHint}>{t('partenaires.pauseHint', { defaultValue: 'En pause, tu n’apparais plus et tu ne vois plus les dispos des autres. Tu la remets en ligne quand tu veux.' })}</Text>
+          </>
+        ) : null}
       </View>
     </View>
   );
@@ -338,4 +375,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
+  pauseBtn: { backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  pauseText: { color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '700' },
+  pauseHint: { color: colors.textSecondary, fontSize: fontSizes.xs, textAlign: 'center' },
 });
