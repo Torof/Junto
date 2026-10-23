@@ -13,14 +13,26 @@ import { conversationService } from '@/services/conversation-service';
 import { invitationService } from '@/services/invitation-service';
 import { supabase } from '@/services/supabase';
 
+// Active tab: the icon sits in a light accent pill (Scott 2026-10-23, option B).
+function TabPill({ focused, children }: { focused: boolean; children: React.ReactNode }) {
+  const colors = useColors();
+  return (
+    <View style={{ width: 58, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? colors.cta + '24' : 'transparent' }}>
+      {children}
+    </View>
+  );
+}
+
 function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: boolean }) {
   const colors = useColors();
   return (
-    <IconComponent
-      size={26}
-      color={focused ? colors.cta : colors.textSecondary}
-      strokeWidth={focused ? 2.4 : 2}
-    />
+    <TabPill focused={focused}>
+      <IconComponent
+        size={24}
+        color={focused ? colors.cta : colors.textSecondary}
+        strokeWidth={focused ? 2.4 : 2}
+      />
+    </TabPill>
   );
 }
 
@@ -56,10 +68,12 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
     || (notifCount ?? 0) > 0;
 
   return (
-    <View style={styles.bellContainer}>
-      <MessageCircle size={26} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
-      {hasUnread && <View style={styles.dot} />}
-    </View>
+    <TabPill focused={focused}>
+      <View style={styles.bellContainer}>
+        <MessageCircle size={24} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
+        {hasUnread && <View style={styles.dot} />}
+      </View>
+    </TabPill>
   );
 }
 
@@ -152,8 +166,8 @@ export default function TabsLayout() {
           paddingTop: 8,
         },
         tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-        tabBarActiveTintColor: colors.cta,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarActiveTintColor: colors.textPrimary,
         tabBarInactiveTintColor: colors.textSecondary,
         headerStyle: {
           backgroundColor: colors.background,

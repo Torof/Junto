@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
+import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
@@ -129,35 +130,35 @@ export function MenuSheet({ open, onClose }: Props) {
           <View style={styles.divider} />
 
           <MenuItem
-            icon={<CalendarDays size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<CalendarDays size={20} color={colors.cta} strokeWidth={2.2} />}
             label={t('menu.mesActivites', { defaultValue: 'Mes sorties' })}
             onPress={() => go('/(auth)/(tabs)/mes-activites')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Radar size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<Radar size={20} color={SPORT_CATEGORY_COLORS.water} strokeWidth={2.2} />}
             label={t('menu.alerts', { defaultValue: 'Alertes' })}
             onPress={() => go('/(auth)/create-alert')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Route size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<Route size={20} color={SPORT_CATEGORY_COLORS.mountain} strokeWidth={2.2} />}
             label={t('menu.gpxTraces', { defaultValue: 'Traces GPX' })}
             onPress={() => go('/(auth)/gpx-traces')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<CalendarCheck size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<CalendarCheck size={20} color={SPORT_CATEGORY_COLORS.air} strokeWidth={2.2} />}
             label={t('menu.myBookings', { defaultValue: 'Mes réservations' })}
             onPress={() => go('/(auth)/my-bookings')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Bookmark size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<Bookmark size={20} color={colors.warning} strokeWidth={2.2} />}
             label={t('menu.favorites', { defaultValue: 'Favoris' })}
             onPress={() => go('/(auth)/favorites')}
             styles={styles}
@@ -204,7 +205,7 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           )}
           <MenuItem
-            icon={<Settings size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+            icon={<Settings size={20} color={SPORT_CATEGORY_COLORS.cycling} strokeWidth={2.2} />}
             label={t('menu.settings', { defaultValue: 'Paramètres' })}
             onPress={() => {
               modalRef.current?.dismiss();
