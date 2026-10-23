@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg from 'react-native-svg';
 import { Lock } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -11,15 +11,17 @@ import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { type NearbyActivity } from '@/services/activity-service';
 import {
-  PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
 } from '@/constants/pin-style';
+import { PinBody } from '@/components/pin-body';
 
 interface ActivityPinProps {
   activity: NearbyActivity;
 }
 
-// Pin restyle 2026-10-16 (see constants/pin-style.ts): no ink outline, soft
-// shadow drawn in the SVG, rounded tip, universe-colour body, white glyph.
+// Pin restyle 2026-10-16 (see constants/pin-style.ts): soft shadow drawn in
+// the SVG, rounded tip, universe-colour body, white glyph; 2026-10-23: white
+// outline + two-layer shadow (components/pin-body.tsx).
 // The design space stays the historical 54-wide drop so the on-map size is
 // unchanged (40 px wide).
 const DESIGN_W = 54;
@@ -57,21 +59,7 @@ export function ActivityPin({ activity }: ActivityPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <Defs>
-          {/* Only FeGaussianBlur is implemented natively (react-native-svg 15):
-              the shadow is a blurred dark copy of the shape, offset downward. */}
-          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
-            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
-          </Filter>
-        </Defs>
-        <Path
-          d={PIN_DROP_PATH}
-          fill={PIN_SHADOW.color}
-          opacity={PIN_SHADOW.opacity}
-          transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
-          filter="url(#pinBlur)"
-        />
-        <Path d={PIN_DROP_PATH} fill={bodyColor} />
+        <PinBody fill={bodyColor} />
       </Svg>
       <View style={styles.plateClip}>
         {hasSportIcon(activity.sport_key) ? (

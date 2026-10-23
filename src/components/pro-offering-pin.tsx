@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Rect, G, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg, { Rect, G, Text as SvgText } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getSportIcon } from '@/constants/sport-icons';
@@ -8,8 +8,9 @@ import { SportIcon } from '@/components/sport-icon';
 import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type ProOffering } from '@/services/pro-offering-service';
 import {
-  PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
 } from '@/constants/pin-style';
+import { PinBody } from '@/components/pin-body';
 
 interface ProOfferingPinProps {
   offering: ProOffering;
@@ -47,20 +48,8 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <Defs>
-          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
-            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
-          </Filter>
-        </Defs>
         <G transform={`translate(${DROP_OFFSET} 0)`}>
-          <Path
-            d={PIN_DROP_PATH}
-            fill={PIN_SHADOW.color}
-            opacity={PIN_SHADOW.opacity}
-            transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
-            filter="url(#pinBlur)"
-          />
-          <Path d={PIN_DROP_PATH} fill={blue} />
+          <PinBody fill={blue} />
         </G>
         {/* « PRO » capsule: white on the blue body. */}
         <Rect

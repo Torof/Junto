@@ -1,13 +1,14 @@
 import { useMemo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import Svg, { Path, Circle, G, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg, { Path, Circle, G } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import {
-  PIN_DROP_PATH, PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PIN_SHADOW,
+  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
 } from '@/constants/pin-style';
+import { PinBody } from '@/components/pin-body';
 
 interface ProPinProps {
   displayName: string;
@@ -91,19 +92,7 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <Defs>
-          <Filter id="pinBlur" x="-30%" y="-30%" width="160%" height="170%">
-            <FeGaussianBlur stdDeviation={PIN_SHADOW.blur} />
-          </Filter>
-        </Defs>
-        <Path
-          d={PIN_DROP_PATH}
-          fill={PIN_SHADOW.color}
-          opacity={PIN_SHADOW.opacity}
-          transform={`translate(${PIN_SHADOW.dx} ${PIN_SHADOW.dy})`}
-          filter="url(#pinBlur)"
-        />
-        <Path d={PIN_DROP_PATH} fill={colors.pinBackground} />
+        <PinBody fill={colors.pinBackground} />
         {discColor && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} fill={discColor} />}
         {glyph && (
           <G transform={`translate(${PIN_HEAD_CX} ${PIN_HEAD_CY}) scale(${GLYPH_SCALE}) translate(-${PIN_HEAD_CX} -${PIN_HEAD_CY})`}>{glyph}</G>
