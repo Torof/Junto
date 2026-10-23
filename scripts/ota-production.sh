@@ -20,7 +20,9 @@ python3 - "$HEAD_SHA" <<'PY' || { echo "ARRÊT : ce commit ($HEAD_SHA) ne corres
 import json, subprocess, sys
 def eas_json(*args):
     out = subprocess.run(['npx', 'eas', *args, '--json', '--non-interactive'], capture_output=True, text=True).stdout
-    return json.loads(out[out.find('[') if out.find('[') != -1 and (out.find('{') == -1 or out.find('[') < out.find('{')) else out.find('{'):])
+    # eas prints an upgrade banner before the JSON: start at the first line opening it.
+    start = next(i for i, line in enumerate(out.splitlines()) if line[:1] in '[{')
+    return json.loads('\n'.join(out.splitlines()[start:]))
 groups = [u['group'] for u in eas_json('update:list', '--branch', 'preview', '--limit', '5')['currentPage']]
 APP_PATHS = ['app', 'src', 'assets', 'app.config.ts', 'package.json', 'package-lock.json', 'babel.config.js', 'metro.config.js']
 for g in groups:
