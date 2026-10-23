@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "push:templates": "node scripts/build-push-templates.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"app/**/*.{ts,tsx}\"",
-    "test:db": "node scripts/db-test.mjs"
+    "test:db": "node scripts/db-test.mjs",
+    "test:edge": "bash scripts/edge-smoke.sh"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.9",
