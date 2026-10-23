@@ -1423,7 +1423,9 @@ Status `removed` est final. `join_activity` rejette si participation existante =
 | Liste participants | Unidirectionnel (compteur reste exact) |
 | Demandes de place (covoiturage) | Bidirectionnel (00534, via `blocked_either_way`) |
 | Demande en attente chez l'autre | L'organisateur qui bloque refuse la demande ; la personne qui bloque l'organisateur **retire** la sienne (00541, pas de refus inscrit à son nom) |
-| Reviews / reputation_votes | Unidirectionnel à l'affichage, comptent dans la moyenne globale |
+| Reviews pro | **Aucun filtre** (décision : bloquer ses critiques ne doit pas les effacer — voir « Décisions structurantes » des avis) |
+| reputation_votes | Comptent dans la moyenne globale |
+| Membres d'une discussion | Unidirectionnel (00546), sauf pour l'animateur qui doit pouvoir exclure |
 
 ### Account enumeration
 Supabase Auth configuré pour retourner des messages uniformes (login + inscription).

@@ -426,3 +426,17 @@ UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('c18_pro');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('c18_x');
 PERFORM pg_temp.eq('C18 pro suspendu : les avis de ses offres disparaissent', format($$SELECT count(*)::text FROM public.offering_reviews WHERE offering_id = %L$$, pg_temp.get('c18_off')), '0');
+
+-- ═════ C19 — La liste des membres d'une discussion masque ceux qu'on a bloqués (00546) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c19_own', 'tos'); PERFORM pg_temp.user('c19_bob', 'tos'); PERFORM pg_temp.user('c19_troll', 'tos');
+PERFORM pg_temp.as_('c19_own');
+PERFORM pg_temp.put('c19_ch', pg_temp.ok('C19 ouverture d''une discussion', $$SELECT conversation_id::text FROM public.create_channel('Canal C19', -145, -45, 'Océan', 35, NULL, NULL, NULL, true)$$));
+PERFORM pg_temp.as_('c19_bob'); PERFORM pg_temp.ok('C19 bob rejoint', format($$SELECT public.join_channel(%L)::text$$, pg_temp.get('c19_ch')));
+PERFORM pg_temp.as_('c19_troll'); PERFORM pg_temp.ok('C19 le troll rejoint', format($$SELECT public.join_channel(%L)::text$$, pg_temp.get('c19_ch')));
+PERFORM pg_temp.as_('c19_bob');
+PERFORM pg_temp.ok('C19 bob bloque le troll', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c19_bob'), pg_temp.id('c19_troll')));
+PERFORM pg_temp.eq('C19 bob ne voit plus le troll dans la liste', format($$SELECT count(*)::text FROM public.get_channel_members(%L) WHERE user_id = %L$$, pg_temp.get('c19_ch'), pg_temp.id('c19_troll')), '0');
+PERFORM pg_temp.as_('c19_own');
+PERFORM pg_temp.ok('C19 l''animatrice bloque aussi le troll', format($$INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (%L, %L)$$, pg_temp.id('c19_own'), pg_temp.id('c19_troll')));
+PERFORM pg_temp.eq('C19 l''animatrice le voit toujours, pour pouvoir l''exclure', format($$SELECT count(*)::text FROM public.get_channel_members(%L) WHERE user_id = %L$$, pg_temp.get('c19_ch'), pg_temp.id('c19_troll')), '1');
