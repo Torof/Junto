@@ -528,7 +528,6 @@
     "discovery": "Découverte",
     "channels": "Discussions",
     "title": "Partenaires",
-    "zoneAround": "Autour de {{place}} · {{radius}}",
     "zoneMe": "Autour de toi",
     "pausedTitle": "Ta dispo est en pause",
     "pause": "Mettre en pause",
@@ -574,8 +573,6 @@
     "pauseHint": "En pause, tu n’apparais plus et tu ne vois plus les dispos des autres. Tu la remets en ligne quand tu veux.",
     "pausedToast": "Ta dispo est en pause",
     "byUniverse": "Qui est dispo, par sport",
-    "byUniverseSub": "Les personnes dispos, sport par sport.",
-    "discussionsSub": "Les tiennes, près de chez toi, et ailleurs.",
     "badgeNear": "Près de toi",
     "badgeElsewhere": "Ailleurs",
     "searchEverywhere": "Cherche partout : un lieu, un sport, un nom…",
@@ -583,7 +580,10 @@
     "aroundMe": "Autour de moi",
     "aroundMyDispo": "Autour de ma dispo",
     "sortNear": "Autour de {{place}} · les plus proches d’abord",
-    "sortActive": "Partout · les plus suivies d’abord"
+    "sortActive": "Partout · les plus suivies d’abord",
+    "lineLive": "Ta dispo · en ligne",
+    "linePaused": "Ta dispo · en pause",
+    "lineEmptySub": "Un sport, une zone, des dates — et vois qui cherche la même chose."
   },
   "menu": {
     "becomeProSub": "Ta page, tes sorties, tes réservations",

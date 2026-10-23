@@ -20,10 +20,12 @@ export const formatPeriod = (start: string, end: string) =>
 // Compact match card (Partenaires refonte 2026-10-23): enough to want more —
 // photo, name, reliability, distance, dates, sports, one line — the full card
 // opens on tap. Fixed width in the carousel, full width in « Tout voir ».
-export const DispoCardCompact = memo(function DispoCardCompact({ card, categoryOf, width, onPress }: {
+export const DispoCardCompact = memo(function DispoCardCompact({ card, categoryOf, width, showVibes, onPress }: {
   card: DiscoveryCard;
   categoryOf: (sportKey: string) => string | undefined;
   width?: number;
+  // Découverte page: the vibes line under the intro (the home stays shorter).
+  showVibes?: boolean;
   onPress: () => void;
 }) {
   const colors = useColors();
@@ -77,7 +79,8 @@ export const DispoCardCompact = memo(function DispoCardCompact({ card, categoryO
 
       {card.about ? (
         <Text style={styles.about} numberOfLines={2}>« {card.about} »</Text>
-      ) : card.intent && card.intent.length > 0 ? (
+      ) : null}
+      {(showVibes || !card.about) && card.intent && card.intent.length > 0 ? (
         <Text style={styles.about} numberOfLines={1}>
           {card.intent.slice(0, 3).map((it) => t(`discovery.intent.${it}`, { defaultValue: INTENT_LABEL[it] })).join('   ')}
         </Text>

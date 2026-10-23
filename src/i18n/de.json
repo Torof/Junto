@@ -528,7 +528,6 @@
     "discovery": "Entdecken",
     "channels": "Diskussionen",
     "title": "Partner",
-    "zoneAround": "Rund um {{place}} · {{radius}}",
     "zoneMe": "In deiner Nähe",
     "pausedTitle": "Deine Verfügbarkeit ist pausiert",
     "pause": "Pausieren",
@@ -574,8 +573,6 @@
     "pauseHint": "Pausiert erscheinst du nicht mehr und siehst die Verfügbarkeiten anderer nicht. Stell sie wieder online, wann du willst.",
     "pausedToast": "Deine Verfügbarkeit ist pausiert",
     "byUniverse": "Wer ist verfügbar, nach Sport",
-    "byUniverseSub": "Verfügbare Leute, Sport für Sport.",
-    "discussionsSub": "Deine, in deiner Nähe und anderswo.",
     "badgeNear": "In deiner Nähe",
     "badgeElsewhere": "Anderswo",
     "searchEverywhere": "Überall suchen: ein Ort, ein Sport, ein Name…",
@@ -583,7 +580,10 @@
     "aroundMe": "Um mich herum",
     "aroundMyDispo": "Rund um meine Verfügbarkeit",
     "sortNear": "Rund um {{place}} · die nächsten zuerst",
-    "sortActive": "Überall · die meistgefolgten zuerst"
+    "sortActive": "Überall · die meistgefolgten zuerst",
+    "lineLive": "Deine Verfügbarkeit · online",
+    "linePaused": "Deine Verfügbarkeit · pausiert",
+    "lineEmptySub": "Ein Sport, ein Gebiet, ein Zeitraum — und sieh, wer dasselbe sucht."
   },
   "menu": {
     "becomeProSub": "Deine Seite, deine Touren, deine Buchungen",

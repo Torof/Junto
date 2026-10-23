@@ -528,7 +528,6 @@
     "discovery": "Discovery",
     "channels": "Discussions",
     "title": "Partners",
-    "zoneAround": "Around {{place}} · {{radius}}",
     "zoneMe": "Around you",
     "pausedTitle": "Your availability is paused",
     "pause": "Pause",
@@ -574,8 +573,6 @@
     "pauseHint": "While paused, you don't appear and you don't see others' availabilities. Put it back online whenever you want.",
     "pausedToast": "Your availability is paused",
     "byUniverse": "Who's available, by sport",
-    "byUniverseSub": "People available, sport by sport.",
-    "discussionsSub": "Yours, near you, and elsewhere.",
     "badgeNear": "Near you",
     "badgeElsewhere": "Elsewhere",
     "searchEverywhere": "Search anywhere: a place, a sport, a name…",
@@ -583,7 +580,10 @@
     "aroundMe": "Around me",
     "aroundMyDispo": "Around my availability",
     "sortNear": "Around {{place}} · closest first",
-    "sortActive": "Everywhere · most followed first"
+    "sortActive": "Everywhere · most followed first",
+    "lineLive": "Your availability · online",
+    "linePaused": "Your availability · paused",
+    "lineEmptySub": "A sport, an area, some dates — and see who's after the same thing."
   },
   "menu": {
     "becomeProSub": "Your page, your outings, your bookings",
