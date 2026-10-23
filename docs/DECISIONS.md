@@ -493,3 +493,9 @@ Règles verrouillées :
 **Contexte :** ajouté en avril sur recommandation, utilisé surtout en mai pour déboguer la présence en arrière-plan. Scott ne l'a jamais consulté. En production il était éteint sans consentement explicite, donc quasi aveugle ; il laissait pourtant partir des positions dans les fils d'Ariane réseau et ajoutait un prestataire, un réglage de consentement et du code natif.
 
 **Décision :** retrait complet (module, plugin de build, 73 appels de diagnostic, réglage « rapports de plantage », mentions de la politique de confidentialité). Les plantages et blocages viennent de la console Google Play (Android vitals). À reconsidérer seulement si des plantages JavaScript inexpliqués apparaissent après le lancement.
+
+## 2026-10-23 — Pin de carte : liseré blanc + ombre en deux couches (version de référence)
+
+**Contexte :** le pin du 16 octobre (plein couleur, ombre douce, sans bord) se fondait dans la carte : pin vert montagne sur la forêt du fond Outdoors, couleurs sombres sur le satellite. Maquette comparative (canevas « Pins », tableau « Contraste ») : A liseré blanc fin, B liseré marqué + ombre nette, C halo, D liseré sombre.
+
+**Décision (Scott) :** A + l'ombre de B — liseré blanc ≈ 1,5 px à l'écran, ombre courte et nette sous le pin + ombre large et légère. Appliqué aux trois pins (sortie, sortie pro, page pro) par un composant commun `PinBody` ; réglages dans `constants/pin-style.ts`. Scott : « la meilleure version qu'on a jamais eue », visible partout sans prendre toute la place, l'air posé sur la carte. **C'est la référence : ne pas la retoucher sans demande explicite.** Les petites cartes secondaires (pin GL simplifié) n'ont pas été alignées.
