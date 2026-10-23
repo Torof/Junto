@@ -139,7 +139,7 @@ export default function LaunchDemo() {
                 {/* The app's on-map label: no box — the title in the universe
                     colour, then 📅 when and 📊 level, haloed in white. */}
                 <div className="l-map-label">
-                  <span className="t" style={{ color }}>{pvTitle}</span>
+                  <span className="t" style={{ color: sport ? color : '#1F1A15' }}>{pvTitle}</span>
                   <span className="s"><img src="/label-cal.png" alt="" />{whenLabel}</span>
                   <span className="s"><img src="/label-level.png" alt="" />{levelLabel}</span>
                 </div>
