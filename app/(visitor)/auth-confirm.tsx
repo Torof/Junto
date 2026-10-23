@@ -25,8 +25,6 @@ export default function AuthConfirmScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     token_hash?: string;
-    access_token?: string;
-    refresh_token?: string;
     type?: string;
   }>();
 
@@ -35,9 +33,9 @@ export default function AuthConfirmScreen() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Only the one-time code (see reset-password): raw session tokens in a
+      // link are refused (audit L2).
       const tokenHash = typeof params.token_hash === 'string' ? params.token_hash : null;
-      const accessToken = typeof params.access_token === 'string' ? params.access_token : null;
-      const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null;
 
       // A sign-in link must never silently switch an open session to another
       // account (audit CL-1: a link carrying someone else's tokens would log
@@ -51,8 +49,6 @@ export default function AuthConfirmScreen() {
       try {
         if (tokenHash) {
           await authService.verifySignupToken(tokenHash);
-        } else if (accessToken && refreshToken) {
-          await authService.setRecoverySession(accessToken, refreshToken);
         } else {
           if (!cancelled) setPhase('invalid');
           return;
@@ -67,7 +63,7 @@ export default function AuthConfirmScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [params.token_hash, params.access_token, params.refresh_token, router]);
+  }, [params.token_hash, router]);
 
   if (phase === 'signedIn') {
     return (

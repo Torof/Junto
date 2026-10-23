@@ -12,25 +12,11 @@ export default function ResetPasswordBridge() {
     if (typeof window === 'undefined') return;
 
     const url = new URL(window.location.href);
-    const hash = window.location.hash.startsWith('#')
-      ? new URLSearchParams(window.location.hash.slice(1))
-      : new URLSearchParams();
-
-    // Two shapes Supabase can deliver:
-    //   a) query: ?token_hash=...&type=recovery  (template uses {{ .TokenHash }})
-    //   b) fragment: #access_token=...&refresh_token=...&type=recovery
-    //      (template uses {{ .ConfirmationURL }} → Supabase verify → redirect)
+    // Only the one-time code is relayed (email templates use {{ .TokenHash }}
+    // since 2026-10-23); a link carrying raw session tokens is ignored.
     const tokenHash = url.searchParams.get('token_hash');
-    const accessToken = hash.get('access_token');
-    const refreshToken = hash.get('refresh_token');
-    const type = url.searchParams.get('type') ?? hash.get('type') ?? 'recovery';
-
-    let params: URLSearchParams | null = null;
-    if (tokenHash) {
-      params = new URLSearchParams({ token_hash: tokenHash, type });
-    } else if (accessToken && refreshToken) {
-      params = new URLSearchParams({ access_token: accessToken, refresh_token: refreshToken, type });
-    }
+    const type = url.searchParams.get('type') ?? 'recovery';
+    const params = tokenHash ? new URLSearchParams({ token_hash: tokenHash, type }) : null;
 
     if (!params) {
       setDeepLink('');

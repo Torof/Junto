@@ -57,20 +57,10 @@ export const authService = {
     return data;
   },
 
-  setRecoverySession: async (accessToken: string, refreshToken: string) => {
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    if (error) throw error;
-    return data;
-  },
-
   // Signup email confirmation — mirrors verifyRecoveryToken. The web
   // /auth/callback bridge forwards the token here via junto://auth-confirm
   // so the confirmation link logs the user straight into the app (no
-  // re-entering credentials right after registering). Both delivery shapes
-  // are supported: token_hash (verifyOtp) and access/refresh (setSession).
+  // re-entering credentials right after registering). One-time code only.
   verifySignupToken: async (tokenHash: string) => {
     const { data, error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,

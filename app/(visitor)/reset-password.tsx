@@ -24,8 +24,6 @@ export default function ResetPasswordScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     token_hash?: string;
-    access_token?: string;
-    refresh_token?: string;
     type?: string;
   }>();
 
@@ -38,9 +36,10 @@ export default function ResetPasswordScreen() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Only the one-time code (email templates use {{ .TokenHash }} since
+      // 2026-10-23): a link carrying raw session tokens is refused, so nobody
+      // can drop someone else's session into this device (audit L2).
       const tokenHash = typeof params.token_hash === 'string' ? params.token_hash : null;
-      const accessToken = typeof params.access_token === 'string' ? params.access_token : null;
-      const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null;
 
       // A sign-in link must never silently switch an open session to another
       // account (audit CL-1: a link carrying someone else's tokens would log
@@ -54,8 +53,6 @@ export default function ResetPasswordScreen() {
       try {
         if (tokenHash) {
           await authService.verifyRecoveryToken(tokenHash);
-        } else if (accessToken && refreshToken) {
-          await authService.setRecoverySession(accessToken, refreshToken);
         } else {
           if (!cancelled) setPhase('invalid');
           return;
@@ -66,7 +63,7 @@ export default function ResetPasswordScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [params.token_hash, params.access_token, params.refresh_token]);
+  }, [params.token_hash]);
 
   const handleSubmit = async () => {
     setError(null);
