@@ -138,13 +138,27 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       // members see. Best effort — never block the save on it.
       // Commune level only, 3 s at most; on failure keep the commune saved
       // earlier for the same point (never wipe it because the lookup failed).
-      const samePoint = myTransport && myTransport.transport_from_lat === fromLat && myTransport.transport_from_lng === fromLng;
+      // A start typed by hand has no point: it is looked up like the place
+      // search would, and only its commune is kept (Scott 2026-10-23 — else
+      // nobody but the passengers would see where the car leaves from).
+      const typedOnly = fromLat == null || fromLng == null;
+      const samePoint = myTransport && myTransport.transport_from_lat === fromLat && myTransport.transport_from_lng === fromLng
+        && (!typedOnly || myTransport.transport_from_name === fromName.trim());
       let fromLocality: string | null = samePoint ? (myTransport?.transport_from_locality ?? null) : null;
-      if (fromName.trim() && fromLat != null && fromLng != null) {
+      if (fromName.trim()) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 3000);
+        const timer = setTimeout(() => ctrl.abort(), typedOnly ? 4000 : 3000);
         try {
-          fromLocality = (await geocodeService.reverseCommune(fromLat, fromLng, ctrl.signal)) ?? fromLocality;
+          let lat = fromLat;
+          let lng = fromLng;
+          if (typedOnly) {
+            const [hit] = await geocodeService.searchPlaces(fromName, undefined, ctrl.signal);
+            lat = hit?.lat ?? null;
+            lng = hit?.lng ?? null;
+          }
+          if (lat != null && lng != null) {
+            fromLocality = (await geocodeService.reverseCommune(lat, lng, ctrl.signal)) ?? fromLocality;
+          }
         } catch { /* keep the previous commune for the same point */ } finally {
           clearTimeout(timer);
         }
