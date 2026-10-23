@@ -10,7 +10,6 @@ import dayjs from 'dayjs';
 import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
-import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { userService } from '@/services/user-service';
@@ -131,35 +130,36 @@ export function MenuSheet({ open, onClose }: Props) {
           <View style={styles.divider} />
 
           <MenuItem
-            icon={<CalendarDays size={20} color={colors.cta} strokeWidth={2.2} />}
+            icon={<CalendarDays size={20} color={colors.onCta} strokeWidth={2.2} />}
+            accent
             label={t('menu.mesActivites', { defaultValue: 'Mes sorties' })}
             onPress={() => go('/(auth)/(tabs)/mes-activites')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Radar size={20} color={SPORT_CATEGORY_COLORS.water} strokeWidth={2.2} />}
+            icon={<Radar size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.alerts', { defaultValue: 'Alertes' })}
             onPress={() => go('/(auth)/create-alert')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Route size={20} color={SPORT_CATEGORY_COLORS.mountain} strokeWidth={2.2} />}
+            icon={<Route size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.gpxTraces', { defaultValue: 'Traces GPX' })}
             onPress={() => go('/(auth)/gpx-traces')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<CalendarCheck size={20} color={SPORT_CATEGORY_COLORS.air} strokeWidth={2.2} />}
+            icon={<CalendarCheck size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.myBookings', { defaultValue: 'Mes réservations' })}
             onPress={() => go('/(auth)/my-bookings')}
             styles={styles}
             colors={colors}
           />
           <MenuItem
-            icon={<Bookmark size={20} color={colors.warning} strokeWidth={2.2} />}
+            icon={<Bookmark size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.favorites', { defaultValue: 'Favoris' })}
             onPress={() => go('/(auth)/favorites')}
             styles={styles}
@@ -171,7 +171,7 @@ export function MenuSheet({ open, onClose }: Props) {
               no more « Devenir pro » buried in Paramètres › Compte. */}
           {isApprovedPro ? (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={colors.textPrimary} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
               badge={proBadge > 0 ? String(proBadge) : null}
               onPress={() => go('/(auth)/pro/espace')}
@@ -180,7 +180,7 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           ) : proProfile?.status === 'pending' ? (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={colors.textPrimary} strokeWidth={2.2} />}
               label={t('pro.statusPending', { defaultValue: 'Demande pro en attente' })}
               sub={t('pro.statusPendingSub', { defaultValue: 'On te prévient dès qu’elle est validée' })}
               onPress={() => go('/(auth)/pro/edit')}
@@ -197,7 +197,7 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           ) : (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={colors.textPrimary} strokeWidth={2.2} />}
               label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
               sub={t('menu.becomeProSub', { defaultValue: 'Ta page, tes sorties, tes réservations' })}
               onPress={() => go('/(auth)/pro/edit')}
@@ -206,7 +206,7 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           )}
           <MenuItem
-            icon={<Settings size={20} color={SPORT_CATEGORY_COLORS.cycling} strokeWidth={2.2} />}
+            icon={<Settings size={20} color={colors.textPrimary} strokeWidth={2.2} />}
             label={t('menu.settings', { defaultValue: 'Paramètres' })}
             onPress={() => {
               modalRef.current?.dismiss();
@@ -225,7 +225,7 @@ export function MenuSheet({ open, onClose }: Props) {
               await authService.signOut();
             }}
           >
-            <View style={styles.itemIcon}>
+            <View style={[styles.itemIcon, { backgroundColor: colors.error + '14' }]}>
               <LogOut size={20} color={colors.error} strokeWidth={2.2} />
             </View>
             <AppText style={[styles.itemLabel, { color: colors.error }]}>
@@ -245,6 +245,7 @@ function MenuItem({
   label,
   sub,
   badge,
+  accent,
   onPress,
   styles,
   colors,
@@ -253,13 +254,14 @@ function MenuItem({
   label: string;
   sub?: string;
   badge?: string | null;
+  accent?: boolean;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
 }) {
   return (
     <Pressable style={styles.item} onPress={onPress}>
-      <View style={styles.itemIcon}>{icon}</View>
+      <View style={[styles.itemIcon, accent && styles.itemIconAccent]}>{icon}</View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <AppText style={styles.itemLabel}>{label}</AppText>
         {sub ? <AppText style={styles.itemSub} numberOfLines={1}>{sub}</AppText> : null}
@@ -309,9 +311,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
   },
-  itemIcon: { width: 26, alignItems: 'center' },
+  // Neutral rounded squares, only « Mes sorties » in the accent (Scott
+  // 2026-10-23, options G + C — one colour per entry read as a rainbow).
+  itemIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
+  itemIconAccent: { backgroundColor: colors.cta },
   itemLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   itemSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   itemBadge: {
