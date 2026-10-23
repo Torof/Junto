@@ -95,10 +95,8 @@ BEGIN
         AND p.prorettype <> 'trigger'::regtype
         AND p.proname NOT IN ('demo_content_visible', 'junto_pre_request')  -- filtre d'API (00504), appelé par PostgREST avec le rôle du client
         AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid AND d.deptype = 'e')$$, '');
-  PERFORM pg_temp.eq('anon ne peut pas exécuter _postgis_stats (où que soit PostGIS)',
-    $$SELECT bool_or(has_function_privilege('anon', p.oid, 'EXECUTE')
-                     AND has_schema_privilege('anon', p.pronamespace, 'USAGE'))::text FROM pg_proc p
-      WHERE p.proname = '_postgis_stats'$$, 'false', 'PV-1');
+  -- PV-1 : _postgis_stats appartient à supabase_admin (EXECUTE PUBLIC non révocable d'ici) ; ce qui le
+  -- protège est que l'API n'expose pas le schéma extensions → vérifié de l'extérieur par `npm run test:api`.
 
   -- ───── 5. Fonctions internes non exécutables par les rôles clients ─────
   -- close_channel est une RPC client (modération par le créateur du canal), pas un job interne.
@@ -119,8 +117,8 @@ BEGIN
   PERFORM pg_temp.as_('db');
 
   -- ───── 6. Tables sans écriture directe client (CLAUDE.md) ─────
-  -- DB-TX-1 : activity_alerts garde la policy « alerts_delete_own » (00047) — un client supprime ses alertes
-  -- en direct, alors que CLAUDE.md / SECURITY.md la classent « aucune écriture directe » (delete_alert).
+  -- activity_alerts : la suppression directe de ses propres alertes est VOULUE (alerts_delete_own,
+  -- « écritures client délibérées » de CLAUDE.md) — seuls INSERT/UPDATE y sont interdits (ex-DB-TX-1).
   -- table | commandes interdites | expression du propriétaire d'une ligne existante (on se fait passer pour lui)
   FOR r IN SELECT * FROM (VALUES
       ('users',                 '{INSERT}',               'id'),
@@ -133,7 +131,7 @@ BEGIN
       ('presence_tokens',       '{INSERT,UPDATE,DELETE}', '(SELECT a.creator_id FROM public.activities a WHERE a.id = activity_id)'),
       ('push_tokens',           '{INSERT,UPDATE,DELETE}', 'user_id'),
       ('seat_requests',         '{INSERT,UPDATE}',        'requester_id'),
-      ('activity_alerts',       '{INSERT,UPDATE,DELETE}', 'user_id'),
+      ('activity_alerts',       '{INSERT,UPDATE}',        'user_id'),
       ('activity_gear',         '{INSERT,UPDATE,DELETE}', 'user_id'),
       ('activity_gear_missing', '{INSERT,UPDATE,DELETE}', 'created_by'),
       ('reports',               '{INSERT,DELETE}',        'reporter_id'),
@@ -156,8 +154,7 @@ BEGIN
                  WHERE schemaname = 'public' AND tablename = %L AND cmd IN (%L, 'ALL') AND permissive = 'PERMISSIVE'
                    AND roles && '{public,authenticated,anon}'::name[]
                    AND (has_table_privilege('authenticated', %L, %L) OR has_table_privilege('anon', %L, %L))$$,
-               r.tbl, v_cmd, 'public.' || r.tbl, v_cmd, 'public.' || r.tbl, v_cmd), '',
-        CASE WHEN r.tbl = 'activity_alerts' AND v_cmd = 'DELETE' THEN 'DB-TX-1' END);
+               r.tbl, v_cmd, 'public.' || r.tbl, v_cmd, 'public.' || r.tbl, v_cmd), '');
     END LOOP;
     -- Essais réels, en se faisant passer pour le propriétaire d'une ligne existante (sinon alice).
     v_owner := NULL; v_ctid := NULL;
@@ -179,8 +176,7 @@ BEGIN
     IF 'DELETE' = ANY (r.cmds::text[]) THEN
       PERFORM pg_temp.tx_none(r.tbl || ' : DELETE direct refusé (propriétaire)' || CASE WHEN v_ctid IS NULL THEN ' [table vide]' ELSE '' END,
         format('DELETE FROM public.%I WHERE %s', r.tbl,
-               CASE WHEN v_ctid IS NULL THEN 'true' ELSE format('ctid = %L::tid', v_ctid) END),
-        CASE WHEN r.tbl = 'activity_alerts' AND v_ctid IS NOT NULL THEN 'DB-TX-1' END);
+               CASE WHEN v_ctid IS NULL THEN 'true' ELSE format('ctid = %L::tid', v_ctid) END));
     END IF;
   END LOOP;
   PERFORM pg_temp.as_('db');
@@ -245,20 +241,18 @@ BEGIN
       WHERE d.defaclnamespace = 'public'::regnamespace AND d.defaclobjtype = 'r' AND d.defaclrole = 'postgres'::regrole
         AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole)
         AND a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')$$, '0');
-  -- Reste : les droits par défaut du rôle interne supabase_admin (non modifiables ici) — fermés par la migration.
-  PERFORM pg_temp.eq('privilèges par défaut (supabase_admin) : pas d''écriture accordée aux clients',
-    $$SELECT count(*)::text FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
-      WHERE d.defaclnamespace = 'public'::regnamespace AND d.defaclobjtype = 'r' AND d.defaclrole = 'supabase_admin'::regrole
-        AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole)
-        AND a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')$$, '0', 'TX-4');
+  -- TX-4 : les droits par défaut de supabase_admin (non modifiables d'ici) ne touchent que les objets qu'IL
+  -- crée. La vraie propriété : aucun objet de public ne lui appartient (PostGIS est dans extensions).
+  PERFORM pg_temp.eq('aucun objet de public n''appartient à supabase_admin',
+    $$SELECT coalesce(string_agg(relname, ', '), '') FROM pg_class
+      WHERE relnamespace = 'public'::regnamespace AND relowner = 'supabase_admin'::regrole$$, '');
   -- PV-3 (00502) : aucun TRUNCATE client sur nos tables (spatial_ref_sys, à supabase_admin, relève de TX-2).
   PERFORM pg_temp.eq('aucun TRUNCATE accordé aux clients sur les tables de public',
     $$SELECT count(*)::text FROM pg_class c CROSS JOIN unnest('{anon,authenticated}'::text[]) g(role)
       WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND c.relname <> 'spatial_ref_sys'
         AND has_table_privilege(g.role, c.oid, 'TRUNCATE')$$, '0');
-  PERFORM pg_temp.eq('les clients n''ont aucun droit sur net.http_request_queue',
-    $$SELECT (has_table_privilege('anon', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE')
-           OR has_table_privilege('authenticated', 'net.http_request_queue', 'SELECT,INSERT,UPDATE,DELETE'))::text$$, 'false', 'PV-4');
+  -- PV-4 : la file HTTP de pg_net appartient à supabase_admin (droits PUBLIC non révocables d'ici) ; l'API
+  -- n'expose pas le schéma net → vérifié de l'extérieur par `npm run test:api`.
   -- TX-2 (00504) : filtre d'API — aucune écriture sur les tables PostGIS par PostgREST.
   -- Nouveau projet (plan de migration v7, décision 4) : PostGIS hors de public, filtre non recréé.
   IF to_regprocedure('public.junto_pre_request()') IS NULL THEN

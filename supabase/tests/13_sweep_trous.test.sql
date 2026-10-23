@@ -402,3 +402,13 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('S12 tables qui exigent un compte finalisé',
   $q$SELECT string_agg(tgrelid::regclass::text, ',' ORDER BY tgrelid::regclass::text) FROM pg_trigger WHERE tgfoid = 'private.require_onboarded_actor'::regproc$q$,
   'activities,bookings,contact_qr_tokens,conversation_members,conversations,discovery_availabilities,gpx_traces,messages,participations,pro_profiles,reputation_votes,seat_requests');
+
+-- ═════ S13 — Alertes : chacun supprime les siennes en direct, pas celles des autres (voulu) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('s13_a', 'tos'); PERFORM pg_temp.user('s13_b', 'tos');
+PERFORM pg_temp.as_('s13_a');
+PERFORM pg_temp.ok('S13 a crée deux alertes', $$SELECT public.create_alert(-146.0, -46.0, 20)::text || public.create_alert(-147.0, -47.0, 20)::text$$);
+PERFORM pg_temp.as_('s13_b');
+PERFORM pg_temp.eq('S13 b ne supprime pas les alertes de a', format($$DELETE FROM public.activity_alerts WHERE user_id = %L$$, pg_temp.id('s13_a')), '0');
+PERFORM pg_temp.as_('s13_a');
+PERFORM pg_temp.eq('S13 a supprime une de ses alertes', $$DELETE FROM public.activity_alerts WHERE ctid = (SELECT ctid FROM public.activity_alerts LIMIT 1)$$, '1');

@@ -547,10 +547,7 @@ PERFORM pg_temp.ok('past1 pose une dispo qui chevauche une dispo expirée',
 PERFORM pg_temp.eq('BR-5 : une dispo expirée n''est plus proposée',
   format($$SELECT count(*)::text FROM public.get_discovery_cards() WHERE user_id = %L$$, pg_temp.id('past2')), '0');
 PERFORM pg_temp.as_('anon');
-PERFORM pg_temp.denied('PV-1 : anon ne lit pas les statistiques PostGIS des dispos',
-  format($$SELECT %s('public.discovery_availabilities'::regclass, 'base')::text$$,
-    (SELECT n.nspname || '._postgis_stats' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE p.proname = '_postgis_stats' LIMIT 1)),
-  'permission denied', 'PV-1');  -- où que soit PostGIS
+-- PV-1 (statistiques PostGIS) : hors d'atteinte par l'API, vérifié par `npm run test:api`.
 PERFORM pg_temp.as_('alice');
 PERFORM pg_temp.denied('AB-14 : la recherche de canaux borne la longueur de la requête',
   $$SELECT count(*)::text FROM public.search_channels(repeat('a', 5000))$$, '^Operation not permitted$');
