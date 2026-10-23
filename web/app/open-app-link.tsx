@@ -14,7 +14,9 @@ const ANDROID_PACKAGE = 'app.getjunto';
 // gesture it opens the app, and falls back to the Play page for the package
 // when the app isn't installed. iOS and desktop keep the raw scheme link.
 function androidIntentHref(deepLink: string): string {
-  const path = deepLink.replace(/^junto:\/\//, '');
+  // A '#' would let a crafted link close our Intent block and open its own
+  // (any package / fallback URL) — never pass one through.
+  const path = deepLink.replace(/^junto:\/\//, '').replace(/#/g, '%23');
   return `intent://${path}#Intent;scheme=junto;package=${ANDROID_PACKAGE};end`;
 }
 

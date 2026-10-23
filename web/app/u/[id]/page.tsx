@@ -1,8 +1,7 @@
 import { OpenAppLink } from '../../open-app-link';
 
 import { APK_DOWNLOAD_URL } from '@/lib/download';
-
-const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+import { UUID_RE } from '@/lib/uuid';
 
 export default async function ContactPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

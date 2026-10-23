@@ -1,12 +1,22 @@
 import { OpenAppLink } from '../../open-app-link';
 
 import { APK_DOWNLOAD_URL } from '@/lib/download';
+import { UUID_RE } from '@/lib/uuid';
 
 // Static teaser — pro_profiles is NOT anon-readable (RLS 00256), so this page
 // can't render the storefront's data. It exists so shared getjunto.app/pro/{id}
 // links land somewhere useful: relay into the app + install fallback.
 export default async function ProPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🤷</div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Lien invalide</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Ce lien de page professionnelle n&apos;est pas valide.</p>
+      </main>
+    );
+  }
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 560, margin: '0 auto' }}>

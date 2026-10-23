@@ -1,9 +1,19 @@
 import { OpenAppLink } from '../../open-app-link';
 
 import { APK_DOWNLOAD_URL } from '@/lib/download';
+import { UUID_RE } from '@/lib/uuid';
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  if (!UUID_RE.test(token)) {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🤷</div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Lien invalide</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Ce lien d&apos;invitation n&apos;est pas valide.</p>
+      </main>
+    );
+  }
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
       <div style={{ fontSize: 56, marginBottom: 16 }}>🔗</div>
