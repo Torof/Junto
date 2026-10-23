@@ -43,11 +43,15 @@ if (process.env.JUNTO_DB_REF && process.env.JUNTO_DB_REF !== linkedRef) {
   process.exit(2);
 }
 
+// CLI pinned: results come back inside an error message, and 2.122.0 cuts
+// those at ~950 characters (2026-10-23). Raise only after checking that.
+const SUPABASE_CLI = 'supabase@2.110.0';
+
 function runSql(sql) {
   const file = join(work, 'q.sql');
   writeFileSync(file, sql);
   try {
-    return execFileSync('npx', ['supabase', 'db', 'query', '--experimental', '--linked', '-f', file], {
+    return execFileSync('npx', ['-y', SUPABASE_CLI, 'db', 'query', '--experimental', '--linked', '-f', file], {
       cwd: dbDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
     });
   } catch (e) {
