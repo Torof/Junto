@@ -40,7 +40,7 @@
      },
      "creator_gone": {
       "title": "Sortie annulée",
-      "body": "« {{title}} » — l’organisateur a quitté Junto"
+      "body": "« {{title}} » — l’organisateur a quitté askandgo"
      }
     },
     "activity_updated": {
@@ -141,7 +141,7 @@
      },
      "pro_gone": {
       "title": "Sortie annulée",
-      "body": "« {{title}} » du {{date}} est annulée — le professionnel n’est plus sur Junto."
+      "body": "« {{title}} » du {{date}} est annulée — le professionnel n’est plus sur askandgo."
      },
      "client_gone": {
       "title": "Réservation annulée",
@@ -183,6 +183,10 @@
     "rate_participants": {
      "title": "Évalue tes co-participants",
      "body": "« {{title}} » — dis-nous comment ça s’est passé."
+    },
+    "presence_self_declare": {
+     "title": "Tu y étais ?",
+     "body": "« {{title}} » — dis-le en un geste, tu as 48 h."
     },
     "review_received": {
      "title": "Nouvel avis",
@@ -269,7 +273,7 @@
      },
      "creator_gone": {
       "title": "Outing cancelled",
-      "body": "“{{title}}” — the organiser left Junto"
+      "body": "“{{title}}” — the organiser left askandgo"
      }
     },
     "activity_updated": {
@@ -370,7 +374,7 @@
      },
      "pro_gone": {
       "title": "Outing cancelled",
-      "body": "“{{title}}” on {{date}} is cancelled — the professional is no longer on Junto."
+      "body": "“{{title}}” on {{date}} is cancelled — the professional is no longer on askandgo."
      },
      "client_gone": {
       "title": "Booking cancelled",
@@ -412,6 +416,10 @@
     "rate_participants": {
      "title": "Rate your co-participants",
      "body": "“{{title}}” — tell us how it went."
+    },
+    "presence_self_declare": {
+     "title": "Were you there?",
+     "body": "“{{title}}” — let us know in one tap, you have 48 h."
     },
     "review_received": {
      "title": "New review",
@@ -498,7 +506,7 @@
      },
      "creator_gone": {
       "title": "Uscita annullata",
-      "body": "« {{title}} » — l'organizzatore ha lasciato Junto"
+      "body": "« {{title}} » — l'organizzatore ha lasciato askandgo"
      }
     },
     "activity_updated": {
@@ -599,7 +607,7 @@
      },
      "pro_gone": {
       "title": "Uscita annullata",
-      "body": "« {{title}} » del {{date}} è annullata — il professionista non è più su Junto."
+      "body": "« {{title}} » del {{date}} è annullata — il professionista non è più su askandgo."
      },
      "client_gone": {
       "title": "Prenotazione annullata",
@@ -641,6 +649,10 @@
     "rate_participants": {
      "title": "Valuta i tuoi compagni",
      "body": "« {{title}} » — raccontaci com'è andata."
+    },
+    "presence_self_declare": {
+     "title": "C’eri?",
+     "body": "« {{title}} » — dillo con un tocco, hai 48 h."
     },
     "review_received": {
      "title": "Nuova recensione",
@@ -727,7 +739,7 @@
      },
      "creator_gone": {
       "title": "Salida cancelada",
-      "body": "«{{title}}»: el organizador ha dejado Junto"
+      "body": "«{{title}}»: el organizador ha dejado askandgo"
      }
     },
     "activity_updated": {
@@ -828,7 +840,7 @@
      },
      "pro_gone": {
       "title": "Salida cancelada",
-      "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en Junto."
+      "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en askandgo."
      },
      "client_gone": {
       "title": "Reserva cancelada",
@@ -870,6 +882,10 @@
     "rate_participants": {
      "title": "Valora a tus compañeros",
      "body": "«{{title}}»: cuéntanos cómo ha ido."
+    },
+    "presence_self_declare": {
+     "title": "¿Estuviste?",
+     "body": "«{{title}}»: dínoslo con un toque, tienes 48 h."
     },
     "review_received": {
      "title": "Nueva reseña",
@@ -956,7 +972,7 @@
      },
      "creator_gone": {
       "title": "Tour abgesagt",
-      "body": "„{{title}}“ — die Organisation hat Junto verlassen"
+      "body": "„{{title}}“ — die Organisation hat askandgo verlassen"
      }
     },
     "activity_updated": {
@@ -1057,7 +1073,7 @@
      },
      "pro_gone": {
       "title": "Tour abgesagt",
-      "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf Junto."
+      "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf askandgo."
      },
      "client_gone": {
       "title": "Buchung storniert",
@@ -1099,6 +1115,10 @@
     "rate_participants": {
      "title": "Bewerte deine Mitstreiter",
      "body": "„{{title}}“ — erzähl uns, wie es war."
+    },
+    "presence_self_declare": {
+     "title": "Warst du dabei?",
+     "body": "„{{title}}“ — sag es mit einem Tipp, du hast 48 h."
     },
     "review_received": {
      "title": "Neue Bewertung",
