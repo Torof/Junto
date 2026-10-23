@@ -14,6 +14,19 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 ---
 
+## Après la bascule — liste de Scott (2026-10-23)
+
+La base est migrée, la production (version 14, tests internes Google Play) tourne sur le nouveau projet.
+
+- [ ] **Pin de la carte** : il est bien, mais se fond trop dans le fond de carte — mieux le détacher (contour, ombre, contraste), sans changer son identité.
+- [ ] **Paramètres → section « Personnalisation »** : regrouper Grappes colorées, Couleur d'accent et Thème dans une section à part.
+- [ ] **Site, version téléphone** : petits ajustements ; puis un peu la version ordinateur.
+- [ ] **Site, données réelles** : vérifier que l'accueil (prochaines sorties, offres) et les pages partagées affichent et mettent en avant les vraies données dès qu'il y en aura (le site n'avait jamais été relié à la base avant le 2026-10-23).
+- [ ] **Fiche Google Play** : 4 nouvelles captures (les actuelles montrent les anciennes versions), textes à revoir.
+- [ ] **Fiche App Store** : à refaire (à préciser : iOS n'est pas encore publié).
+
+**Restes de la bascule** : finir le parcours de validation sur l'app Google Play (dont une sortie publique partagée ouverte dans un navigateur) · publier en production les mises à jour validées en preview (liens d'e-mail à code unique) · retirer les variables Sentry d'EAS et fermer le compte sentry.io · mettre l'ancien projet en pause dans quelques semaines · plus tard : Next.js 16 pour le site (alerte PostCSS, sans risque réel).
+
 ## P0 — Bugs en cours
 
 (aucun bloquant connu)
