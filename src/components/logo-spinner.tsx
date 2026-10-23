@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet } from 'react-native';
 
-const logo = require('../../assets/junto_icon_square.png');
+const logo = require('../../assets/askandgo_icon_square.png');
 
 interface Props {
   size?: number;

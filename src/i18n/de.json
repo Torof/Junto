@@ -10,7 +10,7 @@
     "activity_cancelled": {
       "title": "Tour abgesagt", "body": "„{{title}}“ — {{reason}}",
       "no_reason": { "title": "Tour abgesagt", "body": "„{{title}}“" },
-      "creator_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ — die Organisation hat Junto verlassen" }
+      "creator_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ — die Organisation hat askandgo verlassen" }
     },
     "activity_updated": { "title": "Tour geändert", "body": "„{{title}}“ wurde geändert — prüfe Uhrzeit und Treffpunkt.",
       "trace": { "title": "Route geändert", "body": "„{{title}}“ hat eine neue Route — schau dir den Track an." }
@@ -42,7 +42,7 @@
       "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} wurde abgesagt.",
       "by_client": { "title": "Buchung storniert", "body": "{{name}} hat „{{title}}“ am {{date}} storniert." },
       "by_pro": { "title": "Tour abgesagt", "body": "{{name}} hat „{{title}}“ am {{date}} abgesagt. Melde dich für einen neuen Termin." },
-      "pro_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf Junto." },
+      "pro_gone": { "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf askandgo." },
       "client_gone": { "title": "Buchung storniert", "body": "Die Buchung für „{{title}}“ am {{date}} wurde storniert." }
     },
     "booking_expired": { "title": "Anfrage abgelaufen", "body": "Deine Anfrage für „{{title}}“ am {{date}}, {{period}} ist ohne Antwort abgelaufen. Du kannst einen anderen Termin anfragen." },
@@ -78,10 +78,10 @@
     "dateTimeAt": "ddd D. MMM [um] H:mm"
   },
   "contactShare": {
-    "title": "Mein Junto-QR",
+    "title": "Mein askandgo-QR",
     "intro": "Lass einen Partner diesen QR scannen: ihr seid sofort verbunden.",
     "shareLink": "Link teilen",
-    "shareMessage": "Füg mich auf Junto hinzu — {{link}}",
+    "shareMessage": "Füg mich auf askandgo hinzu — {{link}}",
     "scanContact": "QR scannen",
     "scanHint": "Richte die Kamera auf den QR deines Partners",
     "cameraDeniedTitle": "Kamera verweigert",
@@ -135,7 +135,7 @@
     "profil": "Profil"
   },
   "app": {
-    "name": "Junto"
+    "name": "askandgo"
   },
   "visitor": {
     "explore": "Outdoor-Touren unter Gleichgesinnten"
@@ -191,7 +191,7 @@
     "welcome": "Willkommen!",
     "completeProfile": "Noch ein paar Angaben zum Start",
     "privacyTitle": "Deine Daten bleiben bei dir.",
-    "privacyBody": "Junto nutzt sie nur, damit die App funktioniert. Nichts verlässt die App, nichts wird an Dritte verkauft. Niemals.",
+    "privacyBody": "askandgo nutzt sie nur, damit die App funktioniert. Nichts verlässt die App, nichts wird an Dritte verkauft. Niemals.",
     "dateOfBirth": "Geburtsdatum",
     "selectDate": "Datum wählen",
     "acceptTos": "Ich akzeptiere die Nutzungsbedingungen und die Datenschutzerklärung",
@@ -213,7 +213,7 @@
     "openMenu": "Menü öffnen",
     "full": "Voll",
     "activityFull": "Aktivität ausgebucht",
-    "shareJoin": "Komm mit auf Junto:",
+    "shareJoin": "Komm mit auf askandgo:",
     "shareTitle": "Aktivität teilen",
     "shareNoConversations": "Keine Unterhaltung zum Teilen. Du kannst über die anderen Apps unten teilen.",
     "shareExternal": "Teilen über…",
@@ -927,10 +927,10 @@
   },
   "bgLocation": {
     "title": "Anwesenheit bestätigen, ohne etwas zu tun",
-    "body": "Du bist gerade einer Tour beigetreten, bei der deine Anwesenheit vor Ort festgestellt wird. Wenn du den Standort dauerhaft erlaubst, erledigt Junto das von selbst: Am Tag X musst du nichts aus der Tasche holen.\n\nWas Junto damit genau macht: Es schaut nur in den 24 Std. vor einer Tour, der du beigetreten bist, auf deine Position — und nur, um festzustellen, dass du angekommen bist. Sonst nichts. Das Telefon überwacht, nicht wir, und nach der Tour hört es von selbst auf.\n\nWenn du den Standort lieber nicht freigibst, kannst du vor Ort immer noch den QR-Code des Organisators scannen.",
+    "body": "Du bist gerade einer Tour beigetreten, bei der deine Anwesenheit vor Ort festgestellt wird. Wenn du den Standort dauerhaft erlaubst, erledigt askandgo das von selbst: Am Tag X musst du nichts aus der Tasche holen.\n\nWas askandgo damit genau macht: Es schaut nur in den 24 Std. vor einer Tour, der du beigetreten bist, auf deine Position — und nur, um festzustellen, dass du angekommen bist. Sonst nichts. Das Telefon überwacht, nicht wir, und nach der Tour hört es von selbst auf.\n\nWenn du den Standort lieber nicht freigibst, kannst du vor Ort immer noch den QR-Code des Organisators scannen.",
     "enable": "Erlauben",
     "skip": "Später",
-    "foregroundFirst": "Junto braucht zuerst einen einfachen Standortzugriff."
+    "foregroundFirst": "askandgo braucht zuerst einen einfachen Standortzugriff."
   },
   "activityUpdated": {
     "fields": {
@@ -967,7 +967,7 @@
     "replay": "Intro erneut ansehen",
     "welcome": {
       "tagline": "Sport ist gemeinsam besser.",
-      "body": "Junto bringt Leute in deiner Nähe zusammen, die Lust haben, sich zu bewegen. Finde einen Partner für deine nächste Tour, organisiere alles an einem Ort — Mitfahrt, Ausrüstung, Treffpunkt — und trefft euch im echten Leben."
+      "body": "askandgo bringt Leute in deiner Nähe zusammen, die Lust haben, sich zu bewegen. Finde einen Partner für deine nächste Tour, organisiere alles an einem Ort — Mitfahrt, Ausrüstung, Treffpunkt — und trefft euch im echten Leben."
     },
     "pins": {
       "title": "Die Aktivitäten auf der Karte",
@@ -1093,7 +1093,7 @@
     "badgeEmptyPeer": "Deine Mitteilnehmer halten hier fest, wie es im Gelände gelaufen ist.",
     "badgeEmptySports": "Die Sportarten, die du ausübst, erscheinen hier mit deinem Niveau und der Häufigkeit.",
     "badgeHelp": {
-      "intro": "Junto ist Logistik, kein soziales Netzwerk. Zwei ergänzende Blickwinkel, um gemeinsam eine Tour zu planen: die Touren, die du gemacht hast, und dein Verhalten in den Augen der anderen. Keine Gesamtnote, kein Ranking.",
+      "intro": "askandgo ist Logistik, kein soziales Netzwerk. Zwei ergänzende Blickwinkel, um gemeinsam eine Tour zu planen: die Touren, die du gemacht hast, und dein Verhalten in den Augen der anderen. Keine Gesamtnote, kein Ranking.",
       "peerIntro": "Nach jeder Tour halten deine Mitteilnehmer fest, was im Gelände passiert ist. Keine schriftlichen Kommentare, nur präzise Badges — keine Gesamtnote.",
       "peerPositives": "Positive Signale",
       "peerNegatives": "Negative Signale",
@@ -1328,7 +1328,7 @@
     "requestModalTitle": "Kontaktanfrage senden",
     "requestPlaceholder": "Schreib eine Nachricht...",
     "sendRequest": "Anfrage senden",
-    "defaultRequestMessage": "Hallo {{name}}, ich würde dich gern auf Junto kontaktieren!",
+    "defaultRequestMessage": "Hallo {{name}}, ich würde dich gern auf askandgo kontaktieren!",
     "block": "Diese Person blockieren",
     "unblock": "Blockierung aufheben",
     "blockConfirmTitle": "Diese Person blockieren?",
@@ -1517,12 +1517,12 @@
     "privacy": "Datenschutzerklärung",
     "licenses": "Open-Source-Lizenzen",
     "licensesTitle": "Open-Source-Lizenzen",
-    "licensesIntro": "Junto ist dank dieser Open-Source-Bibliotheken entstanden. Danke an ihre Autoren.",
+    "licensesIntro": "askandgo ist dank dieser Open-Source-Bibliotheken entstanden. Danke an ihre Autoren.",
     "faq": "Häufige Fragen"
   },
   "faq": {
     "title": "Häufige Fragen",
-    "intro": "Die Antworten auf häufige Fragen zu Junto. Kontaktiere uns, wenn deine nicht dabei ist.",
+    "intro": "Die Antworten auf häufige Fragen zu askandgo. Kontaktiere uns, wenn deine nicht dabei ist.",
     "create": {
       "q": "Wie erstelle ich eine Aktivität?",
       "a": "Tipp auf der Karte unten rechts auf den Button +. Gib Sportart, Titel, Datum, Ort und Sichtbarkeit an. Nach der Veröffentlichung erscheint die Aktivität auf der Karte und in der Aktivitätenliste."
@@ -1644,7 +1644,7 @@
     "vouchedVotesLabel_one": "Partner hat es vergeben",
     "vouchedVotesLabel_other": "Partner haben es vergeben",
     "viewAllVoters": "Alle anzeigen",
-    "awardCaption": "Von Junto verliehen",
+    "awardCaption": "Von askandgo verliehen",
     "awardProgression": "Fortschritt",
     "awardMoreFor": "weitere für",
     "peerOpinionCaption": "Von Partnern beurteilt",
@@ -1793,7 +1793,7 @@
     "markedAbsent": "Du giltst bei dieser Tour seit dem {{date}} um {{time}} ({{ago}}) als abwesend. Das Bestätigungsfenster schließt 24 Std. nach dem Ende.",
     "backstopHintDated": "Deine Anwesenheit ist nicht bestätigt. Zwei Mitteilnehmer können sie noch bezeugen — bis zum {{date}} um {{time}}. Ihre Stimme zählt, auch wenn ihre eigene Anwesenheit nicht bestätigt ist.",
     "duoNoPathLeft": "Das Bestätigungsfenster hat sich {{ago}} geschlossen. Zu zweit gibt es keine gegenseitige Bestätigung: Deine Anwesenheit wird einfach nicht gezählt — keine Abwesenheit, keine Strafe.",
-    "locationOffExplain": "Der Standort ist deaktiviert: Junto kann deine Anwesenheit vor Ort nicht erkennen. Aktiviere ihn in den Einstellungen, oder scanne den QR-Code des Organisators.",
+    "locationOffExplain": "Der Standort ist deaktiviert: askandgo kann deine Anwesenheit vor Ort nicht erkennen. Aktiviere ihn in den Einstellungen, oder scanne den QR-Code des Organisators.",
     "openSettings": "Einstellungen öffnen",
     "creatorAutoNote": "Deine eigene Anwesenheit musst du nicht bestätigen: Sie wird automatisch bestätigt, sobald ein Teilnehmer seine bestätigt.",
     "qrExpiresAt": "Dieser Code läuft um {{time}} ab. Öffne dieses Fenster erneut, um einen neuen zu erzeugen.",
@@ -2106,7 +2106,7 @@
     "pinLogoRemove": "Logo löschen",
     "pinLogoBusy": "Wird hochgeladen…",
     "fieldName": "Name *",
-    "fieldNamePlaceholder": "Junto Alpine School",
+    "fieldNamePlaceholder": "askandgo Alpine School",
     "fieldCompany": "Name des Betriebs *",
     "fieldCompanyPlaceholder": "Firmenname / Name des Unternehmens",
     "fieldRealName": "Dein Vor- und Nachname *",

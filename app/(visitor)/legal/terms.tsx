@@ -18,7 +18,7 @@ export default function TermsScreen() {
 
       <AppText style={styles.heading}>1. Objet</AppText>
       <AppText style={styles.body}>
-        Junto est une application mobile de mise en relation entre personnes souhaitant pratiquer des activités sportives et de plein air ensemble. Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application Junto (ci-après "l'Application") éditée par Junto (ci-après "l'Éditeur").
+        askandgo est une application mobile de mise en relation entre personnes souhaitant pratiquer des activités sportives et de plein air ensemble. Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application askandgo (ci-après "l'Application") éditée par askandgo (ci-après "l'Éditeur").
       </AppText>
 
       <AppText style={styles.heading}>2. Acceptation des CGU</AppText>

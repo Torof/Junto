@@ -326,7 +326,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
     // Env-driven host (default getjunto.app) so the share URL always matches the
     // App Links intentFilter host — same pattern as activity-detail.
     const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
-    Share.share({ message: `${pro.display_name} sur Junto\nhttps://${webHost}/pro/${pro.user_id}` }).catch(() => {});
+    Share.share({ message: `${pro.display_name} sur askandgo\nhttps://${webHost}/pro/${pro.user_id}` }).catch(() => {});
   };
 
   // À propos rows (Google-style grouped grey list). Only the ones the pro

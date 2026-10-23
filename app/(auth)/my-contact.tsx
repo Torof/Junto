@@ -81,7 +81,7 @@ export default function MyContactScreen() {
   const handleShare = async () => {
     if (!link) return;
     try {
-      await Share.share({ message: t('contactShare.shareMessage', { defaultValue: 'Ajoute-moi sur Junto — {{link}}', link }) });
+      await Share.share({ message: t('contactShare.shareMessage', { defaultValue: 'Ajoute-moi sur askandgo — {{link}}', link }) });
     } catch { /* cancelled */ }
   };
 
@@ -151,7 +151,7 @@ export default function MyContactScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}><X size={24} color={colors.textPrimary} strokeWidth={2.2} /></Pressable>
-        <AppText style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon QR Junto' })}</AppText>
+        <AppText style={styles.headerTitle}>{t('contactShare.title', { defaultValue: 'Mon QR askandgo' })}</AppText>
         <View style={{ width: 24 }} />
       </View>
 

@@ -8,16 +8,16 @@ const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: IS_PREVIEW ? 'Junto (dev)' : 'Junto',
+  name: IS_PREVIEW ? 'askandgo (dev)' : 'askandgo',
   slug: 'junto',
   version: '0.1.3',
   orientation: 'portrait',
-  icon: './assets/junto_icon_square.png',
+  icon: './assets/askandgo_icon_square.png',
   userInterfaceStyle: 'light',
   scheme: IS_PREVIEW ? 'juntodev' : 'junto',
   newArchEnabled: true,
   splash: {
-    image: './assets/junto_icon_square.png',
+    image: './assets/askandgo_icon_square.png',
     resizeMode: 'contain',
     backgroundColor: '#3F7A56',
   },
@@ -31,7 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     adaptiveIcon: {
       // Mark-only on transparent + solid green background → uniform green icon,
       // no inner square / dark corners (Scott 2026-07-08).
-      foregroundImage: './assets/junto_icon_fg.png',
+      foregroundImage: './assets/askandgo_icon_fg.png',
       backgroundColor: '#3F7A56',
     },
     edgeToEdgeEnabled: true,
@@ -59,8 +59,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       // Required strings for "Always" location permission so background
       // geofencing can fire when the app is closed.
-      NSLocationWhenInUseUsageDescription: 'Junto uses your location to validate your presence at activities.',
-      NSLocationAlwaysAndWhenInUseUsageDescription: 'Junto auto-validates your presence when you arrive at an activity, even when the app is closed.',
+      NSLocationWhenInUseUsageDescription: 'askandgo uses your location to validate your presence at activities.',
+      NSLocationAlwaysAndWhenInUseUsageDescription: 'askandgo auto-validates your presence when you arrive at an activity, even when the app is closed.',
       UIBackgroundModes: ['location', 'fetch'],
     },
   },
@@ -82,20 +82,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './assets/junto_icon_square.png',
-        color: '#F4642A',
+        // Android draws the notification icon as a white silhouette: mark only.
+        icon: './assets/askandgo_notification.png',
+        color: '#3F7A56',
       },
     ],
     [
       'expo-camera',
       {
-        cameraPermission: 'Junto needs camera access to scan presence QR codes.',
+        cameraPermission: 'askandgo needs camera access to scan presence QR codes.',
       },
     ],
     [
       'expo-location',
       {
-        locationAlwaysAndWhenInUsePermission: 'Junto auto-validates your presence when you arrive at an activity, even when the app is closed.',
+        locationAlwaysAndWhenInUsePermission: 'askandgo auto-validates your presence when you arrive at an activity, even when the app is closed.',
         isAndroidBackgroundLocationEnabled: true,
         isIosBackgroundLocationEnabled: true,
       },

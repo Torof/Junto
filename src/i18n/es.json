@@ -10,7 +10,7 @@
     "activity_cancelled": {
       "title": "Salida cancelada", "body": "«{{title}}»: {{reason}}",
       "no_reason": { "title": "Salida cancelada", "body": "«{{title}}»" },
-      "creator_gone": { "title": "Salida cancelada", "body": "«{{title}}»: el organizador ha dejado Junto" }
+      "creator_gone": { "title": "Salida cancelada", "body": "«{{title}}»: el organizador ha dejado askandgo" }
     },
     "activity_updated": { "title": "Salida modificada", "body": "«{{title}}» ha cambiado: revisa la hora y el punto de encuentro.",
       "trace": { "title": "Ruta modificada", "body": "«{{title}}» tiene una nueva ruta — echa un vistazo al recorrido." }
@@ -42,7 +42,7 @@
       "title": "Salida cancelada", "body": "«{{title}}» del {{date}} ha sido cancelada.",
       "by_client": { "title": "Reserva cancelada", "body": "{{name}} ha cancelado «{{title}}» del {{date}}." },
       "by_pro": { "title": "Salida cancelada", "body": "{{name}} ha cancelado «{{title}}» del {{date}}. Contacta para reprogramar." },
-      "pro_gone": { "title": "Salida cancelada", "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en Junto." },
+      "pro_gone": { "title": "Salida cancelada", "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en askandgo." },
       "client_gone": { "title": "Reserva cancelada", "body": "La reserva de «{{title}}» del {{date}} ha sido cancelada." }
     },
     "booking_expired": { "title": "Solicitud caducada", "body": "Tu solicitud para «{{title}}» del {{date}}, {{period}} ha caducado sin respuesta. Puedes pedir otra franja." },
@@ -78,10 +78,10 @@
     "dateTimeAt": "ddd D MMM [a las] H:mm"
   },
   "contactShare": {
-    "title": "Mi QR Junto",
+    "title": "Mi QR askandgo",
     "intro": "Haz que un compañero escanee este QR: quedáis conectados al instante.",
     "shareLink": "Compartir el enlace",
-    "shareMessage": "Añádeme en Junto — {{link}}",
+    "shareMessage": "Añádeme en askandgo — {{link}}",
     "scanContact": "Escanear un QR",
     "scanHint": "Apunta al QR de tu compañero",
     "cameraDeniedTitle": "Cámara denegada",
@@ -135,7 +135,7 @@
     "profil": "Perfil"
   },
   "app": {
-    "name": "Junto"
+    "name": "askandgo"
   },
   "visitor": {
     "explore": "Salidas outdoor entre aficionados"
@@ -191,7 +191,7 @@
     "welcome": "¡Bienvenido!",
     "completeProfile": "Unos datos más para empezar",
     "privacyTitle": "Tus datos se quedan contigo.",
-    "privacyBody": "Junto solo los usa para que la app funcione. Nada sale de la aplicación, nada se vende a terceros. Nunca.",
+    "privacyBody": "askandgo solo los usa para que la app funcione. Nada sale de la aplicación, nada se vende a terceros. Nunca.",
     "dateOfBirth": "Fecha de nacimiento",
     "selectDate": "Seleccionar una fecha",
     "acceptTos": "Acepto las condiciones de uso y la política de privacidad",
@@ -213,7 +213,7 @@
     "openMenu": "Abrir el menú",
     "full": "Completa",
     "activityFull": "Actividad completa",
-    "shareJoin": "Únete a mí en Junto:",
+    "shareJoin": "Únete a mí en askandgo:",
     "shareTitle": "Compartir la actividad",
     "shareNoConversations": "No hay ninguna conversación donde compartir. Puedes compartir con las otras apps de abajo.",
     "shareExternal": "Compartir con…",
@@ -927,10 +927,10 @@
   },
   "bgLocation": {
     "title": "Valida tu presencia sin hacer nada",
-    "body": "Acabas de unirte a una salida en la que tu presencia se comprobará sobre el terreno. Si autorizas la ubicación en todo momento, Junto se encarga solo: el día de la salida no tendrás que sacar nada del bolsillo.\n\nLo que Junto hace con ella, exactamente: solo mira tu posición en las 24 h previas a una salida a la que te hayas unido, y únicamente para comprobar que has llegado. El resto del tiempo, nada. Es el teléfono quien vigila, no nosotros, y se detiene solo después de la salida.\n\nSi prefieres no concederla, siempre podrás escanear el código QR del organizador en el sitio.",
+    "body": "Acabas de unirte a una salida en la que tu presencia se comprobará sobre el terreno. Si autorizas la ubicación en todo momento, askandgo se encarga solo: el día de la salida no tendrás que sacar nada del bolsillo.\n\nLo que askandgo hace con ella, exactamente: solo mira tu posición en las 24 h previas a una salida a la que te hayas unido, y únicamente para comprobar que has llegado. El resto del tiempo, nada. Es el teléfono quien vigila, no nosotros, y se detiene solo después de la salida.\n\nSi prefieres no concederla, siempre podrás escanear el código QR del organizador en el sitio.",
     "enable": "Autorizar",
     "skip": "Más tarde",
-    "foregroundFirst": "Junto necesita primero un acceso básico a la ubicación."
+    "foregroundFirst": "askandgo necesita primero un acceso básico a la ubicación."
   },
   "activityUpdated": {
     "fields": {
@@ -967,7 +967,7 @@
     "replay": "Volver a ver la intro",
     "welcome": {
       "tagline": "El deporte es mejor en compañía.",
-      "body": "Junto reúne a la gente cerca de ti con ganas de moverse. Encuentra un compañero para tu próxima salida, organízalo todo en un mismo sitio — coche compartido, material, punto de encuentro — y quedad en persona."
+      "body": "askandgo reúne a la gente cerca de ti con ganas de moverse. Encuentra un compañero para tu próxima salida, organízalo todo en un mismo sitio — coche compartido, material, punto de encuentro — y quedad en persona."
     },
     "pins": {
       "title": "Las actividades en el mapa",
@@ -1093,7 +1093,7 @@
     "badgeEmptyPeer": "Tus compañeros de salida apuntarán aquí cómo ha ido sobre el terreno.",
     "badgeEmptySports": "Los deportes que practicas aparecerán aquí, con tu nivel y la frecuencia.",
     "badgeHelp": {
-      "intro": "Junto es logística, no una red social. Dos lecturas complementarias para decidir una salida juntos: las salidas que has hecho y tu actitud a ojos de los demás. Sin nota global, sin clasificación.",
+      "intro": "askandgo es logística, no una red social. Dos lecturas complementarias para decidir una salida juntos: las salidas que has hecho y tu actitud a ojos de los demás. Sin nota global, sin clasificación.",
       "peerIntro": "Después de cada salida, tus compañeros señalan lo que ha pasado sobre el terreno. Sin comentarios escritos, solo insignias precisas — ninguna nota global.",
       "peerPositives": "Señales positivas",
       "peerNegatives": "Señales negativas",
@@ -1328,7 +1328,7 @@
     "requestModalTitle": "Enviar una solicitud de contacto",
     "requestPlaceholder": "Escribe un mensaje...",
     "sendRequest": "Enviar la solicitud",
-    "defaultRequestMessage": "¡Hola {{name}}, me gustaría contactar contigo en Junto!",
+    "defaultRequestMessage": "¡Hola {{name}}, me gustaría contactar contigo en askandgo!",
     "block": "Bloquear a este usuario",
     "unblock": "Desbloquear a este usuario",
     "blockConfirmTitle": "¿Bloquear a este usuario?",
@@ -1517,12 +1517,12 @@
     "privacy": "Política de privacidad",
     "licenses": "Licencias open source",
     "licensesTitle": "Licencias open source",
-    "licensesIntro": "Junto está construido gracias a estas bibliotecas open source. Gracias a sus autores.",
+    "licensesIntro": "askandgo está construido gracias a estas bibliotecas open source. Gracias a sus autores.",
     "faq": "Preguntas frecuentes"
   },
   "faq": {
     "title": "Preguntas frecuentes",
-    "intro": "Las respuestas a las preguntas habituales sobre Junto. Contacta con nosotros si la tuya no está aquí.",
+    "intro": "Las respuestas a las preguntas habituales sobre askandgo. Contacta con nosotros si la tuya no está aquí.",
     "create": {
       "q": "¿Cómo creo una actividad?",
       "a": "Desde el mapa, toca el botón + abajo a la derecha. Indica el deporte, el título, la fecha, el lugar y la visibilidad. La actividad aparece en el mapa y en el panel de actividades una vez publicada."
@@ -1644,7 +1644,7 @@
     "vouchedVotesLabel_one": "compañero lo ha señalado",
     "vouchedVotesLabel_other": "compañeros lo han señalado",
     "viewAllVoters": "Ver todos",
-    "awardCaption": "Otorgado por Junto",
+    "awardCaption": "Otorgado por askandgo",
     "awardProgression": "Progresión",
     "awardMoreFor": "más para",
     "peerOpinionCaption": "Valorado por los compañeros",
@@ -1793,7 +1793,7 @@
     "markedAbsent": "Constas como ausente de esta salida desde el {{date}} a las {{time}} ({{ago}}). La ventana de validación se cierra 24 h después del final.",
     "backstopHintDated": "Tu presencia no está validada. Dos compañeros de salida todavía pueden dar testimonio — hasta el {{date}} a las {{time}}. Su voto cuenta aunque su propia presencia no esté confirmada.",
     "duoNoPathLeft": "La ventana de validación se cerró {{ago}}. Entre dos no hay testimonio cruzado posible: tu presencia simplemente no se cuenta — ni ausencia, ni penalización.",
-    "locationOffExplain": "La ubicación está desactivada: Junto no puede detectar tu presencia en el sitio. Actívala en los ajustes, o escanea el QR del organizador.",
+    "locationOffExplain": "La ubicación está desactivada: askandgo no puede detectar tu presencia en el sitio. Actívala en los ajustes, o escanea el QR del organizador.",
     "openSettings": "Abrir los ajustes",
     "creatorAutoNote": "Tu propia presencia no hay que validarla: se confirma automáticamente en cuanto un participante valida la suya.",
     "qrExpiresAt": "Este código caduca a las {{time}}. Vuelve a abrir esta ventana para generar uno nuevo.",
@@ -2106,7 +2106,7 @@
     "pinLogoRemove": "Eliminar el logo",
     "pinLogoBusy": "Subiendo…",
     "fieldName": "Nombre *",
-    "fieldNamePlaceholder": "Junto Alpine School",
+    "fieldNamePlaceholder": "askandgo Alpine School",
     "fieldCompany": "Nombre de la estructura *",
     "fieldCompanyPlaceholder": "Razón social / nombre de la empresa",
     "fieldRealName": "Tu nombre y apellidos *",

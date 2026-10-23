@@ -200,7 +200,7 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
     if (item.welcome) {
       return (
         <ScrollView style={{ width }} contentContainerStyle={[styles.pageScroll, styles.welcomePage]} showsVerticalScrollIndicator={false}>
-          <Image source={require('../../assets/junto_icon_round.png')} style={styles.welcomeLogo} />
+          <Image source={require('../../assets/askandgo_icon_square.png')} style={styles.welcomeLogo} />
           <AppText style={styles.welcomeTagline}>{item.welcome.tagline}</AppText>
           <AppText style={styles.welcomeBody}>{item.welcome.body}</AppText>
         </ScrollView>

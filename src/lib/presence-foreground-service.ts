@@ -112,7 +112,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
       pausesUpdatesAutomatically: false,
       showsBackgroundLocationIndicator: true,
       foregroundService: {
-        notificationTitle: 'Junto valide ta présence',
+        notificationTitle: 'askandgo valide ta présence',
         notificationBody:
           'Détection automatique active pendant la fenêtre de présence',
         notificationColor: '#2FA46A',

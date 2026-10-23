@@ -46,7 +46,7 @@ async function markPendingReplay(activityId: string, slotId: string): Promise<vo
     identifier: slotId,
     content: {
       title: 'Présence détectée — en attente de réseau',
-      body: 'Ouvre Junto dès que tu as du signal, ou scanne le QR du créateur pour confirmer.',
+      body: 'Ouvre askandgo dès que tu as du signal, ou scanne le QR du créateur pour confirmer.',
       data: { activity_id: activityId, type: 'presence_detected' },
       sound: false,
     },

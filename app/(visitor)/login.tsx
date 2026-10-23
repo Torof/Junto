@@ -133,7 +133,7 @@ export default function LoginScreen() {
       >
         <View style={styles.content}>
         <View style={styles.header}>
-          <Image source={require('../../assets/junto_icon_square.png')} style={styles.logo} />
+          <Image source={require('../../assets/askandgo_icon_square.png')} style={styles.logo} />
           <AppText style={styles.brand}>{t('app.name')}</AppText>
           <AppText style={styles.tagline}>{t('auth.tagline')}</AppText>
         </View>

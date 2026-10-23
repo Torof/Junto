@@ -1037,7 +1037,7 @@ function AwardDetail({
           </View>
           <View style={styles.awardHeroTopRight}>
             <AppText style={styles.popupCaption}>
-              {t('badges.awardCaption', { defaultValue: 'Décerné par Junto' })}
+              {t('badges.awardCaption', { defaultValue: 'Décerné par askandgo' })}
             </AppText>
             <AppText style={[styles.awardHeroLabel, { color: tierColor }]}>{awardLabel}</AppText>
           </View>

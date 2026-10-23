@@ -476,7 +476,7 @@ export default function ProEditScreen() {
             style={styles.input}
             value={displayName}
             onChangeText={setDisplayName}
-            placeholder={t('pro.fieldNamePlaceholder', { defaultValue: 'Junto Alpine School' })}
+            placeholder={t('pro.fieldNamePlaceholder', { defaultValue: 'askandgo Alpine School' })}
             placeholderTextColor={colors.textSecondary}
             maxLength={100}
           />

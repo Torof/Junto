@@ -18,7 +18,7 @@ export default function PrivacyScreen() {
 
       <AppText style={styles.heading}>1. Responsable du traitement</AppText>
       <AppText style={styles.body}>
-        Le responsable du traitement des données personnelles est Junto, joignable à l'adresse : support@junto.app
+        Le responsable du traitement des données personnelles est askandgo, joignable à l'adresse : support@junto.app
       </AppText>
 
       <AppText style={styles.heading}>2. Données collectées</AppText>
