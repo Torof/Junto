@@ -361,23 +361,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   ))}
                 </View>
               )}
-              <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
-                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
-              } />
-              {showTheme && (
-                <View style={styles.themeContent}>
-                  <View style={styles.segmentedPill}>
-                    {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
-                      const active = themePreference === opt;
-                      return (
-                        <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
-                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
               <Row icon={Globe} label={t('drawer.language', { defaultValue: 'Langue' })} onPress={() => setShowLanguage(!showLanguage)} right={
                 <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showLanguage ? '180deg' : '0deg' }] }} />
               } />
@@ -395,7 +378,38 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                   </View>
                 </View>
               )}
-              <Row icon={PieChart} label={t('drawer.clusterRing')} right={
+              {(user?.tier === 'premium' || user?.tier === 'pro') ? (
+                <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
+              ) : (
+                <Row icon={BellRing} label={t('alerts.manage')} right={<Text style={styles.premiumLabel}>Premium</Text>} last />
+              )}
+            </View>
+
+            {/* === PERSONNALISATION === */}
+            <Text style={styles.sectionTitle}>{t('drawer.personalisation')}</Text>
+            <View style={styles.sectionCard}>
+              <Row icon={Palette} label={t('drawer.theme')} onPress={() => setShowTheme(!showTheme)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showTheme ? '180deg' : '0deg' }] }} />
+              } />
+              {showTheme && (
+                <View style={styles.themeContent}>
+                  <View style={styles.segmentedPill}>
+                    {(['system', 'light', 'dark'] as ThemePreference[]).map((opt) => {
+                      const active = themePreference === opt;
+                      return (
+                        <Pressable key={opt} style={[styles.segment, active && styles.segmentActive]} onPress={() => setThemePreference(opt)}>
+                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`drawer.themeOption.${opt}`)}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+              <Row icon={Paintbrush} label={t('drawer.accent')} onPress={() => setShowAccent(!showAccent)} right={
+                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showAccent ? '180deg' : '0deg' }] }} />
+              } />
+              {showAccent && <AccentPicker />}
+              <Row icon={PieChart} label={t('drawer.clusterRing')} last={!clusterRingOn} right={
                 <Switch value={clusterRingOn} onValueChange={setClusterRingOn} trackColor={{ false: colors.borderMuted, true: colors.cta }} thumbColor={colors.onCta} />
               } />
               {clusterRingOn && (
@@ -411,15 +425,6 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                     })}
                   </View>
                 </View>
-              )}
-              <Row icon={Paintbrush} label={t('drawer.accent')} onPress={() => setShowAccent(!showAccent)} right={
-                <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} style={{ transform: [{ rotate: showAccent ? '180deg' : '0deg' }] }} />
-              } />
-              {showAccent && <AccentPicker />}
-              {(user?.tier === 'premium' || user?.tier === 'pro') ? (
-                <Row icon={BellRing} label={t('alerts.manage')} onPress={() => { onClose(); router.push('/(auth)/create-alert'); }} last />
-              ) : (
-                <Row icon={BellRing} label={t('alerts.manage')} right={<Text style={styles.premiumLabel}>Premium</Text>} last />
               )}
             </View>
 

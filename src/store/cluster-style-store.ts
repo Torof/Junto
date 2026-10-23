@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Map cluster look (Scott 2026-10-21): coloured universe ring on/off + its
 // thickness. Built to show both looks to testers; kept as a user preference.
+// Off by default (Scott 2026-10-23): the plain cluster first, colour on request.
 export const CLUSTER_RING_WIDTHS = [3, 5, 7] as const;
 export type ClusterRingWidth = (typeof CLUSTER_RING_WIDTHS)[number];
 
@@ -21,7 +22,7 @@ function persist(s: { ringOn: boolean; ringWidth: ClusterRingWidth }) {
 }
 
 export const useClusterStyleStore = create<ClusterStyleStore>((set, get) => ({
-  ringOn: true,
+  ringOn: false,
   ringWidth: 5,
   load: async () => {
     try {
@@ -29,7 +30,7 @@ export const useClusterStyleStore = create<ClusterStyleStore>((set, get) => ({
       if (!raw) return;
       const v = JSON.parse(raw) as { ringOn?: unknown; ringWidth?: unknown };
       set({
-        ringOn: typeof v.ringOn === 'boolean' ? v.ringOn : true,
+        ringOn: typeof v.ringOn === 'boolean' ? v.ringOn : false,
         ringWidth: (CLUSTER_RING_WIDTHS as readonly unknown[]).includes(v.ringWidth) ? (v.ringWidth as ClusterRingWidth) : 5,
       });
     } catch {
